@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Driver Files">
+      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
+      <Extensions>inf;inv;inx;mof;mc;</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\EPT">
+      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Hypervisor">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Assembly">
+      <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Features">
+      <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Features\Hooks">
+      <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="hprdbghv.inf">
+      <Filter>Driver Files</Filter>
+    </Inf>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Driver.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vmcall.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.c">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="HypervisorRoutines.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="Invept.c">
+      <Filter>Source Files\EPT</Filter>
+    </ClCompile>
+    <ClCompile Include="Ept.c">
+      <Filter>Source Files\EPT</Filter>
+    </ClCompile>
+    <ClCompile Include="VmxRegions.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="Vmx.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="Vpid.c">
+      <Filter>Source Files\EPT</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging.c">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Spinlock.c">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PoolManager.c">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Events.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="Exit.c">
+      <Filter>Source Files\Hypervisor</Filter>
+    </ClCompile>
+    <ClCompile Include="SyscallHook.c">
+      <Filter>Source Files\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="HiddenHooks.c">
+      <Filter>Source Files\Features</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InlineAsm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalVariables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vmcall.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HypervisorRoutines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Msr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Invept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ept.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vmx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Dpc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vpid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PoolManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Events.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Hooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="AsmEpt.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmCommon.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmSegmentRegs.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmVmxOperation.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmVmxContextState.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmVmexitHandler.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+  </ItemGroup>
+</Project>

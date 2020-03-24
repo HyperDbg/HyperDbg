@@ -1,0 +1,86 @@
+;
+; hprdbghv.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=hprdbghv.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+MyHypervisorDriver_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+hprdbghv.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%hprdbghv.DeviceDesc%=MyHypervisorDriver_Device, Root\hprdbghv ; TODO: edit hw-id
+
+[MyHypervisorDriver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+hprdbghv.sys
+
+;-------------- Service installation
+[MyHypervisorDriver_Device.NT.Services]
+AddService = hprdbghv,%SPSVCINST_ASSOCSERVICE%, MyHypervisorDriver_Service_Inst
+
+; -------------- hprdbghv driver install sections
+[MyHypervisorDriver_Service_Inst]
+DisplayName    = %hprdbghv.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\hprdbghv.sys
+
+;
+;--- hprdbghv_Device Coinstaller installation ------
+;
+
+[hprdbghv_Device.NT.CoInstallers]
+AddReg=hprdbghv_Device_CoInstaller_AddReg
+CopyFiles=MyHypervisorDriver_Device_CoInstaller_CopyFiles
+
+[hprdbghv_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[hprdbghv_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[hprdbghv_Device.NT.Wdf]
+KmdfService =  hprdbghv, MyHypervisorDriver_wdfsect
+[hprdbghv_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "hprdbghv Installation Disk"
+hprdbghv.DeviceDesc = "hprdbghv Device"
+hprdbghv.SVCDESC = "hprdbghv Service"
