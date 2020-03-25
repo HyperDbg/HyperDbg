@@ -7,6 +7,7 @@
 #include "Vmcall.h"
 #include "HypervisorRoutines.h"
 #include "Invept.h"
+#include "Vpid.h"
 #include "Dpc.h"
 #include "Events.h"
 
@@ -341,7 +342,7 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 	// Set up VPID
 	/* For all processors, we will use a VPID = 1. This allows the processor to separate caching
 	   of EPT structures away from the regular OS page translation tables in the TLB.	*/
-	__vmx_vmwrite(VIRTUAL_PROCESSOR_ID, 1);
+	__vmx_vmwrite(VIRTUAL_PROCESSOR_ID, VPID_TAG);
 
 	//setup guest rsp
 	__vmx_vmwrite(GUEST_RSP, (ULONG64)GuestStack);
