@@ -64,6 +64,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutWindow.Designer.cs">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="child.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -83,14 +89,24 @@
       <DependentUpon>CommandSection.cs</DependentUpon>
     </Compile>
     <Compile Include="Details\Information.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="KernelAffairs\KernelRequests.cs" />
+    <Compile Include="MainPanel.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="MainPanel.Designer.cs">
+      <DependentUpon>MainPanel.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RegsWindow.Designer.cs">
+      <DependentUpon>RegsWindow.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="AboutWindow.resx">
+      <DependentUpon>AboutWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="child.resx">
       <DependentUpon>child.cs</DependentUpon>
     </EmbeddedResource>
@@ -100,8 +116,8 @@
     <EmbeddedResource Include="Components\CommandSection.resx">
       <DependentUpon>CommandSection.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="MainPanel.resx">
+      <DependentUpon>MainPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -111,7 +127,11 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="RegsWindow.resx">
+      <DependentUpon>RegsWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -139,6 +159,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="butterfly.ico" />
+    <None Include="Resources\arrow-circle-down.png" />
+    <None Include="Resources\adjust.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

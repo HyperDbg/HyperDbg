@@ -11,7 +11,7 @@ using System.Windows.Forms;
 namespace hyperdbg_gui
 {
 
-    public partial class Form1 : Form
+    public partial class MainPanel : Form
     {
         /// <summary>
         /// Global Variables
@@ -21,7 +21,7 @@ namespace hyperdbg_gui
         //Create a new instance of the MDI child template for Command Window
         CommandWindow commandWindow = new CommandWindow();
 
-        public Form1()
+        public MainPanel()
         {
             InitializeComponent();
         }
@@ -66,6 +66,41 @@ namespace hyperdbg_gui
                 //Display the child window
                 commandWindow.Show();
 
+        }
+
+        private void toolStripButton11_Click(object sender, EventArgs e)
+        {
+            foreach (Control c in this.Controls)
+            {
+                UpdateColorControls(c);
+            }
+        }
+        public void UpdateColorControls(Control myControl)
+        {
+            myControl.BackColor = Color.Black;
+            myControl.ForeColor = Color.White;
+            foreach (Control subC in myControl.Controls)
+            {
+                UpdateColorControls(subC);
+            }
+        }
+
+        private void registersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Create a new instance of the MDI child template form
+            RegsWindow chForm = new RegsWindow();
+
+            //Set parent form for the child window 
+            chForm.MdiParent = this;
+
+            //Display the child window
+            chForm.Show();
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AboutWindow about = new AboutWindow();
+            about.ShowDialog();
         }
     }
 }
