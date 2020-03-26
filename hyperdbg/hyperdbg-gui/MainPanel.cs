@@ -61,13 +61,7 @@ namespace hyperdbg_gui
         {
  
                 StateMessageWindow = true;
-
-                //Set parent form for the child window 
                 commandWindow.MdiParent = this;
-
-                commandWindow.Dock = DockStyle.Bottom;
-
-                //Display the child window
                 commandWindow.Show();
 
         }
@@ -116,5 +110,7 @@ namespace hyperdbg_gui
         {
             MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
+
+    
     }
 }
