@@ -88,6 +88,7 @@
     <Compile Include="Components\CommandSection.Designer.cs">
       <DependentUpon>CommandSection.cs</DependentUpon>
     </Compile>
+    <Compile Include="ControlMoverOrResizer.cs" />
     <Compile Include="Details\Information.cs" />
     <Compile Include="KernelAffairs\KernelRequests.cs" />
     <Compile Include="MainPanel.cs">

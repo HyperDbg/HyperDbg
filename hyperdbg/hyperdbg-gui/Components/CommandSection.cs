@@ -16,5 +16,6 @@ namespace hyperdbg_gui.Components
         {
             InitializeComponent();
         }
+
     }
 }

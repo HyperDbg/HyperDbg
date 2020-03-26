@@ -29,6 +29,10 @@ namespace hyperdbg_gui
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = "hyperdbg debugger (" + hyperdbg_gui.Details.HyperdbgInformation.HyperdbgVersion + ") x86-64";
+            ControlMoverOrResizer.Init(panel1);
+            ControlMoverOrResizer.WorkType = ControlMoverOrResizer.MoveOrResize.Resize;
+
+
         }
 
         private void addNewMenuToolStripMenuItem_Click(object sender, EventArgs e)
