@@ -77,7 +77,7 @@ namespace hyperdbg_gui
         }
         public void UpdateColorControls(Control myControl)
         {
-            myControl.BackColor = Color.Black;
+            myControl.BackColor = Color.FromArgb(37,37,38);
             myControl.ForeColor = Color.White;
             foreach (Control subC in myControl.Controls)
             {
@@ -101,6 +101,16 @@ namespace hyperdbg_gui
         {
             AboutWindow about = new AboutWindow();
             about.ShowDialog();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
     }
 }
