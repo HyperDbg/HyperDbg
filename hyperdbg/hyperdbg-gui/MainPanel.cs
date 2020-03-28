@@ -13,13 +13,6 @@ namespace hyperdbg_gui
 
     public partial class MainPanel : Form
     {
-        /// <summary>
-        /// Global Variables
-        /// </summary>
-        /// 
-        bool StateMessageWindow = false;
-        //Create a new instance of the MDI child template for Command Window
-        CommandWindow commandWindow = new CommandWindow();
 
         public MainPanel()
         {
@@ -59,10 +52,6 @@ namespace hyperdbg_gui
 
         private void commandWindowsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
-            StateMessageWindow = true;
-            commandWindow.MdiParent = this;
-            commandWindow.Show();
 
         }
 
@@ -113,14 +102,26 @@ namespace hyperdbg_gui
 
         private int ReceivedMessagesHandler(string text)
         {
-            richTextBox1.AppendText(text);
+            foreach (var item in
+                hyperdbg_gui.Details.GlobalVariables.ListOfWindows.Where(x=>x.WindowType == Details.GlobalVariables.WindowTypes.Command))
+            {
+                CommandWindow cmdWnd = (CommandWindow) item.WindowForm;
+                cmdWnd.richTextBox1.AppendText(text);
+            }
             return 0;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        private void toolStripButton21_Click(object sender, EventArgs e)
         {
+
+            WindowManager.AddWindow.CreateCommandWindow(this);
+
             hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
             hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgInit();
+
+            toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
+
         }
     }
 }

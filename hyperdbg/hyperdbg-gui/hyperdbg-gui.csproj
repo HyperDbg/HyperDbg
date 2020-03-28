@@ -89,6 +89,7 @@
       <DependentUpon>CommandSection.cs</DependentUpon>
     </Compile>
     <Compile Include="ControlMoverOrResizer.cs" />
+    <Compile Include="Details\GlobalVariables.cs" />
     <Compile Include="Details\Information.cs" />
     <Compile Include="KernelAffairs\CtrlNativeCallbacks.cs" />
     <Compile Include="KernelAffairs\KernelRequests.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="RegsWindow.Designer.cs">
       <DependentUpon>RegsWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="WindowManager\AddWindow.cs" />
     <EmbeddedResource Include="AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -161,6 +163,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="butterfly.ico" />
+    <None Include="Resources\Trafficlight-red-icon.png" />
+    <None Include="Resources\Pan_Green_Circle.png" />
     <None Include="Resources\arrow-circle-down.png" />
     <None Include="Resources\adjust.png" />
   </ItemGroup>

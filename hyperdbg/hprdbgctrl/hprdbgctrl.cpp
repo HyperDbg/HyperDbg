@@ -237,6 +237,8 @@ extern "C"
 
 HPRDBGCTRL_API int HyperdbgInit()
 {
+	MessageBoxA(0, "0", "sample", 0);
+
 	string CpuID;
 	DWORD ErrorNum;
 	HANDLE Handle;

@@ -117,36 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="richTextBox1.Text" xml:space="preserve">
-    <value>
-************* Path validation summary **************
-Response                         Time (ms)     Location
-Deferred                                       SRV*c:\symbols*http://msdl.microsoft.com/download/symbols
-Symbol search path is: SRV*c:\symbols*http://msdl.microsoft.com/download/symbols
-Executable search path is: 
-Windows 10 Kernel Version 18362 MP (4 procs) Free x64
-Product: WinNt, suite: TerminalServer SingleUserTS
-Built by: 18362.1.amd64fre.19h1_release.190318-1202
-Machine Name:
-Kernel base = 0xfffff807`73200000 PsLoadedModuleList = 0xfffff807`73648130
-Debug session time: Tue Mar 24 12:40:24.178 2020 (UTC - 7:00)
-System Uptime: 0 days 0:02:08.402
-Break instruction exception - code 80000003 (first chance)
-*******************************************************************************
-*                                                                             *
-*   You are seeing this message because you pressed either                    *
-*       CTRL+C (if you run console kernel debugger) or,                       *
-*       CTRL+BREAK (if you run GUI kernel debugger),                          *
-*   on your debugger machine's keyboard.                                      *
-*                                                                             *
-*                   THIS IS NOT A BUG OR A SYSTEM CRASH                       *
-*                                                                             *
-* If you did not intend to break into the debugger, press the "g" key, then   *
-* press the "Enter" key now.  This message might immediately reappear.  If it *
-* does, press "g" and "Enter" again.                                          *
-*                                                                             *
-*******************************************************************************
-nt!DbgBreakPointWithStatus:
-fffff807`733c9370 cc              int     3</value>
-  </data>
 </root>
