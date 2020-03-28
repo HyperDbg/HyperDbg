@@ -483,7 +483,13 @@ VOID HvDpcBroadcastInitializeGuest(KDPC* Dpc, PVOID DeferredContext, PVOID Syste
 
 /* Terminate Vmx on all logical cores. */
 VOID HvTerminateVmx()
-{
+{	
+	
+	/* We're not serving IOCTL when we reach here because having a pending IOCTL won't let to close the handle so
+	we use DbgPrint as it's safe here ! */
+	DbgPrint("Terminating VMX...\n");
+	// Terminating Vmx
+
 	// Remve All the hooks if any
 	HvPerformPageUnHookAllPages();
 
@@ -500,6 +506,9 @@ VOID HvTerminateVmx()
 
 	// Free the Pool manager
 	PoolManagerUninitialize();
+
+	DbgPrint("VMX Operation turned off successfully :)\n");
+
 	
 }
 

@@ -31,7 +31,7 @@ int main()
 	// Print Hypervisor From Scratch Message
 	PrintAppearance();
 
-	HyperdbgInit();
+	//HyperdbgInit();
 
 	exit(0);
 

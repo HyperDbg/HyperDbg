@@ -59,10 +59,10 @@ namespace hyperdbg_gui
 
         private void commandWindowsToolStripMenuItem_Click(object sender, EventArgs e)
         {
- 
-                StateMessageWindow = true;
-                commandWindow.MdiParent = this;
-                commandWindow.Show();
+
+            StateMessageWindow = true;
+            commandWindow.MdiParent = this;
+            commandWindow.Show();
 
         }
 
@@ -75,7 +75,7 @@ namespace hyperdbg_gui
         }
         public void UpdateColorControls(Control myControl)
         {
-            myControl.BackColor = Color.FromArgb(37,37,38);
+            myControl.BackColor = Color.FromArgb(37, 37, 38);
             myControl.ForeColor = Color.White;
             foreach (Control subC in myControl.Controls)
             {
@@ -111,6 +111,16 @@ namespace hyperdbg_gui
             MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
 
-    
+        private int ReceivedMessagesHandler(string text)
+        {
+            richTextBox1.AppendText(text);
+            return 0;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
+            hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgInit();
+        }
     }
 }

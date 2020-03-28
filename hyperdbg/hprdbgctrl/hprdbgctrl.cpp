@@ -11,26 +11,48 @@
 #include "hprdbgctrl.h"
 
 
-/*
-// This is an example of an exported variable
-HPRDBGCTRL_API int nhprdbgctrl=0;
-
-// This is an example of an exported function.
-HPRDBGCTRL_API int fnhprdbgctrl(void)
-{
-    return 0;
-}
-
-// This is the constructor of a class that has been exported.
-Chprdbgctrl::Chprdbgctrl()
-{
-    return;
-}
-*/
-
-
 using namespace std;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
+
+typedef int(__stdcall* Callback)(const char* text);
+
+Callback Handler = 0;
+
+extern "C" __declspec(dllexport)
+void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
+	Handler = handler;
+}
+
+void ShowMessages(const char* Fmt, ...) {
+
+	va_list ArgList;
+	char TempMessage[PacketChunkSize];
+
+	va_start(ArgList, Fmt);
+
+	int sprintfresult = vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
+	va_end(ArgList);
+
+	if (sprintfresult != -1)
+	{
+		if (Handler != NULL)
+		{
+			Handler(TempMessage);
+		}
+		else
+		{
+			printf(TempMessage);
+		}
+	}
+	else
+	{
+		MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
+	}
+
+
+}
+
+
 
 string GetCpuid()
 {
@@ -113,7 +135,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	REGISTER_EVENT RegisterEvent;
 	UINT32 OperationCode;
 
-	printf(" =============================== Kernel-Mode Logs (Driver) ===============================\n");
+	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================\n");
 	RegisterEvent.hEvent = NULL;
 	RegisterEvent.Type = IRP_BASED;
 	// allocate buffer for transfering messages
@@ -141,34 +163,34 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				);
 
 				if (!Status) {
-					printf("Ioctl failed with code %d\n", GetLastError());
+					ShowMessages("Ioctl failed with code %d\n", GetLastError());
 					break;
 				}
-				printf("\n========================= Kernel Mode (Buffer) =========================\n");
+				ShowMessages("\n========================= Kernel Mode (Buffer) =========================\n");
 
 				OperationCode = 0;
 				memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-				printf("Returned Length : 0x%x \n", ReturnedLength);
-				printf("Operation Code : 0x%x \n", OperationCode);
+				ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+				ShowMessages("Operation Code : 0x%x \n", OperationCode);
 
 				switch (OperationCode)
 				{
 				case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-					printf("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-					printf("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_INFO_MESSAGE:
-					printf("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
-					printf("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_ERROR_MESSAGE:
-					printf("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
-					printf("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_WARNING_MESSAGE:
-					printf("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
-					printf("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 
 				default:
@@ -176,7 +198,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				}
 
 
-				printf("\n========================================================================\n");
+				ShowMessages("\n========================================================================\n");
 
 			}
 			else
@@ -188,7 +210,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	}
 	catch (const std::exception&)
 	{
-		printf("\n Exception !\n");
+		ShowMessages("\n Exception !\n");
 	}
 }
 
@@ -202,6 +224,17 @@ DWORD WINAPI ThreadFunc(void* Data) {
 }
 #endif
 
+
+
+
+
+
+extern "C"
+{
+	__declspec (dllexport) int __cdecl  HyperdbgInit();
+}
+
+
 HPRDBGCTRL_API int HyperdbgInit()
 {
 	string CpuID;
@@ -212,25 +245,25 @@ HPRDBGCTRL_API int HyperdbgInit()
 
 	CpuID = GetCpuid();
 
-	printf("[*] The CPU Vendor is : %s \n", CpuID.c_str());
+	ShowMessages("[*] The CPU Vendor is : %s \n", CpuID.c_str());
 
 	if (CpuID == "GenuineIntel")
 	{
-		printf("[*] The Processor virtualization technology is VT-x. \n");
+		ShowMessages("[*] The Processor virtualization technology is VT-x. \n");
 	}
 	else
 	{
-		printf("[*] This program is not designed to run in a non-VT-x environemnt !\n");
+		ShowMessages("[*] This program is not designed to run in a non-VT-x environemnt !\n");
 		return 1;
 	}
 
 	if (VmxSupportDetection())
 	{
-		printf("[*] VMX Operation is supported by your processor .\n");
+		ShowMessages("[*] VMX Operation is supported by your processor .\n");
 	}
 	else
 	{
-		printf("[*] VMX Operation is not supported by your processor .\n");
+		ShowMessages("[*] VMX Operation is not supported by your processor .\n");
 		return 1;
 	}
 
@@ -247,7 +280,7 @@ HPRDBGCTRL_API int HyperdbgInit()
 	if (Handle == INVALID_HANDLE_VALUE)
 	{
 		ErrorNum = GetLastError();
-		printf("[*] CreateFile failed : %d\n", ErrorNum);
+		ShowMessages("[*] CreateFile failed : %d\n", ErrorNum);
 		return 1;
 
 	}
@@ -256,18 +289,38 @@ HPRDBGCTRL_API int HyperdbgInit()
 
 	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, Handle, 0, NULL);
 	if (Thread) {
-		printf("[*] Thread Created successfully !!!");
+		ShowMessages("[*] Thread Created successfully !!!");
 	}
 #endif
 
-	printf("\n[*] Press any key to terminate the VMX operation...\n");
 
-	_getch();
+	MessageBoxA(0, "3", "sample", 0);
 
-	printf("[*] Terminating VMX !\n");
+	ShowMessages("[*] Terminating VMX !\n");
+
+
+
 
 	// Indicate that the finish process start or not
 	IsVmxOffProcessStart = TRUE;
+
+	MessageBoxA(0, "2", "sample", 0);
+	// Send IOCTL to mark complete all IRP Pending 
+	Status = DeviceIoControl(
+		Handle,															// Handle to device
+		IOCTL_TERMINATE_VMX,											// IO Control code
+		NULL,															// Input Buffer to driver.
+		0,																// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
+		NULL,															// Output Buffer from driver.
+		0,																// Length of output buffer in bytes.
+		NULL,															// Bytes placed in buffer.
+		NULL															// synchronous call
+	);
+	// wait to make sure we don't use an invalid handle in another Ioctl
+	if (!Status) {
+		ShowMessages("Ioctl failed with code %d\n", GetLastError());
+	}
+	MessageBoxA(0, "6", "sample", 0);
 
 	// Send IOCTL to mark complete all IRP Pending 
 	Status = DeviceIoControl(
@@ -282,16 +335,20 @@ HPRDBGCTRL_API int HyperdbgInit()
 	);
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
-		printf("Ioctl failed with code %d\n", GetLastError());
+		ShowMessages("Ioctl failed with code %d\n", GetLastError());
 	}
+	MessageBoxA(0, "5", "sample", 0);
+
 	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
-	CloseHandle(Handle);
+	if (!CloseHandle(Handle))
+	{
+		MessageBoxA(0, "4", "sample", 0);
+		ShowMessages("\nError : 0x%x\n", GetLastError());
+	};
 
-	printf("\nError : 0x%x\n", GetLastError());
+	ShowMessages("[*] You're not on hypervisor anymore !");
 
-	printf("[*] You're not on hypervisor anymore !");
-
-	exit(0);
+	MessageBoxA(0, "1" , "sample", 0);
 
 	return 0;
 }

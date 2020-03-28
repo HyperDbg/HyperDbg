@@ -176,13 +176,8 @@ NTSTATUS DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 /* IRP_MJ_CLOSE Function handler*/
 NTSTATUS DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-	/* We're not serving IOCTL when we reach here because having a pending IOCTL won't let to close the handle so
-	we use DbgPrint as it's safe here ! */
-	DbgPrint("Terminating VMX...\n");
 	// Terminating Vmx
-	HvTerminateVmx();
-
-	DbgPrint("VMX Operation turned off successfully :)\n");
+	//HvTerminateVmx();
 	
 	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
@@ -206,6 +201,7 @@ NTSTATUS DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 /* Driver IOCTL Dispatcher*/
 NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+	DbgBreakPoint();
 	PIO_STACK_LOCATION  IrpStack;
 	PREGISTER_EVENT RegisterEvent;
 	NTSTATUS    Status;
@@ -239,7 +235,7 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				Status = LogRegisterEventBasedNotification(DeviceObject, Irp);
 				break;
 			default:
-				ASSERTMSG("\tUnknow notification type from user-mode\n", FALSE);
+				LogError("Unknow notification type from user-mode");
 				Status = STATUS_INVALID_PARAMETER;
 				break;
 			}
@@ -251,8 +247,14 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			LogInfoImmediate("An immediate message recieved, we no longer recieve IRPs from user-mode ");
 			Status = STATUS_SUCCESS;
 			break;
+		case IOCTL_TERMINATE_VMX:
+			DbgBreakPoint();
+			HvTerminateVmx();
+			DbgBreakPoint();
+			Status = STATUS_SUCCESS;
+			break;
 		default:
-			ASSERT(FALSE);  // should never hit this
+			LogError("Unknow IOCTL");
 			Status = STATUS_NOT_IMPLEMENTED;
 			break;
 		}
@@ -262,10 +264,14 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		// We're no longer serve IOCTLL
 		Status = STATUS_SUCCESS;
 	}
+
 	if (Status != STATUS_PENDING) {
 		Irp->IoStatus.Status = Status;
 		Irp->IoStatus.Information = 0;
+		DbgBreakPoint();
 		IoCompleteRequest(Irp, IO_NO_INCREMENT);
+		DbgBreakPoint();
+
 	}
 
 	return Status;

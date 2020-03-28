@@ -90,6 +90,7 @@
     </Compile>
     <Compile Include="ControlMoverOrResizer.cs" />
     <Compile Include="Details\Information.cs" />
+    <Compile Include="KernelAffairs\CtrlNativeCallbacks.cs" />
     <Compile Include="KernelAffairs\KernelRequests.cs" />
     <Compile Include="MainPanel.cs">
       <SubType>Form</SubType>
