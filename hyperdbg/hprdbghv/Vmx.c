@@ -136,6 +136,7 @@ BOOLEAN VmxVirtualizeCurrentSystem(PVOID GuestStack)
 /* Broadcast to terminate VMX on all logical cores */
 BOOLEAN VmxTerminate()
 {
+
 	int CurrentCoreIndex;
 	NTSTATUS Status;
 
@@ -144,7 +145,7 @@ BOOLEAN VmxTerminate()
 
 	// Execute Vmcall to to turn off vmx from Vmx root mode
 	Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL, NULL, NULL);
-	
+
 	if (Status == STATUS_SUCCESS)
 	{
 		DbgPrint("VMX Terminated on logical core %d\n", CurrentCoreIndex);

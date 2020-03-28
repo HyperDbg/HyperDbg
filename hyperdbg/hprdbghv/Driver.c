@@ -201,7 +201,6 @@ NTSTATUS DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 /* Driver IOCTL Dispatcher*/
 NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-	DbgBreakPoint();
 	PIO_STACK_LOCATION  IrpStack;
 	PREGISTER_EVENT RegisterEvent;
 	NTSTATUS    Status;
@@ -248,9 +247,7 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			Status = STATUS_SUCCESS;
 			break;
 		case IOCTL_TERMINATE_VMX:
-			DbgBreakPoint();
 			HvTerminateVmx();
-			DbgBreakPoint();
 			Status = STATUS_SUCCESS;
 			break;
 		default:
@@ -268,10 +265,7 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	if (Status != STATUS_PENDING) {
 		Irp->IoStatus.Status = Status;
 		Irp->IoStatus.Information = 0;
-		DbgBreakPoint();
 		IoCompleteRequest(Irp, IO_NO_INCREMENT);
-		DbgBreakPoint();
-
 	}
 
 	return Status;

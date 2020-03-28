@@ -71,7 +71,6 @@ AsmVmexitHandler ENDP
 ;------------------------------------------------------------------------
 
 AsmVmxoffHandler PROC
-    
     sub rsp, 020h       ; shadow space
     call HvReturnStackPointerForVmxoff
     add rsp, 020h       ; remove for shadow space
