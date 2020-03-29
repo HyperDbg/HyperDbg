@@ -29,5 +29,7 @@ namespace hyperdbg_gui.Details
 
         public static List<WindowsAttributes> ListOfWindows = new List<WindowsAttributes>();
         public static int CurrentWindowId = 0;
+        public static bool IsInDarkMode = false;
+        public static bool IsDriverLoaded = false;
     }
 }

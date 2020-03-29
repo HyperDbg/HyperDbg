@@ -11,14 +11,20 @@ namespace hyperdbg_gui.KernelmodeRequests
     class KernelRequests
     {
         [DllImport("HPRDBGCTRL.dll")]
-        internal static extern int HyperdbgInit();
+        internal static extern int HyperdbgLoad();
 
-        public static void HyperdbgInitializer()
+
+        [DllImport("HPRDBGCTRL.dll")]
+        internal static extern int HyperdbgUnload();
+
+        public static void HyperdbgLoader()
         {
-            HyperdbgInit();
+            HyperdbgLoad();
         }
 
-
-
+        public static void HyperdbgUnloader()
+        {
+            HyperdbgUnload();
+        }
     }
 }

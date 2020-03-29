@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -57,18 +58,29 @@ namespace hyperdbg_gui
 
         private void toolStripButton11_Click(object sender, EventArgs e)
         {
+            bool IsDark = !hyperdbg_gui.Details.GlobalVariables.IsInDarkMode;
+            hyperdbg_gui.Details.GlobalVariables.IsInDarkMode = !hyperdbg_gui.Details.GlobalVariables.IsInDarkMode;
+            
             foreach (Control c in this.Controls)
             {
-                UpdateColorControls(c);
+                UpdateColorControls(c, IsDark);
             }
         }
-        public void UpdateColorControls(Control myControl)
+        public void UpdateColorControls(Control myControl, bool IsDark)
         {
-            myControl.BackColor = Color.FromArgb(37, 37, 38);
-            myControl.ForeColor = Color.White;
+            if (IsDark)
+            {
+                myControl.BackColor = Color.FromArgb(37, 37, 38);
+                myControl.ForeColor = Color.White;
+            }
+            else
+            {
+                myControl.BackColor = Color.White;
+                myControl.ForeColor = Color.Black;
+            }
             foreach (Control subC in myControl.Controls)
             {
-                UpdateColorControls(subC);
+                UpdateColorControls(subC, IsDark);
             }
         }
 
@@ -106,22 +118,48 @@ namespace hyperdbg_gui
                 hyperdbg_gui.Details.GlobalVariables.ListOfWindows.Where(x=>x.WindowType == Details.GlobalVariables.WindowTypes.Command))
             {
                 CommandWindow cmdWnd = (CommandWindow) item.WindowForm;
-                cmdWnd.richTextBox1.AppendText(text);
+                cmdWnd.richTextBox1.AppendText(text + "\n");
             }
             return 0;
         }
 
+        public void LoadDriver()
+        {
+            hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
+            hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgLoader();
+            hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = true;
+        }
+        public void UnloadDriver()
+        {
+            hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgUnloader();
+            hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = false;
+        }
 
         private void toolStripButton21_Click(object sender, EventArgs e)
         {
+            if (!hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded)
+            {
+                WindowManager.AddWindow.CreateCommandWindow(this);
+                LoadDriver();
+                //Thread thread = new Thread(InitiateDriver);
+                // thread.Start();
+                // commandSection1.commandText.autoc
 
-            WindowManager.AddWindow.CreateCommandWindow(this);
+                toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
 
-            hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
-            hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgInit();
+            }
+            else
+            {
+                UnloadDriver();
+                toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Trafficlight_red_icon;
+            }
 
-            toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
+        }
 
+        private void toolStripButton6_Click(object sender, EventArgs e)
+        {
+            AboutWindow about = new AboutWindow();
+            about.ShowDialog();
         }
     }
 }

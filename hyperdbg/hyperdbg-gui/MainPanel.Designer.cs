@@ -144,7 +144,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            this.menuStrip1.Size = new System.Drawing.Size(1078, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(880, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -530,26 +530,26 @@
             // 
             this.encounterAnAntihyperdbgMethodToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("encounterAnAntihyperdbgMethodToolStripMenuItem.Image")));
             this.encounterAnAntihyperdbgMethodToolStripMenuItem.Name = "encounterAnAntihyperdbgMethodToolStripMenuItem";
-            this.encounterAnAntihyperdbgMethodToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.encounterAnAntihyperdbgMethodToolStripMenuItem.Size = new System.Drawing.Size(280, 26);
             this.encounterAnAntihyperdbgMethodToolStripMenuItem.Text = "Encounter an anti-hyperdbg method ?";
             // 
             // checkForUpToolStripMenuItem
             // 
             this.checkForUpToolStripMenuItem.Name = "checkForUpToolStripMenuItem";
-            this.checkForUpToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.checkForUpToolStripMenuItem.Size = new System.Drawing.Size(280, 26);
             this.checkForUpToolStripMenuItem.Text = "Check for Updates";
             // 
             // helpToolStripMenuItem1
             // 
             this.helpToolStripMenuItem1.Image = ((System.Drawing.Image)(resources.GetObject("helpToolStripMenuItem1.Image")));
             this.helpToolStripMenuItem1.Name = "helpToolStripMenuItem1";
-            this.helpToolStripMenuItem1.Size = new System.Drawing.Size(276, 22);
+            this.helpToolStripMenuItem1.Size = new System.Drawing.Size(280, 26);
             this.helpToolStripMenuItem1.Text = "Help";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(276, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(280, 26);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
@@ -560,10 +560,10 @@
             this.toolStripStatusLabel2,
             this.toolStripStatusLabel3,
             this.toolStripStatusLabel1});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 494);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 434);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 7, 0);
-            this.statusStrip1.Size = new System.Drawing.Size(1078, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(880, 24);
             this.statusStrip1.TabIndex = 1;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -629,7 +629,7 @@
             this.toolStrip1.Location = new System.Drawing.Point(0, 27);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
-            this.toolStrip1.Size = new System.Drawing.Size(1078, 30);
+            this.toolStrip1.Size = new System.Drawing.Size(880, 30);
             this.toolStrip1.Stretch = true;
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
@@ -884,7 +884,7 @@
             this.toolStripTextBox1.BackColor = System.Drawing.SystemColors.Info;
             this.toolStripTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.toolStripTextBox1.Name = "toolStripTextBox1";
-            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 30);
+            this.toolStripTextBox1.Size = new System.Drawing.Size(101, 30);
             this.toolStripTextBox1.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // toolStripLabel1
@@ -902,16 +902,17 @@
             this.toolStripButton6.Name = "toolStripButton6";
             this.toolStripButton6.Padding = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.toolStripButton6.Size = new System.Drawing.Size(31, 27);
-            this.toolStripButton6.Text = "toolStripButton6";
+            this.toolStripButton6.Text = "Info";
+            this.toolStripButton6.Click += new System.EventHandler(this.toolStripButton6_Click);
             // 
             // pictureBox1
             // 
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Top;
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
             this.pictureBox1.Location = new System.Drawing.Point(0, 24);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(1078, 3);
+            this.pictureBox1.Size = new System.Drawing.Size(880, 3);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 8;
             this.pictureBox1.TabStop = false;
@@ -921,22 +922,22 @@
             this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.Controls.Add(this.commandSection1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 471);
-            this.panel1.Margin = new System.Windows.Forms.Padding(2);
+            this.panel1.Location = new System.Drawing.Point(0, 411);
+            this.panel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.panel1.MaximumSize = new System.Drawing.Size(0, 260);
             this.panel1.MinimumSize = new System.Drawing.Size(0, 3);
             this.panel1.Name = "panel1";
             this.panel1.Padding = new System.Windows.Forms.Padding(0, 1, 0, 0);
-            this.panel1.Size = new System.Drawing.Size(1078, 23);
+            this.panel1.Size = new System.Drawing.Size(880, 23);
             this.panel1.TabIndex = 11;
             // 
             // commandSection1
             // 
             this.commandSection1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.commandSection1.Location = new System.Drawing.Point(0, 1);
-            this.commandSection1.Margin = new System.Windows.Forms.Padding(1);
+            this.commandSection1.Margin = new System.Windows.Forms.Padding(1, 1, 1, 1);
             this.commandSection1.Name = "commandSection1";
-            this.commandSection1.Size = new System.Drawing.Size(1078, 22);
+            this.commandSection1.Size = new System.Drawing.Size(880, 22);
             this.commandSection1.TabIndex = 11;
             // 
             // MainPanel
@@ -944,7 +945,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1078, 518);
+            this.ClientSize = new System.Drawing.Size(880, 458);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.pictureBox1);
@@ -953,7 +954,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.IsMdiContainer = true;
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "MainPanel";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "hyperdbg";

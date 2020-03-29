@@ -10,15 +10,24 @@
 #include "framework.h"
 #include "hprdbgctrl.h"
 
-
+// Global Variables
 using namespace std;
+HANDLE Handle;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
-
 typedef int(__stdcall* Callback)(const char* text);
-
 Callback Handler = 0;
 
-extern "C" __declspec(dllexport)
+
+// Exports
+extern "C"
+{
+	__declspec (dllexport) int __cdecl  HyperdbgLoad();
+	__declspec (dllexport) int __cdecl  HyperdbgUnload();
+	__declspec (dllexport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
+
+}
+
+
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
 	Handler = handler;
 }
@@ -135,7 +144,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	REGISTER_EVENT RegisterEvent;
 	UINT32 OperationCode;
 
-	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================\n");
+	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================");
 	RegisterEvent.hEvent = NULL;
 	RegisterEvent.Type = IRP_BASED;
 	// allocate buffer for transfering messages
@@ -163,33 +172,33 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				);
 
 				if (!Status) {
-					ShowMessages("Ioctl failed with code %d\n", GetLastError());
+					ShowMessages("Ioctl failed with code %d", GetLastError());
 					break;
 				}
-				ShowMessages("\n========================= Kernel Mode (Buffer) =========================\n");
+				ShowMessages("========================= Kernel Mode (Buffer) =========================");
 
 				OperationCode = 0;
 				memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-				ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-				ShowMessages("Operation Code : 0x%x \n", OperationCode);
+				ShowMessages("Returned Length : 0x%x ", ReturnedLength);
+				ShowMessages("Operation Code : 0x%x ", OperationCode);
 
 				switch (OperationCode)
 				{
 				case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :");
 					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_INFO_MESSAGE:
-					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :");
 					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_ERROR_MESSAGE:
-					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :");
 					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_WARNING_MESSAGE:
-					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :");
 					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
 					break;
 
@@ -198,7 +207,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				}
 
 
-				ShowMessages("\n========================================================================\n");
+				ShowMessages("========================================================================");
 
 			}
 			else
@@ -210,7 +219,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	}
 	catch (const std::exception&)
 	{
-		ShowMessages("\n Exception !\n");
+		ShowMessages(" Exception !");
 	}
 }
 
@@ -226,46 +235,36 @@ DWORD WINAPI ThreadFunc(void* Data) {
 
 
 
-
-
-
-extern "C"
-{
-	__declspec (dllexport) int __cdecl  HyperdbgInit();
-}
-
-
-HPRDBGCTRL_API int HyperdbgInit()
+HPRDBGCTRL_API int HyperdbgLoad()
 {
 	MessageBoxA(0, "0", "sample", 0);
 
 	string CpuID;
 	DWORD ErrorNum;
-	HANDLE Handle;
 	BOOL    Status;
 
 
 	CpuID = GetCpuid();
 
-	ShowMessages("[*] The CPU Vendor is : %s \n", CpuID.c_str());
+	ShowMessages("The CPU Vendor is : %s", CpuID.c_str());
 
 	if (CpuID == "GenuineIntel")
 	{
-		ShowMessages("[*] The Processor virtualization technology is VT-x. \n");
+		ShowMessages("The Processor virtualization technology is VT-x.");
 	}
 	else
 	{
-		ShowMessages("[*] This program is not designed to run in a non-VT-x environemnt !\n");
+		ShowMessages("This program is not designed to run in a non-VT-x environemnt !");
 		return 1;
 	}
 
 	if (VmxSupportDetection())
 	{
-		ShowMessages("[*] VMX Operation is supported by your processor .\n");
+		ShowMessages("VMX Operation is supported by your processor .");
 	}
 	else
 	{
-		ShowMessages("[*] VMX Operation is not supported by your processor .\n");
+		ShowMessages("VMX Operation is not supported by your processor .");
 		return 1;
 	}
 
@@ -282,7 +281,7 @@ HPRDBGCTRL_API int HyperdbgInit()
 	if (Handle == INVALID_HANDLE_VALUE)
 	{
 		ErrorNum = GetLastError();
-		ShowMessages("[*] CreateFile failed : %d\n", ErrorNum);
+		ShowMessages("CreateFile failed : %d", ErrorNum);
 		return 1;
 
 	}
@@ -291,17 +290,27 @@ HPRDBGCTRL_API int HyperdbgInit()
 
 	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, Handle, 0, NULL);
 	if (Thread) {
-		ShowMessages("[*] Thread Created successfully !!!");
+		ShowMessages("Thread Created successfully !!!");
 	}
 #endif
 
+	MessageBoxA(0, "0.0", "sample", 0);
+
+	return 0;
+}
+
+HPRDBGCTRL_API int HyperdbgUnload()
+{
+	BOOL    Status;
+
+	if (!Handle)
+	{
+		ShowMessages("Handle not found, probably the driver is not initialized.");
+		return 1;
+	}
 
 	MessageBoxA(0, "3", "sample", 0);
-
-	ShowMessages("[*] Terminating VMX !\n");
-
-
-
+	ShowMessages("Terminating VMX !");
 
 	// Indicate that the finish process start or not
 	IsVmxOffProcessStart = TRUE;
@@ -320,7 +329,7 @@ HPRDBGCTRL_API int HyperdbgInit()
 	);
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
-		ShowMessages("Ioctl failed with code %d\n", GetLastError());
+		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
 	MessageBoxA(0, "6", "sample", 0);
 
@@ -337,7 +346,7 @@ HPRDBGCTRL_API int HyperdbgInit()
 	);
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
-		ShowMessages("Ioctl failed with code %d\n", GetLastError());
+		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
 	MessageBoxA(0, "5", "sample", 0);
 
@@ -345,13 +354,9 @@ HPRDBGCTRL_API int HyperdbgInit()
 	if (!CloseHandle(Handle))
 	{
 		MessageBoxA(0, "4", "sample", 0);
-		ShowMessages("\nError : 0x%x\n", GetLastError());
+		ShowMessages("Error : 0x%x", GetLastError());
 	};
+	ShowMessages("You're not on hypervisor anymore !");
+	MessageBoxA(0, "1", "sample", 0);
 
-	ShowMessages("[*] You're not on hypervisor anymore !");
-
-	MessageBoxA(0, "1" , "sample", 0);
-
-	return 0;
 }
-

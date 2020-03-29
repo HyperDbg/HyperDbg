@@ -99,6 +99,7 @@ namespace hyperdbg_gui
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            System.Diagnostics.Process.Start("https://rayanfam.com/tutorials/");
 
         }
 
@@ -106,6 +107,21 @@ namespace hyperdbg_gui
         {
             label8.Text = hyperdbg_gui.Details.HyperdbgInformation.HyperdbgVersion;
             label9.Text = hyperdbg_gui.Details.HyperdbgInformation.HyperdbgBuildDate;
+        }
+
+        private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://hyperdbg.com");
+        }
+
+        private void linkLabel4_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://docs.hyperdbg.com");
+        }
+
+        private void linkLabel5_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://rayanfam.com");
         }
     }
 }

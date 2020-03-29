@@ -101,6 +101,11 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="RegsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -125,14 +130,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <EmbeddedResource Include="RegsWindow.resx">
       <DependentUpon>RegsWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -165,7 +165,6 @@
     <Content Include="butterfly.ico" />
     <None Include="Resources\Trafficlight-red-icon.png" />
     <None Include="Resources\Pan_Green_Circle.png" />
-    <None Include="Resources\arrow-circle-down.png" />
     <None Include="Resources\adjust.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

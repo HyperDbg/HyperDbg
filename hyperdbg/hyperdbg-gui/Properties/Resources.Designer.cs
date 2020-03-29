@@ -73,16 +73,6 @@ namespace hyperdbg_gui.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap arrow_circle_down {
-            get {
-                object obj = ResourceManager.GetObject("arrow-circle-down", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap Pan_Green_Circle {
             get {
                 object obj = ResourceManager.GetObject("Pan_Green_Circle", resourceCulture);
