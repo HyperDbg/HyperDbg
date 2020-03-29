@@ -342,12 +342,14 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	if (!Status) {
 		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
-	/*
+
+	Sleep(1000); // Wait so next thread can return from IRP Pending
 	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
 	if (!CloseHandle(Handle))
 	{
 		ShowMessages("Error : 0x%x", GetLastError());
-	};*/
+	};
+
 	ShowMessages("You're not on hypervisor anymore !");
 
 }
