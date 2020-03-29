@@ -19,14 +19,14 @@ static unsigned max_wait = 65536;
 
 //----------------------------------------------------------------------------------------------
 
-inline BOOLEAN SpinlockTryLock(LONG* Lock)
+inline BOOLEAN SpinlockTryLock(volatile LONG* Lock)
 {
 	return (!(*Lock) && !_interlockedbittestandset(Lock, 0));
 }
 
 //----------------------------------------------------------------------------------------------
 
-void SpinlockLock(LONG* Lock)
+void SpinlockLock(volatile LONG* Lock)
 {
 	unsigned wait = 1;
 
@@ -54,7 +54,7 @@ void SpinlockLock(LONG* Lock)
 }
 
 //----------------------------------------------------------------------------------------------
-void SpinlockUnlock(LONG* Lock)
+void SpinlockUnlock(volatile LONG* Lock)
 {
 	*Lock = 0;
 }
