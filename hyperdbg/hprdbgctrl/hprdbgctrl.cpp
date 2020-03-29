@@ -237,7 +237,6 @@ DWORD WINAPI ThreadFunc(void* Data) {
 
 HPRDBGCTRL_API int HyperdbgLoad()
 {
-	MessageBoxA(0, "0", "sample", 0);
 
 	string CpuID;
 	DWORD ErrorNum;
@@ -294,8 +293,6 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	}
 #endif
 
-	MessageBoxA(0, "0.0", "sample", 0);
-
 	return 0;
 }
 
@@ -309,13 +306,11 @@ HPRDBGCTRL_API int HyperdbgUnload()
 		return 1;
 	}
 
-	MessageBoxA(0, "3", "sample", 0);
 	ShowMessages("Terminating VMX !");
 
 	// Indicate that the finish process start or not
 	IsVmxOffProcessStart = TRUE;
 
-	MessageBoxA(0, "2", "sample", 0);
 	// Send IOCTL to mark complete all IRP Pending 
 	Status = DeviceIoControl(
 		Handle,															// Handle to device
@@ -331,7 +326,6 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	if (!Status) {
 		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
-	MessageBoxA(0, "6", "sample", 0);
 
 	// Send IOCTL to mark complete all IRP Pending 
 	Status = DeviceIoControl(
@@ -348,15 +342,12 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	if (!Status) {
 		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
-	MessageBoxA(0, "5", "sample", 0);
-
+	/*
 	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
 	if (!CloseHandle(Handle))
 	{
-		MessageBoxA(0, "4", "sample", 0);
 		ShowMessages("Error : 0x%x", GetLastError());
-	};
+	};*/
 	ShowMessages("You're not on hypervisor anymore !");
-	MessageBoxA(0, "1", "sample", 0);
 
 }

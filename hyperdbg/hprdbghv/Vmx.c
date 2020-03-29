@@ -155,7 +155,7 @@ BOOLEAN VmxTerminate()
 		MmFreeContiguousMemory(GuestState[CurrentCoreIndex].VmcsRegionVirtualAddress);
 		ExFreePoolWithTag(GuestState[CurrentCoreIndex].VmmStack, POOLTAG);
 		ExFreePoolWithTag(GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
-
+		
 		return TRUE;
 	}
 
