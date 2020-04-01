@@ -211,6 +211,14 @@ typedef struct _CPUID
 	int edx;
 } CPUID, * PCPUID;
 
+typedef struct _NT_KPROCESS
+{
+	DISPATCHER_HEADER Header;
+	LIST_ENTRY ProfileListHead;
+	ULONG_PTR DirectoryTableBase;
+	UCHAR Data[1];
+}NT_KPROCESS, *PNT_KPROCESS;
+
 //////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////
@@ -298,6 +306,9 @@ UINT64 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
 
 // Math :)
 int MathPower(int Base, int Exp);
+
+// Find cr3 of system process
+UINT64 FindSystemDirectoryTableBase();
 
 
 //////////////////////////////////////////////////

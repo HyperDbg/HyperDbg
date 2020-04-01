@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -111,15 +112,11 @@ namespace hyperdbg_gui
         {
             MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
-
-        private int ReceivedMessagesHandler(string text)
+        StreamWriter sw = new StreamWriter(@"c:\users\sina\desktop\vmx.txt");
+        private int ReceivedMessagesHandler(string Text)
         {
-            foreach (var item in
-                hyperdbg_gui.Details.GlobalVariables.ListOfWindows.Where(x=>x.WindowType == Details.GlobalVariables.WindowTypes.Command))
-            {
-                CommandWindow cmdWnd = (CommandWindow) item.WindowForm;
-                cmdWnd.richTextBox1.AppendText(text + "\n");
-            }
+
+            hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText(Text + "\n");
             return 0;
         }
 
@@ -135,14 +132,14 @@ namespace hyperdbg_gui
             hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = false;
         }
 
+
         private void toolStripButton21_Click(object sender, EventArgs e)
         {
             if (!hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded)
             {
                 WindowManager.AddWindow.CreateCommandWindow(this);
-                LoadDriver();
-                //Thread thread = new Thread(InitiateDriver);
-                // thread.Start();
+                Details.GlobalVariables.VmxInitThread= new Thread(LoadDriver);
+                Details.GlobalVariables.VmxInitThread.Start();
                 // commandSection1.commandText.autoc
 
                 toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
@@ -152,6 +149,7 @@ namespace hyperdbg_gui
             {
                 UnloadDriver();
                 toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Trafficlight_red_icon;
+                sw.Close();
             }
 
         }

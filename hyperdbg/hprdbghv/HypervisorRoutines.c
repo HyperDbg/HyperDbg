@@ -50,9 +50,6 @@ BOOLEAN HvVmxInitialize()
 		// BroadcastToProcessors(ProcessorID, AsmVmxSaveState);
 	}
 
-	// Read Current the Cr3
-	InitiateCr3 = __readcr3();
-
 	// As we want to support more than 32 processor (64 logical-core) we let windows execute our routine for us
 	KeGenericCallDpc(HvDpcBroadcastInitializeGuest, 0x0);
 
@@ -656,3 +653,4 @@ VOID HvPerformPageUnHookAllPages() {
 
 	// No need to remove the list as it will automatically remove by the pool uninitializer
 }
+

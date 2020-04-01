@@ -47,27 +47,6 @@ BOOLEAN BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routin
 	return TRUE;
 }
 
-// Note : Because of deadlock and synchronization problem, no longer use this instead use Vmcall with VMCALL_VMXOFF
-/* Broadcast a 0x41414141 - 0x42424242 message to CPUID Handler of all logical cores in order to turn off VMX in VMX root-mode */
-/*BOOLEAN BroadcastToProcessorsToTerminateVmx(ULONG ProcessorNumber)
-{
-	KIRQL OldIrql;
-
-	KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
-
-	OldIrql = KeRaiseIrqlToDpcLevel();
-
-	INT32 cpu_info[4];
-	__cpuidex(cpu_info, 0x41414141, 0x42424242);
-
-	KeLowerIrql(OldIrql);
-
-	KeRevertToUserAffinityThread();
-
-	return TRUE;
-}
-*/
-
 /* Set Bits for a special address (used on MSR Bitmaps) */
 void SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set) {
 
@@ -123,3 +102,10 @@ UINT64 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 	return MmGetVirtualForPhysical(PhysicalAddr);
 }
 
+/* Find cr3 of system process*/
+UINT64 FindSystemDirectoryTableBase()
+{
+	// Return CR3 of the system process.
+	NT_KPROCESS* SystemProcess = (NT_KPROCESS*)(PsInitialSystemProcess);
+	return SystemProcess->DirectoryTableBase;
+}

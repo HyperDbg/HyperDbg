@@ -306,7 +306,7 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 	of the DPC interrupt we execute in We have to save Cr3, for HOST_CR3
 	*/
 
-	__vmx_vmwrite(HOST_CR3, InitiateCr3);
+	__vmx_vmwrite(HOST_CR3, FindSystemDirectoryTableBase());
 
 	__vmx_vmwrite(GUEST_GDTR_BASE, AsmGetGdtBase());
 	__vmx_vmwrite(GUEST_IDTR_BASE, AsmGetIdtBase());

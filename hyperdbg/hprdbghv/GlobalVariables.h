@@ -17,11 +17,6 @@ VIRTUAL_MACHINE_STATE* GuestState;
 // Save the state and variables related to EPT
 EPT_STATE* EptState;
 
-// Because we may be executing in an arbitrary user-mode 
-// process as part of the DPC interrupt we execute in
-// We have to save Cr3, for HOST_CR3
-UINT64 InitiateCr3;
-
 // Save the state of the thread that waits for messages to deliver to user-mode
 NOTIFY_RECORD* GlobalNotifyRecord;
 
