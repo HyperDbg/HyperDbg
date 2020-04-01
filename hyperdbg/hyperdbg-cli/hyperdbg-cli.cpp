@@ -7,9 +7,14 @@
 #pragma comment(lib, "HPRDBGCTRL.lib")
 
 // Header file of HPRDBGCTRL
-__declspec(dllimport) int HyperdbgInit();
+// Exports
+extern "C"
+{
+	__declspec (dllimport) int __cdecl  HyperdbgLoad();
+	__declspec (dllimport) int __cdecl  HyperdbgUnload();
+	__declspec (dllimport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
 
-
+}
 
 void PrintAppearance() {
 
@@ -31,7 +36,12 @@ int main()
 	// Print Hypervisor From Scratch Message
 	PrintAppearance();
 
-	//HyperdbgInit();
+	HyperdbgLoad();
+
+	printf("Press any key to exit vmx ...");
+	_getch();
+
+	HyperdbgUnload();
 
 	exit(0);
 

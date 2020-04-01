@@ -14,7 +14,6 @@
 using namespace std;
 HANDLE Handle;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
-typedef int(__stdcall* Callback)(const char* text);
 Callback Handler = 0;
 
 
@@ -51,6 +50,7 @@ void ShowMessages(const char* Fmt, ...) {
 		else
 		{
 			printf(TempMessage);
+			printf("\n");
 		}
 	}
 	else

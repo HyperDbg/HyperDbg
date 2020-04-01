@@ -24,7 +24,7 @@ PVOID ExAllocatePoolWithTagHook(
 VOID HiddenHooksTest()
 {
 	// Hook Test
-	//	EptPageHook(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);
+		EptPageHook(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);
 	//	EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, (PVOID*)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
 
 	// Unhook Tests

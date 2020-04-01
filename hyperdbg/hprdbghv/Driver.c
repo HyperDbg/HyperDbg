@@ -138,7 +138,7 @@ NTSTATUS DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	}
 
 	//////////// test //////////// 
-	//HiddenHooksTest();
+	HiddenHooksTest();
 	//SyscallHookTest();
 	////////////////////////////// 
 

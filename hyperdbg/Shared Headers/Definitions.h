@@ -48,3 +48,9 @@ typedef struct _REGISTER_EVENT
 #define OPERATION_LOG_WARNING_MESSAGE						0x2
 #define OPERATION_LOG_ERROR_MESSAGE							0x3
 #define OPERATION_LOG_NON_IMMEDIATE_MESSAGE					0x4
+
+//////////////////////////////////////////////////
+//		    	Callback Definitions			//
+//////////////////////////////////////////////////
+
+typedef int(__stdcall* Callback)(const char* Text);

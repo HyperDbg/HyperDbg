@@ -212,6 +212,7 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 
 	ULONG CpuBasedVmExecControls;
 	ULONG SecondaryProcBasedVmExecControls;
+	PVOID HostRsp;
 	ULONG64 GdtBase = 0;
 	SEGMENT_SELECTOR SegmentSelector = { 0 };
 	IA32_VMX_BASIC_MSR VmxBasicMsr = { 0 };
@@ -351,7 +352,11 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 	//setup guest rip
 	__vmx_vmwrite(GUEST_RIP, (ULONG64)AsmVmxRestoreState);
 
-	__vmx_vmwrite(HOST_RSP, ((ULONG64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1));
+	// Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
+	// needs aligment to 16
+	HostRsp = (ULONG64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
+	HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
+	__vmx_vmwrite(HOST_RSP, HostRsp);
 	__vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
 
 

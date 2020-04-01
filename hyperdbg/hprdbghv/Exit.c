@@ -11,6 +11,7 @@
 /* Main Vmexit events handler */
 BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
+	
 	int CurrentProcessorIndex;
 	VMEXIT_INTERRUPT_INFO InterruptExit;
 	UINT64 GuestPhysicalAddr;
