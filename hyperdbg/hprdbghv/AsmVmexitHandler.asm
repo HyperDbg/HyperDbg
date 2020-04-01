@@ -124,7 +124,7 @@ AsmVmxoffHandler PROC
     call HvReturnStackPointerForVmxoff
     add rsp, 020h       ; remove for shadow space
 
-    mov [rsp+088h], rax  ; now, rax contains rsp
+    mov [rsp+198h], rax  ; now, rax contains rsp
 
     sub rsp, 020h       ; shadow space
     call HvReturnInstructionPointerForVmxoff
@@ -132,7 +132,7 @@ AsmVmxoffHandler PROC
 
     mov rdx, rsp        ; save current rsp
 
-    mov rbx, [rsp+088h] ; read rsp again
+    mov rbx, [rsp+198h] ; read rsp again
 
     mov rsp, rbx
 
@@ -143,7 +143,7 @@ AsmVmxoffHandler PROC
                         
     sub rbx,08h         ; we push sth, so we have to add (sub) +8 from previous stack
                         ; also rbx already contains the rsp
-    mov [rsp+088h], rbx ; move the new pointer to the current stack
+    mov [rsp+198h], rbx ; move the new pointer to the current stack
 
 	RestoreState:
 
