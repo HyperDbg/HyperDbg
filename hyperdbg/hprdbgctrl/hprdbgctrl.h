@@ -20,3 +20,24 @@ public:
 extern HPRDBGCTRL_API int nhprdbgctrl;
 
 HPRDBGCTRL_API int fnhprdbgctrl(void);
+
+
+//////////////////////////////////////////////////
+//					Installer 					//
+//////////////////////////////////////////////////
+
+#define DRIVER_FUNC_INSTALL     0x01
+#define DRIVER_FUNC_REMOVE      0x02
+
+BOOLEAN
+ManageDriver(
+    _In_ LPCTSTR  DriverName,
+    _In_ LPCTSTR  ServiceName,
+    _In_ USHORT   Function
+);
+
+BOOLEAN
+SetupDriverName(
+    _Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
+    _In_ ULONG BufferLength
+);

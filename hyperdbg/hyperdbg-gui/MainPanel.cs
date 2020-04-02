@@ -122,6 +122,14 @@ namespace hyperdbg_gui
         public void LoadDriver()
         {
             hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
+
+            if (hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgDriverInstaller() != 0)
+            {
+                MessageBox.Show("There was an error installing the driver", "Error"
+                    , MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+
+            }
             if (hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgLoader() != 0)
             {
                 MessageBox.Show("Failed to load hyperdbg's hypervisor driver, see logs for more information"
@@ -136,6 +144,13 @@ namespace hyperdbg_gui
         public void UnloadDriver()
         {
             hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgUnloader();
+
+            if (hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgDriverUninstaller() != 0)
+            {
+                MessageBox.Show("There was an error unloading the driver", "Error"
+                    , MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
             hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = false;
         }
 

@@ -11,11 +11,16 @@
 #include "framework.h"
 #include <Windows.h>
 #include <winioctl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strsafe.h>
 #include <conio.h>
 #include <iostream>  
 #include "Definitions.h"
 #include "Configuration.h"
 #include "framework.h"
 #include "hprdbgctrl.h"
+
 
 #endif //PCH_H

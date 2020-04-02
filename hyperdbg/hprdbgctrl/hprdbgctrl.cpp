@@ -7,6 +7,8 @@ using namespace std;
 HANDLE Handle;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 Callback Handler = 0;
+TCHAR driverLocation[MAX_PATH] = { 0 };
+
 
 
 // Exports
@@ -14,10 +16,11 @@ extern "C"
 {
 	__declspec (dllexport) int __cdecl  HyperdbgLoad();
 	__declspec (dllexport) int __cdecl  HyperdbgUnload();
+	__declspec (dllexport) int __cdecl  HyperdbgInstallDriver();
+	__declspec (dllexport) int __cdecl  HyperdbgUninstallDriver();
 	__declspec (dllexport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
 
 }
-
 
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
 	Handler = handler;
@@ -49,10 +52,7 @@ void ShowMessages(const char* Fmt, ...) {
 	{
 		MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
 	}
-
-
 }
-
 
 
 string GetCpuid()
@@ -193,7 +193,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				);
 
 				if (!Status) {
-					ShowMessages("Ioctl failed with code %d", GetLastError());
+					ShowMessages("Ioctl failed with code 0x%x", GetLastError());
 					break;
 				}
 				ShowMessages("========================= Kernel Mode (Buffer) =========================");
@@ -255,6 +255,54 @@ DWORD WINAPI ThreadFunc(void* Data) {
 #endif
 
 
+HPRDBGCTRL_API int HyperdbgInstallDriver()
+{
+
+	//
+	// The driver is not started yet so let us the install driver.
+	// First setup full path to driver name.
+	//
+
+	if (!SetupDriverName(driverLocation, sizeof(driverLocation))) {
+
+		return 1;
+	}
+
+	if (!ManageDriver(DRIVER_NAME,
+		driverLocation,
+		DRIVER_FUNC_INSTALL
+	)) {
+
+		ShowMessages("Unable to install driver");
+
+		//
+		// Error - remove driver.
+		//
+
+		ManageDriver(DRIVER_NAME,
+			driverLocation,
+			DRIVER_FUNC_REMOVE
+		);
+
+		return 1;
+	}
+	return 0;
+}
+
+HPRDBGCTRL_API int HyperdbgUninstallDriver()
+{
+	//
+	// Unload the driver if loaded.  Ignore any errors.
+	//
+	if (driverLocation[0] != (TCHAR)0) {
+		ManageDriver(DRIVER_NAME,
+			driverLocation,
+			DRIVER_FUNC_REMOVE
+		);
+
+	}
+	return 0;
+}
 
 HPRDBGCTRL_API int HyperdbgLoad()
 {
@@ -320,7 +368,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		}
 		else
 		{
-			ShowMessages("CreateFile failed with error: %d", ErrorNum);
+			ShowMessages("CreateFile failed with error: 0x%x", ErrorNum);
 		}
 		return 1;
 	}
@@ -362,7 +410,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	);
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
-		ShowMessages("Ioctl failed with code %d", GetLastError());
+		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
 	}
 
 
@@ -380,7 +428,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
-		ShowMessages("Ioctl failed with code %d", GetLastError());
+		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
 	}
 
 	// Indicate that the finish process start or not

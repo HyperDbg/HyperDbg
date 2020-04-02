@@ -1,6 +1,5 @@
 
 
-
 // Default buffer size
 #define MaximumPacketsCapacity 1000 // number of packets
 #define PacketChunkSize		1000 // NOTE : REMEMBER TO CHANGE IT IN USER-MODE APP TOO
@@ -10,7 +9,6 @@
 #define SIZEOF_REGISTER_EVENT  sizeof(REGISTER_EVENT)
 
 #define DbgPrintLimitation  512
-
 
 
 #define IOCTL_REGISTER_EVENT \
@@ -37,6 +35,12 @@ typedef struct _REGISTER_EVENT
 
 } REGISTER_EVENT, * PREGISTER_EVENT;
 
+
+//////////////////////////////////////////////////
+//					Installer 					//
+//////////////////////////////////////////////////
+
+#define DRIVER_NAME       "hprdbghv"
 
 
 //////////////////////////////////////////////////

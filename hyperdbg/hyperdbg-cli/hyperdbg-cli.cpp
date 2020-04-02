@@ -12,6 +12,8 @@ extern "C"
 {
 	__declspec (dllimport) int __cdecl  HyperdbgLoad();
 	__declspec (dllimport) int __cdecl  HyperdbgUnload();
+	__declspec (dllimport) int __cdecl  HyperdbgInstallDriver();
+	__declspec (dllimport) int __cdecl  HyperdbgUninstallDriver();
 	__declspec (dllimport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
 
 }
@@ -36,10 +38,19 @@ int main()
 	// Print Hypervisor From Scratch Message
 	PrintAppearance();
 
+	// Installing Driver
+	if (HyperdbgInstallDriver())
+	{
+		printf("Failed to install driver\n");
+		printf("Press any key to exit ...");
+		_getch();
+		return 1;
+	}
+
 	if (HyperdbgLoad())
 	{
 		printf("Failed to load driver\n");
-		printf("Press any key to exit vmx ...");
+		printf("Press any key to exit ...");
 		_getch();
 		return 1;
 	}
@@ -48,6 +59,16 @@ int main()
 	_getch();
 
 	HyperdbgUnload();
+
+	// Installing Driver
+	if (HyperdbgUninstallDriver())
+	{
+		printf("Failed to uninstall driver\n");
+		printf("Press any key to exit ...");
+		_getch();
+		return 1;
+	}
+
 
 	printf("Press any key to exit...");
 	_getch();
