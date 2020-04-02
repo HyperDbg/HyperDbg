@@ -12,7 +12,7 @@
 
 #define WPP_CONTROL_GUIDS                                              \
     WPP_DEFINE_CONTROL_GUID(                                           \
-        HypervisorFromScratchLogger, (2AE39766,AE4B,46AB,AFC4,002DB8109721), \
+        HyperdbgLogger, (2AE39766,AE4B,46AB,AFC4,002DB8109721), \
         WPP_DEFINE_BIT(HVFS_LOG)             /* bit  0 = 0x00000001 */ \
         WPP_DEFINE_BIT(HVFS_LOG_INFO)        /* bit  1 = 0x00000002 */ \
         WPP_DEFINE_BIT(HVFS_LOG_WARNING)     /* bit  2 = 0x00000004 */ \

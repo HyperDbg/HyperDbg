@@ -187,14 +187,12 @@ VOID HvHandleCpuid(PGUEST_REGS RegistersState)
 		// ID signature as required by the spec.
 
 		cpu_info[0] = HYPERV_CPUID_INTERFACE;
-		cpu_info[1] = 'rFvH';  // "[H]yper[v]isor [Fr]o[m] [Scratch] = HvFrmScratch"
-		cpu_info[2] = 'rcSm';
-		cpu_info[3] = 'hcta';
+		cpu_info[1] = 'epyH';  // "[Hyperdbg] [H]yper[v]isor = HyperdbgHv"
+		cpu_info[2] = 'gbdr';
+		cpu_info[3] = '  vH';
 	}
 	else if (RegistersState->rax == HYPERV_CPUID_INTERFACE)
 	{
-		// Return our interface identifier
-		//cpu_info[0] = 'HVFS'; // [H]yper[V]isor [F]rom [S]cratch 
 
 		// Return non Hv#1 value. This indicate that our hypervisor does NOT
 		// conform to the Microsoft hypervisor interface.
@@ -482,9 +480,7 @@ VOID HvDpcBroadcastInitializeGuest(KDPC* Dpc, PVOID DeferredContext, PVOID Syste
 VOID HvTerminateVmx()
 {	
 	
-	/* We're not serving IOCTL when we reach here because having a pending IOCTL won't let to close the handle so
-	we use DbgPrint as it's safe here ! */
-	DbgPrint("Terminating VMX...\n");
+	LogInfo("Terminating VMX...\n");
 	// Terminating Vmx
 
 	// Remve All the hooks if any
@@ -504,7 +500,7 @@ VOID HvTerminateVmx()
 	// Free the Pool manager
 	PoolManagerUninitialize();
 
-	DbgPrint("VMX Operation turned off successfully :)\n");
+	LogInfo("VMX Operation turned off successfully :)\n");
 
 	
 }
@@ -515,9 +511,7 @@ VOID HvDpcBroadcastTerminateGuest(KDPC* Dpc, PVOID DeferredContext, PVOID System
 	// Terminate Vmx using Vmcall
 	if (!VmxTerminate())
 	{
-		// Not serving IOCTL Here, so use DbgPrint
-		DbgPrint("There were an error terminating Vmx");
-		DbgBreakPoint();
+		LogError("There were an error terminating Vmx");
 	}
 	
 	// Wait for all DPCs to synchronize at this point

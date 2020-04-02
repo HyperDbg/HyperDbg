@@ -54,11 +54,11 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT  DriverObject, PUNICODE_STRING  RegistryPath
 	RtlZeroMemory(GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	LogInfo("Hypervisor From Scratch Loaded :)");
+	LogInfo("Hyperdbg is Loaded :)");
 
-	RtlInitUnicodeString(&DriverName, L"\\Device\\MyHypervisorDevice");
+	RtlInitUnicodeString(&DriverName, L"\\Device\\HyperdbgHypervisor");
 
-	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisorDevice");
+	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisor");
 
 	Ntstatus = IoCreateDevice(DriverObject, 0, &DriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
 
@@ -90,12 +90,11 @@ VOID DrvUnload(PDRIVER_OBJECT DriverObject)
 {
 	UNICODE_STRING DosDeviceName;
 
-
-	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisorDevice");
+	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisor");
 	IoDeleteSymbolicLink(&DosDeviceName);
 	IoDeleteDevice(DriverObject->DeviceObject);
 
-	DbgPrint("Hypervisor From Scratch's driver unloaded\n");
+	DbgPrint("Hyperdbg's hypervisor driver unloaded\n");
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking 
 	// Uinitialize log buffer
@@ -119,7 +118,7 @@ NTSTATUS DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	// Allow to server IOCTL 
 	AllowIOCTLFromUsermode = TRUE;
 
-	LogInfo("Hypervisor From Scratch Started...");
+	LogInfo("Hyperdbg's hypervisor Started...");
 
 
 	/* We have to zero the GuestState again as we want to support multiple initialization by CreateFile */
@@ -130,15 +129,15 @@ NTSTATUS DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 	if (HvVmxInitialize())
 	{
-		LogInfo("Hypervisor From Scratch loaded successfully :)");
+		LogInfo("Hyperdbg's hypervisor loaded successfully :)");
 	}
 	else
 	{
-		LogError("Hypervisor From Scratch was not loaded :(");
+		LogError("Hyperdbg's hypervisor was not loaded :(");
 	}
 
 	//////////// test //////////// 
-	HiddenHooksTest();
+	//HiddenHooksTest();
 	//SyscallHookTest();
 	////////////////////////////// 
 

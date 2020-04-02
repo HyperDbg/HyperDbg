@@ -43,6 +43,9 @@ int main()
 
 	HyperdbgUnload();
 
+	printf("Press any key to exit...");
+	_getch();
+
 	exit(0);
 
 	return 0;

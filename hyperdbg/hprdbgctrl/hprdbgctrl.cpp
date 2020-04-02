@@ -267,7 +267,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		return 1;
 	}
 
-	Handle = CreateFileA("\\\\.\\MyHypervisorDevice",
+	Handle = CreateFileA("\\\\.\\HyperdbgHypervisor",
 		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ |
 		FILE_SHARE_WRITE,
@@ -308,8 +308,6 @@ HPRDBGCTRL_API int HyperdbgUnload()
 
 	ShowMessages("Terminating VMX !");
 
-	// Indicate that the finish process start or not
-	IsVmxOffProcessStart = TRUE;
 
 	// Send IOCTL to mark complete all IRP Pending 
 	Status = DeviceIoControl(
@@ -327,6 +325,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
 
+
 	// Send IOCTL to mark complete all IRP Pending 
 	Status = DeviceIoControl(
 		Handle,															// Handle to device
@@ -338,10 +337,14 @@ HPRDBGCTRL_API int HyperdbgUnload()
 		NULL,															// Bytes placed in buffer.
 		NULL															// synchronous call
 	);
+
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	if (!Status) {
 		ShowMessages("Ioctl failed with code %d", GetLastError());
 	}
+
+	// Indicate that the finish process start or not
+	IsVmxOffProcessStart = TRUE;
 
 	Sleep(1000); // Wait so next thread can return from IRP Pending
 	// Send IRP_MJ_CLOSE to driver to terminate Vmxs

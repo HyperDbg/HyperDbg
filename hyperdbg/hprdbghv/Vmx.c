@@ -148,7 +148,7 @@ BOOLEAN VmxTerminate()
 
 	if (Status == STATUS_SUCCESS)
 	{
-		DbgPrint("VMX Terminated on logical core %d\n", CurrentCoreIndex);
+		LogInfo("VMX Terminated on logical core %d\n", CurrentCoreIndex);
 
 		// Free the destination memory
 		MmFreeContiguousMemory(GuestState[CurrentCoreIndex].VmxonRegionVirtualAddress);

@@ -799,7 +799,7 @@ BOOLEAN EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID* OrigFunction
 	// Check for the features to avoid EPT Violation problems
 	if (SetHookForExec && !ExecuteOnlySupport)
 	{
-		// In the current design of Hypervisor From Scratch we use execute-only pages to implement hidden hooks for exec page, 
+		// In the current design of hyperdbg we use execute-only pages to implement hidden hooks for exec page, 
 		// so your processor doesn't have this feature and you have to implment it in other ways :(
 		return FALSE;
 	}
