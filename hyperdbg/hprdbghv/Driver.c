@@ -115,6 +115,22 @@ NTSTATUS DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
 	int ProcessorCount;
 
+	//--------------------------- Check for privilege --------------------------
+	/* Check for the correct security access.
+	  The caller must have the SeDebugPrivilege. */
+
+	LUID DebugPrivilege = { SE_DEBUG_PRIVILEGE, 0 };
+
+	if (!SeSinglePrivilegeCheck(DebugPrivilege, Irp->RequestorMode)) {
+
+		Irp->IoStatus.Status = STATUS_ACCESS_DENIED;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+		return STATUS_ACCESS_DENIED;
+	}
+
+
 	// Allow to server IOCTL 
 	AllowIOCTLFromUsermode = TRUE;
 

@@ -1,14 +1,6 @@
 // hprdbgctrl.cpp : Defines the exported functions for the DLL.
 //
 #include "pch.h"
-#include <Windows.h>
-#include <winioctl.h>
-#include <conio.h>
-#include <iostream>  
-#include "Definitions.h"
-#include "Configuration.h"
-#include "framework.h"
-#include "hprdbgctrl.h"
 
 // Global Variables
 using namespace std;
@@ -135,6 +127,35 @@ bool VmxSupportDetection()
 }
 
 
+//  SetPrivilege enables/disables process token privilege.
+BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
+{
+	LUID luid;
+	BOOL bRet = FALSE;
+
+	if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid))
+	{
+		TOKEN_PRIVILEGES tp;
+
+		tp.PrivilegeCount = 1;
+		tp.Privileges[0].Luid = luid;
+		tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
+		//
+		//  Enable the privilege or disable all privileges.
+		//
+		if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
+		{
+			//
+			//  Check to see if you have proper access.
+			//  You may get "ERROR_NOT_ALL_ASSIGNED".
+			//
+			bRet = (GetLastError() == ERROR_SUCCESS);
+		}
+	}
+	return bRet;
+}
+
+
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking 
 
 void ReadIrpBasedBuffer(HANDLE  Device) {
@@ -241,6 +262,8 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	string CpuID;
 	DWORD ErrorNum;
 	BOOL    Status;
+	HANDLE hProcess;
+	HANDLE hToken;
 
 
 	CpuID = GetCpuid();
@@ -267,6 +290,16 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		return 1;
 	}
 
+	// Enable Debug privilege
+	hProcess = GetCurrentProcess();
+
+	if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken))
+	{
+		SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
+		CloseHandle(hToken);
+	}
+	
+
 	Handle = CreateFileA("\\\\.\\HyperdbgHypervisor",
 		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ |
@@ -280,9 +313,16 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	if (Handle == INVALID_HANDLE_VALUE)
 	{
 		ErrorNum = GetLastError();
-		ShowMessages("CreateFile failed : %d", ErrorNum);
-		return 1;
+		if (ErrorNum == 5)
+		{
+			ShowMessages("Error: Access denied! Are you sure you have administrator rights?");
 
+		}
+		else
+		{
+			ShowMessages("CreateFile failed with error: %d", ErrorNum);
+		}
+		return 1;
 	}
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking 

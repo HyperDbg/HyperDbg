@@ -17,9 +17,9 @@ namespace hyperdbg_gui.KernelmodeRequests
         [DllImport("HPRDBGCTRL.dll")]
         internal static extern int HyperdbgUnload();
 
-        public static void HyperdbgLoader()
+        public static int HyperdbgLoader()
         {
-            HyperdbgLoad();
+            return HyperdbgLoad();
         }
 
         public static void HyperdbgUnloader()

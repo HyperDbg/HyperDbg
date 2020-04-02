@@ -112,7 +112,6 @@ namespace hyperdbg_gui
         {
             MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
-        StreamWriter sw = new StreamWriter(@"c:\users\sina\desktop\vmx.txt");
         private int ReceivedMessagesHandler(string Text)
         {
 
@@ -123,8 +122,16 @@ namespace hyperdbg_gui
         public void LoadDriver()
         {
             hyperdbg_gui.KernelAffairs.CtrlNativeCallbacks.SetCallback(ReceivedMessagesHandler);
-            hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgLoader();
+            if (hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgLoader() != 0)
+            {
+                MessageBox.Show("Failed to load hyperdbg's hypervisor driver, see logs for more information"
+                    ,"Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                return;
+            }
+            
             hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = true;
+            toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
+
         }
         public void UnloadDriver()
         {
@@ -140,16 +147,12 @@ namespace hyperdbg_gui
                 WindowManager.AddWindow.CreateCommandWindow(this);
                 Details.GlobalVariables.VmxInitThread= new Thread(LoadDriver);
                 Details.GlobalVariables.VmxInitThread.Start();
-                // commandSection1.commandText.autoc
-
-                toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
 
             }
             else
             {
                 UnloadDriver();
                 toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Trafficlight_red_icon;
-                sw.Close();
             }
 
         }

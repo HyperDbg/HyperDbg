@@ -9,5 +9,13 @@
 
 // add headers that you want to pre-compile here
 #include "framework.h"
+#include <Windows.h>
+#include <winioctl.h>
+#include <conio.h>
+#include <iostream>  
+#include "Definitions.h"
+#include "Configuration.h"
+#include "framework.h"
+#include "hprdbgctrl.h"
 
 #endif //PCH_H

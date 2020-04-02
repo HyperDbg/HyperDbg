@@ -36,7 +36,13 @@ int main()
 	// Print Hypervisor From Scratch Message
 	PrintAppearance();
 
-	HyperdbgLoad();
+	if (HyperdbgLoad())
+	{
+		printf("Failed to load driver\n");
+		printf("Press any key to exit vmx ...");
+		_getch();
+		return 1;
+	}
 
 	printf("Press any key to exit vmx ...");
 	_getch();
