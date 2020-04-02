@@ -56,9 +56,9 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT  DriverObject, PUNICODE_STRING  RegistryPath
 
 	LogInfo("Hyperdbg is Loaded :)");
 
-	RtlInitUnicodeString(&DriverName, L"\\Device\\HyperdbgHypervisor");
+	RtlInitUnicodeString(&DriverName, L"\\Device\\HyperdbgHypervisorDevice");
 
-	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisor");
+	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisorDevice");
 
 	Ntstatus = IoCreateDevice(DriverObject, 0, &DriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
 
@@ -90,7 +90,7 @@ VOID DrvUnload(PDRIVER_OBJECT DriverObject)
 {
 	UNICODE_STRING DosDeviceName;
 
-	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisor");
+	RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisorDevice");
 	IoDeleteSymbolicLink(&DosDeviceName);
 	IoDeleteDevice(DriverObject->DeviceObject);
 

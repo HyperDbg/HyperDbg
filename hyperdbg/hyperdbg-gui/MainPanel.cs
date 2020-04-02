@@ -159,9 +159,13 @@ namespace hyperdbg_gui
         {
             if (!hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded)
             {
-                WindowManager.AddWindow.CreateCommandWindow(this);
-                Details.GlobalVariables.VmxInitThread= new Thread(LoadDriver);
-                Details.GlobalVariables.VmxInitThread.Start();
+                if (true)
+                {
+                    WindowManager.AddWindow.CreateCommandWindow(this);
+                    Details.GlobalVariables.VmxInitThread = new Thread(LoadDriver);
+                    Details.GlobalVariables.VmxInitThread.Start();
+
+                }
 
             }
             else
@@ -176,6 +180,18 @@ namespace hyperdbg_gui
         {
             AboutWindow about = new AboutWindow();
             about.ShowDialog();
+        }
+
+        private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            AttachWindow attach = new AttachWindow();
+            attach.ShowDialog();
+        }
+
+        private void recentSessionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RecentSessions r = new RecentSessions();
+            r.ShowDialog();
         }
     }
 }

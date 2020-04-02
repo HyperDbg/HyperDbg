@@ -346,9 +346,8 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
 		CloseHandle(hToken);
 	}
-	
 
-	Handle = CreateFileA("\\\\.\\HyperdbgHypervisor",
+	Handle = CreateFileA("\\\\.\\HyperdbgHypervisorDevice",
 		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ |
 		FILE_SHARE_WRITE,

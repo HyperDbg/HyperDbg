@@ -73,6 +73,12 @@
     <Compile Include="AboutWindow.Designer.cs">
       <DependentUpon>AboutWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="AttachWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AttachWindow.Designer.cs">
+      <DependentUpon>AttachWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="child.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -109,6 +115,12 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RecentSessions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RecentSessions.Designer.cs">
+      <DependentUpon>RecentSessions.cs</DependentUpon>
+    </Compile>
     <Compile Include="RegsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -118,6 +130,9 @@
     <Compile Include="WindowManager\AddWindow.cs" />
     <EmbeddedResource Include="AboutWindow.resx">
       <DependentUpon>AboutWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AttachWindow.resx">
+      <DependentUpon>AttachWindow.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="child.resx">
       <DependentUpon>child.cs</DependentUpon>
@@ -135,6 +150,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RecentSessions.resx">
+      <DependentUpon>RecentSessions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="RegsWindow.resx">
       <DependentUpon>RegsWindow.cs</DependentUpon>
@@ -167,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="butterfly.ico" />
+    <None Include="Resources\administrator-icon.png" />
     <None Include="Resources\Trafficlight-red-icon.png" />
     <None Include="Resources\Pan_Green_Circle.png" />
     <None Include="Resources\adjust.png" />
