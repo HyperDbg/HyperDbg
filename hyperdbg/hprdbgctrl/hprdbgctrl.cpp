@@ -257,7 +257,6 @@ DWORD WINAPI ThreadFunc(void* Data) {
 
 HPRDBGCTRL_API int HyperdbgInstallDriver()
 {
-
 	//
 	// The driver is not started yet so let us the install driver.
 	// First setup full path to driver name.

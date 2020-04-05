@@ -219,6 +219,21 @@ typedef struct _NT_KPROCESS
 	UCHAR Data[1];
 }NT_KPROCESS, *PNT_KPROCESS;
 
+typedef union _EFER_MSR
+{
+	struct
+	{
+		UINT64 SyscallEnable : 1;
+		UINT64 Reserved1 : 7;
+		UINT64 Ia32eModeEnable : 1;
+		UINT64 Reserved2 : 1;
+		UINT64 Ia32eModeActive : 1;
+		UINT64 ExecuteDisableBitEnable : 1;
+		UINT64 Reserved3 : 52;
+	};
+	UINT64 Flags;
+}EFER_MSR, *PEFER_MSR;
+
 //////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////
@@ -334,3 +349,22 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 #define MAX_EXEC_TRAMPOLINE_SIZE	100
 
 extern size_t __fastcall LDE(const void* lpData, unsigned int size);
+
+
+
+
+
+
+
+
+
+// A test function for Syscall hook
+VOID SyscallHookTest();
+// Enable or Disable Syscall Hook for EFER MSR
+VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
+// Manage #UD Exceptions for EFER Syscall
+BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs);
+// SYSRET instruction emulation routine 
+BOOLEAN SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
+// SYSCALL instruction emulation routine 
+BOOLEAN SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);

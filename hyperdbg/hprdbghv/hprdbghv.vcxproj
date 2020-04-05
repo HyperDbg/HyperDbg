@@ -94,6 +94,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="EFERHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
     <ClCompile Include="Exit.c" />
@@ -103,7 +104,7 @@
     <ClCompile Include="Logging.c" />
     <ClCompile Include="PoolManager.c" />
     <ClCompile Include="Spinlock.c" />
-    <ClCompile Include="SyscallHook.c" />
+    <ClCompile Include="SsdtHook.c" />
     <ClCompile Include="VmxRegions.c" />
     <ClCompile Include="Driver.c" />
     <ClCompile Include="Common.c" />

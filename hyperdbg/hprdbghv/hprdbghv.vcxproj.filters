@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Features\Hooks">
       <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Features\Hooks\SyscallHook">
+      <UniqueIdentifier>{8e38c4c7-4c0a-4b0d-94ec-1068c8ebbefc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -80,11 +83,14 @@
     <ClCompile Include="Exit.c">
       <Filter>Source Files\Hypervisor</Filter>
     </ClCompile>
-    <ClCompile Include="SyscallHook.c">
-      <Filter>Source Files\Features</Filter>
-    </ClCompile>
     <ClCompile Include="HiddenHooks.c">
       <Filter>Source Files\Features</Filter>
+    </ClCompile>
+    <ClCompile Include="SsdtHook.c">
+      <Filter>Source Files\Features\Hooks\SyscallHook</Filter>
+    </ClCompile>
+    <ClCompile Include="EFERHook.c">
+      <Filter>Source Files\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

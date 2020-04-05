@@ -112,6 +112,7 @@ BOOLEAN VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
 	// Setting the state to indicate current core is currently virtualized
 	GuestState[ProcessorID].HasLaunched = TRUE;
+	SyscallHookConfigureEFER(TRUE);
 
 	__vmx_vmlaunch();
 
@@ -270,7 +271,7 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 
 	SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP |
 		CPU_BASED_CTL2_ENABLE_EPT | CPU_BASED_CTL2_ENABLE_INVPCID |
-		CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_VPID, MSR_IA32_VMX_PROCBASED_CTLS2);
+		CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS /*| CPU_BASED_CTL2_ENABLE_VPID*/, MSR_IA32_VMX_PROCBASED_CTLS2);
 
 	__vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, SecondaryProcBasedVmExecControls);
 	LogInfo("Secondary Proc Based VM Exec Controls (MSR_IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
@@ -337,6 +338,7 @@ BOOLEAN VmxSetupVmcs(VIRTUAL_MACHINE_STATE* CurrentGuestState, PVOID GuestStack)
 
 	// Set exception bitmap to hook division by zero (bit 1 of EXCEPTION_BITMAP)
 	// __vmx_vmwrite(EXCEPTION_BITMAP, 0x8); // breakpoint 3nd bit
+	__vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // breakpoint 3nd bit
 
 	// Set up EPT 
 	__vmx_vmwrite(EPT_POINTER, EptState->EptPointer.Flags);

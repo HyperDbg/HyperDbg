@@ -4,6 +4,8 @@
 #include "InlineAsm.h"
 #include "GlobalVariables.h"
 #include "Vmcall.h"
+#include "Hooks.h"
+#include "Invept.h"
 #include "HypervisorRoutines.h"
 #include "Events.h"
 
@@ -11,7 +13,7 @@
 /* Main Vmexit events handler */
 BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
-	
+	InveptAllContexts();
 	int CurrentProcessorIndex;
 	VMEXIT_INTERRUPT_INFO InterruptExit;
 	UINT64 GuestPhysicalAddr;
@@ -176,6 +178,17 @@ BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
 			// re-inject #BP back to the guest
 			EventInjectBreakpoint();
+
+		}
+		else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_UNDEFINED_OPCODE)
+		{
+			// Handle the #UD, checking if this exception was intentional.
+
+			if (!SyscallHookHandleUD(GuestRegs))
+			{
+				// If this #UD was found to be unintentional, inject a #UD interruption into the guest.
+				EventInjectUndefinedOpcode();
+			}
 
 		}
 		else

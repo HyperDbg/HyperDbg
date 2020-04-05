@@ -190,10 +190,7 @@ NTSTATUS DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /* IRP_MJ_CLOSE Function handler*/
 NTSTATUS DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
-{
-	// Terminating Vmx
-	//HvTerminateVmx();
-	
+{	
 	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);

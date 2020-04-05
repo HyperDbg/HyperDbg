@@ -79,9 +79,6 @@ NTSTATUS(*NtCreateFileOrig)(
 
 // ----------------------------------------------------------------------
 
-// A test function for Syscall hook
-VOID SyscallHookTest();
-
 
 //////////////////////////////////////////////////
 //				   Hidden Hooks					//
