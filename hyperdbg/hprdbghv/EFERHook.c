@@ -2,6 +2,9 @@
 #include <Windef.h>
 #include "Common.h"
 #include "Hooks.h"
+#include "Invept.h"
+#include "Events.h"
+#include "GlobalVariables.h"
 #include "Vmx.h"
 #include "Logging.h"
 
@@ -54,6 +57,24 @@
 #define PCID_NONE   0x000
 #define PCID_MASK   0x003
 
+typedef union _PAGE_FAULT_ERROR_CODE
+{
+    struct
+    {
+        UINT32   P : 1;      // 0: non-present page; 1: page-level protection violation
+        UINT32   Wr : 1;     // 0: read access; 1: write access
+        UINT32   Us : 1;     // 0: supervisor-mode access; 1: user-mode access
+        UINT32   Rsvd : 1;   // 0: reserved bit violation; 1: reserved bit set to 1 in a paging structure entry
+        UINT32   Id : 1;     // 0: not an instruction fetch; 1: instruction fetch
+        UINT32   Pk : 1;     // 0: not a protection key violation; 1: protection key violation
+        UINT32   Ss : 1;     // 0: not caused by a shadow-stack access : 1: caused by a shadow-stack access
+        UINT32   Reserved : 8;
+        UINT32   Sgx : 1;    // 0: not related to SGX; 1: SGX-specific access-control requirements violation
+    } Fields;
+    UINT32       ErrorCode;
+} PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
+
+
 VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 {
     EFER_MSR MsrValue;
@@ -93,6 +114,7 @@ VOID SetGuestSs(PSEGMENT_SELECTOR Cs)
 BOOLEAN SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
     SEGMENT_SELECTOR Cs, Ss;
+    UINT32 InstructionLength;
     UINT64 MsrValue;
     ULONG64 GuestRip;
     ULONG64 GuestRflags;
@@ -100,13 +122,16 @@ BOOLEAN SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     // Reading guest's RIP 
     __vmx_vmread(GUEST_RIP, &GuestRip);
 
+    // Reading instruction length 
+    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &InstructionLength);
+
     // Reading guest's Rflags
     __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
 
     // Save the address of the instruction following SYSCALL into RCX and then
     // load RIP from MSR_LSTAR.
     MsrValue = __readmsr(MSR_LSTAR);
-    Regs->rcx= GuestRip;
+    Regs->rcx= GuestRip + InstructionLength;
     GuestRip = MsrValue;
     __vmx_vmwrite(GUEST_RIP, GuestRip);
 
@@ -168,26 +193,58 @@ BOOLEAN SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
     return TRUE;
 }
 
-
 BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs)
 {
     UINT64 GuestCr3;
     UINT64 OriginalCr3;
     UINT64 Rip;
 
+
     // Reading guest's RIP 
     __vmx_vmread(GUEST_RIP, &Rip);
 
+    if (Rip & 0xff00000000000000)
+    {
+        // Means that it's a sysret
+        goto EmulateSYSRET;
+    }
+    else
+    {
+        goto EmulateSYSCALL;
+    }
+
+    /*
     // Due to KVA Shadowing, we need to switch to a different directory table base 
     // if the PCID indicates this is a user mode directory table base.
 
     __vmx_vmread(GUEST_CR3, &GuestCr3);
     if ((GuestCr3 & PCID_MASK) != PCID_NONE)
     {
-        DbgBreakPoint();
         OriginalCr3 = __readcr3();
+        // ------------------------------------------------------------------------
+        DbgBreakPoint();
+       // SyscallHookEmulateSYSRET(Regs);
+        __writecr2(Rip);
+
+        PAGE_FAULT_ERROR_CODE PageFaultErrorCode = { 0 };
+        PageFaultErrorCode.Fields.P = 0; // The fault was caused by a non-present page.
+        PageFaultErrorCode.Fields.Wr = 0; // The access causing the fault was a read.
+        PageFaultErrorCode.Fields.Us = 0; // A supervisor-mode access caused the fault.
+        PageFaultErrorCode.Fields.Rsvd = 0; // The fault was not caused by reserved bit violation.
+        PageFaultErrorCode.Fields.Id = 1; // 1 The fault was caused by an instruction fetch.
+        PageFaultErrorCode.Fields.Pk = 0; // The fault was not caused by protection keys.
+        PageFaultErrorCode.Fields.Sgx = 0; // The fault was caused by a non-present page.
+
+        // Insert the fault
+        EventInjectPageFault(PageFaultErrorCode.ErrorCode);
+        GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
+        DbgBreakPoint();
+        return FALSE;
+        DbgBreakPoint();
+        // ------------------------------------------------------------------------
         NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(PsGetCurrentProcess());
         __writecr3(CurrentProcess->DirectoryTableBase);
+
         if (IS_SYSRET_INSTRUCTION(Rip))
         {
             __writecr3(OriginalCr3);
@@ -210,15 +267,20 @@ BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs)
             goto EmulateSYSCALL;
         return FALSE;
     }
+    */
 
     // Emulate SYSRET instruction.
 EmulateSYSRET:
     LogInfo("SYSRET instruction => 0x%llX", Rip);
+    BOOLEAN Result = SyscallHookEmulateSYSRET(Regs);
+    GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
     DbgBreakPoint();
-    return SyscallHookEmulateSYSRET(Regs);
+    return Result;
     // Emulate SYSCALL instruction.
 EmulateSYSCALL:
     LogInfo("SYSCALL instruction => 0x%llX", Rip);
+    Result = SyscallHookEmulateSYSCALL(Regs);
+    GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
     DbgBreakPoint();
-    return SyscallHookEmulateSYSCALL(Regs);
+    return Result;
 }

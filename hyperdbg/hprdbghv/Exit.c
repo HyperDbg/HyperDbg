@@ -13,7 +13,6 @@
 /* Main Vmexit events handler */
 BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
-	InveptAllContexts();
 	int CurrentProcessorIndex;
 	VMEXIT_INTERRUPT_INFO InterruptExit;
 	UINT64 GuestPhysicalAddr;
@@ -187,7 +186,7 @@ BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 			if (!SyscallHookHandleUD(GuestRegs))
 			{
 				// If this #UD was found to be unintentional, inject a #UD interruption into the guest.
-				EventInjectUndefinedOpcode();
+				//EventInjectUndefinedOpcode();
 			}
 
 		}

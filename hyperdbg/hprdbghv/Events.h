@@ -111,3 +111,4 @@ VOID EventInjectBreakpoint();
 VOID EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode);
 VOID EventInjectGeneralProtection();
 VOID EventInjectUndefinedOpcode();
+VOID EventInjectPageFault(ULONG32 ErrorCode);

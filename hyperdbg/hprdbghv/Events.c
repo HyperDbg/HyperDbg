@@ -43,3 +43,11 @@ VOID EventInjectUndefinedOpcode()
 {
 	EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_UNDEFINED_OPCODE, FALSE, 0);
 }
+
+
+/* Inject #PF to the guest (Page-Fault for EFER Injector) */
+VOID EventInjectPageFault(ULONG32 ErrorCode)
+{
+	// Error code is from PAGE_FAULT_ERROR_CODE structure
+	EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode);
+}
