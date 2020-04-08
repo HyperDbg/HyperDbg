@@ -278,7 +278,7 @@ EmulateSYSRET:
     return Result;
     // Emulate SYSCALL instruction.
 EmulateSYSCALL:
-    LogInfo("SYSCALL instruction => 0x%llX", Rip);
+    LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx", Rip, PsGetCurrentProcessId(), Regs->rax);
     Result = SyscallHookEmulateSYSCALL(Regs);
     GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
     DbgBreakPoint();
