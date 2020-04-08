@@ -9,7 +9,6 @@
 #include "HypervisorRoutines.h"
 #include "Events.h"
 
-
 /* Main Vmexit events handler */
 BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {

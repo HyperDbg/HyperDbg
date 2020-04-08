@@ -28,8 +28,6 @@ UINT64 SysretAddress;
 #define MSR_FMASK       0xc0000084
 
 
-
-
 /* EFLAGS/RFLAGS */
 #define X86_FLAGS_CF                    (1<<0)
 #define X86_FLAGS_PF                    (1<<2)
@@ -112,30 +110,44 @@ VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 	// Reading IA32_VMX_BASIC_MSR 
 	VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
 
-	MsrValue.Flags = __readmsr(MSR_EFER);
-	if (EnableEFERSyscallHook)
-	{
-		MsrValue.SyscallEnable = FALSE;
-	}
-	else
-	{
-		MsrValue.SyscallEnable = TRUE;
-	}
-
-	// Read previous VM-Exit and VM-Entry controls
+	// Read previous VM-Entry and VM-Exit controls
 	__vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
 	__vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
 
-	// Set VM-Entry controls to load EFER
-	__vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER,
-		VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
+	MsrValue.Flags = __readmsr(MSR_EFER);
 
-	// Set VM-Exit controls to save EFER
-	__vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER,
-		VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
+	if (EnableEFERSyscallHook)
+	{
+		MsrValue.SyscallEnable = FALSE;
 
-	// Set the GUEST EFER to use this value as the EFER
-	__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+		// Set VM-Entry controls to load EFER
+		__vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER,
+			VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
+
+		// Set VM-Exit controls to save EFER
+		__vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER,
+			VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
+
+		// Set the GUEST EFER to use this value as the EFER
+		__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+	}
+	else
+	{
+		// Btw, No need to this 
+		MsrValue.SyscallEnable = TRUE;
+
+		// Set VM-Entry controls to load EFER
+		__vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER,
+			VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
+
+		// Set VM-Exit controls to save EFER
+		__vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER,
+			VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
+
+		// Set the GUEST EFER to use this value as the EFER
+		__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+	}
+
 
 }
 
