@@ -238,7 +238,7 @@ BOOLEAN SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
     return TRUE;
 }
 
-BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs)
+BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {
     UINT64 GuestCr3;
     UINT64 OriginalCr3;
@@ -319,16 +319,14 @@ EmulateSYSRET:
     LogInfo("SYSRET instruction => 0x%llX", Rip);
     BOOLEAN Result = SyscallHookEmulateSYSRET(Regs);
     GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
-    DbgBreakPoint();
     return Result;
     // Emulate SYSCALL instruction.
 EmulateSYSCALL:
-    LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx", Rip, PsGetCurrentProcessId(), Regs->rax);
     // Result = SyscallHookEmulateSYSCALL(Regs);
     Result = TRUE;
     SyscallHookEnableSCE();
     HvSetMonitorTrapFlag(TRUE);
-    GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
-    DbgBreakPoint();
+    GuestState[CoreIndex].IncrementRip = FALSE;
+    GuestState[CoreIndex].UndefinedInstructionAddress = Rip;
     return Result;
 }

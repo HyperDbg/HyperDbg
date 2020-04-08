@@ -183,12 +183,11 @@ BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 		{
 			// Handle the #UD, checking if this exception was intentional.
 
-			if (!SyscallHookHandleUD(GuestRegs))
+			if (!SyscallHookHandleUD(GuestRegs, CurrentProcessorIndex))
 			{
 				// If this #UD was found to be unintentional, inject a #UD interruption into the guest.
-				//EventInjectUndefinedOpcode();
+				EventInjectUndefinedOpcode();
 			}
-
 		}
 		else
 		{
@@ -206,10 +205,32 @@ BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 			// Set it to NULL
 			GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
 		}
+		else if (GuestState[CurrentProcessorIndex].UndefinedInstructionAddress != NULL)
+		{
+			ULONG64 GuestRip;
+
+			// Reading guest's RIP 
+			__vmx_vmread(GUEST_RIP, &GuestRip);
+
+			if (GuestState[CurrentProcessorIndex].UndefinedInstructionAddress == GuestRip)
+			{
+				// #UD was not because of syscall because it's no incremented, we should inject the #UD again
+				EventInjectUndefinedOpcode();
+			}
+			else
+			{
+				// It was because of Syscall, let's log it
+				LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx",
+					GuestState[CurrentProcessorIndex].UndefinedInstructionAddress, PsGetCurrentProcessId(), GuestRegs->rax);
+			}
+
+			// Enable syscall hook again
+			SyscallHookDisableSCE();
+			GuestState[CurrentProcessorIndex].UndefinedInstructionAddress = NULL;
+		}
 		else
 		{
-			SyscallHookDisableSCE();
-			//LogError("Why MTF occured ?!");
+			LogError("Why MTF occured ?!");
 		}
 
 		// Redo the instruction 

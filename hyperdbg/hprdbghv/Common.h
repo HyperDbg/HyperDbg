@@ -363,7 +363,7 @@ VOID SyscallHookTest();
 // Enable or Disable Syscall Hook for EFER MSR
 VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
 // Manage #UD Exceptions for EFER Syscall
-BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs);
+BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex);
 // SYSRET instruction emulation routine 
 BOOLEAN SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
 // SYSCALL instruction emulation routine 
