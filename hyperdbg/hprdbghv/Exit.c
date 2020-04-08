@@ -208,7 +208,8 @@ BOOLEAN VmxVmexitHandler(PGUEST_REGS GuestRegs)
 		}
 		else
 		{
-			LogError("Why MTF occured ?!");
+			SyscallHookDisableSCE();
+			//LogError("Why MTF occured ?!");
 		}
 
 		// Redo the instruction 

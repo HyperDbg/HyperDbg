@@ -79,6 +79,9 @@ NTSTATUS(*NtCreateFileOrig)(
 
 // ----------------------------------------------------------------------
 
+VOID SSyscallHookEnableSCE();
+VOID SyscallHookDisableSCE();
+
 
 //////////////////////////////////////////////////
 //				   Hidden Hooks					//

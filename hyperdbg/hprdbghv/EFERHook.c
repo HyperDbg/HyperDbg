@@ -1,9 +1,11 @@
 #include <ntddk.h>
 #include <Windef.h>
 #include "Common.h"
+#include "Msr.h"
 #include "Hooks.h"
 #include "Invept.h"
 #include "Events.h"
+#include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
 #include "Vmx.h"
 #include "Logging.h"
@@ -74,10 +76,40 @@ typedef union _PAGE_FAULT_ERROR_CODE
     UINT32       ErrorCode;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
+VOID SyscallHookDisableSCE() {
+
+    EFER_MSR MsrValue;
+
+    // Set the GUEST EFER to use this value as the EFER
+    __vmx_vmread(GUEST_EFER, &MsrValue);
+    MsrValue.SyscallEnable = FALSE;
+
+    // Set the GUEST EFER to use this value as the EFER
+    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+
+}
+VOID SyscallHookEnableSCE() {
+
+    EFER_MSR MsrValue;
+
+    // Set the GUEST EFER to use this value as the EFER
+    __vmx_vmread(GUEST_EFER, &MsrValue);
+    MsrValue.SyscallEnable = TRUE;
+
+    // Set the GUEST EFER to use this value as the EFER
+    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+
+}
 
 VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 {
     EFER_MSR MsrValue;
+    IA32_VMX_BASIC_MSR VmxBasicMsr = { 0 };
+    UINT32 VmEntryControls = 0;
+    UINT32 VmExitControls = 0;
+
+    // Reading IA32_VMX_BASIC_MSR 
+    VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     MsrValue.Flags = __readmsr(MSR_EFER);
     if (EnableEFERSyscallHook)
@@ -89,7 +121,20 @@ VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         MsrValue.SyscallEnable = TRUE;
     }
 
-    __writemsr(MSR_EFER, MsrValue.Flags);
+    // Read previous VM-Exit and VM-Entry controls
+    __vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
+    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+
+    // Set VM-Entry controls to load EFER
+    __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER,
+        VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
+
+    // Set VM-Exit controls to save EFER
+    __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER,
+        VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
+   
+    // Set the GUEST EFER to use this value as the EFER
+    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
 
 }
 
@@ -279,7 +324,10 @@ EmulateSYSRET:
     // Emulate SYSCALL instruction.
 EmulateSYSCALL:
     LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx", Rip, PsGetCurrentProcessId(), Regs->rax);
-    Result = SyscallHookEmulateSYSCALL(Regs);
+    // Result = SyscallHookEmulateSYSCALL(Regs);
+    Result = TRUE;
+    SyscallHookEnableSCE();
+    HvSetMonitorTrapFlag(TRUE);
     GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
     DbgBreakPoint();
     return Result;
