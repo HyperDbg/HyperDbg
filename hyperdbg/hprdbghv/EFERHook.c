@@ -11,7 +11,7 @@
 #include "Logging.h"
 
 
-
+UINT64 SysretAddress;
 
 #define IS_SYSRET_INSTRUCTION(Code) \
     (*((PUINT8)(Code) + 0) == 0x48 && \
@@ -61,272 +61,248 @@
 
 typedef union _PAGE_FAULT_ERROR_CODE
 {
-    struct
-    {
-        UINT32   P : 1;      // 0: non-present page; 1: page-level protection violation
-        UINT32   Wr : 1;     // 0: read access; 1: write access
-        UINT32   Us : 1;     // 0: supervisor-mode access; 1: user-mode access
-        UINT32   Rsvd : 1;   // 0: reserved bit violation; 1: reserved bit set to 1 in a paging structure entry
-        UINT32   Id : 1;     // 0: not an instruction fetch; 1: instruction fetch
-        UINT32   Pk : 1;     // 0: not a protection key violation; 1: protection key violation
-        UINT32   Ss : 1;     // 0: not caused by a shadow-stack access : 1: caused by a shadow-stack access
-        UINT32   Reserved : 8;
-        UINT32   Sgx : 1;    // 0: not related to SGX; 1: SGX-specific access-control requirements violation
-    } Fields;
-    UINT32       ErrorCode;
-} PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
+	struct
+	{
+		UINT32   P : 1;      // 0: non-present page; 1: page-level protection violation
+		UINT32   Wr : 1;     // 0: read access; 1: write access
+		UINT32   Us : 1;     // 0: supervisor-mode access; 1: user-mode access
+		UINT32   Rsvd : 1;   // 0: reserved bit violation; 1: reserved bit set to 1 in a paging structure entry
+		UINT32   Id : 1;     // 0: not an instruction fetch; 1: instruction fetch
+		UINT32   Pk : 1;     // 0: not a protection key violation; 1: protection key violation
+		UINT32   Ss : 1;     // 0: not caused by a shadow-stack access : 1: caused by a shadow-stack access
+		UINT32   Reserved : 8;
+		UINT32   Sgx : 1;    // 0: not related to SGX; 1: SGX-specific access-control requirements violation
+	} Fields;
+	UINT32       ErrorCode;
+} PAGE_FAULT_ERROR_CODE, * PPAGE_FAULT_ERROR_CODE;
 
 VOID SyscallHookDisableSCE() {
 
-    EFER_MSR MsrValue;
+	EFER_MSR MsrValue;
 
-    // Set the GUEST EFER to use this value as the EFER
-    __vmx_vmread(GUEST_EFER, &MsrValue);
-    MsrValue.SyscallEnable = FALSE;
+	// Set the GUEST EFER to use this value as the EFER
+	__vmx_vmread(GUEST_EFER, &MsrValue);
+	MsrValue.SyscallEnable = FALSE;
 
-    // Set the GUEST EFER to use this value as the EFER
-    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+	// Set the GUEST EFER to use this value as the EFER
+	__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
 
 }
+
 VOID SyscallHookEnableSCE() {
 
-    EFER_MSR MsrValue;
+	EFER_MSR MsrValue;
 
-    // Set the GUEST EFER to use this value as the EFER
-    __vmx_vmread(GUEST_EFER, &MsrValue);
-    MsrValue.SyscallEnable = TRUE;
+	// Set the GUEST EFER to use this value as the EFER
+	__vmx_vmread(GUEST_EFER, &MsrValue);
+	MsrValue.SyscallEnable = TRUE;
 
-    // Set the GUEST EFER to use this value as the EFER
-    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+	// Set the GUEST EFER to use this value as the EFER
+	__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
 
 }
 
 VOID SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 {
-    EFER_MSR MsrValue;
-    IA32_VMX_BASIC_MSR VmxBasicMsr = { 0 };
-    UINT32 VmEntryControls = 0;
-    UINT32 VmExitControls = 0;
+	EFER_MSR MsrValue;
+	IA32_VMX_BASIC_MSR VmxBasicMsr = { 0 };
+	UINT32 VmEntryControls = 0;
+	UINT32 VmExitControls = 0;
 
-    // Reading IA32_VMX_BASIC_MSR 
-    VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
+	// Reading IA32_VMX_BASIC_MSR 
+	VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
 
-    MsrValue.Flags = __readmsr(MSR_EFER);
-    if (EnableEFERSyscallHook)
-    {
-        MsrValue.SyscallEnable = FALSE;
-    }
-    else
-    {
-        MsrValue.SyscallEnable = TRUE;
-    }
+	MsrValue.Flags = __readmsr(MSR_EFER);
+	if (EnableEFERSyscallHook)
+	{
+		MsrValue.SyscallEnable = FALSE;
+	}
+	else
+	{
+		MsrValue.SyscallEnable = TRUE;
+	}
 
-    // Read previous VM-Exit and VM-Entry controls
-    __vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
-    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+	// Read previous VM-Exit and VM-Entry controls
+	__vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
+	__vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
 
-    // Set VM-Entry controls to load EFER
-    __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER,
-        VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
+	// Set VM-Entry controls to load EFER
+	__vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER,
+		VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_ENTRY_CTLS : MSR_IA32_VMX_ENTRY_CTLS));
 
-    // Set VM-Exit controls to save EFER
-    __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER,
-        VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
-   
-    // Set the GUEST EFER to use this value as the EFER
-    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+	// Set VM-Exit controls to save EFER
+	__vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER,
+		VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
+
+	// Set the GUEST EFER to use this value as the EFER
+	__vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
 
 }
 
 VOID SetGuestCs(PSEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(GUEST_CS_BASE, Cs->BASE);
-    __vmx_vmwrite(GUEST_CS_LIMIT, Cs->LIMIT);
-    __vmx_vmwrite(GUEST_CS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
+	__vmx_vmwrite(GUEST_CS_BASE, Cs->BASE);
+	__vmx_vmwrite(GUEST_CS_LIMIT, Cs->LIMIT);
+	__vmx_vmwrite(GUEST_CS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
+	__vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
 }
 
 VOID SetGuestSs(PSEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(GUEST_SS_BASE, Cs->BASE);
-    __vmx_vmwrite(GUEST_SS_LIMIT, Cs->LIMIT);
-    __vmx_vmwrite(GUEST_SS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_SS_SELECTOR, Cs->SEL);
+	__vmx_vmwrite(GUEST_SS_BASE, Cs->BASE);
+	__vmx_vmwrite(GUEST_SS_LIMIT, Cs->LIMIT);
+	__vmx_vmwrite(GUEST_SS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
+	__vmx_vmwrite(GUEST_SS_SELECTOR, Cs->SEL);
 }
 
 
 /* SYSCALL instruction emulation routine */
 BOOLEAN SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
-    UINT32 InstructionLength;
-    UINT64 MsrValue;
-    ULONG64 GuestRip;
-    ULONG64 GuestRflags;
+	SEGMENT_SELECTOR Cs, Ss;
+	UINT32 InstructionLength;
+	UINT64 MsrValue;
+	ULONG64 GuestRip;
+	ULONG64 GuestRflags;
 
-    // Reading guest's RIP 
-    __vmx_vmread(GUEST_RIP, &GuestRip);
+	// Reading guest's RIP 
+	__vmx_vmread(GUEST_RIP, &GuestRip);
 
-    // Reading instruction length 
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &InstructionLength);
+	// Reading instruction length 
+	__vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &InstructionLength);
 
-    // Reading guest's Rflags
-    __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
+	// Reading guest's Rflags
+	__vmx_vmread(GUEST_RFLAGS, &GuestRflags);
 
-    // Save the address of the instruction following SYSCALL into RCX and then
-    // load RIP from MSR_LSTAR.
-    MsrValue = __readmsr(MSR_LSTAR);
-    Regs->rcx= GuestRip + InstructionLength;
-    GuestRip = MsrValue;
-    __vmx_vmwrite(GUEST_RIP, GuestRip);
+	// Save the address of the instruction following SYSCALL into RCX and then
+	// load RIP from MSR_LSTAR.
+	MsrValue = __readmsr(MSR_LSTAR);
+	Regs->rcx = GuestRip + InstructionLength;
+	GuestRip = MsrValue;
+	__vmx_vmwrite(GUEST_RIP, GuestRip);
 
-    // Save RFLAGS into R11 and then mask RFLAGS using MSR_FMASK.
-    MsrValue = __readmsr(MSR_FMASK);
-    Regs->r11 = GuestRflags;
-    GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
-    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+	// Save RFLAGS into R11 and then mask RFLAGS using MSR_FMASK.
+	MsrValue = __readmsr(MSR_FMASK);
+	Regs->r11 = GuestRflags;
+	GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
+	__vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
 
-    // Load the CS and SS selectors with values derived from bits 47:32 of MSR_STAR.
-    MsrValue = __readmsr(MSR_STAR);
-    Cs.SEL = (UINT16)((MsrValue >> 32) & ~3);          // STAR[47:32] & ~RPL3
-    Cs.BASE = 0;                                            // flat segment
-    Cs.LIMIT = (UINT32)~0;                                  // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA09B;                              // L+DB+P+S+DPL0+Code
-    SetGuestCs(&Cs);
+	// Load the CS and SS selectors with values derived from bits 47:32 of MSR_STAR.
+	MsrValue = __readmsr(MSR_STAR);
+	Cs.SEL = (UINT16)((MsrValue >> 32) & ~3);          // STAR[47:32] & ~RPL3
+	Cs.BASE = 0;                                            // flat segment
+	Cs.LIMIT = (UINT32)~0;                                  // 4GB limit
+	Cs.ATTRIBUTES.UCHARs = 0xA09B;                              // L+DB+P+S+DPL0+Code
+	SetGuestCs(&Cs);
 
 
-    Ss.SEL = (UINT16)(((MsrValue >> 32) & ~3) + 8);    // STAR[47:32] + 8
-    Ss.BASE = 0;                                            // flat segment
-    Ss.LIMIT = (UINT32)~0;                                  // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC093;                              // G+DB+P+S+DPL0+Data
-    SetGuestSs(&Ss);
-    return TRUE;
+	Ss.SEL = (UINT16)(((MsrValue >> 32) & ~3) + 8);    // STAR[47:32] + 8
+	Ss.BASE = 0;                                            // flat segment
+	Ss.LIMIT = (UINT32)~0;                                  // 4GB limit
+	Ss.ATTRIBUTES.UCHARs = 0xC093;                              // G+DB+P+S+DPL0+Data
+	SetGuestSs(&Ss);
+	return TRUE;
 }
 
 
 /* SYSRET instruction emulation routine */
 BOOLEAN SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
-    UINT64 MsrValue;
+	SEGMENT_SELECTOR Cs, Ss;
+	UINT64 MsrValue;
 
-    ULONG64 GuestRip;
-    ULONG64 GuestRflags;
+	ULONG64 GuestRip;
+	ULONG64 GuestRflags;
 
-    // Load RIP from RCX.
-    GuestRip = Regs->rcx;
-    __vmx_vmwrite(GUEST_RIP, GuestRip);
+	// Load RIP from RCX.
+	GuestRip = Regs->rcx;
+	__vmx_vmwrite(GUEST_RIP, GuestRip);
 
-    // Load RFLAGS from R11. Clear RF, VM, reserved bits.
-    GuestRflags = (Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
-    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+	// Load RFLAGS from R11. Clear RF, VM, reserved bits.
+	GuestRflags = (Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
+	__vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
 
-    // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of MSR_STAR.
-    MsrValue = __readmsr(MSR_STAR);
-    Cs.SEL = (UINT16)(((MsrValue >> 48) + 16) | 3);    // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
-    Cs.BASE = 0;                                            // Flat segment
-    Cs.LIMIT = (UINT32)~0;                                  // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA0FB;                              // L+DB+P+S+DPL3+Code
-    SetGuestCs(&Cs);
+	// SYSRET loads the CS and SS selectors with values derived from bits 63:48 of MSR_STAR.
+	MsrValue = __readmsr(MSR_STAR);
+	Cs.SEL = (UINT16)(((MsrValue >> 48) + 16) | 3);    // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
+	Cs.BASE = 0;                                            // Flat segment
+	Cs.LIMIT = (UINT32)~0;                                  // 4GB limit
+	Cs.ATTRIBUTES.UCHARs = 0xA0FB;                              // L+DB+P+S+DPL3+Code
+	SetGuestCs(&Cs);
 
 
-    Ss.SEL = (UINT16)(((MsrValue >> 48) + 8) | 3);     // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
-    Ss.BASE = 0;                                            // Flat segment
-    Ss.LIMIT = (UINT32)~0;                                  // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC0F3;                                  // G+DB+P+S+DPL3+Data
-    SetGuestSs(&Ss);
-    return TRUE;
+	Ss.SEL = (UINT16)(((MsrValue >> 48) + 8) | 3);     // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
+	Ss.BASE = 0;                                            // Flat segment
+	Ss.LIMIT = (UINT32)~0;                                  // 4GB limit
+	Ss.ATTRIBUTES.UCHARs = 0xC0F3;                                  // G+DB+P+S+DPL3+Data
+	SetGuestSs(&Ss);
+	return TRUE;
 }
 
 BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {
-    UINT64 GuestCr3;
-    UINT64 OriginalCr3;
-    UINT64 Rip;
+	UINT64 GuestCr3;
+	UINT64 OriginalCr3;
+	UINT64 Rip;
+	BOOLEAN Result;
+
+	// Reading guest's RIP 
+	__vmx_vmread(GUEST_RIP, &Rip);
+
+	if (SysretAddress == NULL)
+	{
+		/* Find the address of sysret */
+
+		// Due to KVA Shadowing, we need to switch to a different directory table base 
+		// if the PCID indicates this is a user mode directory table base.
+
+		__vmx_vmread(GUEST_CR3, &GuestCr3);
+
+		OriginalCr3 = __readcr3();
+		NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(PsGetCurrentProcess());
+		__writecr3(CurrentProcess->DirectoryTableBase);
+
+		if (IS_SYSRET_INSTRUCTION(Rip))
+		{
+			__writecr3(OriginalCr3);
+
+			// Save the address of Sysret, it won't change
+			SysretAddress = Rip;
+		}
+		__writecr3(OriginalCr3);
+	}
+
+	if (Rip == SysretAddress)
+	{
+		// It's a sysret instruction, let's emulate it
+		goto EmulateSYSRET;
+	}
+	else if (Rip & 0xff00000000000000)
+	{
+		// It's a #UD in kernel, not relate to us
+		// this way the caller injects a #UD
+		return FALSE;
+	}
+	else
+	{
+		// It's sth in usermode, might be a syscall
+		goto EmulateSYSCALL;
+	}
 
 
-    // Reading guest's RIP 
-    __vmx_vmread(GUEST_RIP, &Rip);
 
-    if (Rip & 0xff00000000000000)
-    {
-        // Means that it's a sysret
-        goto EmulateSYSRET;
-    }
-    else
-    {
-        goto EmulateSYSCALL;
-    }
-
-    /*
-    // Due to KVA Shadowing, we need to switch to a different directory table base 
-    // if the PCID indicates this is a user mode directory table base.
-
-    __vmx_vmread(GUEST_CR3, &GuestCr3);
-    if ((GuestCr3 & PCID_MASK) != PCID_NONE)
-    {
-        OriginalCr3 = __readcr3();
-        // ------------------------------------------------------------------------
-        DbgBreakPoint();
-       // SyscallHookEmulateSYSRET(Regs);
-        __writecr2(Rip);
-
-        PAGE_FAULT_ERROR_CODE PageFaultErrorCode = { 0 };
-        PageFaultErrorCode.Fields.P = 0; // The fault was caused by a non-present page.
-        PageFaultErrorCode.Fields.Wr = 0; // The access causing the fault was a read.
-        PageFaultErrorCode.Fields.Us = 0; // A supervisor-mode access caused the fault.
-        PageFaultErrorCode.Fields.Rsvd = 0; // The fault was not caused by reserved bit violation.
-        PageFaultErrorCode.Fields.Id = 1; // 1 The fault was caused by an instruction fetch.
-        PageFaultErrorCode.Fields.Pk = 0; // The fault was not caused by protection keys.
-        PageFaultErrorCode.Fields.Sgx = 0; // The fault was caused by a non-present page.
-
-        // Insert the fault
-        EventInjectPageFault(PageFaultErrorCode.ErrorCode);
-        GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
-        DbgBreakPoint();
-        return FALSE;
-        DbgBreakPoint();
-        // ------------------------------------------------------------------------
-        NT_KPROCESS* CurrentProcess = (NT_KPROCESS*)(PsGetCurrentProcess());
-        __writecr3(CurrentProcess->DirectoryTableBase);
-
-        if (IS_SYSRET_INSTRUCTION(Rip))
-        {
-            __writecr3(OriginalCr3);
-            goto EmulateSYSRET;
-        }
-        if (IS_SYSCALL_INSTRUCTION(Rip))
-        {
-            __writecr3(OriginalCr3);
-            goto EmulateSYSCALL;
-        }
-        __writecr3(OriginalCr3);
-        return FALSE;
-    }
-
-    else
-    {
-        if (IS_SYSRET_INSTRUCTION(Rip))
-            goto EmulateSYSRET;
-        if (IS_SYSCALL_INSTRUCTION(Rip))
-            goto EmulateSYSCALL;
-        return FALSE;
-    }
-    */
-
-    // Emulate SYSRET instruction.
+	// Emulate SYSRET instruction.
 EmulateSYSRET:
-    LogInfo("SYSRET instruction => 0x%llX", Rip);
-    BOOLEAN Result = SyscallHookEmulateSYSRET(Regs);
-    GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
-    return Result;
-    // Emulate SYSCALL instruction.
+	LogInfo("SYSRET instruction => 0x%llX", Rip);
+	Result = SyscallHookEmulateSYSRET(Regs);
+	GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
+	return Result;
+	// Emulate SYSCALL instruction.
 EmulateSYSCALL:
-    // Result = SyscallHookEmulateSYSCALL(Regs);
-    Result = TRUE;
-    SyscallHookEnableSCE();
-    HvSetMonitorTrapFlag(TRUE);
-    GuestState[CoreIndex].IncrementRip = FALSE;
-    GuestState[CoreIndex].UndefinedInstructionAddress = Rip;
-    return Result;
+	// Result = SyscallHookEmulateSYSCALL(Regs);
+	SyscallHookEnableSCE();
+	HvSetMonitorTrapFlag(TRUE);
+	GuestState[CoreIndex].IncrementRip = FALSE;
+	GuestState[CoreIndex].UndefinedInstructionAddress = Rip;
+	return TRUE;
 }
