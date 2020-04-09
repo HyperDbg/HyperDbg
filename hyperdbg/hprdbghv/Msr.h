@@ -33,7 +33,10 @@
 #define MSR_IA32_SYSENTER_EIP               0x176
 #define MSR_IA32_DEBUGCTL                   0x1D9
 
-#define MSR_LSTAR                           0xC0000082
+#define MSR_EFER							0xc0000080
+#define MSR_STAR							0xc0000081
+#define MSR_LSTAR							0xc0000082
+#define MSR_FMASK							0xc0000084
 
 #define MSR_FS_BASE                         0xC0000100
 #define MSR_GS_BASE                         0xC0000101
@@ -44,6 +47,21 @@
 //////////////////////////////////////////////////
 //				    Structures					//
 //////////////////////////////////////////////////
+
+typedef union _EFER_MSR
+{
+	struct
+	{
+		UINT64 SyscallEnable : 1;
+		UINT64 Reserved1 : 7;
+		UINT64 Ia32eModeEnable : 1;
+		UINT64 Reserved2 : 1;
+		UINT64 Ia32eModeActive : 1;
+		UINT64 ExecuteDisableBitEnable : 1;
+		UINT64 Reserved3 : 52;
+	};
+	UINT64 Flags;
+}EFER_MSR, * PEFER_MSR;
 
 typedef union _IA32_FEATURE_CONTROL_MSR
 {

@@ -112,7 +112,6 @@ BOOLEAN VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
 	// Setting the state to indicate current core is currently virtualized
 	GuestState[ProcessorID].HasLaunched = TRUE;
-	SyscallHookConfigureEFER(TRUE);
 
 	__vmx_vmlaunch();
 

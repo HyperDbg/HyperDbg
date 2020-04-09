@@ -25,14 +25,23 @@
     <Filter Include="Source Files\Assembly">
       <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Features">
+    <Filter Include="Source Files\Debugger">
+      <UniqueIdentifier>{8467f2ec-c840-4b3b-acb5-edafd20e4199}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Features">
       <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Features\Hooks">
+    <Filter Include="Source Files\Debugger\Features\Hooks">
       <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Features\Hooks\SyscallHook">
+    <Filter Include="Source Files\Debugger\Features\Hooks\SyscallHook">
       <UniqueIdentifier>{8e38c4c7-4c0a-4b0d-94ec-1068c8ebbefc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Commands">
+      <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Entry">
+      <UniqueIdentifier>{21c9f013-596f-4c5b-8822-d6fbc7139279}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -83,14 +92,26 @@
     <ClCompile Include="Exit.c">
       <Filter>Source Files\Hypervisor</Filter>
     </ClCompile>
-    <ClCompile Include="HiddenHooks.c">
-      <Filter>Source Files\Features</Filter>
-    </ClCompile>
     <ClCompile Include="SsdtHook.c">
-      <Filter>Source Files\Features\Hooks\SyscallHook</Filter>
+      <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
     <ClCompile Include="EFERHook.c">
-      <Filter>Source Files\Features\Hooks\SyscallHook</Filter>
+      <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
+    </ClCompile>
+    <ClCompile Include="HiddenHooks.c">
+      <Filter>Source Files\Debugger\Features\Hooks</Filter>
+    </ClCompile>
+    <ClCompile Include="Process.c">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="Broadcast.c">
+      <Filter>Source Files\Debugger\Entry</Filter>
+    </ClCompile>
+    <ClCompile Include="Debugger.c">
+      <Filter>Source Files\Debugger\Entry</Filter>
+    </ClCompile>
+    <ClCompile Include="Sanitizer.c">
+      <Filter>Source Files\Debugger\Entry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +161,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Hooks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

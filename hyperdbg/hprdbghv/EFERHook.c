@@ -21,58 +21,11 @@ UINT64 SysretAddress;
     (*((PUINT8)(Code) + 0) == 0x0F && \
      *((PUINT8)(Code) + 1) == 0x05)
 
-// register for address of syscall handler
-#define MSR_EFER        0xc0000080
-#define MSR_STAR        0xc0000081
-#define MSR_LSTAR       0xc0000082
-#define MSR_FMASK       0xc0000084
 
 
-/* EFLAGS/RFLAGS */
-#define X86_FLAGS_CF                    (1<<0)
-#define X86_FLAGS_PF                    (1<<2)
-#define X86_FLAGS_AF                    (1<<4)
-#define X86_FLAGS_ZF                    (1<<6)
-#define X86_FLAGS_SF                    (1<<7)
-#define X86_FLAGS_TF                    (1<<8)
-#define X86_FLAGS_IF                    (1<<9)
-#define X86_FLAGS_DF                    (1<<10)
-#define X86_FLAGS_OF                    (1<<11)
-#define X86_FLAGS_STATUS_MASK           (0xfff)
-#define X86_FLAGS_IOPL_MASK             (3<<12)
-#define X86_FLAGS_IOPL_SHIFT            (12)
-#define X86_FLAGS_NT                    (1<<14)
-#define X86_FLAGS_RF                    (1<<16)
-#define X86_FLAGS_VM                    (1<<17)
-#define X86_FLAGS_AC                    (1<<18)
-#define X86_FLAGS_VIF                   (1<<19)
-#define X86_FLAGS_VIP                   (1<<20)
-#define X86_FLAGS_ID                    (1<<21)
-#define X86_FLAGS_RESERVED_ONES         0x2
-#define X86_FLAGS_RESERVED              0xffc0802a
 
-#define X86_FLAGS_RESERVED_BITS       0xffc38028
-#define X86_FLAGS_FIXED               0x00000002
 
-#define PCID_NONE   0x000
-#define PCID_MASK   0x003
 
-typedef union _PAGE_FAULT_ERROR_CODE
-{
-	struct
-	{
-		UINT32   P : 1;      // 0: non-present page; 1: page-level protection violation
-		UINT32   Wr : 1;     // 0: read access; 1: write access
-		UINT32   Us : 1;     // 0: supervisor-mode access; 1: user-mode access
-		UINT32   Rsvd : 1;   // 0: reserved bit violation; 1: reserved bit set to 1 in a paging structure entry
-		UINT32   Id : 1;     // 0: not an instruction fetch; 1: instruction fetch
-		UINT32   Pk : 1;     // 0: not a protection key violation; 1: protection key violation
-		UINT32   Ss : 1;     // 0: not caused by a shadow-stack access : 1: caused by a shadow-stack access
-		UINT32   Reserved : 8;
-		UINT32   Sgx : 1;    // 0: not related to SGX; 1: SGX-specific access-control requirements violation
-	} Fields;
-	UINT32       ErrorCode;
-} PAGE_FAULT_ERROR_CODE, * PPAGE_FAULT_ERROR_CODE;
 
 VOID SyscallHookDisableSCE() {
 
@@ -301,8 +254,6 @@ BOOLEAN SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 		goto EmulateSYSCALL;
 	}
 
-
-
 	// Emulate SYSRET instruction.
 EmulateSYSRET:
 	LogInfo("SYSRET instruction => 0x%llX", Rip);
@@ -315,6 +266,6 @@ EmulateSYSCALL:
 	SyscallHookEnableSCE();
 	HvSetMonitorTrapFlag(TRUE);
 	GuestState[CoreIndex].IncrementRip = FALSE;
-	GuestState[CoreIndex].UndefinedInstructionAddress = Rip;
+	GuestState[CoreIndex].DebuggingState.UndefinedInstructionAddress = Rip;
 	return TRUE;
 }

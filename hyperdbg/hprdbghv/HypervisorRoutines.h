@@ -52,6 +52,8 @@ VOID HvDpcBroadcastTerminateGuest(KDPC* Dpc, PVOID DeferredContext, PVOID System
 VOID HvTerminateVmx();
 // Set or unset the monitor trap flags
 VOID HvSetMonitorTrapFlag(BOOLEAN Set);
+// Set the vm-exit on cr3 for finding a process 
+VOID HvSetExitOnCr3Change(BOOLEAN Set);
 
 // Returns the stack pointer, to change in the case of Vmxoff 
 UINT64 HvReturnStackPointerForVmxoff();

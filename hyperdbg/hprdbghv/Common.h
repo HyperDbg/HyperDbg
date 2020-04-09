@@ -60,6 +60,35 @@ inline void SpinlockUnlock(LONG* Lock);
 #define X86_CR4_OSXMMEXCPT	0x0400  /* enable unmasked SSE exceptions */
 #define X86_CR4_VMXE		0x2000  /* enable VMX */
 
+/* EFLAGS/RFLAGS */
+#define X86_FLAGS_CF                    (1<<0)
+#define X86_FLAGS_PF                    (1<<2)
+#define X86_FLAGS_AF                    (1<<4)
+#define X86_FLAGS_ZF                    (1<<6)
+#define X86_FLAGS_SF                    (1<<7)
+#define X86_FLAGS_TF                    (1<<8)
+#define X86_FLAGS_IF                    (1<<9)
+#define X86_FLAGS_DF                    (1<<10)
+#define X86_FLAGS_OF                    (1<<11)
+#define X86_FLAGS_STATUS_MASK           (0xfff)
+#define X86_FLAGS_IOPL_MASK             (3<<12)
+#define X86_FLAGS_IOPL_SHIFT            (12)
+#define X86_FLAGS_NT                    (1<<14)
+#define X86_FLAGS_RF                    (1<<16)
+#define X86_FLAGS_VM                    (1<<17)
+#define X86_FLAGS_AC                    (1<<18)
+#define X86_FLAGS_VIF                   (1<<19)
+#define X86_FLAGS_VIP                   (1<<20)
+#define X86_FLAGS_ID                    (1<<21)
+#define X86_FLAGS_RESERVED_ONES         0x2
+#define X86_FLAGS_RESERVED              0xffc0802a
+
+#define X86_FLAGS_RESERVED_BITS       0xffc38028
+#define X86_FLAGS_FIXED               0x00000002
+
+// PCID Flags
+#define PCID_NONE   0x000
+#define PCID_MASK   0x003
 
 // The Microsoft Hypervisor interface defined constants.
 #define CPUID_HV_VENDOR_AND_MAX_FUNCTIONS   0x40000000
@@ -219,20 +248,6 @@ typedef struct _NT_KPROCESS
 	UCHAR Data[1];
 }NT_KPROCESS, *PNT_KPROCESS;
 
-typedef union _EFER_MSR
-{
-	struct
-	{
-		UINT64 SyscallEnable : 1;
-		UINT64 Reserved1 : 7;
-		UINT64 Ia32eModeEnable : 1;
-		UINT64 Reserved2 : 1;
-		UINT64 Ia32eModeActive : 1;
-		UINT64 ExecuteDisableBitEnable : 1;
-		UINT64 Reserved3 : 52;
-	};
-	UINT64 Flags;
-}EFER_MSR, *PEFER_MSR;
 
 //////////////////////////////////////////////////
 //				 Function Types					//

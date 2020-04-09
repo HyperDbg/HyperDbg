@@ -94,6 +94,8 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Broadcast.c" />
+    <ClCompile Include="Debugger.c" />
     <ClCompile Include="EFERHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
@@ -103,6 +105,8 @@
     <ClCompile Include="Invept.c" />
     <ClCompile Include="Logging.c" />
     <ClCompile Include="PoolManager.c" />
+    <ClCompile Include="Process.c" />
+    <ClCompile Include="Sanitizer.c" />
     <ClCompile Include="Spinlock.c" />
     <ClCompile Include="SsdtHook.c" />
     <ClCompile Include="VmxRegions.c" />
@@ -121,6 +125,7 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Debugger.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="GlobalVariables.h" />
@@ -130,6 +135,7 @@
     <ClInclude Include="Invept.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="PoolManager.h" />
+    <ClInclude Include="Process.h" />
     <ClInclude Include="Trace.h" />
     <ClInclude Include="Vmcall.h" />
     <ClInclude Include="Vmx.h" />

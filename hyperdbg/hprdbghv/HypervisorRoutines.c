@@ -217,6 +217,7 @@ VOID HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
 	PMOV_CR_QUALIFICATION CrExitQualification;
 	PULONG64 RegPtr;
 	INT64 GuestRsp = 0;
+	UINT64 NewCr3;
 
 	__vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
@@ -242,6 +243,8 @@ VOID HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
 			__vmx_vmwrite(CR0_READ_SHADOW, *RegPtr);
 			break;
 		case 3:
+			NewCr3 = (*RegPtr & ~(1ULL << 63));
+			LogInfo("New process cr3 : 0x%llx , Proc id = : 0x%x", NewCr3, PsGetCurrentProcessId());
 			__vmx_vmwrite(GUEST_CR3, (*RegPtr & ~(1ULL << 63)));
 			InvvpidSingleContext(VPID_TAG);
 			break;
@@ -539,6 +542,26 @@ VOID HvSetMonitorTrapFlag(BOOLEAN Set)
 	// Set the new value 
 	__vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 }
+
+/* Set the vm-exit on cr3 for finding a process */
+VOID HvSetExitOnCr3Change(BOOLEAN Set)
+{
+	ULONG CpuBasedVmExecControls = 0;
+
+	// Read the previous flag
+	__vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+	if (Set) {
+		CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
+	}
+	else {
+		CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
+	}
+
+	// Set the new value 
+	__vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
 
 /* Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified */
 VOID HvRestoreRegisters()

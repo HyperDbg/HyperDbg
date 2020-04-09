@@ -1,5 +1,6 @@
 #pragma once
 #include <ntddk.h>
+#include "Debugger.h"
 #include "Ept.h"
 
 
@@ -340,7 +341,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
 	UINT64 VmmStack;												// Stack for VMM in VM-Exit State
 	UINT64 MsrBitmapVirtualAddress;									// Msr Bitmap Virtual Address
 	UINT64 MsrBitmapPhysicalAddress;								// Msr Bitmap Physical Address
-	UINT64 UndefinedInstructionAddress;								// #UD Location of instruction (used by EFER Syscall)
+    PROCESSOR_DEBUGGING_STATE DebuggingState;						// Holds the debugging state of the processor (used by HyperDbg to execute commands)
 	VMX_VMXOFF_STATE VmxoffState;									// Shows the vmxoff state of the guest
     PEPT_HOOKED_PAGE_DETAIL MtfEptHookRestorePoint;                 // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 } VIRTUAL_MACHINE_STATE, * PVIRTUAL_MACHINE_STATE;
