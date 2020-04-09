@@ -1,5 +1,10 @@
 #pragma once
 #include<ntddk.h>
+#include "Logging.h"
+
+//////////////////////////////////////////////////
+//					Structures					//
+//////////////////////////////////////////////////
 
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
@@ -7,3 +12,17 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
+//////////////////////////////////////////////////
+//					Log wit Tag					//
+//////////////////////////////////////////////////
+
+// Send buffer to the usermode with a tag that shows what was the action
+#define LogWithTag(tag, IsImmediate, format, ...)  \
+    LogSendMessageToQueue(OPERATION_LOG_WITH_TAG, IsImmediate, FALSE, "%016x" format, tag, __VA_ARGS__);
+
+//////////////////////////////////////////////////
+//				Exported Functions				//
+//////////////////////////////////////////////////
+
+// Provide All Process Syscall Hook EFER for Debugger
+VOID DebuggerEnableSyscallHookEfer(PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT UsermodeRequestBuffer);

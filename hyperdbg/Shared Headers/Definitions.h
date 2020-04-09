@@ -48,6 +48,7 @@ typedef struct _REGISTER_EVENT
 #define OPERATION_LOG_WARNING_MESSAGE						0x2
 #define OPERATION_LOG_ERROR_MESSAGE							0x3
 #define OPERATION_LOG_NON_IMMEDIATE_MESSAGE					0x4
+#define OPERATION_LOG_WITH_TAG								0x5
 
 //////////////////////////////////////////////////
 //		    	Callback Definitions			//
@@ -71,6 +72,7 @@ typedef enum _DEBUGGER_ACTION_ENUM
 // Structure 
 typedef struct _DEBUGGER_ACTION
 {
+	UINT64 Tag;
 	DEBUGGER_ACTION_ENUM Action;
 	BOOLEAN ImmediatelySendTheResults;
 
@@ -86,28 +88,20 @@ typedef struct _DEBUGGER_ACTION
 // Commands
 #define DEBUGGER_EPT_SYSCALL_HOOK_EFER				0x803
 
-// Method
-typedef enum _SYSCALL_HOOK_METHOD
-{
-	SYSCALL_HOOK_EFER
-
-}SYSCALL_HOOK_METHOD;
 
 // Type
-typedef enum _SYSCALL_HOOK_TYPE
+typedef enum _SYSCALL_HOOK_EFER_TYPE
 {
 	ALL_SYSCALLS,
 	SPECIFIC_PROCESS_SYSCALLS
 
-}SYSCALL_HOOK_TYPE;
+}SYSCALL_HOOK_EFER_TYPE;
 
 // Structure 
 typedef struct _DEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT
 {
-	UINT64 Tag;
 	DEBUGGER_ACTION Action;
-	SYSCALL_HOOK_METHOD Method;
-	SYSCALL_HOOK_TYPE Type;
+	SYSCALL_HOOK_EFER_TYPE Type;
 	UINT32 ProcessId;
 
 } DEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT, * PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT;

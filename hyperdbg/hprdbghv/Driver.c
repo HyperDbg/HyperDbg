@@ -4,6 +4,7 @@
 #include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
 #include "Logging.h"
+#include "Debugger.h"
 #include "Hooks.h"
 #include "Trace.h"
 #include "Driver.tmh"
@@ -215,6 +216,7 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
 	PIO_STACK_LOCATION  IrpStack;
 	PREGISTER_EVENT RegisterEvent;
+	PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT SyscallEfer;
 	NTSTATUS    Status;
 
 	if (AllowIOCTLFromUsermode)
@@ -261,6 +263,10 @@ NTSTATUS DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		case IOCTL_TERMINATE_VMX:
 			HvTerminateVmx();
 			Status = STATUS_SUCCESS;
+			break;
+		case IOCTL_DEBUGGER_EPT_SYSCALL_HOOK_EFER:
+			SyscallEfer = (PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT)Irp->AssociatedIrp.SystemBuffer;
+			DebuggerEnableSyscallHookEfer(SyscallEfer);
 			break;
 		default:
 			LogError("Unknow IOCTL");
