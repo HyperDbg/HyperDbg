@@ -4,7 +4,7 @@
 #include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
 #include "Logging.h"
-#include "Debugger.h"
+#include "ExtensionCommands.h"
 #include "Hooks.h"
 #include "Trace.h"
 #include "Driver.tmh"

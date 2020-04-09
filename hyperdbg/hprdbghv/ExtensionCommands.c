@@ -1,5 +1,5 @@
 //#include "Definitions.h"
-#include "Debugger.h"
+#include "DebuggerCommands.h"
 #include "Common.h"
 #include "Process.h"
 
@@ -18,7 +18,7 @@ VOID DebuggerEnableSyscallHookEforAllProcess(PDEBUGGER_ACTION DebuggerAction) {
 
 	default:
 		// Not valid Action
-		//LogWithTag(DebuggerAction->Tag, TRUE, "invalid parameter specified in \"Action\" ");
+		LogWithTag(DebuggerAction->Tag, TRUE, "invalid parameter specified in \"Action\" ");
 		break;
 	}
 }
@@ -38,7 +38,7 @@ VOID DebuggerEnableSyscallHookEfer(PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT Usermo
 	else
 	{
 		DbgBreakPoint();
-		//LogWithTag(UsermodeRequestBuffer->Action.Tag, TRUE, "invalid parameter specified in \"Type\" ");
+		LogWithTag(UsermodeRequestBuffer->Action.Tag, TRUE, "invalid parameter specified in \"Type\" ");
 	}
 
 }

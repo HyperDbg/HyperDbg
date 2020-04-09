@@ -43,6 +43,24 @@
     <Filter Include="Source Files\Debugger\Entry">
       <UniqueIdentifier>{21c9f013-596f-4c5b-8822-d6fbc7139279}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Commands">
+      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Common">
+      <UniqueIdentifier>{552ad1ee-f507-4577-96c0-a421e5060907}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\EPT">
+      <UniqueIdentifier>{0e525115-4ff2-45b4-ba02-f8fd40582ad3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Hypervisor">
+      <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Commands\Features">
+      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Misc">
+      <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -101,73 +119,70 @@
     <ClCompile Include="HiddenHooks.c">
       <Filter>Source Files\Debugger\Features\Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="Process.c">
-      <Filter>Source Files\Debugger\Commands</Filter>
-    </ClCompile>
     <ClCompile Include="Broadcast.c">
-      <Filter>Source Files\Debugger\Entry</Filter>
-    </ClCompile>
-    <ClCompile Include="Debugger.c">
       <Filter>Source Files\Debugger\Entry</Filter>
     </ClCompile>
     <ClCompile Include="Sanitizer.c">
       <Filter>Source Files\Debugger\Entry</Filter>
     </ClCompile>
+    <ClCompile Include="ExtensionCommands.c">
+      <Filter>Source Files\Debugger\Entry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebuggerCommands.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionCommands.h">
+      <Filter>Header Files\Commands</Filter>
+    </ClInclude>
     <ClInclude Include="Common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InlineAsm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GlobalVariables.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vmcall.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HypervisorRoutines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Msr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Invept.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Ept.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vmx.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="Dpc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Trace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vpid.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="Logging.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="PoolManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Msr.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Trace.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Ept.h">
+      <Filter>Header Files\EPT</Filter>
+    </ClInclude>
+    <ClInclude Include="Invept.h">
+      <Filter>Header Files\EPT</Filter>
+    </ClInclude>
+    <ClInclude Include="Vpid.h">
+      <Filter>Header Files\EPT</Filter>
     </ClInclude>
     <ClInclude Include="Events.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Hypervisor</Filter>
+    </ClInclude>
+    <ClInclude Include="Vmx.h">
+      <Filter>Header Files\Hypervisor</Filter>
+    </ClInclude>
+    <ClInclude Include="Vmcall.h">
+      <Filter>Header Files\Hypervisor</Filter>
+    </ClInclude>
+    <ClInclude Include="HypervisorRoutines.h">
+      <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
     <ClInclude Include="Hooks.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Commands\Features</Filter>
     </ClInclude>
-    <ClInclude Include="Process.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="GlobalVariables.h">
+      <Filter>Header Files\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="Debugger.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="InlineAsm.h">
+      <Filter>Header Files\Misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -20,9 +20,3 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 #define LogWithTag(tag, IsImmediate, format, ...)  \
     LogSendMessageToQueue(OPERATION_LOG_WITH_TAG, IsImmediate, FALSE, "%016x" format, tag, __VA_ARGS__);
 
-//////////////////////////////////////////////////
-//				Exported Functions				//
-//////////////////////////////////////////////////
-
-// Provide All Process Syscall Hook EFER for Debugger
-VOID DebuggerEnableSyscallHookEfer(PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT UsermodeRequestBuffer);

@@ -1,6 +1,6 @@
 #pragma once
 #include <ntddk.h>
-#include "Debugger.h"
+#include "DebuggerCommands.h"
 #include "Ept.h"
 
 

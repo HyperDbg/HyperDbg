@@ -1,4 +1,4 @@
-#include "Debugger.h"
+#include "DebuggerCommands.h"
 
 VOID BroadcastSyscallCallHookForAllCores() {
 
