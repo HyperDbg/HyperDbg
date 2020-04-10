@@ -28,7 +28,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 
 ## Contributing
 Contributing in HyperDbg is super appreciated.
-If you want to create a pull request please read [coding-style](https://docs.hyperdbg.com/style-guide/coding-style) and [doxygen-style](https://docs.hyperdbg.com/style-guide/doxygen-style).
-If you want a new feature please explain it in [issues](https://GitHub.com/SinaKarvandi/HyperDbg/issues/).
+
+If you want to create a pull request please read [coding-style](https://docs.hyperdbg.com/style-guide/coding-style) and [doxygen-style](https://docs.hyperdbg.com/style-guide/doxygen-style) and in the case you want a new feature, or report a bug, please explain it in [issues](https://GitHub.com/SinaKarvandi/HyperDbg/issues/).
 ## License
 HyperDbg is under GPLv3 LICENSE.
