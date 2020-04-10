@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace hyperdbg_gui
@@ -61,7 +54,7 @@ namespace hyperdbg_gui
         {
             bool IsDark = !hyperdbg_gui.Details.GlobalVariables.IsInDarkMode;
             hyperdbg_gui.Details.GlobalVariables.IsInDarkMode = !hyperdbg_gui.Details.GlobalVariables.IsInDarkMode;
-            
+
             foreach (Control c in this.Controls)
             {
                 UpdateColorControls(c, IsDark);
@@ -133,10 +126,10 @@ namespace hyperdbg_gui
             if (hyperdbg_gui.KernelmodeRequests.KernelRequests.HyperdbgLoader() != 0)
             {
                 MessageBox.Show("Failed to load hyperdbg's hypervisor driver, see logs for more information"
-                    ,"Error", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    , "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            
+
             hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = true;
             toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
 

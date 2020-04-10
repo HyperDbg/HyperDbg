@@ -165,7 +165,7 @@ VmxAllocateVmmStack(INT ProcessorID)
     UINT64 VmmStack;
 
     // Allocate stack for the VM Exit Handler.
-    VmmStack                         = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    VmmStack                           = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
     g_GuestState[ProcessorID].VmmStack = VmmStack;
 
     if (g_GuestState[ProcessorID].VmmStack == NULL)

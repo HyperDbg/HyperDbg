@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace hyperdbg_gui
@@ -72,7 +67,7 @@ namespace hyperdbg_gui
 
         private void RegsWindow_Load(object sender, EventArgs e)
         {
-        
+
             List<string> RegsList = Registers.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             foreach (var item in RegsList)

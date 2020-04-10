@@ -246,7 +246,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     // Emulate SYSRET instruction.
 EmulateSYSRET:
     LogInfo("SYSRET instruction => 0x%llX", Rip);
-    Result                                                = SyscallHookEmulateSYSRET(Regs);
+    Result                                                  = SyscallHookEmulateSYSRET(Regs);
     g_GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
     return Result;
     // Emulate SYSCALL instruction.

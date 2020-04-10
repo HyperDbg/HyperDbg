@@ -126,7 +126,7 @@
       <Filter>Source Files\Debugger\Entry</Filter>
     </ClCompile>
     <ClCompile Include="ExtensionCommands.c">
-      <Filter>Source Files\Debugger\Entry</Filter>
+      <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
