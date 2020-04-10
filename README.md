@@ -1,13 +1,13 @@
-
-
+[![Website](https://img.shields.io/badge/Link-Website-orange)](https://hyperdbg.com)
+[![Docs](https://img.shields.io/badge/Link-Docs-brightgreen)](https://docs.hyperdbg.com)
+[![Doxygen](https://img.shields.io/badge/Link-Doxygen-lightgrey)](https://doxygen.hyperdbg.com)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![GitHub contributors](https://img.shields.io/github/contributors/SinaKarvandi/HyperDbg)](https://github.com/SinaKarvandi/HyperDbg/graphs/contributors)
 [![GitHub issues](https://img.shields.io/github/issues/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/issues/)
 [![GitHub release](https://img.shields.io/github/release/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/releases/)
-![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/SinaKarvandi/HyperDbg)
 
 
-# HyperDbg Debugger
+# HyperDbg Debugger (is not yet released/finished)
 
 ## Description
 
