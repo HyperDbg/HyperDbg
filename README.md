@@ -1,5 +1,4 @@
-<!-- Place this tag in your head or just before your close body tag. -->
-<script async defer src="https://buttons.github.io/buttons.js"></script>
+
 
 [![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -8,8 +7,6 @@
 [![DOI:10.1007/978-3-319-76207-4_15](https://zenodo.org/badge/DOI/10.1007/978-3-319-76207-4_15.svg)](https://doi.org/10.1007/978-3-319-76207-4_15)
 [![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
 [![Build Status](https://img.shields.io/appveyor/ci/thiagoloureiro/netcore-jwt-integrator-extension/master.svg)](https://ci.appveyor.com/project/thiagoloureiro/netcore-jwt-integrator-extension)
-<!-- Place this tag where you want the button to render. -->
-<a class="github-button" href="https://github.com/SinaKarvandi/HyperDbg" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true" aria-label="Star SinaKarvandi/HyperDbg on GitHub">Star</a>
 
 
 
