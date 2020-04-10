@@ -1,13 +1,10 @@
 
 
-[![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub contributors](https://img.shields.io/github/contributors/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/contributors/)
-[![GitHub issues](https://img.shields.io/github/issues/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/issues/)
-[![DOI:10.1007/978-3-319-76207-4_15](https://zenodo.org/badge/DOI/10.1007/978-3-319-76207-4_15.svg)](https://doi.org/10.1007/978-3-319-76207-4_15)
-[![GitHub release](https://img.shields.io/github/release/Naereen/StrapDown.js.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
-[![Build Status](https://img.shields.io/appveyor/ci/thiagoloureiro/netcore-jwt-integrator-extension/master.svg)](https://ci.appveyor.com/project/thiagoloureiro/netcore-jwt-integrator-extension)
-
+[![GitHub contributors](https://img.shields.io/github/contributors/SinaKarvandi/HyperDbg)](https://github.com/SinaKarvandi/HyperDbg/graphs/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/issues/)
+[![GitHub release](https://img.shields.io/github/release/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/releases/)
+![Bitbucket open pull requests](https://img.shields.io/bitbucket/pr-raw/SinaKarvandi/HyperDbg)
 
 
 # HyperDbg Debugger
