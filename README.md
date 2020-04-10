@@ -24,26 +24,11 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
 
-```bash
-pip install foobar
-```
-
-## Usage
-
-```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
-```
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
+Contributing in HyperDbg is super appreciated.
+If you want to create a pull request please read [coding-style](https://docs.hyperdbg.com/style-guide/coding-style) and [doxygen-style](https://docs.hyperdbg.com/style-guide/doxygen-style).
+If you want a new feature please explain it in [issues](https://GitHub.com/SinaKarvandi/HyperDbg/issues/).
 ## License
 HyperDbg is under GPLv3 LICENSE.
