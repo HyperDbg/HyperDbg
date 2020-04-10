@@ -5,107 +5,113 @@
 #include "Vmx.h"
 
 /* Power function in order to computer address for MSR bitmaps */
-int MathPower(int Base, int Exp) {
+int
+MathPower(int Base, int Exp)
+{
+    int result;
 
-	int result;
+    result = 1;
 
-	result = 1;
-
-	for (;;)
-	{
-		if (Exp & 1)
-		{
-			result *= Base;
-		}
-		Exp >>= 1;
-		if (!Exp)
-		{
-			break;
-		}
-		Base *= Base;
-	}
-	return result;
+    for (;;)
+    {
+        if (Exp & 1)
+        {
+            result *= Base;
+        }
+        Exp >>= 1;
+        if (!Exp)
+        {
+            break;
+        }
+        Base *= Base;
+    }
+    return result;
 }
 
 // This function is deprecated as we want to supporrt more than 32 processors.
 /* Broadcast a function to all logical cores */
-BOOLEAN BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
+BOOLEAN
+BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
+    KIRQL OldIrql;
 
-	KIRQL OldIrql;
+    KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
 
-	KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
+    OldIrql = KeRaiseIrqlToDpcLevel();
 
-	OldIrql = KeRaiseIrqlToDpcLevel();
+    Routine(ProcessorNumber);
 
-	Routine(ProcessorNumber);
+    KeLowerIrql(OldIrql);
 
-	KeLowerIrql(OldIrql);
+    KeRevertToUserAffinityThread();
 
-	KeRevertToUserAffinityThread();
-
-	return TRUE;
+    return TRUE;
 }
 
 /* Set Bits for a special address (used on MSR Bitmaps) */
-void SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set) {
+void
+SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
+{
+    UINT64 byte;
+    UINT64 temp;
+    UINT64 n;
+    BYTE * Addr2;
 
-	UINT64 byte;
-	UINT64 temp;
-	UINT64 n;
-	BYTE* Addr2;
+    byte = bit / 8;
+    temp = bit % 8;
+    n    = 7 - temp;
 
-	byte = bit / 8;
-	temp = bit % 8;
-	n = 7 - temp;
+    Addr2 = Addr;
 
-	Addr2 = Addr;
-
-	if (Set)
-	{
-		Addr2[byte] |= (1 << n);
-	}
-	else
-	{
-		Addr2[byte] &= ~(1 << n);
-	}
+    if (Set)
+    {
+        Addr2[byte] |= (1 << n);
+    }
+    else
+    {
+        Addr2[byte] &= ~(1 << n);
+    }
 }
 
 /* Get Bits of a special address (used on MSR Bitmaps) */
-void GetBit(PVOID Addr, UINT64 bit) {
+void
+GetBit(PVOID Addr, UINT64 bit)
+{
+    UINT64 byte, k;
+    BYTE * Addr2;
 
-	UINT64 byte, k;
-	BYTE* Addr2;
+    byte = 0;
+    k    = 0;
+    byte = bit / 8;
+    k    = 7 - bit % 8;
 
-	byte = 0;
-	k = 0;
-	byte = bit / 8;
-	k = 7 - bit % 8;
+    Addr2 = Addr;
 
-	Addr2 = Addr;
-
-	return Addr2[byte] & (1 << k);
+    return Addr2[byte] & (1 << k);
 }
 
 /* Converts Virtual Address to Physical Address */
-UINT64 VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
+UINT64
+VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
 {
-	return MmGetPhysicalAddress(VirtualAddress).QuadPart;
+    return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }
 
 /* Converts Physical Address to Virtual Address */
-UINT64 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
+UINT64
+PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 {
-	PHYSICAL_ADDRESS PhysicalAddr;
-	PhysicalAddr.QuadPart = PhysicalAddress;
+    PHYSICAL_ADDRESS PhysicalAddr;
+    PhysicalAddr.QuadPart = PhysicalAddress;
 
-	return MmGetVirtualForPhysical(PhysicalAddr);
+    return MmGetVirtualForPhysical(PhysicalAddr);
 }
 
 /* Find cr3 of system process*/
-UINT64 FindSystemDirectoryTableBase()
+UINT64
+FindSystemDirectoryTableBase()
 {
-	// Return CR3 of the system process.
-	NT_KPROCESS* SystemProcess = (NT_KPROCESS*)(PsInitialSystemProcess);
-	return SystemProcess->DirectoryTableBase;
+    // Return CR3 of the system process.
+    NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
+    return SystemProcess->DirectoryTableBase;
 }

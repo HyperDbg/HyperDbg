@@ -1,6 +1,5 @@
 #include <ntddk.h>
 
-
 // This implementation is derived from Hvpp by Petr Benes
 //  - https://github.com/wbenny/hvpp
 // Based on my benchmarks, this simple implementation beats other (often
@@ -19,44 +18,45 @@ static unsigned max_wait = 65536;
 
 //----------------------------------------------------------------------------------------------
 
-inline BOOLEAN SpinlockTryLock(volatile LONG* Lock)
+inline BOOLEAN
+SpinlockTryLock(volatile LONG * Lock)
 {
-	return (!(*Lock) && !_interlockedbittestandset(Lock, 0));
+    return (!(*Lock) && !_interlockedbittestandset(Lock, 0));
 }
 
 //----------------------------------------------------------------------------------------------
 
-void SpinlockLock(volatile LONG* Lock)
+void
+SpinlockLock(volatile LONG * Lock)
 {
-	unsigned wait = 1;
+    unsigned wait = 1;
 
-	while (!SpinlockTryLock(Lock))
-	{
-		for (unsigned i = 0; i < wait; ++i)
-		{
-			_mm_pause();
-		}
+    while (!SpinlockTryLock(Lock))
+    {
+        for (unsigned i = 0; i < wait; ++i)
+        {
+            _mm_pause();
+        }
 
-		// Don't call "pause" too many times. If the wait becomes too big,
-		// clamp it to the max_wait.
+        // Don't call "pause" too many times. If the wait becomes too big,
+        // clamp it to the max_wait.
 
-		if (wait * 2 > max_wait)
-		{
-			wait = max_wait;
-		}
-		else
-		{
-			wait = wait * 2;
-		}
-	}
-
-
+        if (wait * 2 > max_wait)
+        {
+            wait = max_wait;
+        }
+        else
+        {
+            wait = wait * 2;
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------------------
-void SpinlockUnlock(volatile LONG* Lock)
+void
+SpinlockUnlock(volatile LONG * Lock)
 {
-	*Lock = 0;
+    *Lock = 0;
 }
 
 //----------------------------------------------------------------------------------------------

@@ -4,14 +4,12 @@
 //////////////////////////////////////////////////
 
 // Default buffer size
-#define MaximumPacketsCapacity 1000 // number of packets
-#define PacketChunkSize		1000 // NOTE : REMEMBER TO CHANGE IT IN USER-MODE APP TOO
-#define UsermodeBufferSize  sizeof(UINT32) + PacketChunkSize + 1 /* Becausee of Opeation code at the start of the buffer + 1 for null-termminating */
-#define LogBufferSize MaximumPacketsCapacity * (PacketChunkSize + sizeof(BUFFER_HEADER))
-
-#define SIZEOF_REGISTER_EVENT  sizeof(REGISTER_EVENT)
-
-#define DbgPrintLimitation  512
+#define MaximumPacketsCapacity    1000 // number of packets
+#define PacketChunkSize           1000 // NOTE : REMEMBER TO CHANGE IT IN USER-MODE APP TOO
+#define UsermodeBufferSize        sizeof(UINT32) + PacketChunkSize + 1 /* Becausee of Opeation code at the start of the buffer + 1 for null-termminating */
+#define LogBufferSize             MaximumPacketsCapacity * (PacketChunkSize + sizeof(BUFFER_HEADER))
+#define SIZEOF_REGISTER_EVENT     sizeof(REGISTER_EVENT)
+#define DbgPrintLimitation        512
 
 
 //////////////////////////////////////////////////

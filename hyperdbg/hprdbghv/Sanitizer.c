@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "Logging.h"
 
-VOID SanitizerTest() {
-
+VOID
+SanitizerTest()
+{
 }

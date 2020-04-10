@@ -1,5 +1,6 @@
 #include "DebuggerCommands.h"
 
-VOID BroadcastSyscallCallHookForAllCores() {
-
+VOID
+BroadcastSyscallCallHookForAllCores()
+{
 }

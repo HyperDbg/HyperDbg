@@ -1,5 +1,5 @@
 #pragma once
-#include<ntddk.h>
+#include <ntddk.h>
 #include "Logging.h"
 
 //////////////////////////////////////////////////
@@ -8,7 +8,7 @@
 
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-	UINT64 UndefinedInstructionAddress;								// #UD Location of instruction (used by EFER Syscall)
+    UINT64 UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
@@ -17,6 +17,5 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 //////////////////////////////////////////////////
 
 // Send buffer to the usermode with a tag that shows what was the action
-#define LogWithTag(tag, IsImmediate, format, ...)  \
+#define LogWithTag(tag, IsImmediate, format, ...) \
     LogSendMessageToQueue(OPERATION_LOG_WITH_TAG, IsImmediate, FALSE, "%016x" format, tag, __VA_ARGS__);
-
