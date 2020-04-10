@@ -71,7 +71,7 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
     return TRUE;
 }
 /**
- * @brief SSet Bits for a special address (used on MSR Bitmaps)
+ * @brief Set Bits for a special address (used on MSR Bitmaps)
  * 
  * @param Addr Address to the byte
  * @param bit Bit address

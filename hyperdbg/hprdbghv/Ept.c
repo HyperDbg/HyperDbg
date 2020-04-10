@@ -1218,12 +1218,17 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLE
 VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType)
 {
+    //
     // acquire the lock
+    //
     SpinlockLock(&Pml1ModificationAndInvalidationLock);
+    //
     // set the value
+    //
     EntryAddress->Flags = EntryValue.Flags;
-
+    //
     // invalidate the cache
+    //
     if (InvalidationType == INVEPT_SINGLE_CONTEXT)
     {
         InveptSingleContext(g_EptState->EptPointer.Flags);
@@ -1232,13 +1237,11 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     {
         InveptAllContexts();
     }
+    //
     // release the lock
+    //
     SpinlockUnlock(&Pml1ModificationAndInvalidationLock);
 }
-
-
-/*  */
-// Caution : 
 
 /**
  * @brief Remove and Invalidate Hook in TLB
