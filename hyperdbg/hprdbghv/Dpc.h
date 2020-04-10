@@ -1,3 +1,14 @@
+/**
+ * @file Dpc.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Definition for Windows DPC functions
+ * @details
+ * @version 0.1
+ * @date 2020-04-10
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include <ntddk.h>
 
 //////////////////////////////////////////////////

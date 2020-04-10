@@ -1,3 +1,16 @@
+/**
+ * @file Configuration.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Global configuration that applies on compile time
+ * @details you can disable or enable the following features and compile the project
+ * Next time you used the project binary files these settings applied.
+ * @version 0.1
+ * @date 2020-04-10
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 
 // Configures whether to show the current system time in the output of debug messages or not
 // (only available on usermode tracing messages)

@@ -1,3 +1,16 @@
+/**
+ * @file Common.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Header files for global definitions
+ * @details This file contains definitions that are use in both user mode and kernel mode 
+ * Means that if you change the following files, structures or enums, then these settings 
+ * apply to both usermode and kernel mode
+ * @version 0.1
+ * @date 2020-04-10
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 
 //////////////////////////////////////////////////
 //				Message Tracing					//

@@ -1,10 +1,27 @@
+/**
+ * @file Common.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Common functions that needs to be used in all source code files
+ * @details
+ * @version 0.1
+ * @date 2020-04-10
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include <ntddk.h>
 #include <wdf.h>
 #include "Msr.h"
 #include "Common.h"
 #include "Vmx.h"
 
-/* Power function in order to computer address for MSR bitmaps */
+/**
+ * @brief Power function in order to computer address for MSR bitmaps
+ * 
+ * @param Base Base for power function
+ * @param Exp Exponent for power function
+ * @return int Returns the result of power function
+ */
 int
 MathPower(int Base, int Exp)
 {
@@ -28,8 +45,14 @@ MathPower(int Base, int Exp)
     return result;
 }
 
-// This function is deprecated as we want to supporrt more than 32 processors.
-/* Broadcast a function to all logical cores */
+/**
+ * @brief Broadcast a function to all logical cores
+ * @details This function is deprecated as we want to supporrt more than 32 processors
+ * 
+ * @param ProcessorNumber The logical core number to execute routine on it
+ * @param Routine The fucntion that should be executed on the target core
+ * @return BOOLEAN Returns true if it was successfull
+ */
 BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
@@ -47,8 +70,13 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 
     return TRUE;
 }
-
-/* Set Bits for a special address (used on MSR Bitmaps) */
+/**
+ * @brief SSet Bits for a special address (used on MSR Bitmaps)
+ * 
+ * @param Addr Address to the byte
+ * @param bit Bit address
+ * @param Set Set or Unset
+ */
 void
 SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
 {
@@ -73,8 +101,14 @@ SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
     }
 }
 
-/* Get Bits of a special address (used on MSR Bitmaps) */
-void
+/**
+ * @brief Get Bits of a special address (used on MSR Bitmaps)
+ * 
+ * @param Addr Address to the byte
+ * @param bit Bit address
+ * @return BOOLEAN Returns whther the bit is set or unset
+ */
+BOOLEAN
 GetBit(PVOID Addr, UINT64 bit)
 {
     UINT64 byte, k;
@@ -90,14 +124,24 @@ GetBit(PVOID Addr, UINT64 bit)
     return Addr2[byte] & (1 << k);
 }
 
-/* Converts Virtual Address to Physical Address */
+/**
+ * @brief Converts Virtual Address to Physical Address
+ * 
+ * @param VirtualAddress The target virtual address
+ * @return UINT64 Returns the physical address
+ */
 UINT64
 VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }
 
-/* Converts Physical Address to Virtual Address */
+/**
+ * @brief Converts Physical Address to Virtual Address
+ * 
+ * @param PhysicalAddress The target physical address
+ * @return UINT64 Returns the virtual address
+ */
 UINT64
 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 {
@@ -107,11 +151,17 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
     return MmGetVirtualForPhysical(PhysicalAddr);
 }
 
-/* Find cr3 of system process*/
+/**
+ * @brief Find cr3 of system process
+ * 
+ * @return UINT64 Returns cr3 of System process (pid=4)
+ */
 UINT64
 FindSystemDirectoryTableBase()
-{
+{   
+    //
     // Return CR3 of the system process.
+    //
     NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
     return SystemProcess->DirectoryTableBase;
 }

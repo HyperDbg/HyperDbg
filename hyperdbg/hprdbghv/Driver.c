@@ -1,3 +1,16 @@
+/**
+ * @file Driver.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief The project entry 
+ * @details This file contains major functions and all the interactions
+ * with usermode codes are managed from here.
+ * e.g debugger commands and extension commands
+ * @version 0.1
+ * @date 2020-04-10
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include <ntddk.h>
 #include <wdf.h>
 #include "Common.h"
@@ -9,7 +22,13 @@
 #include "Trace.h"
 #include "Driver.tmh"
 
-/* Main Driver Entry in the case of driver load */
+/**
+ * @brief Main Driver Entry in the case of driver load
+ * 
+ * @param DriverObject 
+ * @param RegistryPath 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DriverEntry(
     PDRIVER_OBJECT  DriverObject,
@@ -25,7 +44,10 @@ DriverEntry(
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
 
+    //
     // Initialize WPP Tracing
+    //
+
     WPP_INIT_TRACING(DriverObject, RegistryPath);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
@@ -36,27 +58,40 @@ DriverEntry(
     }
 #endif
 
+    //
     // Opt-in to using non-executable pool memory on Windows 8 and later.
     // https://msdn.microsoft.com/en-us/library/windows/hardware/hh920402(v=vs.85).aspx
+    //
+
     ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
-    /////////////// we allocate virtual machine here because we want to use its state (vmx-root or vmx non-root) in logs \\\\\\\\\\\\\\\
+    //
+    // we allocate virtual machine here because 
+    // we want to use its state (vmx-root or vmx non-root) in logs
+    //
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
+    //
     // Allocate global variable to hold Guest(s) state
+    //
+
     g_GuestState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount, POOLTAG);
     if (!g_GuestState)
     {
+        //
         // we use DbgPrint as the vmx-root or non-root is not initialized
+        //
+
         DbgPrint("Insufficient memory\n");
         DbgBreakPoint();
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    // Zero memory
+    //
+    // Zero the memory
+    // 
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     LogInfo("Hyperdbg is Loaded :)");
 
@@ -84,14 +119,21 @@ DriverEntry(
         IoCreateSymbolicLink(&DosDeviceName, &DriverName);
     }
 
+    //
     // Establish user-buffer access method.
+    //
     DeviceObject->Flags |= DO_BUFFERED_IO;
 
     ASSERT(NT_SUCCESS(Ntstatus));
     return Ntstatus;
 }
 
-/* Run in the case of driver unload to unregister the devices */
+/**
+ * @brief Run in the case of driver unload to unregister the devices
+ * 
+ * @param DriverObject 
+ * @return VOID 
+ */
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
 {
@@ -104,26 +146,43 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     DbgPrint("Hyperdbg's hypervisor driver unloaded\n");
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
+
+    //
     // Uinitialize log buffer
+    //
     DbgPrint("Uinitializing logs\n");
     LogUnInitialize();
 #endif
-    // Free GuestState
+
+    //
+    // Free g_GuestState
+    //
     ExFreePoolWithTag(g_GuestState, POOLTAG);
 
+    //
     // Stop the tracing
+    //
     WPP_CLEANUP(DriverObject);
 }
 
-/* IRP_MJ_CREATE Function handler*/
+/**
+ * @brief IRP_MJ_CREATE Function handler
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     int ProcessorCount;
 
-    //--------------------------- Check for privilege --------------------------
-    /* Check for the correct security access.
-	  The caller must have the SeDebugPrivilege. */
+    //
+    // Check for privilege
+    //
+    // Check for the correct security access.
+	// The caller must have the SeDebugPrivilege.
+    //
 
     LUID DebugPrivilege = {SE_DEBUG_PRIVILEGE, 0};
 
@@ -136,14 +195,20 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         return STATUS_ACCESS_DENIED;
     }
 
+    //
     // Allow to server IOCTL
+    //
     g_AllowIOCTLFromUsermode = TRUE;
 
     LogInfo("Hyperdbg's hypervisor Started...");
-
-    /* We have to zero the GuestState again as we want to support multiple initialization by CreateFile */
+    //
+    // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
+    //
     ProcessorCount = KeQueryActiveProcessorCount(0);
-    // Zero memory
+
+    //
+    // Zero the memory
+    //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
     if (HvVmxInitialize())
@@ -155,10 +220,11 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         LogError("Hyperdbg's hypervisor was not loaded :(");
     }
 
-    //////////// test ////////////
-    //HiddenHooksTest();
-    //SyscallHookTest();
-    //////////////////////////////
+    //
+    // test 
+    // HiddenHooksTest();
+    // SyscallHookTest();
+    //
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -167,7 +233,13 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return STATUS_SUCCESS;
 }
 
-/* IRP_MJ_READ Function handler*/
+/**
+ * @brief IRP_MJ_READ Function handler
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -180,7 +252,13 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return STATUS_SUCCESS;
 }
 
-/* IRP_MJ_WRITE Function handler*/
+/**
+ * @brief IRP_MJ_WRITE Function handler
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -193,7 +271,13 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return STATUS_SUCCESS;
 }
 
-/* IRP_MJ_CLOSE Function handler*/
+/**
+ * @brief IRP_MJ_CLOSE Function handler
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -204,7 +288,13 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return STATUS_SUCCESS;
 }
 
-/* Unsupported message for all other IRP_MJ_* handlers */
+/**
+ * @brief Unsupported message for all other IRP_MJ_* handlers
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -217,7 +307,13 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return STATUS_SUCCESS;
 }
 
-/* Driver IOCTL Dispatcher*/
+/**
+ * @brief Driver IOCTL Dispatcher
+ * 
+ * @param DeviceObject 
+ * @param Irp 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -228,7 +324,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (g_AllowIOCTLFromUsermode)
     {
-        // Here's the best place to see if there is any allocation pending to be allcated as we're in PASSIVE_LEVEL
+        //
+        // Here's the best place to see if there is any allocation pending
+        // to be allcated as we're in PASSIVE_LEVEL
+        //
         PoolManagerCheckAndPerformAllocation();
 
         IrpStack = IoGetCurrentIrpStackLocation(Irp);
@@ -236,8 +335,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
         {
         case IOCTL_REGISTER_EVENT:
-
+            //
             // First validate the parameters.
+            //
             if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REGISTER_EVENT || Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
@@ -262,9 +362,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
             break;
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
+            //
             // Dis-allow new IOCTL
+            //
             g_AllowIOCTLFromUsermode = FALSE;
+
+            //
             // Send an immediate message, and we're no longer get new IRP
+            //
             LogInfoImmediate("An immediate message recieved, we no longer recieve IRPs from user-mode ");
             Status = STATUS_SUCCESS;
             break;
@@ -283,8 +388,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
     }
     else
-    {
-        // We're no longer serve IOCTLL
+    {   //
+        // We're no longer serve IOCTL
+        //
         Status = STATUS_SUCCESS;
     }
 
