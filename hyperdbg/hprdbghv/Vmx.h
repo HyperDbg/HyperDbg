@@ -1,3 +1,14 @@
+/**
+ * @file Vmx.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief VMX Instruction and operation headers
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 #include "DebuggerCommands.h"
@@ -7,20 +18,20 @@
 //					Constants					//
 //////////////////////////////////////////////////
 
-// VMCS Region Size
+/* VMCS Region Size */
 #define VMCS_SIZE 4096
 
-// VMXON Region Size
+/* VMXON Region Size */
 #define VMXON_SIZE 4096
 
-// PIN-Based Execution
+/* PIN-Based Execution */
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000004
 #define PIN_BASED_VM_EXECUTION_CONTROLS_VIRTUAL_NMI               0x00000010
 #define PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER          0x00000020
 #define PIN_BASED_VM_EXECUTION_CONTROLS_PROCESS_POSTED_INTERRUPTS 0x00000040
 
-// CPU-Based Controls
+/* CPU-Based Controls */
 #define CPU_BASED_VIRTUAL_INTR_PENDING        0x00000004
 #define CPU_BASED_USE_TSC_OFFSETING           0x00000008
 #define CPU_BASED_HLT_EXITING                 0x00000080
@@ -43,7 +54,7 @@
 #define CPU_BASED_PAUSE_EXITING               0x40000000
 #define CPU_BASED_ACTIVATE_SECONDARY_CONTROLS 0x80000000
 
-// Secondary CPU-Based Controls
+/* Secondary CPU-Based Controls */
 #define CPU_BASED_CTL2_ENABLE_EPT                 0x2
 #define CPU_BASED_CTL2_RDTSCP                     0x8
 #define CPU_BASED_CTL2_ENABLE_VPID                0x20
@@ -53,7 +64,7 @@
 #define CPU_BASED_CTL2_ENABLE_VMFUNC              0x2000
 #define CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS       0x100000
 
-// VM-exit Control Bits
+/* VM-exit Control Bits */
 #define VM_EXIT_SAVE_DEBUG_CONTROLS        0x00000004
 #define VM_EXIT_HOST_ADDR_SPACE_SIZE       0x00000200
 #define VM_EXIT_LOAD_IA32_PERF_GLOBAL_CTRL 0x00001000
@@ -64,7 +75,7 @@
 #define VM_EXIT_LOAD_IA32_EFER             0x00200000
 #define VM_EXIT_SAVE_VMX_PREEMPTION_TIMER  0x00400000
 
-// VM-entry Control Bits
+/* VM-entry Control Bits */
 #define VM_ENTRY_LOAD_DEBUG_CONTROLS        0x00000004
 #define VM_ENTRY_IA32E_MODE                 0x00000200
 #define VM_ENTRY_SMM                        0x00000400
@@ -73,7 +84,7 @@
 #define VM_ENTRY_LOAD_IA32_PAT              0x00004000
 #define VM_ENTRY_LOAD_IA32_EFER             0x00008000
 
-// VM-exit Reasons
+/* VM-exit Reasons */
 #define EXIT_REASON_EXCEPTION_NMI                0
 #define EXIT_REASON_EXTERNAL_INTERRUPT           1
 #define EXIT_REASON_TRIPLE_FAULT                 2
@@ -135,7 +146,7 @@
 #define EXIT_REASON_XRSTORS                      64
 #define EXIT_REASON_PCOMMIT                      65
 
-// CPUID RCX(s) - Based on Hyper-V
+/* CPUID RCX(s) - Based on Hyper-V */
 #define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define HYPERV_CPUID_INTERFACE                0x40000001
 #define HYPERV_CPUID_VERSION                  0x40000002
@@ -146,19 +157,23 @@
 #define HYPERV_CPUID_MIN                      0x40000005
 #define HYPERV_CPUID_MAX                      0x4000ffff
 
-// Exit Qualifications for MOV for Control Register Access
+/* Exit Qualifications for MOV for Control Register Access */
 #define TYPE_MOV_TO_CR   0
 #define TYPE_MOV_FROM_CR 1
 #define TYPE_CLTS        2
 #define TYPE_LMSW        3
 
-// Stack size
+/* Stack size */
 #define VMM_STACK_SIZE 0x8000
 
 //////////////////////////////////////////////////
 //					Enums						//
 //////////////////////////////////////////////////
 
+/**
+ * @brief VMCS Fields (used in vmwrite and vmread instructions)
+ * 
+ */
 typedef enum _VMCS_FIELDS
 {
     VIRTUAL_PROCESSOR_ID            = 0x00000000,
@@ -317,6 +332,10 @@ typedef enum _VMCS_FIELDS
 //			 Structures & Unions				//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Save the state of core in the case of VMXOFF
+ * 
+ */
 typedef struct _VMX_VMXOFF_STATE
 {
     BOOLEAN IsVmxoffExecuted; // Shows whether the VMXOFF executed or not
@@ -325,6 +344,10 @@ typedef struct _VMX_VMXOFF_STATE
 
 } VMX_VMXOFF_STATE, *PVMX_VMXOFF_STATE;
 
+/**
+ * @brief The status of each core after and before VMX
+ * 
+ */
 typedef struct _VIRTUAL_MACHINE_STATE
 {
     BOOLEAN                   IsOnVmxRootMode;            // Detects whether the current logical core is on Executing on VMX Root Mode
@@ -342,6 +365,10 @@ typedef struct _VIRTUAL_MACHINE_STATE
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint;     // It shows the detail of the hooked paged that should be restore in MTF vm-exit
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
+/**
+ * @brief vm-exit qualification for I/O instructions
+ * 
+ */
 typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
 {
     union
@@ -361,6 +388,10 @@ typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
     };
 } VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
+/**
+ * @brief vm-exit qualification for the CR access
+ * 
+ */
 typedef union _MOV_CR_QUALIFICATION
 {
     ULONG_PTR All;
@@ -381,15 +412,15 @@ typedef union _MOV_CR_QUALIFICATION
 //					Functions					//
 //////////////////////////////////////////////////
 
-// Initialize VMX Operation
+/* Initialize VMX Operation */
 BOOLEAN
 VmxInitializer();
 
-// Terminate VMX Operation
+/* Terminate VMX Operation */
 BOOLEAN
 VmxTerminate();
 
-// Allocate VMX Regions
+/* Allocate VMX Regions */
 BOOLEAN
 VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState);
 BOOLEAN
@@ -399,7 +430,7 @@ VmxAllocateVmmStack(INT ProcessorID);
 BOOLEAN
 VmxAllocateMsrBitmap(INT ProcessorID);
 
-// VMX Instructions
+/* VMX Instructions */
 VOID
 VmxVmptrst();
 VOID
@@ -412,10 +443,10 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState);
 BOOLEAN
 VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
-// Virtualize an already running machine
+/* Virtualize an already running machine */
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
-// Configure VMCS
+/* Configure VMCS */
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack);
