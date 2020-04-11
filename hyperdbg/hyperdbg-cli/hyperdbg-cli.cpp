@@ -1,3 +1,14 @@
+/**
+ * @file hyperdbg-cli.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief HyperDbg Cli Interface
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include <Windows.h>
 #include <conio.h>
 #include <iostream>  
@@ -6,8 +17,8 @@
 
 #pragma comment(lib, "HPRDBGCTRL.lib")
 
-// Header file of HPRDBGCTRL
-// Exports
+/* Header file of HPRDBGCTRL */
+/* Imports */
 extern "C"
 {
 	__declspec (dllimport) int __cdecl  HyperdbgLoad();
@@ -35,10 +46,14 @@ void PrintAppearance() {
 
 int main()
 {
-	// Print Hypervisor From Scratch Message
+	//
+	// Print HyperDbg Message
+	//
 	PrintAppearance();
 
+	//
 	// Installing Driver
+	//
 	if (HyperdbgInstallDriver())
 	{
 		printf("Failed to install driver\n");
@@ -60,7 +75,9 @@ int main()
 
 	HyperdbgUnload();
 
+	//
 	// Installing Driver
+	//
 	if (HyperdbgUninstallDriver())
 	{
 		printf("Failed to uninstall driver\n");

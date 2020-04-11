@@ -16,7 +16,7 @@
 //				Message Tracing					//
 //////////////////////////////////////////////////
 
-// Default buffer size
+/* Default buffer size */
 #define MaximumPacketsCapacity    1000 // number of packets
 #define PacketChunkSize           1000 // NOTE : REMEMBER TO CHANGE IT IN USER-MODE APP TOO
 #define UsermodeBufferSize        sizeof(UINT32) + PacketChunkSize + 1 /* Becausee of Opeation code at the start of the buffer + 1 for null-termminating */
@@ -54,7 +54,7 @@ typedef struct _REGISTER_EVENT
 //				Operation Codes					//
 //////////////////////////////////////////////////
 
-// Message area >= 0x4
+/* Message area >= 0x4 */
 #define OPERATION_LOG_INFO_MESSAGE							0x1
 #define OPERATION_LOG_WARNING_MESSAGE						0x2
 #define OPERATION_LOG_ERROR_MESSAGE							0x3
@@ -66,7 +66,6 @@ typedef struct _REGISTER_EVENT
 //////////////////////////////////////////////////
 
 typedef int(__stdcall* Callback)(const char* Text);
-
 
 
 //////////////////////////////////////////////////

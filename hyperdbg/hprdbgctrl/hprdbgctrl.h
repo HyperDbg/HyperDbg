@@ -1,3 +1,14 @@
+/**
+ * @file hprdbgctrl.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Headers of HyperDbg native interface to interact with driver
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 // The following ifdef block is the standard way of creating macros which make exporting
 // from a DLL simpler. All files within this DLL are compiled with the HPRDBGCTRL_EXPORTS
 // symbol defined on the command line. This symbol should not be defined on any project

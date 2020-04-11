@@ -1,8 +1,17 @@
-// hprdbgctrl.cpp : Defines the exported functions for the DLL.
-//
+/**
+ * @file hprdbgctrl.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief HyperDbg native interface to interact with driver
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include "pch.h"
 
-// Global Variables
+/* Global Variables */
 using namespace std;
 HANDLE Handle;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
@@ -22,6 +31,11 @@ extern "C"
 
 }
 
+/**
+ * @brief Set callback to be called when a new message from kernel driver received
+ * 
+ * @param handler 
+ */
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
 	Handler = handler;
 }
@@ -54,7 +68,11 @@ void ShowMessages(const char* Fmt, ...) {
 	}
 }
 
-
+/**
+ * @brief Get the Cpuid (vendor and vmx support)
+ * 
+ * @return string 
+ */
 string GetCpuid()
 {
 	char SysType[13]; // Array consisting of 13 single bytes/characters
@@ -62,11 +80,15 @@ string GetCpuid()
 
 	_asm
 	{
+		//
 		//Execute CPUID with EAX = 0 to get the CPU producer
+		//
 		xor eax, eax
 		cpuid
 
-		//MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation.
+		//
+		//MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation
+		//
 		mov eax, ebx
 		mov SysType[0], al
 		mov SysType[1], ah
@@ -74,7 +96,9 @@ string GetCpuid()
 		mov SysType[2], al
 		mov SysType[3], ah
 
+		//
 		//Get the second part the same way but these values are stored in EDX
+		//
 		mov eax, edx
 		mov SysType[4], al
 		mov SysType[5], ah
@@ -82,7 +106,9 @@ string GetCpuid()
 		mov SysType[6], al
 		mov SysType[7], ah
 
+		//
 		//Get the third part
+		//
 		mov eax, ecx
 		mov SysType[8], al
 		mov SysType[9], ah
@@ -98,9 +124,14 @@ string GetCpuid()
 }
 
 
+/**
+ * @brief Detect if Vmx is supported or nt
+ * 
+ * @return true if it's supported
+ * @return false if it's not supported
+ */
 bool VmxSupportDetection()
 {
-
 	bool VMX;
 
 	VMX = false;
@@ -127,7 +158,16 @@ bool VmxSupportDetection()
 }
 
 
-//  SetPrivilege enables/disables process token privilege.
+/**
+ * @brief SetPrivilege enables/disables process token privilege
+ * @details Because the driver checks for SeDebugPrivilege this function
+ * enables this privilege in current user's token
+ * 
+ * @param hToken 
+ * @param lpszPrivilege 
+ * @param bEnablePrivilege 
+ * @return BOOL 
+ */
 BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 {
 	LUID luid;
@@ -158,6 +198,11 @@ BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking 
 
+/**
+ * @brief Read kernel buffers using IRP Pending methods
+ * 
+ * @param Device Handle to the driver
+ */
 void ReadIrpBasedBuffer(HANDLE  Device) {
 
 	BOOL    Status;
@@ -168,7 +213,10 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================");
 	RegisterEvent.hEvent = NULL;
 	RegisterEvent.Type = IRP_BASED;
+
+	//
 	// allocate buffer for transfering messages
+	//
 	char* OutputBuffer = (char*)malloc(UsermodeBufferSize);
 
 	try
@@ -233,7 +281,9 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 			}
 			else
 			{
+				//
 				// the thread should not work anymore
+				//
 				return;
 			}
 		}
@@ -244,10 +294,18 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	}
 }
 
+/**
+ * @brief Create a new thread for receiving kernel buffers
+ * 
+ * @param Data Handle to the driver
+ * @return DWORD ThreadFunc 
+ */
 DWORD WINAPI ThreadFunc(void* Data) {
+	//
 	// Do stuff.  This will be the first function called on the new thread.
 	// When this function returns, the thread goes away.  See MSDN for more details.
 	// Test Irp Based Notifications
+	//
 	ReadIrpBasedBuffer(Data);
 
 	return 0;
@@ -255,6 +313,11 @@ DWORD WINAPI ThreadFunc(void* Data) {
 #endif
 
 
+/**
+ * @brief Installs the driver
+ * 
+ * @return int  
+ */
 HPRDBGCTRL_API int HyperdbgInstallDriver()
 {
 	//
@@ -288,6 +351,11 @@ HPRDBGCTRL_API int HyperdbgInstallDriver()
 	return 0;
 }
 
+/**
+ * @brief Uninstal the driver 
+ * 
+ * @return int 
+ */
 HPRDBGCTRL_API int HyperdbgUninstallDriver()
 {
 	//
@@ -337,7 +405,9 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		return 1;
 	}
 
+	//
 	// Enable Debug privilege
+	//
 	hProcess = GetCurrentProcess();
 
 	if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken))
@@ -382,6 +452,11 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	return 0;
 }
 
+/**
+ * @brief Unload the driver
+ * 
+ * @return int 
+ */
 HPRDBGCTRL_API int HyperdbgUnload()
 {
 	BOOL    Status;
@@ -394,8 +469,9 @@ HPRDBGCTRL_API int HyperdbgUnload()
 
 	ShowMessages("Terminating VMX !");
 
-
+	//
 	// Send IOCTL to mark complete all IRP Pending 
+	//
 	Status = DeviceIoControl(
 		Handle,															// Handle to device
 		IOCTL_TERMINATE_VMX,											// IO Control code
@@ -406,13 +482,17 @@ HPRDBGCTRL_API int HyperdbgUnload()
 		NULL,															// Bytes placed in buffer.
 		NULL															// synchronous call
 	);
+
+	//
 	// wait to make sure we don't use an invalid handle in another Ioctl
+	//
 	if (!Status) {
 		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
 	}
 
-
+	//
 	// Send IOCTL to mark complete all IRP Pending 
+	//
 	Status = DeviceIoControl(
 		Handle,															// Handle to device
 		IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL,			// IO Control code
@@ -424,16 +504,23 @@ HPRDBGCTRL_API int HyperdbgUnload()
 		NULL															// synchronous call
 	);
 
+	//
 	// wait to make sure we don't use an invalid handle in another Ioctl
+	//
 	if (!Status) {
 		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
 	}
 
+	//
 	// Indicate that the finish process start or not
+	//
 	IsVmxOffProcessStart = TRUE;
 
 	Sleep(1000); // Wait so next thread can return from IRP Pending
-	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
+
+	//
+	// Send IRP_MJ_CLOSE to driver to terminate VMX
+	//
 	if (!CloseHandle(Handle))
 	{
 		ShowMessages("Error : 0x%x", GetLastError());

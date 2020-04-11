@@ -1,6 +1,24 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
+/**
+ * @file dllmain.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Defines the entry point for the DLL application
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include "pch.h"
 
+/**
+ * @brief Main interface dll entry
+ * 
+ * @param hModule 
+ * @param ul_reason_for_call 
+ * @param lpReserved 
+ * @return BOOL DllMain 
+ */
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
