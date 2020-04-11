@@ -94,7 +94,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         // cf=1 indicate vm instructions fail
         //
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1); 
+        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1);
 
         break;
     }
@@ -172,14 +172,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_EXCEPTION_NMI:
     {
-        
         //
-		// Exception or non-maskable interrupt (NMI). Either:
-		//	1: Guest software caused an exception and the bit in the exception bitmap associated with exception�s vector was set to 1
-		//	2: An NMI was delivered to the logical processor and the �NMI exiting� VM-execution control was 1.
+        // Exception or non-maskable interrupt (NMI). Either:
+        //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception�s vector was set to 1
+        //	2: An NMI was delivered to the logical processor and the �NMI exiting� VM-execution control was 1.
         //
-		// VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
-		// Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
+        // VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
+        // Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
         //
 
         //

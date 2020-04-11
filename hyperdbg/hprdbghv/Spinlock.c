@@ -32,7 +32,6 @@
  */
 static unsigned MaxWait = 65536;
 
-
 /**
  * @brief Tries to get the lock otherwise returns
  * 
@@ -61,7 +60,7 @@ SpinlockLock(volatile LONG * Lock)
         {
             _mm_pause();
         }
-        
+
         //
         // Don't call "pause" too many times. If the wait becomes too big,
         // clamp it to the MaxWait.
@@ -89,4 +88,3 @@ SpinlockUnlock(volatile LONG * Lock)
 {
     *Lock = 0;
 }
-

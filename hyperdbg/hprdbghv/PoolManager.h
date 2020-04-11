@@ -110,19 +110,19 @@ typedef struct _REQUEST_NEW_ALLOCATION
  */
 REQUEST_NEW_ALLOCATION * RequestNewAllocation;
 
-volatile LONG            LockForRequestAllocation;
-volatile LONG            LockForReadingPool;
+volatile LONG LockForRequestAllocation;
+volatile LONG LockForReadingPool;
 
 /**
  * @brief We set it when there is a new allocation
  * 
  */
-BOOLEAN                  IsNewRequestForAllocationRecieved;
+BOOLEAN IsNewRequestForAllocationRecieved;
 /**
  * @brief Create a list from all pools
  * 
  */
-PLIST_ENTRY              ListOfAllocatedPoolsHead;
+PLIST_ENTRY ListOfAllocatedPoolsHead;
 
 //////////////////////////////////////////////////
 //                   Functions		  			//
@@ -135,7 +135,7 @@ PoolManagerInitialize();
 BOOLEAN
 PoolManagerCheckAndPerformAllocation();
 /* If we have request to allocate new pool, we can call this function (should be called from vmx-root), it stores the requests */
-/* somewhere then when it's safe (IRQL PASSIVE_LEVEL) it allocates the requested pool
+/* somewhere then when it's safe (IRQL PASSIVE_LEVEL) it allocates the requested pool */
 BOOLEAN
 PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
 /* From vmx-root if we need a safe pool address immediately we call it, it also request a new pool if we set RequestNewPool to TRUE */

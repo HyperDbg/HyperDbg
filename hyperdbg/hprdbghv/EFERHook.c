@@ -36,7 +36,6 @@
  */
 UINT64 SysretAddress;
 
-
 /* Check for instruction sysret and syscall */
 #define IS_SYSRET_INSTRUCTION(Code)   \
     (*((PUINT8)(Code) + 0) == 0x48 && \
@@ -45,7 +44,6 @@ UINT64 SysretAddress;
 #define IS_SYSCALL_INSTRUCTION(Code)  \
     (*((PUINT8)(Code) + 0) == 0x0F && \
      *((PUINT8)(Code) + 1) == 0x05)
-
 
 /**
  * @brief Disables the Syscall Enable Bit (SCE) in GUEST_EFER
@@ -269,8 +267,8 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
     SEGMENT_SELECTOR Cs, Ss;
     UINT64           MsrValue;
-    ULONG64 GuestRip;
-    ULONG64 GuestRflags;
+    ULONG64          GuestRip;
+    ULONG64          GuestRflags;
 
     //
     // Load RIP from RCX
@@ -325,7 +323,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     if (SysretAddress == NULL)
     {
         //
-        // Find the address of sysret 
+        // Find the address of sysret
         //
         // Due to KVA Shadowing, we need to switch to a different directory table base
         // if the PCID indicates this is a user mode directory table base
@@ -339,7 +337,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         if (IS_SYSRET_INSTRUCTION(Rip))
         {
             __writecr3(OriginalCr3);
-            
+
             //
             // Save the address of Sysret, it won't change
             //
@@ -384,7 +382,7 @@ EmulateSYSRET:
     //
 EmulateSYSCALL:
     //
-    // We don't emulate the syscalls anymore because  
+    // We don't emulate the syscalls anymore because
     // The usermode code might be paged out
     // Result = SyscallHookEmulateSYSCALL(Regs);
     //

@@ -49,17 +49,17 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 /* @brief Intel CPU flags in CR0 */
-#define X86_CR0_PE 0x00000001     /* Enable Protected Mode    (RW) */
-#define X86_CR0_MP 0x00000002     /* Monitor Coprocessor      (RW) */
-#define X86_CR0_EM 0x00000004     /* Require FPU Emulation    (RO) */
-#define X86_CR0_TS 0x00000008     /* Task Switched            (RW) */
-#define X86_CR0_ET 0x00000010     /* Extension type           (RO) */
-#define X86_CR0_NE 0x00000020     /* Numeric Error Reporting  (RW) */
-#define X86_CR0_WP 0x00010000     /* Supervisor Write Protect (RW) */
-#define X86_CR0_AM 0x00040000     /* Alignment Checking       (RW) */
-#define X86_CR0_NW 0x20000000     /* Not Write-Through        (RW) */
-#define X86_CR0_CD 0x40000000     /* Cache Disable            (RW) */
-#define X86_CR0_PG 0x80000000     /* Paging                         */
+#define X86_CR0_PE 0x00000001 /* Enable Protected Mode    (RW) */
+#define X86_CR0_MP 0x00000002 /* Monitor Coprocessor      (RW) */
+#define X86_CR0_EM 0x00000004 /* Require FPU Emulation    (RO) */
+#define X86_CR0_TS 0x00000008 /* Task Switched            (RW) */
+#define X86_CR0_ET 0x00000010 /* Extension type           (RO) */
+#define X86_CR0_NE 0x00000020 /* Numeric Error Reporting  (RW) */
+#define X86_CR0_WP 0x00010000 /* Supervisor Write Protect (RW) */
+#define X86_CR0_AM 0x00040000 /* Alignment Checking       (RW) */
+#define X86_CR0_NW 0x20000000 /* Not Write-Through        (RW) */
+#define X86_CR0_CD 0x40000000 /* Cache Disable            (RW) */
+#define X86_CR0_PG 0x80000000 /* Paging                         */
 
 /* Intel CPU features in CR4 */
 #define X86_CR4_VME        0x0001 /* enable vm86 extensions */

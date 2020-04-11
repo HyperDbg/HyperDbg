@@ -26,7 +26,7 @@ BOOLEAN
 LogInitialize()
 {
     //
-    // Initialize buffers for trace message and data messages 
+    // Initialize buffers for trace message and data messages
     //(we have two buffers one for vmx root and one for vmx non-root)
     //
     MessageBufferInformation = ExAllocatePoolWithTag(NonPagedPool, sizeof(LOG_BUFFER_INFORMATION) * 2, POOLTAG);
@@ -53,7 +53,7 @@ LogInitialize()
     {
         //
         // initialize the lock
-        // Actually, only the 0th buffer use this spinlock but let initialize it 
+        // Actually, only the 0th buffer use this spinlock but let initialize it
         // for both but the second buffer spinlock is useless
         // as we use our custom spinlock
         //
@@ -312,7 +312,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     // First copy the header
     //
     RtlCopyBytes(BufferToSaveMessage, &Header->OpeationNumber, sizeof(UINT32));
-    
+
     //
     // Second, save the buffer contents
     //
@@ -385,7 +385,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     }
 
     //
-    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock, 
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
     // if not we use the windows spinlock
     //
     if (IsVmxRoot)
@@ -400,7 +400,6 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 }
-
 
 /**
  * @brief Check if new message is available or not
@@ -501,14 +500,14 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         //
         // We won't use this because we can't use in any IRQL
         // Status = RtlStringCchPrintfA(TimeBuffer, RTL_NUMBER_OF(TimeBuffer),
-		//	"%02hd:%02hd:%02hd.%03hd", TimeFields.Hour,
-		//	TimeFields.Minute, TimeFields.Second,
-		//	TimeFields.Milliseconds);
+        //	"%02hd:%02hd:%02hd.%03hd", TimeFields.Hour,
+        //	TimeFields.Minute, TimeFields.Second,
+        //	TimeFields.Milliseconds);
         //
         //
-		// Append time with previous message
+        // Append time with previous message
         //
-		// Status = RtlStringCchPrintfA(LogMessage, PacketChunkSize - 1, "(%s)\t %s", TimeBuffer, TempMessage);
+        // Status = RtlStringCchPrintfA(LogMessage, PacketChunkSize - 1, "(%s)\t %s", TimeBuffer, TempMessage);
         //
 
         //
@@ -614,7 +613,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
     else
     {
         //
-        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock, 
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
         // if not we use the windows spinlock
         //
         if (IsVmxRootMode)
@@ -641,7 +640,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         //Set the result to True
         //
         Result = TRUE;
-        
+
         //
         // If log message WrittenSize is above the buffer then we have to send the previous buffer
         //
@@ -674,7 +673,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         //
         MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer += WrittenSize;
 
-        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock, 
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
         // if not we use the windows spinlock
         //
         if (IsVmxRootMode)
@@ -825,7 +824,7 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // check if current core has another thread with pending IRP,
     // if no then put the current thread to pending
-    // otherwise return and complete thread with STATUS_SUCCESS as 
+    // otherwise return and complete thread with STATUS_SUCCESS as
     // there is another thread waiting for message
     //
 

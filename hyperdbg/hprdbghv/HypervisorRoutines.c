@@ -20,7 +20,6 @@
 #include "Vmcall.h"
 #include "Dpc.h"
 
-
 /**
  * @brief Initialize Vmx operation
  * 
@@ -210,7 +209,7 @@ HvGetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHA
     SegmentSelector->ATTRIBUTES.UCHARs = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
 
     if (!(SegDesc->ATTR0 & 0x10))
-    { 
+    {
         //
         // LA_ACCESSED
         //
@@ -429,17 +428,17 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //
 
     //
-	// Execute WRMSR or RDMSR on behalf of the guest. Important that this
-	// can cause bug check when the guest tries to access unimplemented MSR
-	// even within the SEH block* because the below WRMSR or RDMSR raises
-	// #GP and are not protected by the SEH block (or cannot be protected
-	// either as this code run outside the thread stack region Windows
-	// requires to proceed SEH). Hypervisors typically handle this by noop-ing
-	// WRMSR and returning zero for RDMSR with non-architecturally defined
-	// MSRs. Alternatively, one can probe which MSRs should cause #GP prior
-	// to installation of a hypervisor and the hypervisor can emulate the
-	// results.
-	//
+    // Execute WRMSR or RDMSR on behalf of the guest. Important that this
+    // can cause bug check when the guest tries to access unimplemented MSR
+    // even within the SEH block* because the below WRMSR or RDMSR raises
+    // #GP and are not protected by the SEH block (or cannot be protected
+    // either as this code run outside the thread stack region Windows
+    // requires to proceed SEH). Hypervisors typically handle this by noop-ing
+    // WRMSR and returning zero for RDMSR with non-architecturally defined
+    // MSRs. Alternatively, one can probe which MSRs should cause #GP prior
+    // to installation of a hypervisor and the hypervisor can emulate the
+    // results.
+    //
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -465,17 +464,17 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     MSR msr = {0};
 
     //
-	// Execute WRMSR or RDMSR on behalf of the guest. Important that this
-	// can cause bug check when the guest tries to access unimplemented MSR
-	// even within the SEH block* because the below WRMSR or RDMSR raises
-	// #GP and are not protected by the SEH block (or cannot be protected
-	// either as this code run outside the thread stack region Windows
-	// requires to proceed SEH). Hypervisors typically handle this by noop-ing
-	// WRMSR and returning zero for RDMSR with non-architecturally defined
-	// MSRs. Alternatively, one can probe which MSRs should cause #GP prior
-	// to installation of a hypervisor and the hypervisor can emulate the
-	// results.
-	//
+    // Execute WRMSR or RDMSR on behalf of the guest. Important that this
+    // can cause bug check when the guest tries to access unimplemented MSR
+    // even within the SEH block* because the below WRMSR or RDMSR raises
+    // #GP and are not protected by the SEH block (or cannot be protected
+    // either as this code run outside the thread stack region Windows
+    // requires to proceed SEH). Hypervisors typically handle this by noop-ing
+    // WRMSR and returning zero for RDMSR with non-architecturally defined
+    // MSRs. Alternatively, one can probe which MSRs should cause #GP prior
+    // to installation of a hypervisor and the hypervisor can emulate the
+    // results.
+    //
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR

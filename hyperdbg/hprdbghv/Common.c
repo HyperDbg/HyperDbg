@@ -158,7 +158,7 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
  */
 UINT64
 FindSystemDirectoryTableBase()
-{   
+{
     //
     // Return CR3 of the system process.
     //

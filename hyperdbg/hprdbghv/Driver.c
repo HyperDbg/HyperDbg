@@ -66,7 +66,7 @@ DriverEntry(
     ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
 
     //
-    // we allocate virtual machine here because 
+    // we allocate virtual machine here because
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
 
@@ -90,7 +90,7 @@ DriverEntry(
 
     //
     // Zero the memory
-    // 
+    //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
     LogInfo("Hyperdbg is Loaded :)");
@@ -181,7 +181,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // Check for privilege
     //
     // Check for the correct security access.
-	// The caller must have the SeDebugPrivilege.
+    // The caller must have the SeDebugPrivilege.
     //
 
     LUID DebugPrivilege = {SE_DEBUG_PRIVILEGE, 0};
@@ -221,7 +221,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
-    // test 
+    // test
     // HiddenHooksTest();
     // SyscallHookTest();
     //
@@ -388,7 +388,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
     }
     else
-    {   //
+    { //
         // We're no longer serve IOCTL
         //
         Status = STATUS_SUCCESS;

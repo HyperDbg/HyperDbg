@@ -22,7 +22,6 @@
 #define IMAGE_VXD_SIGNATURE    0x454C     // LE
 #define IMAGE_NT_SIGNATURE     0x00004550 // PE00
 
-
 //////////////////////////////////////////////////
 //				   Structure					//
 //////////////////////////////////////////////////
@@ -63,7 +62,6 @@ typedef struct _SYSTEM_MODULE_INFORMATION
     SYSTEM_MODULE_ENTRY Module[0];
 } SYSTEM_MODULE_INFORMATION, *PSYSTEM_MODULE_INFORMATION;
 
-
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
     SystemModuleInformation         = 11,
@@ -71,13 +69,11 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 } SYSTEM_INFORMATION_CLASS,
     *PSYSTEM_INFORMATION_CLASS;
 
-
 typedef NTSTATUS(NTAPI * ZWQUERYSYSTEMINFORMATION)(
     IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
     OUT PVOID                   SystemInformation,
     IN ULONG                    SystemInformationLength,
     OUT PULONG ReturnLength     OPTIONAL);
-
 
 NTSTATUS(*NtCreateFileOrig)
 (
@@ -92,7 +88,6 @@ NTSTATUS(*NtCreateFileOrig)
     ULONG              CreateOptions,
     PVOID              EaBuffer,
     ULONG              EaLength);
-
 
 VOID
 SSyscallHookEnableSCE();

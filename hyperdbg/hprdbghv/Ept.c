@@ -126,7 +126,7 @@ EptBuildMtrrMap()
             {
                 //
                 // This is already our default, so no need to store this range.
-				// Simply 'free' the range we just wrote.
+                // Simply 'free' the range we just wrote.
                 //
                 g_EptState->NumberOfEnabledMemoryRanges--;
             }
@@ -339,10 +339,10 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     SIZE_T TargetMemoryType;
 
     //
-	// Each of the 512 collections of 512 PML2 entries is setup here
-	// This will, in total, identity map every physical address from 0x0 
+    // Each of the 512 collections of 512 PML2 entries is setup here
+    // This will, in total, identity map every physical address from 0x0
     // to physical address 0x8000000000 (512GB of memory)
-    // ((EntryGroupIndex * VMM_EPT_PML2E_COUNT) + EntryIndex) * 2MB is 
+    // ((EntryGroupIndex * VMM_EPT_PML2E_COUNT) + EntryIndex) * 2MB is
     // the actual physical address we're mapping
     //
     NewEntry->PageFrameNumber = PageFrameNumber;
@@ -357,9 +357,9 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     // kind of undefined behavior from the fixed MTRR section which we are
     // not formally recognizing (typically there is MMIO memory in the first MB)
     //
-	// I suggest reading up on the fixed MTRR section of the manual to see why the
+    // I suggest reading up on the fixed MTRR section of the manual to see why the
     // first entry is likely going to need to be UC.
-	//
+    //
     if (PageFrameNumber == 0)
     {
         NewEntry->MemoryType = MEMORY_TYPE_UNCACHEABLE;
@@ -388,8 +388,8 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
             {
                 //
                 // If we're here, this page fell within one of the ranges specified by the variable MTRRs
-				// Therefore, we must mark this page as the same cache type exposed by the MTRR
-				//
+                // Therefore, we must mark this page as the same cache type exposed by the MTRR
+                //
                 TargetMemoryType = g_EptState->MemoryRanges[CurrentMtrrRange].MemoryType;
 
                 // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
@@ -400,7 +400,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
                 if (TargetMemoryType == MEMORY_TYPE_UNCACHEABLE)
                 {
                     //
-                    // If this is going to be marked uncacheable, then we stop the search as UC always 
+                    // If this is going to be marked uncacheable, then we stop the search as UC always
                     // takes precedent
                     //
                     break;
@@ -453,7 +453,7 @@ EptAllocateAndCreateIdentityPageTable()
     RtlZeroMemory(PageTable, sizeof(VMM_EPT_PAGE_TABLE));
 
     //
-    // Mark the first 512GB PML4 entry as present, which allows us to manage up 
+    // Mark the first 512GB PML4 entry as present, which allows us to manage up
     // to 512GB of discrete paging structures.
     //
     PageTable->PML4[0].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML3[0]) / PAGE_SIZE;
@@ -575,9 +575,9 @@ EptLogicalProcessorInitialize()
     EPTP.EnableAccessAndDirtyFlags = FALSE;
 
     //
-	// Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-	// see Section 28.2.2
-	//
+    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
+    // see Section 28.2.2
+    //
     EPTP.PageWalkLength = 3;
 
     //
@@ -619,11 +619,11 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
-            // We found an address that match the details 
+            // We found an address that match the details
             //
-			// Returning true means that the caller should return to the ept state to 
+            // Returning true means that the caller should return to the ept state to
             // the previous state when this instruction is executed
-		    // by setting the Monitor Trap Flag. Return false means that nothing special
+            // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
             if (EptHandleHookedPage(HookedEntry, ViolationQualification, GuestPhysicalAddr))
@@ -781,7 +781,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     }
 
     //
-    // Determine the number of instructions necessary to overwrite using Length Disassembler Engine 
+    // Determine the number of instructions necessary to overwrite using Length Disassembler Engine
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 13;
@@ -823,7 +823,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     LogInfo("HookFunction: 0x%llx", HookFunction);
 
     //
-    // Let the hook function call the original function 
+    // Let the hook function call the original function
     //
     *OrigFunction = Hook->Trampoline;
 
@@ -933,9 +933,9 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction
 
     //
     // Translate the page from a physical address to virtual so we can read its memory.
-	// This function will return NULL if the physical address was not already mapped in
-	// virtual memory.
-	//
+    // This function will return NULL if the physical address was not already mapped in
+    // virtual memory.
+    //
     VirtualTarget = PAGE_ALIGN(TargetAddress);
 
     PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddress(VirtualTarget);

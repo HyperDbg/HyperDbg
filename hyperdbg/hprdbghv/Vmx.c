@@ -130,7 +130,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     ProcessorID = KeGetCurrentProcessorNumber();
 
-    Log("Virtualizing Current System (Logical Core : 0x%x)" ProcessorID);
+    Log("Virtualizing Current System (Logical Core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
@@ -396,9 +396,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(HOST_CR4, __readcr4());
 
     //
-	// Because we may be executing in an arbitrary user-mode, process as part
-	// of the DPC interrupt we execute in We have to save Cr3, for HOST_CR3
-	//
+    // Because we may be executing in an arbitrary user-mode, process as part
+    // of the DPC interrupt we execute in We have to save Cr3, for HOST_CR3
+    //
 
     __vmx_vmwrite(HOST_CR3, FindSystemDirectoryTableBase());
 
@@ -447,7 +447,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
     //
     // For all processors, we will use a VPID = 1. This allows the processor to separate caching
-	//  of EPT structures away from the regular OS page translation tables in the TLB.
+    //  of EPT structures away from the regular OS page translation tables in the TLB.
     //
     __vmx_vmwrite(VIRTUAL_PROCESSOR_ID, VPID_TAG);
 
@@ -516,15 +516,15 @@ VmxVmxoff()
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
     //
-	// According to SimpleVisor :
-	//  	Our callback routine may have interrupted an arbitrary user process,
-	//  	and therefore not a thread running with a system-wide page directory.
-	//  	Therefore if we return back to the original caller after turning off
-	//  	VMX, it will keep our current "host" CR3 value which we set on entry
-	//  	to the PML4 of the SYSTEM process. We want to return back with the
-	//  	correct value of the "guest" CR3, so that the currently executing
-	//  	process continues to run with its expected address space mappings.
-	//
+    // According to SimpleVisor :
+    //  	Our callback routine may have interrupted an arbitrary user process,
+    //  	and therefore not a thread running with a system-wide page directory.
+    //  	Therefore if we return back to the original caller after turning off
+    //  	VMX, it will keep our current "host" CR3 value which we set on entry
+    //  	to the PML4 of the SYSTEM process. We want to return back with the
+    //  	correct value of the "guest" CR3, so that the currently executing
+    //  	process continues to run with its expected address space mappings.
+    //
 
     __vmx_vmread(GUEST_CR3, &GuestCr3);
     __writecr3(GuestCr3);

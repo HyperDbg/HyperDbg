@@ -52,9 +52,9 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
-    //
-    // Mask is the upper 32 bits to this Vmcall
-    //
+        //
+        // Mask is the upper 32 bits to this Vmcall
+        //
 
     case VMCALL_CHANGE_PAGE_ATTRIB:
     {

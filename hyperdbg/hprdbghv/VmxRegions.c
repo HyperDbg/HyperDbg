@@ -279,12 +279,12 @@ VmxAllocateMsrBitmap(INT ProcessorID)
     // (Uncomment if you want to break on RDMSR and WRMSR to a special MSR Register)
     //
     //
-	// if (HvSetMsrBitmap(0xc0000082, ProcessorID, TRUE, TRUE))
-	// {
-	// 	LogError("Invalid parameters sent to the HvSetMsrBitmap function");
-`   //	return FALSE;
-	// }
-	//
+    // if (HvSetMsrBitmap(0xc0000082, ProcessorID, TRUE, TRUE))
+    // {
+    // 	LogError("Invalid parameters sent to the HvSetMsrBitmap function");
+    //	return FALSE;
+    // }
+    //
 
     return TRUE;
 }

@@ -51,7 +51,7 @@ PoolManagerInitialize()
     // Initialize list head
     //
     InitializeListHead(ListOfAllocatedPoolsHead);
-    
+
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
     //
@@ -149,7 +149,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
     SpinlockUnlock(&LockForReadingPool);
 
     //
-    // Check if we need additional pools e.g another pool or the pool 
+    // Check if we need additional pools e.g another pool or the pool
     // will be available for the next use blah blah
     //
     if (RequestNewPool)
@@ -176,7 +176,6 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 BOOLEAN
 PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
 {
-
     for (size_t i = 0; i < Count; i++)
     {
         POOL_TABLE * SinglePool = ExAllocatePoolWithTag(NonPagedPool, sizeof(POOL_TABLE), POOLTAG);
@@ -279,7 +278,7 @@ PoolManagerCheckAndPerformAllocation()
         //
         // Free the data for future use
         //
-        
+
         RequestNewAllocation->Count3     = 0;
         RequestNewAllocation->Intention3 = 0;
         RequestNewAllocation->Size3      = 0;
@@ -298,7 +297,7 @@ PoolManagerCheckAndPerformAllocation()
     if (RequestNewAllocation->Size5 != 0)
     {
         Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size5, RequestNewAllocation->Count5, RequestNewAllocation->Intention5);
-        
+
         //
         // Free the data for future use
         //
@@ -309,7 +308,7 @@ PoolManagerCheckAndPerformAllocation()
     if (RequestNewAllocation->Size6 != 0)
     {
         Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size6, RequestNewAllocation->Count6, RequestNewAllocation->Intention6);
-        
+
         //
         // Free the data for future use
         //
@@ -354,7 +353,6 @@ PoolManagerCheckAndPerformAllocation()
     return Result;
 }
 
-/*  */
 /**
  * @brief Request to allocate new buffers
  * 
