@@ -1,3 +1,14 @@
+/**
+ * @file Vpid.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief VPID Headers
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 
@@ -5,6 +16,10 @@
 //					Enums						//
 //////////////////////////////////////////////////
 
+/**
+ * @brief INVVPID Enum
+ * 
+ */
 typedef enum _INVVPID_ENUM
 {
     INVVPID_INDIVIDUAL_ADDRESS               = 0x00000000,
@@ -18,6 +33,10 @@ typedef enum _INVVPID_ENUM
 //					Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief INVVPID Descriptors
+ * 
+ */
 typedef struct _INVVPID_DESCRIPTOR
 {
     UINT64 VPID : 16;
@@ -29,6 +48,8 @@ typedef struct _INVVPID_DESCRIPTOR
 //////////////////////////////////////////////////
 //					Definitions					//
 //////////////////////////////////////////////////
+
+/* VPID Tag */
 #define VPID_TAG 0x1
 
 //////////////////////////////////////////////////

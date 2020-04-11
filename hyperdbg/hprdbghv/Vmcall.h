@@ -1,3 +1,14 @@
+/**
+ * @file Vmcall.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief VMCALL Headers
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include "Vmx.h"
 
@@ -17,10 +28,10 @@
 //				    Functions					//
 //////////////////////////////////////////////////
 
-// Main handler for VMCALLs
+/* Main handler for VMCALLs */
 NTSTATUS
 VmxVmcallHandler(UINT64 VmcallNumber, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3);
 
-// Test function which shows a message to test a successfull VMCALL
+/* Test function which shows a message to test a successfull VMCALL */
 NTSTATUS
 VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3);

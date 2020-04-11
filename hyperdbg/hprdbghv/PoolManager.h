@@ -1,3 +1,14 @@
+/**
+ * @file PoolManager.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Headers of pool manager
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 
@@ -10,6 +21,10 @@
 //                    Enums		    			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Inum of intentions for buffers (buffer tag)
+ * 
+ */
 typedef enum
 {
     TRACKING_HOOKED_PAGES,
@@ -22,6 +37,10 @@ typedef enum
 //                   Structures		   			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Table of holding pools detail structure
+ * 
+ */
 typedef struct _POOL_TABLE
 {
     UINT64                    Address; // Should be the start of the list as we compute it as the start address
@@ -33,6 +52,10 @@ typedef struct _POOL_TABLE
 
 } POOL_TABLE, *PPOOL_TABLE;
 
+/**
+ * @brief Manage the requests for new allocations
+ * 
+ */
 typedef struct _REQUEST_NEW_ALLOCATION
 {
     SIZE_T                    Size0;
@@ -81,30 +104,44 @@ typedef struct _REQUEST_NEW_ALLOCATION
 //                   Variables	    			//
 //////////////////////////////////////////////////
 
-REQUEST_NEW_ALLOCATION * RequestNewAllocation; // If sb wants allocation from vmx root, adds it's request to this structure
+/**
+ * @brief If sb wants allocation from vmx root, adds it's request to this structure
+ * 
+ */
+REQUEST_NEW_ALLOCATION * RequestNewAllocation;
+
 volatile LONG            LockForRequestAllocation;
 volatile LONG            LockForReadingPool;
-BOOLEAN                  IsNewRequestForAllocationRecieved; // We set it when there is a new allocation
-PLIST_ENTRY              ListOfAllocatedPoolsHead;          // Create a list from all pools
+
+/**
+ * @brief We set it when there is a new allocation
+ * 
+ */
+BOOLEAN                  IsNewRequestForAllocationRecieved;
+/**
+ * @brief Create a list from all pools
+ * 
+ */
+PLIST_ENTRY              ListOfAllocatedPoolsHead;
 
 //////////////////////////////////////////////////
 //                   Functions		  			//
 //////////////////////////////////////////////////
 
-// Initializes the Pool Manager and pre-allocate some pools
+/* Initializes the Pool Manager and pre-allocate some pools */
 BOOLEAN
 PoolManagerInitialize();
-// Should be called in PASSIVE_LEVEL (vmx non-root), it tries to see whether a new pool request is available, if availabe then allocates it
+/* Should be called in PASSIVE_LEVEL (vmx non-root), it tries to see whether a new pool request is available, if availabe then allocates it */
 BOOLEAN
 PoolManagerCheckAndPerformAllocation();
-// If we have request to allocate new pool, we can call this function (should be called from vmx-root), it stores the requests
-// somewhere then when it's safe (IRQL PASSIVE_LEVEL) it allocates the requested pool
+/* If we have request to allocate new pool, we can call this function (should be called from vmx-root), it stores the requests */
+/* somewhere then when it's safe (IRQL PASSIVE_LEVEL) it allocates the requested pool
 BOOLEAN
 PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention);
-// From vmx-root if we need a safe pool address immediately we call it, it also request a new pool if we set RequestNewPool to TRUE
-// next time it's safe the pool will be allocated
+/* From vmx-root if we need a safe pool address immediately we call it, it also request a new pool if we set RequestNewPool to TRUE */
+/* next time it's safe the pool will be allocated */
 UINT64
 PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size);
-// De-allocate all the allocated pools
+/* De-allocate all the allocated pools */
 VOID
 PoolManagerUninitialize();

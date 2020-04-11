@@ -1,8 +1,19 @@
+/**
+ * @file Trace.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief WPP Tracing Definitions
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
-// This file is for implementing WPP Software Tracing
+
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -74,6 +85,7 @@
 //FUNC TRACE_RETURN{FLAG=FLAG_ONE}(EXP);
 //USESUFFIX (TRACE_RETURN, "Function Return=%!STATUS!",EXP);
 //end_wpp
+//
 
 //
 // PRE macro: The name of the macro includes the condition arguments FLAGS and EXP

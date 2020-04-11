@@ -1,10 +1,26 @@
+/**
+ * @file SsdtHook.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Implementation of functions to find SSDT entries for SSDT Hook
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include <ntddk.h>
 #include <Windef.h>
 #include "Hooks.h"
 #include "Common.h"
 #include "Logging.h"
 
-/* Get the kernel base and Image size */
+/**
+ * @brief Get the kernel base and Image size
+ * 
+ * @param pImageSize [Out] Image size
+ * @return PVOID 
+ */
 PVOID
 SyscallHookGetKernelBase(PULONG pImageSize)
 {
@@ -62,7 +78,14 @@ SyscallHookGetKernelBase(PULONG pImageSize)
     return pModuleBase;
 }
 
-/* Find SSDT address of Nt fucntions and W32Table */
+/**
+ * @brief Find SSDT address of Nt fucntions and W32Table
+ * 
+ * @param NtTable [Out] Address of Nt Syscall Table
+ * @param Win32kTable [Out] Address of Win32k Syscall Table
+ * @return BOOLEAN Returns true if it can find the nt tables and win32k successfully otherwise
+ * returns false
+ */
 BOOLEAN
 SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 {
@@ -78,14 +101,17 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
     PVOID               ntTable;
     PVOID               win32kTable;
 
-    //x64 code
+    //
+    // x64 code
+    //
     kernelBase = (ULONG_PTR)SyscallHookGetKernelBase(&kernelSize);
 
     if (kernelBase == 0 || kernelSize == 0)
         return FALSE;
 
+    //
     // Find KiSystemServiceStart
-
+    //
     ULONG KiSSSOffset;
     for (KiSSSOffset = 0; KiSSSOffset < kernelSize - signatureSize; KiSSSOffset++)
     {
@@ -101,7 +127,10 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
 
     addressAfterPattern = kernelBase + KiSSSOffset + signatureSize;
     address             = addressAfterPattern + 7; // Skip lea r10,[nt!KeServiceDescriptorTable]
+
+    //
     // lea r11, KeServiceDescriptorTableShadow
+    //
     if ((*(unsigned char *)address == 0x4c) &&
         (*(unsigned char *)(address + 1) == 0x8d) &&
         (*(unsigned char *)(address + 2) == 0x1d))
@@ -123,7 +152,13 @@ SyscallHookFindSsdt(PUINT64 NtTable, PUINT64 Win32kTable)
     return TRUE;
 }
 
-/* Find entry from SSDT table of Nt fucntions and W32Table syscalls */
+/**
+ * @brief Find entry from SSDT table of Nt fucntions and W32Table syscalls
+ * 
+ * @param ApiNumber The Syscall Number
+ * @param GetFromWin32k Is this syscall from Win32K
+ * @return PVOID Returns the address of the function from SSDT, otherwise returns NULL
+ */
 PVOID
 SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 {
@@ -133,7 +168,9 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
     ULONG        ReadOffset;
     UINT64       NtTable, Win32kTable;
 
+    //
     // Read the address og SSDT
+    //
     Result = SyscallHookFindSsdt(&NtTable, &Win32kTable);
 
     if (!Result)
@@ -148,7 +185,9 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
     }
     else
     {
+        //
         // Win32k APIs start from 0x1000
+        //
         ApiNumber = ApiNumber - 0x1000;
         SSDT      = Win32kTable;
     }
@@ -163,7 +202,22 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
     return (PVOID)((SSDT->pServiceTable[ApiNumber] >> 4) + SSDTbase);
 }
 
-/* Hook function that hooks NtCreateFile */
+/**
+ * @brief Hook function that hooks NtCreateFile
+ * 
+ * @param FileHandle 
+ * @param DesiredAccess 
+ * @param ObjectAttributes 
+ * @param IoStatusBlock 
+ * @param AllocationSize 
+ * @param FileAttributes 
+ * @param ShareAccess 
+ * @param CreateDisposition 
+ * @param CreateOptions 
+ * @param EaBuffer 
+ * @param EaLength 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 NtCreateFileHook(
     PHANDLE            FileHandle,
@@ -213,12 +267,20 @@ NtCreateFileHook(
     return NtCreateFileOrig(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
 }
 
-/* Make examples for testing hidden hooks */
+/**
+ * @brief Make examples for testing hidden hooks
+ * 
+ * @return VOID 
+ */
 VOID
 SyscallHookTest()
 {
-    // Note that this syscall number is only valid for Windows 10 1909, you have to find the syscall number of NtCreateFile based on
-    // Your Windows version, please visit https://j00ru.vexillium.org/syscalls/nt/64/ for finding NtCreateFile's Syscall number for your Windows.
+    //
+    // Note that this syscall number is only valid for Windows 10 1909,
+    // you have to find the syscall number of NtCreateFile based on
+    // Your Windows version, please visit https://j00ru.vexillium.org/syscalls/nt/64/
+    // for finding NtCreateFile's Syscall number for your Windows
+    //
 
     INT32 ApiNumberOfNtCreateFile           = 0x0055;
     PVOID ApiLocationFromSSDTOfNtCreateFile = SyscallHookGetFunctionAddress(ApiNumberOfNtCreateFile, FALSE);

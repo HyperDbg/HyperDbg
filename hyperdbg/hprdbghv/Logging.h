@@ -1,3 +1,15 @@
+/**
+ * @file Logging.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Headers of Message logging and tracing
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #pragma once
 #include "Definitions.h"
 
@@ -5,6 +17,10 @@
 //					Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief The usermode request
+ * 
+ */
 typedef struct _NOTIFY_RECORD
 {
     NOTIFY_TYPE Type;
@@ -17,7 +33,10 @@ typedef struct _NOTIFY_RECORD
     BOOLEAN CheckVmxRootMessagePool; // Set so that notify callback can understand where to check (Vmx root or Vmx non-root)
 } NOTIFY_RECORD, *PNOTIFY_RECORD;
 
-// Message buffer structure
+/**
+ * @brief Message buffer structure
+ * 
+ */
 typedef struct _BUFFER_HEADER
 {
     UINT32  OpeationNumber; // Operation ID to user-mode
@@ -25,7 +44,10 @@ typedef struct _BUFFER_HEADER
     BOOLEAN Valid;          // Determine whether the buffer was valid to send or not
 } BUFFER_HEADER, *PBUFFER_HEADER;
 
-// Core-specific buffers
+/**
+ * @brief Core-specific buffers
+ * 
+ */
 typedef struct _LOG_BUFFER_INFORMATION
 {
     UINT64 BufferStartAddress; // Start address of the buffer
@@ -46,13 +68,13 @@ typedef struct _LOG_BUFFER_INFORMATION
 //				Global Variables				//
 //////////////////////////////////////////////////
 
-// Global Variable for buffer on all cores
+/* Global Variable for buffer on all cores */
 LOG_BUFFER_INFORMATION * MessageBufferInformation;
 
-// Vmx-root lock for logging
+/* Vmx-root lock for logging */
 volatile LONG VmxRootLoggingLock;
 
-// Vmx-root lock for logging
+/* Vmx-root lock for logging */
 volatile LONG VmxRootLoggingLockForNonImmBuffers;
 
 //////////////////////////////////////////////////

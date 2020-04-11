@@ -1,7 +1,24 @@
+/**
+ * @file Invept.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Implementation of functions that perform different INVEPT functions
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include "Invept.h"
 #include "InlineAsm.h"
 
-/* Invoke the Invept instruction */
+/**
+ * @brief Invoke the Invept instruction
+ * 
+ * @param Type 
+ * @param Descriptor 
+ * @return unsigned char 
+ */
 unsigned char
 Invept(UINT32 Type, INVEPT_DESC * Descriptor)
 {
@@ -14,7 +31,12 @@ Invept(UINT32 Type, INVEPT_DESC * Descriptor)
     return AsmInvept(Type, Descriptor);
 }
 
-/* Invalidates a single context in ept cache table */
+/**
+ * @brief Invalidates a single context in ept cache table
+ * 
+ * @param EptPointer 
+ * @return unsigned char 
+ */
 unsigned char
 InveptSingleContext(UINT64 EptPointer)
 {
@@ -24,7 +46,11 @@ InveptSingleContext(UINT64 EptPointer)
     return Invept(INVEPT_SINGLE_CONTEXT, &Descriptor);
 }
 
-/* Invalidates all contexts in ept cache table */
+/**
+ * @brief Invalidates all contexts in ept cache table
+ * 
+ * @return unsigned char 
+ */
 unsigned char
 InveptAllContexts()
 {

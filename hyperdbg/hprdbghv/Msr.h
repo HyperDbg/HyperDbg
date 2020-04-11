@@ -1,3 +1,16 @@
+/**
+ * @file Msr.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Model-Specific Registers Numbers and definitions
+ * @details This file does not contain all the MSRs, instead it contains general MSRs
+ * that used in this projec, some other MSRs e.g., EPT related MSRs are in their specific
+ * headers
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 
@@ -41,6 +54,10 @@
 //				    Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief EFER MSR Structure
+ * 
+ */
 typedef union _EFER_MSR
 {
     struct
@@ -56,6 +73,10 @@ typedef union _EFER_MSR
     UINT64 Flags;
 } EFER_MSR, *PEFER_MSR;
 
+/**
+ * @brief IA32_FEATURE_CONTROL_MSR Structure
+ * 
+ */
 typedef union _IA32_FEATURE_CONTROL_MSR
 {
     ULONG64 All;
@@ -91,6 +112,10 @@ typedef union _IA32_VMX_BASIC_MSR
     } Fields;
 } IA32_VMX_BASIC_MSR, *PIA32_VMX_BASIC_MSR;
 
+/**
+ * @brief General MSR Structure
+ * 
+ */
 typedef union _MSR
 {
     struct

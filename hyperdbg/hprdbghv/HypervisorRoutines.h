@@ -1,93 +1,100 @@
+/**
+ * @file HypervisorRoutines.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief This file contains the headers for Hypervisor Routines which have to be called by external codes
+ * @details DO NOT DIRECTLY CALL VMX FUNCTIONS, instead use these routines
+ * 
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #pragma once
 #include "Msr.h"
 #include "Vmx.h"
-
-/*
-   This file contains the headers for Hypervisor Routines which have to be called by external codes,
-		DO NOT DIRECTLY CALL VMX FUNCTIONS,
-			instead use these routines.
-*/
 
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
-// Detect whether Vmx is supported or not
+/* Detect whether Vmx is supported or not */
 BOOLEAN
 HvIsVmxSupported();
-// Initialize Vmx
+/* Initialize Vmx */
 BOOLEAN
 HvVmxInitialize();
-// Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
+/* Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region) */
 BOOLEAN
 VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-// Set Guest Selector Registers
+/* Set Guest Selector Registers */
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
-// Get Segment Descriptor
+/* Get Segment Descriptor */
 BOOLEAN
 HvGetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
-// Set Msr Bitmap
+/* Set Msr Bitmap */
 BOOLEAN
 HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
-// Returns the Cpu Based and Secondary Processor Based Controls and other controls based on hardware support
+/* Returns the Cpu Based and Secondary Processor Based Controls and other controls based on hardware support */
 ULONG
 HvAdjustControls(ULONG Ctl, ULONG Msr);
 
-// Notify all cores about EPT Invalidation
+/* Notify all cores about EPT Invalidation */
 VOID
 HvNotifyAllToInvalidateEpt();
-// Handle Cpuid
+/* Handle Cpuid */
 VOID
 HvHandleCpuid(PGUEST_REGS RegistersState);
-// Fill guest selector data
+/* Fill guest selector data */
 VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
-// Handle Guest's Control Registers Access
+/* Handle Guest's Control Registers Access */
 VOID
 HvHandleControlRegisterAccess(PGUEST_REGS GuestState);
-// Handle Guest's Msr read
+/* Handle Guest's Msr read */
 VOID
 HvHandleMsrRead(PGUEST_REGS GuestRegs);
-// Handle Guest's Msr write
+/* Handle Guest's Msr write */
 VOID
 HvHandleMsrWrite(PGUEST_REGS GuestRegs);
-// Resume GUEST_RIP to next instruction
+/* Resume GUEST_RIP to next instruction */
 VOID
 HvResumeToNextInstruction();
-// Invalidate EPT using Vmcall (should be called from Vmx non root mode)
+/* Invalidate EPT using Vmcall (should be called from Vmx non root mode) */
 VOID
 HvInvalidateEptByVmcall(UINT64 Context);
-// The broadcast function which initialize the guest
+/* The broadcast function which initialize the guest */
 VOID
 HvDpcBroadcastInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-// The broadcast function which terminate the guest
+/* The broadcast function which terminate the guest */
 VOID
 HvDpcBroadcastTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-// Terminate Vmx on all logical cores.
+/* Terminate Vmx on all logical cores */
 VOID
 HvTerminateVmx();
-// Set or unset the monitor trap flags
+/* Set or unset the monitor trap flags */
 VOID
 HvSetMonitorTrapFlag(BOOLEAN Set);
-// Set the vm-exit on cr3 for finding a process
+/* Set the vm-exit on cr3 for finding a process */
 VOID
 HvSetExitOnCr3Change(BOOLEAN Set);
 
-// Returns the stack pointer, to change in the case of Vmxoff
+/* Returns the stack pointer, to change in the case of Vmxoff */
 UINT64
 HvReturnStackPointerForVmxoff();
-// Returns the instruction pointer, to change in the case of Vmxoff
+/* Returns the instruction pointer, to change in the case of Vmxoff */
 UINT64
 HvReturnInstructionPointerForVmxoff();
-// Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified
+/* Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified */
 VOID
 HvRestoreRegisters();
 
-// Remove single hook from the hooked pages list and invalidate TLB
+/* Remove single hook from the hooked pages list and invalidate TLB */
 BOOLEAN
 HvPerformPageUnHookSinglePage(UINT64 VirtualAddress);
-// Remove all hooks from the hooked pages list and invalidate TLB
+/* Remove all hooks from the hooked pages list and invalidate TLB */
 VOID
 HvPerformPageUnHookAllPages();

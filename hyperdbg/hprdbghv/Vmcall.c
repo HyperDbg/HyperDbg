@@ -1,9 +1,29 @@
+/**
+ * @file Vmcall.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief The main VMCALL and Hypercall handler
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #include "Vmcall.h"
 #include "GlobalVariables.h"
 #include "Common.h"
 #include "Invept.h"
 
-/* Main Vmcall Handler */
+/**
+ * @brief Main Vmcall Handler
+ * 
+ * @param VmcallNumber Request Number
+ * @param OptionalParam1 
+ * @param OptionalParam2 
+ * @param OptionalParam3 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 VmxVmcallHandler(UINT64 VmcallNumber,
                  UINT64 OptionalParam1,
@@ -16,7 +36,9 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     BOOLEAN  UnsetWrite   = FALSE;
     BOOLEAN  UnsetRead    = FALSE;
 
+    //
     // Only 32bit of Vmcall is valid, this way we can use the upper 32 bit of the Vmcall
+    //
     switch (VmcallNumber & 0xffffffff)
     {
     case VMCALL_TEST:
@@ -30,10 +52,15 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    //
     // Mask is the upper 32 bits to this Vmcall
+    //
+
     case VMCALL_CHANGE_PAGE_ATTRIB:
     {
+        //
         // Upper 32 bits of the Vmcall contains the attribute mask
+        //
         UINT32 AttributeMask = (UINT32)((VmcallNumber & 0xFFFFFFFF00000000LL) >> 32);
 
         UnsetRead  = (AttributeMask & PAGE_ATTRIB_READ) ? TRUE : FALSE;
@@ -87,7 +114,14 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     return VmcallStatus;
 }
 
-/* Test Vmcall (VMCALL_TEST) */
+/**
+ * @brief Test Vmcall (VMCALL_TEST)
+ * 
+ * @param Param1 
+ * @param Param2 
+ * @param Param3 
+ * @return NTSTATUS 
+ */
 NTSTATUS
 VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
 {
