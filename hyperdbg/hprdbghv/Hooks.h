@@ -1,3 +1,15 @@
+/**
+ * @file HiddenHooks.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Hook headers
+ * @details 
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #pragma once
 
 //////////////////////////////////////////////////
@@ -10,8 +22,15 @@
 #define IMAGE_VXD_SIGNATURE    0x454C     // LE
 #define IMAGE_NT_SIGNATURE     0x00004550 // PE00
 
-// ----------------------------------------------------------------------
 
+//////////////////////////////////////////////////
+//				   Structure					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief SSDT structure
+ * 
+ */
 typedef struct _SSDTStruct
 {
     LONG * pServiceTable;
@@ -44,7 +63,6 @@ typedef struct _SYSTEM_MODULE_INFORMATION
     SYSTEM_MODULE_ENTRY Module[0];
 } SYSTEM_MODULE_INFORMATION, *PSYSTEM_MODULE_INFORMATION;
 
-// ----------------------------------------------------------------------
 
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
@@ -53,7 +71,6 @@ typedef enum _SYSTEM_INFORMATION_CLASS
 } SYSTEM_INFORMATION_CLASS,
     *PSYSTEM_INFORMATION_CLASS;
 
-// ----------------------------------------------------------------------
 
 typedef NTSTATUS(NTAPI * ZWQUERYSYSTEMINFORMATION)(
     IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
@@ -61,7 +78,6 @@ typedef NTSTATUS(NTAPI * ZWQUERYSYSTEMINFORMATION)(
     IN ULONG                    SystemInformationLength,
     OUT PULONG ReturnLength     OPTIONAL);
 
-// ----------------------------------------------------------------------
 
 NTSTATUS(*NtCreateFileOrig)
 (
@@ -77,7 +93,6 @@ NTSTATUS(*NtCreateFileOrig)
     PVOID              EaBuffer,
     ULONG              EaLength);
 
-// ----------------------------------------------------------------------
 
 VOID
 SSyscallHookEnableSCE();
@@ -96,6 +111,5 @@ PVOID(*ExAllocatePoolWithTagOrig)
 
 // ----------------------------------------------------------------------
 
-// A test function for hidden hooks
 VOID
 HiddenHooksTest();

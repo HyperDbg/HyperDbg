@@ -1,3 +1,14 @@
+/**
+ * @file Events.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection 
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 
@@ -12,6 +23,10 @@
 //					Enums						//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Exceptions enum
+ * 
+ */
 typedef enum _EXCEPTION_VECTORS
 {
     EXCEPTION_VECTOR_DIVIDE_ERROR,
@@ -48,6 +63,10 @@ typedef enum _EXCEPTION_VECTORS
     EXCEPTION_VECTOR_RESERVED12
 } EXCEPTION_VECTORS;
 
+/**
+ * @brief Type of interrupts
+ * 
+ */
 typedef enum _INTERRUPT_TYPE
 {
     INTERRUPT_TYPE_EXTERNAL_INTERRUPT            = 0,
@@ -104,7 +123,6 @@ typedef struct _EVENT_INFORMATION
 //					Functions					//
 //////////////////////////////////////////////////
 
-// Inject #BP to the guest (Event Injection)
 VOID
 EventInjectBreakpoint();
 VOID

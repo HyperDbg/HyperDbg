@@ -1,3 +1,15 @@
+/**
+ * @file Exit.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief The functions for VM-Exit handler for different exit reasons 
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #include "Vmx.h"
 #include "Common.h"
 #include "Ept.h"
@@ -9,7 +21,13 @@
 #include "HypervisorRoutines.h"
 #include "Events.h"
 
-/* Main Vmexit events handler */
+/**
+ * @brief VM-Exit handler for different exit reasons
+ * 
+ * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler (HOST_RIP)
+ * @return BOOLEAN Return True if VMXOFF executed (not in vmx anymore),
+ *  or return false if we are still in vmx (so we should use vm resume)
+ */
 BOOLEAN
 VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
@@ -22,11 +40,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 ExitInstructionLength = 0;
     int                   CurrentProcessorIndex = 0;
 
-    /*********** SEND MESSAGE AFTER WE SET THE STATE ***********/
+    //
+    //*********** SEND MESSAGE AFTER WE SET THE STATE ***********
+    //
 
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
+    //
     // Indicates we are in Vmx root mode in this logical core
+    //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
     g_GuestState[CurrentProcessorIndex].IncrementRip    = TRUE;
 
@@ -35,9 +57,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
+    //
     // Debugging purpose
+    //
     //LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
     //LogInfo("EXIT_QUALIFICATION : 0x%llx", ExitQualification);
+    //
 
     switch (ExitReason)
     {
@@ -47,11 +72,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-
+        //
         // 25.1.2  Instructions That Cause VM Exits Unconditionally
         // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
         // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID,
         // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
+        //
 
     case EXIT_REASON_VMCLEAR:
     case EXIT_REASON_VMPTRLD:
@@ -64,7 +90,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_VMLAUNCH:
     {
         __vmx_vmread(GUEST_RFLAGS, &Rflags);
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1); // cf=1 indicate vm instructions fail
+
+        //
+        // cf=1 indicate vm instructions fail
+        //
+        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1); 
 
         break;
     }
@@ -101,7 +131,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_EPT_VIOLATION:
     {
+        //
         // Reading guest physical address
+        //
         __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
         if (!EptHandleEptViolation(ExitQualification, GuestPhysicalAddr))
@@ -119,56 +151,73 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_VMCALL:
     {
+        //
         // Check if it's our routines that request the VMCALL our it relates to Hyper-V
+        //
         if (GuestRegs->r10 == 0x48564653 && GuestRegs->r11 == 0x564d43414c4c && GuestRegs->r12 == 0x4e4f485950455256)
         {
+            //
             // Then we have to manage it as it relates to us
+            //
             GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
         }
         else
         {
+            //
             // Otherwise let the top-level hypervisor to manage it
+            //
             GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8);
         }
         break;
     }
     case EXIT_REASON_EXCEPTION_NMI:
     {
-        /*
+        
+        //
+		// Exception or non-maskable interrupt (NMI). Either:
+		//	1: Guest software caused an exception and the bit in the exception bitmap associated with exceptionï¿½s vector was set to 1
+		//	2: An NMI was delivered to the logical processor and the ï¿½NMI exitingï¿½ VM-execution control was 1.
+        //
+		// VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
+		// Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
+        //
 
-		Exception or non-maskable interrupt (NMI). Either:
-			1: Guest software caused an exception and the bit in the exception bitmap associated with exception’s vector was set to 1
-			2: An NMI was delivered to the logical processor and the “NMI exiting” VM-execution control was 1.
-
-		VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
-		Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
-
-		*/
-
+        //
         // read the exit reason
+        //
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         if (InterruptExit.InterruptionType == INTERRUPT_TYPE_SOFTWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT)
         {
             ULONG64 GuestRip;
+            //
             // Reading guest's RIP
+            //
             __vmx_vmread(GUEST_RIP, &GuestRip);
 
+            //
             // Send the user
+            //
             LogInfo("Breakpoint Hit (Process Id : 0x%x) at : %llx ", PsGetCurrentProcessId(), GuestRip);
 
             g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
+            //
             // re-inject #BP back to the guest
+            //
             EventInjectBreakpoint();
         }
         else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_UNDEFINED_OPCODE)
         {
+            //
             // Handle the #UD, checking if this exception was intentional.
+            //
 
             if (!SyscallHookHandleUD(GuestRegs, CurrentProcessorIndex))
             {
+                //
                 // If this #UD was found to be unintentional, inject a #UD interruption into the guest.
+                //
                 EventInjectUndefinedOpcode();
             }
         }
@@ -180,36 +229,51 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MONITOR_TRAP_FLAG:
     {
-        /* Monitor Trap Flag */
+        //
+        // Monitor Trap Flag
+        //
         if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
         {
+            //
             // Restore the previous state
+            //
             EptHandleMonitorTrapFlag(g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint);
+
+            //
             // Set it to NULL
+            //
             g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
         }
         else if (g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress != NULL)
         {
             ULONG64 GuestRip;
 
+            //
             // Reading guest's RIP
+            //
             __vmx_vmread(GUEST_RIP, &GuestRip);
 
             if (g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress == GuestRip)
             {
+                //
                 // #UD was not because of syscall because it's no incremented, we should inject the #UD again
+                //
                 EventInjectUndefinedOpcode();
             }
             else
             {
+                //
                 // It was because of Syscall, let's log it
+                //
                 LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx",
                         g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress,
                         PsGetCurrentProcessId(),
                         GuestRegs->rax);
             }
 
+            //
             // Enable syscall hook again
+            //
             SyscallHookDisableSCE();
             g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress = NULL;
         }
@@ -217,18 +281,23 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         {
             LogError("Why MTF occured ?!");
         }
-
+        //
         // Redo the instruction
+        //
         g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
+        //
         // We don't need MTF anymore
+        //
         HvSetMonitorTrapFlag(FALSE);
 
         break;
     }
     case EXIT_REASON_HLT:
     {
+        //
         //__halt();
+        //
         break;
     }
     default:
@@ -243,7 +312,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         HvResumeToNextInstruction();
     }
 
+    //
     // Set indicator of Vmx non root mode to false
+    //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
 
     if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)

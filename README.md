@@ -25,6 +25,8 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 ## Installation
 
 
+## Plugins
+
 
 ## Contributing
 Contributing in HyperDbg is super appreciated.

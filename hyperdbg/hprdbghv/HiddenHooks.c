@@ -1,3 +1,17 @@
+/**
+ * @file HiddenHooks.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Implementation of different EPT hidden hooks functions
+ * @details All the R/W hooks, Execute hooks and hardware register simulators
+ * are implemented here
+ *  
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
 #include <ntifs.h>
 #include "Common.h"
 #include "Ept.h"
@@ -6,7 +20,14 @@
 #include "Hooks.h"
 #include "HypervisorRoutines.h"
 
-/* Hook function that HooksExAllocatePoolWithTag */
+/**
+ * @brief Hook function that HooksExAllocatePoolWithTag
+ * 
+ * @param PoolType 
+ * @param NumberOfBytes 
+ * @param Tag 
+ * @return PVOID 
+ */
 PVOID
 ExAllocatePoolWithTagHook(
     POOL_TYPE PoolType,
@@ -17,17 +38,23 @@ ExAllocatePoolWithTagHook(
     return ExAllocatePoolWithTagOrig(PoolType, NumberOfBytes, Tag);
 }
 
-/***********************************************************************/
-
-/* Make examples for testing hidden hooks */
+/**
+ * @brief Make examples for testing hidden hooks
+ * 
+ * @return VOID 
+ */
 VOID
 HiddenHooksTest()
 {
+    //
     // Hook Test
+    //
     EptPageHook(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);
     EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
 
+    //
     // Unhook Tests
     //HvPerformPageUnHookSinglePage(ExAllocatePoolWithTag);
     //HvPerformPageUnHookAllPages();
+    //
 }

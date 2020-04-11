@@ -1,7 +1,26 @@
+/**
+ * @file Events.c
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Functions relating to Exception Bitmap and Event (Interrupt and Exception) Injection
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include "Events.h"
 #include "Vmx.h"
 
-// Injects interruption to a guest
+/**
+ * @brief Injects interruption to a guest
+ * 
+ * @param InterruptionType Type of interrupt
+ * @param Vector Vector Number of Interrupt (IDT Index)
+ * @param DeliverErrorCode Deliver Error Code or Not
+ * @param ErrorCode Error Code (If DeliverErrorCode is true)
+ * @return VOID 
+ */
 VOID
 EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode)
 {
@@ -18,7 +37,11 @@ EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vecto
     }
 }
 
-/* Inject #BP to the guest (Event Injection) */
+/**
+ * @brief Inject #BP to the guest (Event Injection)
+ * 
+ * @return VOID 
+ */
 VOID
 EventInjectBreakpoint()
 {
@@ -28,7 +51,11 @@ EventInjectBreakpoint()
     __vmx_vmwrite(VM_ENTRY_INSTRUCTION_LEN, ExitInstrLength);
 }
 
-/* Inject #GP to the guest (Event Injection) */
+/**
+ * @brief Inject #GP to the guest (Event Injection)
+ * 
+ * @return VOID 
+ */
 VOID
 EventInjectGeneralProtection()
 {
@@ -38,17 +65,28 @@ EventInjectGeneralProtection()
     __vmx_vmwrite(VM_ENTRY_INSTRUCTION_LEN, ExitInstrLength);
 }
 
-/* Inject #UD to the guest (Invalid Opcode - Undefined Opcode) */
+/**
+ * @brief Inject #UD to the guest (Invalid Opcode - Undefined Opcode)
+ * 
+ * @return VOID 
+ */
 VOID
 EventInjectUndefinedOpcode()
 {
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_UNDEFINED_OPCODE, FALSE, 0);
 }
 
-/* Inject #PF to the guest (Page-Fault for EFER Injector) */
+/**
+ * @brief Inject #PF to the guest (Page-Fault for EFER Injector)
+ * 
+ * @param ErrorCode 
+ * @return VOID 
+ */
 VOID
 EventInjectPageFault(ULONG32 ErrorCode)
 {
+    //
     // Error code is from PAGE_FAULT_ERROR_CODE structure
+    //
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode);
 }

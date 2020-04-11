@@ -1,3 +1,14 @@
+/**
+ * @file Ept.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Contains the headers relating to EPT structures, MTRR and all basic Hooking structures
+ * @details
+ * @version 0.1
+ * @date 2020-04-11
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 #include <ntddk.h>
 
@@ -5,7 +16,7 @@
 //					Constants					//
 //////////////////////////////////////////////////
 
-// MTRR Physical Base MSRs
+/* MTRR Physical Base MSRs */
 #define MSR_IA32_MTRR_PHYSBASE0 0x00000200
 #define MSR_IA32_MTRR_PHYSBASE1 0x00000202
 #define MSR_IA32_MTRR_PHYSBASE2 0x00000204
@@ -17,7 +28,7 @@
 #define MSR_IA32_MTRR_PHYSBASE8 0x00000210
 #define MSR_IA32_MTRR_PHYSBASE9 0x00000212
 
-// MTRR Physical Mask MSRs
+/* MTRR Physical Mask MSRs */
 #define MSR_IA32_MTRR_PHYSMASK0 0x00000201
 #define MSR_IA32_MTRR_PHYSMASK1 0x00000203
 #define MSR_IA32_MTRR_PHYSMASK2 0x00000205
@@ -29,7 +40,7 @@
 #define MSR_IA32_MTRR_PHYSMASK8 0x00000211
 #define MSR_IA32_MTRR_PHYSMASK9 0x00000213
 
-// Memory Types
+/* Memory Types */
 #define MEMORY_TYPE_UNCACHEABLE     0x00000000
 #define MEMORY_TYPE_WRITE_COMBINING 0x00000001
 #define MEMORY_TYPE_WRITE_THROUGH   0x00000004
@@ -37,51 +48,52 @@
 #define MEMORY_TYPE_WRITE_BACK      0x00000006
 #define MEMORY_TYPE_INVALID         0x000000FF
 
-// Page attributes for internal use
+// Page attributes for internal use */
 #define PAGE_ATTRIB_READ  0x2
 #define PAGE_ATTRIB_WRITE 0x4
 #define PAGE_ATTRIB_EXEC  0x8
 
-// VMX EPT & VPID Capabilities MSR
+// VMX EPT & VPID Capabilities MSR */
 #define MSR_IA32_VMX_EPT_VPID_CAP 0x0000048C
 
-// MTRR Def MSR
+// MTRR Def MSR */
 #define MSR_IA32_MTRR_DEF_TYPE 0x000002FF
 
-// MTRR Capabilities MSR
+// MTRR Capabilities MSR */
 #define MSR_IA32_MTRR_CAPABILITIES 0x000000FE
 
-// The number of 512GB PML4 entries in the page table/
+// The number of 512GB PML4 entries in the page table  */
 #define VMM_EPT_PML4E_COUNT 512
 
-// The number of 1GB PDPT entries in the page table per 512GB PML4 entry.
+// The number of 1GB PDPT entries in the page table per 512GB PML4 entry */
 #define VMM_EPT_PML3E_COUNT 512
 
-// Then number of 2MB Page Directory entries in the page table per 1GB PML3 entry.
+// Then number of 2MB Page Directory entries in the page table per 1GB PML3 entry */
 #define VMM_EPT_PML2E_COUNT 512
 
-// Then number of 4096 byte Page Table entries in the page table per 2MB PML2 entry when dynamically split.
+// Then number of 4096 byte Page Table entries in the page table per 2MB PML2 entry when dynamically split */
 #define VMM_EPT_PML1E_COUNT 512
 
-// Integer 2MB
+/* Integer 2MB */
 #define SIZE_2_MB ((SIZE_T)(512 * PAGE_SIZE))
 
-// Offset into the 1st paging structure (4096 byte)
+/* Offset into the 1st paging structure (4096 byte) */
 #define ADDRMASK_EPT_PML1_OFFSET(_VAR_) (_VAR_ & 0xFFFULL)
 
-// Index of the 1st paging structure (4096 byte)
+/* Index of the 1st paging structure (4096 byte) */
 #define ADDRMASK_EPT_PML1_INDEX(_VAR_) ((_VAR_ & 0x1FF000ULL) >> 12)
 
-// Index of the 2nd paging structure (2MB)
+/* Index of the 2nd paging structure (2MB) */
 #define ADDRMASK_EPT_PML2_INDEX(_VAR_) ((_VAR_ & 0x3FE00000ULL) >> 21)
 
-// Index of the 3rd paging structure (1GB)
+/* Index of the 3rd paging structure (1GB) */
 #define ADDRMASK_EPT_PML3_INDEX(_VAR_) ((_VAR_ & 0x7FC0000000ULL) >> 30)
 
-// Index of the 4th paging structure (512GB)
+/* Index of the 4th paging structure (512GB) */
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
 /**
+ * @details 
  * Linked list for-each macro for traversing LIST_ENTRY structures.
  *
  * _LISTHEAD_ is a pointer to the struct that the list head belongs to.
@@ -97,36 +109,46 @@
  * ProcessorContext->EptPageTable->DynamicSplitList is the head of the list.
  * VMM_EPT_DYNAMIC_SPLIT is the struct of each item in the list.
  * Split is the name of the local variable which will hold the pointer to the item.
+ * 
  */
 #define FOR_EACH_LIST_ENTRY(_LISTHEAD_, _LISTHEAD_NAME_, _TARGET_TYPE_, _TARGET_NAME_)                                       \
     for (PLIST_ENTRY Entry = _LISTHEAD_->_LISTHEAD_NAME_.Flink; Entry != &_LISTHEAD_->_LISTHEAD_NAME_; Entry = Entry->Flink) \
     {                                                                                                                        \
         P##_TARGET_TYPE_ _TARGET_NAME_ = CONTAINING_RECORD(Entry, _TARGET_TYPE_, _LISTHEAD_NAME_);
 
+
 /**
-  * The braces for the block are messy due to the need to define a local variable in the for loop scope.
-  * Therefore, this macro just ends the for each block without messing up code editors trying to detect
-  * the block indent level.
-  */
+ * @details 
+ * The braces for the block are messy due to the need to define a local variable in the for loop scope.
+ * Therefore, this macro just ends the for each block without messing up code editors trying to detect
+ * the block indent level.
+ */
 #define FOR_EACH_LIST_ENTRY_END() }
 
 //////////////////////////////////////////////////
-//	    			Variables 		    	  //
+//	    			Variables 	 	            //
 //////////////////////////////////////////////////
 
-// Vmx-root lock for changing EPT PML1 Entry and Invalidating TLB
+/**
+ * @brief Vmx-root lock for changing EPT PML1 Entry and Invalidating TLB
+ * 
+ */
 volatile LONG Pml1ModificationAndInvalidationLock;
 
 //////////////////////////////////////////////////
 //				Unions & Structs    			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Structure of EPT AND VPID CAP
+ * 
+ */
 typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
 {
     struct
     {
         /**
-		 * [Bit 0] When set to 1, the processor supports execute-only translations by EPT. This support allows software to
+		 * @brief [Bit 0] When set to 1, the processor supports execute-only translations by EPT. This support allows software to
 		 * configure EPT paging-structure entries in which bits 1:0 are clear (indicating that data accesses are not allowed) and
 		 * bit 2 is set (indicating that instruction fetches are allowed).
 		 */
@@ -134,13 +156,13 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 Reserved1 : 5;
 
         /**
-		 * [Bit 6] Indicates support for a page-walk length of 4.
+		 * @brief [Bit 6] Indicates support for a page-walk length of 4.
 		 */
         UINT64 PageWalkLength4 : 1;
         UINT64 Reserved2 : 1;
 
         /**
-		 * [Bit 8] When set to 1, the logical processor allows software to configure the EPT paging-structure memory type to be
+		 * @brief [Bit 8] When set to 1, the logical processor allows software to configure the EPT paging-structure memory type to be
 		 * uncacheable (UC).
 		 *
 		 * @see Vol3C[24.6.11(Extended-Page-Table Pointer (EPTP))]
@@ -149,27 +171,27 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 Reserved3 : 5;
 
         /**
-		 * [Bit 14] When set to 1, the logical processor allows software to configure the EPT paging-structure memory type to be
+		 * @brief [Bit 14] When set to 1, the logical processor allows software to configure the EPT paging-structure memory type to be
 		 * write-back (WB).
 		 */
         UINT64 MemoryTypeWriteBack : 1;
         UINT64 Reserved4 : 1;
 
         /**
-		 * [Bit 16] When set to 1, the logical processor allows software to configure a EPT PDE to map a 2-Mbyte page (by setting
+		 * @brief [Bit 16] When set to 1, the logical processor allows software to configure a EPT PDE to map a 2-Mbyte page (by setting
 		 * bit 7 in the EPT PDE).
 		 */
         UINT64 Pde2MbPages : 1;
 
         /**
-		 * [Bit 17] When set to 1, the logical processor allows software to configure a EPT PDPTE to map a 1-Gbyte page (by setting
+		 * @brief [Bit 17] When set to 1, the logical processor allows software to configure a EPT PDPTE to map a 1-Gbyte page (by setting
 		 * bit 7 in the EPT PDPTE).
 		 */
         UINT64 Pdpte1GbPages : 1;
         UINT64 Reserved5 : 2;
 
         /**
-		 * [Bit 20] If bit 20 is read as 1, the INVEPT instruction is supported.
+		 * @brief [Bit 20] If bit 20 is read as 1, the INVEPT instruction is supported.
 		 *
 		 * @see Vol3C[30(VMX INSTRUCTION REFERENCE)]
 		 * @see Vol3C[28.3.3.1(Operations that Invalidate Cached Mappings)]
@@ -177,14 +199,14 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 Invept : 1;
 
         /**
-		 * [Bit 21] When set to 1, accessed and dirty flags for EPT are supported.
+		 * @brief [Bit 21] When set to 1, accessed and dirty flags for EPT are supported.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
 		 */
         UINT64 EptAccessedAndDirtyFlags : 1;
 
         /**
-		 * [Bit 22] When set to 1, the processor reports advanced VM-exit information for EPT violations. This reporting is done
+		 * @brief [Bit 22] When set to 1, the processor reports advanced VM-exit information for EPT violations. This reporting is done
 		 * only if this bit is read as 1.
 		 *
 		 * @see Vol3C[27.2.1(Basic VM-Exit Information)]
@@ -193,7 +215,7 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 Reserved6 : 2;
 
         /**
-		 * [Bit 25] When set to 1, the single-context INVEPT type is supported.
+		 * @brief [Bit 25] When set to 1, the single-context INVEPT type is supported.
 		 *
 		 * @see Vol3C[30(VMX INSTRUCTION REFERENCE)]
 		 * @see Vol3C[28.3.3.1(Operations that Invalidate Cached Mappings)]
@@ -201,7 +223,7 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 InveptSingleContext : 1;
 
         /**
-		 * [Bit 26] When set to 1, the all-context INVEPT type is supported.
+		 * @brief [Bit 26] When set to 1, the all-context INVEPT type is supported.
 		 *
 		 * @see Vol3C[30(VMX INSTRUCTION REFERENCE)]
 		 * @see Vol3C[28.3.3.1(Operations that Invalidate Cached Mappings)]
@@ -210,28 +232,28 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
         UINT64 Reserved7 : 5;
 
         /**
-		 * [Bit 32] When set to 1, the INVVPID instruction is supported.
+		 * @brief [Bit 32] When set to 1, the INVVPID instruction is supported.
 		 */
         UINT64 Invvpid : 1;
         UINT64 Reserved8 : 7;
 
         /**
-		 * [Bit 40] When set to 1, the individual-address INVVPID type is supported.
+		 * @brief [Bit 40] When set to 1, the individual-address INVVPID type is supported.
 		 */
         UINT64 InvvpidIndividualAddress : 1;
 
         /**
-		 * [Bit 41] When set to 1, the single-context INVVPID type is supported.
+		 * @brief [Bit 41] When set to 1, the single-context INVVPID type is supported.
 		 */
         UINT64 InvvpidSingleContext : 1;
 
         /**
-		 * [Bit 42] When set to 1, the all-context INVVPID type is supported.
+		 * @brief [Bit 42] When set to 1, the all-context INVVPID type is supported.
 		 */
         UINT64 InvvpidAllContexts : 1;
 
         /**
-		 * [Bit 43] When set to 1, the single-context-retaining-globals INVVPID type is supported.
+		 * @brief [Bit 43] When set to 1, the single-context-retaining-globals INVVPID type is supported.
 		 */
         UINT64 InvvpidSingleContextRetainGlobals : 1;
         UINT64 Reserved9 : 20;
@@ -240,22 +262,26 @@ typedef union _IA32_VMX_EPT_VPID_CAP_REGISTER
     UINT64 Flags;
 } IA32_VMX_EPT_VPID_CAP_REGISTER, *PIA32_VMX_EPT_VPID_CAP_REGISTER;
 
+/**
+ * @brief EPT PML4-E Structure
+ * 
+ */
 typedef union _PEPT_PML4
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 512-GByte region controlled by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 512-GByte region controlled by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 512-GByte region controlled by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 512-GByte region controlled by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 512-GByte region controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 512-GByte region controlled by this entry.
@@ -264,7 +290,7 @@ typedef union _PEPT_PML4
         UINT64 Reserved1 : 5;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 512-GByte region
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 512-GByte region
 		 * controlled by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -273,7 +299,7 @@ typedef union _PEPT_PML4
         UINT64 Reserved2 : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 512-GByte region
 		 * controlled by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -281,7 +307,7 @@ typedef union _PEPT_PML4
         UINT64 Reserved3 : 1;
 
         /**
-		 * [Bits 47:12] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
+		 * @brief [Bits 47:12] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4 : 16;
@@ -290,22 +316,26 @@ typedef union _PEPT_PML4
     UINT64 Flags;
 } EPT_PML4, *PEPT_PML4;
 
+/**
+ * @brief EPT PDPT Structure (1 GB)
+ * 
+ */
 typedef union _EPDPTE_1GB
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 1-GByte page referenced by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 1-GByte page referenced by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 1-GByte page referenced by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 1-GByte page referenced by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 1-GByte page controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 1-GByte page controlled by this entry.
@@ -313,26 +343,26 @@ typedef union _EPDPTE_1GB
         UINT64 ExecuteAccess : 1;
 
         /**
-		 * [Bits 5:3] EPT memory type for this 1-GByte page.
+		 * @brief [Bits 5:3] EPT memory type for this 1-GByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 MemoryType : 3;
 
         /**
-		 * [Bit 6] Ignore PAT memory type for this 1-GByte page.
+		 * @brief [Bit 6] Ignore PAT memory type for this 1-GByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 IgnorePat : 1;
 
         /**
-		 * [Bit 7] Must be 1 (otherwise, this entry references an EPT page directory).
+		 * @brief [Bit 7] Must be 1 (otherwise, this entry references an EPT page directory).
 		 */
         UINT64 LargePage : 1;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 1-GByte page
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 1-GByte page
 		 * referenced by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -340,7 +370,7 @@ typedef union _EPDPTE_1GB
         UINT64 Accessed : 1;
 
         /**
-		 * [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 1-GByte page referenced
+		 * @brief [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 1-GByte page referenced
 		 * by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -348,7 +378,7 @@ typedef union _EPDPTE_1GB
         UINT64 Dirty : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 1-GByte page controlled
 		 * by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -356,13 +386,13 @@ typedef union _EPDPTE_1GB
         UINT64 Reserved1 : 19;
 
         /**
-		 * [Bits 47:30] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
+		 * @brief [Bits 47:30] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 18;
         UINT64 Reserved2 : 15;
 
         /**
-		 * [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
+		 * @brief [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
 		 * page are convertible to virtualization exceptions only if this bit is 0. If "EPT-violation \#VE" VMexecution control is
 		 * 0, this bit is ignored.
 		 *
@@ -374,22 +404,26 @@ typedef union _EPDPTE_1GB
     UINT64 Flags;
 } EPDPTE_1GB, *PEPDPTE_1GB;
 
+/**
+ * @brief EPT PDPT-E Structure
+ * 
+ */
 typedef union _EPDPTE
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 1-GByte region controlled by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 1-GByte region controlled by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 1-GByte region controlled by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 1-GByte region controlled by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 1-GByte region controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 1-GByte region controlled by this entry.
@@ -398,7 +432,7 @@ typedef union _EPDPTE
         UINT64 Reserved1 : 5;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 1-GByte region
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 1-GByte region
 		 * controlled by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -407,7 +441,7 @@ typedef union _EPDPTE
         UINT64 Reserved2 : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 1-GByte region controlled
 		 * by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -415,7 +449,7 @@ typedef union _EPDPTE
         UINT64 Reserved3 : 1;
 
         /**
-		 * [Bits 47:12] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
+		 * @brief [Bits 47:12] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4 : 16;
@@ -424,22 +458,26 @@ typedef union _EPDPTE
     UINT64 Flags;
 } EPDPTE, *PEPDPTE;
 
+/**
+ * @brief EPT PD-E (2MB)
+ * 
+ */
 typedef union _EPDE_2MB
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 2-MByte page referenced by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 2-MByte page referenced by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 2-MByte page referenced by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 2-MByte page referenced by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 2-MByte page controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 2-MByte page controlled by this entry.
@@ -447,26 +485,26 @@ typedef union _EPDE_2MB
         UINT64 ExecuteAccess : 1;
 
         /**
-		 * [Bits 5:3] EPT memory type for this 2-MByte page.
+		 * @brief [Bits 5:3] EPT memory type for this 2-MByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 MemoryType : 3;
 
         /**
-		 * [Bit 6] Ignore PAT memory type for this 2-MByte page.
+		 * @brief [Bit 6] Ignore PAT memory type for this 2-MByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 IgnorePat : 1;
 
         /**
-		 * [Bit 7] Must be 1 (otherwise, this entry references an EPT page table).
+		 * @brief [Bit 7] Must be 1 (otherwise, this entry references an EPT page table).
 		 */
         UINT64 LargePage : 1;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 2-MByte page
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 2-MByte page
 		 * referenced by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -474,7 +512,7 @@ typedef union _EPDE_2MB
         UINT64 Accessed : 1;
 
         /**
-		 * [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 2-MByte page referenced
+		 * @brief [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 2-MByte page referenced
 		 * by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -482,7 +520,7 @@ typedef union _EPDE_2MB
         UINT64 Dirty : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 2-MByte page controlled
 		 * by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -490,13 +528,13 @@ typedef union _EPDE_2MB
         UINT64 Reserved1 : 10;
 
         /**
-		 * [Bits 47:21] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
+		 * @brief [Bits 47:21] Physical address of 4-KByte aligned EPT page-directory-pointer table referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 27;
         UINT64 Reserved2 : 15;
 
         /**
-		 * [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
+		 * @brief [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
 		 * page are convertible to virtualization exceptions only if this bit is 0. If "EPT-violation \#VE" VMexecution control is
 		 * 0, this bit is ignored.
 		 *
@@ -508,22 +546,26 @@ typedef union _EPDE_2MB
     UINT64 Flags;
 } EPDE_2MB, *PEPDE_2MB;
 
+/**
+ * @brief EPT PDE Structure
+ * 
+ */
 typedef union _EPDE
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 2-MByte region controlled by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 2-MByte region controlled by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 2-MByte region controlled by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 2-MByte region controlled by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 2-MByte region controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 2-MByte region controlled by this entry.
@@ -532,7 +574,7 @@ typedef union _EPDE
         UINT64 Reserved1 : 5;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 2-MByte region
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 2-MByte region
 		 * controlled by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -541,7 +583,7 @@ typedef union _EPDE
         UINT64 Reserved2 : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 2-MByte region controlled
 		 * by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -549,7 +591,7 @@ typedef union _EPDE
         UINT64 Reserved3 : 1;
 
         /**
-		 * [Bits 47:12] Physical address of 4-KByte aligned EPT page table referenced by this entry.
+		 * @brief [Bits 47:12] Physical address of 4-KByte aligned EPT page table referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved4 : 16;
@@ -558,22 +600,26 @@ typedef union _EPDE
     UINT64 Flags;
 } EPDE, *PEPDE;
 
+/**
+ * @brief EPT PTE
+ * 
+ */
 typedef union _EPTE
 {
     struct
     {
         /**
-		 * [Bit 0] Read access; indicates whether reads are allowed from the 4-KByte page referenced by this entry.
+		 * @brief [Bit 0] Read access; indicates whether reads are allowed from the 4-KByte page referenced by this entry.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Write access; indicates whether writes are allowed from the 4-KByte page referenced by this entry.
+		 * @brief [Bit 1] Write access; indicates whether writes are allowed from the 4-KByte page referenced by this entry.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
+		 * @brief [Bit 2] If the "mode-based execute control for EPT" VM-execution control is 0, execute access; indicates whether
 		 * instruction fetches are allowed from the 4-KByte page controlled by this entry.
 		 * If that control is 1, execute access for supervisor-mode linear addresses; indicates whether instruction fetches are
 		 * allowed from supervisor-mode linear addresses in the 4-KByte page controlled by this entry.
@@ -581,14 +627,14 @@ typedef union _EPTE
         UINT64 ExecuteAccess : 1;
 
         /**
-		 * [Bits 5:3] EPT memory type for this 4-KByte page.
+		 * @brief [Bits 5:3] EPT memory type for this 4-KByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 MemoryType : 3;
 
         /**
-		 * [Bit 6] Ignore PAT memory type for this 4-KByte page.
+		 * @brief [Bit 6] Ignore PAT memory type for this 4-KByte page.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
@@ -596,7 +642,7 @@ typedef union _EPTE
         UINT64 Reserved1 : 1;
 
         /**
-		 * [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 4-KByte page
+		 * @brief [Bit 8] If bit 6 of EPTP is 1, accessed flag for EPT; indicates whether software has accessed the 4-KByte page
 		 * referenced by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -604,7 +650,7 @@ typedef union _EPTE
         UINT64 Accessed : 1;
 
         /**
-		 * [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 4-KByte page referenced
+		 * @brief [Bit 9] If bit 6 of EPTP is 1, dirty flag for EPT; indicates whether software has written to the 4-KByte page referenced
 		 * by this entry. Ignored if bit 6 of EPTP is 0.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
@@ -612,7 +658,7 @@ typedef union _EPTE
         UINT64 Dirty : 1;
 
         /**
-		 * [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
+		 * @brief [Bit 10] Execute access for user-mode linear addresses. If the "mode-based execute control for EPT" VM-execution control
 		 * is 1, indicates whether instruction fetches are allowed from user-mode linear addresses in the 4-KByte page controlled
 		 * by this entry. If that control is 0, this bit is ignored.
 		 */
@@ -620,13 +666,13 @@ typedef union _EPTE
         UINT64 Reserved2 : 1;
 
         /**
-		 * [Bits 47:12] Physical address of the 4-KByte page referenced by this entry.
+		 * @brief [Bits 47:12] Physical address of the 4-KByte page referenced by this entry.
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved3 : 15;
 
         /**
-		 * [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
+		 * @brief [Bit 63] Suppress \#VE. If the "EPT-violation \#VE" VM-execution control is 1, EPT violations caused by accesses to this
 		 * page are convertible to virtualization exceptions only if this bit is 0. If "EPT-violation \#VE" VMexecution control is
 		 * 0, this bit is ignored.
 		 *
@@ -652,22 +698,26 @@ typedef EPTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 //			     Structs Cont.                	//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Structure for saving EPT Table
+ * 
+ */
 typedef struct _VMM_EPT_PAGE_TABLE
 {
     /**
-	 * 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
+	 * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
 	 */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML4_POINTER PML4[VMM_EPT_PML4E_COUNT];
 
     /**
-	 * Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
+	 * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
 	 */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML3_POINTER PML3[VMM_EPT_PML3E_COUNT];
 
     /**
-	 * For each 1GB PML3 entry, create 512 2MB entries to map identity.
+	 * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
 	 * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
 	 * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
 	 */
@@ -676,12 +726,16 @@ typedef struct _VMM_EPT_PAGE_TABLE
 
 } VMM_EPT_PAGE_TABLE, *PVMM_EPT_PAGE_TABLE;
 
+/**
+ * @brief EPT Pointer (EPTP or GUEST_EPTP)
+ * 
+ */
 typedef union _EPTP
 {
     struct
     {
         /**
-		 * [Bits 2:0] EPT paging-structure memory type:
+		 * @brief [Bits 2:0] EPT paging-structure memory type:
 		 * - 0 = Uncacheable (UC)
 		 * - 6 = Write-back (WB)
 		 * Other values are reserved.
@@ -691,14 +745,14 @@ typedef union _EPTP
         UINT64 MemoryType : 3;
 
         /**
-		 * [Bits 5:3] This value is 1 less than the EPT page-walk length.
+		 * @brief [Bits 5:3] This value is 1 less than the EPT page-walk length.
 		 *
 		 * @see Vol3C[28.2.6(EPT and memory Typing)]
 		 */
         UINT64 PageWalkLength : 3;
 
         /**
-		 * [Bit 6] Setting this control to 1 enables accessed and dirty flags for EPT.
+		 * @brief [Bit 6] Setting this control to 1 enables accessed and dirty flags for EPT.
 		 *
 		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
 		 */
@@ -706,7 +760,7 @@ typedef union _EPTP
         UINT64 Reserved1 : 5;
 
         /**
-		 * [Bits 47:12] Bits N-1:12 of the physical address of the 4-KByte aligned EPT PML4 table.
+		 * @brief [Bits 47:12] Bits N-1:12 of the physical address of the 4-KByte aligned EPT PML4 table.
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved2 : 16;
@@ -715,24 +769,27 @@ typedef union _EPTP
     UINT64 Flags;
 } EPTP, *PEPTP;
 
-// MSR_IA32_MTRR_DEF_TYPE
+/**
+ * @brief MSR_IA32_MTRR_DEF_TYPE Structure
+ * 
+ */
 typedef union _IA32_MTRR_DEF_TYPE_REGISTER
 {
     struct
     {
         /**
-		 * [Bits 2:0] Default Memory Type.
+		 * @brief [Bits 2:0] Default Memory Type.
 		 */
         UINT64 DefaultMemoryType : 3;
         UINT64 Reserved1 : 7;
 
         /**
-		 * [Bit 10] Fixed Range MTRR Enable.
+		 * @brief [Bit 10] Fixed Range MTRR Enable.
 		 */
         UINT64 FixedRangeMtrrEnable : 1;
 
         /**
-		 * [Bit 11] MTRR Enable.
+		 * @brief [Bit 11] MTRR Enable.
 		 */
         UINT64 MtrrEnable : 1;
         UINT64 Reserved2 : 52;
@@ -741,7 +798,10 @@ typedef union _IA32_MTRR_DEF_TYPE_REGISTER
     UINT64 Flags;
 } IA32_MTRR_DEF_TYPE_REGISTER, *PIA32_MTRR_DEF_TYPE_REGISTER;
 
-// MSR_IA32_MTRR_CAPABILITIES
+/**
+ * @brief IA32_MTRR_CAPABILITIES Structure
+ * 
+ */
 typedef union _IA32_MTRR_CAPABILITIES_REGISTER
 {
     struct
@@ -782,19 +842,22 @@ typedef union _IA32_MTRR_CAPABILITIES_REGISTER
     UINT64 Flags;
 } IA32_MTRR_CAPABILITIES_REGISTER, *PIA32_MTRR_CAPABILITIES_REGISTER;
 
-// MSR_IA32_MTRR_PHYSBASE(0-9)
+/**
+ * @brief MSR_IA32_MTRR_PHYSBASE(0-9) Structure
+ * 
+ */
 typedef union _IA32_MTRR_PHYSBASE_REGISTER
 {
     struct
     {
         /**
-		 * [Bits 7:0] Specifies the memory type for the range.
+		 * @brief [Bits 7:0] Specifies the memory type for the range.
 		 */
         UINT64 Type : 8;
         UINT64 Reserved1 : 4;
 
         /**
-		 * [Bits 47:12] Specifies the base address of the address range. This 24-bit value, in the case where MAXPHYADDR is 36
+		 * @brief [Bits 47:12] Specifies the base address of the address range. This 24-bit value, in the case where MAXPHYADDR is 36
 		 * bits, is extended by 12 bits at the low end to form the base address (this automatically aligns the address on a 4-KByte
 		 * boundary).
 		 */
@@ -811,18 +874,18 @@ typedef union _IA32_MTRR_PHYSMASK_REGISTER
     struct
     {
         /**
-		 * [Bits 7:0] Specifies the memory type for the range.
+		 * @brief [Bits 7:0] Specifies the memory type for the range.
 		 */
         UINT64 Type : 8;
         UINT64 Reserved1 : 3;
 
         /**
-		 * [Bit 11] Enables the register pair when set; disables register pair when clear.
+		 * @brief [Bit 11] Enables the register pair when set; disables register pair when clear.
 		 */
         UINT64 Valid : 1;
 
         /**
-		 * [Bits 47:12] Specifies a mask (24 bits if the maximum physical address size is 36 bits, 28 bits if the maximum physical
+		 * @brief [Bits 47:12] Specifies a mask (24 bits if the maximum physical address size is 36 bits, 28 bits if the maximum physical
 		 * address size is 40 bits). The mask determines the range of the region being mapped, according to the following
 		 * relationships:
 		 * - Address_Within_Range AND PhysMask = PhysBase AND PhysMask
@@ -840,12 +903,20 @@ typedef union _IA32_MTRR_PHYSMASK_REGISTER
     UINT64 Flags;
 } IA32_MTRR_PHYSMASK_REGISTER, *PIA32_MTRR_PHYSMASK_REGISTER;
 
+/**
+ * @brief Structure for INVEPT Instruction
+ * 
+ */
 typedef struct _INVEPT_DESCRIPTOR
 {
     UINT64 EptPointer;
     UINT64 Reserved; // Must be zero.
 } INVEPT_DESCRIPTOR, *PINVEPT_DESCRIPTOR;
 
+/**
+ * @brief MTRR Range Descriptor
+ * 
+ */
 typedef struct _MTRR_RANGE_DESCRIPTOR
 {
     SIZE_T PhysicalBaseAddress;
@@ -853,6 +924,10 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
     UCHAR  MemoryType;
 } MTRR_RANGE_DESCRIPTOR, *PMTRR_RANGE_DESCRIPTOR;
 
+/**
+ * @brief Main structure for saving the state of EPT among the project
+ * 
+ */
 typedef struct _EPT_STATE
 {
     LIST_ENTRY            HookedPagesList;             // A list of the details about hooked pages
@@ -865,61 +940,69 @@ typedef struct _EPT_STATE
 
 typedef struct _VMM_EPT_DYNAMIC_SPLIT
 {
-    /*
-	 * The 4096 byte page table entries that correspond to the split 2MB table entry.
+	/**
+	 * @brief The 4096 byte page table entries that correspond to the split 2MB table entry
+	 * 
 	 */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML1_ENTRY PML1[VMM_EPT_PML1E_COUNT];
 
-    /*
-	 * The pointer to the 2MB entry in the page table which this split is servicing.
-	 */
+
+   /**
+    * @brief The pointer to the 2MB entry in the page table which this split is servicing.
+    * 
+    */
     union
     {
         PEPT_PML2_ENTRY   Entry;
         PEPT_PML2_POINTER Pointer;
     };
 
-    /*
-	 * Linked list entries for each dynamic split
+	/**
+	 * @brief Linked list entries for each dynamic split
+	 * 
 	 */
     LIST_ENTRY DynamicSplitList;
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
 
+/**
+ * @brief Stucture of EPT Violation's Exit Qualification
+ * 
+ */
 typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
 {
     struct
     {
         /**
-		 * [Bit 0] Set if the access causing the EPT violation was a data read.
+		 * @brief [Bit 0] Set if the access causing the EPT violation was a data read.
 		 */
         UINT64 ReadAccess : 1;
 
         /**
-		 * [Bit 1] Set if the access causing the EPT violation was a data write.
+		 * @brief [Bit 1] Set if the access causing the EPT violation was a data write.
 		 */
         UINT64 WriteAccess : 1;
 
         /**
-		 * [Bit 2] Set if the access causing the EPT violation was an instruction fetch.
+		 * @brief [Bit 2] Set if the access causing the EPT violation was an instruction fetch.
 		 */
         UINT64 ExecuteAccess : 1;
 
         /**
-		 * [Bit 3] The logical-AND of bit 0 in the EPT paging-structure entries used to translate the guest-physical address of the
+		 * @brief [Bit 3] The logical-AND of bit 0 in the EPT paging-structure entries used to translate the guest-physical address of the
 		 * access causing the EPT violation (indicates whether the guest-physical address was readable).
 		 */
         UINT64 EptReadable : 1;
 
         /**
-		 * [Bit 4] The logical-AND of bit 1 in the EPT paging-structure entries used to translate the guest-physical address of the
+		 * @brief [Bit 4] The logical-AND of bit 1 in the EPT paging-structure entries used to translate the guest-physical address of the
 		 * access causing the EPT violation (indicates whether the guest-physical address was writeable).
 		 */
         UINT64 EptWriteable : 1;
 
         /**
-		 * [Bit 5] The logical-AND of bit 2 in the EPT paging-structure entries used to translate the guest-physical address of the
+		 * @brief [Bit 5] The logical-AND of bit 2 in the EPT paging-structure entries used to translate the guest-physical address of the
 		 * access causing the EPT violation.
 		 * If the "mode-based execute control for EPT" VM-execution control is 0, this indicates whether the guest-physical address
 		 * was executable. If that control is 1, this indicates whether the guest-physical address was executable for
@@ -928,7 +1011,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 EptExecutable : 1;
 
         /**
-		 * [Bit 6] If the "mode-based execute control" VM-execution control is 0, the value of this bit is undefined. If that
+		 * @brief [Bit 6] If the "mode-based execute control" VM-execution control is 0, the value of this bit is undefined. If that
 		 * control is 1, this bit is the logical-AND of bit 10 in the EPT paging-structures entries used to translate the
 		 * guest-physical address of the access causing the EPT violation. In this case, it indicates whether the guest-physical
 		 * address was executable for user-mode linear addresses.
@@ -936,13 +1019,13 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 EptExecutableForUserMode : 1;
 
         /**
-		 * [Bit 7] Set if the guest linear-address field is valid. The guest linear-address field is valid for all EPT violations
+		 * @brief [Bit 7] Set if the guest linear-address field is valid. The guest linear-address field is valid for all EPT violations
 		 * except those resulting from an attempt to load the guest PDPTEs as part of the execution of the MOV CR instruction.
 		 */
         UINT64 ValidGuestLinearAddress : 1;
 
         /**
-		 * [Bit 8] If bit 7 is 1:
+		 * @brief [Bit 8] If bit 7 is 1:
 		 * - Set if the access causing the EPT violation is to a guest-physical address that is the translation of a linear
 		 * address.
 		 * - Clear if the access causing the EPT violation is to a paging-structure entry as part of a page walk or the update of
@@ -952,7 +1035,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 CausedByTranslation : 1;
 
         /**
-		 * [Bit 9] This bit is 0 if the linear address is a supervisor-mode linear address and 1 if it is a user-mode linear
+		 * @brief [Bit 9] This bit is 0 if the linear address is a supervisor-mode linear address and 1 if it is a user-mode linear
 		 * address. Otherwise, this bit is undefined.
 		 *
 		 * @remarks If bit 7 is 1, bit 8 is 1, and the processor supports advanced VM-exit information for EPT violations. (If
@@ -961,7 +1044,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 UserModeLinearAddress : 1;
 
         /**
-		 * [Bit 10] This bit is 0 if paging translates the linear address to a read-only page and 1 if it translates to a
+		 * @brief [Bit 10] This bit is 0 if paging translates the linear address to a read-only page and 1 if it translates to a
 		 * read/write page. Otherwise, this bit is undefined
 		 *
 		 * @remarks If bit 7 is 1, bit 8 is 1, and the processor supports advanced VM-exit information for EPT violations. (If
@@ -970,7 +1053,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 ReadableWritablePage : 1;
 
         /**
-		 * [Bit 11] This bit is 0 if paging translates the linear address to an executable page and 1 if it translates to an
+		 * @brief [Bit 11] This bit is 0 if paging translates the linear address to an executable page and 1 if it translates to an
 		 * execute-disable page. Otherwise, this bit is undefined.
 		 *
 		 * @remarks If bit 7 is 1, bit 8 is 1, and the processor supports advanced VM-exit information for EPT violations. (If
@@ -979,7 +1062,7 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
         UINT64 ExecuteDisablePage : 1;
 
         /**
-		 * [Bit 12] NMI unblocking due to IRET.
+		 * @brief [Bit 12] NMI unblocking due to IRET.
 		 */
         UINT64 NmiUnblocking : 1;
         UINT64 Reserved1 : 51;
@@ -988,57 +1071,60 @@ typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION
     UINT64 Flags;
 } VMX_EXIT_QUALIFICATION_EPT_VIOLATION, *PVMX_EXIT_QUALIFICATION_EPT_VIOLATION;
 
-// Structure for each hooked instance
+/**
+ * @brief Structure to save the state of each hooked pages
+ * 
+ */
 typedef struct _EPT_HOOKED_PAGE_DETAIL
 {
     DECLSPEC_ALIGN(PAGE_SIZE)
     CHAR FakePageContents[PAGE_SIZE];
 
     /**
-	 * Linked list entires for each page hook.
+	 * @brief Linked list entires for each page hook.
 	 */
     LIST_ENTRY PageHookList;
 
     /**
-	* The virtual address from the caller prespective view (cr3)
+	* @brief The virtual address from the caller prespective view (cr3)
 	*/
     UINT64 VirtualAddress;
 
     /**
-	 * The base address of the page. Used to find this structure in the list of page hooks
+	 * @brief The base address of the page. Used to find this structure in the list of page hooks
 	 * when a hook is hit.
 	 */
     SIZE_T PhysicalBaseAddress;
 
     /**
-	* The base address of the page with fake contents. Used to swap page with fake contents
+	* @brief The base address of the page with fake contents. Used to swap page with fake contents
 	* when a hook is hit.
 	*/
     SIZE_T PhysicalBaseAddressOfFakePageContents;
 
     /*
-	 * The page entry in the page tables that this page is targetting.
+	 * @brief The page entry in the page tables that this page is targetting.
 	 */
     PEPT_PML1_ENTRY EntryAddress;
 
     /**
-	 * The original page entry. Will be copied back when the hook is removed
+	 * @brief The original page entry. Will be copied back when the hook is removed
 	 * from the page.
 	 */
     EPT_PML1_ENTRY OriginalEntry;
 
     /**
-	 * The original page entry. Will be copied back when the hook is remove from the page.
+	 * @brief The original page entry. Will be copied back when the hook is remove from the page.
 	 */
     EPT_PML1_ENTRY ChangedEntry;
 
     /**
-	* The buffer of the trampoline function which is used in the inline hook.
+	* @brief The buffer of the trampoline function which is used in the inline hook.
 	*/
     PCHAR Trampoline;
 
     /**
-	 * This field shows whether the hook contains a hidden hook for execution or not
+	 * @brief This field shows whether the hook contains a hidden hook for execution or not
 	 */
     BOOLEAN IsExecutionHook;
 
@@ -1048,6 +1134,10 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
 //                    Enums		    			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief INVEPT Enum
+ * 
+ */
 typedef enum _INVEPT_TYPE
 {
     INVEPT_SINGLE_CONTEXT = 0x00000001,
@@ -1058,42 +1148,42 @@ typedef enum _INVEPT_TYPE
 //				    Functions					//
 //////////////////////////////////////////////////
 
-// Check for EPT Features
+/* Check for EPT Features */
 BOOLEAN
 EptCheckFeatures();
-// Build MTRR Map
+/* Build MTRR Map */
 BOOLEAN
 EptBuildMtrrMap();
-// Hook in VMX Root Mode (A pre-allocated buffer should be available)
+/* Hook in VMX Root Mode (A pre-allocated buffer should be available) */
 BOOLEAN
 EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
-// Hook in VMX Non Root Mode
+/* Hook in VMX Non Root Mode */
 BOOLEAN
 EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
-// Initialize EPT Table based on Processor Index
+/* Initialize EPT Table based on Processor Index */
 BOOLEAN
 EptLogicalProcessorInitialize();
-// Handle EPT Violation
+/* Handle EPT Violation */
 BOOLEAN
 EptHandleEptViolation(ULONG ExitQualification, UINT64 GuestPhysicalAddr);
-// Get the PML1 Entry of a special address
+/* Get the PML1 Entry of a special address */
 PEPT_PML1_ENTRY
 EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
-// Handle vm-exits for Monitor Trap Flag to restore previous state
+/* Handle vm-exits for Monitor Trap Flag to restore previous state */
 VOID
 EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
-// Handle Ept Misconfigurations
+/* Handle Ept Misconfigurations */
 VOID
 EptHandleMisconfiguration(UINT64 GuestAddress);
-// This function set the specific PML1 entry in a spinlock protected area then	invalidate the TLB , this function should be called from vmx root-mode
+/* This function set the specific PML1 entry in a spinlock protected area then	invalidate the TLB , this function should be called from vmx root-mode */
 VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType);
-// Handle hooked pages in Vmx-root mode
+/* Handle hooked pages in Vmx-root mode */
 BOOLEAN
 EptHandleHookedPage(EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
-// Remove a special hook from the hooked pages lists
+/* Remove a special hook from the hooked pages lists */
 BOOLEAN
 EptPageUnHookSinglePage(SIZE_T PhysicalAddress);
-// Remove all hooks from the hooked pages lists
+/* Remove all hooks from the hooked pages lists */
 VOID
 EptPageUnHookAllPages();
