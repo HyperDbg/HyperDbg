@@ -1,6 +1,6 @@
 
 /**
- * @file Install.cpp
+ * @file pch.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief pch.h precompiled header file
  * @details source file corresponding to the pre-compiled header
@@ -24,7 +24,7 @@
 
 // add headers that you want to pre-compile here
 #include "Configuration.h"
-#include "Definitions.h"
+#include "Definition.h"
 #include "framework.h"
 #include "hprdbgctrl.h"
 #include <Windows.h>

@@ -1,5 +1,5 @@
 /**
- * @file Common.h
+ * @file Definition.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Header files for global definitions
  * @details This file contains definitions that are use in both user mode and kernel mode 

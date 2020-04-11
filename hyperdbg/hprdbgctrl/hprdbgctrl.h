@@ -1,5 +1,5 @@
 /**
- * @file hprdbgctrl.cpp
+ * @file hprdbgctrl.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Headers of HyperDbg native interface to interact with driver
  * @details

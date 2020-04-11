@@ -1,5 +1,5 @@
 /**
- * @file Logging.c
+ * @file Logging.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Headers of Message logging and tracing
  * @details
@@ -11,7 +11,7 @@
  */
 
 #pragma once
-#include "Definitions.h"
+#include "Definition.h"
 
 //////////////////////////////////////////////////
 //					Structures					//
