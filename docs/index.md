@@ -1,4 +1,4 @@
-## Welcome to HyperDbg Documentation
+## Doxygen
 
 If you want to visit **doxygen files**, please visit [https://doxygen.hyperdbg.com/doxygen](https://doxygen.hyperdbg.com/doxygen).
 
