@@ -34,6 +34,7 @@ extern "C"
 
 }
 
+
 /**
  * @brief Set the function callback that will be called if anything received from the kernel
  * 
@@ -43,6 +44,11 @@ void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
 	Handler = handler;
 }
 
+/**
+ * @brief Show messages received from kernel driver
+ *
+ * @param Fmt
+ */
 void ShowMessages(const char* Fmt, ...) {
 
 	va_list ArgList;

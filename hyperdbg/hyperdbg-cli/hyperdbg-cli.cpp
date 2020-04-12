@@ -10,12 +10,15 @@
  * 
  */
 #include <Windows.h>
+#include <string>
 #include <conio.h>
 #include <iostream>  
 #include "Definition.h"
 #include "Configuration.h"
 
 #pragma comment(lib, "HPRDBGCTRL.lib")
+
+using namespace std;
 
 //
 // Header file of HPRDBGCTRL
@@ -27,9 +30,11 @@ extern "C"
 	__declspec (dllimport) int __cdecl  HyperdbgUnload();
 	__declspec (dllimport) int __cdecl  HyperdbgInstallDriver();
 	__declspec (dllimport) int __cdecl  HyperdbgUninstallDriver();
+	__declspec (dllimport) int __cdecl  HyperdbgInterpreter(std::string Command);
 	__declspec (dllimport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
 
 }
+
 
 /**
  * @brief Print HyperDbg Header
@@ -60,6 +65,13 @@ int main()
 	// Print Hypervisor From Scratch Message
 	//
 	PrintAppearance();
+
+
+	//std::string command = "salam";
+	//HyperdbgInterpreter(command);
+
+	//_getch();
+	//return 0;
 
 	//
 	// Installing Driver
