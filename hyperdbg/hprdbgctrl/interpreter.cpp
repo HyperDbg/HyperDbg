@@ -44,7 +44,18 @@ const vector<string> Split(const string& s, const char& c)
 }
 
 void CommandClearScreen() {
-	clrscr();
+	system("cls");
+}
+void CommandSyscallHook(vector<string> SplittedCommand) {
+
+	//
+	// !syscallhook [Method (efer or etc)] [Type (all/process)] [Action (log/break/condition)] [pid]
+	//
+
+	for (auto Section : SplittedCommand) {
+		printf("%s",Section.c_str());
+		printf("\n");
+	}
 }
 
 
@@ -80,7 +91,10 @@ int _cdecl  HyperdbgInterpreter(const char* Command) {
 
 	if (!FirstCommand.compare("clear") || !FirstCommand.compare("cls") || !FirstCommand.compare(".cls"))
 	{
-		system("cls");
+		CommandClearScreen();
+	}
+	else if (!FirstCommand.compare("!syscallhook")) {
+		CommandSyscallHook(SplittedCommand);
 	}
 	else 
 	{

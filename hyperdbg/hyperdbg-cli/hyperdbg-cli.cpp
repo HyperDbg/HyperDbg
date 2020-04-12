@@ -52,7 +52,7 @@ int main()
 
 	while (!ExitFromDebugger) 
 	{
-		printf("0: HyperDbg >");
+		printf("HyperDbg >");
 
 		string command;
 		getline(cin, command);
