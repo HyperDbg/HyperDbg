@@ -44,6 +44,7 @@ extern "C"
  */
 int main()
 {
+	/*
 	bool ExitFromDebugger = false;
 
 	printf("HyperDbg Debugger [core version: v%s]\n",Version);
@@ -74,6 +75,7 @@ int main()
 
 
 	return 0;
+	*/
 
 	//
 	// Installing Driver

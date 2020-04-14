@@ -215,7 +215,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 
 	BOOL    Status;
 	ULONG   ReturnedLength;
-	REGISTER_EVENT RegisterEvent;
+	REGISTER_NOTIFY_BUFFER RegisterEvent;
 	UINT32 OperationCode;
 
 	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================");

@@ -363,6 +363,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     PROCESSOR_DEBUGGING_STATE DebuggingState;             // Holds the debugging state of the processor (used by HyperDbg to execute commands)
     VMX_VMXOFF_STATE          VmxoffState;                // Shows the vmxoff state of the guest
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint;     // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    DEBUGGER_CORE_EVENTS      Events;                     // Core specific events (for debugger)
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 /**

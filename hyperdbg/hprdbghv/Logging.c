@@ -816,10 +816,10 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
 NTSTATUS
 LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PNOTIFY_RECORD     NotifyRecord;
-    PIO_STACK_LOCATION IrpStack;
-    KIRQL              OOldIrql;
-    PREGISTER_EVENT    RegisterEvent;
+    PNOTIFY_RECORD          NotifyRecord;
+    PIO_STACK_LOCATION      IrpStack;
+    KIRQL                   OOldIrql;
+    PREGISTER_NOTIFY_BUFFER RegisterEvent;
 
     //
     // check if current core has another thread with pending IRP,
@@ -831,7 +831,7 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     if (g_GlobalNotifyRecord == NULL)
     {
         IrpStack      = IoGetCurrentIrpStackLocation(Irp);
-        RegisterEvent = (PREGISTER_EVENT)Irp->AssociatedIrp.SystemBuffer;
+        RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
         //
         // Allocate a record and save all the event context
@@ -907,14 +907,14 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PNOTIFY_RECORD     NotifyRecord;
-    NTSTATUS           Status;
-    PIO_STACK_LOCATION IrpStack;
-    PREGISTER_EVENT    RegisterEvent;
-    KIRQL              OldIrql;
+    PNOTIFY_RECORD          NotifyRecord;
+    NTSTATUS                Status;
+    PIO_STACK_LOCATION      IrpStack;
+    PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    KIRQL                   OldIrql;
 
     IrpStack      = IoGetCurrentIrpStackLocation(Irp);
-    RegisterEvent = (PREGISTER_EVENT)Irp->AssociatedIrp.SystemBuffer;
+    RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
     //
     // Allocate a record and save all the event context

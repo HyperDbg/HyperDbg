@@ -19,6 +19,7 @@
 #include "Logging.h"
 #include "ExtensionCommands.h"
 #include "Hooks.h"
+#include "Debugger.h"
 #include "Trace.h"
 #include "Driver.tmh"
 
@@ -36,7 +37,7 @@ DriverEntry(
 {
     NTSTATUS       Ntstatus       = STATUS_SUCCESS;
     UINT64         Index          = 0;
-    int            ProcessorCount = 0;
+    UINT32         ProcessorCount = 0;
     PDEVICE_OBJECT DeviceObject   = NULL;
     UNICODE_STRING DriverName     = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
     UNICODE_STRING DosDeviceName  = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
@@ -221,6 +222,19 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
+    // Initialize the debugger
+    //
+
+    if (DebuggerInitialize())
+    {
+        LogInfo("Hyperdbg's debugger loaded successfully");
+    }
+    else
+    {
+        LogError("Hyperdbg's debugger was not loaded");
+    }
+
+    //
     // test
     // HiddenHooksTest();
     // SyscallHookTest();
@@ -317,10 +331,9 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION                     IrpStack;
-    PREGISTER_EVENT                        RegisterEvent;
-    PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT SyscallEfer;
-    NTSTATUS                               Status;
+    PIO_STACK_LOCATION      IrpStack;
+    PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    NTSTATUS                Status;
 
     if (g_AllowIOCTLFromUsermode)
     {
@@ -345,7 +358,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 break;
             }
 
-            RegisterEvent = (PREGISTER_EVENT)Irp->AssociatedIrp.SystemBuffer;
+            RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
             switch (RegisterEvent->Type)
             {
@@ -376,10 +389,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         case IOCTL_TERMINATE_VMX:
             HvTerminateVmx();
             Status = STATUS_SUCCESS;
-            break;
-        case IOCTL_DEBUGGER_EPT_SYSCALL_HOOK_EFER:
-            SyscallEfer = (PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT)Irp->AssociatedIrp.SystemBuffer;
-            DebuggerEnableSyscallHookEfer(SyscallEfer);
             break;
         default:
             LogError("Unknow IOCTL");

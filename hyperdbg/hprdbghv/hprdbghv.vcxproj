@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Broadcast.c" />
+    <ClCompile Include="Debugger.c" />
     <ClCompile Include="ExtensionCommands.c" />
     <ClCompile Include="EFERHook.c" />
     <ClCompile Include="Ept.c" />
@@ -124,6 +125,7 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebuggerCommands.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="Events.h" />

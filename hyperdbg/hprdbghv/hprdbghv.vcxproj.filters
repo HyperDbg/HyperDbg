@@ -19,9 +19,6 @@
     <Filter Include="Source Files\EPT">
       <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Hypervisor">
-      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Assembly">
       <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
     </Filter>
@@ -43,9 +40,6 @@
     <Filter Include="Source Files\Debugger\Entry">
       <UniqueIdentifier>{21c9f013-596f-4c5b-8822-d6fbc7139279}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Commands">
-      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Common">
       <UniqueIdentifier>{552ad1ee-f507-4577-96c0-a421e5060907}</UniqueIdentifier>
     </Filter>
@@ -55,11 +49,20 @@
     <Filter Include="Header Files\Hypervisor">
       <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Commands\Features">
-      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Misc">
       <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger">
+      <UniqueIdentifier>{b6e16086-58f5-4809-9406-acafa11e0713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger\Commands">
+      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger\Features">
+      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VMX">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -72,13 +75,13 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vmcall.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Common.c">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="HypervisorRoutines.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Invept.c">
       <Filter>Source Files\EPT</Filter>
@@ -87,10 +90,10 @@
       <Filter>Source Files\EPT</Filter>
     </ClCompile>
     <ClCompile Include="VmxRegions.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Vmx.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Vpid.c">
       <Filter>Source Files\EPT</Filter>
@@ -105,10 +108,10 @@
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="Events.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Exit.c">
-      <Filter>Source Files\Hypervisor</Filter>
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
     <ClCompile Include="SsdtHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
@@ -128,13 +131,16 @@
     <ClCompile Include="ExtensionCommands.c">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger.c">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
-      <Filter>Header Files\Commands</Filter>
+      <Filter>Header Files\Debugger\Commands</Filter>
     </ClInclude>
     <ClInclude Include="ExtensionCommands.h">
-      <Filter>Header Files\Commands</Filter>
+      <Filter>Header Files\Debugger\Commands</Filter>
     </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Header Files\Common</Filter>
@@ -176,13 +182,16 @@
       <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
     <ClInclude Include="Hooks.h">
-      <Filter>Header Files\Commands\Features</Filter>
+      <Filter>Header Files\Debugger\Features</Filter>
     </ClInclude>
     <ClInclude Include="GlobalVariables.h">
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="InlineAsm.h">
       <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger.h">
+      <Filter>Header Files\Debugger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

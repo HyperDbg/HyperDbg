@@ -10,6 +10,7 @@
  * 
  */
 
+#pragma once
 #include "Ept.h"
 #include "Configuration.h"
 #include "Trace.h"
