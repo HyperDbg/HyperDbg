@@ -71,6 +71,40 @@ typedef int(__stdcall *Callback)(const char *Text);
 
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 
+typedef enum _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE {
+
+  //
+  // Read the results
+  //
+  GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS, // r rax
+  GUEST_LOG_READ_STATIC_MEMORY_ADDRESS,     // dc fffff80126551180
+  GUEST_LOG_READ_REGISTER_MEMORY_ADDRESS,   // dc poi(rax)
+
+  GUEST_LOG_READ_POI_REGISTER_ADD_VALUE,      // dc poi(rax) + xx
+  GUEST_LOG_READ_POI_REGISTER_SUBTRACT_VALUE, // dc poi(rax) - xx
+
+  GUEST_LOG_READ_POI_REGISTER_PLUS_VALUE,  // dc poi(rax + xx)
+  GUEST_LOG_READ_POI_REGISTER_MINUS_VALUE, // dc poi(rax- xx)
+
+  GUEST_LOG_READ_PSEUDO_REGISTER,                       // r @$proc
+  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_ADD_VALUE,      // dc @$proc + xx
+  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_SUBTRACT_VALUE, // dc @$proc - xx
+
+  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_PLUS_VALUE,  // dc poi(@$proc - xx)
+  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_MINUS_VALUE, // dc poi(@$proc - xx)
+
+} DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE;
+
+typedef struct _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION {
+  DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE
+  LogType;         // Type of log (how to log)
+  UINT64 LogMask;  // Mask (e.g register)
+  UINT64 LogValue; // additions or subtraction value
+  UINT32 Length;   // Length of Bytes
+
+} DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION,
+    *PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION;
+
 typedef struct _DEBUGGER_EVENT_REQUEST_BUFFER {
   BOOLEAN EnabledRequestBuffer;
   UINT32 RequestBufferSize;
@@ -86,9 +120,17 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
 } DEBUGGER_EVENT_ACTION_TYPE_ENUM;
 
 typedef struct _DEBUGGER_EVENT_ACTION {
-  DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;
-  BOOLEAN ImmediatelySendTheResults;
-  DEBUGGER_EVENT_REQUEST_BUFFER Buffer; // If enabled
+  UINT32 ActionOrderCode; // The code for this action (it also shows the order)
+  DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType; // What action we wanna perform
+  BOOLEAN ImmediatelySendTheResults; // should we send the results immediately
+                                     // or store them in another structure and
+                                     // send multiple of them each time
+  DEBUGGER_EVENT_REQUEST_BUFFER
+  RequestedBuffer; // if it's a custom code and needs a buffer then we use
+                   // this structs
+
+  UINT32 CustomCodeBufferSize;   // if null, means it's not custom code type
+  PVOID CustomCodeBufferAddress; // address of custom code if any
 
 } DEBUGGER_EVENT_ACTION, *PDEBUGGER_EVENT_ACTION;
 
@@ -107,6 +149,7 @@ typedef struct _DEBUGGER_EVENT {
   UINT32 CoreId; // determines the core index to apply this event to, if it's
                  // 0xffffffff means that we have to apply it to all cores
   LIST_ENTRY Actions;           // Each entry is in DEBUGGER_EVENT_ACTION struct
+  UINT32 CountOfActions;        // The total count of actions
   UINT32 ConditionsBufferSize;  // if null, means uncoditional
   PVOID ConditionBufferAddress; // Address of the condition buffer (most of the
                                 // time at the end of this buffer)
