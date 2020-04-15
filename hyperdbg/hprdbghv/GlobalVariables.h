@@ -52,3 +52,9 @@ BOOLEAN g_ExecuteOnlySupport;
  * 
  */
 BOOLEAN g_AllowIOCTLFromUsermode;
+
+/**
+ * @brief Determines whether the debugger events should be active or not
+ * 
+ */
+BOOLEAN g_EnableDebuggerEvents;

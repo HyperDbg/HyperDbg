@@ -36,6 +36,12 @@ DebuggerInitialize()
         InitializeListHead(&g_GuestState[i].Events.HiddenHooksExecDetourEvents);
         InitializeListHead(&g_GuestState[i].Events.SyscallHooksEferEvents);
     }
+
+    //
+    // Enabled Debugger Events
+    //
+    g_EnableDebuggerEvents = TRUE;
+
     //
     //---------------------------------------------------------------------------
     // Temporary test everything here
@@ -105,7 +111,6 @@ DebuggerInitialize()
     //
     DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
 
-    DbgBreakPoint();
     //
     // Call to register
     //
