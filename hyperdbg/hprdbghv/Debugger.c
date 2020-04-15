@@ -65,11 +65,47 @@ DebuggerInitialize()
     }
 
     //
-    // Add Action to the event
+    // *** Add Actions example ***
     //
 
-    //DebuggerAddActionToEvent
+    //
+    // Add action for LOG_THE_STATES
+    //
+    DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION LogConfiguration = {0};
+    LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
+    LogConfiguration.LogLength                               = 0x10;
+    LogConfiguration.LogMask                                 = 0x1;
+    LogConfiguration.LogValue                                = 0x4;
 
+    DebuggerAddActionToEvent(Event1, LOG_THE_STATES, TRUE, NULL, &LogConfiguration);
+
+    //
+    // Add action for RUN_CUSTOM_CODE
+    //
+    DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
+
+    char CustomCodeBuffer[8];
+    CustomCodeBuffer[0] = 0x90; //nop
+    CustomCodeBuffer[1] = 0x90; //nop
+    CustomCodeBuffer[2] = 0xcc; //int 3
+    CustomCodeBuffer[3] = 0x90; //nop
+    CustomCodeBuffer[4] = 0xcc; //int 3
+    CustomCodeBuffer[5] = 0x90; //nop
+    CustomCodeBuffer[6] = 0x90; //nop
+    CustomCodeBuffer[7] = 0xc3; // ret
+
+    CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
+    CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
+    CustomCode.OptionalRequestedBufferSize = 0x100;
+
+    DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+
+    //
+    // Add action for BREAK_TO_DEBUGGER
+    //
+    DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
+
+    DbgBreakPoint();
     //
     // Call to register
     //
@@ -139,6 +175,11 @@ DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM Eve
     }
 
     //
+    // Make the action lists ready
+    //
+    InitializeListHead(&Event->ActionsListHead);
+
+    //
     // Return our event
     //
     return Event;
@@ -146,8 +187,10 @@ DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM Eve
 
 // should not be called in vmx root
 BOOLEAN
-DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSize, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, UINT32 CustomCodeBufferSize, PVOID CustomCodeBuffer)
+DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION InTheCaseOfLogTheStates)
 {
+    PDEBUGGER_EVENT_ACTION Action;
+
     //
     // As this function uses ExAllocatePoolWithTag,
     // we have to make sure that it will not be called in vmx root
@@ -158,36 +201,55 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSi
     }
 
     //
-    // Make the condtions lists ready
-    //
-    InitializeListHead(&Event->Actions);
-
-    //
     // Allocate action + allocate code for custom code
     //
-    PDEBUGGER_EVENT_ACTION Action = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT_ACTION) + CustomCodeBufferSize, POOLTAG);
 
-    if (!Action)
+    if (InTheCaseOfCustomCode == NULL)
     {
         //
-        // There was an error in allocation
+        // We shouldn't allocate extra buffer as there is no custom code
         //
-        return FALSE;
-    }
+        Action = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT_ACTION), POOLTAG);
 
-    RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION) + CustomCodeBufferSize);
+        if (!Action)
+        {
+            //
+            // There was an error in allocation
+            //
+            return FALSE;
+        }
+
+        RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION));
+    }
+    else
+    {
+        //
+        // We should allocate extra buffer for custom code
+        //
+        Action = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize, POOLTAG);
+
+        if (!Action)
+        {
+            //
+            // There was an error in allocation
+            //
+            return FALSE;
+        }
+
+        RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize);
+    }
 
     //
     // If the user needs a buffer to be passed to the debugger then
     // we should allocate it here (Requested buffer is only available for custom code types)
     //
-    if (ActionType == RUN_CUSTOM_CODE && OptionalRequestedBufferSize != 0)
+    if (ActionType == RUN_CUSTOM_CODE && InTheCaseOfCustomCode->OptionalRequestedBufferSize != 0)
     {
         //
         // Check if the optional buffer is not more that the size
         // we can send to usermode
         //
-        if (OptionalRequestedBufferSize >= MaximumPacketsCapacity)
+        if (InTheCaseOfCustomCode->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
         {
             return FALSE;
         }
@@ -195,7 +257,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSi
         //
         // User needs a buffer to play with
         //
-        PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, OptionalRequestedBufferSize, POOLTAG);
+        PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfCustomCode->OptionalRequestedBufferSize, POOLTAG);
 
         if (!RequestedBuffer)
         {
@@ -205,13 +267,13 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSi
             ExFreePoolWithTag(Action, POOLTAG);
             return FALSE;
         }
-        RtlZeroMemory(RequestedBuffer, OptionalRequestedBufferSize);
+        RtlZeroMemory(RequestedBuffer, InTheCaseOfCustomCode->OptionalRequestedBufferSize);
 
         //
         // Add it to the action
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
-        Action->RequestedBuffer.RequestBufferSize    = OptionalRequestedBufferSize;
+        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
         Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
     }
 
@@ -220,20 +282,31 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSi
         //
         // Check if it's a Custom code without custom code buffer which is invalid
         //
-        if (CustomCodeBufferSize == 0)
+        if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
             return FALSE;
 
         //
         // Move the custom code buffer to the end of the action
         //
 
-        Action->CustomCodeBufferSize    = CustomCodeBufferSize;
+        Action->CustomCodeBufferSize    = InTheCaseOfCustomCode->CustomCodeBufferSize;
         Action->CustomCodeBufferAddress = (UINT64)Action + sizeof(DEBUGGER_EVENT_ACTION);
 
         //
         // copy the custom code buffer to the end of the buffer of the action
         //
-        memcpy(Action->CustomCodeBufferAddress, CustomCodeBuffer, CustomCodeBufferSize);
+        memcpy(Action->CustomCodeBufferAddress, InTheCaseOfCustomCode->CustomCodeBufferAddress, InTheCaseOfCustomCode->CustomCodeBufferSize);
+    }
+
+    //
+    // If it's log the states action type
+    //
+    if (ActionType == LOG_THE_STATES)
+    {
+        Action->LogConfiguration.LogLength = InTheCaseOfLogTheStates->LogLength;
+        Action->LogConfiguration.LogMask   = InTheCaseOfLogTheStates->LogMask;
+        Action->LogConfiguration.LogType   = InTheCaseOfLogTheStates->LogType;
+        Action->LogConfiguration.LogValue  = InTheCaseOfLogTheStates->LogValue;
     }
 
     //
@@ -248,6 +321,11 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, UINT32 OptionalRequestedBufferSi
     //
     Action->ImmediatelySendTheResults = SendTheResultsImmediately;
     Action->ActionType                = ActionType;
+
+    //
+    // Now we should add the action to the event's LIST_ENTRY of actions
+    //
+    InsertHeadList(&Event->ActionsListHead, &(Action->ActionsList));
 
     return TRUE;
 }

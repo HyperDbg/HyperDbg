@@ -97,10 +97,10 @@ typedef enum _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE {
 
 typedef struct _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION {
   DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE
-  LogType;         // Type of log (how to log)
-  UINT64 LogMask;  // Mask (e.g register)
-  UINT64 LogValue; // additions or subtraction value
-  UINT32 Length;   // Length of Bytes
+  LogType;          // Type of log (how to log)
+  UINT64 LogMask;   // Mask (e.g register)
+  UINT64 LogValue;  // additions or subtraction value
+  UINT32 LogLength; // Length of Bytes
 
 } DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION,
     *PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION;
@@ -112,6 +112,13 @@ typedef struct _DEBUGGER_EVENT_REQUEST_BUFFER {
 
 } DEBUGGER_EVENT_REQUEST_BUFFER, *PDEBUGGER_EVENT_REQUEST_BUFFER;
 
+typedef struct _DEBUGGER_EVENT_REQUEST_CUSTOM_CODE {
+  UINT32 CustomCodeBufferSize;
+  PVOID CustomCodeBufferAddress;
+  UINT32 OptionalRequestedBufferSize;
+
+} DEBUGGER_EVENT_REQUEST_CUSTOM_CODE, *PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE;
+
 typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
   BREAK_TO_DEBUGGER,
   LOG_THE_STATES,
@@ -121,10 +128,15 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
 
 typedef struct _DEBUGGER_EVENT_ACTION {
   UINT32 ActionOrderCode; // The code for this action (it also shows the order)
+  LIST_ENTRY ActionsList; // Holds the link list of next actions
   DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType; // What action we wanna perform
   BOOLEAN ImmediatelySendTheResults; // should we send the results immediately
                                      // or store them in another structure and
                                      // send multiple of them each time
+
+  DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION
+  LogConfiguration; // If it's Log the Statess
+
   DEBUGGER_EVENT_REQUEST_BUFFER
   RequestedBuffer; // if it's a custom code and needs a buffer then we use
                    // this structs
@@ -148,7 +160,7 @@ typedef struct _DEBUGGER_EVENT {
   BOOLEAN Enabled;
   UINT32 CoreId; // determines the core index to apply this event to, if it's
                  // 0xffffffff means that we have to apply it to all cores
-  LIST_ENTRY Actions;           // Each entry is in DEBUGGER_EVENT_ACTION struct
+  LIST_ENTRY ActionsListHead;   // Each entry is in DEBUGGER_EVENT_ACTION struct
   UINT32 CountOfActions;        // The total count of actions
   UINT32 ConditionsBufferSize;  // if null, means uncoditional
   PVOID ConditionBufferAddress; // Address of the condition buffer (most of the
