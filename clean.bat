@@ -13,9 +13,9 @@ del    *.obj    /s
 del    *.sbr    /s
 del    *.tlog   /s
 
- echo Removing build folders ...
- echo.
- for /d /r . %%d in (__history Debug Release ipch) do @if exist "%%d" echo "%%d" && rd /s/q "%%d"
+echo Removing build folders ...
+echo.
+for /d /r . %%d in (__history Debug Release ipch) do @if exist "%%d" echo "%%d" && rd /s/q "%%d"
 
 echo Done!
 pause
