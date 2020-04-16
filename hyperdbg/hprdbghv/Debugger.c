@@ -479,7 +479,8 @@ BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
 {
     ULONG       CurrentProcessorIndex;
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList2 = 0;
 
     //
     // Search for this event in this core (get the core index)
@@ -489,102 +490,52 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
     //
     // Find the debugger events list base on the type of the event
     //
-    switch (EventType)
-    {
-    case HIDDEN_HOOK_RW:
-    {
-        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
-        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-            //
-            // check if the event is enabled or not
-            //
-            if (!CurrentEvent->Enabled)
-            {
-                continue;
-            }
 
-            //
-            // perform the actions
-            //
-            DebuggerPerformActions(CurrentEvent, Context);
-        }
-        break;
-    }
-    case HIDDEN_HOOK_EXEC_DETOUR:
+    if (EventType == HIDDEN_HOOK_RW)
     {
-        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
-        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-            //
-            // check if the event is enabled or not
-            //
-            if (!CurrentEvent->Enabled)
-            {
-                continue;
-            }
-
-            //
-            // perform the actions
-            //
-            DebuggerPerformActions(CurrentEvent, Context);
-        }
-        break;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
+        TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
     }
-    case HIDDEN_HOOK_EXEC_CC:
+    else if (EventType == HIDDEN_HOOK_EXEC_DETOUR)
     {
-        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
-        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-            //
-            // check if the event is enabled or not
-            //
-            if (!CurrentEvent->Enabled)
-            {
-                continue;
-            }
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
+        TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
 
-            //
-            // perform the actions
-            //
-            DebuggerPerformActions(CurrentEvent, Context);
-        }
-        break;
     }
-    case SYSCALL_HOOK_EFER:
+    else if (EventType == HIDDEN_HOOK_EXEC_CC)
     {
-        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
-        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
-        {
-            TempList                     = TempList->Flink;
-            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
-            //
-            // check if the event is enabled or not
-            //
-            if (!CurrentEvent->Enabled)
-            {
-                continue;
-            }
-
-            //
-            // perform the actions
-            //
-            DebuggerPerformActions(CurrentEvent, Context);
-        }
-        break;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookExecCcEventsHead;
+        TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookExecCcEventsHead;
     }
-    default:
+    else if (EventType == SYSCALL_HOOK_EFER)
+    {
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.SyscallHooksEferEventsHead;
+        TempList2 = &g_GuestState[CurrentProcessorIndex].Events.SyscallHooksEferEventsHead;
+    }
+    else
+    {
         //
-        // Invalid event type
+        // Event type is not found 
         //
         return FALSE;
-        break;
+    }
+
+    while (TempList2 != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+        //
+        // check if the event is enabled or not
+        //
+        if (!CurrentEvent->Enabled)
+        {
+            continue;
+        }
+
+        //
+        // perform the actions
+        //
+        DebuggerPerformActions(CurrentEvent, Context);
     }
 
     return TRUE;
