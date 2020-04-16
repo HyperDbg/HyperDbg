@@ -14,12 +14,8 @@
 HyperDbg is an open-source, user mode and kernel mode Windows debugger with a focus on using hardware technologies to provide new features to the debuggers’ world.
 
 It is designed on top of Windows by virtualizing an already running system using Intel VT-x and Intel PT. This debugger aims not to use any APIs and software debugging mechanisms, but instead, it uses Second Layer Page Table (a.k.a. Extended Page Table or EPT) extensively to monitor both kernel and user executions.
-
-<p align="center"> 
-<a href="https://hyperdbg.com/"><img align="center" width="700" height="700" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/Artboard%201.png" alt="HyperDbg Debugger"></a></br>
+<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="500" height="500" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/Artboard%201.png" alt="HyperDbg Debugger"></a></br>
 </p>
-
-
 HyperDbg comes with features like hidden hooks, which is as fast as old inline hooks, but also stealth. It mimics hardware debug registers for (read & write) to a specific location, but this time entirely invisible for both Windows kernel and the programs, and of course without any limitation in size or count!
 
 Using TLB-splitting, and having features such as measuring code coverage and monitoring all mov(s) to/from memory by a function, makes HyperDbg a unique debugger.
