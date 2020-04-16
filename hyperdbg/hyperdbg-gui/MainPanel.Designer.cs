@@ -654,7 +654,7 @@
             // toolStripButton21
             // 
             this.toolStripButton21.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton21.Image = global::hyperdbg_gui.Properties.Resources.Trafficlight_red_icon;
+            this.toolStripButton21.Image = global::hyperdbg_gui.Properties.Resources.RedCircle;
             this.toolStripButton21.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton21.Name = "toolStripButton21";
             this.toolStripButton21.Padding = new System.Windows.Forms.Padding(5, 0, 5, 0);

@@ -558,7 +558,14 @@ VmxVmxoff()
     HvRestoreRegisters();
 
     //
+    // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
+    // See sections 24.1 and 24.11 of the SDM.
+    //
+    VmxClearVmcsState(&g_GuestState[CurrentProcessorIndex]);
+
+    //
     // Execute Vmxoff
+    //
     __vmx_off();
 
     //

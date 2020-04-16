@@ -31,10 +31,10 @@ DebuggerInitialize()
         // Initialize list of each event
         //
 
-        InitializeListHead(&g_GuestState[i].Events.HiddenHookExecCcEvents);
-        InitializeListHead(&g_GuestState[i].Events.HiddenHookRwEvents);
-        InitializeListHead(&g_GuestState[i].Events.HiddenHooksExecDetourEvents);
-        InitializeListHead(&g_GuestState[i].Events.SyscallHooksEferEvents);
+        InitializeListHead(&g_GuestState[i].Events.HiddenHookExecCcEventsHead);
+        InitializeListHead(&g_GuestState[i].Events.HiddenHookRwEventsHead);
+        InitializeListHead(&g_GuestState[i].Events.HiddenHooksExecDetourEventsHead);
+        InitializeListHead(&g_GuestState[i].Events.SyscallHooksEferEventsHead);
     }
 
     //
@@ -114,7 +114,9 @@ DebuggerInitialize()
     //
     // Call to register
     //
-    // DebuggerRegisterEvent(Event1);
+    DebuggerRegisterEvent(Event1);
+
+    DbgBreakPoint();
 
     //
     //---------------------------------------------------------------------------
@@ -336,30 +338,281 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
 }
 
 BOOLEAN
-DebuggerRemoveActionFromEvent(PDEBUGGER_EVENT Event)
-{
-    //
-    // Remember to free the pool
-    //
-}
-
-BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 {
+    UINT32 ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
     //
     // Register the event
     //
+
+    switch (Event->EventType)
+    {
+    case HIDDEN_HOOK_RW:
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // We have to apply this Event to all cores
+            //
+            for (size_t i = 0; i < ProcessorCount; i++)
+            {
+                //
+                // Add it to the list of the events with same type
+                //
+                InsertHeadList(&g_GuestState[i].Events.HiddenHookRwEventsHead, &(Event->EventsOfSameTypeList));
+            }
+        }
+        else if (Event->CoreId > ProcessorCount) // Check if the core Id is not invalid
+        {
+            //
+            // Add it to the list of the events with same type
+            //
+            InsertHeadList(&g_GuestState[Event->CoreId].Events.HiddenHookRwEventsHead, &(Event->EventsOfSameTypeList));
+        }
+        else
+        {
+            //
+            // Invalid core id
+            //
+            return FALSE;
+        }
+        break;
+    case HIDDEN_HOOK_EXEC_DETOUR:
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // We have to apply this Event to all cores
+            //
+            for (size_t i = 0; i < ProcessorCount; i++)
+            {
+                //
+                // Add it to the list of the events with same type
+                //
+                InsertHeadList(&g_GuestState[i].Events.HiddenHooksExecDetourEventsHead, &(Event->EventsOfSameTypeList));
+            }
+        }
+        else if (Event->CoreId > ProcessorCount) // Check if the core Id is not invalid
+        {
+            //
+            // Add it to the list of the events with same type
+            //
+            InsertHeadList(&g_GuestState[Event->CoreId].Events.HiddenHooksExecDetourEventsHead, &(Event->EventsOfSameTypeList));
+        }
+        else
+        {
+            //
+            // Invalid core id
+            //
+            return FALSE;
+        }
+        break;
+    case HIDDEN_HOOK_EXEC_CC:
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // We have to apply this Event to all cores
+            //
+            for (size_t i = 0; i < ProcessorCount; i++)
+            {
+                //
+                // Add it to the list of the events with same type
+                //
+                InsertHeadList(&g_GuestState[i].Events.HiddenHookExecCcEventsHead, &(Event->EventsOfSameTypeList));
+            }
+        }
+        else if (Event->CoreId > ProcessorCount) // Check if the core Id is not invalid
+        {
+            //
+            // Add it to the list of the events with same type
+            //
+            InsertHeadList(&g_GuestState[Event->CoreId].Events.HiddenHookExecCcEventsHead, &(Event->EventsOfSameTypeList));
+        }
+        else
+        {
+            //
+            // Invalid core id
+            //
+            return FALSE;
+        }
+        break;
+    case SYSCALL_HOOK_EFER:
+        if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // We have to apply this Event to all cores
+            //
+            for (size_t i = 0; i < ProcessorCount; i++)
+            {
+                //
+                // Add it to the list of the events with same type
+                //
+                InsertHeadList(&g_GuestState[i].Events.SyscallHooksEferEventsHead, &(Event->EventsOfSameTypeList));
+            }
+        }
+        else if (Event->CoreId > ProcessorCount) // Check if the core Id is not invalid
+        {
+            //
+            // Add it to the list of the events with same type
+            //
+            InsertHeadList(&g_GuestState[Event->CoreId].Events.SyscallHooksEferEventsHead, &(Event->EventsOfSameTypeList));
+        }
+        else
+        {
+            //
+            // Invalid core id
+            //
+            return FALSE;
+        }
+        break;
+    default:
+        //
+        // Wrong event type
+        //
+        return FALSE;
+        break;
+    }
 }
 
 BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
 {
-    //
-    // Search for this event in this core
-    //
+    ULONG       CurrentProcessorIndex;
+    PLIST_ENTRY TempList = 0;
 
     //
-    // check if event is enabled or not
+    // Search for this event in this core (get the core index)
+    //
+    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // Find the debugger events list base on the type of the event
+    //
+    switch (EventType)
+    {
+    case HIDDEN_HOOK_RW:
+    {
+        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
+        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+            //
+            // check if the event is enabled or not
+            //
+            if (!CurrentEvent->Enabled)
+            {
+                continue;
+            }
+
+            //
+            // perform the actions
+            //
+            DebuggerPerformActions(CurrentEvent, Context);
+        }
+        break;
+    }
+    case HIDDEN_HOOK_EXEC_DETOUR:
+    {
+        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
+        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+            //
+            // check if the event is enabled or not
+            //
+            if (!CurrentEvent->Enabled)
+            {
+                continue;
+            }
+
+            //
+            // perform the actions
+            //
+            DebuggerPerformActions(CurrentEvent, Context);
+        }
+        break;
+    }
+    case HIDDEN_HOOK_EXEC_CC:
+    {
+        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
+        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+            //
+            // check if the event is enabled or not
+            //
+            if (!CurrentEvent->Enabled)
+            {
+                continue;
+            }
+
+            //
+            // perform the actions
+            //
+            DebuggerPerformActions(CurrentEvent, Context);
+        }
+        break;
+    }
+    case SYSCALL_HOOK_EFER:
+    {
+        TempList = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
+        while (&g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+            //
+            // check if the event is enabled or not
+            //
+            if (!CurrentEvent->Enabled)
+            {
+                continue;
+            }
+
+            //
+            // perform the actions
+            //
+            DebuggerPerformActions(CurrentEvent, Context);
+        }
+        break;
+    }
+    default:
+        //
+        // Invalid event type
+        //
+        return FALSE;
+        break;
+    }
+
+    return TRUE;
+}
+
+VOID
+DebuggerPerformActions(PDEBUGGER_EVENT Event, PVOID Context)
+{
+}
+
+VOID
+DebuggerPerformBreakToDebugger()
+{
+}
+VOID
+DebuggerPerformLogTheStates()
+{
+}
+VOID
+DebuggerPerformRunTheCustomCode()
+{
+}
+
+BOOLEAN
+DebuggerRemoveActionFromEvent(PDEBUGGER_EVENT Event)
+{
+    //
+    // Remember to free the pool
     //
 }
 
@@ -370,7 +623,6 @@ DebuggerUnregisterEvent(UINT64 Tag)
     // Seach all the cores for remove this event
     //
 }
-
 BOOLEAN
 DebuggerDisableEvent(UINT64 Tag)
 {

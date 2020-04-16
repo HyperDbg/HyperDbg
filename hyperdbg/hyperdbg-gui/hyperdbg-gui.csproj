@@ -147,7 +147,7 @@
       <DependentUpon>MainPanel.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
@@ -185,10 +185,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="butterfly.ico" />
-    <None Include="Resources\administrator-icon.png" />
-    <None Include="Resources\Trafficlight-red-icon.png" />
-    <None Include="Resources\Pan_Green_Circle.png" />
-    <None Include="Resources\adjust.png" />
+    <None Include="Resources\AdministratorIcon.png" />
+    <None Include="Resources\RedCircle.png" />
+    <None Include="Resources\GreenCircle.png" />
+    <None Include="Resources\ChangeLight.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -99,7 +99,7 @@
             // pictureBox1
             // 
             this.pictureBox1.Enabled = false;
-            this.pictureBox1.Image = global::hyperdbg_gui.Properties.Resources.administrator_icon;
+            this.pictureBox1.Image = global::hyperdbg_gui.Properties.Resources.AdministratorIcon;
             this.pictureBox1.Location = new System.Drawing.Point(61, 196);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(40, 35);

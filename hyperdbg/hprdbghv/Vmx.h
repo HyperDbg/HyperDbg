@@ -12,6 +12,7 @@
 #pragma once
 #include <ntddk.h>
 #include "DebuggerCommands.h"
+#include "Debugger.h"
 #include "Ept.h"
 
 //////////////////////////////////////////////////

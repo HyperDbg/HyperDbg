@@ -156,6 +156,7 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
 
 typedef struct _DEBUGGER_EVENT {
   UINT64 Tag;
+  LIST_ENTRY EventsOfSameTypeList; // Linked-list of events of a same type
   DEBUGGER_EVENT_TYPE_ENUM EventType;
   BOOLEAN Enabled;
   UINT32 CoreId; // determines the core index to apply this event to, if it's
@@ -167,16 +168,6 @@ typedef struct _DEBUGGER_EVENT {
                                 // time at the end of this buffer)
 
 } DEBUGGER_EVENT, *PDEBUGGER_EVENT;
-
-// Each core has one of the structure in g_GuestState
-typedef struct _DEBUGGER_CORE_EVENTS {
-
-  LIST_ENTRY HiddenHookRwEvents;          // HIDDEN_HOOK_RW
-  LIST_ENTRY HiddenHooksExecDetourEvents; // HIDDEN_HOOK_EXEC_DETOUR
-  LIST_ENTRY HiddenHookExecCcEvents;      // HIDDEN_HOOK_EXEC_CC
-  LIST_ENTRY SyscallHooksEferEvents;      // SYSCALL_HOOK_EFER
-
-} DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //

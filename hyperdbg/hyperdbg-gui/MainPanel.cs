@@ -131,7 +131,7 @@ namespace hyperdbg_gui
             }
 
             hyperdbg_gui.Details.GlobalVariables.IsDriverLoaded = true;
-            toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Pan_Green_Circle;
+            toolStripButton21.Image = hyperdbg_gui.Properties.Resources.GreenCircle;
 
         }
         public void UnloadDriver()
@@ -164,7 +164,7 @@ namespace hyperdbg_gui
             else
             {
                 UnloadDriver();
-                toolStripButton21.Image = hyperdbg_gui.Properties.Resources.Trafficlight_red_icon;
+                toolStripButton21.Image = hyperdbg_gui.Properties.Resources.RedCircle;
             }
 
         }

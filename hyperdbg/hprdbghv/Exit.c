@@ -38,7 +38,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 Rflags                = 0;
     ULONG                 EcxReg                = 0;
     ULONG                 ExitInstructionLength = 0;
-    int                   CurrentProcessorIndex = 0;
+    ULONG                 CurrentProcessorIndex = 0;
 
     //
     //*********** SEND MESSAGE AFTER WE SET THE STATE ***********

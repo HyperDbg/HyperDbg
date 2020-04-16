@@ -22,7 +22,7 @@ namespace hyperdbg_gui.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace hyperdbg_gui.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("hyperdbg_gui.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace hyperdbg_gui.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,9 +63,9 @@ namespace hyperdbg_gui.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap adjust {
+        public static System.Drawing.Bitmap AdministratorIcon {
             get {
-                object obj = ResourceManager.GetObject("adjust", resourceCulture);
+                object obj = ResourceManager.GetObject("AdministratorIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace hyperdbg_gui.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap administrator_icon {
+        public static System.Drawing.Bitmap ChangeLight {
             get {
-                object obj = ResourceManager.GetObject("administrator-icon", resourceCulture);
+                object obj = ResourceManager.GetObject("ChangeLight", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace hyperdbg_gui.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Pan_Green_Circle {
+        public static System.Drawing.Bitmap GreenCircle {
             get {
-                object obj = ResourceManager.GetObject("Pan_Green_Circle", resourceCulture);
+                object obj = ResourceManager.GetObject("GreenCircle", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,9 +93,9 @@ namespace hyperdbg_gui.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Trafficlight_red_icon {
+        public static System.Drawing.Bitmap RedCircle {
             get {
-                object obj = ResourceManager.GetObject("Trafficlight-red-icon", resourceCulture);
+                object obj = ResourceManager.GetObject("RedCircle", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
