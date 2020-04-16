@@ -41,7 +41,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 CurrentProcessorIndex = 0;
 
     //
-    //*********** SEND MESSAGE AFTER WE SET THE STATE ***********
+    // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
 
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();

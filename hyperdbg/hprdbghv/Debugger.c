@@ -42,86 +42,6 @@ DebuggerInitialize()
     //
     g_EnableDebuggerEvents = TRUE;
 
-    //
-    //---------------------------------------------------------------------------
-    // Temporary test everything here
-    //
-
-    //
-    // Create condition buffer
-    //
-    char CondtionBuffer[8];
-    CondtionBuffer[0] = 0x90; //nop
-    CondtionBuffer[1] = 0x90; //nop
-    CondtionBuffer[2] = 0xcc; //int 3
-    CondtionBuffer[3] = 0x90; //nop
-    CondtionBuffer[4] = 0xcc; //int 3
-    CondtionBuffer[5] = 0x90; //nop
-    CondtionBuffer[6] = 0x90; //nop
-    CondtionBuffer[7] = 0xc3; // ret
-
-    //
-    // Create event based on condition buffer
-    //
-    PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
-
-    if (!Event1)
-    {
-        LogError("Error in creating event");
-    }
-
-    //
-    // *** Add Actions example ***
-    //
-
-    //
-    // Add action for LOG_THE_STATES
-    //
-    DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION LogConfiguration = {0};
-    LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
-    LogConfiguration.LogLength                               = 0x10;
-    LogConfiguration.LogMask                                 = 0x1;
-    LogConfiguration.LogValue                                = 0x4;
-
-    DebuggerAddActionToEvent(Event1, LOG_THE_STATES, TRUE, NULL, &LogConfiguration);
-
-    //
-    // Add action for RUN_CUSTOM_CODE
-    //
-    DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
-
-    char CustomCodeBuffer[8];
-    CustomCodeBuffer[0] = 0x90; //nop
-    CustomCodeBuffer[1] = 0x90; //nop
-    CustomCodeBuffer[2] = 0xcc; //int 3
-    CustomCodeBuffer[3] = 0x90; //nop
-    CustomCodeBuffer[4] = 0xcc; //int 3
-    CustomCodeBuffer[5] = 0x90; //nop
-    CustomCodeBuffer[6] = 0x90; //nop
-    CustomCodeBuffer[7] = 0xc3; // ret
-
-    CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
-    CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
-    CustomCode.OptionalRequestedBufferSize = 0x100;
-
-    DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-
-    //
-    // Add action for BREAK_TO_DEBUGGER
-    //
-    DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
-
-    //
-    // Call to register
-    //
-    DebuggerRegisterEvent(Event1);
-
-    DbgBreakPoint();
-
-    //
-    //---------------------------------------------------------------------------
-    //
-
     return TRUE;
 }
 
@@ -476,11 +396,22 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 }
 
 BOOLEAN
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
+DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
     ULONG       CurrentProcessorIndex;
     PLIST_ENTRY TempList  = 0;
     PLIST_ENTRY TempList2 = 0;
+
+    //
+    // Check if triggering debugging actions are allowed or not
+    //
+    if (!g_EnableDebuggerEvents)
+    {
+        //
+        // Debugger is not enabled
+        //
+        return FALSE;
+    }
 
     //
     // Search for this event in this core (get the core index)
@@ -500,7 +431,6 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
     {
         TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
         TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
-
     }
     else if (EventType == HIDDEN_HOOK_EXEC_CC)
     {
@@ -515,7 +445,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
     else
     {
         //
-        // Event type is not found 
+        // Event type is not found
         //
         return FALSE;
     }
@@ -535,27 +465,71 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PVOID Context)
         //
         // perform the actions
         //
-        DebuggerPerformActions(CurrentEvent, Context);
+        DebuggerPerformActions(CurrentEvent, Regs, Context);
     }
 
     return TRUE;
 }
 
 VOID
-DebuggerPerformActions(PDEBUGGER_EVENT Event, PVOID Context)
+DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 {
+    PLIST_ENTRY TempList = 0;
+
+    //
+    // Find and run all the actions in this Event
+    //
+
+    TempList = &Event->ActionsListHead;
+    while (&Event->ActionsListHead != TempList->Flink)
+    {
+        TempList                             = TempList->Flink;
+        PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
+
+        //
+        // Perform the action
+        //
+        switch (CurrentAction->ActionType)
+        {
+        case BREAK_TO_DEBUGGER:
+            DebuggerPerformBreakToDebugger(Event, CurrentAction, Regs, Context);
+            break;
+        case LOG_THE_STATES:
+            DebuggerPerformLogTheStates(Event, CurrentAction, Regs, Context);
+            break;
+        case RUN_CUSTOM_CODE:
+            DebuggerPerformRunTheCustomCode(Event, CurrentAction, Regs, Context);
+            break;
+        default:
+            //
+            // Invalid action type
+            //
+            break;
+        }
+    }
 }
 
 VOID
-DebuggerPerformBreakToDebugger()
+DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context) {
+    //
+    // Context point to the registers
+    //
+
+ //   Action->LogConfiguration.LogValue
+ //       Action->LogConfiguration.LogType
+  //          Action->LogConfiguration.LogMask
+  //              Action->LogConfiguration.LogLength
+   //                 Action->ImmediatelySendTheResults
+    //                    Action->ActionOrderCode
+    
+} 
+
+VOID
+    DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
 }
 VOID
-DebuggerPerformLogTheStates()
-{
-}
-VOID
-DebuggerPerformRunTheCustomCode()
+DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
 }
 
@@ -589,3 +563,85 @@ DebuggerRemoveEvent(PDEBUGGER_EVENT Event)
     // Remember to free the pool
     //
 }
+
+//
+//   //
+//   //---------------------------------------------------------------------------
+//   // Example of using events and actions
+//   //
+//
+//   //
+//   // Create condition buffer
+//   //
+//   char CondtionBuffer[8];
+//   CondtionBuffer[0] = 0x90; //nop
+//   CondtionBuffer[1] = 0x90; //nop
+//   CondtionBuffer[2] = 0xcc; //int 3
+//   CondtionBuffer[3] = 0x90; //nop
+//   CondtionBuffer[4] = 0xcc; //int 3
+//   CondtionBuffer[5] = 0x90; //nop
+//   CondtionBuffer[6] = 0x90; //nop
+//   CondtionBuffer[7] = 0xc3; // ret
+//
+//   //
+//   // Create event based on condition buffer
+//   //
+//   PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
+//
+//   if (!Event1)
+//   {
+//       LogError("Error in creating event");
+//   }
+//
+//   //
+//   // *** Add Actions example ***
+//   //
+//
+//   //
+//   // Add action for LOG_THE_STATES
+//   //
+//   DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION LogConfiguration = {0};
+//   LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
+//   LogConfiguration.LogLength                               = 0x10;
+//   LogConfiguration.LogMask                                 = 0x1;
+//   LogConfiguration.LogValue                                = 0x4;
+//
+//   DebuggerAddActionToEvent(Event1, LOG_THE_STATES, TRUE, NULL, &LogConfiguration);
+//
+//   //
+//   // Add action for RUN_CUSTOM_CODE
+//   //
+//   DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
+//
+//   char CustomCodeBuffer[8];
+//   CustomCodeBuffer[0] = 0x90; //nop
+//   CustomCodeBuffer[1] = 0x90; //nop
+//   CustomCodeBuffer[2] = 0xcc; //int 3
+//   CustomCodeBuffer[3] = 0x90; //nop
+//   CustomCodeBuffer[4] = 0xcc; //int 3
+//   CustomCodeBuffer[5] = 0x90; //nop
+//   CustomCodeBuffer[6] = 0x90; //nop
+//   CustomCodeBuffer[7] = 0xc3; // ret
+//
+//   CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
+//   CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
+//   CustomCode.OptionalRequestedBufferSize = 0x100;
+//
+//   DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+//
+//   //
+//   // Add action for BREAK_TO_DEBUGGER
+//   //
+//   DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
+//
+//   //
+//   // Call to register
+//   //
+//   DebuggerRegisterEvent(Event1);
+//
+//   DbgBreakPoint();
+//
+//   //
+//   //---------------------------------------------------------------------------
+//   //
+//
