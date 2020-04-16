@@ -3,7 +3,7 @@
 [![Doxygen](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/Link-Doxygen-lightgreen.svg)](https://doxygen.hyperdbg.com)
 [![License: GPL v3](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/logo%20cat.png" alt="HyperDbg Debugger"></a></br>
+<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/hyperdbg-icon.png" alt="HyperDbg Debugger"></a></br>
 
 # HyperDbg Debugger 
 #### (is not yet released/finished)
@@ -11,7 +11,10 @@
 ## Description
 
 
-HyperDbg is an open-source, user-mode, and kernel-mode debugger with a focus on using hardware technologies to provide new features to the debuggers’ world.
+HyperDbg is an open-source, user mode and kernel mode Windows debugger with a focus on using hardware technologies to provide new features to the debuggers’ world.
+
+<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/hyperdbg-icon.png" alt="HyperDbg Debugger"></a></br>
+
 
 It is designed on top of Windows by virtualizing an already running system using Intel VT-x and Intel PT. This debugger aims not to use any APIs and software debugging mechanisms, but instead, it uses Second Layer Page Table (a.k.a. Extended Page Table or EPT) extensively to monitor both kernel and user executions.
 
