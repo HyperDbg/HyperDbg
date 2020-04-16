@@ -1,10 +1,7 @@
-[![Website](https://img.shields.io/badge/Link-Website-orange)](https://hyperdbg.com)
-[![Docs](https://img.shields.io/badge/Link-Docs-yellow)](https://docs.hyperdbg.com)
-[![Doxygen](https://img.shields.io/badge/Link-Doxygen-lightgrey)](https://doxygen.hyperdbg.com)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub contributors](https://img.shields.io/github/contributors/SinaKarvandi/HyperDbg)](https://github.com/SinaKarvandi/HyperDbg/graphs/contributors)
-[![GitHub issues](https://img.shields.io/github/issues/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/issues/)
-[![GitHub release](https://img.shields.io/github/release/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/releases/)
+[![Website](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/Link-Website-orange.svg)](https://hyperdbg.com)
+[![Docs](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/Link-Docs-yellow.svg)](https://docs.hyperdbg.com)
+[![Doxygen](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/Link-Doxygen-lightgreen.svg)](https://doxygen.hyperdbg.com)
+[![License: GPL v3](https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/badges/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/logo%20cat.png" alt="HyperDbg Debugger"></a></br>
 
