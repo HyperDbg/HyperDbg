@@ -510,22 +510,22 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 }
 
 VOID
-DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context) {
+DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+{
     //
     // Context point to the registers
     //
 
- //   Action->LogConfiguration.LogValue
- //       Action->LogConfiguration.LogType
-  //          Action->LogConfiguration.LogMask
-  //              Action->LogConfiguration.LogLength
-   //                 Action->ImmediatelySendTheResults
+    //   Action->LogConfiguration.LogValue
+    //       Action->LogConfiguration.LogType
+    //          Action->LogConfiguration.LogMask
+    //              Action->LogConfiguration.LogLength
+    //                 Action->ImmediatelySendTheResults
     //                    Action->ActionOrderCode
-    
-} 
+}
 
 VOID
-    DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
 }
 VOID

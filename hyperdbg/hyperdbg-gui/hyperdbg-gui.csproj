@@ -48,7 +48,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>logo cat.ico</ApplicationIcon>
+    <ApplicationIcon>hyperdbg-icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -184,8 +184,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="butterfly.ico" />
-    <Content Include="logo cat.ico" />
+    <Content Include="hyperdbg-icon.ico" />
     <None Include="Resources\AdministratorIcon.png" />
     <None Include="Resources\RedCircle.png" />
     <None Include="Resources\GreenCircle.png" />

@@ -12,6 +12,7 @@
 
 #pragma once
 #include <ntddk.h>
+#include "Common.h"
 #include "Logging.h"
 
 //////////////////////////////////////////////////
@@ -64,7 +65,7 @@ VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
 
 VOID
-DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action,PGUEST_REGS Regs, PVOID Context);
 
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
