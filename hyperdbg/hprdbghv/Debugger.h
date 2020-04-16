@@ -15,18 +15,28 @@
 #include "Logging.h"
 
 //////////////////////////////////////////////////
-//					Functions					//
+//					Structures					//
 //////////////////////////////////////////////////
 
-// Each core has one of the structure in g_GuestState
-typedef struct _DEBUGGER_CORE_EVENTS
+/**
+ * @brief Saves the debugger state
+ * Each logical processor contains one of this structure which describes about the
+ * state of debuggers, flags, etc.
+ * 
+ */
+typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-    LIST_ENTRY HiddenHookRwEventsHead;          // HIDDEN_HOOK_RW  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY HiddenHooksExecDetourEventsHead; // HIDDEN_HOOK_EXEC_DETOUR [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY HiddenHookExecCcEventsHead;      // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY SyscallHooksEferEventsHead;      // SYSCALL_HOOK_EFER [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
+    UINT64 UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
 
-} DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
+} PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
+
+//////////////////////////////////////////////////
+//					Log wit Tag					//
+//////////////////////////////////////////////////
+
+/* Send buffer to the usermode with a tag that shows what was the action */
+#define LogWithTag(tag, IsImmediate, format, ...) \
+    LogSendMessageToQueue(OPERATION_LOG_WITH_TAG, IsImmediate, FALSE, "%016x" format, tag, __VA_ARGS__);
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -45,4 +55,4 @@ BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
 VOID
-DebuggerPerformActions(PDEBUGGER_EVENT Event, PVOID Context)
+DebuggerPerformActions(PDEBUGGER_EVENT Event, PVOID Context);

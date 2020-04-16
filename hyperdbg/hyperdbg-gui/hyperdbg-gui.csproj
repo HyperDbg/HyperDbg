@@ -48,7 +48,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>butterfly.ico</ApplicationIcon>
+    <ApplicationIcon>logo cat.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -185,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="butterfly.ico" />
+    <Content Include="logo cat.ico" />
     <None Include="Resources\AdministratorIcon.png" />
     <None Include="Resources\RedCircle.png" />
     <None Include="Resources\GreenCircle.png" />
