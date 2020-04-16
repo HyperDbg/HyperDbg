@@ -6,7 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/issues/)
 [![GitHub release](https://img.shields.io/github/release/SinaKarvandi/HyperDbg.svg)](https://GitHub.com/SinaKarvandi/HyperDbg/releases/)
 
-<img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/logo%20cat.png" alt="HyperDbg Debugger"></br>
+<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/SinaKarvandi/HyperDbg/master/logo/logo%20cat.png" alt="HyperDbg Debugger"></a></br>
 
 # HyperDbg Debugger 
 #### (is not yet released/finished)
