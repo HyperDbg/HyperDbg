@@ -34,7 +34,6 @@
  * in this case.
  * 
  */
-UINT64 SysretAddress;
 
 /* Check for instruction sysret and syscall */
 #define IS_SYSRET_INSTRUCTION(Code)   \
@@ -113,6 +112,11 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
     VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
 
     //
+    // Set MSR Bitmap to avoid patch guard interception
+    //
+    HvSetMsrBitmap(MSR_EFER, KeGetCurrentProcessorNumber(), TRUE, FALSE);
+
+    //
     // Read previous VM-Entry and VM-Exit controls
     //
     __vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
@@ -158,6 +162,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
     }
+    
 }
 
 /**
@@ -319,8 +324,10 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     //
     // Reading guest's RIP
     __vmx_vmread(GUEST_RIP, &Rip);
-    //
-    if (SysretAddress == NULL)
+
+
+
+    if (g_GuestState[CoreIndex].DebuggingState.SysretAddress == NULL && Rip & 0xff00000000000000)
     {
         //
         // Find the address of sysret
@@ -341,12 +348,12 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             //
             // Save the address of Sysret, it won't change
             //
-            SysretAddress = Rip;
+            g_GuestState[CoreIndex].DebuggingState.SysretAddress = Rip;
         }
         __writecr3(OriginalCr3);
     }
 
-    if (Rip == SysretAddress)
+    if (Rip == g_GuestState[CoreIndex].DebuggingState.SysretAddress)
     {
         //
         // It's a sysret instruction, let's emulate it
@@ -374,8 +381,8 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     //
 EmulateSYSRET:
     LogInfo("SYSRET instruction => 0x%llX", Rip);
-    Result                                                  = SyscallHookEmulateSYSRET(Regs);
-    g_GuestState[KeGetCurrentProcessorIndex()].IncrementRip = FALSE;
+    Result                               = SyscallHookEmulateSYSRET(Regs);
+    g_GuestState[CoreIndex].IncrementRip = FALSE;
     return Result;
     //
     // Emulate SYSCALL instruction
@@ -384,11 +391,14 @@ EmulateSYSCALL:
     //
     // We don't emulate the syscalls anymore because
     // The usermode code might be paged out
-    // Result = SyscallHookEmulateSYSCALL(Regs);
+    Result = SyscallHookEmulateSYSCALL(Regs);
+    LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x",
+            Rip,
+            PsGetCurrentProcessId());
     //
-    SyscallHookEnableSCE();
-    HvSetMonitorTrapFlag(TRUE);
-    g_GuestState[CoreIndex].IncrementRip                               = FALSE;
-    g_GuestState[CoreIndex].DebuggingState.UndefinedInstructionAddress = Rip;
+    //SyscallHookEnableSCE();
+    //HvSetMonitorTrapFlag(TRUE);
+    //g_GuestState[CoreIndex].DebuggingState.UndefinedInstructionAddress = Rip;
+    g_GuestState[CoreIndex].IncrementRip = FALSE;
     return TRUE;
 }

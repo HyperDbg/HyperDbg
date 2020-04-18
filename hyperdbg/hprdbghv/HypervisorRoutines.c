@@ -448,6 +448,20 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
         msr.Content = __readmsr(GuestRegs->rcx);
     }
 
+    //
+    // Check if it's EFER MSR then we show a false SCE state so the
+    // patchguard won't cause BSOD
+    //
+    if (GuestRegs->rcx == MSR_EFER)
+    {
+        DbgBreakPoint();
+
+        EFER_MSR MsrEFER;
+        MsrEFER.Flags         = msr.Content;
+        MsrEFER.SyscallEnable = TRUE;
+        msr.Content           = MsrEFER.Flags;
+    }
+
     GuestRegs->rax = msr.Low;
     GuestRegs->rdx = msr.High;
 }

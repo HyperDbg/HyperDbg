@@ -91,3 +91,11 @@ extern void
 AsmReloadGdtr(void * GdtBase, unsigned long GdtLimit);
 extern void
 AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
+
+
+//
+// ====================  Debugger Functions ====================
+// File : AsmDebugger.asm
+//
+extern void
+AsmGeneralDetourHook();

@@ -734,6 +734,49 @@ VOID
 EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
 {
     //
+    // call $ + 5 ; A 64-bit call instruction is still 5 bytes wide!
+    //
+    TargetBuffer[0] = 0xe8;
+    TargetBuffer[1] = 0x00;
+    TargetBuffer[2] = 0x00;
+    TargetBuffer[3] = 0x00;
+    TargetBuffer[4] = 0x00;
+
+
+    //
+    // mov r15, Target
+    //
+    TargetBuffer[5] = 0x49;
+    TargetBuffer[6] = 0xBB;
+
+    //
+    // Target
+    //
+    *((PSIZE_T)&TargetBuffer[7]) = TargetAddress;
+
+    //
+    // push r15
+    //
+    TargetBuffer[15] = 0x41;
+    TargetBuffer[16] = 0x53;
+
+    //
+    // ret
+    //
+    TargetBuffer[17] = 0xC3;
+}
+
+/**
+ * @brief Write an absolute x64 jump to an arbitrary address to a buffer
+ * 
+ * @param TargetBuffer 
+ * @param TargetAddress 
+ * @return VOID 
+ */
+VOID
+EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
+{
+    //
     // mov r15, Target
     //
     TargetBuffer[0] = 0x49;
@@ -774,7 +817,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     OffsetIntoPage = ADDRMASK_EPT_PML1_OFFSET((SIZE_T)TargetFunction);
     LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
 
-    if ((OffsetIntoPage + 13) > PAGE_SIZE - 1)
+    if ((OffsetIntoPage + 18) > PAGE_SIZE - 1)
     {
         LogError("Function extends past a page boundary. We just don't have the technology to solve this.....");
         return FALSE;
@@ -784,7 +827,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     // Determine the number of instructions necessary to overwrite using Length Disassembler Engine
     //
     for (SizeOfHookedInstructions = 0;
-         SizeOfHookedInstructions < 13;
+         SizeOfHookedInstructions < 18;
          SizeOfHookedInstructions += LDE(TargetFunction, 64))
     {
         //
@@ -817,7 +860,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     // Add the absolute jump back to the original function
     //
-    EptHookWriteAbsoluteJump(&Hook->Trampoline[SizeOfHookedInstructions], (SIZE_T)TargetFunction + SizeOfHookedInstructions);
+    EptHookWriteAbsoluteJump2(&Hook->Trampoline[SizeOfHookedInstructions], (SIZE_T)TargetFunction + SizeOfHookedInstructions);
 
     LogInfo("Trampoline: 0x%llx", Hook->Trampoline);
     LogInfo("HookFunction: 0x%llx", HookFunction);

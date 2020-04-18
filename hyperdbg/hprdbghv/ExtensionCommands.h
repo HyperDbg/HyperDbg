@@ -11,8 +11,13 @@
  */
 
 #include <ntddk.h>
-#include "DebuggerCommands.h"
 
 //////////////////////////////////////////////////
-//				Exported Functions				//
+//				     Functions		      		//
 //////////////////////////////////////////////////
+
+VOID
+ExtensionCommandEnableEferOnAllProcessors();
+
+VOID
+ExtensionCommandDisableEferOnAllProcessors();

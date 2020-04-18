@@ -193,6 +193,9 @@
     <ClInclude Include="Debugger.h">
       <Filter>Header Files\Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="Broadcast.h">
+      <Filter>Header Files\Debugger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmEpt.asm">
@@ -211,6 +214,9 @@
       <Filter>Source Files\Assembly</Filter>
     </MASM>
     <MASM Include="AsmVmexitHandler.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmDebugger.asm">
       <Filter>Source Files\Assembly</Filter>
     </MASM>
   </ItemGroup>

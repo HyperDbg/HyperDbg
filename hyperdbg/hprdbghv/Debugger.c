@@ -13,7 +13,98 @@
 #include <ntddk.h>
 #include "Common.h"
 #include "Debugger.h"
+#include "ExtensionCommands.h"
 #include "GlobalVariables.h"
+#include "Hooks.h"
+
+VOID
+TestMe()
+{
+    //
+    //---------------------------------------------------------------------------
+    // Example of using events and actions
+    //
+
+    //
+    // Create condition buffer
+    //
+    char CondtionBuffer[8];
+    CondtionBuffer[0] = 0x90; //nop
+    CondtionBuffer[1] = 0x90; //nop
+    CondtionBuffer[2] = 0xcc; //int 3
+    CondtionBuffer[3] = 0x90; //nop
+    CondtionBuffer[4] = 0xcc; //int 3
+    CondtionBuffer[5] = 0x90; //nop
+    CondtionBuffer[6] = 0x90; //nop
+    CondtionBuffer[7] = 0xc3; // ret
+
+    //
+    // Create event based on condition buffer
+    //
+    PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
+
+    if (!Event1)
+    {
+        LogError("Error in creating event");
+    }
+
+    //
+    // *** Add Actions example ***
+    //
+
+    //
+    // Add action for RUN_CUSTOM_CODE
+    //
+    DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
+
+    char CustomCodeBuffer[8];
+    CustomCodeBuffer[0] = 0xc3; //nop
+    CustomCodeBuffer[1] = 0x90; //nop
+    CustomCodeBuffer[2] = 0x90; //int 3
+    CustomCodeBuffer[3] = 0x90; //nop
+    CustomCodeBuffer[4] = 0x90; //int 3
+    CustomCodeBuffer[5] = 0x90; //nop
+    CustomCodeBuffer[6] = 0xc3; //nop
+    CustomCodeBuffer[7] = 0xc3; // ret
+
+    CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
+    CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
+    CustomCode.OptionalRequestedBufferSize = 0x100;
+
+    DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+
+    /*
+    //
+    // Add action for BREAK_TO_DEBUGGER
+    //
+    DebuggerAddActionToEvent(Event1, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
+
+    //
+    // Add action for LOG_THE_STATES
+    //
+
+    DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION LogConfiguration = {0};
+    LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
+    LogConfiguration.LogLength                               = 0x10;
+    LogConfiguration.LogMask                                 = 0x1;
+    LogConfiguration.LogValue                                = 0x4;
+
+    DebuggerAddActionToEvent(Event1, LOG_THE_STATES, TRUE, NULL, &LogConfiguration);
+    */
+
+    //
+    // Call to register
+    //
+    DebuggerRegisterEvent(Event1);
+
+    //
+    // Enable one event to test it
+    //
+    //ExtensionCommandEnableEferOnAllProcessors();
+    HiddenHooksTest();
+
+
+}
 
 BOOLEAN
 DebuggerInitialize()
@@ -41,6 +132,8 @@ DebuggerInitialize()
     // Enabled Debugger Events
     //
     g_EnableDebuggerEvents = TRUE;
+
+    TestMe();
 
     return TRUE;
 }

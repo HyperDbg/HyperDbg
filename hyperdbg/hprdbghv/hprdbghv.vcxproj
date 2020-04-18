@@ -117,6 +117,7 @@
     <ClCompile Include="Vpid.c" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="AsmDebugger.asm" />
     <MASM Include="AsmEpt.asm" />
     <MASM Include="AsmCommon.asm" />
     <MASM Include="AsmSegmentRegs.asm" />
@@ -125,6 +126,7 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Broadcast.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebuggerCommands.h" />
     <ClInclude Include="Dpc.h" />

@@ -12,6 +12,7 @@
 
 #include "Vmcall.h"
 #include "GlobalVariables.h"
+#include "Hooks.h"
 #include "Common.h"
 #include "Invept.h"
 
@@ -102,6 +103,16 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         {
             VmcallStatus = STATUS_UNSUCCESSFUL;
         }
+        break;
+    }
+    case VMCALL_ENABLE_SYSCALL_HOOK_EFER:
+    {
+        SyscallHookConfigureEFER(TRUE);
+        break;
+    }
+    case VMCALL_DISABLE_SYSCALL_HOOK_EFER:
+    {
+        SyscallHookConfigureEFER(FALSE);
         break;
     }
     default:

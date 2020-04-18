@@ -28,6 +28,7 @@
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     UINT64 UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
+    UINT64 SysretAddress; // Address of sysret
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
