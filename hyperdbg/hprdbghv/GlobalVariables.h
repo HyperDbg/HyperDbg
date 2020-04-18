@@ -58,3 +58,9 @@ BOOLEAN g_AllowIOCTLFromUsermode;
  * 
  */
 BOOLEAN g_EnableDebuggerEvents;
+
+/**
+ * @brief List header of hidden hooks detour
+ * 
+ */
+LIST_ENTRY g_HiddenHooksDetourListHead;

@@ -15,6 +15,8 @@
 #include "Debugger.h"
 #include "Logging.h"
 #include "Common.h"
+#include "Hooks.h"
+#include "GlobalVariables.h"
 
 /**
  * @brief routines for !syscallhook command (enable syscall hook)
@@ -46,9 +48,37 @@ ExtensionCommandDisableEferOnAllProcessors()
 VOID
 ExtensionCommandHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
 {
+    PLIST_ENTRY TempList = 0;
+
     DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOUR, Regs, 0x0);
     LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = %d , Pool Type = %d ",
             Regs->rcx,
             Regs->rdx,
             Regs->r8);
+
+    //
+    // Iterate through the list of hooked pages details to find
+    // and return where want to jump after this functions
+    //
+    TempList = &g_HiddenHooksDetourListHead;
+
+    while (&g_HiddenHooksDetourListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PHIDDEN_HOOKS_DETOUR_DETAILS CurrentHookedDetails = CONTAINING_RECORD(TempList, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList);
+
+        if (CurrentHookedDetails->HookedFunctionAddress == CalledFrom)
+        {
+            return CurrentHookedDetails->ReturnAddress;
+        }
+    }
+
+    //
+    // If we reach here, means that we didn't find the return address
+    // that's an error, we can't do anything else now :(
+    //
+
+    LogError("Couldn't find anything to return");
+
+    return 0;
 }

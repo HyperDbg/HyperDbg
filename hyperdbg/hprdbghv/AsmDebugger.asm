@@ -10,7 +10,6 @@ AsmGeneralDetourHook PROC PUBLIC
 
 SaveTheRegisters:
 
-
     push r15
     push r14
     push r13
@@ -38,6 +37,8 @@ SaveTheRegisters:
 
 	add	rsp, 28h		; Restore the state
 
+    mov  [rsp +080h], rax ; the return address of the above function is where we should continue
+
 RestoreTheRegisters:
 	pop rax
     pop rcx
@@ -56,9 +57,7 @@ RestoreTheRegisters:
     pop r14
     pop r15
 
-    add rsp, 8 ; it's because we saved "call $ + 5 " to the stack
-    
-    jmp ExAllocatePoolWithTagOrig
+    ret ; jump back to the trampoline
     
 AsmGeneralDetourHook ENDP 
 

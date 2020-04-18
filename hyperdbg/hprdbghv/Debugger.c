@@ -127,6 +127,11 @@ DebuggerInitialize()
         InitializeListHead(&g_GuestState[i].Events.HiddenHooksExecDetourEventsHead);
         InitializeListHead(&g_GuestState[i].Events.SyscallHooksEferEventsHead);
     }
+    
+    //
+    // Initialize the list of hidden hooks headers
+    //
+    InitializeListHead(&g_HiddenHooksDetourListHead);
 
     //
     // Enabled Debugger Events

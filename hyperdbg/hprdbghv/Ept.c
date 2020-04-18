@@ -19,6 +19,7 @@
 #include "HypervisorRoutines.h"
 #include "Vmcall.h"
 #include "PoolManager.h"
+#include "Hooks.h"
 
 /**
  * @brief Check whether EPT features are present or not
@@ -742,7 +743,6 @@ EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
     TargetBuffer[3] = 0x00;
     TargetBuffer[4] = 0x00;
 
-
     //
     // mov r15, Target
     //
@@ -811,8 +811,9 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
 BOOLEAN
 EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVOID HookFunction, PVOID * OrigFunction)
 {
-    SIZE_T SizeOfHookedInstructions;
-    SIZE_T OffsetIntoPage;
+    PHIDDEN_HOOKS_DETOUR_DETAILS DetourHookDetails;
+    SIZE_T                       SizeOfHookedInstructions;
+    SIZE_T                       OffsetIntoPage;
 
     OffsetIntoPage = ADDRMASK_EPT_PML1_OFFSET((SIZE_T)TargetFunction);
     LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
@@ -869,6 +870,20 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     // Let the hook function call the original function
     //
     *OrigFunction = Hook->Trampoline;
+
+    //
+    // Create the structure to return for the debugger, we do it here because it's the first
+    // function that changes the original function and if our structure is no ready after this
+    // fucntion then we probably see BSOD on other cores
+    //
+    DetourHookDetails                        = PoolManagerRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
+    DetourHookDetails->HookedFunctionAddress = TargetFunction;
+    DetourHookDetails->ReturnAddress         = Hook->Trampoline;
+
+    //
+    // Insert it to the list of hooked pages
+    //
+    InsertHeadList(&g_HiddenHooksDetourListHead, &(DetourHookDetails->OtherHooksList));
 
     //
     // Write the absolute jump to our shadow page memory to jump to our hook

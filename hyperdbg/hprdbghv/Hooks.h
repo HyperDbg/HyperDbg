@@ -42,6 +42,14 @@ typedef struct _SSDTStruct
     PCHAR pArgumentTable;
 } SSDTStruct, *PSSDTStruct;
 
+typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
+{
+    LIST_ENTRY OtherHooksList;
+    PVOID      HookedFunctionAddress;
+    PVOID      ReturnAddress;
+} HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
+
+
 typedef struct _SYSTEM_MODULE_ENTRY
 {
     HANDLE Section;

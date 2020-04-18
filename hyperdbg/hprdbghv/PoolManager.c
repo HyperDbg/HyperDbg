@@ -17,6 +17,7 @@
 #include "GlobalVariables.h"
 #include "PoolManager.h"
 #include "Common.h"
+#include "Hooks.h"
 
 /**
  * @brief Initializes the pool manager
@@ -66,6 +67,11 @@ PoolManagerInitialize()
     // Request pages to be allocated for Trampoline of Executable hooked pages
     //
     PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 10, EXEC_TRAMPOLINE);
+
+    //
+    // Request pages to be allocated for detour hooked pages details
+    //
+    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 10, DETOUR_HOOK_DETAILS);
 
     //
     // Let's start the allocations
