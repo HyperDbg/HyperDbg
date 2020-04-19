@@ -19,8 +19,6 @@
 using namespace std;
 
 
-#define clrscr() printf("\e[1;1H\e[2J")
-
 // Exports
 extern "C"
 {
@@ -46,10 +44,29 @@ const vector<string> Split(const string& s, const char& c)
 void CommandClearScreen() {
 	system("cls");
 }
-void CommandSyscallHook(vector<string> SplittedCommand) {
+
+
+void CommandHiddenHook(vector<string> SplittedCommand) {
 
 	//
-	// !syscallhook [Method (efer or etc)] [Type (all/process)] [Action (log/break/condition)] [pid]
+	// Note : You can use "bh" and "!hiddenhook" in a same way
+	// * means optional
+	// !hiddenhook 
+	//				 [Type:(all/process)] 
+	//				 [Address:(hex) - Address to hook]
+	//				*[Pid:(hex number) - only if you choose 'process' as the Type]
+	//				 [Action:(break/code/log)] 
+	//				*[Condition:({ asm in hex })]
+	//				*[Code:({asm in hex}) - only if you choose 'code' as the Action]
+	//				*[Log:(gp regs, pseudo-regs, static address, dereference regs +- value) - only if you choose 'log' as the Action]
+	//
+	// 
+	//		e.g :
+	//				-	bh all break fffff801deadbeef 
+	//						Description : Breaks to the debugger in all accesses to the selected address
+	//
+	//				-	!hiddenhook process 8e34 fffff801deadbeef
+	//						Description : Breaks to the debugger in accesses from the selected process by pid to the selected address
 	//
 
 	for (auto Section : SplittedCommand) {
@@ -93,8 +110,8 @@ int _cdecl  HyperdbgInterpreter(const char* Command) {
 	{
 		CommandClearScreen();
 	}
-	else if (!FirstCommand.compare("!syscallhook")) {
-		CommandSyscallHook(SplittedCommand);
+	else if (!FirstCommand.compare("!hiddenhook") || !FirstCommand.compare("bh")) {
+		CommandHiddenHook(SplittedCommand);
 	}
 	else 
 	{

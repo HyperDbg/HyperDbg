@@ -670,11 +670,11 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     }
 
     //
-    // Check if we need to send the buffer to the usermode or not we only send 
-    // buffer in usermode if the user requested a pre allocated buffer and 
+    // Check if we need to send the buffer to the usermode or not we only send
+    // buffer in usermode if the user requested a pre allocated buffer and
     //return its address (in RAX), it's obvious the user might request a buffer
     // and at last return another address (which is not the address of pre]
-    // allocated buffer), no matter, we send the user specific buffer with the 
+    // allocated buffer), no matter, we send the user specific buffer with the
     // size of the request for pre allocated buffer
     //
     if (ReturnBufferToUsermodeAddress != 0 && Action->RequestedBuffer.RequestBufferSize != 0)
