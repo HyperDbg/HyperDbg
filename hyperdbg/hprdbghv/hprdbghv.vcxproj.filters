@@ -196,6 +196,9 @@
     <ClInclude Include="Broadcast.h">
       <Filter>Header Files\Debugger</Filter>
     </ClInclude>
+    <ClInclude Include="LengthDisassemblerEngine.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmEpt.asm">

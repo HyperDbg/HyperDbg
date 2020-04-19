@@ -9,7 +9,6 @@ EXTERN ExtensionCommandHiddenHookGeneralDetourEventHandler:PROC
 AsmGeneralDetourHook PROC PUBLIC
 
 SaveTheRegisters:
-
     push r15
     push r14
     push r13
@@ -30,7 +29,6 @@ SaveTheRegisters:
 	mov rcx, rsp		    ; Fast call argument to PGUEST_REGS
     mov rdx, [rsp +080h]    ; Fast call argument (second) - CalledFrom
     sub rdx, 5              ; as we used (call $ + 5) so we subtract it by 5 
-
 	sub	rsp, 28h		; Free some space for Shadow Section
 
 	call	ExtensionCommandHiddenHookGeneralDetourEventHandler
@@ -56,7 +54,6 @@ RestoreTheRegisters:
     pop r13
     pop r14
     pop r15
-
     ret ; jump back to the trampoline
     
 AsmGeneralDetourHook ENDP 

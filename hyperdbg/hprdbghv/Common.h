@@ -420,12 +420,10 @@ NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
 //////////////////////////////////////////////////
-//			  LDE64 (relocatable)				//
+//			         Functions  				//
 //////////////////////////////////////////////////
 
 #define MAX_EXEC_TRAMPOLINE_SIZE 100
-
-extern size_t __fastcall LDE(const void * lpData, unsigned int size);
 
 /* A test function for Syscall hook */
 VOID

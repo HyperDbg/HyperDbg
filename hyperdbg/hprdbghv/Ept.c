@@ -20,6 +20,8 @@
 #include "Vmcall.h"
 #include "PoolManager.h"
 #include "Hooks.h"
+#include "LengthDisassemblerEngine.h"
+
 
 /**
  * @brief Check whether EPT features are present or not
@@ -829,13 +831,12 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 18;
-         SizeOfHookedInstructions += LDE(TargetFunction, 64))
+         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions) , 64))
     {
         //
         // Get the full size of instructions necessary to copy
         //
     }
-
     LogInfo("Number of bytes of instruction mem: %d", SizeOfHookedInstructions);
 
     //
