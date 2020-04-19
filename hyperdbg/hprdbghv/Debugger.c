@@ -41,7 +41,7 @@ TestMe()
     //
     // Create event based on condition buffer
     //
-    PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
+    PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, HIDDEN_HOOK_EXEC_DETOUR, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
 
     if (!Event1)
     {
@@ -58,14 +58,14 @@ TestMe()
     DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
 
     char CustomCodeBuffer[8];
-    CustomCodeBuffer[0] = 0xc3; //nop
+    CustomCodeBuffer[0] = 0xcc; //int 3
     CustomCodeBuffer[1] = 0x90; //nop
-    CustomCodeBuffer[2] = 0x90; //int 3
+    CustomCodeBuffer[2] = 0x90; //nop
     CustomCodeBuffer[3] = 0x90; //nop
-    CustomCodeBuffer[4] = 0x90; //int 3
+    CustomCodeBuffer[4] = 0x90; //nop
     CustomCodeBuffer[5] = 0x90; //nop
-    CustomCodeBuffer[6] = 0xc3; //nop
-    CustomCodeBuffer[7] = 0xc3; // ret
+    CustomCodeBuffer[6] = 0xcc; //int 3
+    CustomCodeBuffer[7] = 0xc3; //ret
 
     CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
     CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
@@ -102,8 +102,6 @@ TestMe()
     //
     //ExtensionCommandEnableEferOnAllProcessors();
     HiddenHooksTest();
-
-
 }
 
 BOOLEAN
@@ -127,7 +125,7 @@ DebuggerInitialize()
         InitializeListHead(&g_GuestState[i].Events.HiddenHooksExecDetourEventsHead);
         InitializeListHead(&g_GuestState[i].Events.SyscallHooksEferEventsHead);
     }
-    
+
     //
     // Initialize the list of hidden hooks headers
     //
@@ -522,23 +520,23 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
 
     if (EventType == HIDDEN_HOOK_RW)
     {
-        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
         TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookRwEventsHead;
     }
     else if (EventType == HIDDEN_HOOK_EXEC_DETOUR)
     {
-        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
         TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHooksExecDetourEventsHead;
     }
     else if (EventType == HIDDEN_HOOK_EXEC_CC)
     {
-        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookExecCcEventsHead;
         TempList2 = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookExecCcEventsHead;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.HiddenHookExecCcEventsHead;
     }
     else if (EventType == SYSCALL_HOOK_EFER)
     {
-        TempList  = &g_GuestState[CurrentProcessorIndex].Events.SyscallHooksEferEventsHead;
         TempList2 = &g_GuestState[CurrentProcessorIndex].Events.SyscallHooksEferEventsHead;
+        TempList  = &g_GuestState[CurrentProcessorIndex].Events.SyscallHooksEferEventsHead;
     }
     else
     {
@@ -590,13 +588,13 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
         switch (CurrentAction->ActionType)
         {
         case BREAK_TO_DEBUGGER:
-            DebuggerPerformBreakToDebugger(Event, CurrentAction, Regs, Context);
+            DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
             break;
         case LOG_THE_STATES:
-            DebuggerPerformLogTheStates(Event, CurrentAction, Regs, Context);
+            DebuggerPerformLogTheStates(Event->Tag, CurrentAction, Regs, Context);
             break;
         case RUN_CUSTOM_CODE:
-            DebuggerPerformRunTheCustomCode(Event, CurrentAction, Regs, Context);
+            DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
             break;
         default:
             //
@@ -613,6 +611,7 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
     //
     // Context point to the registers
     //
+    DbgBreakPoint();
 
     //   Action->LogConfiguration.LogValue
     //       Action->LogConfiguration.LogType
@@ -625,10 +624,81 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
 VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
+    DbgBreakPoint();
 }
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
+    PVOID                                             ReturnBufferToUsermodeAddress = 0;
+    DebuggerRunCustomCodeFunc *                       Func;
+    DebuggerRunCustomCodeWithPreAllocatedBufferFunc * FuncWithPreAllocBuffer;
+
+    if (Action->CustomCodeBufferSize == 0)
+    {
+        //
+        // Sth went wrong ! the buffer size for custom code shouldn't be zero
+        //
+        return;
+    }
+
+    //
+    // Run the custom code
+    //
+    if (Action->RequestedBuffer.RequestBufferSize == 0)
+    {
+        //
+        // Means that this custom code doesn't requested a pre-allocated buffer
+        //
+        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
+
+        //
+        // Execute the code
+        //
+        ReturnBufferToUsermodeAddress = Func();
+    }
+    else
+    {
+        //
+        // Means that this custom code doesn't requested a pre-allocated buffer
+        //
+        FuncWithPreAllocBuffer = (DebuggerRunCustomCodeWithPreAllocatedBufferFunc *)Action->CustomCodeBufferAddress;
+
+        //
+        // Execute the code (with requested buffer parameter)
+        //
+        ReturnBufferToUsermodeAddress = FuncWithPreAllocBuffer(Action->RequestedBuffer.RequstBufferAddress);
+    }
+
+    //
+    // Check if we need to send the buffer to the usermode or not we only send 
+    // buffer in usermode if the user requested a pre allocated buffer and 
+    //return its address (in RAX), it's obvious the user might request a buffer
+    // and at last return another address (which is not the address of pre]
+    // allocated buffer), no matter, we send the user specific buffer with the 
+    // size of the request for pre allocated buffer
+    //
+    if (ReturnBufferToUsermodeAddress != 0 && Action->RequestedBuffer.RequestBufferSize != 0)
+    {
+        //
+        // Send the buffer to the usermode
+        //
+
+        //
+        // check if buffer is valid or not, actually MS recommends not to use
+        // MmIsAddressValid, but we're not doing anything fancy here just wanna
+        // see if it's a valid address or not, because if this routine return
+        // null then it means that we didn't find a valid physical address for
+        // it, so if the programmer unintentionally forget to zero RAX, we can
+        // avoid doing sth bad here. (This function uses MmGetPhysicalAddress)
+        //
+        if (VirtualAddressToPhysicalAddress(ReturnBufferToUsermodeAddress) != 0)
+        {
+            //
+            // Address is valid, let send it with specific tag
+            //
+            LogSendBuffer(Tag, ReturnBufferToUsermodeAddress, Action->RequestedBuffer.RequestBufferSize);
+        }
+    }
 }
 
 BOOLEAN

@@ -50,11 +50,23 @@ ExtensionCommandHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID Call
 {
     PLIST_ENTRY TempList = 0;
 
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOUR, Regs, 0x0);
-    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = %d , Pool Type = %d ",
-            Regs->rcx,
-            Regs->rdx,
-            Regs->r8);
+    //
+    // As the context to event trigger, we send the address of function
+    // which is current hidden hook is triggered for it
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOUR, Regs, CalledFrom);
+
+    //
+    // test
+    //
+
+    //
+    //LogInfo("Hidden Hooked function Called with : rcx = 0x%llx , rdx = 0x%llx , r8 = 0x%llx ,  r9 = 0x%llx",
+    //        Regs->rcx,
+    //        Regs->rdx,
+    //        Regs->r8,
+    //        Regs->r9);
+    //
 
     //
     // Iterate through the list of hooked pages details to find
@@ -64,7 +76,7 @@ ExtensionCommandHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID Call
 
     while (&g_HiddenHooksDetourListHead != TempList->Flink)
     {
-        TempList = TempList->Flink;
+        TempList                                          = TempList->Flink;
         PHIDDEN_HOOKS_DETOUR_DETAILS CurrentHookedDetails = CONTAINING_RECORD(TempList, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList);
 
         if (CurrentHookedDetails->HookedFunctionAddress == CalledFrom)

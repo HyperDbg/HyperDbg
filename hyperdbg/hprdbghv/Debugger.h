@@ -32,6 +32,16 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
+
+//////////////////////////////////////////////////
+//					Data Type					//
+//////////////////////////////////////////////////
+
+typedef PVOID DebuggerRunCustomCodeFunc(VOID);
+
+typedef PVOID DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress);
+
+
 //////////////////////////////////////////////////
 //					Log wit Tag					//
 //////////////////////////////////////////////////
