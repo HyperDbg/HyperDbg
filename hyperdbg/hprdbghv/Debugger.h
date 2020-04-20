@@ -28,19 +28,20 @@
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     UINT64 UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
-    UINT64 SysretAddress; // Address of sysret
+    UINT64 SysretAddress;               // Address of sysret
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
-
 
 //////////////////////////////////////////////////
 //					Data Type					//
 //////////////////////////////////////////////////
 
+typedef UINT64 DebuggerCheckForCondition(VOID);
+
 typedef PVOID DebuggerRunCustomCodeFunc(VOID);
 
-typedef PVOID DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress);
-
+typedef PVOID
+DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress);
 
 //////////////////////////////////////////////////
 //					Log wit Tag					//
@@ -76,7 +77,7 @@ VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
 
 VOID
-DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action,PGUEST_REGS Regs, PVOID Context);
+DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);
 
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context);

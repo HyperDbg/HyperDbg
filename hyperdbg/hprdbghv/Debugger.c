@@ -29,13 +29,13 @@ TestMe()
     // Create condition buffer
     //
     char CondtionBuffer[8];
-    CondtionBuffer[0] = 0x90; //nop
-    CondtionBuffer[1] = 0x90; //nop
-    CondtionBuffer[2] = 0xcc; //int 3
-    CondtionBuffer[3] = 0x90; //nop
+    CondtionBuffer[0] = 0xcc; //int 3
+    CondtionBuffer[1] = 0x48; //nop
+    CondtionBuffer[2] = 0x31; //int 3
+    CondtionBuffer[3] = 0xc0; //nop
     CondtionBuffer[4] = 0xcc; //int 3
     CondtionBuffer[5] = 0x90; //nop
-    CondtionBuffer[6] = 0x90; //nop
+    CondtionBuffer[6] = 0xcc; //int 3
     CondtionBuffer[7] = 0xc3; // ret
 
     //
@@ -494,10 +494,10 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
-    ULONG       CurrentProcessorIndex;
-    PLIST_ENTRY TempList  = 0;
-    PLIST_ENTRY TempList2 = 0;
-
+    ULONG                       CurrentProcessorIndex;
+    PLIST_ENTRY                 TempList  = 0;
+    PLIST_ENTRY                 TempList2 = 0;
+    DebuggerCheckForCondition * ConditionFunc;
     //
     // Check if triggering debugging actions are allowed or not
     //
@@ -556,6 +556,30 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         if (!CurrentEvent->Enabled)
         {
             continue;
+        }
+
+        //
+        // Check if condtion is met or not , if the condition
+        // is not met then we have to avoid performing the actions
+        //
+        if (CurrentEvent->ConditionsBufferSize != 0)
+        {
+            //
+            // Means that there is some conditions
+            //
+            ConditionFunc = CurrentEvent->ConditionBufferAddress;
+
+            //
+            // Run and check for results
+            //
+            if (ConditionFunc() == 0)
+            {
+                //
+                // The condition function returns null, mean that the
+                // condition didn't met, we can ignore this event
+                //
+                continue;
+            }
         }
 
         //
