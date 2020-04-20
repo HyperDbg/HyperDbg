@@ -23,9 +23,11 @@ TCHAR driverLocation[MAX_PATH] = { 0 };
 
 
 
+
 // Exports
 extern "C"
 {
+	extern bool inline AsmVmxSupportDetection();
 	__declspec (dllexport) int __cdecl  HyperdbgLoad();
 	__declspec (dllexport) int __cdecl  HyperdbgUnload();
 	__declspec (dllexport) int __cdecl  HyperdbgInstallDriver();
@@ -78,62 +80,6 @@ void ShowMessages(const char* Fmt, ...) {
 }
 
 /**
- * @brief Get the Cpuid
- * 
- * @return string 
- */
-string GetCpuid()
-{
-	char SysType[13]; // Array consisting of 13 single bytes/characters
-	string CpuID; // The string that will be used to add all the characters toStarting coding in assembly language 
-
-	_asm
-	{
-		//
-		//Execute CPUID with EAX = 0 to get the CPU producer
-		//
-		xor eax, eax
-		cpuid
-
-		//
-		//MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation
-		//
-
-		mov eax, ebx
-		mov SysType[0], al
-		mov SysType[1], ah
-		shr eax, 16
-		mov SysType[2], al
-		mov SysType[3], ah
-
-		//
-		//Get the second part the same way but these values are stored in EDX
-		//
-		mov eax, edx
-		mov SysType[4], al
-		mov SysType[5], ah
-		shr EAX, 16
-		mov SysType[6], al
-		mov SysType[7], ah
-
-		//
-		//Get the third part
-		//
-		mov eax, ecx
-		mov SysType[8], al
-		mov SysType[9], ah
-		SHR EAX, 16
-		mov SysType[10], al
-		mov SysType[11], ah
-		mov SysType[12], 00
-	}
-
-	CpuID.assign(SysType, 12);
-
-	return CpuID;
-}
-
-/**
  * @brief Detect VMX support
  * 
  * @return true if vmx is supported
@@ -141,30 +87,7 @@ string GetCpuid()
  */
 bool VmxSupportDetection()
 {
-
-	bool VMX;
-
-	VMX = false;
-
-	__asm {
-
-		xor eax, eax
-		inc    eax
-		cpuid
-		bt     ecx, 0x5
-		jc     VMXSupport
-
-		VMXNotSupport :
-		jmp     NopInstr
-
-			VMXSupport :
-		mov    VMX, 0x1
-
-			NopInstr :
-			nop
-	}
-
-	return VMX;
+	return AsmVmxSupportDetection();
 }
 
 
@@ -327,6 +250,7 @@ DWORD WINAPI ThreadFunc(void* Data) {
  */
 HPRDBGCTRL_API int HyperdbgInstallDriver()
 {
+	ReadVendorString();
 	//
 	// The driver is not started yet so let us the install driver.
 	// First setup full path to driver name.
@@ -393,7 +317,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	HANDLE hToken;
 
 
-	CpuID = GetCpuid();
+	CpuID = ReadVendorString();
 
 	ShowMessages("The CPU Vendor is : %s", CpuID.c_str());
 
@@ -406,6 +330,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		ShowMessages("This program is not designed to run in a non-VT-x environemnt !");
 		return 1;
 	}
+
 
 	if (VmxSupportDetection())
 	{

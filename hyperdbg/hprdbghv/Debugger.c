@@ -29,13 +29,13 @@ TestMe()
     // Create condition buffer
     //
     char CondtionBuffer[8];
-    CondtionBuffer[0] = 0xcc; //int 3
+    CondtionBuffer[0] = 0x90; //int 3
     CondtionBuffer[1] = 0x48; //nop
     CondtionBuffer[2] = 0x31; //int 3
     CondtionBuffer[3] = 0xc0; //nop
-    CondtionBuffer[4] = 0xcc; //int 3
+    CondtionBuffer[4] = 0x90; //int 3
     CondtionBuffer[5] = 0x90; //nop
-    CondtionBuffer[6] = 0xcc; //int 3
+    CondtionBuffer[6] = 0x90; //int 3
     CondtionBuffer[7] = 0xc3; // ret
 
     //
@@ -101,7 +101,8 @@ TestMe()
     // Enable one event to test it
     //
     //ExtensionCommandEnableEferOnAllProcessors();
-    HiddenHooksTest();
+
+    // HiddenHooksTest();
 }
 
 BOOLEAN
@@ -494,6 +495,7 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
+    
     ULONG                       CurrentProcessorIndex;
     PLIST_ENTRY                 TempList  = 0;
     PLIST_ENTRY                 TempList2 = 0;

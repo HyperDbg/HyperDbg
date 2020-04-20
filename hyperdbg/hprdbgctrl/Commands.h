@@ -14,6 +14,10 @@
 #include "pch.h"
 #include <time.h>
 
+
+int ReadCpuDetails();
+std::string ReadVendorString();
+
 //
 // List of all active commands
 //

@@ -37,6 +37,7 @@
 #include "Configuration.h"
 #include "framework.h"
 #include "hprdbgctrl.h"
+#include "Commands.h"
 
 
 #endif //PCH_H
