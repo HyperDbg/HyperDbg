@@ -18,10 +18,25 @@
 int ReadCpuDetails();
 std::string ReadVendorString();
 
+
+// Exports
+extern "C"
+{
+    extern bool inline AsmVmxSupportDetection();
+    __declspec (dllexport) int __cdecl  HyperdbgLoad();
+    __declspec (dllexport) int __cdecl  HyperdbgUnload();
+    __declspec (dllexport) int __cdecl  HyperdbgInstallDriver();
+    __declspec (dllexport) int __cdecl  HyperdbgUninstallDriver();
+    __declspec (dllexport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
+
+}
+
+
 //
 // List of all active commands
 //
 LIST_ENTRY g_CommandstTrace;
+
 
 //
 // Each command is like the following struct

@@ -44,7 +44,7 @@ extern "C"
  */
 int main()
 {
-	/*
+	
 	bool ExitFromDebugger = false;
 
 	printf("HyperDbg Debugger [core version: v%s]\n",Version);
@@ -58,6 +58,7 @@ int main()
 		string command;
 		getline(cin, command);
 		int CommandExecutionResult = HyperdbgInterpreter(command.c_str());
+		printf("\n");
 
 		//
 		//if the debugger encounters an exit state then the return will be 1
@@ -70,31 +71,17 @@ int main()
 			ExitFromDebugger = true;
 		}
 
+
 	}
 
 
 
 	return 0;
-	*/
 
 	//
 	// Installing Driver
 	//
-	if (HyperdbgInstallDriver())
-	{
-		printf("Failed to install driver\n");
-		printf("Press any key to exit ...");
-		_getch();
-		return 1;
-	}
 
-	if (HyperdbgLoad())
-	{
-		printf("Failed to load driver\n");
-		printf("Press any key to exit ...");
-		_getch();
-		return 1;
-	}
 
 	printf("Press any key to exit vmx ...");
 	_getch();

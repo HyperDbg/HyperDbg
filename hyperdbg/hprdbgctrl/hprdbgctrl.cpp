@@ -24,19 +24,6 @@ TCHAR driverLocation[MAX_PATH] = { 0 };
 
 
 
-// Exports
-extern "C"
-{
-	extern bool inline AsmVmxSupportDetection();
-	__declspec (dllexport) int __cdecl  HyperdbgLoad();
-	__declspec (dllexport) int __cdecl  HyperdbgUnload();
-	__declspec (dllexport) int __cdecl  HyperdbgInstallDriver();
-	__declspec (dllexport) int __cdecl  HyperdbgUninstallDriver();
-	__declspec (dllexport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
-
-}
-
-
 /**
  * @brief Set the function callback that will be called if anything received from the kernel
  * 
