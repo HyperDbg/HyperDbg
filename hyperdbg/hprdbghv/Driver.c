@@ -197,6 +197,25 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
+    // Check to allow just one handle to the driver
+    // means that only one application can get the handle
+    // and new application won't allowed to create a new
+    // handle unless the IRP_MJ_CLOSE called.
+    //
+    if (g_HandleInUse)
+    {
+        //
+        // A driver got the handle before
+        //
+        Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
+        Irp->IoStatus.Information = 0;
+        IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+        return STATUS_UNSUCCESSFUL;
+
+    }
+
+    //
     // Allow to server IOCTL
     //
     g_AllowIOCTLFromUsermode = TRUE;
@@ -215,6 +234,30 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     if (HvVmxInitialize())
     {
         LogInfo("Hyperdbg's hypervisor loaded successfully :)");
+
+        //
+        // Initialize the debugger
+        //
+
+        if (DebuggerInitialize())
+        {
+            LogInfo("Hyperdbg's debugger loaded successfully");
+
+            //
+            // Set the variable so no one else can get a handle anymore
+            //
+            g_HandleInUse = TRUE;
+
+            Irp->IoStatus.Status      = STATUS_SUCCESS;
+            Irp->IoStatus.Information = 0;
+            IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+            return STATUS_SUCCESS;
+        }
+        else
+        {
+            LogError("Hyperdbg's debugger was not loaded");
+        }
     }
     else
     {
@@ -222,29 +265,14 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     }
 
     //
-    // Initialize the debugger
-    //
+    // if we didn't return by now, means that there is a problem
+    // 
 
-    if (DebuggerInitialize())
-    {
-        LogInfo("Hyperdbg's debugger loaded successfully");
-    }
-    else
-    {
-        LogError("Hyperdbg's debugger was not loaded");
-    }
-
-    //
-    // test
-    // HiddenHooksTest();
-    // SyscallHookTest();
-    //
-
-    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-    return STATUS_SUCCESS;
+    return STATUS_UNSUCCESSFUL;
 }
 
 /**
@@ -295,6 +323,15 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+
+    //
+    // If the close is called means that all of the IOCTLs
+    // are not in a pending state so we can safely allow
+    // a new handle creation for future calls to the driver
+    //
+    g_HandleInUse = FALSE;
+
+
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);

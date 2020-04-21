@@ -191,10 +191,6 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				default:
 					break;
 				}
-
-
-				ShowMessages("========================================================================\n");
-
 			}
 			else
 			{
