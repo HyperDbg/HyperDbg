@@ -73,37 +73,6 @@ int main()
 
 
 	}
-
-
-
-	return 0;
-
-	//
-	// Installing Driver
-	//
-
-
-	printf("Press any key to exit vmx ...");
-	_getch();
-
-	HyperdbgUnload();
-
-	//
-	// Installing Driver
-	//
-	if (HyperdbgUninstallDriver())
-	{
-		printf("Failed to uninstall driver\n");
-		printf("Press any key to exit ...");
-		_getch();
-		return 1;
-	}
-
-	printf("Press any key to exit...");
-	_getch();
-
-	exit(0);
-
 	return 0;
 }
 

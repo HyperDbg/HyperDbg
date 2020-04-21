@@ -25,6 +25,7 @@ extern "C" {
 }
 
 bool g_IsConnectedToDebugger = false;
+bool g_IsDebuggerModulesLoaded = false;
 
 
 const vector<string> Split(const string& s, const char& c) {
@@ -150,11 +151,6 @@ void CommandConnect(vector<string> SplittedCommand) {
 		CommandConnectHelp();
 		return;
 	}
-	else if (SplittedCommand.at(1) == "help")
-	{
-		CommandConnectHelp();
-		return;
-	}
 	else if (SplittedCommand.at(1) == "local" && SplittedCommand.size() == 2) {
 		//
 		// connect to local debugger
@@ -202,11 +198,31 @@ void CommandConnect(vector<string> SplittedCommand) {
 
 }
 
+
+void CommandDisconnectHelp() {
+	ShowMessages(".disconnect : disconnect from a debugging session (it won't unload the modules).\n\n");
+	ShowMessages("syntax : \.disconnect\n");
+}
 void CommandDisconnect(vector<string> SplittedCommand) {
-	for (auto Section : SplittedCommand) {
-		ShowMessages("%s", Section.c_str());
-		ShowMessages("\n");
+
+	if (SplittedCommand.size() != 1)
+	{
+		ShowMessages("incorrect use of '.disconnect'\n\n");
+		CommandDisconnectHelp();
+		return;
 	}
+	if (!g_IsConnectedToDebugger)
+	{
+		ShowMessages("You're not connected to any instance of HyperDbg, did you use '.connect'? \n");
+		return;
+	}
+	//
+	// Disconnect the session
+	//
+	g_IsConnectedToDebugger = false;
+	ShowMessages("successfully disconnected\n");
+
+
 }
 
 
@@ -240,13 +256,50 @@ void CommandLoad(vector<string> SplittedCommand) {
 		ShowMessages("Failed to load driver\n");
 		return;
 	}
+
+	//
+	// If we reach here so the module are loaded
+	//
+	g_IsDebuggerModulesLoaded = true;
 }
 
+
+void CommandUnloadHelp() {
+	ShowMessages("unload : unloads the kernel modules and uninstalls the drivers.\n\n");
+	ShowMessages("syntax : \tunload\n");
+}
 void CommandUnload(vector<string> SplittedCommand) {
-	for (auto Section : SplittedCommand) {
-		ShowMessages("%s", Section.c_str());
-		ShowMessages("\n");
+
+	if (SplittedCommand.size() != 1)
+	{
+		ShowMessages("incorrect use of 'unload'\n\n");
+		CommandLoadHelp();
+		return;
 	}
+	if (!g_IsConnectedToDebugger)
+	{
+		ShowMessages("You're not connected to any instance of HyperDbg, did you use '.connect'? \n");
+		return;
+	}
+
+	if (g_IsDebuggerModulesLoaded)
+	{
+		HyperdbgUnload();
+
+		//
+		// Installing Driver
+		//
+		if (HyperdbgUninstallDriver())
+		{
+			ShowMessages("Failed to uninstall driver\n");
+		}
+	}
+	else
+	{
+		ShowMessages("there is nothing to unload\n");
+	}
+
+
 }
 
 void CommandCpuHelp() {
@@ -262,6 +315,40 @@ void CommandCpu(vector<string> SplittedCommand) {
 		return;
 	}
 	ReadCpuDetails();
+}
+
+void CommandExitHelp() {
+	ShowMessages("exit : unload and uninstalls the drivers and closes the debugger.\n\n");
+	ShowMessages("syntax : \texit\n");
+}
+void CommandExit(vector<string> SplittedCommand) {
+
+	if (SplittedCommand.size() != 1)
+	{
+		ShowMessages("incorrect use of 'exit'\n\n");
+		CommandExitHelp();
+		return;
+	}
+
+
+	//
+	// unload and exit
+	//
+	if (g_IsDebuggerModulesLoaded)
+	{
+		HyperdbgUnload();
+
+		//
+		// Installing Driver
+		//
+		if (HyperdbgUninstallDriver())
+		{
+			ShowMessages("Failed to uninstall driver\n");
+		}
+	}
+
+
+	exit(0);
 }
 
 /**
@@ -311,6 +398,9 @@ int _cdecl HyperdbgInterpreter(const char* Command) {
 	}
 	else if (!FirstCommand.compare("load")) {
 		CommandLoad(SplittedCommand);
+	}
+	else if (!FirstCommand.compare("exit") || !FirstCommand.compare(".exit")) {
+		CommandExit(SplittedCommand);
 	}
 	else if (!FirstCommand.compare("unload")) {
 		CommandUnload(SplittedCommand);
