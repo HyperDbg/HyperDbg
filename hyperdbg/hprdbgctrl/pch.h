@@ -33,6 +33,14 @@
 #include <strsafe.h>
 #include <conio.h>
 #include <iostream>  
+#include <winternl.h>
+#include <algorithm>
+#include <iterator>
+#include <vector>
+#include <time.h>
+#include <string>
+
+
 #include "Definition.h"
 #include "Configuration.h"
 #include "framework.h"

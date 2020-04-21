@@ -57,7 +57,6 @@ void ShowMessages(const char* Fmt, ...) {
 		else
 		{
 			printf(TempMessage);
-			printf("\n");
 		}
 	}
 	else
@@ -128,7 +127,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	REGISTER_NOTIFY_BUFFER RegisterEvent;
 	UINT32 OperationCode;
 
-	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================");
+	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================\n");
 	RegisterEvent.hEvent = NULL;
 	RegisterEvent.Type = IRP_BASED;
 
@@ -159,34 +158,34 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				);
 
 				if (!Status) {
-					ShowMessages("Ioctl failed with code 0x%x", GetLastError());
+					ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
 					break;
 				}
-				ShowMessages("========================= Kernel Mode (Buffer) =========================");
+				ShowMessages("========================= Kernel Mode (Buffer) =========================\n");
 
 				OperationCode = 0;
 				memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-				ShowMessages("Returned Length : 0x%x ", ReturnedLength);
-				ShowMessages("Operation Code : 0x%x ", OperationCode);
+				ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+				ShowMessages("Operation Code : 0x%x \n", OperationCode);
 
 				switch (OperationCode)
 				{
 				case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :");
-					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_INFO_MESSAGE:
-					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :");
-					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_ERROR_MESSAGE:
-					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :");
-					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
 					break;
 				case OPERATION_LOG_WARNING_MESSAGE:
-					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :");
-					ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
 					break;
 
 				default:
@@ -194,7 +193,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				}
 
 
-				ShowMessages("========================================================================");
+				ShowMessages("========================================================================\n");
 
 			}
 			else
@@ -208,7 +207,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 	}
 	catch (const std::exception&)
 	{
-		ShowMessages(" Exception !");
+		ShowMessages(" Exception !\n");
 	}
 }
 
@@ -253,7 +252,7 @@ HPRDBGCTRL_API int HyperdbgInstallDriver()
 		DRIVER_FUNC_INSTALL
 	)) {
 
-		ShowMessages("Unable to install driver");
+		ShowMessages("Unable to install driver\n");
 
 		//
 		// Error - remove driver.
@@ -306,26 +305,26 @@ HPRDBGCTRL_API int HyperdbgLoad()
 
 	CpuID = ReadVendorString();
 
-	ShowMessages("The CPU Vendor is : %s", CpuID.c_str());
+	ShowMessages("The CPU Vendor is : %s\n", CpuID.c_str());
 
 	if (CpuID == "GenuineIntel")
 	{
-		ShowMessages("The Processor virtualization technology is VT-x.");
+		ShowMessages("The Processor virtualization technology is VT-x.\n");
 	}
 	else
 	{
-		ShowMessages("This program is not designed to run in a non-VT-x environemnt !");
+		ShowMessages("This program is not designed to run in a non-VT-x environemnt !\n");
 		return 1;
 	}
 
 
 	if (VmxSupportDetection())
 	{
-		ShowMessages("VMX Operation is supported by your processor .");
+		ShowMessages("VMX Operation is supported by your processor .\n");
 	}
 	else
 	{
-		ShowMessages("VMX Operation is not supported by your processor .");
+		ShowMessages("VMX Operation is not supported by your processor .\n");
 		return 1;
 	}
 	//
@@ -354,12 +353,12 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		ErrorNum = GetLastError();
 		if (ErrorNum == 5)
 		{
-			ShowMessages("Error: Access denied! Are you sure you have administrator rights?");
+			ShowMessages("Error: Access denied! Are you sure you have administrator rights?\n");
 
 		}
 		else
 		{
-			ShowMessages("CreateFile failed with error: 0x%x", ErrorNum);
+			ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
 		}
 		return 1;
 	}
@@ -368,7 +367,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 
 	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, Handle, 0, NULL);
 	if (Thread) {
-		ShowMessages("Thread Created successfully !!!");
+		ShowMessages("Thread Created successfully !!!\n");
 	}
 #endif
 
@@ -386,11 +385,11 @@ HPRDBGCTRL_API int HyperdbgUnload()
 
 	if (!Handle)
 	{
-		ShowMessages("Handle not found, probably the driver is not initialized.");
+		ShowMessages("Handle not found, probably the driver is not initialized.\n");
 		return 1;
 	}
 
-	ShowMessages("Terminating VMX !");
+	ShowMessages("Terminating VMX !\n");
 
 	//
 	// Send IOCTL to mark complete all IRP Pending 
@@ -410,7 +409,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	//
 	if (!Status) {
-		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
+		ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
 	}
 
 	//
@@ -431,7 +430,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	// wait to make sure we don't use an invalid handle in another Ioctl
 	//
 	if (!Status) {
-		ShowMessages("Ioctl failed with code 0x%x", GetLastError());
+		ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
 	}
 
 	//
@@ -446,8 +445,8 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	//
 	if (!CloseHandle(Handle))
 	{
-		ShowMessages("Error : 0x%x", GetLastError());
+		ShowMessages("Error : 0x%x\n", GetLastError());
 	};
 
-	ShowMessages("You're not on hypervisor anymore !");
+	ShowMessages("You're not on hypervisor anymore !\n");
 }

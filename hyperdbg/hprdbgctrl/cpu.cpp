@@ -206,11 +206,12 @@ int ReadCpuDetails()
 	auto& outstream = std::cout;
 
 	auto support_message = [&outstream](std::string isa_feature, bool is_supported) {
-		outstream << isa_feature << (is_supported ? " supported" : " not supported") << std::endl;
+		ShowMessages("%s %s\n", isa_feature.c_str(), (is_supported ? "supported" : "not supported"));
+
 	};
 
-	std::cout << std::endl << "vendor : " << InstructionSet::Vendor() << std::endl;
-	std::cout << "brand : " << InstructionSet::Brand() << std::endl << std::endl;
+	ShowMessages("\nvendor : %s\n", InstructionSet::Vendor().c_str());
+	ShowMessages("brand : %s\n\n", InstructionSet::Brand().c_str());
 
 	support_message("3DNOW", InstructionSet::_3DNOW());
 	support_message("3DNOWEXT", InstructionSet::_3DNOWEXT());

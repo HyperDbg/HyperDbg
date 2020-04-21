@@ -101,12 +101,12 @@ InstallDriver(
             // Previous instance of the service is not fully deleted so sleep
             // and try again.
             //
-            printf("Previous instance of the service is not fully deleted. Try again...\n");
+            ShowMessages("Previous instance of the service is not fully deleted. Try again...\n");
             return FALSE;
         }
         else {
 
-            printf("CreateService failed!  Error = %d \n", err);
+            ShowMessages("CreateService failed!  Error = %d \n", err);
 
             //
             // Indicate an error.
@@ -159,7 +159,7 @@ ManageDriver(
 
     if (!DriverName || !ServiceName) {
 
-        printf("Invalid Driver or Service provided to ManageDriver() \n");
+        ShowMessages("Invalid Driver or Service provided to ManageDriver() \n");
 
         return FALSE;
     }
@@ -175,7 +175,7 @@ ManageDriver(
 
     if (!schSCManager) {
 
-        printf("Open SC Manager failed! Error = %d \n", GetLastError());
+        ShowMessages("Open SC Manager failed! Error = %d \n", GetLastError());
 
         return FALSE;
     }
@@ -245,7 +245,7 @@ ManageDriver(
 
     default:
 
-        printf("Unknown ManageDriver() function. \n");
+        ShowMessages("Unknown ManageDriver() function. \n");
 
         rCode = FALSE;
 
@@ -292,7 +292,7 @@ RemoveDriver(
 
     if (schService == NULL) {
 
-        printf("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
 
         //
         // Indicate error.
@@ -316,7 +316,7 @@ RemoveDriver(
     }
     else {
 
-        printf("DeleteService failed!  Error = %d \n", GetLastError());
+        ShowMessages("DeleteService failed!  Error = %d \n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle.
@@ -366,7 +366,7 @@ StartDriver(
 
     if (schService == NULL) {
 
-        printf("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
 
         //
         // Indicate failure.
@@ -397,7 +397,7 @@ StartDriver(
         }
         else {
 
-            printf("StartService failure! Error = %d \n", err);
+            ShowMessages("StartService failure! Error = %d \n", err);
 
             //
             // Indicate failure.  Fall through to properly close the service handle.
@@ -450,7 +450,7 @@ StopDriver(
 
     if (schService == NULL) {
 
-        printf("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
 
         return FALSE;
     }
@@ -473,7 +473,7 @@ StopDriver(
     }
     else {
 
-        printf("ControlService failed!  Error = %d \n", GetLastError());
+        ShowMessages("ControlService failed!  Error = %d \n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle.
@@ -520,7 +520,7 @@ SetupDriverName(
 
     if (driverLocLen == 0) {
 
-        printf("GetCurrentDirectory failed!  Error = %d \n", GetLastError());
+        ShowMessages("GetCurrentDirectory failed!  Error = %d \n", GetLastError());
 
         return FALSE;
     }
@@ -546,7 +546,7 @@ SetupDriverName(
     )) == INVALID_HANDLE_VALUE) {
 
 
-        printf("%s.sys is not loaded.\n", DRIVER_NAME);
+        ShowMessages("%s.sys is not loaded.\n", DRIVER_NAME);
 
         //
         // Indicate failure.

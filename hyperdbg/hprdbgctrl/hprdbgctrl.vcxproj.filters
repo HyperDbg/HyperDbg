@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Assembly Files">
       <UniqueIdentifier>{ed8a8dd7-a467-4ebc-b8e8-2126d1b061dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Routines">
+      <UniqueIdentifier>{2f4ae7fa-1e79-4ff8-9a3a-7f5cca3c4143}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -50,11 +53,16 @@
     <ClCompile Include="interpreter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AsmVmxChecks.asm">
-      <Filter>Source Files\Assembly Files</Filter>
-    </ClCompile>
     <ClCompile Include="cpu.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Routines</Filter>
     </ClCompile>
+    <ClCompile Include="lm.cpp">
+      <Filter>Source Files\Routines</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="AsmVmxChecks.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

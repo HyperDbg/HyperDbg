@@ -13,8 +13,9 @@
 #include "pch.h"
 #include <algorithm>
 #include <iterator>
-#include <string>
 #include <vector>
+#include <time.h>
+#include <string>
 
 using namespace std;
 
@@ -126,16 +127,16 @@ void CommandHiddenHook(vector<string> SplittedCommand) {
 	//
 
 	for (auto Section : SplittedCommand) {
-		printf("%s", Section.c_str());
-		printf("\n");
+		ShowMessages("%s", Section.c_str());
+		ShowMessages("\n");
 	}
 }
 
 void CommandConnectHelp() {
-	printf("connect : connects to a remote or local machine to start debugging.\n\n");
-	printf("syntax : \tconnect [ip] [port]\n");
-	printf("\t\te.g : connect 192.168.1.5 50000\n");
-	printf("\t\te.g : connect local\n");
+	ShowMessages(".connect : connects to a remote or local machine to start debugging.\n\n");
+	ShowMessages("syntax : \t.connect [ip] [port]\n");
+	ShowMessages("\t\te.g : .connect 192.168.1.5 50000\n");
+	ShowMessages("\t\te.g : .connect local\n");
 }
 void CommandConnect(vector<string> SplittedCommand) {
 
@@ -145,7 +146,7 @@ void CommandConnect(vector<string> SplittedCommand) {
 		// Means that user entered just a connect so we have to 
 		// ask to connect to what ?
 		// 
-		printf("incorrect use of 'connect'\n\n");
+		ShowMessages("incorrect use of '.connect'\n\n");
 		CommandConnectHelp();
 		return;
 	}
@@ -158,7 +159,7 @@ void CommandConnect(vector<string> SplittedCommand) {
 		//
 		// connect to local debugger
 		//
-		printf("local debug current system\n");
+		ShowMessages("local debug current system\n");
 		g_IsConnectedToDebugger = true;
 
 		return;
@@ -175,26 +176,26 @@ void CommandConnect(vector<string> SplittedCommand) {
 		//
 		if (!ValidateIP(ip))
 		{
-			printf("incorrect ip address\n");
+			ShowMessages("incorrect ip address\n");
 			return;
 		}
 		if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0)
 		{
-			printf("incorrect port\n");
+			ShowMessages("incorrect port\n");
 			return;
 		}
 
 		//
 		// connect to remote debugger
 		//
-		printf("local debug remote system\n");
+		ShowMessages("local debug remote system\n");
 		g_IsConnectedToDebugger = true;
 
 
 		return;
 	}
 	else {
-		printf("incorrect use of 'connect'\n\n");
+		ShowMessages("incorrect use of '.connect'\n\n");
 		CommandConnectHelp();
 		return;
 	}
@@ -203,60 +204,60 @@ void CommandConnect(vector<string> SplittedCommand) {
 
 void CommandDisconnect(vector<string> SplittedCommand) {
 	for (auto Section : SplittedCommand) {
-		printf("%s", Section.c_str());
-		printf("\n");
+		ShowMessages("%s", Section.c_str());
+		ShowMessages("\n");
 	}
 }
 
 
 void CommandLoadHelp() {
-	printf("load : installs the driver and load the kernel modules.\n\n");
-	printf("syntax : \tload\n");
+	ShowMessages("load : installs the driver and load the kernel modules.\n\n");
+	ShowMessages("syntax : \tload\n");
 }
 void CommandLoad(vector<string> SplittedCommand) {
 
 	if (SplittedCommand.size() != 1)
 	{
-		printf("incorrect use of 'load'\n\n");
+		ShowMessages("incorrect use of 'load'\n\n");
 		CommandLoadHelp();
 		return;
 	}
 	if (!g_IsConnectedToDebugger)
 	{
-		printf("You're not connected to any instance of HyperDbg, did you use 'connect'? \n");
+		ShowMessages("You're not connected to any instance of HyperDbg, did you use '.connect'? \n");
 		return;
 	}
-	printf("try to install driver...\n");
+	ShowMessages("try to install driver...\n");
 	if (HyperdbgInstallDriver())
 	{
-		printf("Failed to install driver\n");
+		ShowMessages("Failed to install driver\n");
 		return;
 	}
 
-	printf("try to install load kernel modules...\n");
+	ShowMessages("try to install load kernel modules...\n");
 	if (HyperdbgLoad())
 	{
-		printf("Failed to load driver\n");
+		ShowMessages("Failed to load driver\n");
 		return;
 	}
 }
 
 void CommandUnload(vector<string> SplittedCommand) {
 	for (auto Section : SplittedCommand) {
-		printf("%s", Section.c_str());
-		printf("\n");
+		ShowMessages("%s", Section.c_str());
+		ShowMessages("\n");
 	}
 }
 
 void CommandCpuHelp() {
-	printf("cpu : collects a report from cpu features.\n\n");
-	printf("syntax : \tcpu\n");
+	ShowMessages("cpu : collects a report from cpu features.\n\n");
+	ShowMessages("syntax : \tcpu\n");
 }
 void CommandCpu(vector<string> SplittedCommand) {
 
 	if (SplittedCommand.size() != 1)
 	{
-		printf("incorrect use of 'cpu'\n\n");
+		ShowMessages("incorrect use of 'cpu'\n\n");
 		CommandCpuHelp();
 		return;
 	}
@@ -286,7 +287,7 @@ int _cdecl HyperdbgInterpreter(const char* Command) {
 	// Check if user entered an empty imput
 	//
 	if (SplittedCommand.empty()) {
-		printf("\n");
+		ShowMessages("\n");
 		return 0;
 	}
 
@@ -296,10 +297,16 @@ int _cdecl HyperdbgInterpreter(const char* Command) {
 		!FirstCommand.compare(".cls")) {
 		CommandClearScreen();
 	}
-	else if (!FirstCommand.compare("connect")) {
+	else if (!FirstCommand.compare(".connect")) {
 		CommandConnect(SplittedCommand);
 	}
+	else if (!FirstCommand.compare("connect")) {
+		ShowMessages("Couldn't resolve error at '%s', did you mean '.connect'?", FirstCommand.c_str());
+	}
 	else if (!FirstCommand.compare("disconnect")) {
+		ShowMessages("Couldn't resolve error at '%s', did you mean '.disconnect'?", FirstCommand.c_str());
+	}
+	else if (!FirstCommand.compare(".disconnect")) {
 		CommandDisconnect(SplittedCommand);
 	}
 	else if (!FirstCommand.compare("load")) {
@@ -311,13 +318,16 @@ int _cdecl HyperdbgInterpreter(const char* Command) {
 	else if (!FirstCommand.compare("cpu")) {
 		CommandCpu(SplittedCommand);
 	}
+	else if (!FirstCommand.compare("lm")) {
+		CommandLm(SplittedCommand);
+	}
 	else if (!FirstCommand.compare("!hiddenhook") ||
 		!FirstCommand.compare("bh")) {
 		CommandHiddenHook(SplittedCommand);
 	}
 	else {
-		printf("Couldn't resolve error at '%s'", FirstCommand.c_str());
-		printf("\n");
+		ShowMessages("Couldn't resolve error at '%s'", FirstCommand.c_str());
+		ShowMessages("\n");
 	}
 
 	return 0;

@@ -12,11 +12,13 @@
 #pragma once
 
 #include "pch.h"
-#include <time.h>
 
+using namespace std;
 
 int ReadCpuDetails();
 std::string ReadVendorString();
+void ShowMessages(const char* Fmt, ...);
+int CommandLm(vector<string> SplittedCommand);
 
 
 // Exports
