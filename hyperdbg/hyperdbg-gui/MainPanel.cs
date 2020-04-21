@@ -14,11 +14,23 @@ namespace hyperdbg_gui
             InitializeComponent();
         }
 
+        public void commandText_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                KernelmodeRequests.KernelRequests.HyperdbgCommandInterpreter(commandSection1.commandText.Text.Replace("\n",""));
+                commandSection1.commandText.Text = string.Empty;
+            }
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = "hyperdbg debugger (" + hyperdbg_gui.Details.HyperdbgInformation.HyperdbgVersion + ") x86-64";
             ControlMoverOrResizer.Init(panel1);
             ControlMoverOrResizer.WorkType = ControlMoverOrResizer.MoveOrResize.Resize;
+
+            commandSection1.commandText.KeyDown += new System.Windows.Forms.KeyEventHandler(commandText_KeyDown);
+
 
 
         }
@@ -50,6 +62,7 @@ namespace hyperdbg_gui
 
         }
 
+       
         private void toolStripButton11_Click(object sender, EventArgs e)
         {
             bool IsDark = !hyperdbg_gui.Details.GlobalVariables.IsInDarkMode;
@@ -107,8 +120,7 @@ namespace hyperdbg_gui
         }
         private int ReceivedMessagesHandler(string Text)
         {
-
-            hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText(Text + "\n");
+            hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.Invoke(new Action(() => { hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText(Text);  }));
             return 0;
         }
 
@@ -186,5 +198,6 @@ namespace hyperdbg_gui
             RecentSessions r = new RecentSessions();
             r.ShowDialog();
         }
+
     }
 }

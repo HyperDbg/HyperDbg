@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
 
-namespace hyperdbg_gui.Components
+namespace hyperdbg_gui
 {
     public partial class CommandSection : UserControl
     {
@@ -8,6 +8,7 @@ namespace hyperdbg_gui.Components
         {
             InitializeComponent();
         }
+
 
     }
 }

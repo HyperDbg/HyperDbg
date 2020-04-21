@@ -17,6 +17,15 @@ namespace hyperdbg_gui.KernelmodeRequests
         [DllImport("HPRDBGCTRL.dll")]
         internal static extern int HyperdbgUninstallDriver();
 
+        [DllImport("HPRDBGCTRL.dll")]
+        internal static extern int HyperdbgInterpreter(string command);
+
+
+        public static int HyperdbgCommandInterpreter(string command)
+        {
+            return HyperdbgInterpreter(command);
+        }
+
         public static int HyperdbgLoader()
         {
             return HyperdbgLoad();

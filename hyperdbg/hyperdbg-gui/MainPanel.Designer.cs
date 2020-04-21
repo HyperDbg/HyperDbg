@@ -124,7 +124,7 @@
             this.toolStripButton6 = new System.Windows.Forms.ToolStripButton();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.commandSection1 = new hyperdbg_gui.Components.CommandSection();
+            this.commandSection1 = new hyperdbg_gui.CommandSection();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
@@ -304,54 +304,54 @@
             // stepIntoToolStripMenuItem
             // 
             this.stepIntoToolStripMenuItem.Name = "stepIntoToolStripMenuItem";
-            this.stepIntoToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.stepIntoToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.stepIntoToolStripMenuItem.Text = "Run";
             // 
             // pauseToolStripMenuItem
             // 
             this.pauseToolStripMenuItem.Name = "pauseToolStripMenuItem";
-            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.pauseToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.pauseToolStripMenuItem.Text = "Pause";
             // 
             // restartToolStripMenuItem
             // 
             this.restartToolStripMenuItem.Name = "restartToolStripMenuItem";
-            this.restartToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.restartToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.restartToolStripMenuItem.Text = "Restart";
             // 
             // closeToolStripMenuItem
             // 
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.closeToolStripMenuItem.Text = "Close";
             // 
             // toolStripMenuItem7
             // 
             this.toolStripMenuItem7.Name = "toolStripMenuItem7";
-            this.toolStripMenuItem7.Size = new System.Drawing.Size(247, 6);
+            this.toolStripMenuItem7.Size = new System.Drawing.Size(356, 6);
             // 
             // stepOverToolStripMenuItem
             // 
             this.stepOverToolStripMenuItem.Name = "stepOverToolStripMenuItem";
-            this.stepOverToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.stepOverToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.stepOverToolStripMenuItem.Text = "Step over";
             // 
             // stepIntoToolStripMenuItem1
             // 
             this.stepIntoToolStripMenuItem1.Name = "stepIntoToolStripMenuItem1";
-            this.stepIntoToolStripMenuItem1.Size = new System.Drawing.Size(250, 44);
+            this.stepIntoToolStripMenuItem1.Size = new System.Drawing.Size(359, 44);
             this.stepIntoToolStripMenuItem1.Text = "Step Into";
             // 
             // stepOutToolStripMenuItem
             // 
             this.stepOutToolStripMenuItem.Name = "stepOutToolStripMenuItem";
-            this.stepOutToolStripMenuItem.Size = new System.Drawing.Size(250, 44);
+            this.stepOutToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.stepOutToolStripMenuItem.Text = "Step Out";
             // 
             // toolStripMenuItem8
             // 
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(247, 6);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(356, 6);
             // 
             // toolStripMenuItem1
             // 
@@ -372,7 +372,7 @@
             this.hiddenBreakpointExecutionHookToolStripMenuItem});
             this.rWHiddenHooksToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("rWHiddenHooksToolStripMenuItem.Image")));
             this.rWHiddenHooksToolStripMenuItem.Name = "rWHiddenHooksToolStripMenuItem";
-            this.rWHiddenHooksToolStripMenuItem.Size = new System.Drawing.Size(312, 44);
+            this.rWHiddenHooksToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.rWHiddenHooksToolStripMenuItem.Text = "Hidden Hooks";
             // 
             // whatsThisToolStripMenuItem
@@ -446,7 +446,7 @@
             this.howToUseToolStripMenuItem1});
             this.syscallHookToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("syscallHookToolStripMenuItem.Image")));
             this.syscallHookToolStripMenuItem.Name = "syscallHookToolStripMenuItem";
-            this.syscallHookToolStripMenuItem.Size = new System.Drawing.Size(312, 44);
+            this.syscallHookToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.syscallHookToolStripMenuItem.Text = "Syscall Hook";
             // 
             // whatsThisToolStripMenuItem1
@@ -494,13 +494,13 @@
             // toolStripMenuItem4
             // 
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(309, 6);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(356, 6);
             // 
             // functionTracerToolStripMenuItem
             // 
             this.functionTracerToolStripMenuItem.Enabled = false;
             this.functionTracerToolStripMenuItem.Name = "functionTracerToolStripMenuItem";
-            this.functionTracerToolStripMenuItem.Size = new System.Drawing.Size(312, 44);
+            this.functionTracerToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.functionTracerToolStripMenuItem.Text = "Function Tracer";
             // 
             // toolStripMenuItem2
@@ -1065,7 +1065,7 @@
         private System.Windows.Forms.ToolStripButton toolStripButton12;
         private System.Windows.Forms.ToolStripButton toolStripButton15;
         private System.Windows.Forms.Panel panel1;
-        private Components.CommandSection commandSection1;
+        private CommandSection commandSection1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.ToolStripMenuItem stepIntoToolStripMenuItem;

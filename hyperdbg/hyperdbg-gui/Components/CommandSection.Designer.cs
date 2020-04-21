@@ -1,4 +1,4 @@
-﻿namespace hyperdbg_gui.Components
+﻿namespace hyperdbg_gui
 {
     partial class CommandSection
     {
