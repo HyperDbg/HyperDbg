@@ -14,12 +14,25 @@ namespace hyperdbg_gui
             InitializeComponent();
         }
 
+
         public void commandText_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                KernelmodeRequests.KernelRequests.HyperdbgCommandInterpreter(commandSection1.commandText.Text.Replace("\n",""));
+                string Command = commandSection1.commandText.Text.Replace("\n", "");
+                string CommandWithoutSpace = Command.Replace(" ", "");
+
+                // check if it's a .cls
+                if (CommandWithoutSpace == ".cls" || CommandWithoutSpace == "cls" || CommandWithoutSpace == "clear")
+                {
+                    hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.Clear();
+                    commandSection1.commandText.Text = string.Empty;
+                    return;
+                }
+                hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText("\n" + commandSection1.richTextBox2.Text.Remove(0,1) + Command + "\n");
+                KernelmodeRequests.KernelRequests.HyperdbgCommandInterpreter(Command);
                 commandSection1.commandText.Text = string.Empty;
+
             }
         }
 
@@ -118,11 +131,15 @@ namespace hyperdbg_gui
         {
             MessageBox.Show("Not yet supported, support will be available in the future versions");
         }
+
         private int ReceivedMessagesHandler(string Text)
         {
-            hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.Invoke(new Action(() => { hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText(Text);  }));
+            hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.Invoke(new Action(() => {
+                hyperdbg_gui.Details.GlobalVariables.CommandWindow.richTextBox1.AppendText(Text);  
+            }));
             return 0;
         }
+
 
         public void LoadDriver()
         {

@@ -68,7 +68,7 @@
         }
 
         #endregion
-        private System.Windows.Forms.RichTextBox richTextBox2;
         public System.Windows.Forms.RichTextBox commandText;
+        public System.Windows.Forms.RichTextBox richTextBox2;
     }
 }

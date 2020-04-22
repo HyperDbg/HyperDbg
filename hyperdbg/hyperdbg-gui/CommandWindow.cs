@@ -8,5 +8,14 @@ namespace hyperdbg_gui
         {
             InitializeComponent();
         }
+
+        private void richTextBox1_TextChanged(object sender, System.EventArgs e)
+        {
+            // set the current caret position to the end
+            richTextBox1.SelectionStart = richTextBox1.Text.Length;
+            // scroll it automatically
+            richTextBox1.ScrollToCaret();
+
+        }
     }
 }
