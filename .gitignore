@@ -358,3 +358,6 @@ MigrationBackup/
 
 # VS Code
 **/.vscode/
+
+# Exceptions
+!/hyperdbg/libraries/*
