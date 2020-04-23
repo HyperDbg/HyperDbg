@@ -59,10 +59,13 @@
     <ClCompile Include="lm.cpp">
       <Filter>Source Files\Routines</Filter>
     </ClCompile>
+    <ClCompile Include="disassembler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Assembly Files</Filter>
     </MASM>
   </ItemGroup>
 </Project>

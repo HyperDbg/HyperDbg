@@ -415,6 +415,9 @@ int _cdecl HyperdbgInterpreter(const char* Command) {
 		!FirstCommand.compare("bh")) {
 		CommandHiddenHook(SplittedCommand);
 	}
+	else if (!FirstCommand.compare("test")){
+		Test();
+	}
 	else {
 		ShowMessages("Couldn't resolve error at '%s'", FirstCommand.c_str());
 		ShowMessages("\n");

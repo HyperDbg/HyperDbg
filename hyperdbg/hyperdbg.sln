@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 	ProjectSection(SolutionItems) = preProject
 		include\Configuration.h = include\Configuration.h
 		include\Definition.h = include\Definition.h
+		include\ZycoreExportConfig.h = include\ZycoreExportConfig.h
+		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hyperdbg-gui", "hyperdbg-gui\hyperdbg-gui.csproj", "{84380C1B-3AFD-4557-B187-2E2DEC806CAD}"

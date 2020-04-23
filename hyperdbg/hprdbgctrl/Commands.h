@@ -20,6 +20,7 @@ std::string ReadVendorString();
 void ShowMessages(const char* Fmt, ...);
 int CommandLm(vector<string> SplittedCommand);
 
+int Test();
 
 // Exports
 extern "C"
