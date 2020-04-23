@@ -10,10 +10,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cl
 		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Headers", "Shared Headers", "{1997E4B6-FE49-4358-ADF1-CDDB5739508E}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997E4B6-FE49-4358-ADF1-CDDB5739508E}"
 	ProjectSection(SolutionItems) = preProject
-		Shared Headers\Configuration.h = Shared Headers\Configuration.h
-		Shared Headers\Definition.h = Shared Headers\Definition.h
+		include\Configuration.h = include\Configuration.h
+		include\Definition.h = include\Definition.h
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hyperdbg-gui", "hyperdbg-gui\hyperdbg-gui.csproj", "{84380C1B-3AFD-4557-B187-2E2DEC806CAD}"
