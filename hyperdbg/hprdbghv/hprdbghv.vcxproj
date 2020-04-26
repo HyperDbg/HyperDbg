@@ -96,6 +96,7 @@
   <ItemGroup>
     <ClCompile Include="Broadcast.c" />
     <ClCompile Include="Debugger.c" />
+    <ClCompile Include="DebuggerCommands.c" />
     <ClCompile Include="ExtensionCommands.c" />
     <ClCompile Include="EFERHook.c" />
     <ClCompile Include="Ept.c" />
@@ -105,6 +106,7 @@
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
     <ClCompile Include="Logging.c" />
+    <ClCompile Include="MemoryManager.c" />
     <ClCompile Include="PoolManager.c" />
     <ClCompile Include="Sanitizer.c" />
     <ClCompile Include="Spinlock.c" />

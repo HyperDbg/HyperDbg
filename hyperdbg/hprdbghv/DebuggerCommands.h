@@ -15,3 +15,6 @@
 #include <ntddk.h>
 #include "Logging.h"
 
+
+NTSTATUS
+DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY DebuggerReadMem, PVOID UserBuffer, PSIZE_T ReturnSize);

@@ -4,7 +4,7 @@ echo.
 
 del    *.VC.db  /s
 del    *.bsc    /s
-del    *.pdb    /s   
+:: del    *.pdb    /s   
 del    *.iobj   /s
 del    *.ipdb   /s
 del    *.ilk    /s

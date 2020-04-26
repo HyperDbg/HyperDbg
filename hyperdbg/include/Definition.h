@@ -27,6 +27,7 @@
 #define LogBufferSize                                                          \
   MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
 #define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)
+#define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
 #define DbgPrintLimitation 512
 
 //////////////////////////////////////////////////
@@ -35,11 +36,28 @@
 
 typedef enum _NOTIFY_TYPE { IRP_BASED, EVENT_BASED } NOTIFY_TYPE;
 
+typedef enum _DEBUGGER_READ_READING_TYPE { READ_FROM_KERNEL, READ_FROM_VMX_ROOT } DEBUGGER_READ_READING_TYPE;
+
+typedef enum _DEBUGGER_READ_MEMORY_TYPE { DEBUGGER_READ_PHYSICAL_ADDRESS, DEBUGGER_READ_VIRTUAL_ADDRESS } DEBUGGER_READ_MEMORY_TYPE;
+
+typedef enum _DEBUGGER_SHOW_MEMORY_STYLE { DEBUGGER_SHOW_COMMAND_DISASSEMBLE, DEBUGGER_SHOW_COMMAND_DB, DEBUGGER_SHOW_COMMAND_DC, DEBUGGER_SHOW_COMMAND_DQ, DEBUGGER_SHOW_COMMAND_DD } DEBUGGER_SHOW_MEMORY_STYLE;
+
+
 typedef struct _REGISTER_NOTIFY_BUFFER {
   NOTIFY_TYPE Type;
   HANDLE hEvent;
 
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
+
+typedef struct _DEBUGGER_READ_MEMORY {
+
+    UINT32 Pid; // Read from cr3 of what process
+    UINT64 Address;
+    UINT32 Size;
+    DEBUGGER_READ_MEMORY_TYPE MemoryType;
+    DEBUGGER_READ_READING_TYPE ReadingType;
+
+} DEBUGGER_READ_MEMORY, * PDEBUGGER_READ_MEMORY;
 
 //////////////////////////////////////////////////
 //					Installer
@@ -241,6 +259,6 @@ typedef struct _DEBUGGER_EVENT {
 #define IOCTL_TERMINATE_VMX                                                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
-#define IOCTL_DEBUGGER_EPT_SYSCALL_HOOK_EFER                                   \
-  CTL_CODE(FILE_DEVICE_UNKNOWN, DEBUGGER_EPT_SYSCALL_HOOK_EFER,                \
-           METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define IOCTL_DEBUGGER_READ_MEMORY                                                    \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
+

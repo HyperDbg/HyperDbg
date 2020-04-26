@@ -11,16 +11,17 @@
  */
 #pragma once
 
-#include "pch.h"
-
 using namespace std;
+
+extern HANDLE DeviceHandle;
 
 int ReadCpuDetails();
 std::string ReadVendorString();
 void ShowMessages(const char* Fmt, ...);
 int CommandLm(vector<string> SplittedCommand);
 
-int Test();
+void HyperDbgReadMemory(DEBUGGER_SHOW_MEMORY_STYLE Style, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, DEBUGGER_READ_READING_TYPE ReadingType, UINT32 Pid, UINT Size);
+int HyperDbgDisassembler(unsigned char* BufferToDisassemble, UINT64 BaseAddress, UINT64 Size);
 
 // Exports
 extern "C"
@@ -34,11 +35,6 @@ extern "C"
 
 }
 
-
-//
-// List of all active commands
-//
-LIST_ENTRY g_CommandstTrace;
 
 
 //

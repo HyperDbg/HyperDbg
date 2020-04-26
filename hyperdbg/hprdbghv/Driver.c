@@ -18,6 +18,7 @@
 #include "GlobalVariables.h"
 #include "Logging.h"
 #include "ExtensionCommands.h"
+#include "DebuggerCommands.h"
 #include "Hooks.h"
 #include "Debugger.h"
 #include "Trace.h"
@@ -212,7 +213,6 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
         return STATUS_UNSUCCESSFUL;
-
     }
 
     //
@@ -266,7 +266,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     //
     // if we didn't return by now, means that there is a problem
-    // 
+    //
 
     Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
     Irp->IoStatus.Information = 0;
@@ -323,14 +323,12 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-
     //
     // If the close is called means that all of the IOCTLs
     // are not in a pending state so we can safely allow
     // a new handle creation for future calls to the driver
     //
     g_HandleInUse = FALSE;
-
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -349,7 +347,7 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    LogWarning("This function is not supported :(");
+    DbgPrint("This function is not supported :(");
 
     Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
@@ -370,21 +368,28 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    PDEBUGGER_READ_MEMORY   DebuggerReadMem;
     NTSTATUS                Status;
+    ULONG                   InBuffLength;  // Input buffer length
+    ULONG                   OutBuffLength; // Output buffer length
+    SIZE_T                  ReturnSize;
+    BOOLEAN                 DoNotChangeInformation = FALSE;
+
+    //
+    // Here's the best place to see if there is any allocation pending
+    // to be allcated as we're in PASSIVE_LEVEL
+    //
+    PoolManagerCheckAndPerformAllocation();
 
     if (g_AllowIOCTLFromUsermode)
     {
-        //
-        // Here's the best place to see if there is any allocation pending
-        // to be allcated as we're in PASSIVE_LEVEL
-        //
-        PoolManagerCheckAndPerformAllocation();
-
         IrpStack = IoGetCurrentIrpStackLocation(Irp);
 
         switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
         {
         case IOCTL_REGISTER_EVENT:
+            DbgBreakPoint();
+
             //
             // First validate the parameters.
             //
@@ -394,6 +399,12 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 LogError("Invalid parameter to IOCTL Dispatcher.");
                 break;
             }
+
+            //
+            // IRPs supply a pointer to a buffer at Irp->AssociatedIrp.SystemBuffer.
+            // This buffer represents both the input buffer and the output buffer that
+            // are specified in calls to DeviceIoControl
+            //
 
             RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
@@ -427,6 +438,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             HvTerminateVmx();
             Status = STATUS_SUCCESS;
             break;
+        case IOCTL_DEBUGGER_READ_MEMORY:
+            DbgBreakPoint();
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_MEMORY || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+            DebuggerReadMem = (PDEBUGGER_READ_MEMORY)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // IRPs supply a pointer to a buffer at Irp->AssociatedIrp.SystemBuffer.
+            // This buffer represents both the input buffer and the output buffer that
+            // are specified in calls to DeviceIoControl, also we save size as after
+            // this operation the structure is no longer valid.
+            //
+
+            Status = DebuggerCommandReadMemory(DebuggerReadMem, DebuggerReadMem, &ReturnSize);
+
+            //
+            // Set the size
+            //
+            if (Status == STATUS_SUCCESS)
+            {
+                Irp->IoStatus.Information = ReturnSize;
+                //
+                // Avoid zeroing it
+                //
+                DoNotChangeInformation = TRUE;
+            }
+            break;
         default:
             LogError("Unknow IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;
@@ -442,8 +496,11 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (Status != STATUS_PENDING)
     {
-        Irp->IoStatus.Status      = Status;
-        Irp->IoStatus.Information = 0;
+        Irp->IoStatus.Status = Status;
+        if (!DoNotChangeInformation)
+        {
+            Irp->IoStatus.Information = 0;
+        }
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
     }
 

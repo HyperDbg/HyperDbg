@@ -134,6 +134,12 @@
     <ClCompile Include="Debugger.c">
       <Filter>Source Files\Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="DebuggerCommands.c">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.c">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">

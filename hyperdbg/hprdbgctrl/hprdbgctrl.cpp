@@ -5,18 +5,19 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 
 #include "pch.h"
 
-//
-// Global Variables
-//
+
+ //
+ // Global Variables
+ //
+HANDLE DeviceHandle;
 using namespace std;
-HANDLE Handle;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 Callback Handler = 0;
 TCHAR driverLocation[MAX_PATH] = { 0 };
@@ -26,7 +27,7 @@ TCHAR driverLocation[MAX_PATH] = { 0 };
 
 /**
  * @brief Set the function callback that will be called if anything received from the kernel
- * 
+ *
  * @param handler Function that handles the messages
  */
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
@@ -67,7 +68,7 @@ void ShowMessages(const char* Fmt, ...) {
 
 /**
  * @brief Detect VMX support
- * 
+ *
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
@@ -79,11 +80,11 @@ bool VmxSupportDetection()
 
 /**
  * @brief SetPrivilege enables/disables process token privilege
- * 
- * @param hToken 
- * @param lpszPrivilege 
- * @param bEnablePrivilege 
- * @return BOOL 
+ *
+ * @param hToken
+ * @param lpszPrivilege
+ * @param bEnablePrivilege
+ * @return BOOL
  */
 BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 {
@@ -117,10 +118,10 @@ BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
 
 /**
  * @brief Read kernel buffers using IRP Pending
- * 
+ *
  * @param Device Driver handle
  */
-void ReadIrpBasedBuffer(HANDLE  Device) {
+void ReadIrpBasedBuffer() {
 
 	BOOL    Status;
 	ULONG   ReturnedLength;
@@ -147,7 +148,7 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 				Sleep(200);							// we're not trying to eat all of the CPU ;)
 
 				Status = DeviceIoControl(
-					Device,							// Handle to device
+					DeviceHandle,							// Handle to device
 					IOCTL_REGISTER_EVENT,			// IO Control code
 					&RegisterEvent,					// Input Buffer to driver.
 					SIZEOF_REGISTER_EVENT * 2,		// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
@@ -209,17 +210,17 @@ void ReadIrpBasedBuffer(HANDLE  Device) {
 
 /**
  * @brief Create a thread for pending buffers
- * 
- * @param Data 
- * @return DWORD Device Handle 
+ *
+ * @param Data
+ * @return DWORD Device Handle
  */
-DWORD WINAPI ThreadFunc(void* Data) {
+DWORD WINAPI ThreadFunc(void * data) {
 	//
 	// Do stuff.  This will be the first function called on the new thread.
 	// When this function returns, the thread goes away.  See MSDN for more details.
 	// Test Irp Based Notifications
 	//
-	ReadIrpBasedBuffer(Data);
+	ReadIrpBasedBuffer();
 
 	return 0;
 }
@@ -227,7 +228,7 @@ DWORD WINAPI ThreadFunc(void* Data) {
 
 /**
  * @brief Install the driver
- * 
+ *
  * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgInstallDriver()
@@ -266,8 +267,8 @@ HPRDBGCTRL_API int HyperdbgInstallDriver()
 
 /**
  * @brief Uninstall the driver
- * 
- * @return int return zero if it was successful or non-zero if there was error 
+ *
+ * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgUninstallDriver()
 {
@@ -286,8 +287,8 @@ HPRDBGCTRL_API int HyperdbgUninstallDriver()
 
 /**
  * @brief Load the driver
- * 
- * @return int return zero if it was successful or non-zero if there was error 
+ *
+ * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgLoad()
 {
@@ -297,6 +298,13 @@ HPRDBGCTRL_API int HyperdbgLoad()
 	BOOL    Status;
 	HANDLE hProcess;
 	HANDLE hToken;
+
+
+	if (DeviceHandle)
+	{
+		ShowMessages("Handle of driver found, if you use 'load' before, please first unload it then call 'load'.\n");
+		return 1;
+	}
 
 
 	CpuID = ReadVendorString();
@@ -334,7 +342,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		CloseHandle(hToken);
 	}
 
-	Handle = CreateFileA("\\\\.\\HyperdbgHypervisorDevice",
+	DeviceHandle = CreateFileA("\\\\.\\HyperdbgHypervisorDevice",
 		GENERIC_READ | GENERIC_WRITE,
 		FILE_SHARE_READ |
 		FILE_SHARE_WRITE,
@@ -344,7 +352,7 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		FILE_FLAG_OVERLAPPED,
 		NULL); /// lpTemplateFile 
 
-	if (Handle == INVALID_HANDLE_VALUE)
+	if (DeviceHandle == INVALID_HANDLE_VALUE)
 	{
 		ErrorNum = GetLastError();
 		if (ErrorNum == 5)
@@ -359,9 +367,10 @@ HPRDBGCTRL_API int HyperdbgLoad()
 		return 1;
 	}
 
+
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking 
 
-	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, Handle, 0, NULL);
+	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, NULL);
 	if (Thread) {
 		ShowMessages("Thread Created successfully !!!\n");
 	}
@@ -372,14 +381,14 @@ HPRDBGCTRL_API int HyperdbgLoad()
 
 /**
  * @brief Unload driver
- * 
- * @return int return zero if it was successful or non-zero if there was error 
+ *
+ * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgUnload()
 {
 	BOOL    Status;
 
-	if (!Handle)
+	if (!DeviceHandle)
 	{
 		ShowMessages("Handle not found, probably the driver is not initialized.\n");
 		return 1;
@@ -391,7 +400,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	// Send IOCTL to mark complete all IRP Pending 
 	//
 	Status = DeviceIoControl(
-		Handle,															// Handle to device
+		DeviceHandle,													// Handle to device
 		IOCTL_TERMINATE_VMX,											// IO Control code
 		NULL,															// Input Buffer to driver.
 		0,																// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
@@ -412,7 +421,7 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	// Send IOCTL to mark complete all IRP Pending 
 	//
 	Status = DeviceIoControl(
-		Handle,															// Handle to device
+		DeviceHandle,													// Handle to device
 		IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL,			// IO Control code
 		NULL,															// Input Buffer to driver.
 		0,																// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
@@ -439,10 +448,15 @@ HPRDBGCTRL_API int HyperdbgUnload()
 	//
 	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
 	//
-	if (!CloseHandle(Handle))
+	if (!CloseHandle(DeviceHandle))
 	{
 		ShowMessages("Error : 0x%x\n", GetLastError());
 	};
+
+	//
+	// Null the handle to indicate that the driver's device is not ready to use
+	//
+	DeviceHandle = NULL;
 
 	ShowMessages("You're not on hypervisor anymore !\n");
 }
