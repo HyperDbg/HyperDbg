@@ -339,21 +339,24 @@ void CommandHiddenHook(vector<string> SplittedCommand) {
 }
 
 void CommandReadMemoryHelp() {
-  ShowMessages(
-      "db dc dd dq !db !dc !dd !dq : read the memory different shapes (hex)\n");
+  ShowMessages("u !u & db dc dd dq !db !dc !dd !dq : read the memory different "
+               "shapes (hex) and disassembler\n");
   ShowMessages("d[b]  Byte and ASCII characters\n");
   ShowMessages("d[c]  Double-word values (4 bytes) and ASCII characters\n");
   ShowMessages("d[d]  Double-word values (4 bytes)\n");
   ShowMessages("d[q]  Quad-word values (8 bytes). \n");
+  ShowMessages("u  Disassembler at the target address \n");
   ShowMessages("\n If you want to read physical memory then add '!' at the "
                "start of the command\n");
+  ShowMessages("You can also disassemble physical memory using '!u'\n");
 
   ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                "[process id (hex)]\n");
   ShowMessages("\t\te.g : db fffff8077356f010 \n");
   ShowMessages("\t\te.g : !dq 100000\n");
+  ShowMessages("\t\te.g : u fffff8077356f010\n");
 }
-void CommandReadMemory(vector<string> SplittedCommand) {
+void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
 
   string FirstCommand = SplittedCommand.front();
 
@@ -370,7 +373,7 @@ void CommandReadMemory(vector<string> SplittedCommand) {
     // Means that user entered just a connect so we have to
     // ask to connect to what ?
     //
-    ShowMessages("incorrect use of 'd' command\n\n");
+    ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
     CommandReadMemoryHelp();
     return;
   }
@@ -428,7 +431,8 @@ void CommandReadMemory(vector<string> SplittedCommand) {
       //
       // User inserts two address
       //
-      ShowMessages("Err, incorrect use of 'd' command\n\n");
+      ShowMessages("Err, incorrect use of '%s' command\n\n",
+                   FirstCommand.c_str());
       CommandReadMemoryHelp();
 
       return;
@@ -446,14 +450,14 @@ void CommandReadMemory(vector<string> SplittedCommand) {
     //
     // Default length (user doesn't specified)
     //
-    Length = 0x50;
+    Length = 0x80;
   }
 
   if (Pid == 0) {
-      //
-      // Default process we read from current process
-      //
-      Pid = GetCurrentProcessId();
+    //
+    // Default process we read from current process
+    //
+    Pid = GetCurrentProcessId();
   }
 
   if (!FirstCommand.compare("db")) {
@@ -487,6 +491,18 @@ void CommandReadMemory(vector<string> SplittedCommand) {
                        Length);
   } else if (!FirstCommand.compare("!dq")) {
     HyperDbgReadMemory(DEBUGGER_SHOW_COMMAND_DQ, TargetAddress,
+                       DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid,
+                       Length);
+  }
+  //
+  // Disassembler (!u or u)
+  //
+  else if (!FirstCommand.compare("u")) {
+    HyperDbgReadMemory(DEBUGGER_SHOW_COMMAND_DISASSEMBLE, TargetAddress,
+                       DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid,
+                       Length);
+  } else if (!FirstCommand.compare("!u")) {
+    HyperDbgReadMemory(DEBUGGER_SHOW_COMMAND_DISASSEMBLE, TargetAddress,
                        DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid,
                        Length);
   }
@@ -739,8 +755,9 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||
              !FirstCommand.compare("dd") || !FirstCommand.compare("dq") ||
              !FirstCommand.compare("!db") || !FirstCommand.compare("!dc") ||
-             !FirstCommand.compare("!dd") || !FirstCommand.compare("!dq")) {
-    CommandReadMemory(SplittedCommand);
+             !FirstCommand.compare("!dd") || !FirstCommand.compare("!dq") ||
+             !FirstCommand.compare("!u") || !FirstCommand.compare("u")) {
+    CommandReadMemoryAndDisassembler(SplittedCommand);
   } else if (!FirstCommand.compare("!hiddenhook") ||
              !FirstCommand.compare("bh")) {
     CommandHiddenHook(SplittedCommand);

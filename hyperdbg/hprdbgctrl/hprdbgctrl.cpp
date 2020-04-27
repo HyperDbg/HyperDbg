@@ -112,10 +112,42 @@ void ReadIrpBasedBuffer() {
   ULONG ReturnedLength;
   REGISTER_NOTIFY_BUFFER RegisterEvent;
   UINT32 OperationCode;
+  DWORD ErrorNum;
+  HANDLE Handle;
+
   ShowMessages(" =============================== Kernel-Mode Logs (Driver) "
                "===============================\n");
+
   RegisterEvent.hEvent = NULL;
   RegisterEvent.Type = IRP_BASED;
+
+  //
+  // Create another handle to be used in for reading kernel messages,
+  // it is because I noticed that if I use a same handle for IRP Pending
+  // and other IOCTLs then if I complete that IOCTL then both of the current
+  // IOCTL and the Pending IRP are completed and return to user mode,
+  // even if it's odd but that what happens, so this way we can solve it
+  // if you know why this problem happens, then contact me !
+  //
+
+  Handle = CreateFileA(
+      "\\\\.\\HyperdbgHypervisorDevice", GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
+      NULL, /// lpSecurityAttirbutes
+      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+      NULL); /// lpTemplateFile
+
+  if (Handle == INVALID_HANDLE_VALUE) {
+    ErrorNum = GetLastError();
+    if (ErrorNum == 5) {
+      ShowMessages("Error: Access denied! Are you sure you have administrator "
+                   "rights?\n");
+
+    } else {
+      ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
+    }
+    return;
+  }
 
   //
   // allocate buffer for transfering messages
@@ -131,7 +163,7 @@ void ReadIrpBasedBuffer() {
         Sleep(200); // we're not trying to eat all of the CPU ;)
 
         Status = DeviceIoControl(
-            DeviceHandle,         // Handle to device
+            Handle,               // Handle to device
             IOCTL_REGISTER_EVENT, // IO Control code
             &RegisterEvent,       // Input Buffer to driver.
             SIZEOF_REGISTER_EVENT *
@@ -328,45 +360,6 @@ HPRDBGCTRL_API int HyperdbgLoad() {
     ShowMessages("Thread Created successfully !!!\n");
   }
 #endif
-
-  //---------------------------------------------------------------------------
-  Sleep(5000);
-
-  /*
-  HANDLE  DeviceHandle2 = CreateFileA(
-      "\\\\.\\HyperdbgHypervisorDevice", GENERIC_READ | GENERIC_WRITE,
-      FILE_SHARE_READ | FILE_SHARE_WRITE,
-      NULL, /// lpSecurityAttirbutes
-      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-      NULL); /// lpTemplateFile
-
-  if (DeviceHandle2 == INVALID_HANDLE_VALUE) {
-      ErrorNum = GetLastError();
-      if (ErrorNum == 5) {
-          ShowMessages("Error: Access denied! Are you sure you have administrator "
-              "rights?\n");
-
-      }
-      else {
-          ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
-      }
-      return 1;
-  }
-  */
-  Status = DeviceIoControl(DeviceHandle,               // Handle to device
-                            IOCTL_DEBUGGER_READ_MEMORY2, // IO Control code
-                           NULL, // Input Buffer to driver.
-                           NULL, // Input buffer length
-                           NULL, // Output Buffer from driver.
-                           NULL, // Length of output buffer in bytes.
-                           NULL, // Bytes placed in buffer.
-                           NULL  // synchronous call
-  );
-
-  // HyperDbgReadMemory(DEBUGGER_SHOW_COMMAND_DB, 0xfffff8003ad6f010,
-  // DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, 4, 0x50);
-  //---------------------------------------------------------------------------
-  Sleep(20000);
 
   return 0;
 }

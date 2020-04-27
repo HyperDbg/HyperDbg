@@ -471,7 +471,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             if (Status == STATUS_SUCCESS)
             {
-                DbgBreakPoint();
                 Irp->IoStatus.Information = ReturnSize;
 
                 //
@@ -480,10 +479,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 DoNotChangeInformation = TRUE;
             }
 
-            break;
-        case IOCTL_DEBUGGER_READ_MEMORY2:
-            DbgBreakPoint();
-            Status = STATUS_SUCCESS;
             break;
         default:
             LogError("Unknow IOCTL");
@@ -501,9 +496,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (Status != STATUS_PENDING)
     {
+        Irp->IoStatus.Status = Status;
         if (!DoNotChangeInformation)
         {
-            Irp->IoStatus.Status      = Status;
             Irp->IoStatus.Information = 0;
         }
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
