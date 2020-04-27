@@ -12,26 +12,23 @@
 
 #include "pch.h"
 
-
- //
- // Global Variables
- //
+//
+// Global Variables
+//
 HANDLE DeviceHandle;
 using namespace std;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 Callback Handler = 0;
-TCHAR driverLocation[MAX_PATH] = { 0 };
-
-
-
+TCHAR driverLocation[MAX_PATH] = {0};
 
 /**
- * @brief Set the function callback that will be called if anything received from the kernel
+ * @brief Set the function callback that will be called if anything received
+ * from the kernel
  *
  * @param handler Function that handles the messages
  */
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
-	Handler = handler;
+  Handler = handler;
 }
 
 /**
@@ -39,31 +36,26 @@ void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
  *
  * @param Fmt
  */
-void ShowMessages(const char* Fmt, ...) {
+void ShowMessages(const char *Fmt, ...) {
 
-	va_list ArgList;
-	char TempMessage[PacketChunkSize];
+  va_list ArgList;
+  char TempMessage[PacketChunkSize];
 
-	va_start(ArgList, Fmt);
+  va_start(ArgList, Fmt);
 
-	int sprintfresult = vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
-	va_end(ArgList);
+  int sprintfresult =
+      vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
+  va_end(ArgList);
 
-	if (sprintfresult != -1)
-	{
-		if (Handler != NULL)
-		{
-			Handler(TempMessage);
-		}
-		else
-		{
-			printf(TempMessage);
-		}
-	}
-	else
-	{
-		MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
-	}
+  if (sprintfresult != -1) {
+    if (Handler != NULL) {
+      Handler(TempMessage);
+    } else {
+      printf(TempMessage);
+    }
+  } else {
+    MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
+  }
 }
 
 /**
@@ -72,11 +64,7 @@ void ShowMessages(const char* Fmt, ...) {
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-bool VmxSupportDetection()
-{
-	return AsmVmxSupportDetection();
-}
-
+bool VmxSupportDetection() { return AsmVmxSupportDetection(); }
 
 /**
  * @brief SetPrivilege enables/disables process token privilege
@@ -86,35 +74,32 @@ bool VmxSupportDetection()
  * @param bEnablePrivilege
  * @return BOOL
  */
-BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
-{
-	LUID luid;
-	BOOL bRet = FALSE;
+BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
+  LUID luid;
+  BOOL bRet = FALSE;
 
-	if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid))
-	{
-		TOKEN_PRIVILEGES tp;
+  if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
+    TOKEN_PRIVILEGES tp;
 
-		tp.PrivilegeCount = 1;
-		tp.Privileges[0].Luid = luid;
-		tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
-		//
-		//  Enable the privilege or disable all privileges.
-		//
-		if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
-		{
-			//
-			//  Check to see if you have proper access.
-			//  You may get "ERROR_NOT_ALL_ASSIGNED".
-			//
-			bRet = (GetLastError() == ERROR_SUCCESS);
-		}
-	}
-	return bRet;
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Luid = luid;
+    tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
+    //
+    //  Enable the privilege or disable all privileges.
+    //
+    if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL,
+                              (PDWORD)NULL)) {
+      //
+      //  Check to see if you have proper access.
+      //  You may get "ERROR_NOT_ALL_ASSIGNED".
+      //
+      bRet = (GetLastError() == ERROR_SUCCESS);
+    }
+  }
+  return bRet;
 }
 
-
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking 
+#if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
 /**
  * @brief Read kernel buffers using IRP Pending
@@ -123,89 +108,86 @@ BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege)
  */
 void ReadIrpBasedBuffer() {
 
-	BOOL    Status;
-	ULONG   ReturnedLength;
-	REGISTER_NOTIFY_BUFFER RegisterEvent;
-	UINT32 OperationCode;
+  BOOL Status;
+  ULONG ReturnedLength;
+  REGISTER_NOTIFY_BUFFER RegisterEvent;
+  UINT32 OperationCode;
+  ShowMessages(" =============================== Kernel-Mode Logs (Driver) "
+               "===============================\n");
+  RegisterEvent.hEvent = NULL;
+  RegisterEvent.Type = IRP_BASED;
 
-	ShowMessages(" =============================== Kernel-Mode Logs (Driver) ===============================\n");
-	RegisterEvent.hEvent = NULL;
-	RegisterEvent.Type = IRP_BASED;
+  //
+  // allocate buffer for transfering messages
+  //
+  char *OutputBuffer = (char *)malloc(UsermodeBufferSize);
 
-	//
-	// allocate buffer for transfering messages
-	//
-	char* OutputBuffer = (char*)malloc(UsermodeBufferSize);
+  try {
 
-	try
-	{
+    while (TRUE) {
+      if (!IsVmxOffProcessStart) {
+        ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
-		while (TRUE) {
-			if (!IsVmxOffProcessStart)
-			{
-				ZeroMemory(OutputBuffer, UsermodeBufferSize);
+        Sleep(200); // we're not trying to eat all of the CPU ;)
 
-				Sleep(200);							// we're not trying to eat all of the CPU ;)
+        Status = DeviceIoControl(
+            DeviceHandle,         // Handle to device
+            IOCTL_REGISTER_EVENT, // IO Control code
+            &RegisterEvent,       // Input Buffer to driver.
+            SIZEOF_REGISTER_EVENT *
+                2, // Length of input buffer in bytes. (x 2 is bcuz as the
+                   // driver is x64 and has 64 bit values)
+            OutputBuffer,       // Output Buffer from driver.
+            UsermodeBufferSize, // Length of output buffer in bytes.
+            &ReturnedLength,    // Bytes placed in buffer.
+            NULL                // synchronous call
+        );
 
-				Status = DeviceIoControl(
-					DeviceHandle,							// Handle to device
-					IOCTL_REGISTER_EVENT,			// IO Control code
-					&RegisterEvent,					// Input Buffer to driver.
-					SIZEOF_REGISTER_EVENT * 2,		// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
-					OutputBuffer,					// Output Buffer from driver.
-					UsermodeBufferSize,				// Length of output buffer in bytes.
-					&ReturnedLength,				// Bytes placed in buffer.
-					NULL							// synchronous call
-				);
+        if (!Status) {
+          ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+          break;
+        }
+        ShowMessages("========================= Kernel Mode (Buffer) "
+                     "=========================\n");
 
-				if (!Status) {
-					ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
-					break;
-				}
-				ShowMessages("========================= Kernel Mode (Buffer) =========================\n");
+        OperationCode = 0;
+        memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
-				OperationCode = 0;
-				memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
+        ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+        ShowMessages("Operation Code : 0x%x \n", OperationCode);
 
-				ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-				ShowMessages("Operation Code : 0x%x \n", OperationCode);
+        switch (OperationCode) {
+        case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
+          ShowMessages(
+              "A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          break;
+        case OPERATION_LOG_INFO_MESSAGE:
+          ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          break;
+        case OPERATION_LOG_ERROR_MESSAGE:
+          ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          break;
+        case OPERATION_LOG_WARNING_MESSAGE:
+          ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          break;
 
-				switch (OperationCode)
-				{
-				case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
-					ShowMessages("A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
-					break;
-				case OPERATION_LOG_INFO_MESSAGE:
-					ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
-					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
-					break;
-				case OPERATION_LOG_ERROR_MESSAGE:
-					ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
-					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
-					break;
-				case OPERATION_LOG_WARNING_MESSAGE:
-					ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
-					ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
-					break;
-
-				default:
-					break;
-				}
-			}
-			else
-			{
-				//
-				// the thread should not work anymore
-				//
-				return;
-			}
-		}
-	}
-	catch (const std::exception&)
-	{
-		ShowMessages(" Exception !\n");
-	}
+        default:
+          break;
+        }
+      } else {
+        //
+        // the thread should not work anymore
+        //
+        return;
+      }
+    }
+  } catch (const std::exception &) {
+    ShowMessages(" Exception !\n");
+  }
 }
 
 /**
@@ -214,15 +196,15 @@ void ReadIrpBasedBuffer() {
  * @param Data
  * @return DWORD Device Handle
  */
-DWORD WINAPI ThreadFunc(void * data) {
-	//
-	// Do stuff.  This will be the first function called on the new thread.
-	// When this function returns, the thread goes away.  See MSDN for more details.
-	// Test Irp Based Notifications
-	//
-	ReadIrpBasedBuffer();
+DWORD WINAPI ThreadFunc(void *data) {
+  //
+  // Do stuff.  This will be the first function called on the new thread.
+  // When this function returns, the thread goes away.  See MSDN for more
+  // details. Test Irp Based Notifications
+  //
+  ReadIrpBasedBuffer();
 
-	return 0;
+  return 0;
 }
 #endif
 
@@ -231,38 +213,31 @@ DWORD WINAPI ThreadFunc(void * data) {
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgInstallDriver()
-{
-	ReadVendorString();
-	//
-	// The driver is not started yet so let us the install driver.
-	// First setup full path to driver name.
-	//
+HPRDBGCTRL_API int HyperdbgInstallDriver() {
+  ReadVendorString();
+  //
+  // The driver is not started yet so let us the install driver.
+  // First setup full path to driver name.
+  //
 
-	if (!SetupDriverName(driverLocation, sizeof(driverLocation))) {
+  if (!SetupDriverName(driverLocation, sizeof(driverLocation))) {
 
-		return 1;
-	}
+    return 1;
+  }
 
-	if (!ManageDriver(DRIVER_NAME,
-		driverLocation,
-		DRIVER_FUNC_INSTALL
-	)) {
+  if (!ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_INSTALL)) {
 
-		ShowMessages("Unable to install driver\n");
+    ShowMessages("Unable to install driver\n");
 
-		//
-		// Error - remove driver.
-		//
+    //
+    // Error - remove driver.
+    //
 
-		ManageDriver(DRIVER_NAME,
-			driverLocation,
-			DRIVER_FUNC_REMOVE
-		);
+    ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_REMOVE);
 
-		return 1;
-	}
-	return 0;
+    return 1;
+  }
+  return 0;
 }
 
 /**
@@ -270,19 +245,14 @@ HPRDBGCTRL_API int HyperdbgInstallDriver()
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgUninstallDriver()
-{
-	//
-	// Unload the driver if loaded.  Ignore any errors.
-	//
-	if (driverLocation[0] != (TCHAR)0) {
-		ManageDriver(DRIVER_NAME,
-			driverLocation,
-			DRIVER_FUNC_REMOVE
-		);
-
-	}
-	return 0;
+HPRDBGCTRL_API int HyperdbgUninstallDriver() {
+  //
+  // Unload the driver if loaded.  Ignore any errors.
+  //
+  if (driverLocation[0] != (TCHAR)0) {
+    ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_REMOVE);
+  }
+  return 0;
 }
 
 /**
@@ -290,93 +260,115 @@ HPRDBGCTRL_API int HyperdbgUninstallDriver()
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgLoad()
-{
+HPRDBGCTRL_API int HyperdbgLoad() {
 
-	string CpuID;
-	DWORD ErrorNum;
-	BOOL    Status;
-	HANDLE hProcess;
-	HANDLE hToken;
+  string CpuID;
+  DWORD ErrorNum;
+  BOOL Status;
+  HANDLE hProcess;
+  HANDLE hToken;
 
+  if (DeviceHandle) {
+    ShowMessages("Handle of driver found, if you use 'load' before, please "
+                 "first unload it then call 'load'.\n");
+    return 1;
+  }
 
-	if (DeviceHandle)
-	{
-		ShowMessages("Handle of driver found, if you use 'load' before, please first unload it then call 'load'.\n");
-		return 1;
-	}
+  CpuID = ReadVendorString();
 
+  ShowMessages("The CPU Vendor is : %s\n", CpuID.c_str());
 
-	CpuID = ReadVendorString();
+  if (CpuID == "GenuineIntel") {
+    ShowMessages("The Processor virtualization technology is VT-x.\n");
+  } else {
+    ShowMessages(
+        "This program is not designed to run in a non-VT-x environemnt !\n");
+    return 1;
+  }
 
-	ShowMessages("The CPU Vendor is : %s\n", CpuID.c_str());
+  if (VmxSupportDetection()) {
+    ShowMessages("VMX Operation is supported by your processor .\n");
+  } else {
+    ShowMessages("VMX Operation is not supported by your processor .\n");
+    return 1;
+  }
+  //
+  // Enable Debug privilege
+  //
+  hProcess = GetCurrentProcess();
 
-	if (CpuID == "GenuineIntel")
-	{
-		ShowMessages("The Processor virtualization technology is VT-x.\n");
-	}
-	else
-	{
-		ShowMessages("This program is not designed to run in a non-VT-x environemnt !\n");
-		return 1;
-	}
+  if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken)) {
+    SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
+    CloseHandle(hToken);
+  }
 
+  DeviceHandle = CreateFileA(
+      "\\\\.\\HyperdbgHypervisorDevice", GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
+      NULL, /// lpSecurityAttirbutes
+      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+      NULL); /// lpTemplateFile
 
-	if (VmxSupportDetection())
-	{
-		ShowMessages("VMX Operation is supported by your processor .\n");
-	}
-	else
-	{
-		ShowMessages("VMX Operation is not supported by your processor .\n");
-		return 1;
-	}
-	//
-	// Enable Debug privilege
-	//
-	hProcess = GetCurrentProcess();
+  if (DeviceHandle == INVALID_HANDLE_VALUE) {
+    ErrorNum = GetLastError();
+    if (ErrorNum == 5) {
+      ShowMessages("Error: Access denied! Are you sure you have administrator "
+                   "rights?\n");
 
-	if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken))
-	{
-		SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-		CloseHandle(hToken);
-	}
+    } else {
+      ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
+    }
+    return 1;
+  }
 
-	DeviceHandle = CreateFileA("\\\\.\\HyperdbgHypervisorDevice",
-		GENERIC_READ | GENERIC_WRITE,
-		FILE_SHARE_READ |
-		FILE_SHARE_WRITE,
-		NULL, /// lpSecurityAttirbutes
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL |
-		FILE_FLAG_OVERLAPPED,
-		NULL); /// lpTemplateFile 
+#if !UseDbgPrintInsteadOfUsermodeMessageTracking
 
-	if (DeviceHandle == INVALID_HANDLE_VALUE)
-	{
-		ErrorNum = GetLastError();
-		if (ErrorNum == 5)
-		{
-			ShowMessages("Error: Access denied! Are you sure you have administrator rights?\n");
-
-		}
-		else
-		{
-			ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
-		}
-		return 1;
-	}
-
-
-#if !UseDbgPrintInsteadOfUsermodeMessageTracking 
-
-	HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, NULL);
-	if (Thread) {
-		ShowMessages("Thread Created successfully !!!\n");
-	}
+  HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, NULL);
+  if (Thread) {
+    ShowMessages("Thread Created successfully !!!\n");
+  }
 #endif
 
-	return 0;
+  //---------------------------------------------------------------------------
+  Sleep(5000);
+
+  /*
+  HANDLE  DeviceHandle2 = CreateFileA(
+      "\\\\.\\HyperdbgHypervisorDevice", GENERIC_READ | GENERIC_WRITE,
+      FILE_SHARE_READ | FILE_SHARE_WRITE,
+      NULL, /// lpSecurityAttirbutes
+      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+      NULL); /// lpTemplateFile
+
+  if (DeviceHandle2 == INVALID_HANDLE_VALUE) {
+      ErrorNum = GetLastError();
+      if (ErrorNum == 5) {
+          ShowMessages("Error: Access denied! Are you sure you have administrator "
+              "rights?\n");
+
+      }
+      else {
+          ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
+      }
+      return 1;
+  }
+  */
+  Status = DeviceIoControl(DeviceHandle,               // Handle to device
+                            IOCTL_DEBUGGER_READ_MEMORY2, // IO Control code
+                           NULL, // Input Buffer to driver.
+                           NULL, // Input buffer length
+                           NULL, // Output Buffer from driver.
+                           NULL, // Length of output buffer in bytes.
+                           NULL, // Bytes placed in buffer.
+                           NULL  // synchronous call
+  );
+
+  // HyperDbgReadMemory(DEBUGGER_SHOW_COMMAND_DB, 0xfffff8003ad6f010,
+  // DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, 4, 0x50);
+  //---------------------------------------------------------------------------
+  Sleep(20000);
+
+  return 0;
 }
 
 /**
@@ -384,79 +376,77 @@ HPRDBGCTRL_API int HyperdbgLoad()
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgUnload()
-{
-	BOOL    Status;
+HPRDBGCTRL_API int HyperdbgUnload() {
+  BOOL Status;
 
-	if (!DeviceHandle)
-	{
-		ShowMessages("Handle not found, probably the driver is not initialized.\n");
-		return 1;
-	}
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not initialized.\n");
+    return 1;
+  }
 
-	ShowMessages("Terminating VMX !\n");
+  ShowMessages("Terminating VMX !\n");
 
-	//
-	// Send IOCTL to mark complete all IRP Pending 
-	//
-	Status = DeviceIoControl(
-		DeviceHandle,													// Handle to device
-		IOCTL_TERMINATE_VMX,											// IO Control code
-		NULL,															// Input Buffer to driver.
-		0,																// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
-		NULL,															// Output Buffer from driver.
-		0,																// Length of output buffer in bytes.
-		NULL,															// Bytes placed in buffer.
-		NULL															// synchronous call
-	);
+  //
+  // Send IOCTL to mark complete all IRP Pending
+  //
+  Status = DeviceIoControl(DeviceHandle,        // Handle to device
+                           IOCTL_TERMINATE_VMX, // IO Control code
+                           NULL,                // Input Buffer to driver.
+                           0, // Length of input buffer in bytes. (x 2 is bcuz
+                              // as the driver is x64 and has 64 bit values)
+                           NULL, // Output Buffer from driver.
+                           0,    // Length of output buffer in bytes.
+                           NULL, // Bytes placed in buffer.
+                           NULL  // synchronous call
+  );
 
-	//
-	// wait to make sure we don't use an invalid handle in another Ioctl
-	//
-	if (!Status) {
-		ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
-	}
+  //
+  // wait to make sure we don't use an invalid handle in another Ioctl
+  //
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+  }
 
-	//
-	// Send IOCTL to mark complete all IRP Pending 
-	//
-	Status = DeviceIoControl(
-		DeviceHandle,													// Handle to device
-		IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL,			// IO Control code
-		NULL,															// Input Buffer to driver.
-		0,																// Length of input buffer in bytes. (x 2 is bcuz as the driver is x64 and has 64 bit values)
-		NULL,															// Output Buffer from driver.
-		0,																// Length of output buffer in bytes.
-		NULL,															// Bytes placed in buffer.
-		NULL															// synchronous call
-	);
+  //
+  // Send IOCTL to mark complete all IRP Pending
+  //
+  Status = DeviceIoControl(
+      DeviceHandle,                                        // Handle to device
+      IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control code
+      NULL, // Input Buffer to driver.
+      0, // Length of input buffer in bytes. (x 2 is bcuz as the driver is x64
+         // and has 64 bit values)
+      NULL, // Output Buffer from driver.
+      0,    // Length of output buffer in bytes.
+      NULL, // Bytes placed in buffer.
+      NULL  // synchronous call
+  );
 
-	//
-	// wait to make sure we don't use an invalid handle in another Ioctl
-	//
-	if (!Status) {
-		ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
-	}
+  //
+  // wait to make sure we don't use an invalid handle in another Ioctl
+  //
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+  }
 
-	//
-	// Indicate that the finish process start or not
-	//
-	IsVmxOffProcessStart = TRUE;
+  //
+  // Indicate that the finish process start or not
+  //
+  IsVmxOffProcessStart = TRUE;
 
-	Sleep(1000); // Wait so next thread can return from IRP Pending
+  Sleep(1000); // Wait so next thread can return from IRP Pending
 
-	//
-	// Send IRP_MJ_CLOSE to driver to terminate Vmxs
-	//
-	if (!CloseHandle(DeviceHandle))
-	{
-		ShowMessages("Error : 0x%x\n", GetLastError());
-	};
+  //
+  // Send IRP_MJ_CLOSE to driver to terminate Vmxs
+  //
+  if (!CloseHandle(DeviceHandle)) {
+    ShowMessages("Error : 0x%x\n", GetLastError());
+  };
 
-	//
-	// Null the handle to indicate that the driver's device is not ready to use
-	//
-	DeviceHandle = NULL;
+  //
+  // Null the handle to indicate that the driver's device is not ready to use
+  //
+  DeviceHandle = NULL;
 
-	ShowMessages("You're not on hypervisor anymore !\n");
+  ShowMessages("You're not on hypervisor anymore !\n");
 }

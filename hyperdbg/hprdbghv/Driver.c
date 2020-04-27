@@ -208,11 +208,11 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // A driver got the handle before
         //
-        Irp->IoStatus.Status      = STATUS_UNSUCCESSFUL;
+        Irp->IoStatus.Status      = STATUS_SUCCESS;
         Irp->IoStatus.Information = 0;
         IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-        return STATUS_UNSUCCESSFUL;
+        return STATUS_SUCCESS;
     }
 
     //
@@ -388,8 +388,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
         {
         case IOCTL_REGISTER_EVENT:
-            DbgBreakPoint();
-
             //
             // First validate the parameters.
             //
@@ -439,7 +437,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_DEBUGGER_READ_MEMORY:
-            DbgBreakPoint();
             //
             // First validate the parameters.
             //
@@ -474,12 +471,19 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             if (Status == STATUS_SUCCESS)
             {
+                DbgBreakPoint();
                 Irp->IoStatus.Information = ReturnSize;
+
                 //
                 // Avoid zeroing it
                 //
                 DoNotChangeInformation = TRUE;
             }
+
+            break;
+        case IOCTL_DEBUGGER_READ_MEMORY2:
+            DbgBreakPoint();
+            Status = STATUS_SUCCESS;
             break;
         default:
             LogError("Unknow IOCTL");
@@ -488,7 +492,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
     }
     else
-    { //
+    {
+        //
         // We're no longer serve IOCTL
         //
         Status = STATUS_SUCCESS;
@@ -496,9 +501,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (Status != STATUS_PENDING)
     {
-        Irp->IoStatus.Status = Status;
         if (!DoNotChangeInformation)
         {
+            Irp->IoStatus.Status      = Status;
             Irp->IoStatus.Information = 0;
         }
         IoCompleteRequest(Irp, IO_NO_INCREMENT);

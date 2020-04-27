@@ -44,6 +44,14 @@ extern "C"
  */
 int main()
 {
+	if (HyperdbgInstallDriver()) {
+		return 1;
+	}
+
+	if (HyperdbgLoad()) {
+		return 1;
+	}
+
 	
 	bool ExitFromDebugger = false;
 

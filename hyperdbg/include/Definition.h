@@ -262,3 +262,6 @@ typedef struct _DEBUGGER_EVENT {
 #define IOCTL_DEBUGGER_READ_MEMORY                                                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+#define IOCTL_DEBUGGER_READ_MEMORY2                                                    \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, METHOD_NEITHER, FILE_ANY_ACCESS)
+
