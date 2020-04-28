@@ -103,7 +103,7 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Commands.h" />
+    <ClInclude Include="commands.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="hprdbgctrl.h" />
     <ClInclude Include="pch.h" />

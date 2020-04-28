@@ -1,5 +1,5 @@
 /**
- * @file interpreter.cpp
+ * @file commands.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief The hyperdbg command interpreter and driver connector
  * @details
@@ -10,6 +10,7 @@
  *
  */
 #pragma once
+#include "pch.h"
 
 using namespace std;
 
@@ -20,7 +21,12 @@ std::string ReadVendorString();
 void ShowMessages(const char* Fmt, ...);
 int CommandLm(vector<string> SplittedCommand);
 
-void HyperDbgReadMemory(DEBUGGER_SHOW_MEMORY_STYLE Style, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, DEBUGGER_READ_READING_TYPE ReadingType, UINT32 Pid, UINT Size);
+void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style, UINT64 Address,
+    DEBUGGER_READ_MEMORY_TYPE MemoryType,
+    DEBUGGER_READ_READING_TYPE ReadingType, UINT32 Pid,
+    UINT Size);
+string SeparateTo64BitValue(UINT64 Value);
+
 int HyperDbgDisassembler(unsigned char* BufferToDisassemble, UINT64 BaseAddress, UINT64 Size);
 
 // Exports
