@@ -37,7 +37,23 @@ string SeparateTo64BitValue(UINT64 Value) {
   temp.insert(8, 1, '`');
   return temp;
 }
+void PrintBits(size_t const size, void const* const ptr)
+{
+    unsigned char* b = (unsigned char*)ptr;
+    unsigned char byte;
+    int i, j;
 
+    for (i = size - 1; i >= 0; i--)
+    {
+        for (j = 7; j >= 0; j--)
+        {
+            byte = (b[i] >> j) & 1;
+            ShowMessages("%u", byte);
+        }
+        ShowMessages(" ", byte);
+
+    }
+}
 /**
  * @brief Read memory and disassembler
  *
@@ -303,7 +319,13 @@ bool ValidateIP(string ip) {
   return true;
 }
 
+/* ==============================================================================================
+ */
+
 void CommandClearScreen() { system("cls"); }
+
+/* ==============================================================================================
+ */
 
 void CommandHiddenHook(vector<string> SplittedCommand) {
 
@@ -338,6 +360,9 @@ void CommandHiddenHook(vector<string> SplittedCommand) {
     ShowMessages("\n");
   }
 }
+
+/* ==============================================================================================
+ */
 
 void CommandReadMemoryHelp() {
   ShowMessages("u !u & db dc dd dq !db !dc !dd !dq : read the memory different "
@@ -514,6 +539,9 @@ void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
   }
 }
 
+/* ==============================================================================================
+ */
+
 void CommandConnectHelp() {
   ShowMessages(".connect : connects to a remote or local machine to start "
                "debugging.\n\n");
@@ -572,6 +600,9 @@ void CommandConnect(vector<string> SplittedCommand) {
   }
 }
 
+/* ==============================================================================================
+ */
+
 void CommandDisconnectHelp() {
   ShowMessages(".disconnect : disconnect from a debugging session (it won't "
                "unload the modules).\n\n");
@@ -595,6 +626,9 @@ void CommandDisconnect(vector<string> SplittedCommand) {
   g_IsConnectedToDebugger = false;
   ShowMessages("successfully disconnected\n");
 }
+
+/* ==============================================================================================
+ */
 
 void CommandLoadHelp() {
   ShowMessages("load : installs the driver and load the kernel modules.\n\n");
@@ -630,6 +664,9 @@ void CommandLoad(vector<string> SplittedCommand) {
   g_IsDebuggerModulesLoaded = true;
 }
 
+/* ==============================================================================================
+ */
+
 void CommandUnloadHelp() {
   ShowMessages(
       "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
@@ -662,6 +699,9 @@ void CommandUnload(vector<string> SplittedCommand) {
   }
 }
 
+/* ==============================================================================================
+ */
+
 void CommandCpuHelp() {
   ShowMessages("cpu : collects a report from cpu features.\n\n");
   ShowMessages("syntax : \tcpu\n");
@@ -675,6 +715,9 @@ void CommandCpu(vector<string> SplittedCommand) {
   }
   ReadCpuDetails();
 }
+
+/* ==============================================================================================
+ */
 
 void CommandExitHelp() {
   ShowMessages(
@@ -705,6 +748,79 @@ void CommandExit(vector<string> SplittedCommand) {
 
   exit(0);
 }
+
+/* ==============================================================================================
+ */
+
+void CommandFormatsHelp() {
+  ShowMessages(".formats : Show a value or register in different formats.\n\n");
+  ShowMessages("syntax : \t.formats [hex value | register]\n");
+}
+void CommandFormats(vector<string> SplittedCommand) {
+
+  UINT64 u64Value;
+  time_t t;
+  struct tm* tmp;
+  char MY_TIME[50];
+  char Character;
+
+  if (SplittedCommand.size() != 2) {
+    ShowMessages("incorrect use of '.formats'\n\n");
+    CommandFormatsHelp();
+    return;
+  }
+  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &u64Value)) {
+    ShowMessages("incorrect use of '.formats'\n\n");
+    CommandFormatsHelp();
+    return;
+  }
+
+  time(&t);
+
+  //
+  // localtime() uses the time pointed by t , 
+  // to fill a tm structure with the values that 
+  // represent the corresponding local time. 
+  //
+
+  tmp = localtime(&t);
+
+  //
+  // using strftime to display time 
+  //
+  strftime(MY_TIME, sizeof(MY_TIME), "%x - %I:%M%p", tmp);
+
+
+  ShowMessages("Evaluate expression:\n");
+  ShowMessages("Hex :        %s\n", SeparateTo64BitValue(u64Value).c_str());
+  ShowMessages("Decimal :    %d\n", u64Value);
+  ShowMessages("Octal :      %o\n", u64Value);
+
+  ShowMessages("Binary :     ");
+  PrintBits(sizeof(UINT64), &u64Value);
+
+  ShowMessages("\nChar :       ");
+  //
+  // iterate through 8, 8 bits (8*6)
+  //
+  for (size_t j = 0; j < 8; j++) {
+
+      Character = (char)(((char*) &u64Value)[j]);
+
+      if (isprint(Character)) {
+          ShowMessages("%c", Character);
+      }
+      else {
+          ShowMessages(".");
+      }
+  }
+  ShowMessages("\nTime :       %s\n", MY_TIME);
+  ShowMessages("Float :      %4.2f %+.0e %E\n", u64Value, u64Value, u64Value);
+  ShowMessages("Double :     %.*e\n", DECIMAL_DIG, u64Value);
+
+}
+
+/* ============================================================================================== */
 
 /**
  * @brief Interpret commands
@@ -756,6 +872,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandUnload(SplittedCommand);
   } else if (!FirstCommand.compare("cpu")) {
     CommandCpu(SplittedCommand);
+  } else if (!FirstCommand.compare(".formats")) {
+    CommandFormats(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||
