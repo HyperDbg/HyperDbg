@@ -302,7 +302,7 @@ HPRDBGCTRL_API int HyperdbgLoad() {
 
   if (DeviceHandle) {
     ShowMessages("Handle of driver found, if you use 'load' before, please "
-                 "first unload it then call 'load'.\n");
+                 "first unload it then call 'unload'.\n");
     return 1;
   }
 

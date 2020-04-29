@@ -476,7 +476,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
         case IOCTL_DEBUGGER_READ_OR_WRITE_MSR:
-
             //
             // First validate the parameters.
             //
@@ -490,13 +489,25 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
             OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
-            if (!InBuffLength || !OutBuffLength)
+            if (!InBuffLength)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }
 
             DebuggerReadOrWriteMsrRequest = (PDEBUGGER_READ_AND_WRITE_ON_MSR)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Only the the rdmsr needs and output buffer
+            //
+            if (DebuggerReadOrWriteMsrRequest->ActionType != DEBUGGER_MSR_WRITE)
+            {
+                if (!OutBuffLength)
+                {
+                    Status = STATUS_INVALID_PARAMETER;
+                    break;
+                }
+            }
 
             Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, &ReturnSize);
 

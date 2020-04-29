@@ -822,11 +822,62 @@ void CommandRdmsrHelp() {
 }
 void CommandRdmsr(vector<string> SplittedCommand) {
 
+  BOOL Status;
+  DEBUGGER_READ_AND_WRITE_ON_MSR MsrReadRequest;
+  ULONG ReturnedLength;
+  UINT64 Msr;
+
   if (SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of 'rdmsr'\n\n");
     CommandRdmsrHelp();
     return;
   }
+
+  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &Msr)) {
+    ShowMessages("please specify a correct hex value to be read\n\n");
+    CommandRdmsrHelp();
+    return;
+  }
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return;
+  }
+
+  MsrReadRequest.ActionType = DEBUGGER_MSR_READ;
+  MsrReadRequest.Msr = Msr;
+
+  //
+  // allocate buffer for transfering messages
+  //
+  unsigned char *OutputBuffer =
+      (unsigned char *)malloc(SIZEOF_READ_AND_WRITE_ON_MSR);
+
+  ZeroMemory(OutputBuffer, SIZEOF_READ_AND_WRITE_ON_MSR);
+
+  Status = DeviceIoControl(
+      DeviceHandle,                     // Handle to device
+      IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
+      &MsrReadRequest,                  // Input Buffer to driver.
+      SIZEOF_READ_AND_WRITE_ON_MSR,     // Input buffer length
+      OutputBuffer,                     // Output Buffer from driver.
+      SIZEOF_READ_AND_WRITE_ON_MSR,     // Length of output buffer in bytes.
+      &ReturnedLength,                  // Bytes placed in buffer.
+      NULL                              // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return;
+  }
+
+  //
+  // btw, %x is enough, no need to %llx
+  //
+  ShowMessages("msr[%llx] = %s\n", Msr,
+               SeparateTo64BitValue(
+                   ((PDEBUGGER_READ_AND_WRITE_ON_MSR)(OutputBuffer))->Value)
+                   .c_str());
 }
 
 /* ==============================================================================================
@@ -834,16 +885,66 @@ void CommandRdmsr(vector<string> SplittedCommand) {
 
 void CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
-  ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
+  ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX] "
                "(hex value)]\n");
 }
 void CommandWrmsr(vector<string> SplittedCommand) {
+
+  BOOL Status;
+  DEBUGGER_READ_AND_WRITE_ON_MSR MsrWriteRequest;
+  UINT64 Msr;
+  UINT64 Value;
 
   if (SplittedCommand.size() != 3) {
     ShowMessages("incorrect use of 'wrmsr'\n\n");
     CommandWrmsrHelp();
     return;
   }
+
+  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &Msr)) {
+    ShowMessages("please specify a correct hex value as Msr (ecx)\n\n");
+    CommandWrmsrHelp();
+    return;
+  }
+
+  if (!ConvertStringToUInt64(SplittedCommand.at(2).c_str(), &Value)) {
+    ShowMessages(
+        "please specify a correct hex value to write into the Msr\n\n");
+    CommandWrmsrHelp();
+    return;
+  }
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return;
+  }
+
+  MsrWriteRequest.ActionType = DEBUGGER_MSR_WRITE;
+  MsrWriteRequest.Msr = Msr;
+  MsrWriteRequest.Value = Value;
+
+  //
+  // This request doesn't have anything to return
+  //
+  Status = DeviceIoControl(DeviceHandle,                     // Handle to device
+                           IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
+                           &MsrWriteRequest, // Input Buffer to driver.
+                           SIZEOF_READ_AND_WRITE_ON_MSR, // Input buffer length
+                           NULL, // Output Buffer from driver.
+                           NULL, // Length of output buffer in bytes.
+                           NULL, // Bytes placed in buffer.
+                           NULL  // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return;
+  }
+
+  //
+  // btw, %x is enough, no need to %llx
+  //
+  ShowMessages("msr[%llx] changed to %llx (you can see its change using rdmsr, only if it's a legit and writable msr)\n", Msr, Value);
 }
 
 /* ==============================================================================================
