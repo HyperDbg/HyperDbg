@@ -169,25 +169,26 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="comment">//</span></div>
 <div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="comment">// Hook Test</span></div>
 <div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="comment">//</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <a class="code" href="_ept_8c.html#ad7204b9587c2c5e8d495343df5aeb722">EptPageHook</a>(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <a class="code" href="_ept_8c.html#ad7204b9587c2c5e8d495343df5aeb722">EptPageHook</a>(ExAllocatePoolWithTag, <a class="code" href="_hidden_hooks_8c.html#af62063007bc1450386954e16032ce5fd">ExAllocatePoolWithTagHook</a>, (PVOID *)&amp;ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <span class="comment">//</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="comment">// Unhook Tests</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="comment">//HvPerformPageUnHookSinglePage(ExAllocatePoolWithTag);</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="comment">//HvPerformPageUnHookAllPages();</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="comment">//</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;}</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="comment">//EptPageHook(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="comment">//EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, (PVOID *)&amp;ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="comment">//EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, (PVOID *)&amp;ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <a class="code" href="_ept_8c.html#ad7204b9587c2c5e8d495343df5aeb722">EptPageHook</a>(NtCreateFile, <a class="code" href="_inline_asm_8h.html#a119c789794680db52a415b9516662879">AsmGeneralDetourHook</a>, (PVOID *)&amp;NtCreateFileOrig, FALSE, FALSE, TRUE);</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="comment">//</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="comment">// Unhook Tests</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="comment">//HvPerformPageUnHookSinglePage(ExAllocatePoolWithTag);</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="comment">//HvPerformPageUnHookAllPages();</span></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="comment">//</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;}</div>
 </div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="a_hooks_8h_html_aba7c9f3767dcc5232354d3d17ceedb61"><div class="ttname"><a href="_hooks_8h.html#aba7c9f3767dcc5232354d3d17ceedb61">Tag</a></div><div class="ttdeci">POOL_TYPE SIZE_T ULONG Tag</div><div class="ttdef"><b>Definition:</b> Hooks.h:105</div></div>
-<div class="ttc" id="a_hooks_8h_html_a5d405dff9ba7e6c73d78857f415965f4"><div class="ttname"><a href="_hooks_8h.html#a5d405dff9ba7e6c73d78857f415965f4">PoolType</a></div><div class="ttdeci">POOL_TYPE PoolType</div><div class="ttdef"><b>Definition:</b> Hooks.h:103</div></div>
-<div class="ttc" id="a_common_8h_html_a97b0adbd65790fb90734daa8e5245a04"><div class="ttname"><a href="_common_8h.html#a97b0adbd65790fb90734daa8e5245a04">LogInfo</a></div><div class="ttdeci">#define LogInfo(format,...)</div><div class="ttdef"><b>Definition:</b> Common.h:326</div></div>
-<div class="ttc" id="a_ept_8c_html_ad7204b9587c2c5e8d495343df5aeb722"><div class="ttname"><a href="_ept_8c.html#ad7204b9587c2c5e8d495343df5aeb722">EptPageHook</a></div><div class="ttdeci">BOOLEAN EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID *OrigFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)</div><div class="ttdoc">This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook.</div><div class="ttdef"><b>Definition:</b> Ept.c:1116</div></div>
-<div class="ttc" id="a_hidden_hooks_8c_html_af62063007bc1450386954e16032ce5fd"><div class="ttname"><a href="_hidden_hooks_8c.html#af62063007bc1450386954e16032ce5fd">ExAllocatePoolWithTagHook</a></div><div class="ttdeci">PVOID ExAllocatePoolWithTagHook(POOL_TYPE PoolType, SIZE_T NumberOfBytes, ULONG Tag)</div><div class="ttdoc">Hook function that HooksExAllocatePoolWithTag.</div><div class="ttdef"><b>Definition:</b> HiddenHooks.c:32</div></div>
-<div class="ttc" id="a_hooks_8h_html_a61083d5dde730c2afd10a336322aaaac"><div class="ttname"><a href="_hooks_8h.html#a61083d5dde730c2afd10a336322aaaac">NumberOfBytes</a></div><div class="ttdeci">POOL_TYPE SIZE_T NumberOfBytes</div><div class="ttdef"><b>Definition:</b> Hooks.h:104</div></div>
+<div class="ttc" id="a_hooks_8h_html_aba7c9f3767dcc5232354d3d17ceedb61"><div class="ttname"><a href="_hooks_8h.html#aba7c9f3767dcc5232354d3d17ceedb61">Tag</a></div><div class="ttdeci">POOL_TYPE SIZE_T ULONG Tag</div><div class="ttdef"><b>Definition:</b> Hooks.h:113</div></div>
+<div class="ttc" id="a_hooks_8h_html_a5d405dff9ba7e6c73d78857f415965f4"><div class="ttname"><a href="_hooks_8h.html#a5d405dff9ba7e6c73d78857f415965f4">PoolType</a></div><div class="ttdeci">POOL_TYPE PoolType</div><div class="ttdef"><b>Definition:</b> Hooks.h:111</div></div>
+<div class="ttc" id="a_common_8h_html_a97b0adbd65790fb90734daa8e5245a04"><div class="ttname"><a href="_common_8h.html#a97b0adbd65790fb90734daa8e5245a04">LogInfo</a></div><div class="ttdeci">#define LogInfo(format,...)</div><div class="ttdef"><b>Definition:</b> Common.h:327</div></div>
+<div class="ttc" id="a_ept_8c_html_ad7204b9587c2c5e8d495343df5aeb722"><div class="ttname"><a href="_ept_8c.html#ad7204b9587c2c5e8d495343df5aeb722">EptPageHook</a></div><div class="ttdeci">BOOLEAN EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID *OrigFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)</div><div class="ttdoc">This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook.</div><div class="ttdef"><b>Definition:</b> Ept.c:1175</div></div>
+<div class="ttc" id="a_hooks_8h_html_a61083d5dde730c2afd10a336322aaaac"><div class="ttname"><a href="_hooks_8h.html#a61083d5dde730c2afd10a336322aaaac">NumberOfBytes</a></div><div class="ttdeci">POOL_TYPE SIZE_T NumberOfBytes</div><div class="ttdef"><b>Definition:</b> Hooks.h:112</div></div>
+<div class="ttc" id="a_inline_asm_8h_html_a119c789794680db52a415b9516662879"><div class="ttname"><a href="_inline_asm_8h.html#a119c789794680db52a415b9516662879">AsmGeneralDetourHook</a></div><div class="ttdeci">void AsmGeneralDetourHook()</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

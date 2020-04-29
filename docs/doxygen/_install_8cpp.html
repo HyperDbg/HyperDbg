@@ -195,12 +195,12 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            <span class="comment">// Previous instance of the service is not fully deleted so sleep</span></div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            <span class="comment">// and try again.</span></div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            <span class="comment">//</span></div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            printf(<span class="stringliteral">&quot;Previous instance of the service is not fully deleted. Try again...\n&quot;</span>);</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;            <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Previous instance of the service is not fully deleted. Try again...\n&quot;</span>);</div>
 <div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;            <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        }</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;        <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160; </div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            printf(<span class="stringliteral">&quot;CreateService failed!  Error = %d \n&quot;</span>, err);</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;            <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;CreateService failed!  Error = %d \n&quot;</span>, err);</div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160; </div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;            <span class="comment">//</span></div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;            <span class="comment">// Indicate an error.</span></div>
@@ -283,7 +283,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keywordflow">if</span> (!DriverName || !ServiceName) {</div>
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        printf(<span class="stringliteral">&quot;Invalid Driver or Service provided to ManageDriver() \n&quot;</span>);</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Invalid Driver or Service provided to ManageDriver() \n&quot;</span>);</div>
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
 <div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    }</div>
@@ -299,7 +299,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="keywordflow">if</span> (!schSCManager) {</div>
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        printf(<span class="stringliteral">&quot;Open SC Manager failed! Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Open SC Manager failed! Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160; </div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    }</div>
@@ -369,7 +369,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">default</span>:</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160; </div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        printf(<span class="stringliteral">&quot;Unknown ManageDriver() function. \n&quot;</span>);</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Unknown ManageDriver() function. \n&quot;</span>);</div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160; </div>
 <div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        rCode = FALSE;</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
@@ -441,7 +441,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160; </div>
 <div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    <span class="keywordflow">if</span> (schService == NULL) {</div>
 <div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160; </div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        printf(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160; </div>
 <div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;        <span class="comment">// Indicate error.</span></div>
@@ -465,7 +465,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    }</div>
 <div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;    <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160; </div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;        printf(<span class="stringliteral">&quot;DeleteService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;DeleteService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160; </div>
 <div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;        <span class="comment">// Indicate failure.  Fall through to properly close the service handle.</span></div>
@@ -537,7 +537,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160; </div>
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;    <span class="keywordflow">if</span> (driverLocLen == 0) {</div>
 <div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160; </div>
-<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        printf(<span class="stringliteral">&quot;GetCurrentDirectory failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;GetCurrentDirectory failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160; </div>
 <div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;    }</div>
@@ -563,7 +563,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;    )) == INVALID_HANDLE_VALUE) {</div>
 <div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160; </div>
 <div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160; </div>
-<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        printf(<span class="stringliteral">&quot;%s.sys is not loaded.\n&quot;</span>, DRIVER_NAME);</div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;%s.sys is not loaded.\n&quot;</span>, DRIVER_NAME);</div>
 <div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160; </div>
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;        <span class="comment">// Indicate failure.</span></div>
@@ -642,7 +642,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160; </div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    <span class="keywordflow">if</span> (schService == NULL) {</div>
 <div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160; </div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        printf(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160; </div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;        <span class="comment">// Indicate failure.</span></div>
@@ -673,7 +673,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;        }</div>
 <div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;        <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160; </div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;            printf(<span class="stringliteral">&quot;StartService failure! Error = %d \n&quot;</span>, err);</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;            <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;StartService failure! Error = %d \n&quot;</span>, err);</div>
 <div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160; </div>
 <div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;            <span class="comment">//</span></div>
 <div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;            <span class="comment">// Indicate failure.  Fall through to properly close the service handle.</span></div>
@@ -750,7 +750,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160; </div>
 <div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;    <span class="keywordflow">if</span> (schService == NULL) {</div>
 <div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160; </div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;        printf(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;OpenService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160; </div>
 <div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;    }</div>
@@ -773,7 +773,7 @@ Functions</h2></td></tr>
 <div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;    }</div>
 <div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;    <span class="keywordflow">else</span> {</div>
 <div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160; </div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;        printf(<span class="stringliteral">&quot;ControlService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;ControlService failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160; </div>
 <div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;        <span class="comment">// Indicate failure.  Fall through to properly close the service handle.</span></div>
@@ -798,10 +798,11 @@ Functions</h2></td></tr>
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="ahprdbgctrl_8h_html_aa378ee498aed65ff64444bb86c60a86c"><div class="ttname"><a href="hprdbgctrl_8h.html#aa378ee498aed65ff64444bb86c60a86c">DRIVER_FUNC_INSTALL</a></div><div class="ttdeci">#define DRIVER_FUNC_INSTALL</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:47</div></div>
+<div class="ttc" id="ahprdbgctrl_8h_html_aa378ee498aed65ff64444bb86c60a86c"><div class="ttname"><a href="hprdbgctrl_8h.html#aa378ee498aed65ff64444bb86c60a86c">DRIVER_FUNC_INSTALL</a></div><div class="ttdeci">#define DRIVER_FUNC_INSTALL</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:49</div></div>
 <div class="ttc" id="a_install_8cpp_html_a9fda6b47e72b2c02d105bd45a1a01385"><div class="ttname"><a href="_install_8cpp.html#a9fda6b47e72b2c02d105bd45a1a01385">StopDriver</a></div><div class="ttdeci">BOOLEAN StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Stop driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:433</div></div>
+<div class="ttc" id="acommands_8h_html_abd19c825171e66b83128a1ce6531b2e9"><div class="ttname"><a href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a></div><div class="ttdeci">void ShowMessages(const char *Fmt,...)</div><div class="ttdoc">Show messages received from kernel driver.</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.cpp:39</div></div>
 <div class="ttc" id="a_install_8cpp_html_aa82368241295e5c4de1068acfa5eb224"><div class="ttname"><a href="_install_8cpp.html#aa82368241295e5c4de1068acfa5eb224">StartDriver</a></div><div class="ttdeci">BOOLEAN StartDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Start Driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:350</div></div>
-<div class="ttc" id="ahprdbgctrl_8h_html_a59f927de3a1d0e607fc731b2875e8257"><div class="ttname"><a href="hprdbgctrl_8h.html#a59f927de3a1d0e607fc731b2875e8257">DRIVER_FUNC_REMOVE</a></div><div class="ttdeci">#define DRIVER_FUNC_REMOVE</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:48</div></div>
+<div class="ttc" id="ahprdbgctrl_8h_html_a59f927de3a1d0e607fc731b2875e8257"><div class="ttname"><a href="hprdbgctrl_8h.html#a59f927de3a1d0e607fc731b2875e8257">DRIVER_FUNC_REMOVE</a></div><div class="ttdeci">#define DRIVER_FUNC_REMOVE</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:50</div></div>
 <div class="ttc" id="a_install_8cpp_html_a9d62d0e7b0daa174b9b164f8f894e55c"><div class="ttname"><a href="_install_8cpp.html#a9d62d0e7b0daa174b9b164f8f894e55c">InstallDriver</a></div><div class="ttdeci">BOOLEAN InstallDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceExe)</div><div class="ttdoc">Install driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:50</div></div>
 <div class="ttc" id="a_install_8cpp_html_a35e71980f9b7b6310cafa3c17dbcbb58"><div class="ttname"><a href="_install_8cpp.html#a35e71980f9b7b6310cafa3c17dbcbb58">RemoveDriver</a></div><div class="ttdeci">BOOLEAN RemoveDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Remove Driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:276</div></div>
 <!-- start footer part -->

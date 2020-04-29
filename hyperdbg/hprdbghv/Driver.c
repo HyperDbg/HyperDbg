@@ -366,14 +366,15 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION      IrpStack;
-    PREGISTER_NOTIFY_BUFFER RegisterEvent;
-    PDEBUGGER_READ_MEMORY   DebuggerReadMem;
-    NTSTATUS                Status;
-    ULONG                   InBuffLength;  // Input buffer length
-    ULONG                   OutBuffLength; // Output buffer length
-    SIZE_T                  ReturnSize;
-    BOOLEAN                 DoNotChangeInformation = FALSE;
+    PIO_STACK_LOCATION              IrpStack;
+    PREGISTER_NOTIFY_BUFFER         RegisterEventRequest;
+    PDEBUGGER_READ_MEMORY           DebuggerReadMemRequest;
+    PDEBUGGER_READ_AND_WRITE_ON_MSR DebuggerReadOrWriteMsrRequest;
+    NTSTATUS                        Status;
+    ULONG                           InBuffLength;  // Input buffer length
+    ULONG                           OutBuffLength; // Output buffer length
+    SIZE_T                          ReturnSize;
+    BOOLEAN                         DoNotChangeInformation = FALSE;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -404,9 +405,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // are specified in calls to DeviceIoControl
             //
 
-            RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
+            RegisterEventRequest = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
-            switch (RegisterEvent->Type)
+            switch (RegisterEventRequest->Type)
             {
             case IRP_BASED:
                 Status = LogRegisterIrpBasedNotification(DeviceObject, Irp);
@@ -455,16 +456,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }
-            DebuggerReadMem = (PDEBUGGER_READ_MEMORY)Irp->AssociatedIrp.SystemBuffer;
+
+            DebuggerReadMemRequest = (PDEBUGGER_READ_MEMORY)Irp->AssociatedIrp.SystemBuffer;
+
+            Status = DebuggerCommandReadMemory(DebuggerReadMemRequest, DebuggerReadMemRequest, &ReturnSize);
 
             //
-            // IRPs supply a pointer to a buffer at Irp->AssociatedIrp.SystemBuffer.
-            // This buffer represents both the input buffer and the output buffer that
-            // are specified in calls to DeviceIoControl, also we save size as after
-            // this operation the structure is no longer valid.
+            // Set the size
             //
+            if (Status == STATUS_SUCCESS)
+            {
+                Irp->IoStatus.Information = ReturnSize;
 
-            Status = DebuggerCommandReadMemory(DebuggerReadMem, DebuggerReadMem, &ReturnSize);
+                //
+                // Avoid zeroing it
+                //
+                DoNotChangeInformation = TRUE;
+            }
+
+            break;
+        case IOCTL_DEBUGGER_READ_OR_WRITE_MSR:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_READ_AND_WRITE_ON_MSR || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerReadOrWriteMsrRequest = (PDEBUGGER_READ_AND_WRITE_ON_MSR)Irp->AssociatedIrp.SystemBuffer;
+
+            Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, &ReturnSize);
 
             //
             // Set the size

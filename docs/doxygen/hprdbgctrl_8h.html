@@ -232,7 +232,7 @@ Variables</h2></td></tr>
 <div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160; </div>
 <div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    <span class="keywordflow">if</span> (!DriverName || !ServiceName) {</div>
 <div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160; </div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        printf(<span class="stringliteral">&quot;Invalid Driver or Service provided to ManageDriver() \n&quot;</span>);</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Invalid Driver or Service provided to ManageDriver() \n&quot;</span>);</div>
 <div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160; </div>
 <div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    }</div>
@@ -248,7 +248,7 @@ Variables</h2></td></tr>
 <div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160; </div>
 <div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="keywordflow">if</span> (!schSCManager) {</div>
 <div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160; </div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        printf(<span class="stringliteral">&quot;Open SC Manager failed! Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Open SC Manager failed! Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160; </div>
 <div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    }</div>
@@ -318,7 +318,7 @@ Variables</h2></td></tr>
 <div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160; </div>
 <div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    <span class="keywordflow">default</span>:</div>
 <div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160; </div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        printf(<span class="stringliteral">&quot;Unknown ManageDriver() function. \n&quot;</span>);</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;Unknown ManageDriver() function. \n&quot;</span>);</div>
 <div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160; </div>
 <div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;        rCode = FALSE;</div>
 <div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160; </div>
@@ -388,7 +388,7 @@ Variables</h2></td></tr>
 <div class="line"><a name="l00520"></a><span class="lineno">  520</span>&#160; </div>
 <div class="line"><a name="l00521"></a><span class="lineno">  521</span>&#160;    <span class="keywordflow">if</span> (driverLocLen == 0) {</div>
 <div class="line"><a name="l00522"></a><span class="lineno">  522</span>&#160; </div>
-<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        printf(<span class="stringliteral">&quot;GetCurrentDirectory failed!  Error = %d \n&quot;</span>, GetLastError());</div>
+<div class="line"><a name="l00523"></a><span class="lineno">  523</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;GetCurrentDirectory failed!  Error = %d \n&quot;</span>, GetLastError());</div>
 <div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160; </div>
 <div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;        <span class="keywordflow">return</span> FALSE;</div>
 <div class="line"><a name="l00526"></a><span class="lineno">  526</span>&#160;    }</div>
@@ -414,7 +414,7 @@ Variables</h2></td></tr>
 <div class="line"><a name="l00546"></a><span class="lineno">  546</span>&#160;    )) == INVALID_HANDLE_VALUE) {</div>
 <div class="line"><a name="l00547"></a><span class="lineno">  547</span>&#160; </div>
 <div class="line"><a name="l00548"></a><span class="lineno">  548</span>&#160; </div>
-<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        printf(<span class="stringliteral">&quot;%s.sys is not loaded.\n&quot;</span>, DRIVER_NAME);</div>
+<div class="line"><a name="l00549"></a><span class="lineno">  549</span>&#160;        <a class="code" href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a>(<span class="stringliteral">&quot;%s.sys is not loaded.\n&quot;</span>, DRIVER_NAME);</div>
 <div class="line"><a name="l00550"></a><span class="lineno">  550</span>&#160; </div>
 <div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;        <span class="comment">//</span></div>
 <div class="line"><a name="l00552"></a><span class="lineno">  552</span>&#160;        <span class="comment">// Indicate failure.</span></div>
@@ -459,10 +459,11 @@ Variables</h2></td></tr>
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="ahprdbgctrl_8h_html_aa378ee498aed65ff64444bb86c60a86c"><div class="ttname"><a href="hprdbgctrl_8h.html#aa378ee498aed65ff64444bb86c60a86c">DRIVER_FUNC_INSTALL</a></div><div class="ttdeci">#define DRIVER_FUNC_INSTALL</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:47</div></div>
+<div class="ttc" id="ahprdbgctrl_8h_html_aa378ee498aed65ff64444bb86c60a86c"><div class="ttname"><a href="hprdbgctrl_8h.html#aa378ee498aed65ff64444bb86c60a86c">DRIVER_FUNC_INSTALL</a></div><div class="ttdeci">#define DRIVER_FUNC_INSTALL</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:49</div></div>
 <div class="ttc" id="a_install_8cpp_html_a9fda6b47e72b2c02d105bd45a1a01385"><div class="ttname"><a href="_install_8cpp.html#a9fda6b47e72b2c02d105bd45a1a01385">StopDriver</a></div><div class="ttdeci">BOOLEAN StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Stop driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:433</div></div>
+<div class="ttc" id="acommands_8h_html_abd19c825171e66b83128a1ce6531b2e9"><div class="ttname"><a href="commands_8h.html#abd19c825171e66b83128a1ce6531b2e9">ShowMessages</a></div><div class="ttdeci">void ShowMessages(const char *Fmt,...)</div><div class="ttdoc">Show messages received from kernel driver.</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.cpp:39</div></div>
 <div class="ttc" id="a_install_8cpp_html_aa82368241295e5c4de1068acfa5eb224"><div class="ttname"><a href="_install_8cpp.html#aa82368241295e5c4de1068acfa5eb224">StartDriver</a></div><div class="ttdeci">BOOLEAN StartDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Start Driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:350</div></div>
-<div class="ttc" id="ahprdbgctrl_8h_html_a59f927de3a1d0e607fc731b2875e8257"><div class="ttname"><a href="hprdbgctrl_8h.html#a59f927de3a1d0e607fc731b2875e8257">DRIVER_FUNC_REMOVE</a></div><div class="ttdeci">#define DRIVER_FUNC_REMOVE</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:48</div></div>
+<div class="ttc" id="ahprdbgctrl_8h_html_a59f927de3a1d0e607fc731b2875e8257"><div class="ttname"><a href="hprdbgctrl_8h.html#a59f927de3a1d0e607fc731b2875e8257">DRIVER_FUNC_REMOVE</a></div><div class="ttdeci">#define DRIVER_FUNC_REMOVE</div><div class="ttdef"><b>Definition:</b> hprdbgctrl.h:50</div></div>
 <div class="ttc" id="a_install_8cpp_html_a9d62d0e7b0daa174b9b164f8f894e55c"><div class="ttname"><a href="_install_8cpp.html#a9d62d0e7b0daa174b9b164f8f894e55c">InstallDriver</a></div><div class="ttdeci">BOOLEAN InstallDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceExe)</div><div class="ttdoc">Install driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:50</div></div>
 <div class="ttc" id="a_install_8cpp_html_a35e71980f9b7b6310cafa3c17dbcbb58"><div class="ttname"><a href="_install_8cpp.html#a35e71980f9b7b6310cafa3c17dbcbb58">RemoveDriver</a></div><div class="ttdeci">BOOLEAN RemoveDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName)</div><div class="ttdoc">Remove Driver.</div><div class="ttdef"><b>Definition:</b> Install.cpp:276</div></div>
 <!-- start footer part -->

@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['request_5fnew_5fallocation_1904',['REQUEST_NEW_ALLOCATION',['../_pool_manager_8h.html#a16d34f4315fe6b271be10df99e25fd03',1,'PoolManager.h']]],
-  ['rflags_1905',['RFLAGS',['../_common_8h.html#a640698db761d86e67fd2dccadb220ee2',1,'Common.h']]],
-  ['runonlogicalcorefunc_1906',['RunOnLogicalCoreFunc',['../_common_8h.html#a25f777554b949fe8dfd4ffbd1313f30d',1,'Common.h']]]
+  ['notify_5frecord_2184',['NOTIFY_RECORD',['../_logging_8h.html#a266c7e4865c122941e250fdd8dc4e185',1,'Logging.h']]],
+  ['nt_5fkprocess_2185',['NT_KPROCESS',['../_common_8h.html#ac61c911e4f2fb2e010ae5955011110b9',1,'Common.h']]]
 ];

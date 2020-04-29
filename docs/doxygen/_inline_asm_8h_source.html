@@ -151,6 +151,14 @@ $(function() {
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<a class="code" href="_inline_asm_8h.html#ace9f194d7b9f227bf86406452701f0ae">AsmReloadGdtr</a>(<span class="keywordtype">void</span> * GdtBase, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> GdtLimit);</div>
 <div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span></div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<a class="code" href="_inline_asm_8h.html#a028a83454f610785aa8e64d6d6d9e659">AsmReloadIdtr</a>(<span class="keywordtype">void</span> * GdtBase, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> GdtLimit);</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160; </div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="comment">// ====================  Debugger Functions ====================</span></div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="comment">// File : AsmDebugger.asm</span></div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<a class="code" href="_inline_asm_8h.html#a119c789794680db52a415b9516662879">AsmGeneralDetourHook</a>();</div>
 </div><!-- fragment --></div><!-- contents -->
 <div class="ttc" id="a_inline_asm_8h_html_a141567e2e7a4abc1106cccca5d365af3"><div class="ttname"><a href="_inline_asm_8h.html#a141567e2e7a4abc1106cccca5d365af3">AsmEnableVmxOperation</a></div><div class="ttdeci">void AsmEnableVmxOperation()</div></div>
 <div class="ttc" id="a_inline_asm_8h_html_a99ddf21c2beb923fc68f01d200140782"><div class="ttname"><a href="_inline_asm_8h.html#a99ddf21c2beb923fc68f01d200140782">AsmVmxRestoreState</a></div><div class="ttdeci">void AsmVmxRestoreState()</div></div>
@@ -177,6 +185,7 @@ $(function() {
 <div class="ttc" id="a_inline_asm_8h_html_a898dd1b2dbb7da3619247ff5bccccf5d"><div class="ttname"><a href="_inline_asm_8h.html#a898dd1b2dbb7da3619247ff5bccccf5d">AsmGetEs</a></div><div class="ttdeci">unsigned short AsmGetEs()</div></div>
 <div class="ttc" id="a_inline_asm_8h_html_a12b7927eac69cc5789b749beda7cecce"><div class="ttname"><a href="_inline_asm_8h.html#a12b7927eac69cc5789b749beda7cecce">AsmGetGs</a></div><div class="ttdeci">unsigned short AsmGetGs()</div></div>
 <div class="ttc" id="a_inline_asm_8h_html_ac9b510880221a7ac9a8e8be42d5371eb"><div class="ttname"><a href="_inline_asm_8h.html#ac9b510880221a7ac9a8e8be42d5371eb">AsmSaveVmxOffState</a></div><div class="ttdeci">void AsmSaveVmxOffState()</div></div>
+<div class="ttc" id="a_inline_asm_8h_html_a119c789794680db52a415b9516662879"><div class="ttname"><a href="_inline_asm_8h.html#a119c789794680db52a415b9516662879">AsmGeneralDetourHook</a></div><div class="ttdeci">void AsmGeneralDetourHook()</div></div>
 <div class="ttc" id="a_inline_asm_8h_html_a75e25107aec121e0874c846b0d8d67cb"><div class="ttname"><a href="_inline_asm_8h.html#a75e25107aec121e0874c846b0d8d67cb">AsmGetCs</a></div><div class="ttdeci">unsigned short AsmGetCs()</div></div>
 <div class="ttc" id="a_inline_asm_8h_html_ae6e476bf54448b171c301ddf98fb9323"><div class="ttname"><a href="_inline_asm_8h.html#ae6e476bf54448b171c301ddf98fb9323">AsmGetIdtLimit</a></div><div class="ttdeci">unsigned short AsmGetIdtLimit()</div></div>
 <!-- start footer part -->

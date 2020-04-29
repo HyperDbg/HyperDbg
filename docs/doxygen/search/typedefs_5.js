@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['log_5fbuffer_5finformation_1840',['LOG_BUFFER_INFORMATION',['../_logging_8h.html#ad46380d62a8edc51783b47650b8bd6f9',1,'Logging.h']]],
-  ['log_5ftype_1841',['LOG_TYPE',['../_common_8h.html#a00e4548dd1db35b54cbeb1ee0fe45f66',1,'Common.h']]]
+  ['hidden_5fhooks_5fdetour_5fdetails_2164',['HIDDEN_HOOKS_DETOUR_DETAILS',['../_hooks_8h.html#afca3bba3357dab1c3380e4b9772f04da',1,'Hooks.h']]]
 ];

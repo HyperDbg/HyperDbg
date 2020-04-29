@@ -26,38 +26,7 @@
            null-termminating */
 #define LogBufferSize                                                          \
   MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
-#define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)
-#define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
 #define DbgPrintLimitation 512
-
-//////////////////////////////////////////////////
-//					Events                      //
-//////////////////////////////////////////////////
-
-typedef enum _NOTIFY_TYPE { IRP_BASED, EVENT_BASED } NOTIFY_TYPE;
-
-typedef enum _DEBUGGER_READ_READING_TYPE { READ_FROM_KERNEL, READ_FROM_VMX_ROOT } DEBUGGER_READ_READING_TYPE;
-
-typedef enum _DEBUGGER_READ_MEMORY_TYPE { DEBUGGER_READ_PHYSICAL_ADDRESS, DEBUGGER_READ_VIRTUAL_ADDRESS } DEBUGGER_READ_MEMORY_TYPE;
-
-typedef enum _DEBUGGER_SHOW_MEMORY_STYLE { DEBUGGER_SHOW_COMMAND_DISASSEMBLE, DEBUGGER_SHOW_COMMAND_DB, DEBUGGER_SHOW_COMMAND_DC, DEBUGGER_SHOW_COMMAND_DQ, DEBUGGER_SHOW_COMMAND_DD } DEBUGGER_SHOW_MEMORY_STYLE;
-
-
-typedef struct _REGISTER_NOTIFY_BUFFER {
-  NOTIFY_TYPE Type;
-  HANDLE hEvent;
-
-} REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
-
-typedef struct _DEBUGGER_READ_MEMORY {
-
-    UINT32 Pid; // Read from cr3 of what process
-    UINT64 Address;
-    UINT32 Size;
-    DEBUGGER_READ_MEMORY_TYPE MemoryType;
-    DEBUGGER_READ_READING_TYPE ReadingType;
-
-} DEBUGGER_READ_MEMORY, * PDEBUGGER_READ_MEMORY;
 
 //////////////////////////////////////////////////
 //					Installer
@@ -84,8 +53,73 @@ typedef struct _DEBUGGER_READ_MEMORY {
 typedef int(__stdcall *Callback)(const char *Text);
 
 //////////////////////////////////////////////////
-//				Debugger Structs                //
+//					Debugger                    //
 //////////////////////////////////////////////////
+
+#define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)
+
+typedef enum _NOTIFY_TYPE { IRP_BASED, EVENT_BASED } NOTIFY_TYPE;
+
+typedef struct _REGISTER_NOTIFY_BUFFER {
+  NOTIFY_TYPE Type;
+  HANDLE hEvent;
+
+} REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
+
+typedef enum _DEBUGGER_READ_READING_TYPE {
+  READ_FROM_KERNEL,
+  READ_FROM_VMX_ROOT
+} DEBUGGER_READ_READING_TYPE;
+
+typedef enum _DEBUGGER_READ_MEMORY_TYPE {
+  DEBUGGER_READ_PHYSICAL_ADDRESS,
+  DEBUGGER_READ_VIRTUAL_ADDRESS
+} DEBUGGER_READ_MEMORY_TYPE;
+
+typedef enum _DEBUGGER_SHOW_MEMORY_STYLE {
+  DEBUGGER_SHOW_COMMAND_DISASSEMBLE,
+  DEBUGGER_SHOW_COMMAND_DB,
+  DEBUGGER_SHOW_COMMAND_DC,
+  DEBUGGER_SHOW_COMMAND_DQ,
+  DEBUGGER_SHOW_COMMAND_DD
+} DEBUGGER_SHOW_MEMORY_STYLE;
+
+typedef struct _DEBUGGER_READ_MEMORY {
+
+  UINT32 Pid; // Read from cr3 of what process
+  UINT64 Address;
+  UINT32 Size;
+  DEBUGGER_READ_MEMORY_TYPE MemoryType;
+  DEBUGGER_READ_READING_TYPE ReadingType;
+
+} DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_READ_AND_WRITE_ON_MSR sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
+
+typedef enum _DEBUGGER_MSR_ACTION_TYPE {
+  DEBUGGER_MSR_READ,
+  DEBUGGER_MSR_WRITE
+} DEBUGGER_MSR_ACTION_TYPE;
+
+typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
+
+  UINT64 Msr; // It's actually a 32-Bit value but let's not mess with a register
+  DEBUGGER_MSR_ACTION_TYPE
+  ActionType; // Detects whether user needs wrmsr or rdmsr
+  UINT64 Value;
+
+} DEBUGGER_READ_AND_WRITE_ON_MSR, *PDEBUGGER_READ_AND_WRITE_ON_MSR;
+
+/* ==============================================================================================
+ */
 
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 
@@ -196,6 +230,9 @@ typedef struct _DEBUGGER_EVENT_REQUEST_CUSTOM_CODE {
 
 } DEBUGGER_EVENT_REQUEST_CUSTOM_CODE, *PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE;
 
+/* ==============================================================================================
+ */
+
 typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
   BREAK_TO_DEBUGGER,
   LOG_THE_STATES,
@@ -222,6 +259,9 @@ typedef struct _DEBUGGER_EVENT_ACTION {
   PVOID CustomCodeBufferAddress; // address of custom code if any
 
 } DEBUGGER_EVENT_ACTION, *PDEBUGGER_EVENT_ACTION;
+
+/* ==============================================================================================
+ */
 
 typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
   HIDDEN_HOOK_RW,
@@ -259,5 +299,8 @@ typedef struct _DEBUGGER_EVENT {
 #define IOCTL_TERMINATE_VMX                                                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x802, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
-#define IOCTL_DEBUGGER_READ_MEMORY                                                    \
+#define IOCTL_DEBUGGER_READ_MEMORY                                             \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x803, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_READ_OR_WRITE_MSR                                       \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)

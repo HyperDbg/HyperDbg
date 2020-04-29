@@ -75,15 +75,17 @@ $(function() {
 <p>Headers of Debugger Commands (Extensions)  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;ntddk.h&gt;</code><br />
-<code>#include &quot;<a class="el" href="_debugger_commands_8h_source.html">DebuggerCommands.h</a>&quot;</code><br />
 </div>
 <p><a href="_extension_commands_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:abafc0794f7aeda114cecec2959090fb8"><td class="memItemLeft" align="right" valign="top">VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_extension_commands_8h.html#abafc0794f7aeda114cecec2959090fb8">DebuggerEnableSyscallHookEfer</a> (PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT UsermodeRequestBuffer)</td></tr>
-<tr class="memdesc:abafc0794f7aeda114cecec2959090fb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Provide Syscall Hook EFER for Debugger.  <a href="_extension_commands_8h.html#abafc0794f7aeda114cecec2959090fb8">More...</a><br /></td></tr>
-<tr class="separator:abafc0794f7aeda114cecec2959090fb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e08af7a5343c8d8a14167dce2a505a5"><td class="memItemLeft" align="right" valign="top">VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_extension_commands_8h.html#a1e08af7a5343c8d8a14167dce2a505a5">ExtensionCommandEnableEferOnAllProcessors</a> ()</td></tr>
+<tr class="memdesc:a1e08af7a5343c8d8a14167dce2a505a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">routines for !syscallhook command (enable syscall hook)  <a href="_extension_commands_8h.html#a1e08af7a5343c8d8a14167dce2a505a5">More...</a><br /></td></tr>
+<tr class="separator:a1e08af7a5343c8d8a14167dce2a505a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af89e880fa782f3eb75fc5ebbe1b92d9b"><td class="memItemLeft" align="right" valign="top">VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_extension_commands_8h.html#af89e880fa782f3eb75fc5ebbe1b92d9b">ExtensionCommandDisableEferOnAllProcessors</a> ()</td></tr>
+<tr class="memdesc:af89e880fa782f3eb75fc5ebbe1b92d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">routines for !syscallhook command (disable syscall hook)  <a href="_extension_commands_8h.html#af89e880fa782f3eb75fc5ebbe1b92d9b">More...</a><br /></td></tr>
+<tr class="separator:af89e880fa782f3eb75fc5ebbe1b92d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Headers of Debugger Commands (Extensions) </p>
@@ -92,52 +94,55 @@ Functions</h2></td></tr>
 <dl class="section date"><dt>Date</dt><dd>2020-04-11</dd></dl>
 <dl class="section copyright"><dt>Copyright</dt><dd>This project is released under the GNU Public License v3. </dd></dl>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="abafc0794f7aeda114cecec2959090fb8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abafc0794f7aeda114cecec2959090fb8">&#9670;&nbsp;</a></span>DebuggerEnableSyscallHookEfer()</h2>
+<a id="af89e880fa782f3eb75fc5ebbe1b92d9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af89e880fa782f3eb75fc5ebbe1b92d9b">&#9670;&nbsp;</a></span>ExtensionCommandDisableEferOnAllProcessors()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">VOID DebuggerEnableSyscallHookEfer </td>
+          <td class="memname">VOID ExtensionCommandDisableEferOnAllProcessors </td>
           <td>(</td>
-          <td class="paramtype">PDEBUGGER_EPT_SYSCALL_HOOK_EFER_STRUCT&#160;</td>
-          <td class="paramname"><em>UsermodeRequestBuffer</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Provide Syscall Hook EFER for Debugger. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">UsermodeRequestBuffer</td><td>The usermode request buffer </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>routines for !syscallhook command (disable syscall hook) </p>
 <dl class="section return"><dt>Returns</dt><dd>VOID </dd></dl>
-<div class="fragment"><div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;{</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keywordflow">if</span> (UsermodeRequestBuffer-&gt;Type == ALL_SYSCALLS)</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    {</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        DbgBreakPoint();</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <a class="code" href="_extension_commands_8c.html#a3906f3119c99eac4da57a065c7bb05d2">DebuggerEnableSyscallHookEforAllProcess</a>(&amp;UsermodeRequestBuffer-&gt;Action);</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    }</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (UsermodeRequestBuffer-&gt;Type == SPECIFIC_PROCESS_SYSCALLS)</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    {</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;        DbgBreakPoint();</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    }</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keywordflow">else</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    {</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        DbgBreakPoint();</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        <a class="code" href="_debugger_commands_8h.html#a4bf750d4b71e348c9c47bfdefb9fc671">LogWithTag</a>(UsermodeRequestBuffer-&gt;Action.Tag, TRUE, <span class="stringliteral">&quot;invalid parameter specified in \&quot;Type\&quot; &quot;</span>);</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    }</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;}</div>
+<div class="fragment"><div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;{</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    KeGenericCallDpc(<a class="code" href="_broadcast_8c.html#a8640db5f6e747bec4a4b8b2cb15abf9f">BroadcastDpcDisableEferSyscallEvents</a>, 0x0);</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;}</div>
+</div><!-- fragment -->
+</div>
+</div>
+<a id="a1e08af7a5343c8d8a14167dce2a505a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e08af7a5343c8d8a14167dce2a505a5">&#9670;&nbsp;</a></span>ExtensionCommandEnableEferOnAllProcessors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">VOID ExtensionCommandEnableEferOnAllProcessors </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>routines for !syscallhook command (enable syscall hook) </p>
+<dl class="section return"><dt>Returns</dt><dd>VOID </dd></dl>
+<div class="fragment"><div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;{</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    KeGenericCallDpc(<a class="code" href="_broadcast_8c.html#a6542fce95e13cc18dc93e5597ca79a4e">BroadcastDpcEnableEferSyscallEvents</a>, 0x0);</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;}</div>
 </div><!-- fragment -->
 </div>
 </div>
 </div><!-- contents -->
-<div class="ttc" id="a_debugger_commands_8h_html_a4bf750d4b71e348c9c47bfdefb9fc671"><div class="ttname"><a href="_debugger_commands_8h.html#a4bf750d4b71e348c9c47bfdefb9fc671">LogWithTag</a></div><div class="ttdeci">#define LogWithTag(tag, IsImmediate, format,...)</div><div class="ttdef"><b>Definition:</b> DebuggerCommands.h:39</div></div>
-<div class="ttc" id="a_extension_commands_8c_html_a3906f3119c99eac4da57a065c7bb05d2"><div class="ttname"><a href="_extension_commands_8c.html#a3906f3119c99eac4da57a065c7bb05d2">DebuggerEnableSyscallHookEforAllProcess</a></div><div class="ttdeci">VOID DebuggerEnableSyscallHookEforAllProcess(PDEBUGGER_ACTION DebuggerAction)</div><div class="ttdoc">Provide All Process Syscall Hook EFER for Debugger.</div><div class="ttdef"><b>Definition:</b> ExtensionCommands.c:24</div></div>
+<div class="ttc" id="a_broadcast_8c_html_a6542fce95e13cc18dc93e5597ca79a4e"><div class="ttname"><a href="_broadcast_8c.html#a6542fce95e13cc18dc93e5597ca79a4e">BroadcastDpcEnableEferSyscallEvents</a></div><div class="ttdeci">VOID BroadcastDpcEnableEferSyscallEvents(KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)</div><div class="ttdoc">Broadcast syscall hook to all cores.</div><div class="ttdef"><b>Definition:</b> Broadcast.c:24</div></div>
+<div class="ttc" id="a_broadcast_8c_html_a8640db5f6e747bec4a4b8b2cb15abf9f"><div class="ttname"><a href="_broadcast_8c.html#a8640db5f6e747bec4a4b8b2cb15abf9f">BroadcastDpcDisableEferSyscallEvents</a></div><div class="ttdeci">VOID BroadcastDpcDisableEferSyscallEvents(KDPC *Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)</div><div class="ttdoc">Broadcast syscall unhook to all cores.</div><div class="ttdef"><b>Definition:</b> Broadcast.c:50</div></div>
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">

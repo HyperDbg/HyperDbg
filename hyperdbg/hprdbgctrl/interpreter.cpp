@@ -37,22 +37,18 @@ string SeparateTo64BitValue(UINT64 Value) {
   temp.insert(8, 1, '`');
   return temp;
 }
-void PrintBits(size_t const size, void const* const ptr)
-{
-    unsigned char* b = (unsigned char*)ptr;
-    unsigned char byte;
-    int i, j;
+void PrintBits(size_t const size, void const *const ptr) {
+  unsigned char *b = (unsigned char *)ptr;
+  unsigned char byte;
+  int i, j;
 
-    for (i = size - 1; i >= 0; i--)
-    {
-        for (j = 7; j >= 0; j--)
-        {
-            byte = (b[i] >> j) & 1;
-            ShowMessages("%u", byte);
-        }
-        ShowMessages(" ", byte);
-
+  for (i = size - 1; i >= 0; i--) {
+    for (j = 7; j >= 0; j--) {
+      byte = (b[i] >> j) & 1;
+      ShowMessages("%u", byte);
     }
+    ShowMessages(" ", byte);
+  }
 }
 /**
  * @brief Read memory and disassembler
@@ -760,7 +756,7 @@ void CommandFormats(vector<string> SplittedCommand) {
 
   UINT64 u64Value;
   time_t t;
-  struct tm* tmp;
+  struct tm *tmp;
   char MY_TIME[50];
   char Character;
 
@@ -778,18 +774,17 @@ void CommandFormats(vector<string> SplittedCommand) {
   time(&t);
 
   //
-  // localtime() uses the time pointed by t , 
-  // to fill a tm structure with the values that 
-  // represent the corresponding local time. 
+  // localtime() uses the time pointed by t ,
+  // to fill a tm structure with the values that
+  // represent the corresponding local time.
   //
 
   tmp = localtime(&t);
 
   //
-  // using strftime to display time 
+  // using strftime to display time
   //
   strftime(MY_TIME, sizeof(MY_TIME), "%x - %I:%M%p", tmp);
-
 
   ShowMessages("Evaluate expression:\n");
   ShowMessages("Hex :        %s\n", SeparateTo64BitValue(u64Value).c_str());
@@ -805,22 +800,54 @@ void CommandFormats(vector<string> SplittedCommand) {
   //
   for (size_t j = 0; j < 8; j++) {
 
-      Character = (char)(((char*) &u64Value)[j]);
+    Character = (char)(((char *)&u64Value)[j]);
 
-      if (isprint(Character)) {
-          ShowMessages("%c", Character);
-      }
-      else {
-          ShowMessages(".");
-      }
+    if (isprint(Character)) {
+      ShowMessages("%c", Character);
+    } else {
+      ShowMessages(".");
+    }
   }
   ShowMessages("\nTime :       %s\n", MY_TIME);
   ShowMessages("Float :      %4.2f %+.0e %E\n", u64Value, u64Value, u64Value);
   ShowMessages("Double :     %.*e\n", DECIMAL_DIG, u64Value);
-
 }
 
-/* ============================================================================================== */
+/* ==============================================================================================
+ */
+
+void CommandRdmsrHelp() {
+  ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
+  ShowMessages("syntax : \trdmsr [rcx (hex value)]\n");
+}
+void CommandRdmsr(vector<string> SplittedCommand) {
+
+  if (SplittedCommand.size() != 2) {
+    ShowMessages("incorrect use of 'rdmsr'\n\n");
+    CommandRdmsrHelp();
+    return;
+  }
+}
+
+/* ==============================================================================================
+ */
+
+void CommandWrmsrHelp() {
+  ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
+  ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
+               "(hex value)]\n");
+}
+void CommandWrmsr(vector<string> SplittedCommand) {
+
+  if (SplittedCommand.size() != 3) {
+    ShowMessages("incorrect use of 'wrmsr'\n\n");
+    CommandWrmsrHelp();
+    return;
+  }
+}
+
+/* ==============================================================================================
+ */
 
 /**
  * @brief Interpret commands
@@ -872,6 +899,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandUnload(SplittedCommand);
   } else if (!FirstCommand.compare("cpu")) {
     CommandCpu(SplittedCommand);
+  } else if (!FirstCommand.compare("wrmsr")) {
+    CommandWrmsr(SplittedCommand);
+  } else if (!FirstCommand.compare("rdmsr")) {
+    CommandRdmsr(SplittedCommand);
   } else if (!FirstCommand.compare(".formats")) {
     CommandFormats(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {

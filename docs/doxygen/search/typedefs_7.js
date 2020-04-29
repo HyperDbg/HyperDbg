@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['notify_5frecord_1845',['NOTIFY_RECORD',['../_logging_8h.html#a266c7e4865c122941e250fdd8dc4e185',1,'Logging.h']]],
-  ['nt_5fkprocess_1846',['NT_KPROCESS',['../_common_8h.html#ac61c911e4f2fb2e010ae5955011110b9',1,'Common.h']]]
+  ['log_5fbuffer_5finformation_2179',['LOG_BUFFER_INFORMATION',['../_logging_8h.html#ad46380d62a8edc51783b47650b8bd6f9',1,'Logging.h']]],
+  ['log_5ftype_2180',['LOG_TYPE',['../_common_8h.html#a00e4548dd1db35b54cbeb1ee0fe45f66',1,'Common.h']]]
 ];

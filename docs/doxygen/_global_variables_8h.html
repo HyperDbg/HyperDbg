@@ -98,6 +98,15 @@ Variables</h2></td></tr>
 <tr class="memitem:a54d40f18e629195bd47bbc4a797ad8e7"><td class="memItemLeft" align="right" valign="top">BOOLEAN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_global_variables_8h.html#a54d40f18e629195bd47bbc4a797ad8e7">g_AllowIOCTLFromUsermode</a></td></tr>
 <tr class="memdesc:a54d40f18e629195bd47bbc4a797ad8e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the clients are allowed to send IOCTL to the drive or not.  <a href="_global_variables_8h.html#a54d40f18e629195bd47bbc4a797ad8e7">More...</a><br /></td></tr>
 <tr class="separator:a54d40f18e629195bd47bbc4a797ad8e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9bef4d8da3b6e1b87fa959513fe131e"><td class="memItemLeft" align="right" valign="top">BOOLEAN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_global_variables_8h.html#af9bef4d8da3b6e1b87fa959513fe131e">g_EnableDebuggerEvents</a></td></tr>
+<tr class="memdesc:af9bef4d8da3b6e1b87fa959513fe131e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the debugger events should be active or not.  <a href="_global_variables_8h.html#af9bef4d8da3b6e1b87fa959513fe131e">More...</a><br /></td></tr>
+<tr class="separator:af9bef4d8da3b6e1b87fa959513fe131e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a292129d8aa76062c219b83e938d574"><td class="memItemLeft" align="right" valign="top">BOOLEAN&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_global_variables_8h.html#a5a292129d8aa76062c219b83e938d574">g_HandleInUse</a></td></tr>
+<tr class="memdesc:a5a292129d8aa76062c219b83e938d574"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the one application gets the handle or not this is used to ensure that only one application can get the handle.  <a href="_global_variables_8h.html#a5a292129d8aa76062c219b83e938d574">More...</a><br /></td></tr>
+<tr class="separator:a5a292129d8aa76062c219b83e938d574"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac40a0a766466fd757dc51585375931f9"><td class="memItemLeft" align="right" valign="top">LIST_ENTRY&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="_global_variables_8h.html#ac40a0a766466fd757dc51585375931f9">g_HiddenHooksDetourListHead</a></td></tr>
+<tr class="memdesc:ac40a0a766466fd757dc51585375931f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">List header of hidden hooks detour.  <a href="_global_variables_8h.html#ac40a0a766466fd757dc51585375931f9">More...</a><br /></td></tr>
+<tr class="separator:ac40a0a766466fd757dc51585375931f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Here we put global variables that are used more or less in all part of our hypervisor (not all of them) </p>
@@ -120,6 +129,22 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Determines whether the clients are allowed to send IOCTL to the drive or not. </p>
+
+</div>
+</div>
+<a id="af9bef4d8da3b6e1b87fa959513fe131e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9bef4d8da3b6e1b87fa959513fe131e">&#9670;&nbsp;</a></span>g_EnableDebuggerEvents</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOLEAN g_EnableDebuggerEvents</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Determines whether the debugger events should be active or not. </p>
 
 </div>
 </div>
@@ -184,6 +209,38 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Save the state and variables related to each to logical core. </p>
+
+</div>
+</div>
+<a id="a5a292129d8aa76062c219b83e938d574"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a292129d8aa76062c219b83e938d574">&#9670;&nbsp;</a></span>g_HandleInUse</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">BOOLEAN g_HandleInUse</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Determines whether the one application gets the handle or not this is used to ensure that only one application can get the handle. </p>
+
+</div>
+</div>
+<a id="ac40a0a766466fd757dc51585375931f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac40a0a766466fd757dc51585375931f9">&#9670;&nbsp;</a></span>g_HiddenHooksDetourListHead</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">LIST_ENTRY g_HiddenHooksDetourListHead</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>List header of hidden hooks detour. </p>
 
 </div>
 </div>
