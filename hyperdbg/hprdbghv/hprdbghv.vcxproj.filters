@@ -37,9 +37,6 @@
     <Filter Include="Source Files\Debugger\Commands">
       <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Entry">
-      <UniqueIdentifier>{21c9f013-596f-4c5b-8822-d6fbc7139279}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Common">
       <UniqueIdentifier>{552ad1ee-f507-4577-96c0-a421e5060907}</UniqueIdentifier>
     </Filter>
@@ -122,12 +119,6 @@
     <ClCompile Include="HiddenHooks.c">
       <Filter>Source Files\Debugger\Features\Hooks</Filter>
     </ClCompile>
-    <ClCompile Include="Broadcast.c">
-      <Filter>Source Files\Debugger\Entry</Filter>
-    </ClCompile>
-    <ClCompile Include="Sanitizer.c">
-      <Filter>Source Files\Debugger\Entry</Filter>
-    </ClCompile>
     <ClCompile Include="ExtensionCommands.c">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
@@ -138,6 +129,12 @@
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManager.c">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="Broadcast.c">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="DpcRoutines.c">
       <Filter>Source Files\Debugger</Filter>
     </ClCompile>
   </ItemGroup>
@@ -204,6 +201,9 @@
     </ClInclude>
     <ClInclude Include="LengthDisassemblerEngine.h">
       <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DpcRoutines.h">
+      <Filter>Header Files\Debugger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

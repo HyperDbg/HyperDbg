@@ -272,27 +272,46 @@ vector<string> SplitIp(const string &str, char delim) {
   return list;
 }
 
-bool IsHexNotation(std::string const &s) {
-  return s.compare(0, 2, "0x") == 0 && s.size() > 2 &&
-         s.find_first_not_of("0123456789abcdefABCDEF", 2) == std::string::npos;
+bool IsHexNotation(std::string s) {
+  BOOLEAN IsAnyThing = FALSE;
+  for (char &c : s) {
+    IsAnyThing = TRUE;
+    if (!isxdigit(c)) {
+      return FALSE;
+    }
+  }
+  if (IsAnyThing) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
-BOOLEAN ConvertStringToUInt64(const char *Text, PUINT64 Result) {
+BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
 
-  if (Text[strspn(Text, "0123456789abcdefABCDEF")] == 0) {
-    errno = 0;
-    unsigned long long result = strtoull(Text, NULL, 16);
-
-    *Result = result;
-
-    if (errno == EINVAL) {
-      return FALSE;
-    } else if (errno == ERANGE) {
-      return TRUE;
-    }
-  } else {
+  if (!IsHexNotation(TextToConvert)) {
     return FALSE;
   }
+  const char *Text = TextToConvert.c_str();
+  errno = 0;
+  unsigned long long result = strtoull(Text, NULL, 16);
+
+  *Result = result;
+
+  if (errno == EINVAL) {
+    return FALSE;
+  } else if (errno == ERANGE) {
+    return TRUE;
+  }
+}
+
+BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
+
+  UINT32 TempResult;
+  if (!IsHexNotation(TextToConvert)) {
+    return FALSE;
+  }
+  TempResult = stoi(TextToConvert, nullptr, 16);
+  *Result = TempResult;
 }
 
 // Function to validate an IP address
@@ -373,7 +392,6 @@ void CommandReadMemoryHelp() {
   ShowMessages("You can also disassemble physical memory using '!u'\n");
 
   ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
-               "[process id (hex)]"
                "[process id (hex)]\n");
   ShowMessages("\t\te.g : db fffff8077356f010 \n");
   ShowMessages("\t\te.g : !dq 100000\n");
@@ -407,22 +425,20 @@ void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
       continue;
     }
     if (IsNextProcessId == true) {
-      if (IsHexNotation(Section)) {
+      if (!ConvertStringToUInt32(Section, &Pid)) {
         ShowMessages("Err, you should enter a valid proc id\n\n");
         return;
       }
-      Pid = stoi(Section, nullptr, 16);
       IsNextProcessId = false;
       continue;
     }
 
     if (IsNextLength == true) {
 
-      if (IsHexNotation(Section)) {
+      if (!ConvertStringToUInt32(Section, &Length)) {
         ShowMessages("Err, you should enter a valid length\n\n");
         return;
       }
-      Length = stoi(Section, nullptr, 16);
       IsNextLength = false;
       continue;
     }
@@ -446,7 +462,7 @@ void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
       TempAddress.erase(remove(TempAddress.begin(), TempAddress.end(), '`'),
                         TempAddress.end());
 
-      if (!ConvertStringToUInt64(TempAddress.c_str(), &TargetAddress)) {
+      if (!ConvertStringToUInt64(TempAddress, &TargetAddress)) {
         ShowMessages("Err, you should enter a valid address\n\n");
         return;
       }
@@ -479,7 +495,11 @@ void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
       Length = 0x80;
     }
   }
-
+  if (IsNextLength || IsNextProcessId) {
+    ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
+    CommandReadMemoryHelp();
+    return;
+  }
   if (Pid == 0) {
     //
     // Default process we read from current process
@@ -765,7 +785,7 @@ void CommandFormats(vector<string> SplittedCommand) {
     CommandFormatsHelp();
     return;
   }
-  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &u64Value)) {
+  if (!ConvertStringToUInt64(SplittedCommand.at(1), &u64Value)) {
     ShowMessages("incorrect use of '.formats'\n\n");
     CommandFormatsHelp();
     return;
@@ -818,23 +838,65 @@ void CommandFormats(vector<string> SplittedCommand) {
 
 void CommandRdmsrHelp() {
   ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
-  ShowMessages("syntax : \trdmsr [rcx (hex value)]\n");
+  ShowMessages("syntax : \trdmsr [rcx (hex value)] core [core index (hex value "
+               "- optional)]\n");
 }
 void CommandRdmsr(vector<string> SplittedCommand) {
 
   BOOL Status;
+  BOOL IsNextCoreId = FALSE;
+  BOOL SetMsr = FALSE;
   DEBUGGER_READ_AND_WRITE_ON_MSR MsrReadRequest;
   ULONG ReturnedLength;
   UINT64 Msr;
+  UINT32 CoreNumer = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
+  SYSTEM_INFO SysInfo;
+  DWORD NumCPU;
 
-  if (SplittedCommand.size() != 2) {
+  if (SplittedCommand.size() >= 5) {
     ShowMessages("incorrect use of 'rdmsr'\n\n");
     CommandRdmsrHelp();
     return;
   }
 
-  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &Msr)) {
+  for (auto Section : SplittedCommand) {
+
+    if (!Section.compare(SplittedCommand.at(0))) {
+      continue;
+    }
+
+    if (IsNextCoreId) {
+      if (!ConvertStringToUInt32(Section, &CoreNumer)) {
+        ShowMessages("please specify a correct hex value for core id\n\n");
+        CommandRdmsrHelp();
+        return;
+      }
+      IsNextCoreId = FALSE;
+      continue;
+    }
+
+    if (!Section.compare("core")) {
+      IsNextCoreId = TRUE;
+      continue;
+    }
+
+    if (SetMsr || !ConvertStringToUInt64(Section, &Msr)) {
+      ShowMessages("please specify a correct hex value to be read\n\n");
+      CommandRdmsrHelp();
+      return;
+    }
+    SetMsr = TRUE;
+  }
+  //
+  // Check if msr is set or not
+  //
+  if (!SetMsr) {
     ShowMessages("please specify a correct hex value to be read\n\n");
+    CommandRdmsrHelp();
+    return;
+  }
+  if (IsNextCoreId) {
+    ShowMessages("please specify a correct hex value for core\n\n");
     CommandRdmsrHelp();
     return;
   }
@@ -846,14 +908,21 @@ void CommandRdmsr(vector<string> SplittedCommand) {
 
   MsrReadRequest.ActionType = DEBUGGER_MSR_READ;
   MsrReadRequest.Msr = Msr;
+  MsrReadRequest.CoreNumber = CoreNumer;
+
+  //
+  // Find logical cores count
+  //
+  GetSystemInfo(&SysInfo);
+  NumCPU = SysInfo.dwNumberOfProcessors;
 
   //
   // allocate buffer for transfering messages
   //
-  unsigned char *OutputBuffer =
-      (unsigned char *)malloc(SIZEOF_READ_AND_WRITE_ON_MSR);
 
-  ZeroMemory(OutputBuffer, SIZEOF_READ_AND_WRITE_ON_MSR);
+  UINT64 *OutputBuffer = (UINT64 *)malloc(sizeof(UINT64) * NumCPU);
+
+  ZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);
 
   Status = DeviceIoControl(
       DeviceHandle,                     // Handle to device
@@ -861,7 +930,7 @@ void CommandRdmsr(vector<string> SplittedCommand) {
       &MsrReadRequest,                  // Input Buffer to driver.
       SIZEOF_READ_AND_WRITE_ON_MSR,     // Input buffer length
       OutputBuffer,                     // Output Buffer from driver.
-      SIZEOF_READ_AND_WRITE_ON_MSR,     // Length of output buffer in bytes.
+      sizeof(UINT64) * NumCPU,          // Length of output buffer in bytes.
       &ReturnedLength,                  // Bytes placed in buffer.
       NULL                              // synchronous call
   );
@@ -874,10 +943,22 @@ void CommandRdmsr(vector<string> SplittedCommand) {
   //
   // btw, %x is enough, no need to %llx
   //
-  ShowMessages("msr[%llx] = %s\n", Msr,
-               SeparateTo64BitValue(
-                   ((PDEBUGGER_READ_AND_WRITE_ON_MSR)(OutputBuffer))->Value)
-                   .c_str());
+  if (CoreNumer == DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES) {
+    //
+    // Show all cores
+    //
+    for (size_t i = 0; i < NumCPU; i++) {
+
+      ShowMessages("core : 0x%x - msr[%llx] = %s\n", i, Msr,
+                   SeparateTo64BitValue((OutputBuffer[i])).c_str());
+    }
+  } else {
+    //
+    // Show for a single-core
+    //
+    ShowMessages("core : 0x%x - msr[%llx] = %s\n", CoreNumer, Msr,
+                 SeparateTo64BitValue((OutputBuffer[0])).c_str());
+  }
 }
 
 /* ==============================================================================================
@@ -885,31 +966,89 @@ void CommandRdmsr(vector<string> SplittedCommand) {
 
 void CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
-  ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX] "
-               "(hex value)]\n");
+  ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
+               "(hex value)] core [core index (hex value - optional)]\n");
 }
 void CommandWrmsr(vector<string> SplittedCommand) {
 
   BOOL Status;
+  BOOL IsNextCoreId = FALSE;
+  BOOL SetMsr = FALSE;
+  BOOL SetValue = FALSE;
   DEBUGGER_READ_AND_WRITE_ON_MSR MsrWriteRequest;
   UINT64 Msr;
-  UINT64 Value;
+  UINT64 Value = 0;
+  UINT32 CoreNumer = DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES;
 
-  if (SplittedCommand.size() != 3) {
+  if (SplittedCommand.size() >= 6) {
     ShowMessages("incorrect use of 'wrmsr'\n\n");
     CommandWrmsrHelp();
     return;
   }
 
-  if (!ConvertStringToUInt64(SplittedCommand.at(1).c_str(), &Msr)) {
-    ShowMessages("please specify a correct hex value as Msr (ecx)\n\n");
+  for (auto Section : SplittedCommand) {
+
+    if (!Section.compare(SplittedCommand.at(0))) {
+      continue;
+    }
+
+    if (IsNextCoreId) {
+      if (!ConvertStringToUInt32(Section, &CoreNumer)) {
+        ShowMessages("please specify a correct hex value for core id\n\n");
+        CommandWrmsrHelp();
+        return;
+      }
+      IsNextCoreId = FALSE;
+      continue;
+    }
+
+    if (!Section.compare("core")) {
+      IsNextCoreId = TRUE;
+      continue;
+    }
+
+    if (!SetMsr) {
+      if (!ConvertStringToUInt64(Section, &Msr)) {
+        ShowMessages("please specify a correct hex value to be read\n\n");
+        CommandWrmsrHelp();
+        return;
+      } else {
+        //
+        // Means that the MSR is set, next we should read value
+        //
+        SetMsr = TRUE;
+        continue;
+      }
+    }
+
+    if (SetMsr) {
+      if (!ConvertStringToUInt64(Section, &Value)) {
+        ShowMessages(
+            "please specify a correct hex value to put on the msr\n\n");
+        CommandWrmsrHelp();
+        return;
+      } else {
+
+        SetValue = TRUE;
+        continue;
+      }
+    }
+  }
+  //
+  // Check if msr is set or not
+  //
+  if (!SetMsr) {
+    ShowMessages("please specify a correct hex value to write\n\n");
     CommandWrmsrHelp();
     return;
   }
-
-  if (!ConvertStringToUInt64(SplittedCommand.at(2).c_str(), &Value)) {
-    ShowMessages(
-        "please specify a correct hex value to write into the Msr\n\n");
+  if (!SetValue) {
+    ShowMessages("please specify a correct hex value to put on msr\n\n");
+    CommandWrmsrHelp();
+    return;
+  }
+  if (IsNextCoreId) {
+    ShowMessages("please specify a correct hex value for core\n\n");
     CommandWrmsrHelp();
     return;
   }
@@ -921,11 +1060,9 @@ void CommandWrmsr(vector<string> SplittedCommand) {
 
   MsrWriteRequest.ActionType = DEBUGGER_MSR_WRITE;
   MsrWriteRequest.Msr = Msr;
+  MsrWriteRequest.CoreNumber = CoreNumer;
   MsrWriteRequest.Value = Value;
 
-  //
-  // This request doesn't have anything to return
-  //
   Status = DeviceIoControl(DeviceHandle,                     // Handle to device
                            IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
                            &MsrWriteRequest, // Input Buffer to driver.
@@ -941,10 +1078,7 @@ void CommandWrmsr(vector<string> SplittedCommand) {
     return;
   }
 
-  //
-  // btw, %x is enough, no need to %llx
-  //
-  ShowMessages("msr[%llx] changed to %llx (you can see its change using rdmsr, only if it's a legit and writable msr)\n", Msr, Value);
+  ShowMessages("\n");
 }
 
 /* ==============================================================================================

@@ -103,6 +103,7 @@ typedef struct _DEBUGGER_READ_MEMORY {
  */
 
 #define SIZEOF_READ_AND_WRITE_ON_MSR sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
+#define DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES 0xffffffff
 
 typedef enum _DEBUGGER_MSR_ACTION_TYPE {
   DEBUGGER_MSR_READ,
@@ -112,6 +113,8 @@ typedef enum _DEBUGGER_MSR_ACTION_TYPE {
 typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 
   UINT64 Msr; // It's actually a 32-Bit value but let's not mess with a register
+  UINT32 CoreNumber; // specifies the core to execute wrmsr or read the msr
+                     // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all the cores)
   DEBUGGER_MSR_ACTION_TYPE
   ActionType; // Detects whether user needs wrmsr or rdmsr
   UINT64 Value;

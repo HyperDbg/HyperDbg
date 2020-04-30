@@ -97,6 +97,7 @@
     <ClCompile Include="Broadcast.c" />
     <ClCompile Include="Debugger.c" />
     <ClCompile Include="DebuggerCommands.c" />
+    <ClCompile Include="DpcRoutines.c" />
     <ClCompile Include="ExtensionCommands.c" />
     <ClCompile Include="EFERHook.c" />
     <ClCompile Include="Ept.c" />
@@ -108,7 +109,6 @@
     <ClCompile Include="Logging.c" />
     <ClCompile Include="MemoryManager.c" />
     <ClCompile Include="PoolManager.c" />
-    <ClCompile Include="Sanitizer.c" />
     <ClCompile Include="Spinlock.c" />
     <ClCompile Include="SsdtHook.c" />
     <ClCompile Include="VmxRegions.c" />
@@ -132,6 +132,7 @@
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebuggerCommands.h" />
     <ClInclude Include="Dpc.h" />
+    <ClInclude Include="DpcRoutines.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
     <ClInclude Include="GlobalVariables.h" />

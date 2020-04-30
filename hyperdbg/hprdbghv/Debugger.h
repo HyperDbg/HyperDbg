@@ -15,7 +15,6 @@
 #include "Common.h"
 #include "Logging.h"
 
-
 //////////////////////////////////////////////////
 //				Memory Manager		    		//
 //////////////////////////////////////////////////
@@ -23,10 +22,20 @@
 NTSTATUS
 MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
 
-
 //////////////////////////////////////////////////
 //					Structures					//
 //////////////////////////////////////////////////
+
+/**
+ * @brief Use to modify Msrs or read MSR values
+ * 
+ */
+typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
+{
+    UINT64 Msr;   // Msr (ecx)
+    UINT64 Value; // the value to write on msr
+
+} PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE, PPROCESSOR_DEBUGGING_MSR_READ_OR_WRITE;
 
 /**
  * @brief Saves the debugger state
@@ -36,8 +45,9 @@ MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_ME
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-    UINT64 UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
-    UINT64 SysretAddress;               // Address of sysret
+    UINT64                                UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
+    UINT64                                SysretAddress;               // Address of sysret
+    PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

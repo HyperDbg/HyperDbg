@@ -508,8 +508,11 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                     break;
                 }
             }
-
-            Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, &ReturnSize);
+            //
+            // Both usermode and to send to usermode and the comming buffer are 
+            // at the same place
+            //
+            Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, DebuggerReadOrWriteMsrRequest, &ReturnSize);
 
             //
             // Set the size
