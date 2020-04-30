@@ -840,6 +840,8 @@ void CommandRdmsrHelp() {
   ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
   ShowMessages("syntax : \trdmsr [rcx (hex value)] core [core index (hex value "
                "- optional)]\n");
+  ShowMessages("\t\te.g : rdmsr c0000082\n");
+  ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
 void CommandRdmsr(vector<string> SplittedCommand) {
 
@@ -968,6 +970,8 @@ void CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
   ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
                "(hex value)] core [core index (hex value - optional)]\n");
+  ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010\n");
+  ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010 core 2\n");
 }
 void CommandWrmsr(vector<string> SplittedCommand) {
 
