@@ -11,6 +11,7 @@
  */
 #pragma once
 #include <ntddk.h>
+#include "Common.h"
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -1146,6 +1147,31 @@ typedef enum _INVEPT_TYPE
 //				    Functions					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Integer gp registers
+ * 
+ */
+typedef struct _GUEST_REGS
+{
+    ULONG64 rax; // 0x00
+    ULONG64 rcx;
+    ULONG64 rdx; // 0x10
+    ULONG64 rbx;
+    ULONG64 rsp; // 0x20         // rsp is not stored here
+    ULONG64 rbp;
+    ULONG64 rsi; // 0x30
+    ULONG64 rdi;
+    ULONG64 r8; // 0x40
+    ULONG64 r9;
+    ULONG64 r10; // 0x50
+    ULONG64 r11;
+    ULONG64 r12; // 0x60
+    ULONG64 r13;
+    ULONG64 r14; // 0x70
+    ULONG64 r15;
+} GUEST_REGS, *PGUEST_REGS;
+
+
 /* Check for EPT Features */
 BOOLEAN
 EptCheckFeatures();
@@ -1163,7 +1189,7 @@ BOOLEAN
 EptLogicalProcessorInitialize();
 /* Handle EPT Violation */
 BOOLEAN
-EptHandleEptViolation(ULONG ExitQualification, UINT64 GuestPhysicalAddr);
+EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr);
 /* Get the PML1 Entry of a special address */
 PEPT_PML1_ENTRY
 EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
@@ -1178,7 +1204,7 @@ VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType);
 /* Handle hooked pages in Vmx-root mode */
 BOOLEAN
-EptHandleHookedPage(EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
+EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
 /* Remove a special hook from the hooked pages lists */
 BOOLEAN
 EptPageUnHookSinglePage(SIZE_T PhysicalAddress);

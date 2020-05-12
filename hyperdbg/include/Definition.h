@@ -144,7 +144,8 @@ typedef struct _REGISTER_NOTIFY_BUFFER {
  */
 
 typedef struct _DEBUGGER_MONITOR_COMMAND {
-  PVOID Address;
+  PVOID StartAddress;
+  PVOID EndAddress;
   BOOLEAN MonitorRead;
   BOOLEAN MonitorWrite;
 

@@ -22,7 +22,6 @@
 #include "Hooks.h"
 #include "LengthDisassemblerEngine.h"
 
-
 /**
  * @brief Check whether EPT features are present or not
  * 
@@ -609,7 +608,7 @@ EptLogicalProcessorInitialize()
  * @return BOOLEAN Returns true if it was successfull or false if the violation was not due to a page hook
  */
 BOOLEAN
-EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
+EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
 {
     BOOLEAN     IsHandled = FALSE;
     PLIST_ENTRY TempList  = 0;
@@ -629,7 +628,7 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            if (EptHandleHookedPage(HookedEntry, ViolationQualification, GuestPhysicalAddr))
+            if (EptHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr))
             {
                 //
                 // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -671,13 +670,13 @@ EptHandlePageHookExit(VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualificatio
  * and false if it was not handled
  */
 BOOLEAN
-EptHandleEptViolation(ULONG ExitQualification, UINT64 GuestPhysicalAddr)
+EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr)
 {
     VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification;
 
     ViolationQualification.Flags = ExitQualification;
 
-    if (EptHandlePageHookExit(ViolationQualification, GuestPhysicalAddr))
+    if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
     {
         //
         // Handled by page hook code
@@ -831,7 +830,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 18;
-         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions) , 64))
+         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions), 64))
     {
         //
         // Get the full size of instructions necessary to copy
@@ -904,7 +903,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
  * if there was an unexpected ept violation
  */
 BOOLEAN
-EptHandleHookedPage(EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress)
+EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress)
 {
     ULONG64 GuestRip;
     ULONG64 ExactAccessedAddress;
@@ -933,11 +932,33 @@ EptHandleHookedPage(EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIF
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
-        LogInfo("Guest RIP : 0x%llx tries to write on the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        //
+        // Test
+        //
+
+        //
+        // LogInfo("Guest RIP : 0x%llx tries to write on the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        //
+
+        //
+        // Trigger the event related to Monitor Write
+        //
+        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, NULL);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
-        LogInfo("Guest RIP : 0x%llx tries to read the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        //
+        // Test
+        //
+
+        //
+        // LogInfo("Guest RIP : 0x%llx tries to read the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        //
+
+        //
+        // Trigger the event related to Monitor Read
+        //
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, NULL);
     }
     else
     {

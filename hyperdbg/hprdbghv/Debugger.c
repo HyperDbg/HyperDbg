@@ -29,13 +29,13 @@ TestMe()
     // Create condition buffer
     //
     char CondtionBuffer[8];
-    CondtionBuffer[0] = 0x90; //int 3
-    CondtionBuffer[1] = 0x48; //nop
-    CondtionBuffer[2] = 0x31; //int 3
-    CondtionBuffer[3] = 0xc0; //nop
-    CondtionBuffer[4] = 0x90; //int 3
-    CondtionBuffer[5] = 0x90; //nop
-    CondtionBuffer[6] = 0x90; //int 3
+    CondtionBuffer[0] = 0x90; //nop
+    CondtionBuffer[1] = 0x48; //xor rax, rax
+    CondtionBuffer[2] = 0x31;
+    CondtionBuffer[3] = 0xc0;
+    CondtionBuffer[4] = 0x48; // inc rax  
+    CondtionBuffer[5] = 0xff;
+    CondtionBuffer[6] = 0xc0;
     CondtionBuffer[7] = 0xc3; // ret
 
     //
@@ -87,8 +87,9 @@ TestMe()
     //
     // Enable one event to test it
     //
-    DebuggerEventEnableEferOnAllProcessors();
-    //HiddenHooksTest();
+    // DebuggerEventEnableEferOnAllProcessors();
+    // HiddenHooksTest();
+    DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
 }
 
 BOOLEAN
@@ -722,6 +723,16 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         return;
     }
+
+    //
+    // -----------------------------------------------------------------------------------------------------
+    // Test (Should be removed)
+    //
+    LogInfo("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+    return;
+    //
+    // -----------------------------------------------------------------------------------------------------
+    //
 
     //
     // Run the custom code

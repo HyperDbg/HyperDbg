@@ -94,3 +94,26 @@ DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledF
 
     return 0;
 }
+
+/**
+ * @brief Event for address, we don't use address range here, 
+ * address ranges should be check in event section
+ * 
+ * @return VOID 
+ */
+BOOLEAN
+DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableForRead, BOOLEAN EnableForWrite)
+{
+    //
+    // Check if the detail is ok for either read or write or both
+    //
+    if (!EnableForRead && !EnableForWrite)
+    {
+        return FALSE;
+    }
+
+    //
+    // Perform the EPT Hook
+    //
+    EptPageHook(Address, NULL, NULL, EnableForRead, EnableForWrite, FALSE);
+}

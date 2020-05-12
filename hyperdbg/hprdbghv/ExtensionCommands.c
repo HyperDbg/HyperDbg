@@ -79,20 +79,3 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
 
     return TRUE;
 }
-
-/**
- * @brief routines for !monitor command
- * 
- * @return VOID 
- */
-BOOLEAN
-ExtensionCommandMonitor(PDEBUGGER_MONITOR_COMMAND MonitorDetail)
-{
-    //
-    // Check if the detail is ok for either read or write or both
-    //
-    if (!MonitorDetail->MonitorRead && !MonitorDetail->MonitorWrite)
-    {
-        return FALSE;
-    }
-}
