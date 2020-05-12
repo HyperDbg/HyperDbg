@@ -88,7 +88,7 @@ int CommandLm(vector<string> SplittedCommand) {
 			}
 		}
 
-		ShowMessages("%16llx\t", ModuleInfo->Modules[i].ImageBase);
+		ShowMessages("%016llx\t", ModuleInfo->Modules[i].ImageBase);
 		ShowMessages("%d\t", ModuleInfo->Modules[i].ImageSize);
 
 		ShowMessages("%s\t", ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName);

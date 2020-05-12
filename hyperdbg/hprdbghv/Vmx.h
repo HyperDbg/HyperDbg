@@ -13,6 +13,7 @@
 #include <ntddk.h>
 #include "Debugger.h"
 #include "Ept.h"
+#include "MemoryMapper.h"
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -165,6 +166,137 @@
 
 /* Stack size */
 #define VMM_STACK_SIZE 0x8000
+
+
+typedef union _HYPERCALL_INPUT_VALUE
+{
+    UINT64 Value;
+    struct
+    {
+        UINT64 CallCode : 16; // HYPERCALL_CODE
+        UINT64 Fast : 1;
+        UINT64 VariableHeaderSize : 9;
+        UINT64 IsNested : 1;
+        UINT64 Reserved0 : 5;
+        UINT64 RepCount : 12;
+        UINT64 Reserved1 : 4;
+        UINT64 RepStartIndex : 12;
+        UINT64 Reserved2 : 4;
+    } Bitmap;
+} HYPERCALL_INPUT_VALUE, *PHYPERCALL_INPUT_VALUE;
+
+enum HYPERCALL_CODE
+{
+    HvSwitchVirtualAddressSpace  = 0x0001,
+    HvFlushVirtualAddressSpace   = 0x0002,
+    HvFlushVirtualAddressList    = 0x0003,
+    HvGetLogicalProcessorRunTime = 0x0004,
+    // 0x0005..0x0007 are reserved
+    HvCallNotifyLongSpinWait         = 0x0008,
+    HvCallParkedVirtualProcessors    = 0x0009,
+    HvCallSyntheticClusterIpi        = 0x000B,
+    HvCallModifyVtlProtectionMask    = 0x000C,
+    HvCallEnablePartitionVtl         = 0x000D,
+    HvCallDisablePartitionVtl        = 0x000E,
+    HvCallEnableVpVtl                = 0x000F,
+    HvCallDisableVpVtl               = 0x0010,
+    HvCallVtlCall                    = 0x0011,
+    HvCallVtlReturn                  = 0x0012,
+    HvCallFlushVirtualAddressSpaceEx = 0x0013,
+    HvCallFlushVirtualAddressListEx  = 0x0014,
+    HvCallSendSyntheticClusterIpiEx  = 0x0015,
+    // 0x0016..0x003F are reserved
+    HvCreatePartition         = 0x0040,
+    HvInitializePartition     = 0x0041,
+    HvFinalizePartition       = 0x0042,
+    HvDeletePartition         = 0x0043,
+    HvGetPartitionProperty    = 0x0044,
+    HvSetPartitionProperty    = 0x0045,
+    HvGetPartitionId          = 0x0046,
+    HvGetNextChildPartition   = 0x0047,
+    HvDepositMemory           = 0x0048,
+    HvWithdrawMemory          = 0x0049,
+    HvGetMemoryBalance        = 0x004A,
+    HvMapGpaPages             = 0x004B,
+    HvUnmapGpaPages           = 0x004C,
+    HvInstallIntercept        = 0x004D,
+    HvCreateVp                = 0x004E,
+    HvDeleteVp                = 0x004F,
+    HvGetVpRegisters          = 0x0050,
+    HvSetVpRegisters          = 0x0051,
+    HvTranslateVirtualAddress = 0x0052,
+    HvReadGpa                 = 0x0053,
+    HvWriteGpa                = 0x0054,
+    // 0x0055 is deprecated
+    HvClearVirtualInterrupt = 0x0056,
+    // 0x0057 is deprecated
+    HvDeletePort                    = 0x0058,
+    HvConnectPort                   = 0x0059,
+    HvGetPortProperty               = 0x005A,
+    HvDisconnectPort                = 0x005B,
+    HvPostMessage                   = 0x005C,
+    HvSignalEvent                   = 0x005D,
+    HvSavePartitionState            = 0x005E,
+    HvRestorePartitionState         = 0x005F,
+    HvInitializeEventLogBufferGroup = 0x0060,
+    HvFinalizeEventLogBufferGroup   = 0x0061,
+    HvCreateEventLogBuffer          = 0x0062,
+    HvDeleteEventLogBuffer          = 0x0063,
+    HvMapEventLogBuffer             = 0x0064,
+    HvUnmapEventLogBuffer           = 0x0065,
+    HvSetEventLogGroupSources       = 0x0066,
+    HvReleaseEventLogBuffer         = 0x0067,
+    HvFlushEventLogBuffer           = 0x0068,
+    HvPostDebugData                 = 0x0069,
+    HvRetrieveDebugData             = 0x006A,
+    HvResetDebugSession             = 0x006B,
+    HvMapStatsPage                  = 0x006C,
+    HvUnmapStatsPage                = 0x006D,
+    HvCallMapSparseGpaPages         = 0x006E,
+    HvCallSetSystemProperty         = 0x006F,
+    HvCallSetPortProperty           = 0x0070,
+    // 0x0071..0x0075 are reserved
+    HvCallAddLogicalProcessor         = 0x0076,
+    HvCallRemoveLogicalProcessor      = 0x0077,
+    HvCallQueryNumaDistance           = 0x0078,
+    HvCallSetLogicalProcessorProperty = 0x0079,
+    HvCallGetLogicalProcessorProperty = 0x007A,
+    HvCallGetSystemProperty           = 0x007B,
+    HvCallMapDeviceInterrupt          = 0x007C,
+    HvCallUnmapDeviceInterrupt        = 0x007D,
+    HvCallRetargetDeviceInterrupt     = 0x007E,
+    // 0x007F is reserved
+    HvCallMapDevicePages               = 0x0080,
+    HvCallUnmapDevicePages             = 0x0081,
+    HvCallAttachDevice                 = 0x0082,
+    HvCallDetachDevice                 = 0x0083,
+    HvCallNotifyStandbyTransition      = 0x0084,
+    HvCallPrepareForSleep              = 0x0085,
+    HvCallPrepareForHibernate          = 0x0086,
+    HvCallNotifyPartitionEvent         = 0x0087,
+    HvCallGetLogicalProcessorRegisters = 0x0088,
+    HvCallSetLogicalProcessorRegisters = 0x0089,
+    HvCallQueryAssotiatedLpsforMca     = 0x008A,
+    HvCallNotifyRingEmpty              = 0x008B,
+    HvCallInjectSyntheticMachineCheck  = 0x008C,
+    HvCallScrubPartition               = 0x008D,
+    HvCallCollectLivedump              = 0x008E,
+    HvCallDisableHypervisor            = 0x008F,
+    HvCallModifySparseGpaPages         = 0x0090,
+    HvCallRegisterInterceptResult      = 0x0091,
+    HvCallUnregisterInterceptResult    = 0x0092,
+    HvCallAssertVirtualInterrupt       = 0x0094,
+    HvCallCreatePort                   = 0x0095,
+    HvCallConnectPort                  = 0x0096,
+    HvCallGetSpaPageList               = 0x0097,
+    // 0x0098 is reserved
+    HvCallStartVirtualProcessor = 0x009A,
+    HvCallGetVpIndexFromApicId  = 0x009A,
+    // 0x009A..0x00AE are reserved
+    HvCallFlushGuestPhysicalAddressSpace = 0x00AF,
+    HvCallFlushGuestPhysicalAddressList  = 0x00B0
+};
+
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -364,6 +496,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VMX_VMXOFF_STATE          VmxoffState;                // Shows the vmxoff state of the guest
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint;     // It shows the detail of the hooked paged that should be restore in MTF vm-exit
     DEBUGGER_CORE_EVENTS      Events;                     // Core specific events (for debugger)
+    MEMORY_MAPPER_ADDRESSES   MemoryMapper;               // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 /**

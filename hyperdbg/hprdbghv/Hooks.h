@@ -16,6 +16,24 @@
 //				   Syscall Hook					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief As we have just on sysret in all the Windows,
+ * we use the following variable to hold its address
+ * this way, we're not force to check for the instruction
+ * so we remove the memory access to check for sysret 
+ * in this case.
+ * 
+ */
+
+/* Check for instruction sysret and syscall */
+#define IS_SYSRET_INSTRUCTION(Code)   \
+    (*((PUINT8)(Code) + 0) == 0x48 && \
+     *((PUINT8)(Code) + 1) == 0x0F && \
+     *((PUINT8)(Code) + 2) == 0x07)
+#define IS_SYSCALL_INSTRUCTION(Code)  \
+    (*((PUINT8)(Code) + 0) == 0x0F && \
+     *((PUINT8)(Code) + 1) == 0x05)
+
 #define IMAGE_DOS_SIGNATURE    0x5A4D     // MZ
 #define IMAGE_OS2_SIGNATURE    0x454E     // NE
 #define IMAGE_OS2_SIGNATURE_LE 0x454C     // LE
@@ -48,7 +66,6 @@ typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
     PVOID      HookedFunctionAddress;
     PVOID      ReturnAddress;
 } HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
-
 
 typedef struct _SYSTEM_MODULE_ENTRY
 {

@@ -45,8 +45,6 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-    UINT64                                UndefinedInstructionAddress; // #UD Location of instruction (used by EFER Syscall)
-    UINT64                                SysretAddress;               // Address of sysret
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
@@ -66,9 +64,6 @@ DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress)
 //					Log wit Tag					//
 //////////////////////////////////////////////////
 
-/* Send buffer to the usermode with a tag that shows what was the action */
-#define LogWithTag(tag, IsImmediate, format, ...) \
-    LogSendMessageToQueue(OPERATION_LOG_WITH_TAG, IsImmediate, FALSE, "%016x" format, tag, __VA_ARGS__);
 
 //////////////////////////////////////////////////
 //					Functions					//

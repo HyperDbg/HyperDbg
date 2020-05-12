@@ -94,9 +94,11 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BreakControl.c" />
     <ClCompile Include="Broadcast.c" />
     <ClCompile Include="Debugger.c" />
     <ClCompile Include="DebuggerCommands.c" />
+    <ClCompile Include="DebuggerEvents.c" />
     <ClCompile Include="DpcRoutines.c" />
     <ClCompile Include="ExtensionCommands.c" />
     <ClCompile Include="EFERHook.c" />
@@ -108,6 +110,7 @@
     <ClCompile Include="Invept.c" />
     <ClCompile Include="Logging.c" />
     <ClCompile Include="MemoryManager.c" />
+    <ClCompile Include="MemoryMapper.c" />
     <ClCompile Include="PoolManager.c" />
     <ClCompile Include="Spinlock.c" />
     <ClCompile Include="SsdtHook.c" />
@@ -128,9 +131,11 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BreakControl.h" />
     <ClInclude Include="Broadcast.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebuggerCommands.h" />
+    <ClInclude Include="DebuggerEvents.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="DpcRoutines.h" />
     <ClInclude Include="Events.h" />
@@ -142,6 +147,7 @@
     <ClInclude Include="Invept.h" />
     <ClInclude Include="LengthDisassemblerEngine.h" />
     <ClInclude Include="Logging.h" />
+    <ClInclude Include="MemoryMapper.h" />
     <ClInclude Include="PoolManager.h" />
     <ClInclude Include="Trace.h" />
     <ClInclude Include="Vmcall.h" />

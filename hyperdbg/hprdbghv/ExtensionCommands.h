@@ -21,3 +21,6 @@ ExtensionCommandEnableEferOnAllProcessors();
 
 VOID
 ExtensionCommandDisableEferOnAllProcessors();
+
+BOOLEAN
+ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails);

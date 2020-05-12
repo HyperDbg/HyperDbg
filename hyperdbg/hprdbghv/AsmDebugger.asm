@@ -1,6 +1,6 @@
 PUBLIC AsmGeneralDetourHook
 EXTERN ExAllocatePoolWithTagOrig:QWORD
-EXTERN ExtensionCommandHiddenHookGeneralDetourEventHandler:PROC
+EXTERN DebuggerEventHiddenHookGeneralDetourEventHandler:PROC
 
 .code _text
 
@@ -31,7 +31,7 @@ SaveTheRegisters:
     sub rdx, 5              ; as we used (call $ + 5) so we subtract it by 5 
 	sub	rsp, 28h		; Free some space for Shadow Section
 
-	call	ExtensionCommandHiddenHookGeneralDetourEventHandler
+	call	DebuggerEventHiddenHookGeneralDetourEventHandler
 
 	add	rsp, 28h		; Restore the state
 

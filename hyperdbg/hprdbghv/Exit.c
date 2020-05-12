@@ -16,6 +16,9 @@
 #include "InlineAsm.h"
 #include "GlobalVariables.h"
 #include "Vmcall.h"
+#include "Vpid.h"
+#include "Invept.h"
+#include "Vmcall.h"
 #include "Hooks.h"
 #include "Invept.h"
 #include "HypervisorRoutines.h"
@@ -43,7 +46,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
-
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
     //
@@ -163,10 +165,31 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         }
         else
         {
+            HYPERCALL_INPUT_VALUE InputValue = {0};
+            InputValue.Value                 = GuestRegs->rcx;
+
+            switch (InputValue.Bitmap.CallCode)
+            {
+            case HvSwitchVirtualAddressSpace:
+            case HvFlushVirtualAddressSpace:
+            case HvFlushVirtualAddressList:
+            case HvCallFlushVirtualAddressSpaceEx:
+            case HvCallFlushVirtualAddressListEx:
+            {
+                InvvpidAllContexts();
+                break;
+            }
+            case HvCallFlushGuestPhysicalAddressSpace:
+            case HvCallFlushGuestPhysicalAddressList:
+            {
+                InveptSingleContext(g_EptState->EptPointer.Flags);
+                break;
+            }
+            }
             //
-            // Otherwise let the top-level hypervisor to manage it
+            // Let the top-level hypervisor to manage it
             //
-            GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8);
+            GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
         }
         break;
     }
@@ -211,7 +234,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             //
             // Handle the #UD, checking if this exception was intentional.
             //
-
             if (!SyscallHookHandleUD(GuestRegs, CurrentProcessorIndex))
             {
                 //
@@ -242,39 +264,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             // Set it to NULL
             //
             g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
-        }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress != NULL)
-        {
-            ULONG64 GuestRip;
-
-            //
-            // Reading guest's RIP
-            //
-            __vmx_vmread(GUEST_RIP, &GuestRip);
-
-            if (g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress == GuestRip)
-            {
-                //
-                // #UD was not because of syscall because it's no incremented, we should inject the #UD again
-                //
-                EventInjectUndefinedOpcode();
-            }
-            else
-            {
-                //
-                // It was because of Syscall, let's log it
-                //
-                LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x , rax = 0x%llx",
-                        g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress,
-                        PsGetCurrentProcessId(),
-                        GuestRegs->rax);
-            }
-
-            //
-            // Enable syscall hook again
-            //
-            SyscallHookDisableSCE();
-            g_GuestState[CurrentProcessorIndex].DebuggingState.UndefinedInstructionAddress = NULL;
         }
         else
         {

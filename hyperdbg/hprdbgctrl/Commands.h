@@ -40,30 +40,3 @@ extern "C"
     __declspec (dllexport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
 
 }
-
-
-
-//
-// Each command is like the following struct
-//
-typedef struct _DEBUGGER_COMMANDS_TRACE
-{
-    UINT64 Tag; // is same as operation code 
-    time_t CreationTime;
-
-    LIST_ENTRY CommandsList; // Linked-list of commands list
-    DEBUGGER_EVENT_TYPE_ENUM EventType;
-    BOOLEAN Enabled;
-    UINT32 CoreId; // determines the core index to apply this event to, if it's
-                   // 0xffffffff means that we have to apply it to all cores
-
-    LIST_ENTRY ActionsListHead;   // Each entry is in DEBUGGER_EVENT_ACTION struct
-
-    UINT32 CountOfActions;        // The total count of actions
-
-    UINT32 ConditionsBufferSize;  // if null, means uncoditional
-
-    PVOID ConditionBufferAddress; // Address of the condition buffer (most of the
-                                  // time at the end of this buffer)
-    
-} DEBUGGER_COMMANDS_TRACE, * PDEBUGGER_COMMANDS_TRACE;

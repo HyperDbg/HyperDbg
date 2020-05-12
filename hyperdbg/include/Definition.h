@@ -53,6 +53,80 @@
 typedef int(__stdcall *Callback)(const char *Text);
 
 //////////////////////////////////////////////////
+//					Event Details               //
+//////////////////////////////////////////////////
+
+typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
+
+  HIDDEN_HOOK_READ,
+  HIDDEN_HOOK_WRITE,
+
+  HIDDEN_HOOK_EXEC_DETOURS,
+  HIDDEN_HOOK_EXEC_CC,
+
+  SYSCALL_HOOK_EFER_SYSCALL,
+  SYSCALL_HOOK_EFER_SYSRET,
+
+} DEBUGGER_EVENT_TYPE_ENUM;
+
+typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
+  BREAK_TO_DEBUGGER,
+  LOG_THE_STATES,
+  RUN_CUSTOM_CODE
+
+} DEBUGGER_EVENT_ACTION_TYPE_ENUM;
+
+//
+// Each command is like the following struct, it also used for tracing works in
+// user mode, after creating event, we can now add multiple actions to it using
+// the tag
+//
+typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
+
+  LIST_ENTRY
+  CommandsList; // Linked-list of commands list (used for tracing purpose)
+
+  LIST_ENTRY ActionsList; // Linked-list of actions (used for tracing purpose)
+
+  time_t CreationTime; // Date of creating this event
+
+  UINT32 CoreId; // determines the core index to apply this event to, if it's
+                 // 0xffffffff means that we have to apply it to all cores
+
+  UINT32 ProcessId; // determines the process id to apply this to
+                    // only that 0xffffffff means that we have to
+                    // apply it to all processes
+
+  BOOLEAN IsEnabled;
+  UINT64 Tag; // is same as operation code
+  DEBUGGER_EVENT_TYPE_ENUM EventType;
+
+  PVOID CommanStringBuffer;
+
+  UINT32 ConditionBufferSize;
+  UINT32 ConditionBufferOffsetFromTop;
+
+  UINT32 CustomCodeBufferSize;
+  UINT32 CustomCodeBufferOffsetFromTop;
+
+} DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
+
+//
+// Each event can have mulitple actions
+//
+typedef struct _DEBUGGER_GENERAL_ACTION {
+
+  LIST_ENTRY
+  ActionsList; // Linked-list of actions (used for tracing purpose)
+  UINT64 Tag;  // tag that used in event
+  DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;
+
+  UINT32 CustomCodeBufferSize;
+  UINT32 CustomCodeBufferOffsetFromTop;
+
+} DEBUGGER_GENERAL_ACTION, * PDEBUGGER_GENERAL_ACTION;
+
+//////////////////////////////////////////////////
 //					Debugger                    //
 //////////////////////////////////////////////////
 
@@ -65,6 +139,46 @@ typedef struct _REGISTER_NOTIFY_BUFFER {
   HANDLE hEvent;
 
 } REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
+
+/* ==============================================================================================
+ */
+
+typedef struct _DEBUGGER_MONITOR_COMMAND {
+  PVOID Address;
+  BOOLEAN MonitorRead;
+  BOOLEAN MonitorWrite;
+
+  //
+  // The last field should be events
+  //
+  DEBUGGER_GENERAL_EVENT_DETAIL EventDetail;
+
+} DEBUGGER_MONITOR_COMMAND, *PDEBUGGER_MONITOR_COMMAND;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS                        \
+  sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)
+
+typedef struct _DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS {
+
+  UINT64 VirtualAddress;
+
+  UINT64 Pml4eVirtualAddress;
+  UINT64 Pml4eValue;
+
+  UINT64 PdpteVirtualAddress;
+  UINT64 PdpteValue;
+
+  UINT64 PdeVirtualAddress;
+  UINT64 PdeValue;
+
+  UINT64 PteVirtualAddress;
+  UINT64 PteValue;
+
+} DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,
+    *PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
 
 /* ==============================================================================================
  */
@@ -114,7 +228,8 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 
   UINT64 Msr; // It's actually a 32-Bit value but let's not mess with a register
   UINT32 CoreNumber; // specifies the core to execute wrmsr or read the msr
-                     // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all the cores)
+                     // (DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES mean all
+                     // the cores)
   DEBUGGER_MSR_ACTION_TYPE
   ActionType; // Detects whether user needs wrmsr or rdmsr
   UINT64 Value;
@@ -236,13 +351,6 @@ typedef struct _DEBUGGER_EVENT_REQUEST_CUSTOM_CODE {
 /* ==============================================================================================
  */
 
-typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
-  BREAK_TO_DEBUGGER,
-  LOG_THE_STATES,
-  RUN_CUSTOM_CODE
-
-} DEBUGGER_EVENT_ACTION_TYPE_ENUM;
-
 typedef struct _DEBUGGER_EVENT_ACTION {
   UINT32 ActionOrderCode; // The code for this action (it also shows the order)
   LIST_ENTRY ActionsList; // Holds the link list of next actions
@@ -265,14 +373,6 @@ typedef struct _DEBUGGER_EVENT_ACTION {
 
 /* ==============================================================================================
  */
-
-typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
-  HIDDEN_HOOK_RW,
-  HIDDEN_HOOK_EXEC_DETOUR,
-  HIDDEN_HOOK_EXEC_CC,
-  SYSCALL_HOOK_EFER,
-
-} DEBUGGER_EVENT_TYPE_ENUM;
 
 typedef struct _DEBUGGER_EVENT {
   UINT64 Tag;
@@ -307,3 +407,6 @@ typedef struct _DEBUGGER_EVENT {
 
 #define IOCTL_DEBUGGER_READ_OR_WRITE_MSR                                       \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x804, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS                         \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x805, METHOD_BUFFERED, FILE_ANY_ACCESS)

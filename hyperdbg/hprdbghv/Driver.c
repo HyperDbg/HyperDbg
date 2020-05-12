@@ -231,6 +231,14 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
+    //
+    // Initialize memory mapper
+    //
+    MemoryMapperInitialize();
+
+    //
+    // Initialize Vmx
+    //
     if (HvVmxInitialize())
     {
         LogInfo("Hyperdbg's hypervisor loaded successfully :)");
@@ -366,15 +374,16 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION              IrpStack;
-    PREGISTER_NOTIFY_BUFFER         RegisterEventRequest;
-    PDEBUGGER_READ_MEMORY           DebuggerReadMemRequest;
-    PDEBUGGER_READ_AND_WRITE_ON_MSR DebuggerReadOrWriteMsrRequest;
-    NTSTATUS                        Status;
-    ULONG                           InBuffLength;  // Input buffer length
-    ULONG                           OutBuffLength; // Output buffer length
-    SIZE_T                          ReturnSize;
-    BOOLEAN                         DoNotChangeInformation = FALSE;
+    PIO_STACK_LOCATION                        IrpStack;
+    PREGISTER_NOTIFY_BUFFER                   RegisterEventRequest;
+    PDEBUGGER_READ_MEMORY                     DebuggerReadMemRequest;
+    PDEBUGGER_READ_AND_WRITE_ON_MSR           DebuggerReadOrWriteMsrRequest;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS DebuggerPteRequest;
+    NTSTATUS                                  Status;
+    ULONG                                     InBuffLength;  // Input buffer length
+    ULONG                                     OutBuffLength; // Output buffer length
+    SIZE_T                                    ReturnSize;
+    BOOLEAN                                   DoNotChangeInformation = FALSE;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -434,7 +443,17 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_TERMINATE_VMX:
+
+            //
+            // terminate vmx
+            //
             HvTerminateVmx();
+
+            //
+            // Uninitialize memory mapper
+            //
+            MemoryMapperUninitialize();
+
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_DEBUGGER_READ_MEMORY:
@@ -509,7 +528,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 }
             }
             //
-            // Both usermode and to send to usermode and the comming buffer are 
+            // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
             Status = DebuggerReadOrWriteMsr(DebuggerReadOrWriteMsrRequest, DebuggerReadOrWriteMsrRequest, &ReturnSize);
@@ -521,6 +540,50 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             {
                 Irp->IoStatus.Information = ReturnSize;
 
+                //
+                // Avoid zeroing it
+                //
+                DoNotChangeInformation = TRUE;
+            }
+        case IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS:
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerPteRequest = (PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            if (ExtensionCommandPte(DebuggerPteRequest))
+            {
+                Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
+                Status                    = STATUS_SUCCESS;
+                //
+                // Avoid zeroing it
+                //
+                DoNotChangeInformation = TRUE;
+            }
+            else
+            {
+                Irp->IoStatus.Information = 0;
+                Status                    = STATUS_UNSUCCESSFUL;
                 //
                 // Avoid zeroing it
                 //

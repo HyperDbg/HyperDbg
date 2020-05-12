@@ -19,7 +19,7 @@
 extern void inline AsmEnableVmxOperation();
 extern void inline AsmRestoreToVmxOffState();
 extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber, unsigned long long OptionalParam1, unsigned long long OptionalParam2, long long OptionalParam3);
-extern UINT64 inline AsmHypervVmcall(unsigned long long HypercallInputValue, unsigned long long InputParamGPA, unsigned long long OutputParamGPA);
+extern UINT64 inline AsmHypervVmcall(unsigned long long HypercallInputValue, unsigned long long InputParamGPA, unsigned long long OutputParamGPA, unsigned long long Optional4);
 
 //
 // ====================  Vmx Context State Operations ====================

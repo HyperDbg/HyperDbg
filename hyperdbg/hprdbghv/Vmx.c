@@ -436,7 +436,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     // Set exception bitmap to hook division by zero (bit 1 of EXCEPTION_BITMAP)
     // __vmx_vmwrite(EXCEPTION_BITMAP, 0x8); // breakpoint 3nd bit
     //
-    __vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // breakpoint 3nd bit
+    __vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // #UDs 3nd bit
 
     //
     // Set up EPT

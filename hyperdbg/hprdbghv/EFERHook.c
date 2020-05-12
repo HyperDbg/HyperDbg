@@ -23,70 +23,9 @@
 #include "Events.h"
 #include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
+#include "MemoryMapper.h"
 #include "Vmx.h"
 #include "Logging.h"
-
-/**
- * @brief As we have just on sysret in all the Windows,
- * we use the following variable to hold its address
- * this way, we're not force to check for the instruction
- * so we remove the memory access to check for sysret 
- * in this case.
- * 
- */
-
-/* Check for instruction sysret and syscall */
-#define IS_SYSRET_INSTRUCTION(Code)   \
-    (*((PUINT8)(Code) + 0) == 0x48 && \
-     *((PUINT8)(Code) + 1) == 0x0F && \
-     *((PUINT8)(Code) + 2) == 0x07)
-#define IS_SYSCALL_INSTRUCTION(Code)  \
-    (*((PUINT8)(Code) + 0) == 0x0F && \
-     *((PUINT8)(Code) + 1) == 0x05)
-
-/**
- * @brief Disables the Syscall Enable Bit (SCE) in GUEST_EFER
- * 
- * @return VOID 
- */
-VOID
-SyscallHookDisableSCE()
-{
-    EFER_MSR MsrValue;
-
-    //
-    // Set the GUEST EFER to use this value as the EFER
-    //
-    __vmx_vmread(GUEST_EFER, &MsrValue);
-    MsrValue.SyscallEnable = FALSE;
-
-    //
-    // Set the GUEST EFER to use this value as the EFER
-    //
-    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
-}
-
-/**
- * @brief Enables the Syscall Enable Bit (SCE) in GUEST_EFER
- * 
- * @return VOID 
- */
-VOID
-SyscallHookEnableSCE()
-{
-    EFER_MSR MsrValue;
-
-    //
-    // Set the GUEST EFER to use this value as the EFER
-    //
-    __vmx_vmread(GUEST_EFER, &MsrValue);
-    MsrValue.SyscallEnable = TRUE;
-
-    //
-    // Set the GUEST EFER to use this value as the EFER
-    //
-    __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
-}
 
 /**
  * @brief This function enables or disables EFER syscall hoo
@@ -110,11 +49,6 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
     // Reading IA32_VMX_BASIC_MSR
     //
     VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
-
-    //
-    // Set MSR Bitmap to avoid patch guard interception
-    //
-    HvSetMsrBitmap(MSR_EFER, KeGetCurrentProcessorNumber(), TRUE, FALSE);
 
     //
     // Read previous VM-Entry and VM-Exit controls
@@ -162,7 +96,6 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
     }
-    
 }
 
 /**
@@ -323,82 +256,92 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 
     //
     // Reading guest's RIP
+    //
     __vmx_vmread(GUEST_RIP, &Rip);
 
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
 
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3                     = CurrentProcess->DirectoryTableBase;
 
-    if (g_GuestState[CoreIndex].DebuggingState.SysretAddress == NULL && Rip & 0xff00000000000000)
+    if ((GuestCr3 & PCID_MASK) != PCID_NONE)
     {
-        //
-        // Find the address of sysret
-        //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base
-        //
-        __vmx_vmread(GUEST_CR3, &GuestCr3);
+        OriginalCr3 = __readcr3();
 
-        OriginalCr3                  = __readcr3();
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        __writecr3(CurrentProcess->DirectoryTableBase);
+        __writecr3(GuestCr3);
+        //
+        // Read the memory
+        //
+        CHAR * InstructionBuffer[3] = {0};
+        MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
 
-        if (IS_SYSRET_INSTRUCTION(Rip))
+        if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
         {
             __writecr3(OriginalCr3);
-
-            //
-            // Save the address of Sysret, it won't change
-            //
-            g_GuestState[CoreIndex].DebuggingState.SysretAddress = Rip;
+            goto EmulateSYSRET;
+        }
+        if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
+        {
+            __writecr3(OriginalCr3);
+            goto EmulateSYSCALL;
         }
         __writecr3(OriginalCr3);
-    }
-
-    if (Rip == g_GuestState[CoreIndex].DebuggingState.SysretAddress)
-    {
-        //
-        // It's a sysret instruction, let's emulate it
-        //
-        goto EmulateSYSRET;
-    }
-    else if (Rip & 0xff00000000000000)
-    {
-        //
-        // It's a #UD in kernel, not relate to us
-        // this way the caller injects a #UD
-        //
         return FALSE;
     }
     else
     {
-        //
-        // It's sth in usermode, might be a syscall
-        //
-        goto EmulateSYSCALL;
+        if (IS_SYSRET_INSTRUCTION(Rip))
+            goto EmulateSYSRET;
+        if (IS_SYSCALL_INSTRUCTION(Rip))
+            goto EmulateSYSCALL;
+        return FALSE;
     }
+
+    //----------------------------------------------------------------------------------------
 
     //
     // Emulate SYSRET instruction
     //
 EmulateSYSRET:
-    LogInfo("SYSRET instruction => 0x%llX", Rip);
+    //
+    // Test
+    //
+
+    //
+    // LogInfo("SYSRET instruction => 0x%llX", Rip);
+    //
+
+    //
+    // We should trigger the event of SYSRET here
+    //
+    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, NULL);
+
     Result                               = SyscallHookEmulateSYSRET(Regs);
     g_GuestState[CoreIndex].IncrementRip = FALSE;
     return Result;
+
     //
     // Emulate SYSCALL instruction
     //
 EmulateSYSCALL:
     //
-    // We don't emulate the syscalls anymore because
-    // The usermode code might be paged out
-    Result = SyscallHookEmulateSYSCALL(Regs);
-    LogInfo("SYSCALL instruction => 0x%llX , process id : 0x%x",
-            Rip,
-            PsGetCurrentProcessId());
+    // Test
     //
-    //SyscallHookEnableSCE();
-    //HvSetMonitorTrapFlag(TRUE);
-    //g_GuestState[CoreIndex].DebuggingState.UndefinedInstructionAddress = Rip;
+    
+    //
+    // LogInfo("SYSCALL instruction => 0x%llX , Process Id : 0x%x", Rip, PsGetCurrentProcessId());
+    //
+
+    //
+    // We should trigger the event of SYSCALL here
+    //
+    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL, Regs, NULL);
+
+    Result = SyscallHookEmulateSYSCALL(Regs);
+
     g_GuestState[CoreIndex].IncrementRip = FALSE;
-    return TRUE;
+    return Result;
 }

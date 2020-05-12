@@ -19,78 +19,80 @@
 #include "GlobalVariables.h"
 
 /**
- * @brief routines for !syscallhook command (enable syscall hook)
+ * @brief routines for !pte command
  * 
  * @return VOID 
  */
-VOID
-ExtensionCommandEnableEferOnAllProcessors()
+BOOLEAN
+ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
 {
-    KeGenericCallDpc(BroadcastDpcEnableEferSyscallEvents, 0x0);
-}
-
-/**
- * @brief routines for !syscallhook command (disable syscall hook)
- * 
- * @return VOID 
- */
-VOID
-ExtensionCommandDisableEferOnAllProcessors()
-{
-    KeGenericCallDpc(BroadcastDpcDisableEferSyscallEvents, 0x0);
-}
-
-/**
- * @brief routines to generally handle breakpoint hit for detour 
- * 
- * @return VOID 
- */
-VOID
-ExtensionCommandHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
-{
-    PLIST_ENTRY TempList = 0;
-
     //
-    // As the context to event trigger, we send the address of function
-    // which is current hidden hook is triggered for it
+    // Check if address is valid
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOUR, Regs, CalledFrom);
-
-    //
-    // test
-    //
-
-    //
-    //LogInfo("Hidden Hooked function Called with : rcx = 0x%llx , rdx = 0x%llx , r8 = 0x%llx ,  r9 = 0x%llx",
-    //        Regs->rcx,
-    //        Regs->rdx,
-    //        Regs->r8,
-    //        Regs->r9);
-    //
-
-    //
-    // Iterate through the list of hooked pages details to find
-    // and return where want to jump after this functions
-    //
-    TempList = &g_HiddenHooksDetourListHead;
-
-    while (&g_HiddenHooksDetourListHead != TempList->Flink)
+    if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
     {
-        TempList                                          = TempList->Flink;
-        PHIDDEN_HOOKS_DETOUR_DETAILS CurrentHookedDetails = CONTAINING_RECORD(TempList, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList);
-
-        if (CurrentHookedDetails->HookedFunctionAddress == CalledFrom)
-        {
-            return CurrentHookedDetails->ReturnAddress;
-        }
+        //
+        // Address is not valid (doesn't have Physical Address)
+        //
+        return FALSE;
     }
 
     //
-    // If we reach here, means that we didn't find the return address
-    // that's an error, we can't do anything else now :(
+    // Read the PML4E
     //
+    PPAGE_ENTRY Pml4e = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PML4);
+    if (Pml4e)
+    {
+        PteDetails->Pml4eVirtualAddress = Pml4e;
+        PteDetails->Pml4eValue          = Pml4e->Flags;
+    }
 
-    LogError("Couldn't find anything to return");
+    //
+    // Read the PDPTE
+    //
+    PPAGE_ENTRY Pdpte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PDPT);
+    if (Pdpte)
+    {
+        PteDetails->PdpteVirtualAddress = Pdpte;
+        PteDetails->PdpteValue          = Pdpte->Flags;
+    }
 
-    return 0;
+    //
+    // Read the PDE
+    //
+    PPAGE_ENTRY Pde = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PD);
+    if (Pde)
+    {
+        PteDetails->PdeVirtualAddress = Pde;
+        PteDetails->PdeValue          = Pde->Flags;
+    }
+
+    //
+    // Read the PTE
+    //
+    PPAGE_ENTRY Pte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PT);
+    if (Pte)
+    {
+        PteDetails->PteVirtualAddress = Pte;
+        PteDetails->PteValue          = Pte->Flags;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief routines for !monitor command
+ * 
+ * @return VOID 
+ */
+BOOLEAN
+ExtensionCommandMonitor(PDEBUGGER_MONITOR_COMMAND MonitorDetail)
+{
+    //
+    // Check if the detail is ok for either read or write or both
+    //
+    if (!MonitorDetail->MonitorRead && !MonitorDetail->MonitorWrite)
+    {
+        return FALSE;
+    }
 }
