@@ -928,6 +928,9 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
 
     if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
     {
+        //
+        // Generally, we should never reach here, we didn't implement HyperDbg like this ;)
+        //
         LogInfo("Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
@@ -943,7 +946,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         //
         // Trigger the event related to Monitor Write
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, NULL);
+        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, GuestRip);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
@@ -958,7 +961,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         //
         // Trigger the event related to Monitor Read
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, NULL);
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, GuestRip);
     }
     else
     {

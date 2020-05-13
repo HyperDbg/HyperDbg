@@ -33,7 +33,7 @@ TestMe()
     CondtionBuffer[1] = 0x48; //xor rax, rax
     CondtionBuffer[2] = 0x31;
     CondtionBuffer[3] = 0xc0;
-    CondtionBuffer[4] = 0x48; // inc rax  
+    CondtionBuffer[4] = 0x48; // inc rax
     CondtionBuffer[5] = 0xff;
     CondtionBuffer[6] = 0xc0;
     CondtionBuffer[7] = 0xc3; // ret
@@ -44,8 +44,19 @@ TestMe()
     PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        SYSCALL_HOOK_EFER_SYSCALL,
+        HIDDEN_HOOK_READ,
         0x85858585,
+        sizeof(CondtionBuffer),
+        CondtionBuffer);
+
+    //
+    // Create event based on condition buffer
+    //
+    PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
+        TRUE,
+        DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
+        HIDDEN_HOOK_WRITE,
+        0x86868686,
         sizeof(CondtionBuffer),
         CondtionBuffer);
 
@@ -78,11 +89,13 @@ TestMe()
     CustomCode.OptionalRequestedBufferSize = 0x100;
 
     DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+    DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
 
     //
     // Call to register
     //
     DebuggerRegisterEvent(Event1);
+    DebuggerRegisterEvent(Event2);
 
     //
     // Enable one event to test it
@@ -728,7 +741,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // -----------------------------------------------------------------------------------------------------
     // Test (Should be removed)
     //
-    LogInfo("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+    LogInfo("%x       Called from : %llx", Tag, Context);
     return;
     //
     // -----------------------------------------------------------------------------------------------------

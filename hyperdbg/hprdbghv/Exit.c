@@ -138,8 +138,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
-        if (!EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr))
+        if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
+        {
             LogError("There were errors in handling Ept Violation");
+        }
 
         break;
     }

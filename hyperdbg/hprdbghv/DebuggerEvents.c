@@ -113,6 +113,16 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableF
     }
 
     //
+    // If the read is FALSE and WRITE is TRUE, then the processor doesn't support
+    // such thing, we will enable the Read silently here if, this problem will be 
+    // solved when the trigger works, the trigger routines won't enable reads
+    //
+    if (EnableForWrite)
+    {
+        EnableForRead = TRUE;
+    }
+
+    //
     // Perform the EPT Hook
     //
     EptPageHook(Address, NULL, NULL, EnableForRead, EnableForWrite, FALSE);
