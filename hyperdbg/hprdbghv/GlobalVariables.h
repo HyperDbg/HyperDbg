@@ -35,6 +35,12 @@ VIRTUAL_MACHINE_STATE * g_GuestState;
 EPT_STATE * g_EptState;
 
 /**
+ * @brief events list (for debugger)
+ * 
+ */
+PDEBUGGER_CORE_EVENTS g_Events;
+
+/**
  * @brief Save the state of the thread that waits for messages to deliver to user-mode
  * 
  */

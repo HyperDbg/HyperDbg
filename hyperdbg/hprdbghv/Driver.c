@@ -157,6 +157,11 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 #endif
 
     //
+    // Free g_Events
+    //
+    ExFreePoolWithTag(g_Events, POOLTAG);
+
+    //
     // Free g_GuestState
     //
     ExFreePoolWithTag(g_GuestState, POOLTAG);
