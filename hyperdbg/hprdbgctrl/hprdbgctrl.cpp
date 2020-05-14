@@ -190,9 +190,14 @@ void ReadIrpBasedBuffer() {
 
         switch (OperationCode) {
         case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
+
           ShowMessages(
               "A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+          ShowMessages("\n\nfucccckkk 1 \n\n");
+
           ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          ShowMessages("\n\nfucccckkk 2 \n\n");
+
           break;
         case OPERATION_LOG_INFO_MESSAGE:
           ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");

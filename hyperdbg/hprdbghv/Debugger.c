@@ -103,6 +103,16 @@ TestMe()
     // DebuggerEventEnableEferOnAllProcessors();
     // HiddenHooksTest();
     DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
+    //
+    // Test --------------------------------------------------------
+    //
+   // DbgBreakPoint();
+    //DebuggerRemoveEvent(0x86868686);
+   // DbgBreakPoint();
+
+    //
+    // -------------------------------------------------------------
+    //
 }
 
 BOOLEAN
@@ -212,7 +222,7 @@ DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM Eve
 }
 
 // should not be called in vmx root
-BOOLEAN
+PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION InTheCaseOfLogTheStates)
 {
     PDEBUGGER_EVENT_ACTION Action;
@@ -242,7 +252,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
             //
             // There was an error in allocation
             //
-            return FALSE;
+            return NULL;
         }
 
         RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION));
@@ -259,7 +269,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
             //
             // There was an error in allocation
             //
-            return FALSE;
+            return NULL;
         }
 
         RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize);
@@ -277,7 +287,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         //
         if (InTheCaseOfCustomCode->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
         {
-            return FALSE;
+            return NULL;
         }
 
         //
@@ -291,7 +301,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
             // There was an error in allocation
             //
             ExFreePoolWithTag(Action, POOLTAG);
-            return FALSE;
+            return NULL;
         }
         RtlZeroMemory(RequestedBuffer, InTheCaseOfCustomCode->OptionalRequestedBufferSize);
 
@@ -309,7 +319,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         // Check if it's a Custom code without custom code buffer which is invalid
         //
         if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
-            return FALSE;
+            return NULL;
 
         //
         // Move the custom code buffer to the end of the action
@@ -353,7 +363,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     //
     InsertHeadList(&Event->ActionsListHead, &(Action->ActionsList));
 
-    return TRUE;
+    return Action;
 }
 
 BOOLEAN
@@ -741,7 +751,8 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // -----------------------------------------------------------------------------------------------------
     // Test (Should be removed)
     //
-    LogInfo("%x       Called from : %llx", Tag, Context);
+    //LogInfo("%x       Called from : %llx", Tag, Context);
+    LogInfo("Rax : %016llx", Regs->rax);
     return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -760,7 +771,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         // Execute the code
         //
-        ReturnBufferToUsermodeAddress = Func();
+        Func();
     }
     else
     {
@@ -807,35 +818,250 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     }
 }
 
-BOOLEAN
-DebuggerRemoveActionFromEvent(PDEBUGGER_EVENT Event)
+PDEBUGGER_EVENT
+DebuggerGetEventByTag(UINT64 Tag)
 {
+    UINT32      ProcessorCount;
+    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList2 = 0;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
     //
-    // Remember to free the pool
+    // We have to search this Event in all cores
     //
+    for (size_t CurrentProcessorIndex = 0; CurrentProcessorIndex < ProcessorCount; CurrentProcessorIndex++)
+    {
+        //
+        // We have to iterate through all events
+        //
+        for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+        {
+            TempList  = (PLIST_ENTRY)((UINT64)(&g_GuestState[CurrentProcessorIndex].Events) + (i * sizeof(LIST_ENTRY)));
+            TempList2 = TempList;
+
+            while (TempList2 != TempList->Flink)
+            {
+                TempList                     = TempList->Flink;
+                PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+                //
+                // Check if we find the event or not
+                //
+                if (CurrentEvent->Tag == Tag)
+                {
+                    return CurrentEvent;
+                }
+            }
+        }
+    }
+
+    //
+    // We didn't find anything, so return null
+    //
+    return NULL;
 }
 
 BOOLEAN
-DebuggerUnregisterEvent(UINT64 Tag)
+DebuggerEnableEvent(UINT64 Tag)
 {
+    PDEBUGGER_EVENT Event;
     //
-    // Seach all the cores for remove this event
+    // Search all the cores for enable this event
     //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Check if tag is valid or not
+    //
+    if (Event == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Enable the event
+    //
+    Event->Enabled = TRUE;
+
+    return TRUE;
 }
+
 BOOLEAN
 DebuggerDisableEvent(UINT64 Tag)
 {
+    PDEBUGGER_EVENT Event;
     //
-    // Seach all the cores for disable this event
+    // Search all the cores for enable this event
     //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Check if tag is valid or not
+    //
+    if (Event == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Disable the event
+    //
+    Event->Enabled = FALSE;
+
+    return TRUE;
 }
 
 BOOLEAN
-DebuggerRemoveEvent(PDEBUGGER_EVENT Event)
+DebuggerRemoveEventFromTheProcessorEventList(UINT64 Tag, UINT32 ProcessorIndex)
 {
+    UINT32      ProcessorCount;
+    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList2 = 0;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // We have to iterate through all events
+    //
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        TempList  = (PLIST_ENTRY)((UINT64)(&g_GuestState[ProcessorIndex].Events) + (i * sizeof(LIST_ENTRY)));
+        TempList2 = TempList;
+
+        while (TempList2 != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            //
+            // Check if we find the event or not
+            //
+            if (CurrentEvent->Tag == Tag)
+            {
+                //
+                // We have to remove the event from the list
+                //
+                RemoveEntryList(CurrentEvent->EventsOfSameTypeList.Flink);
+            }
+        }
+    }
+
+    //
+    // We didn't find anything, so return null
+    //
+    return FALSE;
+}
+
+BOOLEAN
+DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
+{
+    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList2 = 0;
+
+    //
+    // Remove all actions
+    //
+    TempList  = &Event->ActionsListHead;
+    TempList2 = TempList;
+
+    while (TempList2 != TempList->Flink)
+    {
+        TempList                             = TempList->Flink;
+        PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
+
+        //
+        // Check if it has a OptionalRequestedBuffer probably for
+        // CustomCode
+        //
+        if (CurrentAction->RequestedBuffer.RequestBufferSize != 0 && CurrentAction->RequestedBuffer.RequstBufferAddress != NULL)
+        {
+            //
+            // There is a buffer
+            //
+            ExFreePoolWithTag(CurrentAction->RequestedBuffer.RequstBufferAddress, POOLTAG);
+        }
+
+        //
+        // Remove the action and free the pool,
+        // if it's a custom buffer then the buffer
+        // is appended to the Action
+        //
+        ExFreePoolWithTag(CurrentAction, POOLTAG);
+    }
     //
     // Remember to free the pool
     //
+    return TRUE;
+}
+
+BOOLEAN
+DebuggerRemoveEvent(UINT64 Tag)
+{
+    DbgBreakPoint();
+    UINT32          ProcessorCount;
+    PDEBUGGER_EVENT Event;
+    PLIST_ENTRY     TempList  = 0;
+    PLIST_ENTRY     TempList2 = 0;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // First of all, we disable event
+    //
+    if (!DebuggerDisableEvent(Tag))
+    {
+        //
+        // Not found, tag is wrong !
+        //
+        return FALSE;
+    }
+
+    //
+    // When we're here, we are sure that the tag is valid
+    // because if it was not valid, then we have to return
+    // for the above function (DebuggerDisableEvent)
+    //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Now we get the PDEBUGGER_EVENT to see whether
+    // this event exists in all cores or just in one code
+    //
+    if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+    {
+        //
+        // We have to remove it from all the core's lists
+        //
+        for (size_t i = 0; i < ProcessorCount; i++)
+        {
+            DebuggerRemoveEventFromTheProcessorEventList(Tag, i);
+        }
+    }
+    else
+    {
+        //
+        // It's just one core, we have
+        // to remove it from this core
+        //
+        DebuggerRemoveEventFromTheProcessorEventList(Tag, Event->CoreId);
+    }
+
+    //
+    // Remove all of the actions and free its pools
+    //
+    DebuggerRemoveAllActionsFromEvent(Event);
+
+    //
+    // Free the pools of Event, when we free the pool,
+    // ConditionsBufferAddress is also a part of the
+    // event pool (ConditionBufferAddress and event
+    // are both allocate in a same pool ) so both of
+    // them are freed
+    //
+    ExFreePoolWithTag(Event, POOLTAG);
+
+    return TRUE;
 }
 
 //

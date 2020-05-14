@@ -1098,7 +1098,7 @@ void CommandPte(vector<string> SplittedCommand) {
   BOOL Status;
   ULONG ReturnedLength;
   UINT64 TargetVa;
-  DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead = { 0 };
+  DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead = {0};
 
   if (SplittedCommand.size() > 2) {
     ShowMessages("incorrect use of '!pte'\n\n");
@@ -1154,26 +1154,101 @@ void CommandPte(vector<string> SplittedCommand) {
     2600      --LDA--KWEV  LARGE PAGE pfn 27c9
   */
   ShowMessages("VA %llx\n", TargetVa);
-  ShowMessages(
-      "PML4E (PXE) at %016llx\tcontains %016llx\nPDPT (PPE) at %016llx\tcontains "
-      "%016llx\nPDE at %016llx\tcontains %016llx\n",
-      PteRead.Pml4eVirtualAddress, PteRead.Pml4eValue,
-      PteRead.PdpteVirtualAddress, PteRead.PdpteValue, PteRead.PdeVirtualAddress,
-      PteRead.PdeValue);
+  ShowMessages("PML4E (PXE) at %016llx\tcontains %016llx\nPDPT (PPE) at "
+               "%016llx\tcontains "
+               "%016llx\nPDE at %016llx\tcontains %016llx\n",
+               PteRead.Pml4eVirtualAddress, PteRead.Pml4eValue,
+               PteRead.PdpteVirtualAddress, PteRead.PdpteValue,
+               PteRead.PdeVirtualAddress, PteRead.PdeValue);
 
   //
   // Check if it's a large PDE
   //
-  if (PteRead.PdeVirtualAddress == PteRead.PteVirtualAddress)
-  {
-      ShowMessages("PDE is a large page, so it doesn't have a PTE\n");
-  }
-  else
-  {
-      ShowMessages("PTE at %016llx\tcontains %016llx\n", PteRead.PteVirtualAddress, PteRead.PteValue);
+  if (PteRead.PdeVirtualAddress == PteRead.PteVirtualAddress) {
+    ShowMessages("PDE is a large page, so it doesn't have a PTE\n");
+  } else {
+    ShowMessages("PTE at %016llx\tcontains %016llx\n",
+                 PteRead.PteVirtualAddress, PteRead.PteValue);
   }
 }
 
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Interpret conditions (if an event has condition)
+ * @details If this function returns true then it means that there is a condtion
+ * buffer in this command split and the details are returned in the input
+ * structure
+ *
+ * @param SplittedCommand All the commands
+ */
+BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
+  BOOLEAN ConditionVisited = FALSE;
+  BOOLEAN InConditonState = FALSE;
+  vector<string> ConditionBuffer;
+
+  for (auto Section : SplittedCommand) {
+
+    if (InConditonState) {
+
+      //
+      // Check if the condition is end or not
+      //
+      if (!Section.compare("}")) {
+        break;
+      }
+      //
+      // Add the codes into condition bi
+      //
+      ConditionBuffer.push_back(Section);
+
+      //
+      // We want to stay in this condition
+      //
+      continue;
+    }
+
+    if (ConditionVisited && !Section.compare("{")) {
+      InConditonState = TRUE;
+      continue;
+    }
+
+    if (!Section.compare("condition")) {
+      ConditionVisited = TRUE;
+      continue;
+    }
+  }
+
+  //
+  // Now we have everything in condition buffer
+  // Check to see if it is empty or not
+  //
+  if (ConditionBuffer.size() == 0) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // If we reach here then there is sth in condition buffer
+  //
+  printf("\n\n wooooooooooooooooooooooooooooooooooooooooooooooowwww :\n");
+  for (auto Section : ConditionBuffer) {
+    printf("%s\n", Section.c_str());
+  }
+  printf("\n\n end of wooooooooooooooooooooooooooooooooooooooooooooooowwww");
+}
+
+VOID TestMe(vector<string> SplittedCommand) {
+
+    if (!InterpretConditions(SplittedCommand))
+    {
+        printf("\nno condition !\n");
+    } 
+
+}
 /* ==============================================================================================
  */
 
@@ -1235,6 +1310,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandFormats(SplittedCommand);
   } else if (!FirstCommand.compare("!pte")) {
     CommandPte(SplittedCommand);
+  } else if (!FirstCommand.compare("!monitor")) {
+    TestMe(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||

@@ -64,7 +64,6 @@ DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress)
 //					Log wit Tag					//
 //////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
@@ -75,7 +74,7 @@ DebuggerInitialize();
 PDEBUGGER_EVENT
 DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
 
-BOOLEAN
+PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION InTheCaseOfLogTheStates);
 
 BOOLEAN
@@ -83,6 +82,15 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
 BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context);
+
+PDEBUGGER_EVENT
+DebuggerGetEventByTag(UINT64 Tag);
+
+BOOLEAN
+DebuggerRemoveEventFromTheProcessorEventList(UINT64 Tag, UINT32 ProcessorIndex);
+
+BOOLEAN
+DebuggerRemoveEvent(UINT64 Tag);
 
 VOID
 DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context);
