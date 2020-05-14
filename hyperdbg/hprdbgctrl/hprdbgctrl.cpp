@@ -39,7 +39,16 @@ void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
 void ShowMessages(const char *Fmt, ...) {
 
   va_list ArgList;
+  va_list Args;
   char TempMessage[PacketChunkSize];
+
+  if (Handler == NULL) {
+
+    va_start(Args, Fmt);
+    vprintf(Fmt, Args);
+    va_end(Args);
+    return;
+  }
 
   va_start(ArgList, Fmt);
 
@@ -50,8 +59,6 @@ void ShowMessages(const char *Fmt, ...) {
   if (sprintfresult != -1) {
     if (Handler != NULL) {
       Handler(TempMessage);
-    } else {
-      printf(TempMessage);
     }
   } else {
     MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
@@ -193,11 +200,7 @@ void ReadIrpBasedBuffer() {
 
           ShowMessages(
               "A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-          ShowMessages("\n\nfucccckkk 1 \n\n");
-
           ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
-          ShowMessages("\n\nfucccckkk 2 \n\n");
-
           break;
         case OPERATION_LOG_INFO_MESSAGE:
           ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
