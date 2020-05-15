@@ -56,9 +56,6 @@ typedef struct _LOG_BUFFER_INFORMATION
     UINT64 BufferForMultipleNonImmediateMessage; // Start address of the buffer for accumulating non-immadiate messages
     UINT32 CurrentLengthOfNonImmBuffer;          // the current size of the buffer for accumulating non-immadiate messages
 
-    KSPIN_LOCK BufferLock;                 // SpinLock to protect access to the queue
-    KSPIN_LOCK BufferLockForNonImmMessage; // SpinLock to protect access to the queue of non-imm messages
-
     UINT32 CurrentIndexToSend;  // Current buffer index to send to user-mode
     UINT32 CurrentIndexToWrite; // Current buffer index to write new messages
 
@@ -95,6 +92,13 @@ volatile LONG VmxRootLoggingLock;
 
 /* Vmx-root lock for logging */
 volatile LONG VmxRootLoggingLockForNonImmBuffers;
+
+/* Vmx non-root lock for logging */
+volatile LONG VmxNonRootLoggingLock;
+
+/* Vmx non-root lock for logging */
+volatile LONG VmxNonRootLoggingLockForNonImmBuffers;
+
 
 //////////////////////////////////////////////////
 //					Illustration				//

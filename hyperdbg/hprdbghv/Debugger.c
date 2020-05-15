@@ -52,7 +52,7 @@ TestMe()
     //
     // Create event based on condition buffer
     //
-    /* PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
+     PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
         HIDDEN_HOOK_WRITE,
@@ -64,7 +64,6 @@ TestMe()
     {
         LogError("Error in creating event");
     }
-    */
     //
     // *** Add Actions example ***
     //
@@ -89,19 +88,19 @@ TestMe()
     CustomCode.OptionalRequestedBufferSize = 0x100;
 
     DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-    /*DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);*/
+   // DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
 
     //
     // Call to register
     //
     DebuggerRegisterEvent(Event1);
-    /*DebuggerRegisterEvent(Event2);*/
+   // DebuggerRegisterEvent(Event2);
 
     //
     // Enable one event to test it
     //
     //DebuggerEventEnableEferOnAllProcessors();
-    // HiddenHooksTest();
+     //HiddenHooksTest();
     DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
     //
     // Test --------------------------------------------------------
