@@ -44,7 +44,7 @@ TestMe()
     PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        HIDDEN_HOOK_EXEC_DETOURS,
+        HIDDEN_HOOK_READ,
         0x85858585,
         sizeof(CondtionBuffer),
         CondtionBuffer);
@@ -52,18 +52,30 @@ TestMe()
     //
     // Create event based on condition buffer
     //
-   /* PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
+    PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
         HIDDEN_HOOK_WRITE,
         0x86868686,
         sizeof(CondtionBuffer),
-        CondtionBuffer);*/
+        CondtionBuffer);
+
+        //
+    // Create event based on condition buffer
+    //
+    PDEBUGGER_EVENT Event3 = DebuggerCreateEvent(
+        TRUE,
+        DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
+        SYSCALL_HOOK_EFER_SYSCALL,
+        0x87878787,
+        sizeof(CondtionBuffer),
+        CondtionBuffer);
 
     if (!Event1)
     {
         LogError("Error in creating event");
     }
+
     //
     // *** Add Actions example ***
     //
@@ -88,25 +100,27 @@ TestMe()
     CustomCode.OptionalRequestedBufferSize = 0x100;
 
     DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-    // DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+    DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+    DebuggerAddActionToEvent(Event3, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
 
     //
     // Call to register
     //
     DebuggerRegisterEvent(Event1);
-    // DebuggerRegisterEvent(Event2);
+    DebuggerRegisterEvent(Event2);
+    DebuggerRegisterEvent(Event3);
 
     //
     // Enable one event to test it
     //
-    //DebuggerEventEnableEferOnAllProcessors();
-    HiddenHooksTest();
-    //DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
+    DebuggerEventEnableEferOnAllProcessors();
+    // HiddenHooksTest();
+    DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
     //
     // Test --------------------------------------------------------
     //
-    //DbgBreakPoint();
-    //DebuggerRemoveEvent(0x85858585);
+    // DbgBreakPoint();
+    // DebuggerRemoveEvent(0x87878787);
     // DbgBreakPoint();
 
     //
@@ -615,7 +629,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // Test (Should be removed)
     //
     //LogInfo("%x       Called from : %llx", Tag, Context);
-    LogInfo("Rax : %0llx", Regs->rax);
+    LogInfo("Tag : %llx", Tag);
     return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -793,7 +807,7 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
                 //
                 // We have to remove the event from the list
                 //
-                RemoveEntryList(CurrentEvent->EventsOfSameTypeList.Flink);
+                RemoveEntryList(&CurrentEvent->EventsOfSameTypeList);
                 return TRUE;
             }
         }
@@ -883,7 +897,7 @@ DebuggerRemoveEvent(UINT64 Tag)
     {
         return FALSE;
     }
-    
+
     //
     // Remove all of the actions and free its pools
     //
