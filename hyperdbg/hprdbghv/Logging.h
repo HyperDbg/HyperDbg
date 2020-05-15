@@ -61,24 +61,7 @@ typedef struct _LOG_BUFFER_INFORMATION
 
 } LOG_BUFFER_INFORMATION, *PLOG_BUFFER_INFORMATION;
 
-// Each core has one of the structure in g_GuestState
-typedef struct _DEBUGGER_CORE_EVENTS
-{
-    //
-    // Warnings : Only list entries should be in this list, nothing else
-    //
 
-    //
-    // Do not add varialbe to this this list, just LIST_ENTRY is allowed
-    //
-    LIST_ENTRY HiddenHookReadEventsHead;          // HIDDEN_HOOK_READ  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY HiddenHookWriteEventsHead;         // HIDDEN_HOOK_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY HiddenHooksExecDetourEventsHead;   // HIDDEN_HOOK_EXEC_DETOUR [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY HiddenHookExecCcEventsHead;        // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY SyscallHooksEferSyscallEventsHead; // SYSCALL_HOOK_EFER_SYSCALL [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-    LIST_ENTRY SyscallHooksEferSysretEventsHead;  // SYSCALL_HOOK_EFER_SYSRET [WARNING : MAKE SURE TO INITIALIZE LIST HEAD]
-
-} DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 
 //////////////////////////////////////////////////
 //				Global Variables				//

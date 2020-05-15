@@ -314,6 +314,15 @@ BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
   *Result = TempResult;
 }
 
+BOOLEAN HasEnding(std::string const &fullString, std::string const &ending) {
+  if (fullString.length() >= ending.length()) {
+    return (0 == fullString.compare(fullString.length() - ending.length(),
+                                    ending.length(), ending));
+  } else {
+    return FALSE;
+  }
+}
+
 // Function to validate an IP address
 bool ValidateIP(string ip) {
   // split the string into tokens
@@ -1186,6 +1195,7 @@ void CommandPte(vector<string> SplittedCommand) {
 BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   BOOLEAN ConditionVisited = FALSE;
   BOOLEAN InConditonState = FALSE;
+  BOOLEAN IsConditionEnded = FALSE;
   vector<string> ConditionBuffer;
 
   for (auto Section : SplittedCommand) {
@@ -1196,8 +1206,24 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
       // Check if the condition is end or not
       //
       if (!Section.compare("}")) {
+        IsConditionEnded = TRUE;
         break;
       }
+
+      //
+      // Check if the condition is end or not
+      //
+      if (HasEnding(Section, "}")) {
+
+        //
+        // remove the last character and append it to the ConditionBuffer
+        //
+        ConditionBuffer.push_back(Section.substr(0, Section.size() - 1));
+
+        IsConditionEnded = TRUE;
+        break;
+      }
+
       //
       // Add the codes into condition bi
       //
@@ -1213,10 +1239,47 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
       InConditonState = TRUE;
       continue;
     }
+    if (ConditionVisited && Section.rfind("{", 0) == 0) {
+      //
+      // Section starts with {
+      //
+      ConditionBuffer.push_back(Section.erase(0, 1));
+
+      InConditonState = TRUE;
+      continue;
+    }
 
     if (!Section.compare("condition")) {
       ConditionVisited = TRUE;
       continue;
+    }
+
+    if (!Section.compare("condition{")) {
+      ConditionVisited = TRUE;
+      InConditonState = TRUE;
+      continue;
+    }
+    if (Section.rfind("condition{", 0) == 0) {
+      ConditionVisited = TRUE;
+      InConditonState = TRUE;
+
+      if (!HasEnding(Section, "}")) {
+        //
+        // Section starts with condition{
+        //
+        ConditionBuffer.push_back(Section.erase(0, 10));
+        continue;
+      } else {
+        //
+        // remove the last character and first character append it to the
+        // ConditionBuffer
+        //
+        string temp = Section.erase(0, 10);
+        ConditionBuffer.push_back(temp.substr(0, temp.size() - 1));
+
+        IsConditionEnded = TRUE;
+        break;
+      }
     }
   }
 
@@ -1225,6 +1288,16 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   // Check to see if it is empty or not
   //
   if (ConditionBuffer.size() == 0) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // Check if we see '}' at the end
+  //
+  if (!IsConditionEnded) {
     //
     // Nothing in condition buffer, return zero
     //
@@ -1243,11 +1316,9 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
 
 VOID TestMe(vector<string> SplittedCommand) {
 
-    if (!InterpretConditions(SplittedCommand))
-    {
-        printf("\nno condition !\n");
-    } 
-
+  if (!InterpretConditions(SplittedCommand)) {
+    printf("\nno condition !\n");
+  }
 }
 /* ==============================================================================================
  */

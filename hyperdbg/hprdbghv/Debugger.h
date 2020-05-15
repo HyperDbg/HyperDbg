@@ -26,6 +26,24 @@ MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_ME
 //					Structures					//
 //////////////////////////////////////////////////
 
+typedef struct _DEBUGGER_CORE_EVENTS
+{
+    //
+    // Warnings : Only list entries should be in this list, nothing else
+    //
+
+    //
+    // Do not add varialbe to this this list, just LIST_ENTRY is allowed
+    //
+    LIST_ENTRY HiddenHookReadEventsHead;          // HIDDEN_HOOK_READ  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookWriteEventsHead;         // HIDDEN_HOOK_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHooksExecDetourEventsHead;   // HIDDEN_HOOK_EXEC_DETOUR [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookExecCcEventsHead;        // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY SyscallHooksEferSyscallEventsHead; // SYSCALL_HOOK_EFER_SYSCALL [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY SyscallHooksEferSysretEventsHead;  // SYSCALL_HOOK_EFER_SYSRET [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+
+} DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
+
 /**
  * @brief Use to modify Msrs or read MSR values
  * 

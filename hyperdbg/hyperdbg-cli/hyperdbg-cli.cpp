@@ -48,7 +48,7 @@ int main()
 	// Put to ease the test, it will be removed
 	//
 	
-	if (HyperdbgInstallDriver()) {
+	/* if (HyperdbgInstallDriver()) {
 		return 1;
 	}
 
@@ -57,7 +57,7 @@ int main()
 	}
 	_getch();
 	_getch();
-	return 0;
+	return 0; */
 	
 
 	// ---------------------------------------------------------

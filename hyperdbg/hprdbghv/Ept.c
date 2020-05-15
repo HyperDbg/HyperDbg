@@ -946,7 +946,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         //
         // Trigger the event related to Monitor Write
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, GuestRip);
+        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, PhysicalAddress);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
@@ -961,7 +961,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         //
         // Trigger the event related to Monitor Read
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, GuestRip);
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, PhysicalAddress);
     }
     else
     {

@@ -317,7 +317,7 @@ EmulateSYSRET:
     //
     // We should trigger the event of SYSRET here
     //
-    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, NULL);
+    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, Rip);
 
     Result                               = SyscallHookEmulateSYSRET(Regs);
     g_GuestState[CoreIndex].IncrementRip = FALSE;
@@ -330,7 +330,7 @@ EmulateSYSCALL:
     //
     // Test
     //
-    
+
     //
     // LogInfo("SYSCALL instruction => 0x%llX , Process Id : 0x%x", Rip, PsGetCurrentProcessId());
     //
@@ -338,7 +338,7 @@ EmulateSYSCALL:
     //
     // We should trigger the event of SYSCALL here
     //
-    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL, Regs, NULL);
+    DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSCALL, Regs, Rip);
 
     Result = SyscallHookEmulateSYSCALL(Regs);
 
