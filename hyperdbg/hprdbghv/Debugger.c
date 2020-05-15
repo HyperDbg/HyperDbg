@@ -44,7 +44,7 @@ TestMe()
     PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        HIDDEN_HOOK_READ,
+        HIDDEN_HOOK_EXEC_DETOURS,
         0x85858585,
         sizeof(CondtionBuffer),
         CondtionBuffer);
@@ -52,13 +52,13 @@ TestMe()
     //
     // Create event based on condition buffer
     //
-     PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
+   /* PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
         TRUE,
         DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
         HIDDEN_HOOK_WRITE,
         0x86868686,
         sizeof(CondtionBuffer),
-        CondtionBuffer);
+        CondtionBuffer);*/
 
     if (!Event1)
     {
@@ -88,25 +88,25 @@ TestMe()
     CustomCode.OptionalRequestedBufferSize = 0x100;
 
     DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-   // DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+    // DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
 
     //
     // Call to register
     //
     DebuggerRegisterEvent(Event1);
-   // DebuggerRegisterEvent(Event2);
+    // DebuggerRegisterEvent(Event2);
 
     //
     // Enable one event to test it
     //
     //DebuggerEventEnableEferOnAllProcessors();
-     //HiddenHooksTest();
-    DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
+    HiddenHooksTest();
+    //DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
     //
     // Test --------------------------------------------------------
     //
-    // DbgBreakPoint();
-    //DebuggerRemoveEvent(0x86868686);
+    //DbgBreakPoint();
+    //DebuggerRemoveEvent(0x85858585);
     // DbgBreakPoint();
 
     //
@@ -483,11 +483,6 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList                     = TempList->Flink;
         PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
 
-        if (CurrentEvent->Tag != 0x85858585)
-        {
-            DbgBreakPoint();
-        }
-
         //
         // check if the event is enabled or not
         //
@@ -697,7 +692,7 @@ DebuggerGetEventByTag(UINT64 Tag)
     //
     for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
-        TempList  = (PLIST_ENTRY)((UINT64)(&g_Events) + (i * sizeof(LIST_ENTRY)));
+        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
         while (TempList2 != TempList->Flink)
@@ -772,7 +767,7 @@ DebuggerDisableEvent(UINT64 Tag)
 }
 
 BOOLEAN
-DebuggerRemoveEventFromTheProcessorEventList(UINT64 Tag, UINT32 ProcessorIndex)
+DebuggerRemoveEventFromEventList(UINT64 Tag)
 {
     PLIST_ENTRY TempList  = 0;
     PLIST_ENTRY TempList2 = 0;
@@ -782,7 +777,7 @@ DebuggerRemoveEventFromTheProcessorEventList(UINT64 Tag, UINT32 ProcessorIndex)
     //
     for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
     {
-        TempList  = (PLIST_ENTRY)((UINT64)(&g_Events) + (i * sizeof(LIST_ENTRY)));
+        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
         TempList2 = TempList;
 
         while (TempList2 != TempList->Flink)
@@ -881,28 +876,14 @@ DebuggerRemoveEvent(UINT64 Tag)
     Event = DebuggerGetEventByTag(Tag);
 
     //
-    // Now we get the PDEBUGGER_EVENT to see whether
-    // this event exists in all cores or just in one code
+    // Now we get the PDEBUGGER_EVENT so we have to remove
+    // it from the event list
     //
-    if (Event->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+    if (!DebuggerRemoveEventFromEventList(Tag))
     {
-        //
-        // We have to remove it from all the core's lists
-        //
-        for (size_t i = 0; i < ProcessorCount; i++)
-        {
-            DebuggerRemoveEventFromTheProcessorEventList(Tag, i);
-        }
+        return FALSE;
     }
-    else
-    {
-        //
-        // It's just one core, we have
-        // to remove it from this core
-        //
-        DebuggerRemoveEventFromTheProcessorEventList(Tag, Event->CoreId);
-    }
-
+    
     //
     // Remove all of the actions and free its pools
     //

@@ -87,9 +87,6 @@ PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag);
 
 BOOLEAN
-DebuggerRemoveEventFromTheProcessorEventList(UINT64 Tag, UINT32 ProcessorIndex);
-
-BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag);
 
 VOID
