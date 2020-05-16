@@ -229,6 +229,17 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   ShowMessages("\n");
 }
 
+void ReplaceAll(std::string &str, const std::string &from,
+                const std::string &to) {
+  if (from.empty())
+    return;
+  size_t start_pos = 0;
+  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    str.replace(start_pos, from.length(), to);
+    start_pos += to.length(); // In case 'to' contains 'from', like replacing
+                              // 'x' with 'yx'
+  }
+}
 const vector<string> Split(const string &s, const char &c) {
   string buff{""};
   vector<string> v;
@@ -284,6 +295,18 @@ bool IsHexNotation(std::string s) {
     return TRUE;
   }
   return FALSE;
+}
+
+vector<char> HexToBytes(const std::string &hex) {
+  std::vector<char> bytes;
+
+  for (unsigned int i = 0; i < hex.length(); i += 2) {
+    std::string byteString = hex.substr(i, 2);
+    char byte = (char)strtol(byteString.c_str(), NULL, 16);
+    bytes.push_back(byte);
+  }
+
+  return bytes;
 }
 
 BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
@@ -1192,21 +1215,27 @@ void CommandPte(vector<string> SplittedCommand) {
  *
  * @param SplittedCommand All the commands
  */
-BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
-  BOOLEAN ConditionVisited = FALSE;
-  BOOLEAN InConditonState = FALSE;
-  BOOLEAN IsConditionEnded = FALSE;
-  vector<string> ConditionBuffer;
+BOOLEAN InterpretConditions(vector<string> SplittedCommand,
+                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
+                            PUINT32 BufferLength) {
+  BOOLEAN IsTextVisited = FALSE;
+  BOOLEAN IsInState = FALSE;
+  BOOLEAN IsEnded = FALSE;
+  string Temp;
+  string AppendedFinalBuffer;
+  vector<string> SaveBuffer;
+  vector<CHAR> ParsedBytes;
+  unsigned char *FinalBuffer;
 
   for (auto Section : SplittedCommand) {
 
-    if (InConditonState) {
+    if (IsInState) {
 
       //
-      // Check if the condition is end or not
+      // Check if the buffer is ended or not
       //
       if (!Section.compare("}")) {
-        IsConditionEnded = TRUE;
+        IsEnded = TRUE;
         break;
       }
 
@@ -1218,16 +1247,16 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
         //
         // remove the last character and append it to the ConditionBuffer
         //
-        ConditionBuffer.push_back(Section.substr(0, Section.size() - 1));
+        SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
 
-        IsConditionEnded = TRUE;
+        IsEnded = TRUE;
         break;
       }
 
       //
       // Add the codes into condition bi
       //
-      ConditionBuffer.push_back(Section);
+      SaveBuffer.push_back(Section);
 
       //
       // We want to stay in this condition
@@ -1235,50 +1264,114 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
       continue;
     }
 
-    if (ConditionVisited && !Section.compare("{")) {
-      InConditonState = TRUE;
+    if (IsTextVisited && !Section.compare("{")) {
+      IsInState = TRUE;
       continue;
     }
-    if (ConditionVisited && Section.rfind("{", 0) == 0) {
+    if (IsTextVisited && Section.rfind("{", 0) == 0) {
       //
       // Section starts with {
       //
-      ConditionBuffer.push_back(Section.erase(0, 1));
 
-      InConditonState = TRUE;
-      continue;
-    }
+      //
+      // Check if it ends with }
+      //
+      if (HasEnding(Section, "}")) {
 
-    if (!Section.compare("condition")) {
-      ConditionVisited = TRUE;
-      continue;
-    }
+        Temp = Section.erase(0, 1);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
-    if (!Section.compare("condition{")) {
-      ConditionVisited = TRUE;
-      InConditonState = TRUE;
-      continue;
-    }
-    if (Section.rfind("condition{", 0) == 0) {
-      ConditionVisited = TRUE;
-      InConditonState = TRUE;
-
-      if (!HasEnding(Section, "}")) {
-        //
-        // Section starts with condition{
-        //
-        ConditionBuffer.push_back(Section.erase(0, 10));
-        continue;
-      } else {
-        //
-        // remove the last character and first character append it to the
-        // ConditionBuffer
-        //
-        string temp = Section.erase(0, 10);
-        ConditionBuffer.push_back(temp.substr(0, temp.size() - 1));
-
-        IsConditionEnded = TRUE;
+        IsEnded = TRUE;
         break;
+      }
+
+      SaveBuffer.push_back(Section.erase(0, 1));
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (IsConditionBuffer) {
+      if (!Section.compare("condition")) {
+        IsTextVisited = TRUE;
+        continue;
+      }
+    } else {
+      //
+      // It's code
+      //
+      if (!Section.compare("code")) {
+        IsTextVisited = TRUE;
+        continue;
+      }
+    }
+
+    if (IsConditionBuffer) {
+      if (!Section.compare("condition{")) {
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+        continue;
+      }
+    } else {
+      //
+      // It's code
+      //
+      if (!Section.compare("code{")) {
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+        continue;
+      }
+    }
+
+    if (IsConditionBuffer) {
+      if (Section.rfind("condition{", 0) == 0) {
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+
+        if (!HasEnding(Section, "}")) {
+          //
+          // Section starts with condition{
+          //
+          SaveBuffer.push_back(Section.erase(0, 10));
+          continue;
+        } else {
+          //
+          // remove the last character and first character append it to the
+          // ConditionBuffer
+          //
+          Temp = Section.erase(0, 10);
+          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+          IsEnded = TRUE;
+          break;
+        }
+      }
+    } else {
+      //
+      // It's a code
+      //
+
+      if (Section.rfind("code{", 0) == 0) {
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+
+        if (!HasEnding(Section, "}")) {
+          //
+          // Section starts with condition{
+          //
+          SaveBuffer.push_back(Section.erase(0, 5));
+          continue;
+        } else {
+          //
+          // remove the last character and first character append it to the
+          // ConditionBuffer
+          //
+          Temp = Section.erase(0, 5);
+          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+          IsEnded = TRUE;
+          break;
+        }
       }
     }
   }
@@ -1287,7 +1380,7 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   // Now we have everything in condition buffer
   // Check to see if it is empty or not
   //
-  if (ConditionBuffer.size() == 0) {
+  if (SaveBuffer.size() == 0) {
     //
     // Nothing in condition buffer, return zero
     //
@@ -1297,7 +1390,7 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   //
   // Check if we see '}' at the end
   //
-  if (!IsConditionEnded) {
+  if (!IsEnded) {
     //
     // Nothing in condition buffer, return zero
     //
@@ -1305,25 +1398,88 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   }
 
   //
+  // Append a 'ret' at the end of the buffer
+  //
+  SaveBuffer.push_back("c3");
+
+  //
   // If we reach here then there is sth in condition buffer
   //
-  printf("\n\n wooooooooooooooooooooooooooooooooooooooooooooooowwww :\n");
-  for (auto Section : ConditionBuffer) {
+  for (auto Section : SaveBuffer) {
 
     //
     // Check if the section is started with '0x'
     //
-    if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0) {
+    if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
+        Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0) {
+      Temp = Section.erase(0, 2);
+    } else if (Section.rfind("x", 0) == 0 || Section.rfind("X", 0) == 0) {
+      Temp = Section.erase(0, 1);
+    } else {
+      Temp = Section;
     }
-    printf("%s\n", Section.c_str());
+
+    //
+    // replace \x s
+    //
+    ReplaceAll(Temp, "\\x", "");
+
+    //
+    // check if the buffer is aligned to 2
+    //
+    if (Temp.size() % 2 != 0) {
+
+      //
+      // Add a zero to the start of the buffer
+      //
+      Temp.insert(0, 1, '0');
+    }
+
+    if (!IsHexNotation(Temp)) {
+      ShowMessages("Please enter condition code in a hex notation.\n");
+      return FALSE;
+    }
+    AppendedFinalBuffer.append(Temp);
   }
-  printf("\n\n end of wooooooooooooooooooooooooooooooooooooooooooooooowwww");
+
+  //
+  // ShowMessages("Parsed Buffer : %s \n", AppendedFinalBuffer.c_str());
+  //
+
+  //
+  // Convert it to vectored bytes
+  //
+  ParsedBytes = HexToBytes(AppendedFinalBuffer);
+
+  //
+  // Convert to a contigues buffer
+  //
+  FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+  std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+
+  //
+  // Disassemble the buffer
+  //
+  HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
+
+  return TRUE;
 }
 
 VOID TestMe(vector<string> SplittedCommand) {
 
-  if (!InterpretConditions(SplittedCommand)) {
-    printf("\nno condition !\n");
+  UINT64 BufferAddress;
+  UINT32 BufferLength;
+
+  if (!InterpretConditions(SplittedCommand, TRUE, &BufferAddress,
+                           &BufferLength)) {
+    ShowMessages("\n No condition !\n");
+  }
+
+  ShowMessages("=============================================\n");
+
+  if (!InterpretConditions(SplittedCommand, FALSE, &BufferAddress,
+                           &BufferLength)) {
+    ShowMessages("\n No code !\n");
   }
 }
 /* ==============================================================================================
