@@ -1309,6 +1309,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand) {
   //
   printf("\n\n wooooooooooooooooooooooooooooooooooooooooooooooowwww :\n");
   for (auto Section : ConditionBuffer) {
+
+    //
+    // Check if the section is started with '0x'
+    //
+    if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0) {
+    }
     printf("%s\n", Section.c_str());
   }
   printf("\n\n end of wooooooooooooooooooooooooooooooooooooooooooooooowwww");
