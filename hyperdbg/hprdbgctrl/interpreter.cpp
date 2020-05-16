@@ -1215,9 +1215,11 @@ void CommandPte(vector<string> SplittedCommand) {
  *
  * @param SplittedCommand All the commands
  */
-BOOLEAN InterpretConditions(vector<string> SplittedCommand,
-                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
-                            PUINT32 BufferLength) {
+BOOLEAN InterpretConditionsAndCodes(vector<string> *SplittedCommand,
+                                    BOOLEAN IsConditionBuffer,
+                                    BOOLEAN ShowBufferAndAssembly,
+                                    PUINT64 BufferAddrss,
+                                    PUINT32 BufferLength) {
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
   BOOLEAN IsEnded = FALSE;
@@ -1226,8 +1228,11 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
   vector<string> SaveBuffer;
   vector<CHAR> ParsedBytes;
   unsigned char *FinalBuffer;
+  vector<int> IndexesToRemove;
+  int Index = 0;
 
-  for (auto Section : SplittedCommand) {
+  for (auto Section : *SplittedCommand) {
+    Index++;
 
     if (IsInState) {
 
@@ -1235,6 +1240,10 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       // Check if the buffer is ended or not
       //
       if (!Section.compare("}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
         IsEnded = TRUE;
         break;
       }
@@ -1243,6 +1252,10 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       // Check if the condition is end or not
       //
       if (HasEnding(Section, "}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
 
         //
         // remove the last character and append it to the ConditionBuffer
@@ -1252,6 +1265,11 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
         IsEnded = TRUE;
         break;
       }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
 
       //
       // Add the codes into condition bi
@@ -1265,6 +1283,11 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
     }
 
     if (IsTextVisited && !Section.compare("{")) {
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
       IsInState = TRUE;
       continue;
     }
@@ -1278,12 +1301,21 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       //
       if (HasEnding(Section, "}")) {
 
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         Temp = Section.erase(0, 1);
         SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
         IsEnded = TRUE;
         break;
       }
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
 
       SaveBuffer.push_back(Section.erase(0, 1));
 
@@ -1293,6 +1325,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
 
     if (IsConditionBuffer) {
       if (!Section.compare("condition")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         continue;
       }
@@ -1301,6 +1339,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       // It's code
       //
       if (!Section.compare("code")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         continue;
       }
@@ -1308,6 +1352,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
 
     if (IsConditionBuffer) {
       if (!Section.compare("condition{")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         IsInState = TRUE;
         continue;
@@ -1317,6 +1367,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       // It's code
       //
       if (!Section.compare("code{")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         IsInState = TRUE;
         continue;
@@ -1325,6 +1381,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
 
     if (IsConditionBuffer) {
       if (Section.rfind("condition{", 0) == 0) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         IsInState = TRUE;
 
@@ -1352,6 +1414,12 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
       //
 
       if (Section.rfind("code{", 0) == 0) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
         IsTextVisited = TRUE;
         IsInState = TRUE;
 
@@ -1443,10 +1511,6 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
   }
 
   //
-  // ShowMessages("Parsed Buffer : %s \n", AppendedFinalBuffer.c_str());
-  //
-
-  //
   // Convert it to vectored bytes
   //
   ParsedBytes = HexToBytes(AppendedFinalBuffer);
@@ -1457,11 +1521,28 @@ BOOLEAN InterpretConditions(vector<string> SplittedCommand,
   FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
   std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
 
-  //
-  // Disassemble the buffer
-  //
-  HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
+  if (ShowBufferAndAssembly) {
+    //
+    // Show the final buffer
+    //
+    ShowMessages("Buffer : %s \n", AppendedFinalBuffer.c_str());
 
+    //
+    // Disassemble the buffer
+    //
+    HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
+  }
+
+  //
+  // Removing the code or condition indexes from the command
+  //
+  int NewIndexToRemove = 0;
+  for (auto IndexToRemove : IndexesToRemove) {
+    NewIndexToRemove++;
+
+    SplittedCommand->erase(SplittedCommand->begin() +
+                           (IndexToRemove - NewIndexToRemove));
+  }
   return TRUE;
 }
 
@@ -1470,16 +1551,23 @@ VOID TestMe(vector<string> SplittedCommand) {
   UINT64 BufferAddress;
   UINT32 BufferLength;
 
-  if (!InterpretConditions(SplittedCommand, TRUE, &BufferAddress,
-                           &BufferLength)) {
+  ShowMessages(
+      "========================= Condition =========================\n");
+
+  if (!InterpretConditionsAndCodes(&SplittedCommand, TRUE, TRUE, &BufferAddress,
+                                   &BufferLength)) {
     ShowMessages("\n No condition !\n");
   }
 
-  ShowMessages("=============================================\n");
-
-  if (!InterpretConditions(SplittedCommand, FALSE, &BufferAddress,
-                           &BufferLength)) {
+  ShowMessages("========================= Code =========================\n");
+  if (!InterpretConditionsAndCodes(&SplittedCommand, FALSE, TRUE,
+                                   &BufferAddress, &BufferLength)) {
     ShowMessages("\n No code !\n");
+  }
+  ShowMessages("========================= New Splitted "
+               "Commands =========================\n");
+  for (auto Section : SplittedCommand) {
+    ShowMessages("%s ", Section.c_str());
   }
 }
 /* ==============================================================================================
