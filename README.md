@@ -26,6 +26,8 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 
 ## How does it work?
 
+We explained about how HyperDbg internally works and how we designed its features in details, take a look at  (https://docs.hyperdbg.com/how-does-it-work)
+
 Here's a diagram that shows how HyperDbg works !
 </br>
 
