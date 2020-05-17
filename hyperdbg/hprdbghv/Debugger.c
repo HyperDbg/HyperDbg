@@ -60,7 +60,7 @@ TestMe()
         sizeof(CondtionBuffer),
         CondtionBuffer);
 
-        //
+    //
     // Create event based on condition buffer
     //
     PDEBUGGER_EVENT Event3 = DebuggerCreateEvent(
@@ -530,7 +530,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             //
             // Run and check for results
             //
-            if (ConditionFunc() == 0)
+            if (ConditionFunc(Regs, Context) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -612,9 +612,8 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    PVOID                                             ReturnBufferToUsermodeAddress = 0;
-    DebuggerRunCustomCodeFunc *                       Func;
-    DebuggerRunCustomCodeWithPreAllocatedBufferFunc * FuncWithPreAllocBuffer;
+    PVOID                       ReturnBufferToUsermodeAddress = 0;
+    DebuggerRunCustomCodeFunc * Func;
 
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -646,21 +645,21 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
 
         //
-        // Execute the code
+        // Execute the code (The pre-allocated buffer is null)
         //
-        Func();
+        Func(NULL, Regs, Context);
     }
     else
     {
         //
         // Means that this custom code doesn't requested a pre-allocated buffer
         //
-        FuncWithPreAllocBuffer = (DebuggerRunCustomCodeWithPreAllocatedBufferFunc *)Action->CustomCodeBufferAddress;
+        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
 
         //
         // Execute the code (with requested buffer parameter)
         //
-        ReturnBufferToUsermodeAddress = FuncWithPreAllocBuffer(Action->RequestedBuffer.RequstBufferAddress);
+        ReturnBufferToUsermodeAddress = Func(Action->RequestedBuffer.RequstBufferAddress, Regs, Context);
     }
 
     //

@@ -71,12 +71,11 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 //					Data Type					//
 //////////////////////////////////////////////////
 
-typedef UINT64 DebuggerCheckForCondition(VOID);
-
-typedef PVOID DebuggerRunCustomCodeFunc(VOID);
+typedef UINT64
+DebuggerCheckForCondition(PGUEST_REGS Regs, PVOID Context);
 
 typedef PVOID
-DebuggerRunCustomCodeWithPreAllocatedBufferFunc(PVOID PreAllocatedBufferAddress);
+DebuggerRunCustomCodeFunc(PVOID PreAllocatedBufferAddress, PGUEST_REGS Regs, PVOID Context);
 
 //////////////////////////////////////////////////
 //					Log wit Tag					//

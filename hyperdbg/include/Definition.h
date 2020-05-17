@@ -102,7 +102,12 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
   UINT64 Tag; // is same as operation code
   DEBUGGER_EVENT_TYPE_ENUM EventType;
 
-  PVOID CommanStringBuffer;
+  UINT64 OptionalParam1;
+  UINT64 OptionalParam2;
+  UINT64 OptionalParam3;
+  UINT64 OptionalParam4;
+
+  PVOID CommandStringBuffer;
 
   UINT32 ConditionBufferSize;
   UINT32 ConditionBufferOffsetFromTop;
@@ -122,7 +127,7 @@ typedef struct _DEBUGGER_GENERAL_ACTION {
   UINT32 CustomCodeBufferSize;
   UINT32 CustomCodeBufferOffsetFromTop;
 
-} DEBUGGER_GENERAL_ACTION, * PDEBUGGER_GENERAL_ACTION;
+} DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
 
 //////////////////////////////////////////////////
 //					Debugger                    //
@@ -239,6 +244,7 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
  */
 
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
+#define DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES 0xffffffff
 
 //
 // Pseudo Regs Mask (It's a mask not a value)

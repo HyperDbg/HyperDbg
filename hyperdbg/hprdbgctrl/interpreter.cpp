@@ -384,8 +384,7 @@ UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
  */
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
-                            BOOLEAN IsConditionBuffer,
-                            BOOLEAN ShowBufferAndAssembly, PUINT64 BufferAddrss,
+                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
                             PUINT32 BufferLength) {
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -688,17 +687,11 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
   FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
   std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
 
-  if (ShowBufferAndAssembly) {
-    //
-    // Show the final buffer
-    //
-    ShowMessages("Buffer : %s \n", AppendedFinalBuffer.c_str());
-
-    //
-    // Disassemble the buffer
-    //
-    HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
-  }
+  //
+  // Set the buffer and length
+  //
+  *BufferAddrss = (UINT64)FinalBuffer;
+  *BufferLength = ParsedBytes.size();
 
   //
   // Removing the code or condition indexes from the command
@@ -1562,39 +1555,79 @@ void CommandPte(vector<string> SplittedCommand) {
  * @param SplittedCommand All the commands
  */
 BOOLEAN InterpretGeneralEventAndActionsFields(
-    vector<string> *SplittedCommand,
+    vector<string> *SplittedCommand, DEBUGGER_EVENT_TYPE_ENUM EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *EventDetailsToFill,
     PUINT32 EventBufferLength) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
-
   UINT64 ConditionBufferAddress;
   UINT32 ConditionBufferLength = 0;
-
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
-
   UINT32 LengthOfEventBuffer = 0;
+  BOOLEAN IsNextCommandPid = FALSE;
+  BOOLEAN IsNextCommandCoreId = FALSE;
+  UINT32 CoreId;
+  UINT32 ProcessId;
+  vector<int> IndexesToRemove;
+  int NewIndexToRemove = 0;
+  int Index = 0;
 
   //
   // Check if there is a condition buffer in the command
   //
-  ShowMessages(
-      "========================= Condition =========================\n");
-
-  if (!InterpretConditionsAndCodes(SplittedCommand, TRUE, TRUE,
+  if (!InterpretConditionsAndCodes(SplittedCommand, TRUE,
                                    &ConditionBufferAddress,
                                    &ConditionBufferLength)) {
-    ShowMessages("\nNo condition!\n");
+    //
+    // ShowMessages("\nNo condition!\n");
+    //
+
+  } else {
+    ShowMessages(
+        "\n========================= Condition =========================\n");
+
+    ShowMessages(
+        "\nUINT64  DebuggerCheckForCondition(PGUEST_REGS Regs_RCX, PVOID "
+        "Context_RDX)\n{\n");
+
+    //
+    // Disassemble the buffer
+    //
+    HyperDbgDisassembler((unsigned char *)ConditionBufferAddress, 0x0,
+                         ConditionBufferLength);
+
+    ShowMessages("}\n\n");
+
+    ShowMessages(
+        "=============================================================\n");
   }
 
   //
   // Check if there is a code buffer in the command
   //
-  ShowMessages("========================= Code =========================\n");
-  if (!InterpretConditionsAndCodes(SplittedCommand, FALSE, TRUE,
-                                   &CodeBufferAddress, &CodeBufferLength)) {
-    ShowMessages("\nNo custom code!\n");
+  if (!InterpretConditionsAndCodes(SplittedCommand, FALSE, &CodeBufferAddress,
+                                   &CodeBufferLength)) {
+    //
+    // ShowMessages("\nNo custom code!\n");
+    //
+  } else {
+    ShowMessages(
+        "\n=========================    Code    =========================\n");
+    ShowMessages("\nPVOID DebuggerRunCustomCodeFunc(PVOID "
+                 "PreAllocatedBufferAddress_RCX, "
+                 "PGUEST_REGS Regs_RDX, PVOID Context_R8)\n{\n");
+
+    //
+    // Disassemble the buffer
+    //
+    HyperDbgDisassembler((unsigned char *)CodeBufferAddress, 0x0,
+                         CodeBufferLength);
+
+    ShowMessages("}\n\n");
+
+    ShowMessages(
+        "=============================================================\n");
   }
 
   //
@@ -1632,11 +1665,87 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   TempEvent->Tag = GetNewDebuggerEventTag();
 
   //
+  // Set the core Id and Process Id to all cores and all
+  // processes, next time we check whether the user needs
+  // a special core or a special process then we change it
+  //
+  TempEvent->CoreId = DEBUGGER_EVENT_APPLY_TO_ALL_CORES;
+  TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
+
+  //
+  // Set the event type
+  //
+  TempEvent->EventType = EventType;
+
+  //
+  // Get the current time
+  //
+  TempEvent->CreationTime = time(0);
+  //
   // Interpret rest of the command
   //
 
   for (auto Section : *SplittedCommand) {
-    ShowMessages("%s ", Section.c_str());
+    Index++;
+
+    if (IsNextCommandPid) {
+
+      if (!ConvertStringToUInt32(Section, &ProcessId)) {
+        return FALSE;
+      } else {
+        //
+        // Set the specific process id
+        //
+        TempEvent->ProcessId = ProcessId;
+      }
+      IsNextCommandPid = FALSE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+    if (IsNextCommandCoreId) {
+      if (!ConvertStringToUInt32(Section, &CoreId)) {
+        return FALSE;
+      } else {
+        //
+        // Set the specific core id
+        //
+        TempEvent->CoreId = CoreId;
+      }
+      IsNextCommandCoreId = FALSE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+
+    if (!Section.compare("pid")) {
+      IsNextCommandPid = TRUE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+    if (!Section.compare("core")) {
+      IsNextCommandCoreId = TRUE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
   }
 
   //
@@ -1645,6 +1754,18 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   *EventDetailsToFill = TempEvent;
   *EventBufferLength = LengthOfEventBuffer;
 
+  //
+  // Remove the command that we interpreted above from the command
+  //
+  for (auto IndexToRemove : IndexesToRemove) {
+    NewIndexToRemove++;
+    SplittedCommand->erase(SplittedCommand->begin() +
+                           (IndexToRemove - NewIndexToRemove));
+  }
+
+  //
+  // Everything is ok, let's return TRUE
+  //
   return TRUE;
 }
 
@@ -1666,14 +1787,18 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   // Interpret and fill the general event and action fields
   //
-  InterpretGeneralEventAndActionsFields(&SplittedCommand, &Event, &EventLength);
+  InterpretGeneralEventAndActionsFields(&SplittedCommand, HIDDEN_HOOK_READ,
+                                        &Event, &EventLength);
 
   //
   // Interpret command specific details (if any)
   //
+  ShowMessages("The rest of the command is : ");
   for (auto Section : SplittedCommand) {
+
     ShowMessages("%s ", Section.c_str());
   }
+  ShowMessages("\n");
 }
 /* ==============================================================================================
  */
