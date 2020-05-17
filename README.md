@@ -25,8 +25,10 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 ## Installation
 
 ## How does it work?
-<p align="center"><a href="https://hyperdbg.com/"><img align="center" src="https://github.com/SinaKarvandi/HyperDbg/raw/master/graphics/Diagrams/Diagram_v1.svg" alt="HyperDbg Design"></a></br>
+
+<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://github.com/SinaKarvandi/HyperDbg/raw/master/graphics/Diagrams/Diagram_hq_v1.png" alt="HyperDbg Design"></a></br>
 </p>
+
 
 ## Plugins
 
