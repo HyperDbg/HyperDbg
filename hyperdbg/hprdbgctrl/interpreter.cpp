@@ -21,6 +21,8 @@
 
 using namespace std;
 
+UINT64 g_EventTag = DebuggerEventTagStartSeed;
+
 // Exports
 extern "C" {
 __declspec(dllexport) int __cdecl HyperdbgInterpreter(const char *Command);
@@ -364,6 +366,351 @@ bool ValidateIP(string ip) {
   }
 
   return true;
+}
+/* ==============================================================================================
+ */
+UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Interpret conditions (if an event has condition) and custom code
+ * @details If this function returns true then it means that there is a condtion
+ * or code buffer in this command split and the details are returned in the
+ * input structure
+ *
+ * @param SplittedCommand All the commands
+ */
+BOOLEAN
+InterpretConditionsAndCodes(vector<string> *SplittedCommand,
+                            BOOLEAN IsConditionBuffer,
+                            BOOLEAN ShowBufferAndAssembly, PUINT64 BufferAddrss,
+                            PUINT32 BufferLength) {
+  BOOLEAN IsTextVisited = FALSE;
+  BOOLEAN IsInState = FALSE;
+  BOOLEAN IsEnded = FALSE;
+  string Temp;
+  string AppendedFinalBuffer;
+  vector<string> SaveBuffer;
+  vector<CHAR> ParsedBytes;
+  unsigned char *FinalBuffer;
+  vector<int> IndexesToRemove;
+  int Index = 0;
+
+  for (auto Section : *SplittedCommand) {
+    Index++;
+
+    if (IsInState) {
+
+      //
+      // Check if the buffer is ended or not
+      //
+      if (!Section.compare("}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Check if the condition is end or not
+      //
+      if (HasEnding(Section, "}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        //
+        // remove the last character and append it to the ConditionBuffer
+        //
+        SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      //
+      // Add the codes into condition bi
+      //
+      SaveBuffer.push_back(Section);
+
+      //
+      // We want to stay in this condition
+      //
+      continue;
+    }
+
+    if (IsTextVisited && !Section.compare("{")) {
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsInState = TRUE;
+      continue;
+    }
+    if (IsTextVisited && Section.rfind("{", 0) == 0) {
+      //
+      // Section starts with {
+      //
+
+      //
+      // Check if it ends with }
+      //
+      if (HasEnding(Section, "}")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        Temp = Section.erase(0, 1);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      SaveBuffer.push_back(Section.erase(0, 1));
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (IsConditionBuffer) {
+      if (!Section.compare("condition")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        continue;
+      }
+    } else {
+      //
+      // It's code
+      //
+      if (!Section.compare("code")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        continue;
+      }
+    }
+
+    if (IsConditionBuffer) {
+      if (!Section.compare("condition{")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+        continue;
+      }
+    } else {
+      //
+      // It's code
+      //
+      if (!Section.compare("code{")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+        continue;
+      }
+    }
+
+    if (IsConditionBuffer) {
+      if (Section.rfind("condition{", 0) == 0) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+
+        if (!HasEnding(Section, "}")) {
+          //
+          // Section starts with condition{
+          //
+          SaveBuffer.push_back(Section.erase(0, 10));
+          continue;
+        } else {
+          //
+          // remove the last character and first character append it to the
+          // ConditionBuffer
+          //
+          Temp = Section.erase(0, 10);
+          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+          IsEnded = TRUE;
+          break;
+        }
+      }
+    } else {
+      //
+      // It's a code
+      //
+
+      if (Section.rfind("code{", 0) == 0) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        IsTextVisited = TRUE;
+        IsInState = TRUE;
+
+        if (!HasEnding(Section, "}")) {
+          //
+          // Section starts with condition{
+          //
+          SaveBuffer.push_back(Section.erase(0, 5));
+          continue;
+        } else {
+          //
+          // remove the last character and first character append it to the
+          // ConditionBuffer
+          //
+          Temp = Section.erase(0, 5);
+          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+          IsEnded = TRUE;
+          break;
+        }
+      }
+    }
+  }
+
+  //
+  // Now we have everything in condition buffer
+  // Check to see if it is empty or not
+  //
+  if (SaveBuffer.size() == 0) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // Check if we see '}' at the end
+  //
+  if (!IsEnded) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // Append a 'ret' at the end of the buffer
+  //
+  SaveBuffer.push_back("c3");
+
+  //
+  // If we reach here then there is sth in condition buffer
+  //
+  for (auto Section : SaveBuffer) {
+
+    //
+    // Check if the section is started with '0x'
+    //
+    if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
+        Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0) {
+      Temp = Section.erase(0, 2);
+    } else if (Section.rfind("x", 0) == 0 || Section.rfind("X", 0) == 0) {
+      Temp = Section.erase(0, 1);
+    } else {
+      Temp = Section;
+    }
+
+    //
+    // replace \x s
+    //
+    ReplaceAll(Temp, "\\x", "");
+
+    //
+    // check if the buffer is aligned to 2
+    //
+    if (Temp.size() % 2 != 0) {
+
+      //
+      // Add a zero to the start of the buffer
+      //
+      Temp.insert(0, 1, '0');
+    }
+
+    if (!IsHexNotation(Temp)) {
+      ShowMessages("Please enter condition code in a hex notation.\n");
+      return FALSE;
+    }
+    AppendedFinalBuffer.append(Temp);
+  }
+
+  //
+  // Convert it to vectored bytes
+  //
+  ParsedBytes = HexToBytes(AppendedFinalBuffer);
+
+  //
+  // Convert to a contigues buffer
+  //
+  FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
+  std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
+
+  if (ShowBufferAndAssembly) {
+    //
+    // Show the final buffer
+    //
+    ShowMessages("Buffer : %s \n", AppendedFinalBuffer.c_str());
+
+    //
+    // Disassemble the buffer
+    //
+    HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
+  }
+
+  //
+  // Removing the code or condition indexes from the command
+  //
+  int NewIndexToRemove = 0;
+  for (auto IndexToRemove : IndexesToRemove) {
+    NewIndexToRemove++;
+
+    SplittedCommand->erase(SplittedCommand->begin() +
+                           (IndexToRemove - NewIndexToRemove));
+  }
+  return TRUE;
 }
 
 /* ==============================================================================================
@@ -1208,364 +1555,122 @@ void CommandPte(vector<string> SplittedCommand) {
  */
 
 /**
- * @brief Interpret conditions (if an event has condition)
- * @details If this function returns true then it means that there is a condtion
- * buffer in this command split and the details are returned in the input
- * structure
+ * @brief Interpret general event fields
+ * @details If this function returns true then it means that there
+ * was no error in parsing the general event details
  *
  * @param SplittedCommand All the commands
  */
-BOOLEAN InterpretConditionsAndCodes(vector<string> *SplittedCommand,
-                                    BOOLEAN IsConditionBuffer,
-                                    BOOLEAN ShowBufferAndAssembly,
-                                    PUINT64 BufferAddrss,
-                                    PUINT32 BufferLength) {
-  BOOLEAN IsTextVisited = FALSE;
-  BOOLEAN IsInState = FALSE;
-  BOOLEAN IsEnded = FALSE;
-  string Temp;
-  string AppendedFinalBuffer;
-  vector<string> SaveBuffer;
-  vector<CHAR> ParsedBytes;
-  unsigned char *FinalBuffer;
-  vector<int> IndexesToRemove;
-  int Index = 0;
+BOOLEAN InterpretGeneralEventAndActionsFields(
+    vector<string> *SplittedCommand,
+    PDEBUGGER_GENERAL_EVENT_DETAIL *EventDetailsToFill,
+    PUINT32 EventBufferLength) {
 
-  for (auto Section : *SplittedCommand) {
-    Index++;
+  PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
 
-    if (IsInState) {
+  UINT64 ConditionBufferAddress;
+  UINT32 ConditionBufferLength = 0;
 
-      //
-      // Check if the buffer is ended or not
-      //
-      if (!Section.compare("}")) {
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-        IsEnded = TRUE;
-        break;
-      }
+  UINT64 CodeBufferAddress;
+  UINT32 CodeBufferLength = 0;
 
-      //
-      // Check if the condition is end or not
-      //
-      if (HasEnding(Section, "}")) {
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        //
-        // remove the last character and append it to the ConditionBuffer
-        //
-        SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
-
-        IsEnded = TRUE;
-        break;
-      }
-
-      //
-      // Save to remove this string from the command
-      //
-      IndexesToRemove.push_back(Index);
-
-      //
-      // Add the codes into condition bi
-      //
-      SaveBuffer.push_back(Section);
-
-      //
-      // We want to stay in this condition
-      //
-      continue;
-    }
-
-    if (IsTextVisited && !Section.compare("{")) {
-      //
-      // Save to remove this string from the command
-      //
-      IndexesToRemove.push_back(Index);
-
-      IsInState = TRUE;
-      continue;
-    }
-    if (IsTextVisited && Section.rfind("{", 0) == 0) {
-      //
-      // Section starts with {
-      //
-
-      //
-      // Check if it ends with }
-      //
-      if (HasEnding(Section, "}")) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        Temp = Section.erase(0, 1);
-        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
-
-        IsEnded = TRUE;
-        break;
-      }
-      //
-      // Save to remove this string from the command
-      //
-      IndexesToRemove.push_back(Index);
-
-      SaveBuffer.push_back(Section.erase(0, 1));
-
-      IsInState = TRUE;
-      continue;
-    }
-
-    if (IsConditionBuffer) {
-      if (!Section.compare("condition")) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        continue;
-      }
-    } else {
-      //
-      // It's code
-      //
-      if (!Section.compare("code")) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        continue;
-      }
-    }
-
-    if (IsConditionBuffer) {
-      if (!Section.compare("condition{")) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        IsInState = TRUE;
-        continue;
-      }
-    } else {
-      //
-      // It's code
-      //
-      if (!Section.compare("code{")) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        IsInState = TRUE;
-        continue;
-      }
-    }
-
-    if (IsConditionBuffer) {
-      if (Section.rfind("condition{", 0) == 0) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        IsInState = TRUE;
-
-        if (!HasEnding(Section, "}")) {
-          //
-          // Section starts with condition{
-          //
-          SaveBuffer.push_back(Section.erase(0, 10));
-          continue;
-        } else {
-          //
-          // remove the last character and first character append it to the
-          // ConditionBuffer
-          //
-          Temp = Section.erase(0, 10);
-          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
-
-          IsEnded = TRUE;
-          break;
-        }
-      }
-    } else {
-      //
-      // It's a code
-      //
-
-      if (Section.rfind("code{", 0) == 0) {
-
-        //
-        // Save to remove this string from the command
-        //
-        IndexesToRemove.push_back(Index);
-
-        IsTextVisited = TRUE;
-        IsInState = TRUE;
-
-        if (!HasEnding(Section, "}")) {
-          //
-          // Section starts with condition{
-          //
-          SaveBuffer.push_back(Section.erase(0, 5));
-          continue;
-        } else {
-          //
-          // remove the last character and first character append it to the
-          // ConditionBuffer
-          //
-          Temp = Section.erase(0, 5);
-          SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
-
-          IsEnded = TRUE;
-          break;
-        }
-      }
-    }
-  }
+  UINT32 LengthOfEventBuffer = 0;
 
   //
-  // Now we have everything in condition buffer
-  // Check to see if it is empty or not
+  // Check if there is a condition buffer in the command
   //
-  if (SaveBuffer.size() == 0) {
-    //
-    // Nothing in condition buffer, return zero
-    //
-    return FALSE;
-  }
-
-  //
-  // Check if we see '}' at the end
-  //
-  if (!IsEnded) {
-    //
-    // Nothing in condition buffer, return zero
-    //
-    return FALSE;
-  }
-
-  //
-  // Append a 'ret' at the end of the buffer
-  //
-  SaveBuffer.push_back("c3");
-
-  //
-  // If we reach here then there is sth in condition buffer
-  //
-  for (auto Section : SaveBuffer) {
-
-    //
-    // Check if the section is started with '0x'
-    //
-    if (Section.rfind("0x", 0) == 0 || Section.rfind("0X", 0) == 0 ||
-        Section.rfind("\\x", 0) == 0 || Section.rfind("\\X", 0) == 0) {
-      Temp = Section.erase(0, 2);
-    } else if (Section.rfind("x", 0) == 0 || Section.rfind("X", 0) == 0) {
-      Temp = Section.erase(0, 1);
-    } else {
-      Temp = Section;
-    }
-
-    //
-    // replace \x s
-    //
-    ReplaceAll(Temp, "\\x", "");
-
-    //
-    // check if the buffer is aligned to 2
-    //
-    if (Temp.size() % 2 != 0) {
-
-      //
-      // Add a zero to the start of the buffer
-      //
-      Temp.insert(0, 1, '0');
-    }
-
-    if (!IsHexNotation(Temp)) {
-      ShowMessages("Please enter condition code in a hex notation.\n");
-      return FALSE;
-    }
-    AppendedFinalBuffer.append(Temp);
-  }
-
-  //
-  // Convert it to vectored bytes
-  //
-  ParsedBytes = HexToBytes(AppendedFinalBuffer);
-
-  //
-  // Convert to a contigues buffer
-  //
-  FinalBuffer = (unsigned char *)malloc(ParsedBytes.size());
-  std::copy(ParsedBytes.begin(), ParsedBytes.end(), FinalBuffer);
-
-  if (ShowBufferAndAssembly) {
-    //
-    // Show the final buffer
-    //
-    ShowMessages("Buffer : %s \n", AppendedFinalBuffer.c_str());
-
-    //
-    // Disassemble the buffer
-    //
-    HyperDbgDisassembler(FinalBuffer, 0x0, ParsedBytes.size());
-  }
-
-  //
-  // Removing the code or condition indexes from the command
-  //
-  int NewIndexToRemove = 0;
-  for (auto IndexToRemove : IndexesToRemove) {
-    NewIndexToRemove++;
-
-    SplittedCommand->erase(SplittedCommand->begin() +
-                           (IndexToRemove - NewIndexToRemove));
-  }
-  return TRUE;
-}
-
-VOID TestMe(vector<string> SplittedCommand) {
-
-  UINT64 BufferAddress;
-  UINT32 BufferLength;
-
   ShowMessages(
       "========================= Condition =========================\n");
 
-  if (!InterpretConditionsAndCodes(&SplittedCommand, TRUE, TRUE, &BufferAddress,
-                                   &BufferLength)) {
-    ShowMessages("\n No condition !\n");
+  if (!InterpretConditionsAndCodes(SplittedCommand, TRUE, TRUE,
+                                   &ConditionBufferAddress,
+                                   &ConditionBufferLength)) {
+    ShowMessages("\nNo condition!\n");
   }
 
+  //
+  // Check if there is a code buffer in the command
+  //
   ShowMessages("========================= Code =========================\n");
-  if (!InterpretConditionsAndCodes(&SplittedCommand, FALSE, TRUE,
-                                   &BufferAddress, &BufferLength)) {
-    ShowMessages("\n No code !\n");
+  if (!InterpretConditionsAndCodes(SplittedCommand, FALSE, TRUE,
+                                   &CodeBufferAddress, &CodeBufferLength)) {
+    ShowMessages("\nNo custom code!\n");
   }
-  ShowMessages("========================= New Splitted "
-               "Commands =========================\n");
+
+  //
+  // Create action and event based on previously parsed buffers
+  // (DEBUGGER_GENERAL_ACTION)
+  //
+  // Allocate the buffer (with ConditionBufferLength and CodeBufferLength)
+  //
+
+  LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
+                        CodeBufferLength + ConditionBufferLength;
+
+  TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(
+      sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + CodeBufferLength +
+      ConditionBufferLength);
+
+  //
+  // Check if buffer is availabe
+  //
+  if (TempEvent == NULL) {
+    //
+    // The heap is not available
+    //
+    return FALSE;
+  }
+
+  //
+  // Event is enabled by default when created
+  //
+  TempEvent->IsEnabled = TRUE;
+
+  //
+  // Get a new tag for it
+  //
+  TempEvent->Tag = GetNewDebuggerEventTag();
+
+  //
+  // Interpret rest of the command
+  //
+
+  for (auto Section : *SplittedCommand) {
+    ShowMessages("%s ", Section.c_str());
+  }
+
+  //
+  // Fill the address and length of event before release
+  //
+  *EventDetailsToFill = TempEvent;
+  *EventBufferLength = LengthOfEventBuffer;
+
+  return TRUE;
+}
+
+/* ==============================================================================================
+ */
+
+void CommandMonitorHelp() {
+  // ShowMessages("!pte : Find virtual address of different
+  // paging-levels.\n\n");
+  // ShowMessages("syntax : \t!pte [Virtual Address (hex value)]\n");
+  // ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
+}
+
+VOID CommandMonitor(vector<string> SplittedCommand) {
+
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
+  UINT32 EventLength;
+
+  //
+  // Interpret and fill the general event and action fields
+  //
+  InterpretGeneralEventAndActionsFields(&SplittedCommand, &Event, &EventLength);
+
+  //
+  // Interpret command specific details (if any)
+  //
   for (auto Section : SplittedCommand) {
     ShowMessages("%s ", Section.c_str());
   }
@@ -1632,7 +1737,7 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   } else if (!FirstCommand.compare("!pte")) {
     CommandPte(SplittedCommand);
   } else if (!FirstCommand.compare("!monitor")) {
-    TestMe(SplittedCommand);
+    CommandMonitor(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||

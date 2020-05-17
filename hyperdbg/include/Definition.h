@@ -27,6 +27,7 @@
 #define LogBufferSize                                                          \
   MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
 #define DbgPrintLimitation 512
+#define DebuggerEventTagStartSeed 0x1000000
 
 //////////////////////////////////////////////////
 //					Installer
@@ -105,9 +106,6 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
 
   UINT32 ConditionBufferSize;
   UINT32 ConditionBufferOffsetFromTop;
-
-  UINT32 CustomCodeBufferSize;
-  UINT32 CustomCodeBufferOffsetFromTop;
 
 } DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
 
