@@ -22,6 +22,7 @@
 using namespace std;
 
 UINT64 g_EventTag = DebuggerEventTagStartSeed;
+extern LIST_ENTRY g_EventTrace;
 
 // Exports
 extern "C" {
@@ -1565,6 +1566,9 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
   UINT32 LengthOfEventBuffer = 0;
+  string CommandString;
+  BOOLEAN HasConditionBuffer = FALSE;
+  BOOLEAN HasCodeBuffer = FALSE;
   BOOLEAN IsNextCommandPid = FALSE;
   BOOLEAN IsNextCommandCoreId = FALSE;
   UINT32 CoreId;
@@ -1574,16 +1578,53 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   int Index = 0;
 
   //
+  // Create a command string to show in the history
+  //
+  for (auto Section : *SplittedCommand) {
+
+    CommandString.append(Section);
+    CommandString.append(" ");
+  }
+  //
+  // Compute the size of buffer + 1 null for the end of buffer
+  //
+
+  UINT64 BufferOfCommandStringLength = CommandString.size() + 1;
+
+  //
+  // Allocate Buffer and zero for command to the buffer
+  //
+  PVOID BufferOfCommandString = malloc(BufferOfCommandStringLength);
+
+  RtlZeroMemory(BufferOfCommandString, BufferOfCommandStringLength);
+
+  //
+  // Copy the string to the buffer
+  //
+  memcpy(BufferOfCommandString, CommandString.c_str(), CommandString.size());
+
+  //
   // Check if there is a condition buffer in the command
   //
   if (!InterpretConditionsAndCodes(SplittedCommand, TRUE,
                                    &ConditionBufferAddress,
                                    &ConditionBufferLength)) {
+
+    //
+    // Indicate condition is not available
+    //
+    HasConditionBuffer = FALSE;
+
     //
     // ShowMessages("\nNo condition!\n");
     //
 
   } else {
+    //
+    // Indicate condition is available
+    //
+    HasConditionBuffer = TRUE;
+
     ShowMessages(
         "\n========================= Condition =========================\n");
 
@@ -1608,10 +1649,21 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   if (!InterpretConditionsAndCodes(SplittedCommand, FALSE, &CodeBufferAddress,
                                    &CodeBufferLength)) {
+
+    //
+    // Indicate code is not available
+    //
+    HasCodeBuffer = FALSE;
     //
     // ShowMessages("\nNo custom code!\n");
     //
   } else {
+
+    //
+    // Indicate code is available
+    //
+    HasCodeBuffer = TRUE;
+
     ShowMessages(
         "\n=========================    Code    =========================\n");
     ShowMessages("\nPVOID DebuggerRunCustomCodeFunc(PVOID "
@@ -1637,12 +1689,36 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   // Allocate the buffer (with ConditionBufferLength and CodeBufferLength)
   //
 
-  LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
-                        CodeBufferLength + ConditionBufferLength;
+  /*
 
-  TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(
-      sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + CodeBufferLength +
-      ConditionBufferLength);
+  Layout of Buffer
+   ________________________________
+  |                                |
+  |  DEBUGGER_GENERAL_EVENT_DETAIL |
+  |                                |
+  |________________________________|
+  |                                |
+  |       Condition Buffer         |
+  |                                |
+  |________________________________|
+  |                                |
+  |     DEBUGGER_GENERAL_ACTION    |
+  |                                |
+  |________________________________|
+  |                                |
+  |     Condition Custom Code      |
+  |                                |
+  |________________________________|
+
+
+  */
+
+  LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
+                        ConditionBufferLength +
+                        sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+
+  TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(LengthOfEventBuffer);
+  RtlZeroMemory(TempEvent, LengthOfEventBuffer);
 
   //
   // Check if buffer is availabe
@@ -1681,6 +1757,57 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   // Get the current time
   //
   TempEvent->CreationTime = time(0);
+
+  //
+  // Set buffer string command
+  //
+  TempEvent->CommandStringBuffer = BufferOfCommandString;
+
+  //
+  // Fill the buffer of condition for event
+  //
+  if (HasConditionBuffer) {
+
+    memcpy((PVOID)((UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL)),
+           (PVOID)ConditionBufferAddress, ConditionBufferLength);
+
+    //
+    // Set the size of the buffer for event condition
+    //
+    TempEvent->ConditionBufferSize = ConditionBufferLength;
+  }
+
+  //
+  // Fill the buffer of custom code for action
+  //
+  if (HasCodeBuffer) {
+    memcpy((PVOID)((UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
+                   ConditionBufferLength + sizeof(DEBUGGER_GENERAL_ACTION)),
+           (PVOID)CodeBufferAddress, CodeBufferLength);
+
+    //
+    // Cast as the action to modify it
+    //
+    PDEBUGGER_GENERAL_ACTION TempAction = (PDEBUGGER_GENERAL_ACTION)(
+        (UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
+        ConditionBufferLength);
+
+    //
+    // Set the action type
+    //
+    TempAction->ActionType = RUN_CUSTOM_CODE;
+
+    //
+    // Set the action buffer size
+    //
+    TempAction->CustomCodeBufferSize = CodeBufferLength;
+
+    //
+    // Increase the count of actions
+    //
+    TempEvent->CountOfActions = TempEvent->CountOfActions + 1;
+  }
+
   //
   // Interpret rest of the command
   //
@@ -1762,6 +1889,11 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     SplittedCommand->erase(SplittedCommand->begin() +
                            (IndexToRemove - NewIndexToRemove));
   }
+
+  //
+  // Add the event to the trace list
+  //
+  InsertHeadList(&g_EventTrace, &(TempEvent->CommandsEventList));
 
   //
   // Everything is ok, let's return TRUE

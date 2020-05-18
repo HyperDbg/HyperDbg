@@ -46,6 +46,7 @@
 #include "framework.h"
 #include "hprdbgctrl.h"
 #include "Commands.h"
+#include "list.h"
 
 
 #endif //PCH_H

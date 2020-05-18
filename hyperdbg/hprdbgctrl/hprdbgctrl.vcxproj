@@ -106,6 +106,7 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="hprdbgctrl.h" />
+    <ClInclude Include="list.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -121,6 +122,7 @@
     <ClCompile Include="hprdbgctrl.cpp" />
     <ClCompile Include="Install.cpp" />
     <ClCompile Include="interpreter.cpp" />
+    <ClCompile Include="list.cpp" />
     <ClCompile Include="lm.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -20,6 +20,7 @@ using namespace std;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 Callback Handler = 0;
 TCHAR driverLocation[MAX_PATH] = {0};
+LIST_ENTRY g_EventTrace = { 0 };
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -360,6 +361,11 @@ HPRDBGCTRL_API int HyperdbgLoad() {
     }
     return 1;
   }
+
+  //
+  // Initialize the list of events
+  //
+  InitializeListHead(&g_EventTrace);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
 

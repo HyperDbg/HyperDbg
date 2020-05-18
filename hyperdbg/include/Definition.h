@@ -79,15 +79,14 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
 
 //
 // Each command is like the following struct, it also used for tracing works in
-// user mode, after creating event, we can now add multiple actions to it using
-// the tag
+// user mode and sending it to the kernl mode,
+// THIS IS NOT WHAT WE SAVE FOR EVENTS IN KERNEL MODE
 //
 typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
 
   LIST_ENTRY
-  CommandsList; // Linked-list of commands list (used for tracing purpose)
-
-  LIST_ENTRY ActionsList; // Linked-list of actions (used for tracing purpose)
+  CommandsEventList; // Linked-list of commands list (used for tracing purpose
+                     // in user mode)
 
   time_t CreationTime; // Date of creating this event
 
@@ -99,6 +98,9 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
                     // apply it to all processes
 
   BOOLEAN IsEnabled;
+
+  UINT32 CountOfActions;
+
   UINT64 Tag; // is same as operation code
   DEBUGGER_EVENT_TYPE_ENUM EventType;
 
@@ -110,7 +112,6 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
   PVOID CommandStringBuffer;
 
   UINT32 ConditionBufferSize;
-  UINT32 ConditionBufferOffsetFromTop;
 
 } DEBUGGER_GENERAL_EVENT_DETAIL, *PDEBUGGER_GENERAL_EVENT_DETAIL;
 
@@ -119,13 +120,9 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
 //
 typedef struct _DEBUGGER_GENERAL_ACTION {
 
-  LIST_ENTRY
-  ActionsList; // Linked-list of actions (used for tracing purpose)
-  UINT64 Tag;  // tag that used in event
   DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;
 
   UINT32 CustomCodeBufferSize;
-  UINT32 CustomCodeBufferOffsetFromTop;
 
 } DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
 
