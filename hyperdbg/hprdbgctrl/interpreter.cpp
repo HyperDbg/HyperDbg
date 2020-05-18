@@ -23,6 +23,7 @@ using namespace std;
 
 UINT64 g_EventTag = DebuggerEventTagStartSeed;
 extern LIST_ENTRY g_EventTrace;
+extern BOOLEAN g_EventTraceInitialized;
 
 // Exports
 extern "C" {
@@ -1558,7 +1559,8 @@ void CommandPte(vector<string> SplittedCommand) {
 BOOLEAN InterpretGeneralEventAndActionsFields(
     vector<string> *SplittedCommand, DEBUGGER_EVENT_TYPE_ENUM EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *EventDetailsToFill,
-    PUINT32 EventBufferLength) {
+    PUINT32 EventBufferLength, PDEBUGGER_GENERAL_ACTION *ActionDetailsToFill,
+    PUINT32 ActionBufferLength) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
   UINT64 ConditionBufferAddress;
@@ -1713,9 +1715,8 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
   */
 
-  LengthOfEventBuffer = sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
-                        ConditionBufferLength +
-                        sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+  LengthOfEventBuffer =
+      sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) + ConditionBufferLength;
 
   TempEvent = (PDEBUGGER_GENERAL_EVENT_DETAIL)malloc(LengthOfEventBuffer);
   RtlZeroMemory(TempEvent, LengthOfEventBuffer);
@@ -1778,19 +1779,25 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   //
+  // Allocate the Action
+  //
+  UINT32 LengthOfActionBuffer =
+      sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+  PDEBUGGER_GENERAL_ACTION TempAction =
+      (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfActionBuffer);
+
+  RtlZeroMemory(TempAction, LengthOfActionBuffer);
+  //
   // Fill the buffer of custom code for action
   //
   if (HasCodeBuffer) {
-    memcpy((PVOID)((UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
-                   ConditionBufferLength + sizeof(DEBUGGER_GENERAL_ACTION)),
-           (PVOID)CodeBufferAddress, CodeBufferLength);
 
+    memcpy((PVOID)((UINT64)TempAction + sizeof(DEBUGGER_GENERAL_ACTION)),
+           (PVOID)CodeBufferAddress, CodeBufferLength);
     //
-    // Cast as the action to modify it
+    // Set the action Tag
     //
-    PDEBUGGER_GENERAL_ACTION TempAction = (PDEBUGGER_GENERAL_ACTION)(
-        (UINT64)TempEvent + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL) +
-        ConditionBufferLength);
+    TempAction->EventTag = TempEvent->Tag;
 
     //
     // Set the action type
@@ -1882,12 +1889,26 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   *EventBufferLength = LengthOfEventBuffer;
 
   //
+  // Fill the address and length of action before release
+  //
+  *ActionDetailsToFill = TempAction;
+  *ActionBufferLength = LengthOfActionBuffer;
+
+  //
   // Remove the command that we interpreted above from the command
   //
   for (auto IndexToRemove : IndexesToRemove) {
     NewIndexToRemove++;
     SplittedCommand->erase(SplittedCommand->begin() +
                            (IndexToRemove - NewIndexToRemove));
+  }
+
+  //
+  // Check if list is initialized or not
+  //
+  if (!g_EventTraceInitialized) {
+    InitializeListHead(&g_EventTrace);
+    g_EventTraceInitialized = TRUE;
   }
 
   //
@@ -1904,33 +1925,236 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 /* ==============================================================================================
  */
 
+/**
+ * @brief Register the event to the kernel
+ */
+
+BOOLEAN
+SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                  UINT32 EventBufferLength) {
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER ReturnedBuffer =
+      {0};
+
+  //
+  // Test
+  //
+  ShowMessages("Tag : %llx\n", Event->Tag);
+  ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
+  ShowMessages("CoreId : 0x%x\n", Event->CoreId);
+  ShowMessages("Pid : 0x%x\n", Event->ProcessId);
+  ShowMessages("Optional Param 1 : %llx\n", Event->OptionalParam1);
+  ShowMessages("Optional Param 2 : %llx\n", Event->OptionalParam2);
+  ShowMessages("Optional Param 3 : %llx\n", Event->OptionalParam3);
+  ShowMessages("Optional Param 4 : %llx\n", Event->OptionalParam4);
+  ShowMessages("Count of Actions : %d\n", Event->CountOfActions);
+  ShowMessages("Event Type : %d\n", Event->EventType);
+  return TRUE;
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+
+  Status = DeviceIoControl(
+      DeviceHandle,                  // Handle to device
+      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+      Event,                         // Input Buffer to driver.
+      EventBufferLength,             // Input buffer length
+      &ReturnedBuffer,               // Output Buffer from driver.
+      sizeof(
+          DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER), // Length
+                                                                          // of
+                                                                          // output
+                                                                          // buffer
+                                                                          // in
+                                                                          // bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Register the action to the event
+ */
+
+BOOLEAN
+RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
+                      UINT32 ActionsBufferLength) {
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER ReturnedBuffer =
+      {0};
+
+  //
+  // Test
+  //
+  ShowMessages("Tag : %llx\n", Action->EventTag);
+  ShowMessages("Action Type : %d\n", Action->ActionType);
+  ShowMessages("Custom Code Buffer Size : 0x%x\n",
+               Action->CustomCodeBufferSize);
+  return TRUE;
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+
+  Status = DeviceIoControl(
+      DeviceHandle,                       // Handle to device
+      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+      Action,                             // Input Buffer to driver.
+      ActionsBufferLength,                // Input buffer length
+      &ReturnedBuffer,                    // Output Buffer from driver.
+      sizeof(
+          DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER), // Length
+                                                                          // of
+                                                                          // output
+                                                                          // buffer
+                                                                          // in
+                                                                          // bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  return TRUE;
+}
+/* ==============================================================================================
+ */
+
 void CommandMonitorHelp() {
-  // ShowMessages("!pte : Find virtual address of different
-  // paging-levels.\n\n");
-  // ShowMessages("syntax : \t!pte [Virtual Address (hex value)]\n");
-  // ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
+  ShowMessages("!monitor : Monitor address rang for read and writes.\n\n");
+  ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
+               "(hex value)] [To Virtual Address (hex value)] core [core index "
+               "(hex value)] pid [process id (hex value)]\n");
+
+  ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
+  ShowMessages(
+      "\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
+  ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 "
+               "pid 400\n");
 }
 
 VOID CommandMonitor(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
+  PDEBUGGER_GENERAL_ACTION Action;
   UINT32 EventLength;
+  UINT32 ActionLength;
+  UINT64 TargetAddress;
+  UINT64 OptionalParam1 = 0; // Set if it's an RW or R or W (1 = r , 2 = w)
+  UINT64 OptionalParam2 = 0; // Set the 'from' target address
+  UINT64 OptionalParam3 = 0; // Set the 'to' target address
+  BOOLEAN SetFrom = FALSE;
+  BOOLEAN SetTo = FALSE;
+
+  if (SplittedCommand.size() < 4) {
+    ShowMessages("incorrect use of '!monitor'\n");
+    CommandMonitorHelp();
+    return;
+  }
 
   //
   // Interpret and fill the general event and action fields
   //
-  InterpretGeneralEventAndActionsFields(&SplittedCommand, HIDDEN_HOOK_READ,
-                                        &Event, &EventLength);
+  if (!InterpretGeneralEventAndActionsFields(
+          &SplittedCommand, HIDDEN_HOOK_WRITE, &Event, &EventLength, &Action,
+          &ActionLength)) {
+    CommandMonitorHelp();
+    return;
+  }
 
   //
   // Interpret command specific details (if any)
   //
-  ShowMessages("The rest of the command is : ");
-  for (auto Section : SplittedCommand) {
 
-    ShowMessages("%s ", Section.c_str());
+  for (auto Section : SplittedCommand) {
+    if (!Section.compare("!monitor")) {
+      continue;
+    } else if (!Section.compare("r")) {
+      OptionalParam1 |= 1;
+    } else if (!Section.compare("w")) {
+      OptionalParam1 |= 2;
+    } else if (!Section.compare("rw") || !Section.compare("wr")) {
+      OptionalParam1 |= 3;
+
+    } else {
+      //
+      // It's probably address
+      //
+      if (!SetFrom) {
+        if (!ConvertStringToUInt64(Section, &OptionalParam2)) {
+          //
+          // Unkonwn parameter
+          //
+          ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+          CommandMonitorHelp();
+          return;
+        }
+        SetFrom = TRUE;
+      } else if (!SetTo) {
+        if (!ConvertStringToUInt64(Section, &OptionalParam3)) {
+          //
+          // Unkonwn parameter
+          //
+          ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+          CommandMonitorHelp();
+          return;
+        }
+        SetTo = TRUE;
+      } else {
+        //
+        // Unkonwn parameter
+        //
+        ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+        CommandMonitorHelp();
+        return;
+      }
+    }
   }
-  ShowMessages("\n");
+
+  //
+  // Set the optional parameters
+  //
+  Event->OptionalParam1 = OptionalParam1;
+  Event->OptionalParam2 = OptionalParam2;
+  Event->OptionalParam3 = OptionalParam3;
+
+  //
+  // Send the ioctl to the kernel for event registeration
+  //
+  SendEventToKernel(Event, EventLength);
+
+  ShowMessages("\n-----------------------------------------------------\n");
+
+  //
+  // Add the event to the kernel
+  //
+  RegisterActionToEvent(Action, ActionLength);
 }
 /* ==============================================================================================
  */

@@ -20,7 +20,8 @@ using namespace std;
 BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 Callback Handler = 0;
 TCHAR driverLocation[MAX_PATH] = {0};
-LIST_ENTRY g_EventTrace = { 0 };
+LIST_ENTRY g_EventTrace = {0};
+BOOLEAN g_EventTraceInitialized = FALSE;
 
 /**
  * @brief Set the function callback that will be called if anything received
