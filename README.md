@@ -32,7 +32,7 @@ We explained about how HyperDbg internally works and how we designed its feature
 Here's a diagram that shows how HyperDbg works !
 </br>
 
-<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://github.com/SinaKarvandi/HyperDbg/raw/master/graphics/Diagrams/Diagram_hq_v1.png" alt="HyperDbg Design"></a></br>
+<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://github.com/SinaKarvandi/HyperDbg/raw/master/graphics/Diagrams/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
 </p>
 </br>
 
