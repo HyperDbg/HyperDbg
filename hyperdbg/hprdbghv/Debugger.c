@@ -170,7 +170,9 @@ DebuggerInitialize()
     //
     g_EnableDebuggerEvents = TRUE;
 
-    TestMe();
+    //
+    //TestMe();
+    //
 
     return TRUE;
 }
@@ -910,6 +912,188 @@ DebuggerRemoveEvent(UINT64 Tag)
     // them are freed
     //
     ExFreePoolWithTag(Event, POOLTAG);
+
+    return TRUE;
+}
+
+/**
+ * @brief routines for parsing events
+ * 
+ * @return VOID 
+ */
+BOOLEAN
+DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
+{
+    PDEBUGGER_EVENT Event;
+    DbgBreakPoint();
+
+    //
+    // We initialize event with disabled mode as it doesn't have action yet
+    //
+    if (EventDetails->ConditionBufferSize != 0)
+    {
+        //
+        // Conditional Event
+        //
+        Event = DebuggerCreateEvent(FALSE, EventDetails->CoreId, EventDetails->EventType, EventDetails->Tag, EventDetails->ConditionBufferSize, (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
+    }
+    else
+    {
+        //
+        // Unconditional Event
+        //
+        Event = DebuggerCreateEvent(FALSE, EventDetails->CoreId, EventDetails->EventType, EventDetails->Tag, 0, NULL);
+    }
+
+    if (Event == NULL)
+    {
+        //
+        // Set the error
+        //
+        ResultsToReturnUsermode->IsSuccessful = FALSE;
+        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT;
+        return FALSE;
+    }
+    //
+    // Register the event
+    //
+    DebuggerRegisterEvent(Event);
+
+    //
+    // Now we should configure the cpu to generate the events
+    //
+    if (EventDetails->EventType == HIDDEN_HOOK_READ)
+    {
+        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam2, TRUE, FALSE);
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
+    {
+        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam2, TRUE, TRUE);
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    {
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    {
+        DbgBreakPoint();
+    }
+    else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
+    {
+        DebuggerEventEnableEferOnAllProcessors();
+    }
+    else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSRET)
+    {
+        DebuggerEventEnableEferOnAllProcessors();
+    }
+    else
+    {
+        //
+        // Set the error
+        //
+        ResultsToReturnUsermode->IsSuccessful = FALSE;
+        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID;
+        return FALSE;
+    }
+
+    //
+    // Set the status
+    //
+    ResultsToReturnUsermode->IsSuccessful = TRUE;
+    ResultsToReturnUsermode->Error        = 0;
+
+    return TRUE;
+}
+
+/**
+ * @brief routines for parsing actions
+ * 
+ * @return VOID 
+ */
+BOOLEAN
+DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
+{
+    DbgBreakPoint();
+
+    //
+    // Check if Tag is valid or not
+    //
+    PDEBUGGER_EVENT Event = DebuggerGetEventByTag(Action->EventTag);
+
+    if (Event == NULL)
+    {
+        //
+        // Set the appropriate error
+        //
+        ResultsToReturnUsermode->IsSuccessful = FALSE;
+        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+
+        //
+        // Show that the
+        //
+        return FALSE;
+    }
+
+    if (Action->ActionType == RUN_CUSTOM_CODE)
+    {
+        //
+        // Check if buffer is not invalid
+        //
+        if (Action->CustomCodeBufferSize == 0)
+        {
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+
+            //
+            // Show that the
+            //
+            return FALSE;
+        }
+        //
+        // Add action for RUN_CUSTOM_CODE
+        //
+        DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
+
+        CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
+        CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
+        CustomCode.OptionalRequestedBufferSize = 0x0;
+
+        //
+        // Add action to event
+        //
+        DebuggerAddActionToEvent(Event, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+
+        //
+        // Enable the event
+        //
+        DebuggerEnableEvent(Event->Tag);
+    }
+    else if (Action->ActionType == LOG_THE_STATES)
+    {
+        DbgBreakPoint();
+    }
+    else if (Action->ActionType == BREAK_TO_DEBUGGER)
+    {
+        DbgBreakPoint();
+    }
+    else
+    {
+        //
+        // Set the appropriate error
+        //
+        ResultsToReturnUsermode->IsSuccessful = FALSE;
+        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ACTION_TYPE;
+
+        //
+        // Show that the
+        //
+        return FALSE;
+    }
+
+    ResultsToReturnUsermode->IsSuccessful = TRUE;
+    ResultsToReturnUsermode->Error        = 0;
 
     return TRUE;
 }

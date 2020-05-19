@@ -1934,12 +1934,12 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32 EventBufferLength) {
   BOOL Status;
   ULONG ReturnedLength;
-  DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER ReturnedBuffer =
-      {0};
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
 
   //
   // Test
   //
+  /*
   ShowMessages("Tag : %llx\n", Event->Tag);
   ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
   ShowMessages("CoreId : 0x%x\n", Event->CoreId);
@@ -1951,6 +1951,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   ShowMessages("Count of Actions : %d\n", Event->CountOfActions);
   ShowMessages("Event Type : %d\n", Event->EventType);
   return TRUE;
+  */
 
   if (!DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
@@ -1961,22 +1962,21 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   // Send IOCTL
   //
 
-  Status = DeviceIoControl(
-      DeviceHandle,                  // Handle to device
-      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
-      Event,                         // Input Buffer to driver.
-      EventBufferLength,             // Input buffer length
-      &ReturnedBuffer,               // Output Buffer from driver.
-      sizeof(
-          DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER), // Length
-                                                                          // of
-                                                                          // output
-                                                                          // buffer
-                                                                          // in
-                                                                          // bytes.
-      &ReturnedLength, // Bytes placed in buffer.
-      NULL             // synchronous call
-  );
+  Status =
+      DeviceIoControl(DeviceHandle,                  // Handle to device
+                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                      Event,                         // Input Buffer to driver.
+                      EventBufferLength,             // Input buffer length
+                      &ReturnedBuffer, // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
 
   if (!Status) {
     ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
@@ -1998,17 +1998,18 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
                       UINT32 ActionsBufferLength) {
   BOOL Status;
   ULONG ReturnedLength;
-  DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER ReturnedBuffer =
-      {0};
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
 
   //
   // Test
   //
+  /*
   ShowMessages("Tag : %llx\n", Action->EventTag);
   ShowMessages("Action Type : %d\n", Action->ActionType);
   ShowMessages("Custom Code Buffer Size : 0x%x\n",
                Action->CustomCodeBufferSize);
   return TRUE;
+  */
 
   if (!DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
@@ -2019,22 +2020,21 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   // Send IOCTL
   //
 
-  Status = DeviceIoControl(
-      DeviceHandle,                       // Handle to device
-      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-      Action,                             // Input Buffer to driver.
-      ActionsBufferLength,                // Input buffer length
-      &ReturnedBuffer,                    // Output Buffer from driver.
-      sizeof(
-          DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER), // Length
-                                                                          // of
-                                                                          // output
-                                                                          // buffer
-                                                                          // in
-                                                                          // bytes.
-      &ReturnedLength, // Bytes placed in buffer.
-      NULL             // synchronous call
-  );
+  Status =
+      DeviceIoControl(DeviceHandle,                       // Handle to device
+                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                      Action,              // Input Buffer to driver.
+                      ActionsBufferLength, // Input buffer length
+                      &ReturnedBuffer,     // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
 
   if (!Status) {
     ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());

@@ -133,13 +133,12 @@ typedef struct _DEBUGGER_GENERAL_ACTION {
 //
 //
 
-typedef struct _DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER {
+typedef struct _DEBUGGER_EVENT_AND_ACTION_REG_BUFFER {
 
   BOOLEAN IsSuccessful;
   UINT32 Error; // If IsSuccessful was, FALSE
 
-} DEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER,
-    *PDEBUGGER_GENERAL_EVENT_AND_ACTION_REGISTERATION_RETURN_BUFFER;
+} DEBUGGER_EVENT_AND_ACTION_REG_BUFFER, *PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER;
 
 //////////////////////////////////////////////////
 //					Debugger                    //
@@ -405,6 +404,16 @@ typedef struct _DEBUGGER_EVENT {
                                 // time at the end of this buffer)
 
 } DEBUGGER_EVENT, *PDEBUGGER_EVENT;
+
+//////////////////////////////////////////////////
+//		    	Debugger Error Codes            //
+//////////////////////////////////////////////////
+
+#define DEBUGEER_ERROR_TAG_NOT_EXISTS 0xc0000000
+#define DEBUGEER_ERROR_INVALID_ACTION_TYPE 0xc0000001
+#define DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO 0xc0000002
+#define DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID 0xc0000003
+#define DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //
