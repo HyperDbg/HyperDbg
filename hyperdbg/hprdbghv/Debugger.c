@@ -154,6 +154,7 @@ DebuggerInitialize()
     //
 
     InitializeListHead(&g_Events->HiddenHookExecCcEventsHead);
+    InitializeListHead(&g_Events->HiddenHookReadAndWriteEventsHead);
     InitializeListHead(&g_Events->HiddenHookReadEventsHead);
     InitializeListHead(&g_Events->HiddenHookWriteEventsHead);
     InitializeListHead(&g_Events->HiddenHooksExecDetourEventsHead);
@@ -402,6 +403,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 
     switch (Event->EventType)
     {
+    case HIDDEN_HOOK_READ_AND_WRITE:
+        InsertHeadList(&g_Events->HiddenHookReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     case HIDDEN_HOOK_READ:
         InsertHeadList(&g_Events->HiddenHookReadEventsHead, &(Event->EventsOfSameTypeList));
         break;
@@ -455,8 +459,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     //
     // Find the debugger events list base on the type of the event
     //
-
-    if (EventType == HIDDEN_HOOK_READ)
+    if (EventType == HIDDEN_HOOK_READ_AND_WRITE)
+    {
+        TempList  = &g_Events->HiddenHookReadAndWriteEventsHead;
+        TempList2 = TempList;
+    }
+    else if (EventType == HIDDEN_HOOK_READ)
     {
         TempList  = &g_Events->HiddenHookReadEventsHead;
         TempList2 = TempList;
@@ -962,13 +970,20 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Now we should configure the cpu to generate the events
     //
-    if (EventDetails->EventType == HIDDEN_HOOK_READ)
+    if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE)
     {
-        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam2, TRUE, FALSE);
+        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, TRUE);
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_READ)
+    {
+        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, FALSE);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
     {
-        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam2, TRUE, TRUE);
+        //
+        // Read should be enabled by default, we can't ignore it
+        //
+        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, TRUE);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {

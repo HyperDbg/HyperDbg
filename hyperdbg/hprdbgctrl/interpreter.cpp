@@ -2066,9 +2066,8 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   UINT32 EventLength;
   UINT32 ActionLength;
   UINT64 TargetAddress;
-  UINT64 OptionalParam1 = 0; // Set if it's an RW or R or W (1 = r , 2 = w)
-  UINT64 OptionalParam2 = 0; // Set the 'from' target address
-  UINT64 OptionalParam3 = 0; // Set the 'to' target address
+  UINT64 OptionalParam1 = 0; // Set the 'from' target address
+  UINT64 OptionalParam2 = 0; // Set the 'to' target address
   BOOLEAN SetFrom = FALSE;
   BOOLEAN SetTo = FALSE;
 
@@ -2081,9 +2080,14 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   // Interpret and fill the general event and action fields
   //
+  //
+  // We use HIDDEN_HOOK_READ_AND_WRITE here but it might be changed to
+  // HIDDEN_HOOK_READ or HIDDEN_HOOK_WRITE it is because we are not sure what
+  // kind event the user need
+  //
   if (!InterpretGeneralEventAndActionsFields(
-          &SplittedCommand, HIDDEN_HOOK_WRITE, &Event, &EventLength, &Action,
-          &ActionLength)) {
+          &SplittedCommand, HIDDEN_HOOK_READ_AND_WRITE, &Event, &EventLength,
+          &Action, &ActionLength)) {
     CommandMonitorHelp();
     return;
   }
@@ -2096,18 +2100,18 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
     if (!Section.compare("!monitor")) {
       continue;
     } else if (!Section.compare("r")) {
-      OptionalParam1 |= 1;
+      Event->EventType = HIDDEN_HOOK_READ;
     } else if (!Section.compare("w")) {
-      OptionalParam1 |= 2;
+      Event->EventType = HIDDEN_HOOK_WRITE;
     } else if (!Section.compare("rw") || !Section.compare("wr")) {
-      OptionalParam1 |= 3;
+      Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
 
     } else {
       //
       // It's probably address
       //
       if (!SetFrom) {
-        if (!ConvertStringToUInt64(Section, &OptionalParam2)) {
+        if (!ConvertStringToUInt64(Section, &OptionalParam1)) {
           //
           // Unkonwn parameter
           //
@@ -2117,7 +2121,7 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
         }
         SetFrom = TRUE;
       } else if (!SetTo) {
-        if (!ConvertStringToUInt64(Section, &OptionalParam3)) {
+        if (!ConvertStringToUInt64(Section, &OptionalParam2)) {
           //
           // Unkonwn parameter
           //
@@ -2136,13 +2140,20 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
       }
     }
   }
+  if (OptionalParam1 > OptionalParam2) {
+    //
+    // 'from' is greater than 'to'
+    //
+    ShowMessages("Please choose the 'from' value first, then choose the 'to' "
+                 "value.\n");
+    return;
+  }
 
   //
   // Set the optional parameters
   //
   Event->OptionalParam1 = OptionalParam1;
   Event->OptionalParam2 = OptionalParam2;
-  Event->OptionalParam3 = OptionalParam3;
 
   //
   // Send the ioctl to the kernel for event registeration

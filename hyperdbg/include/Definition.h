@@ -59,6 +59,7 @@ typedef int(__stdcall *Callback)(const char *Text);
 
 typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
 
+  HIDDEN_HOOK_READ_AND_WRITE,
   HIDDEN_HOOK_READ,
   HIDDEN_HOOK_WRITE,
 
