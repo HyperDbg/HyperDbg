@@ -44,7 +44,7 @@ Here's a diagram that shows how HyperDbg works !
 ## Credits
  Developers :<br />
 - <a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
- - <a href="https://twitter.com/mammadataei">Mohammad Ataei</a> (for making the website)
+- <a href="https://twitter.com/mammadataei">Mohammad Ataei</a> (for making the website)
 
 
  Special Thanks to these guys for their helps and contributions :<br />
