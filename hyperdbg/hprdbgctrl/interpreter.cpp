@@ -734,6 +734,128 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
 /* ==============================================================================================
  */
 
+/**
+ * @brief Register the event to the kernel
+ */
+
+BOOLEAN
+SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                  UINT32 EventBufferLength) {
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  //
+  // Test
+  //
+  /*
+  ShowMessages("Tag : %llx\n", Event->Tag);
+  ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
+  ShowMessages("CoreId : 0x%x\n", Event->CoreId);
+  ShowMessages("Pid : 0x%x\n", Event->ProcessId);
+  ShowMessages("Optional Param 1 : %llx\n", Event->OptionalParam1);
+  ShowMessages("Optional Param 2 : %llx\n", Event->OptionalParam2);
+  ShowMessages("Optional Param 3 : %llx\n", Event->OptionalParam3);
+  ShowMessages("Optional Param 4 : %llx\n", Event->OptionalParam4);
+  ShowMessages("Count of Actions : %d\n", Event->CountOfActions);
+  ShowMessages("Event Type : %d\n", Event->EventType);
+  return TRUE;
+  */
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+
+  Status =
+      DeviceIoControl(DeviceHandle,                  // Handle to device
+                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                      Event,                         // Input Buffer to driver.
+                      EventBufferLength,             // Input buffer length
+                      &ReturnedBuffer, // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief Register the action to the event
+ */
+
+BOOLEAN
+RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
+                      UINT32 ActionsBufferLength) {
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  //
+  // Test
+  //
+  /*
+  ShowMessages("Tag : %llx\n", Action->EventTag);
+  ShowMessages("Action Type : %d\n", Action->ActionType);
+  ShowMessages("Custom Code Buffer Size : 0x%x\n",
+               Action->CustomCodeBufferSize);
+  return TRUE;
+  */
+
+  if (!DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+
+  Status =
+      DeviceIoControl(DeviceHandle,                       // Handle to device
+                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                      Action,              // Input Buffer to driver.
+                      ActionsBufferLength, // Input buffer length
+                      &ReturnedBuffer,     // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+/* ==============================================================================================
+ */
+
 void CommandClearScreen() { system("cls"); }
 
 /* ==============================================================================================
@@ -1994,132 +2116,13 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 /* ==============================================================================================
  */
 
-/**
- * @brief Register the event to the kernel
- */
-
-BOOLEAN
-SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
-                  UINT32 EventBufferLength) {
-  BOOL Status;
-  ULONG ReturnedLength;
-  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
-
-  //
-  // Test
-  //
-  /*
-  ShowMessages("Tag : %llx\n", Event->Tag);
-  ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
-  ShowMessages("CoreId : 0x%x\n", Event->CoreId);
-  ShowMessages("Pid : 0x%x\n", Event->ProcessId);
-  ShowMessages("Optional Param 1 : %llx\n", Event->OptionalParam1);
-  ShowMessages("Optional Param 2 : %llx\n", Event->OptionalParam2);
-  ShowMessages("Optional Param 3 : %llx\n", Event->OptionalParam3);
-  ShowMessages("Optional Param 4 : %llx\n", Event->OptionalParam4);
-  ShowMessages("Count of Actions : %d\n", Event->CountOfActions);
-  ShowMessages("Event Type : %d\n", Event->EventType);
-  return TRUE;
-  */
-
-  if (!DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
-    return FALSE;
-  }
-
-  //
-  // Send IOCTL
-  //
-
-  Status =
-      DeviceIoControl(DeviceHandle,                  // Handle to device
-                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
-                      Event,                         // Input Buffer to driver.
-                      EventBufferLength,             // Input buffer length
-                      &ReturnedBuffer, // Output Buffer from driver.
-                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                    // of
-                                                                    // output
-                                                                    // buffer
-                                                                    // in
-                                                                    // bytes.
-                      &ReturnedLength, // Bytes placed in buffer.
-                      NULL             // synchronous call
-      );
-
-  if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-/* ==============================================================================================
- */
-
-/**
- * @brief Register the action to the event
- */
-
-BOOLEAN
-RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
-                      UINT32 ActionsBufferLength) {
-  BOOL Status;
-  ULONG ReturnedLength;
-  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
-
-  //
-  // Test
-  //
-  /*
-  ShowMessages("Tag : %llx\n", Action->EventTag);
-  ShowMessages("Action Type : %d\n", Action->ActionType);
-  ShowMessages("Custom Code Buffer Size : 0x%x\n",
-               Action->CustomCodeBufferSize);
-  return TRUE;
-  */
-
-  if (!DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
-    return FALSE;
-  }
-
-  //
-  // Send IOCTL
-  //
-
-  Status =
-      DeviceIoControl(DeviceHandle,                       // Handle to device
-                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-                      Action,              // Input Buffer to driver.
-                      ActionsBufferLength, // Input buffer length
-                      &ReturnedBuffer,     // Output Buffer from driver.
-                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                    // of
-                                                                    // output
-                                                                    // buffer
-                                                                    // in
-                                                                    // bytes.
-                      &ReturnedLength, // Bytes placed in buffer.
-                      NULL             // synchronous call
-      );
-
-  if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
-    return FALSE;
-  }
-
-  return TRUE;
-}
-/* ==============================================================================================
- */
-
 void CommandMonitorHelp() {
   ShowMessages("!monitor : Monitor address rang for read and writes.\n\n");
   ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
                "(hex value)] [To Virtual Address (hex value)] core [core index "
-               "(hex value)] pid [process id (hex value)]\n");
+               "(hex value)] pid [process id (hex value)] condition {[assembly "
+               "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
+               "(hex value)] \n");
 
   ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
   ShowMessages(
@@ -2229,7 +2232,75 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   SendEventToKernel(Event, EventLength);
 
-  ShowMessages("\n-----------------------------------------------------\n");
+  //
+  // Add the event to the kernel
+  //
+  RegisterActionToEvent(Action, ActionLength);
+}
+
+/* ==============================================================================================
+ */
+
+void CommandSyscallHelp() {
+  ShowMessages("!syscall : Monitors and hooks all execution of syscall "
+               "instructions.\n\n");
+  ShowMessages("syntax : \t!syscall core [core index "
+               "(hex value)] pid [process id (hex value)] condition {[assembly "
+               "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
+               "(hex value)] \n");
+
+  ShowMessages("\t\te.g : !syscall\n");
+  ShowMessages("\t\te.g : !syscall pid 400\n");
+  ShowMessages("\t\te.g : !syscall core 2 "
+               "pid 400\n");
+}
+
+void CommandSysretHelp() {
+  ShowMessages("!sysret : Monitors and hooks all execution of sysret "
+               "instructions.\n\n");
+  ShowMessages("syntax : \t!sysret core [core index "
+               "(hex value)] pid [process id (hex value)] condition {[assembly "
+               "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
+               "(hex value)] \n");
+
+  ShowMessages("\t\te.g : !sysret\n");
+  ShowMessages("\t\te.g : !sysret pid 400\n");
+  ShowMessages("\t\te.g : !sysret core 2 "
+               "pid 400\n");
+}
+
+VOID CommandSyscallAndSysret(vector<string> SplittedCommand) {
+
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
+  PDEBUGGER_GENERAL_ACTION Action;
+  UINT32 EventLength;
+  UINT32 ActionLength;
+  UINT64 TargetAddress;
+
+  //
+  // Interpret and fill the general event and action fields
+  //
+  //
+  if (!SplittedCommand.at(0).compare("!syscall")) {
+    if (!InterpretGeneralEventAndActionsFields(
+            &SplittedCommand, SYSCALL_HOOK_EFER_SYSCALL, &Event, &EventLength,
+            &Action, &ActionLength)) {
+      CommandSyscallHelp();
+      return;
+    }
+  } else {
+    if (!InterpretGeneralEventAndActionsFields(
+            &SplittedCommand, SYSCALL_HOOK_EFER_SYSRET, &Event, &EventLength,
+            &Action, &ActionLength)) {
+      CommandSysretHelp();
+      return;
+    }
+  }
+
+  //
+  // Send the ioctl to the kernel for event registeration
+  //
+  SendEventToKernel(Event, EventLength);
 
   //
   // Add the event to the kernel
@@ -2299,6 +2370,9 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandPte(SplittedCommand);
   } else if (!FirstCommand.compare("!monitor")) {
     CommandMonitor(SplittedCommand);
+  } else if (!FirstCommand.compare("!syscall") ||
+             !FirstCommand.compare("!sysret")) {
+    CommandSyscallAndSysret(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||
