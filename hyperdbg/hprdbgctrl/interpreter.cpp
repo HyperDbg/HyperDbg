@@ -315,6 +315,17 @@ vector<char> HexToBytes(const std::string &hex) {
 
 BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
 
+  if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
+      TextToConvert.rfind("\\x", 0) == 0 ||
+      TextToConvert.rfind("\\X", 0) == 0) {
+    TextToConvert = TextToConvert.erase(0, 2);
+  } else if (TextToConvert.rfind("x", 0) == 0 ||
+             TextToConvert.rfind("X", 0) == 0) {
+    TextToConvert = TextToConvert.erase(0, 1);
+  }
+  TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
+                      TextToConvert.end());
+
   if (!IsHexNotation(TextToConvert)) {
     return FALSE;
   }
@@ -332,6 +343,18 @@ BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
 }
 
 BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
+
+  if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
+      TextToConvert.rfind("\\x", 0) == 0 ||
+      TextToConvert.rfind("\\X", 0) == 0) {
+    TextToConvert = TextToConvert.erase(0, 2);
+  } else if (TextToConvert.rfind("x", 0) == 0 ||
+             TextToConvert.rfind("X", 0) == 0) {
+    TextToConvert = TextToConvert.erase(0, 1);
+  }
+
+  TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
+                      TextToConvert.end());
 
   UINT32 TempResult;
   if (!IsHexNotation(TextToConvert)) {
@@ -1573,8 +1596,10 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   BOOLEAN HasCodeBuffer = FALSE;
   BOOLEAN IsNextCommandPid = FALSE;
   BOOLEAN IsNextCommandCoreId = FALSE;
+  BOOLEAN IsNextCommandBufferSize = FALSE;
   UINT32 CoreId;
   UINT32 ProcessId;
+  UINT32 RequestBuffer = 0;
   vector<int> IndexesToRemove;
   int NewIndexToRemove = 0;
   int Index = 0;
@@ -1821,7 +1846,25 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
   for (auto Section : *SplittedCommand) {
     Index++;
+    if (IsNextCommandBufferSize) {
 
+      if (!ConvertStringToUInt32(Section, &RequestBuffer)) {
+        return FALSE;
+      } else {
+        //
+        // Set the specific requested buffer size
+        //
+        TempAction->PreAllocatedBuffer = RequestBuffer;
+      }
+      IsNextCommandBufferSize = FALSE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
     if (IsNextCommandPid) {
 
       if (!ConvertStringToUInt32(Section, &ProcessId)) {
@@ -1880,6 +1923,32 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
       continue;
     }
+
+    if (!Section.compare("buffer")) {
+      IsNextCommandBufferSize = TRUE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+  }
+  //
+  // Additional validation
+  //
+  if (IsNextCommandCoreId) {
+    ShowMessages("error : please specify a value for 'core'\n\n");
+    return FALSE;
+  }
+  if (IsNextCommandPid) {
+    ShowMessages("error : please specify a value for 'pid'\n\n");
+    return FALSE;
+  }
+  if (IsNextCommandBufferSize) {
+    ShowMessages("errlr : please specify a value for 'buffer'\n\n");
+    return FALSE;
   }
 
   //

@@ -125,6 +125,7 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
 typedef struct _DEBUGGER_GENERAL_ACTION {
   UINT64 EventTag;
   DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;
+  UINT32 PreAllocatedBuffer;
 
   UINT32 CustomCodeBufferSize;
 
@@ -398,8 +399,14 @@ typedef struct _DEBUGGER_EVENT {
   BOOLEAN Enabled;
   UINT32 CoreId; // determines the core index to apply this event to, if it's
                  // 0xffffffff means that we have to apply it to all cores
-  LIST_ENTRY ActionsListHead;   // Each entry is in DEBUGGER_EVENT_ACTION struct
-  UINT32 CountOfActions;        // The total count of actions
+  LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
+  UINT32 CountOfActions;      // The total count of actions
+
+  UINT64 OptionalParam1; // Optional parameter to be used differently by events
+  UINT64 OptionalParam2; // Optional parameter to be used differently by events
+  UINT64 OptionalParam3; // Optional parameter to be used differently by events
+  UINT64 OptionalParam4; // Optional parameter to be used differently by events
+
   UINT32 ConditionsBufferSize;  // if null, means uncoditional
   PVOID ConditionBufferAddress; // Address of the condition buffer (most of the
                                 // time at the end of this buffer)
@@ -415,6 +422,7 @@ typedef struct _DEBUGGER_EVENT {
 #define DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO 0xc0000002
 #define DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID 0xc0000003
 #define DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
+#define DEBUGEER_ERROR_INVALID_ADDRESS 0xc0000005
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //

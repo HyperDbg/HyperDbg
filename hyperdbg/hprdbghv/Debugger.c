@@ -17,117 +17,6 @@
 #include "GlobalVariables.h"
 #include "Hooks.h"
 
-VOID
-TestMe()
-{
-    //
-    //---------------------------------------------------------------------------
-    // Example of using events and actions
-    //
-
-    //
-    // Create condition buffer
-    //
-    char CondtionBuffer[8];
-    CondtionBuffer[0] = 0x90; //nop
-    CondtionBuffer[1] = 0x48; //xor rax, rax
-    CondtionBuffer[2] = 0x31;
-    CondtionBuffer[3] = 0xc0;
-    CondtionBuffer[4] = 0x48; // inc rax
-    CondtionBuffer[5] = 0xff;
-    CondtionBuffer[6] = 0xc0;
-    CondtionBuffer[7] = 0xc3; // ret
-
-    //
-    // Create event based on condition buffer
-    //
-    PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(
-        TRUE,
-        DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        HIDDEN_HOOK_READ,
-        0x85858585,
-        sizeof(CondtionBuffer),
-        CondtionBuffer);
-
-    //
-    // Create event based on condition buffer
-    //
-    PDEBUGGER_EVENT Event2 = DebuggerCreateEvent(
-        TRUE,
-        DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        HIDDEN_HOOK_WRITE,
-        0x86868686,
-        sizeof(CondtionBuffer),
-        CondtionBuffer);
-
-    //
-    // Create event based on condition buffer
-    //
-    PDEBUGGER_EVENT Event3 = DebuggerCreateEvent(
-        TRUE,
-        DEBUGGER_EVENT_APPLY_TO_ALL_CORES,
-        SYSCALL_HOOK_EFER_SYSCALL,
-        0x87878787,
-        sizeof(CondtionBuffer),
-        CondtionBuffer);
-
-    if (!Event1)
-    {
-        LogError("Error in creating event");
-    }
-
-    //
-    // *** Add Actions example ***
-    //
-
-    //
-    // Add action for RUN_CUSTOM_CODE
-    //
-    DEBUGGER_EVENT_REQUEST_CUSTOM_CODE CustomCode = {0};
-
-    char CustomCodeBuffer[8];
-    CustomCodeBuffer[0] = 0xcc; //int 3
-    CustomCodeBuffer[1] = 0x90; //nop
-    CustomCodeBuffer[2] = 0x90; //nop
-    CustomCodeBuffer[3] = 0x90; //nop
-    CustomCodeBuffer[4] = 0x90; //nop
-    CustomCodeBuffer[5] = 0x90; //nop
-    CustomCodeBuffer[6] = 0xcc; //int 3
-    CustomCodeBuffer[7] = 0xc3; //ret
-
-    CustomCode.CustomCodeBufferSize        = sizeof(CustomCodeBuffer);
-    CustomCode.CustomCodeBufferAddress     = CustomCodeBuffer;
-    CustomCode.OptionalRequestedBufferSize = 0x100;
-
-    DebuggerAddActionToEvent(Event1, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-    DebuggerAddActionToEvent(Event2, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-    DebuggerAddActionToEvent(Event3, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
-
-    //
-    // Call to register
-    //
-    DebuggerRegisterEvent(Event1);
-    DebuggerRegisterEvent(Event2);
-    DebuggerRegisterEvent(Event3);
-
-    //
-    // Enable one event to test it
-    //
-    DebuggerEventEnableEferOnAllProcessors();
-    // HiddenHooksTest();
-    DebuggerEventEnableMonitorReadAndWriteForAddress(KeGetCurrentThread(), TRUE, TRUE);
-    //
-    // Test --------------------------------------------------------
-    //
-    // DbgBreakPoint();
-    // DebuggerRemoveEvent(0x87878787);
-    // DbgBreakPoint();
-
-    //
-    // -------------------------------------------------------------
-    //
-}
-
 BOOLEAN
 DebuggerInitialize()
 {
@@ -171,16 +60,21 @@ DebuggerInitialize()
     //
     g_EnableDebuggerEvents = TRUE;
 
-    //
-    //TestMe();
-    //
-
     return TRUE;
 }
 
 // should not be called in vmx root
 PDEBUGGER_EVENT
-DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT32 ConditionsBufferSize, PVOID ConditionBuffer)
+DebuggerCreateEvent(BOOLEAN                  Enabled,
+                    UINT32                   CoreId,
+                    DEBUGGER_EVENT_TYPE_ENUM EventType,
+                    UINT64                   Tag,
+                    UINT64                   OptionalParam1,
+                    UINT64                   OptionalParam2,
+                    UINT64                   OptionalParam3,
+                    UINT64                   OptionalParam4,
+                    UINT32                   ConditionsBufferSize,
+                    PVOID                    ConditionBuffer)
 {
     //
     // As this function uses ExAllocatePoolWithTag,
@@ -209,6 +103,10 @@ DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, DEBUGGER_EVENT_TYPE_ENUM Eve
     Event->EventType      = EventType;
     Event->Tag            = Tag;
     Event->CountOfActions = 0; // currently there is no action
+    Event->OptionalParam1 = OptionalParam1;
+    Event->OptionalParam2 = OptionalParam2;
+    Event->OptionalParam3 = OptionalParam3;
+    Event->OptionalParam4 = OptionalParam4;
 
     //
     // check if this event is conditional or not
@@ -524,6 +422,25 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             // This event is not related to either or core or all cores
             //
             continue;
+        }
+
+        //
+        // For hidden hook read/writes we check whether the address
+        // is in the range of what user specified or not, this is because
+        // we get the events for all hidden hooks in a page granularity
+        //
+        if (CurrentEvent->EventType == HIDDEN_HOOK_READ_AND_WRITE || CurrentEvent->EventType == HIDDEN_HOOK_READ || CurrentEvent->EventType == HIDDEN_HOOK_WRITE)
+        {
+            //
+            // Context is the physical address
+            //
+            if (!(Context >= CurrentEvent->OptionalParam1 && Context < CurrentEvent->OptionalParam2))
+            {
+                //
+                // The value is not withing our expected range
+                //
+                continue;
+            }
         }
 
         //
@@ -932,8 +849,42 @@ DebuggerRemoveEvent(UINT64 Tag)
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    PDEBUGGER_EVENT Event;
     DbgBreakPoint();
+
+    PDEBUGGER_EVENT Event;
+    UINT64          PagesBytes;
+
+    //
+    // Validate the parameters
+    //
+    if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
+        EventDetails->EventType == HIDDEN_HOOK_READ ||
+        EventDetails->EventType == HIDDEN_HOOK_WRITE)
+    {
+        //
+        // First check if the address are valid
+        //
+        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL || VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2) == NULL)
+        {
+            //
+            // Address is invalid (Set the error)
+            //
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+
+        //
+        // Check if the 'to' is greater that 'from'
+        //
+        if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
+        {
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+    }
 
     //
     // We initialize event with disabled mode as it doesn't have action yet
@@ -943,14 +894,32 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Conditional Event
         //
-        Event = DebuggerCreateEvent(FALSE, EventDetails->CoreId, EventDetails->EventType, EventDetails->Tag, EventDetails->ConditionBufferSize, (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
+        Event = DebuggerCreateEvent(FALSE,
+                                    EventDetails->CoreId,
+                                    EventDetails->EventType,
+                                    EventDetails->Tag,
+                                    EventDetails->OptionalParam1,
+                                    EventDetails->OptionalParam2,
+                                    EventDetails->OptionalParam3,
+                                    EventDetails->OptionalParam4,
+                                    EventDetails->ConditionBufferSize,
+                                    (UINT64)EventDetails + sizeof(DEBUGGER_GENERAL_EVENT_DETAIL));
     }
     else
     {
         //
         // Unconditional Event
         //
-        Event = DebuggerCreateEvent(FALSE, EventDetails->CoreId, EventDetails->EventType, EventDetails->Tag, 0, NULL);
+        Event = DebuggerCreateEvent(FALSE,
+                                    EventDetails->CoreId,
+                                    EventDetails->EventType,
+                                    EventDetails->Tag,
+                                    EventDetails->OptionalParam1,
+                                    EventDetails->OptionalParam2,
+                                    EventDetails->OptionalParam3,
+                                    EventDetails->OptionalParam4,
+                                    0,
+                                    NULL);
     }
 
     if (Event == NULL)
@@ -972,18 +941,60 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE)
     {
-        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, TRUE);
+        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
+        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
+
+        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+        {
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+        }
+
+        //
+        // We convert the Event's optional parameters physical address because
+        // vm-exit occurs and we have the physical address to compare in the case of
+        // hidden hook rw events.
+        //
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_READ)
     {
-        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, FALSE);
+        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
+        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
+
+        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+        {
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+        }
+
+        //
+        // We convert the Event's optional parameters physical address because
+        // vm-exit occurs and we have the physical address to compare in the case of
+        // hidden hook rw events.
+        //
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
     {
         //
         // Read should be enabled by default, we can't ignore it
         //
-        DebuggerEventEnableMonitorReadAndWriteForAddress(EventDetails->OptionalParam1, TRUE, TRUE);
+        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
+        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
+
+        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
+        {
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+        }
+
+        //
+        // We convert the Event's optional parameters physical address because
+        // vm-exit occurs and we have the physical address to compare in the case of
+        // hidden hook rw events.
+        //
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
@@ -1027,8 +1038,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 BOOLEAN
 DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    DbgBreakPoint();
-
     //
     // Check if Tag is valid or not
     //
@@ -1073,7 +1082,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
 
         CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
         CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        CustomCode.OptionalRequestedBufferSize = 0x0;
+        CustomCode.OptionalRequestedBufferSize = Action->CustomCodeBufferSize;
 
         //
         // Add action to event
