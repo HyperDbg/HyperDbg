@@ -46,8 +46,8 @@ Here's a diagram that shows how HyperDbg works !
 - <a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
 
  Special Thanks to these guys for their helps and contributions :<br />
- - <a href="https://twitter.com/PetrBenes">Petr Beneš</a><br /> (for his great helps in designing hypervisor)
- - <a href="https://twitter.com/mammadataei">Mohammad Ataei</a><br /> (for making the website)
+ - <a href="https://twitter.com/PetrBenes">Petr Beneš</a> (for his great helps in designing hypervisor)
+ - <a href="https://twitter.com/mammadataei">Mohammad Ataei</a> (for making the website)
 
 - ...and many other people who helped to solve the problems</a><br />
 
