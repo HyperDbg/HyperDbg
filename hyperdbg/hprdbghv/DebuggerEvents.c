@@ -66,7 +66,8 @@ DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledF
     // As the context to event trigger, we send the address of function
     // which is current hidden hook is triggered for it
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, CalledFrom);
+    LogInfo("Hello");
+    //DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, CalledFrom);
 
     //
     // Iterate through the list of hooked pages details to find
@@ -114,7 +115,7 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableF
 
     //
     // If the read is FALSE and WRITE is TRUE, then the processor doesn't support
-    // such thing, we will enable the Read silently here if, this problem will be 
+    // such thing, we will enable the Read silently here if, this problem will be
     // solved when the trigger works, the trigger routines won't enable reads
     //
     if (EnableForWrite)

@@ -810,7 +810,7 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
  * @return BOOLEAN Returns true if the hook was successfull or returns false if it was not successfull
  */
 BOOLEAN
-EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVOID HookFunction, PVOID * OrigFunction)
+EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVOID HookFunction)
 {
     PHIDDEN_HOOKS_DETOUR_DETAILS DetourHookDetails;
     SIZE_T                       SizeOfHookedInstructions;
@@ -869,7 +869,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     // Let the hook function call the original function
     //
-    *OrigFunction = Hook->Trampoline;
+    //*OrigFunction = Hook->Trampoline;
 
     //
     // Create the structure to return for the debugger, we do it here because it's the first
@@ -1003,7 +1003,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
+EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -1156,7 +1156,7 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction
         //
         // Create Hook
         //
-        if (!EptHookInstructionMemory(HookedPage, TargetAddress, HookFunction, OrigFunction))
+        if (!EptHookInstructionMemory(HookedPage, TargetAddress, HookFunction))
         {
             LogError("Could not build the hook.");
             return FALSE;
@@ -1206,7 +1206,7 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
 {
     ULONG                   LogicalProcCounts;
     PVOID                   PreAllocBuff;
@@ -1268,7 +1268,7 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLE
         //
         UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, OrigFunction) == STATUS_SUCCESS)
+        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, NULL) == STATUS_SUCCESS)
         {
             LogInfo("Hook applied from VMX Root Mode");
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
@@ -1288,7 +1288,7 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLE
     }
     else
     {
-        if (EptPerformPageHook(TargetAddress, HookFunction, OrigFunction, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
+        if (EptPerformPageHook(TargetAddress, HookFunction, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
         {
             LogInfo("[*] Hook applied (VM has not launched)");
             return TRUE;

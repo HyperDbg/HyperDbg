@@ -16,6 +16,7 @@
 #include "DebuggerEvents.h"
 #include "GlobalVariables.h"
 #include "Hooks.h"
+#include "InlineAsm.h"
 
 BOOLEAN
 DebuggerInitialize()
@@ -59,6 +60,10 @@ DebuggerInitialize()
     // Enabled Debugger Events
     //
     g_EnableDebuggerEvents = TRUE;
+
+    //////////////////////////////////////////////////////////////
+    HiddenHooksTest();
+    //////////////////////////////////////////////////////////////
 
     return TRUE;
 }
@@ -857,9 +862,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Validate the parameters
     //
-    if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
-        EventDetails->EventType == HIDDEN_HOOK_READ ||
-        EventDetails->EventType == HIDDEN_HOOK_WRITE)
+    if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    {
+        //
+        // First check if the address are valid
+        //
+        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL)
+        {
+            //
+            // Address is invalid (Set the error)
+            //
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE ||
+             EventDetails->EventType == HIDDEN_HOOK_READ ||
+             EventDetails->EventType == HIDDEN_HOOK_WRITE)
     {
         //
         // First check if the address are valid
@@ -998,6 +1019,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
+        //EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, FALSE, FALSE, TRUE);
+        HiddenHooksTest();
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
@@ -1038,7 +1061,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 BOOLEAN
 DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-
     //
     // Check if Tag is valid or not
     //

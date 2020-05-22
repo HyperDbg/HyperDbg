@@ -70,7 +70,6 @@ VmxVmcallHandler(UINT64 VmcallNumber,
 
         HookResult = EptPerformPageHook(OptionalParam1 /* TargetAddress */,
                                         OptionalParam2 /* Hook Function*/,
-                                        OptionalParam3 /* OrigFunction */,
                                         UnsetRead,
                                         UnsetWrite,
                                         UnsetExec);

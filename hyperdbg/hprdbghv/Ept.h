@@ -1180,10 +1180,10 @@ BOOLEAN
 EptBuildMtrrMap();
 /* Hook in VMX Root Mode (A pre-allocated buffer should be available) */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
+EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
 /* Hook in VMX Non Root Mode */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, PVOID * OrigFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
 /* Initialize EPT Table based on Processor Index */
 BOOLEAN
 EptLogicalProcessorInitialize();
