@@ -61,10 +61,6 @@ DebuggerInitialize()
     //
     g_EnableDebuggerEvents = TRUE;
 
-    //////////////////////////////////////////////////////////////
-    HiddenHooksTest();
-    //////////////////////////////////////////////////////////////
-
     return TRUE;
 }
 
@@ -854,7 +850,7 @@ DebuggerRemoveEvent(UINT64 Tag)
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    DbgBreakPoint();
+    // DbgBreakPoint();
 
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
@@ -1019,8 +1015,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
-        //EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, FALSE, FALSE, TRUE);
-        HiddenHooksTest();
+        EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, FALSE, FALSE, TRUE);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {

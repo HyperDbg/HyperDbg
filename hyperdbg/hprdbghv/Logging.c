@@ -51,6 +51,14 @@ LogInitialize()
     //
     for (int i = 0; i < 2; i++)
     {
+        //
+        // initialize the lock
+        // Actually, only the 0th buffer use this spinlock but let initialize it
+        // for both but the second buffer spinlock is useless
+        // as we use our custom spinlock
+        //
+        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLock);
+        KeInitializeSpinLock(&MessageBufferInformation[i].BufferLockForNonImmMessage);
 
         //
         // allocate the buffer
@@ -113,6 +121,7 @@ LogUnInitialize()
 BOOLEAN
 LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
 {
+    KIRQL   OldIRQL;
     UINT32  Index;
     BOOLEAN IsVmxRoot;
 
@@ -151,8 +160,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
         //
         // Acquire the lock
         //
-        SpinlockLock(&VmxNonRootLoggingLock);
-
+        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -235,7 +243,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
         //
         // Release the lock
         //
-        SpinlockUnlock(&VmxNonRootLoggingLock);
+        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 }
 
@@ -251,6 +259,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
 BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength)
 {
+    KIRQL  OldIRQL;
     UINT32 Index;
 
     //
@@ -279,8 +288,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Acquire the lock
         //
-        SpinlockLock(&VmxNonRootLoggingLock);
-
+        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
     }
 
     //
@@ -389,7 +397,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // Release the lock
         //
-        SpinlockUnlock(&VmxNonRootLoggingLock);
+        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
 }
 
@@ -403,6 +411,7 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
 BOOLEAN
 LogCheckForNewMessage(BOOLEAN IsVmxRoot)
 {
+    KIRQL  OldIRQL;
     UINT32 Index;
 
     if (IsVmxRoot)
@@ -443,6 +452,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
     va_list ArgList;
     size_t  WrittenSize;
     UINT32  Index;
+    KIRQL   OldIRQL;
     BOOLEAN IsVmxRootMode;
     int     SprintfResult;
     char    LogMessage[PacketChunkSize];
@@ -624,8 +634,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
             //
             // Acquire the lock
             //
-            SpinlockLock(&VmxNonRootLoggingLockForNonImmBuffers);
-
+            KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, &OldIRQL);
         }
         //
         //Set the result to True
@@ -676,8 +685,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
             //
             // Release the lock
             //
-            SpinlockUnlock(&VmxNonRootLoggingLockForNonImmBuffers);
-
+            KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLockForNonImmMessage, OldIRQL);
         }
 
         return Result;
@@ -810,6 +818,7 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PNOTIFY_RECORD          NotifyRecord;
     PIO_STACK_LOCATION      IrpStack;
+    KIRQL                   OOldIrql;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
 
     //
@@ -902,6 +911,7 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     NTSTATUS                Status;
     PIO_STACK_LOCATION      IrpStack;
     PREGISTER_NOTIFY_BUFFER RegisterEvent;
+    KIRQL                   OldIrql;
 
     IrpStack      = IoGetCurrentIrpStackLocation(Irp);
     RegisterEvent = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;

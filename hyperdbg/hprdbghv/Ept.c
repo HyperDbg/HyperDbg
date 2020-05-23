@@ -869,7 +869,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     // Let the hook function call the original function
     //
-    //*OrigFunction = Hook->Trampoline;
+    // *OrigFunction = Hook->Trampoline;
 
     //
     // Create the structure to return for the debugger, we do it here because it's the first

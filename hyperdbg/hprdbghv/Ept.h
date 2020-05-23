@@ -1171,7 +1171,6 @@ typedef struct _GUEST_REGS
     ULONG64 r15;
 } GUEST_REGS, *PGUEST_REGS;
 
-
 /* Check for EPT Features */
 BOOLEAN
 EptCheckFeatures();
