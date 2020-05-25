@@ -66,8 +66,7 @@ DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledF
     // As the context to event trigger, we send the address of function
     // which is current hidden hook is triggered for it
     //
-    LogInfo("Hello");
-    //DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, CalledFrom);
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, CalledFrom);
 
     //
     // Iterate through the list of hooked pages details to find

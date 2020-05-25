@@ -251,6 +251,23 @@ typedef struct _NT_KPROCESS
     UCHAR             Data[1];
 } NT_KPROCESS, *PNT_KPROCESS;
 
+/**
+ * @brief See: Page-Fault Error Code
+ * 
+ */
+typedef union _PAGE_FAULT_ERROR_CODE
+{
+    ULONG32 All;
+    struct
+    {
+        ULONG32 Present : 1;  // 0 = NotPresent
+        ULONG32 Write : 1;    // 0 = Read
+        ULONG32 User : 1;     // 0 = CPL==0
+        ULONG32 Reserved : 1; //
+        ULONG32 Fetch : 1;    //
+    } Fields;
+} PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
+
 //////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////

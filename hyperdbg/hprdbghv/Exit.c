@@ -40,6 +40,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 ExitQualification     = 0;
     ULONG                 Rflags                = 0;
     ULONG                 EcxReg                = 0;
+    ULONG                 ErrorCode             = 0;
     ULONG                 ExitInstructionLength = 0;
     ULONG                 CurrentProcessorIndex = 0;
 
@@ -246,7 +247,54 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         }
         else
         {
-            LogError("Not expected event occured");
+            if (InterruptExit.Vector == EXCEPTION_VECTOR_PAGE_FAULT)
+            {
+                //
+                // #PF is treated differently, we have to deal with cr2 too.
+                //
+                PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
+
+                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &PageFaultCode);
+
+                UINT64 PageFaultAddress = 0;
+
+                __vmx_vmread(EXIT_QUALIFICATION, &PageFaultAddress);
+
+                // EventInjectPageFault(PageFaultCode.All);
+
+                LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
+
+                //
+                // Cr2 is used as the page-fault address
+                //
+                __writecr2(PageFaultAddress);
+
+                g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+            }
+            // LogInfo("Interrupt vector : 0x%x", InterruptExit.Vector);
+            //
+            // Re-inject the interrupt/exception
+            //
+            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+
+            //
+            // re-write error code (if any)
+            //
+            if (InterruptExit.ErrorCodeValid)
+            {
+                //
+                // Read the error code
+                //
+                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+
+                //
+                // Write the error code
+                //
+                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+            }
+            //
+            //LogError("Not expected event occured");
+            //
         }
         break;
     }

@@ -376,6 +376,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     LogInfo("Secondary Proc Based VM Exec Controls (MSR_IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
 
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(0, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_PINBASED_CTLS : MSR_IA32_VMX_PINBASED_CTLS));
+    //__vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_PINBASED_CTLS : MSR_IA32_VMX_PINBASED_CTLS));
 
     __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
 
@@ -436,7 +437,9 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     // Set exception bitmap to hook division by zero (bit 1 of EXCEPTION_BITMAP)
     // __vmx_vmwrite(EXCEPTION_BITMAP, 0x8); // breakpoint 3nd bit
     //
-    __vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // #UDs 3nd bit
+    //__vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // #UDs 3nd bit
+    //__vmx_vmwrite(EXCEPTION_BITMAP, 0xffffffff & ~(1 << 14)); // Anything execpt #PF
+    __vmx_vmwrite(EXCEPTION_BITMAP, 0xffffffff); // Anything
 
     //
     // Set up EPT
