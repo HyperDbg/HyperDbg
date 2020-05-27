@@ -11,11 +11,12 @@
  */
 #include "pch.h"
 
-void CommandFormatsHelp() {
+VOID CommandFormatsHelp() {
   ShowMessages(".formats : Show a value or register in different formats.\n\n");
   ShowMessages("syntax : \t.formats [hex value | register]\n");
 }
-void CommandFormats(vector<string> SplittedCommand) {
+
+VOID CommandFormats(vector<string> SplittedCommand) {
 
   UINT64 u64Value;
   time_t t;

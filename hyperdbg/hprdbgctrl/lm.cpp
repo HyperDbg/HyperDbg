@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void CommandLmHelp() {
+VOID CommandLmHelp() {
   ShowMessages(
       "lm : list kernel modules' base address, size, name and path.\n\n");
   ShowMessages("syntax : \tlm [name]\n");

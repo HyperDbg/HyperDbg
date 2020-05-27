@@ -19,17 +19,18 @@
 //
 // Global Variables
 //
-extern bool g_IsConnectedToDebugger;
-extern bool g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 
-void CommandConnectHelp() {
+VOID CommandConnectHelp() {
   ShowMessages(".connect : connects to a remote or local machine to start "
                "debugging.\n\n");
   ShowMessages("syntax : \t.connect [ip] [port]\n");
   ShowMessages("\t\te.g : .connect 192.168.1.5 50000\n");
   ShowMessages("\t\te.g : .connect local\n");
 }
-void CommandConnect(vector<string> SplittedCommand) {
+
+VOID CommandConnect(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() == 1) {
     //
@@ -44,7 +45,7 @@ void CommandConnect(vector<string> SplittedCommand) {
     // connect to local debugger
     //
     ShowMessages("local debug current system\n");
-    g_IsConnectedToDebugger = true;
+    g_IsConnectedToDebugger = TRUE;
 
     return;
   } else if (SplittedCommand.size() == 3) {
@@ -70,7 +71,7 @@ void CommandConnect(vector<string> SplittedCommand) {
     // connect to remote debugger
     //
     ShowMessages("local debug remote system\n");
-    g_IsConnectedToDebugger = true;
+    g_IsConnectedToDebugger = TRUE;
 
     return;
   } else {

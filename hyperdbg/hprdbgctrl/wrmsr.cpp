@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-void CommandWrmsrHelp() {
+VOID CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
   ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
                "(hex value)] core [core index (hex value - optional)]\n");
@@ -19,7 +19,7 @@ void CommandWrmsrHelp() {
   ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010 core 2\n");
 }
 
-void CommandWrmsr(vector<string> SplittedCommand) {
+VOID CommandWrmsr(vector<string> SplittedCommand) {
 
   BOOL Status;
   BOOL IsNextCoreId = FALSE;
@@ -113,7 +113,7 @@ void CommandWrmsr(vector<string> SplittedCommand) {
   MsrWriteRequest.CoreNumber = CoreNumer;
   MsrWriteRequest.Value = Value;
 
-  Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,                   // Handle to device
                            IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
                            &MsrWriteRequest, // Input Buffer to driver.
                            SIZEOF_READ_AND_WRITE_ON_MSR, // Input buffer length

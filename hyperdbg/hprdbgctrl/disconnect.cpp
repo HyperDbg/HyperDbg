@@ -14,16 +14,16 @@
 //
 // Global Variables
 //
-extern bool g_IsConnectedToDebugger;
-extern bool g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 
-void CommandDisconnectHelp() {
+VOID CommandDisconnectHelp() {
   ShowMessages(".disconnect : disconnect from a debugging session (it won't "
                "unload the modules).\n\n");
   ShowMessages("syntax : \.disconnect\n");
 }
 
-void CommandDisconnect(vector<string> SplittedCommand) {
+VOID CommandDisconnect(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of '.disconnect'\n\n");
@@ -38,6 +38,6 @@ void CommandDisconnect(vector<string> SplittedCommand) {
   //
   // Disconnect the session
   //
-  g_IsConnectedToDebugger = false;
+  g_IsConnectedToDebugger = FALSE;
   ShowMessages("successfully disconnected\n");
 }

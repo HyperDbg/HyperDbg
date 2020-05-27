@@ -15,24 +15,26 @@
 using namespace std;
 
 //////////////////////////////////////////////////
-//					Externs 					//
+//					Externs
+////
 //////////////////////////////////////////////////
 
 extern HANDLE g_DeviceHandle;
 
 //////////////////////////////////////////////////
-//					Functions 					//
+//					Functions
+////
 //////////////////////////////////////////////////
 
 int ReadCpuDetails();
 
-std::string ReadVendorString();
+string ReadVendorString();
 
-void ShowMessages(const char *Fmt, ...);
+VOID ShowMessages(const char *Fmt, ...);
 
 int CommandLm(vector<string> SplittedCommand);
 
-void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
+VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
                                       DEBUGGER_READ_MEMORY_TYPE MemoryType,
                                       DEBUGGER_READ_READING_TYPE ReadingType,
@@ -42,40 +44,39 @@ string SeparateTo64BitValue(UINT64 Value);
 int HyperDbgDisassembler(unsigned char *BufferToDisassemble, UINT64 BaseAddress,
                          UINT64 Size);
 
-void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
+VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
                                       DEBUGGER_READ_MEMORY_TYPE MemoryType,
                                       DEBUGGER_READ_READING_TYPE ReadingType,
                                       UINT32 Pid, UINT Size);
-void CommandClearScreen();
+VOID CommandClearScreen();
 
-void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand);
+VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand);
 
-void CommandConnect(vector<string> SplittedCommand);
+VOID CommandConnect(vector<string> SplittedCommand);
 
-void CommandConnect(vector<string> SplittedCommand);
+VOID CommandConnect(vector<string> SplittedCommand);
 
-void CommandLoad(vector<string> SplittedCommand);
+VOID CommandLoad(vector<string> SplittedCommand);
 
-void CommandUnload(vector<string> SplittedCommand);
+VOID CommandUnload(vector<string> SplittedCommand);
 
-void CommandCpu(vector<string> SplittedCommand);
+VOID CommandCpu(vector<string> SplittedCommand);
 
-void CommandExit(vector<string> SplittedCommand);
+VOID CommandExit(vector<string> SplittedCommand);
 
-void CommandDisconnect(vector<string> SplittedCommand);
+VOID CommandDisconnect(vector<string> SplittedCommand);
 
-void CommandFormats(vector<string> SplittedCommand);
+VOID CommandFormats(vector<string> SplittedCommand);
 
-void CommandRdmsr(vector<string> SplittedCommand);
+VOID CommandRdmsr(vector<string> SplittedCommand);
 
-void CommandWrmsr(vector<string> SplittedCommand);
+VOID CommandWrmsr(vector<string> SplittedCommand);
 
-void CommandPte(vector<string> SplittedCommand);
+VOID CommandPte(vector<string> SplittedCommand);
 
 VOID CommandMonitor(vector<string> SplittedCommand);
 
 VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
 
 VOID CommandHiddenHook(vector<string> SplittedCommand);
-

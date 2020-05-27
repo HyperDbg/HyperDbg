@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-void CommandHiddenHookHelp() {
+VOID CommandHiddenHookHelp() {
   ShowMessages("!hiddenhook : Puts a hidden-hook EPT (detours) .\n\n");
   ShowMessages(
       "syntax : \t!hiddenhook [Virtual Address (hex value)] core [core index "

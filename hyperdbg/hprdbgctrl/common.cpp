@@ -22,7 +22,7 @@ string SeparateTo64BitValue(UINT64 Value) {
   return temp;
 }
 
-void PrintBits(size_t const size, void const *const ptr) {
+VOID PrintBits(size_t const size, void const *const ptr) {
   unsigned char *b = (unsigned char *)ptr;
   unsigned char byte;
   int i, j;
@@ -36,8 +36,7 @@ void PrintBits(size_t const size, void const *const ptr) {
   }
 }
 
-void ReplaceAll(std::string &str, const std::string &from,
-                const std::string &to) {
+VOID ReplaceAll(string &str, const string &from, const string &to) {
   if (from.empty())
     return;
   size_t start_pos = 0;
@@ -65,7 +64,7 @@ const vector<string> Split(const string &s, const char &c) {
   return v;
 }
 // check if given string is a numeric string or not
-bool IsNumber(const string &str) {
+BOOLEAN IsNumber(const string &str) {
   // std::find_first_not_of searches the string for the first character
   // that does not match any of the characters specified in its arguments
   return !str.empty() &&
@@ -90,7 +89,7 @@ vector<string> SplitIp(const string &str, char delim) {
   return list;
 }
 
-bool IsHexNotation(std::string s) {
+BOOLEAN IsHexNotation(string s) {
   BOOLEAN IsAnyThing = FALSE;
   for (char &c : s) {
     IsAnyThing = TRUE;
@@ -104,7 +103,7 @@ bool IsHexNotation(std::string s) {
   return FALSE;
 }
 
-vector<char> HexToBytes(const std::string &hex) {
+vector<char> HexToBytes(const string &hex) {
   std::vector<char> bytes;
 
   for (unsigned int i = 0; i < hex.length(); i += 2) {
@@ -167,7 +166,7 @@ BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
   *Result = TempResult;
 }
 
-BOOLEAN HasEnding(std::string const &fullString, std::string const &ending) {
+BOOLEAN HasEnding(string const &fullString, string const &ending) {
   if (fullString.length() >= ending.length()) {
     return (0 == fullString.compare(fullString.length() - ending.length(),
                                     ending.length(), ending));
@@ -179,7 +178,7 @@ BOOLEAN HasEnding(std::string const &fullString, std::string const &ending) {
 //
 // Function to validate an IP address
 //
-bool ValidateIP(string ip) {
+BOOLEAN ValidateIP(string ip) {
   //
   // split the string into tokens
   //
@@ -189,7 +188,7 @@ bool ValidateIP(string ip) {
   // if token size is not equal to four
   //
   if (list.size() != 4)
-    return false;
+    return FALSE;
 
   //
   // validate each token
@@ -200,10 +199,10 @@ bool ValidateIP(string ip) {
     // are in the valid range
     //
     if (!IsNumber(str) || stoi(str) > 255 || stoi(str) < 0)
-      return false;
+      return FALSE;
   }
 
-  return true;
+  return TRUE;
 }
 
 /**
@@ -212,7 +211,7 @@ bool ValidateIP(string ip) {
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-bool VmxSupportDetection() { return AsmVmxSupportDetection(); }
+BOOLEAN VmxSupportDetection() { return AsmVmxSupportDetection(); }
 
 /**
  * @brief SetPrivilege enables/disables process token privilege
@@ -222,9 +221,9 @@ bool VmxSupportDetection() { return AsmVmxSupportDetection(); }
  * @param bEnablePrivilege
  * @return BOOL
  */
-BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
+BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
   LUID luid;
-  BOOL bRet = FALSE;
+  BOOLEAN bRet = FALSE;
 
   if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
     TOKEN_PRIVILEGES tp;

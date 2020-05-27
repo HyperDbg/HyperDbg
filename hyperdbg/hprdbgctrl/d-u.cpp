@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-void CommandReadMemoryHelp() {
+VOID CommandReadMemoryHelp() {
   ShowMessages("u !u & db dc dd dq !db !dc !dd !dq : read the memory different "
                "shapes (hex) and disassembler\n");
   ShowMessages("d[b]  Byte and ASCII characters\n");
@@ -29,7 +29,8 @@ void CommandReadMemoryHelp() {
   ShowMessages("\t\te.g : !dq 100000\n");
   ShowMessages("\t\te.g : u fffff8077356f010\n");
 }
-void CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
+
+VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
 
   string FirstCommand = SplittedCommand.front();
 

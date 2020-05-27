@@ -11,12 +11,13 @@
  */
 #include "pch.h"
 
-void CommandPteHelp() {
+VOID CommandPteHelp() {
   ShowMessages("!pte : Find virtual address of different paging-levels.\n\n");
   ShowMessages("syntax : \t!pte [Virtual Address (hex value)]\n");
   ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
 }
-void CommandPte(vector<string> SplittedCommand) {
+
+VOID CommandPte(vector<string> SplittedCommand) {
 
   BOOL Status;
   ULONG ReturnedLength;

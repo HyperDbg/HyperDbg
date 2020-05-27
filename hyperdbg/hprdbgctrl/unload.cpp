@@ -14,15 +14,16 @@
 //
 // Global Variables
 //
-extern bool g_IsConnectedToDebugger;
-extern bool g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 
-void CommandUnloadHelp() {
+VOID CommandUnloadHelp() {
   ShowMessages(
       "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
   ShowMessages("syntax : \tunload\n");
 }
-void CommandUnload(vector<string> SplittedCommand) {
+
+VOID CommandUnload(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'unload'\n\n");

@@ -16,19 +16,19 @@
 //					Help commands               //
 //////////////////////////////////////////////////
 
-void CommandReadMemoryHelp();
-void CommandConnectHelp();
-void CommandDisconnectHelp();
-void CommandExitHelp();
-void CommandCpuHelp();
-void CommandUnloadHelp();
-void CommandLoadHelp();
-void CommandConnectHelp();
-void CommandFormatsHelp();
-void CommandRdmsrHelp();
-void CommandWrmsrHelp();
-void CommandPteHelp();
-void CommandMonitorHelp();
-void CommandSyscallHelp();
-void CommandSysretHelp();
-void CommandHiddenHookHelp();
+VOID CommandReadMemoryHelp();
+VOID CommandConnectHelp();
+VOID CommandDisconnectHelp();
+VOID CommandExitHelp();
+VOID CommandCpuHelp();
+VOID CommandUnloadHelp();
+VOID CommandLoadHelp();
+VOID CommandConnectHelp();
+VOID CommandFormatsHelp();
+VOID CommandRdmsrHelp();
+VOID CommandWrmsrHelp();
+VOID CommandPteHelp();
+VOID CommandMonitorHelp();
+VOID CommandSyscallHelp();
+VOID CommandSysretHelp();
+VOID CommandHiddenHookHelp();

@@ -14,15 +14,16 @@
 //
 // Global Variables
 //
-extern bool g_IsConnectedToDebugger;
-extern bool g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 
-void CommandExitHelp() {
+VOID CommandExitHelp() {
   ShowMessages(
       "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
   ShowMessages("syntax : \texit\n");
 }
-void CommandExit(vector<string> SplittedCommand) {
+
+VOID CommandExit(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'exit'\n\n");

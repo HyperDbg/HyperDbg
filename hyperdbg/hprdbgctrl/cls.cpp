@@ -11,4 +11,4 @@
  */
 #include "pch.h"
 
-void CommandClearScreen() { system("cls"); }
+VOID CommandClearScreen() { system("cls"); }

@@ -5,9 +5,9 @@
 //////////////////////////////////////////////////
 
 
-bool g_IsConnectedToDebugger = false;
+BOOLEAN g_IsConnectedToDebugger = FALSE;
 
-bool g_IsDebuggerModulesLoaded = false;
+BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
 
 UINT64 g_EventTag = DebuggerEventTagStartSeed;
 

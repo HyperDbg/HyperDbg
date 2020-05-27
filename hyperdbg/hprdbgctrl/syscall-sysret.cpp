@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-void CommandSyscallHelp() {
+VOID CommandSyscallHelp() {
   ShowMessages("!syscall : Monitors and hooks all execution of syscall "
                "instructions.\n\n");
   ShowMessages("syntax : \t!syscall core [core index "
@@ -25,7 +25,7 @@ void CommandSyscallHelp() {
                "pid 400\n");
 }
 
-void CommandSysretHelp() {
+VOID CommandSysretHelp() {
   ShowMessages("!sysret : Monitors and hooks all execution of sysret "
                "instructions.\n\n");
   ShowMessages("syntax : \t!sysret core [core index "
@@ -39,7 +39,7 @@ void CommandSysretHelp() {
                "pid 400\n");
 }
 
-VOID CommandSyscallAndSysret(vector<string> SplittedCommand) {
+void CommandSyscallAndSysret(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
   PDEBUGGER_GENERAL_ACTION Action;

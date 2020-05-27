@@ -14,14 +14,15 @@
 //
 // Global Variables
 //
-extern bool g_IsConnectedToDebugger;
-extern bool g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 
-void CommandLoadHelp() {
+VOID CommandLoadHelp() {
   ShowMessages("load : installs the driver and load the kernel modules.\n\n");
   ShowMessages("syntax : \tload\n");
 }
-void CommandLoad(vector<string> SplittedCommand) {
+
+VOID CommandLoad(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'load'\n\n");
@@ -48,5 +49,5 @@ void CommandLoad(vector<string> SplittedCommand) {
   //
   // If we reach here so the module are loaded
   //
-  g_IsDebuggerModulesLoaded = true;
+  g_IsDebuggerModulesLoaded = TRUE;
 }

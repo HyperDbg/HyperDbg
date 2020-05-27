@@ -215,7 +215,7 @@ DWORD WINAPI ThreadFunc(void *data) {
  * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgInstallDriver() {
-  ReadVendorString();
+
   //
   // The driver is not started yet so let us the install driver.
   // First setup full path to driver name.
@@ -356,7 +356,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   //
   // Send IOCTL to mark complete all IRP Pending
   //
-  Status = DeviceIoControl(g_DeviceHandle,        // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,      // Handle to device
                            IOCTL_TERMINATE_VMX, // IO Control code
                            NULL,                // Input Buffer to driver.
                            0, // Length of input buffer in bytes. (x 2 is bcuz
@@ -378,7 +378,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   // Send IOCTL to mark complete all IRP Pending
   //
   Status = DeviceIoControl(
-      g_DeviceHandle,                                        // Handle to device
+      g_DeviceHandle,                                      // Handle to device
       IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control code
       NULL, // Input Buffer to driver.
       0, // Length of input buffer in bytes. (x 2 is bcuz as the driver is x64

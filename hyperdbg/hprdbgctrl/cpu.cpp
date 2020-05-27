@@ -6,11 +6,11 @@
 
 #include "pch.h"
 
-void CommandCpuHelp() {
+VOID CommandCpuHelp() {
   ShowMessages("cpu : collects a report from cpu features.\n\n");
   ShowMessages("syntax : \tcpu\n");
 }
-void CommandCpu(vector<string> SplittedCommand) {
+VOID CommandCpu(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'cpu'\n\n");
@@ -186,7 +186,7 @@ private:
 // Initialize static member data
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 
-std::string ReadVendorString() { return InstructionSet::Vendor(); }
+string ReadVendorString() { return InstructionSet::Vendor(); }
 
 // Print out supported instruction set extensions
 int ReadCpuDetails() {

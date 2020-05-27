@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-void CommandMonitorHelp() {
+VOID CommandMonitorHelp() {
   ShowMessages("!monitor : Monitor address rang for read and writes.\n\n");
   ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
                "(hex value)] [To Virtual Address (hex value)] core [core index "
