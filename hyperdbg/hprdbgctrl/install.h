@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
+#include "pch.h"
 
 
 // The following ifdef block is the standard way of creating macros which make exporting

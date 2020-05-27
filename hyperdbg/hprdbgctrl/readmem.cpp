@@ -27,7 +27,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   UINT32 OperationCode;
   CHAR Character;
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return;
   }
@@ -45,7 +45,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 
   ZeroMemory(OutputBuffer, Size);
 
-  Status = DeviceIoControl(DeviceHandle,               // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
                            IOCTL_DEBUGGER_READ_MEMORY, // IO Control code
                            &ReadMem, // Input Buffer to driver.
                            SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length

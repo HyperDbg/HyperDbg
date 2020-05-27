@@ -103,7 +103,7 @@ void CommandWrmsr(vector<string> SplittedCommand) {
     return;
   }
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return;
   }
@@ -113,7 +113,7 @@ void CommandWrmsr(vector<string> SplittedCommand) {
   MsrWriteRequest.CoreNumber = CoreNumer;
   MsrWriteRequest.Value = Value;
 
-  Status = DeviceIoControl(DeviceHandle,                     // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,                     // Handle to device
                            IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
                            &MsrWriteRequest, // Input Buffer to driver.
                            SIZEOF_READ_AND_WRITE_ON_MSR, // Input buffer length

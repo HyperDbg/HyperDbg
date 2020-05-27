@@ -106,10 +106,10 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="debugger.h" />
-    <ClInclude Include="framework.h" />
+    <ClInclude Include="exports.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="help.h" />
-    <ClInclude Include="hprdbgctrl.h" />
+    <ClInclude Include="install.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

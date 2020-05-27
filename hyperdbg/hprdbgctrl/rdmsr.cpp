@@ -78,7 +78,7 @@ void CommandRdmsr(vector<string> SplittedCommand) {
     return;
   }
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return;
   }
@@ -102,7 +102,7 @@ void CommandRdmsr(vector<string> SplittedCommand) {
   ZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);
 
   Status = DeviceIoControl(
-      DeviceHandle,                     // Handle to device
+      g_DeviceHandle,                     // Handle to device
       IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
       &MsrReadRequest,                  // Input Buffer to driver.
       SIZEOF_READ_AND_WRITE_ON_MSR,     // Input buffer length

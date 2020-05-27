@@ -34,7 +34,7 @@ void CommandPte(vector<string> SplittedCommand) {
     return;
   }
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return;
   }
@@ -49,7 +49,7 @@ void CommandPte(vector<string> SplittedCommand) {
   //
 
   Status = DeviceIoControl(
-      DeviceHandle,                                   // Handle to device
+      g_DeviceHandle,                                   // Handle to device
       IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // IO Control code
       &PteRead,                                       // Input Buffer to driver.
       SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Input buffer length

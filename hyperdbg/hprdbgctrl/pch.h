@@ -29,7 +29,11 @@
 
 #include <Windows.h>
 #include <algorithm>
+#include <array>
+#include <bitset>
 #include <conio.h>
+#include <intrin.h>
+#include <inttypes.h>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
@@ -42,10 +46,6 @@
 #include <vector>
 #include <winioctl.h>
 #include <winternl.h>
-#include <array>
-#include <bitset>
-#include <intrin.h>
-#include <inttypes.h>
 
 //
 // HyperDbg defined headers
@@ -55,11 +55,11 @@
 #include "commands.h"
 #include "common.h"
 #include "debugger.h"
-#include "framework.h"
+#include "exports.h"
 #include "help.h"
-#include "hprdbgctrl.h"
+#include "install.h"
 #include "list.h"
 
 #endif // PCH_H
 
-#pragma comment(lib,"ntdll.lib")
+#pragma comment(lib, "ntdll.lib")

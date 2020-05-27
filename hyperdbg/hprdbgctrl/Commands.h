@@ -14,7 +14,15 @@
 
 using namespace std;
 
-extern HANDLE DeviceHandle;
+//////////////////////////////////////////////////
+//					Externs 					//
+//////////////////////////////////////////////////
+
+extern HANDLE g_DeviceHandle;
+
+//////////////////////////////////////////////////
+//					Functions 					//
+//////////////////////////////////////////////////
 
 int ReadCpuDetails();
 
@@ -71,13 +79,3 @@ VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
 
 VOID CommandHiddenHook(vector<string> SplittedCommand);
 
-// Exports
-extern "C" {
-extern bool inline AsmVmxSupportDetection();
-__declspec(dllexport) int __cdecl HyperdbgLoad();
-__declspec(dllexport) int __cdecl HyperdbgUnload();
-__declspec(dllexport) int __cdecl HyperdbgInstallDriver();
-__declspec(dllexport) int __cdecl HyperdbgUninstallDriver();
-__declspec(dllexport) void __stdcall HyperdbgSetTextMessageCallback(
-    Callback handler);
-}

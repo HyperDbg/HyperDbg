@@ -12,6 +12,10 @@
 #include "pch.h"
 #pragma once
 
+//////////////////////////////////////////////////
+//					Help commands               //
+//////////////////////////////////////////////////
+
 void CommandReadMemoryHelp();
 void CommandConnectHelp();
 void CommandDisconnectHelp();

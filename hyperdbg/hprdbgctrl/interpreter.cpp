@@ -14,14 +14,6 @@
 
 using namespace std;
 
-// Exports
-extern "C" {
-__declspec(dllexport) int __cdecl HyperdbgInterpreter(const char *Command);
-}
-
-/* ==============================================================================================
- */
-
 /**
  * @brief Interpret commands
  *

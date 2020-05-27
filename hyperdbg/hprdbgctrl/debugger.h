@@ -12,6 +12,10 @@
 #pragma once
 #include "pch.h"
 
+//////////////////////////////////////////////////
+//				    Functions                   //
+//////////////////////////////////////////////////
+
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
                             BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
@@ -32,4 +36,3 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     PUINT32 ActionBufferLength);
 
 UINT64 GetNewDebuggerEventTag();
-

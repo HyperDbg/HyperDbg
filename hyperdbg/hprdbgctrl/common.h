@@ -13,18 +13,40 @@
 
 #pragma once
 
+//////////////////////////////////////////////////
+//				    Functions                   //
+//////////////////////////////////////////////////
+
 void PrintBits(size_t const size, void const *const ptr);
+
 void ReplaceAll(std::string &str, const std::string &from,
                 const std::string &to);
+
 const vector<string> Split(const string &s, const char &c);
+
 bool IsNumber(const string &str);
+
 vector<string> SplitIp(const string &str, char delim);
+
 bool IsHexNotation(std::string s);
+
 vector<char> HexToBytes(const std::string &hex);
+
 BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result);
+
 BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result);
+
 BOOLEAN HasEnding(std::string const &fullString, std::string const &ending);
+
 bool ValidateIP(string ip);
+
+bool VmxSupportDetection();
+
+BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
+
+//////////////////////////////////////////////////
+//				    Structures                  //
+//////////////////////////////////////////////////
 
 //
 // These structures are copied from Process Hacker source code (ntldr.h)

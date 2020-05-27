@@ -381,7 +381,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   return TRUE;
   */
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return FALSE;
   }
@@ -391,7 +391,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   //
 
   Status =
-      DeviceIoControl(DeviceHandle,                  // Handle to device
+      DeviceIoControl(g_DeviceHandle,                  // Handle to device
                       IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
                       Event,                         // Input Buffer to driver.
                       EventBufferLength,             // Input buffer length
@@ -439,7 +439,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   return TRUE;
   */
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded.\n");
     return FALSE;
   }
@@ -449,7 +449,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   //
 
   Status =
-      DeviceIoControl(DeviceHandle,                       // Handle to device
+      DeviceIoControl(g_DeviceHandle,                       // Handle to device
                       IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
                       Action,              // Input Buffer to driver.
                       ActionsBufferLength, // Input buffer length

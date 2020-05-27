@@ -16,7 +16,7 @@ using namespace std;
 //
 // Global Variables
 //
-extern HANDLE DeviceHandle;
+extern HANDLE g_DeviceHandle;
 extern BOOLEAN g_IsVmxOffProcessStart;
 extern Callback g_MessageHandler;
 extern TCHAR g_DriverLocation[MAX_PATH];
@@ -65,47 +65,6 @@ void ShowMessages(const char *Fmt, ...) {
   } else {
     MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
   }
-}
-
-/**
- * @brief Detect VMX support
- *
- * @return true if vmx is supported
- * @return false if vmx is not supported
- */
-bool VmxSupportDetection() { return AsmVmxSupportDetection(); }
-
-/**
- * @brief SetPrivilege enables/disables process token privilege
- *
- * @param hToken
- * @param lpszPrivilege
- * @param bEnablePrivilege
- * @return BOOL
- */
-BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
-  LUID luid;
-  BOOL bRet = FALSE;
-
-  if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
-    TOKEN_PRIVILEGES tp;
-
-    tp.PrivilegeCount = 1;
-    tp.Privileges[0].Luid = luid;
-    tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
-    //
-    //  Enable the privilege or disable all privileges.
-    //
-    if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL,
-                              (PDWORD)NULL)) {
-      //
-      //  Check to see if you have proper access.
-      //  You may get "ERROR_NOT_ALL_ASSIGNED".
-      //
-      bRet = (GetLastError() == ERROR_SUCCESS);
-    }
-  }
-  return bRet;
 }
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
@@ -310,7 +269,7 @@ HPRDBGCTRL_API int HyperdbgLoad() {
   HANDLE hProcess;
   HANDLE hToken;
 
-  if (DeviceHandle) {
+  if (g_DeviceHandle) {
     ShowMessages("Handle of driver found, if you use 'load' before, please "
                  "first unload it then call 'unload'.\n");
     return 1;
@@ -344,14 +303,14 @@ HPRDBGCTRL_API int HyperdbgLoad() {
     CloseHandle(hToken);
   }
 
-  DeviceHandle = CreateFileA(
+  g_DeviceHandle = CreateFileA(
       "\\\\.\\HyperdbgHypervisorDevice", GENERIC_READ | GENERIC_WRITE,
       FILE_SHARE_READ | FILE_SHARE_WRITE,
       NULL, /// lpSecurityAttirbutes
       OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
       NULL); /// lpTemplateFile
 
-  if (DeviceHandle == INVALID_HANDLE_VALUE) {
+  if (g_DeviceHandle == INVALID_HANDLE_VALUE) {
     ErrorNum = GetLastError();
     if (ErrorNum == 5) {
       ShowMessages("Error: Access denied! Are you sure you have administrator "
@@ -387,7 +346,7 @@ HPRDBGCTRL_API int HyperdbgLoad() {
 HPRDBGCTRL_API int HyperdbgUnload() {
   BOOL Status;
 
-  if (!DeviceHandle) {
+  if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not initialized.\n");
     return 1;
   }
@@ -397,7 +356,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   //
   // Send IOCTL to mark complete all IRP Pending
   //
-  Status = DeviceIoControl(DeviceHandle,        // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,        // Handle to device
                            IOCTL_TERMINATE_VMX, // IO Control code
                            NULL,                // Input Buffer to driver.
                            0, // Length of input buffer in bytes. (x 2 is bcuz
@@ -419,7 +378,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   // Send IOCTL to mark complete all IRP Pending
   //
   Status = DeviceIoControl(
-      DeviceHandle,                                        // Handle to device
+      g_DeviceHandle,                                        // Handle to device
       IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control code
       NULL, // Input Buffer to driver.
       0, // Length of input buffer in bytes. (x 2 is bcuz as the driver is x64
@@ -447,14 +406,14 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   //
   // Send IRP_MJ_CLOSE to driver to terminate Vmxs
   //
-  if (!CloseHandle(DeviceHandle)) {
+  if (!CloseHandle(g_DeviceHandle)) {
     ShowMessages("Error : 0x%x\n", GetLastError());
   };
 
   //
   // Null the handle to indicate that the driver's device is not ready to use
   //
-  DeviceHandle = NULL;
+  g_DeviceHandle = NULL;
 
   ShowMessages("You're not on hypervisor anymore !\n");
 }

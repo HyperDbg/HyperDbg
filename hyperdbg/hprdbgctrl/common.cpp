@@ -176,22 +176,73 @@ BOOLEAN HasEnding(std::string const &fullString, std::string const &ending) {
   }
 }
 
+//
 // Function to validate an IP address
+//
 bool ValidateIP(string ip) {
+  //
   // split the string into tokens
+  //
   vector<string> list = SplitIp(ip, '.');
 
+  //
   // if token size is not equal to four
+  //
   if (list.size() != 4)
     return false;
 
+  //
   // validate each token
+  //
   for (string str : list) {
+    //
     // verify that string is number or not and the numbers
     // are in the valid range
+    //
     if (!IsNumber(str) || stoi(str) > 255 || stoi(str) < 0)
       return false;
   }
 
   return true;
+}
+
+/**
+ * @brief Detect VMX support
+ *
+ * @return true if vmx is supported
+ * @return false if vmx is not supported
+ */
+bool VmxSupportDetection() { return AsmVmxSupportDetection(); }
+
+/**
+ * @brief SetPrivilege enables/disables process token privilege
+ *
+ * @param hToken
+ * @param lpszPrivilege
+ * @param bEnablePrivilege
+ * @return BOOL
+ */
+BOOL SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
+  LUID luid;
+  BOOL bRet = FALSE;
+
+  if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
+    TOKEN_PRIVILEGES tp;
+
+    tp.PrivilegeCount = 1;
+    tp.Privileges[0].Luid = luid;
+    tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
+    //
+    //  Enable the privilege or disable all privileges.
+    //
+    if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL,
+                              (PDWORD)NULL)) {
+      //
+      //  Check to see if you have proper access.
+      //  You may get "ERROR_NOT_ALL_ASSIGNED".
+      //
+      bRet = (GetLastError() == ERROR_SUCCESS);
+    }
+  }
+  return bRet;
 }

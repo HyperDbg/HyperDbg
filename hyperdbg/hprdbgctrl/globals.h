@@ -1,5 +1,10 @@
 #pragma once
 
+//////////////////////////////////////////////////
+//				 Global Variables               //
+//////////////////////////////////////////////////
+
+
 bool g_IsConnectedToDebugger = false;
 
 bool g_IsDebuggerModulesLoaded = false;
@@ -16,4 +21,4 @@ Callback g_MessageHandler = 0;
 
 BOOLEAN g_IsVmxOffProcessStart; // Show whether the vmxoff process start or not
 
-HANDLE DeviceHandle;
+HANDLE g_DeviceHandle;
