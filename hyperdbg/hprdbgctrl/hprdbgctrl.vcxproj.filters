@@ -28,6 +28,12 @@
     <Filter Include="Source Files\Debugger\Essentials">
       <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{f2afff38-c518-4252-bd1d-7573d4190f44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DrvLoader">
+      <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -57,6 +63,9 @@
     <ClInclude Include="help.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hprdbgctrl.cpp">
@@ -74,18 +83,6 @@
     <ClCompile Include="lm.cpp">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="disassembler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="list.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="common.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="install23.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cls.cpp">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
@@ -100,9 +97,6 @@
     </ClCompile>
     <ClCompile Include="connect.cpp">
       <Filter>Source Files\Debugger\Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="formats.cpp">
-      <Filter>Source Files\Debugger</Filter>
     </ClCompile>
     <ClCompile Include="interpreter.cpp">
       <Filter>Source Files\Debugger\Essentials</Filter>
@@ -123,6 +117,33 @@
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
     <ClCompile Include="hiddenhook.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="list.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="install.cpp">
+      <Filter>Source Files\DrvLoader</Filter>
+    </ClCompile>
+    <ClCompile Include="load.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="unload.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="exit.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="disconnect.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="disassembler.cpp">
+      <Filter>Source Files\Debugger\Implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="formats.cpp">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
   </ItemGroup>

@@ -11,17 +11,17 @@
  */
 
 #include "pch.h"
+using namespace std;
 
 //
 // Global Variables
 //
-HANDLE DeviceHandle;
-using namespace std;
-BOOLEAN IsVmxOffProcessStart; // Show whether the vmxoff process start or not
-Callback Handler = 0;
-TCHAR driverLocation[MAX_PATH] = {0};
-LIST_ENTRY g_EventTrace = {0};
-BOOLEAN g_EventTraceInitialized = FALSE;
+extern HANDLE DeviceHandle;
+extern BOOLEAN g_IsVmxOffProcessStart;
+extern Callback g_MessageHandler;
+extern TCHAR g_DriverLocation[MAX_PATH];
+extern LIST_ENTRY g_EventTrace;
+extern BOOLEAN g_EventTraceInitialized;
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -30,7 +30,7 @@ BOOLEAN g_EventTraceInitialized = FALSE;
  * @param handler Function that handles the messages
  */
 void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
-  Handler = handler;
+  g_MessageHandler = handler;
 }
 
 /**
@@ -44,7 +44,7 @@ void ShowMessages(const char *Fmt, ...) {
   va_list Args;
   char TempMessage[PacketChunkSize];
 
-  if (Handler == NULL) {
+  if (g_MessageHandler == NULL) {
 
     va_start(Args, Fmt);
     vprintf(Fmt, Args);
@@ -59,8 +59,8 @@ void ShowMessages(const char *Fmt, ...) {
   va_end(ArgList);
 
   if (sprintfresult != -1) {
-    if (Handler != NULL) {
-      Handler(TempMessage);
+    if (g_MessageHandler != NULL) {
+      g_MessageHandler(TempMessage);
     }
   } else {
     MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
@@ -166,7 +166,7 @@ void ReadIrpBasedBuffer() {
   try {
 
     while (TRUE) {
-      if (!IsVmxOffProcessStart) {
+      if (!g_IsVmxOffProcessStart) {
         ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
         Sleep(200); // we're not trying to eat all of the CPU ;)
@@ -262,12 +262,12 @@ HPRDBGCTRL_API int HyperdbgInstallDriver() {
   // First setup full path to driver name.
   //
 
-  if (!SetupDriverName(driverLocation, sizeof(driverLocation))) {
+  if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation))) {
 
     return 1;
   }
 
-  if (!ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_INSTALL)) {
+  if (!ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL)) {
 
     ShowMessages("Unable to install driver\n");
 
@@ -275,7 +275,7 @@ HPRDBGCTRL_API int HyperdbgInstallDriver() {
     // Error - remove driver.
     //
 
-    ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_REMOVE);
+    ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
     return 1;
   }
@@ -291,8 +291,8 @@ HPRDBGCTRL_API int HyperdbgUninstallDriver() {
   //
   // Unload the driver if loaded.  Ignore any errors.
   //
-  if (driverLocation[0] != (TCHAR)0) {
-    ManageDriver(DRIVER_NAME, driverLocation, DRIVER_FUNC_REMOVE);
+  if (g_DriverLocation[0] != (TCHAR)0) {
+    ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
   }
   return 0;
 }
@@ -440,7 +440,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   //
   // Indicate that the finish process start or not
   //
-  IsVmxOffProcessStart = TRUE;
+  g_IsVmxOffProcessStart = TRUE;
 
   Sleep(1000); // Wait so next thread can return from IRP Pending
 

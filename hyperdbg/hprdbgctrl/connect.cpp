@@ -11,8 +11,16 @@
  */
 #include "pch.h"
 
-bool g_IsConnectedToDebugger = false;
-bool g_IsDebuggerModulesLoaded = false;
+//
+// Global Variables Header
+//
+#include "globals.h"
+
+//
+// Global Variables
+//
+extern bool g_IsConnectedToDebugger;
+extern bool g_IsDebuggerModulesLoaded;
 
 void CommandConnectHelp() {
   ShowMessages(".connect : connects to a remote or local machine to start "
@@ -70,138 +78,4 @@ void CommandConnect(vector<string> SplittedCommand) {
     CommandConnectHelp();
     return;
   }
-}
-
-void CommandLoadHelp() {
-  ShowMessages("load : installs the driver and load the kernel modules.\n\n");
-  ShowMessages("syntax : \tload\n");
-}
-void CommandLoad(vector<string> SplittedCommand) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'load'\n\n");
-    CommandLoadHelp();
-    return;
-  }
-  if (!g_IsConnectedToDebugger) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
-                 "use '.connect'? \n");
-    return;
-  }
-  ShowMessages("try to install driver...\n");
-  if (HyperdbgInstallDriver()) {
-    ShowMessages("Failed to install driver\n");
-    return;
-  }
-
-  ShowMessages("try to install load kernel modules...\n");
-  if (HyperdbgLoad()) {
-    ShowMessages("Failed to load driver\n");
-    return;
-  }
-
-  //
-  // If we reach here so the module are loaded
-  //
-  g_IsDebuggerModulesLoaded = true;
-}
-
-void CommandUnloadHelp() {
-  ShowMessages(
-      "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
-  ShowMessages("syntax : \tunload\n");
-}
-void CommandUnload(vector<string> SplittedCommand) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'unload'\n\n");
-    CommandLoadHelp();
-    return;
-  }
-  if (!g_IsConnectedToDebugger) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
-                 "use '.connect'? \n");
-    return;
-  }
-
-  if (g_IsDebuggerModulesLoaded) {
-    HyperdbgUnload();
-
-    //
-    // Installing Driver
-    //
-    if (HyperdbgUninstallDriver()) {
-      ShowMessages("Failed to uninstall driver\n");
-    }
-  } else {
-    ShowMessages("there is nothing to unload\n");
-  }
-}
-
-void CommandCpuHelp() {
-  ShowMessages("cpu : collects a report from cpu features.\n\n");
-  ShowMessages("syntax : \tcpu\n");
-}
-void CommandCpu(vector<string> SplittedCommand) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'cpu'\n\n");
-    CommandCpuHelp();
-    return;
-  }
-  ReadCpuDetails();
-}
-
-void CommandExitHelp() {
-  ShowMessages(
-      "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
-  ShowMessages("syntax : \texit\n");
-}
-void CommandExit(vector<string> SplittedCommand) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'exit'\n\n");
-    CommandExitHelp();
-    return;
-  }
-
-  //
-  // unload and exit
-  //
-  if (g_IsDebuggerModulesLoaded) {
-    HyperdbgUnload();
-
-    //
-    // Installing Driver
-    //
-    if (HyperdbgUninstallDriver()) {
-      ShowMessages("Failed to uninstall driver\n");
-    }
-  }
-
-  exit(0);
-}
-
-void CommandDisconnectHelp() {
-  ShowMessages(".disconnect : disconnect from a debugging session (it won't "
-               "unload the modules).\n\n");
-  ShowMessages("syntax : \.disconnect\n");
-}
-void CommandDisconnect(vector<string> SplittedCommand) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of '.disconnect'\n\n");
-    CommandDisconnectHelp();
-    return;
-  }
-  if (!g_IsConnectedToDebugger) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
-                 "use '.connect'? \n");
-    return;
-  }
-  //
-  // Disconnect the session
-  //
-  g_IsConnectedToDebugger = false;
-  ShowMessages("successfully disconnected\n");
 }

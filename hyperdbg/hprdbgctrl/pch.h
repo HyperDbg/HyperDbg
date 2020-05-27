@@ -26,13 +26,14 @@
 //
 // add headers that you want to pre-compile here
 //
-#include "framework.h"
+
 #include <Windows.h>
 #include <algorithm>
 #include <conio.h>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -41,11 +42,14 @@
 #include <vector>
 #include <winioctl.h>
 #include <winternl.h>
+#include <array>
+#include <bitset>
+#include <intrin.h>
+#include <inttypes.h>
 
 //
 // HyperDbg defined headers
 //
-
 #include "Configuration.h"
 #include "Definition.h"
 #include "commands.h"
@@ -57,3 +61,5 @@
 #include "list.h"
 
 #endif // PCH_H
+
+#pragma comment(lib,"ntdll.lib")

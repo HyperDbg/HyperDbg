@@ -11,8 +11,16 @@
  */
 
 #include "pch.h"
-
 using namespace std;
+
+string SeparateTo64BitValue(UINT64 Value) {
+  std::ostringstream ostringStream;
+  ostringStream << std::setw(16) << std::setfill('0') << std::hex << Value;
+  string temp = ostringStream.str();
+
+  temp.insert(8, 1, '`');
+  return temp;
+}
 
 void PrintBits(size_t const size, void const *const ptr) {
   unsigned char *b = (unsigned char *)ptr;

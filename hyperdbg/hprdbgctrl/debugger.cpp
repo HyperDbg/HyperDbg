@@ -11,7 +11,10 @@
  */
 #include "pch.h"
 
-UINT64 g_EventTag = DebuggerEventTagStartSeed;
+//
+// Global Variables
+//
+extern UINT64 g_EventTag;
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
 

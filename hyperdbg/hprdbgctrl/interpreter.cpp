@@ -11,29 +11,12 @@
  */
 
 #include "pch.h"
-#include <algorithm>
-#include <iomanip>
-#include <iterator>
-#include <sstream>
-#include <string>
-#include <time.h>
-#include <vector>
 
 using namespace std;
 
 // Exports
 extern "C" {
 __declspec(dllexport) int __cdecl HyperdbgInterpreter(const char *Command);
-}
-
-
-string SeparateTo64BitValue(UINT64 Value) {
-    std::ostringstream ostringStream;
-    ostringStream << std::setw(16) << std::setfill('0') << std::hex << Value;
-    string temp = ostringStream.str();
-
-    temp.insert(8, 1, '`');
-    return temp;
 }
 
 /* ==============================================================================================
