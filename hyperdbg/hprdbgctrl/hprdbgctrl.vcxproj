@@ -104,12 +104,27 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="commands.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="debugger.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="help.h" />
     <ClInclude Include="hprdbgctrl.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cls.cpp" />
+    <ClCompile Include="connect.cpp" />
+    <ClCompile Include="d-u.cpp" />
+    <ClCompile Include="debugger.cpp" />
+    <ClCompile Include="formats.cpp" />
+    <ClCompile Include="hiddenhook.cpp" />
+    <ClCompile Include="monitor.cpp" />
+    <ClCompile Include="pte.cpp" />
+    <ClCompile Include="rdmsr.cpp" />
+    <ClCompile Include="readmem.cpp" />
+    <ClCompile Include="syscall-sysret.cpp" />
+    <ClCompile Include="wrmsr.cpp" />
     <MASM Include="AsmVmxChecks.asm">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -119,8 +134,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="hprdbgctrl.cpp" />
-    <ClCompile Include="Install.cpp" />
+    <ClCompile Include="install23.cpp" />
     <ClCompile Include="interpreter.cpp" />
     <ClCompile Include="list.cpp" />
     <ClCompile Include="lm.cpp" />

@@ -16,8 +16,17 @@
     <Filter Include="Source Files\Assembly Files">
       <UniqueIdentifier>{ed8a8dd7-a467-4ebc-b8e8-2126d1b061dd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Routines">
+    <Filter Include="Source Files\Debugger">
+      <UniqueIdentifier>{cb7159dd-9497-477e-98df-23159103b037}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Commands">
       <UniqueIdentifier>{2f4ae7fa-1e79-4ff8-9a3a-7f5cca3c4143}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Implementations">
+      <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Essentials">
+      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +48,15 @@
     <ClInclude Include="list.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="debugger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="help.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hprdbgctrl.cpp">
@@ -50,23 +68,62 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="interpreter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cpu.cpp">
-      <Filter>Source Files\Routines</Filter>
+      <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
     <ClCompile Include="lm.cpp">
-      <Filter>Source Files\Routines</Filter>
+      <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
     <ClCompile Include="disassembler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Install.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="list.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="install23.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cls.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="d-u.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="readmem.cpp">
+      <Filter>Source Files\Debugger\Implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="debugger.cpp">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="connect.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="formats.cpp">
+      <Filter>Source Files\Debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="interpreter.cpp">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="rdmsr.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="wrmsr.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="pte.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="monitor.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="syscall-sysret.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="hiddenhook.cpp">
+      <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

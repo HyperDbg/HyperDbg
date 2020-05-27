@@ -5,17 +5,19 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 
 //
 // pch.h: This is a precompiled header file.
-// Files listed below are compiled only once, improving build performance for future builds.
-// This also affects IntelliSense performance, including code completion and many code browsing features.
-// However, files listed here are ALL re-compiled if any one of them is updated between builds.
-// Do not add files here that you will be updating frequently as this negates the performance advantage.
+// Files listed below are compiled only once, improving build performance for
+// future builds. This also affects IntelliSense performance, including code
+// completion and many code browsing features. However, files listed here are
+// ALL re-compiled if any one of them is updated between builds. Do not add
+// files here that you will be updating frequently as this negates the
+// performance advantage.
 //
 
 #ifndef PCH_H
@@ -26,27 +28,32 @@
 //
 #include "framework.h"
 #include <Windows.h>
-#include <winioctl.h>
+#include <algorithm>
+#include <conio.h>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <strsafe.h>
-#include <conio.h>
-#include <iostream>  
-#include <winternl.h>
-#include <algorithm>
-#include <iterator>
-#include <vector>
-#include <time.h>
 #include <string>
+#include <strsafe.h>
+#include <time.h>
+#include <vector>
+#include <winioctl.h>
+#include <winternl.h>
 
+//
+// HyperDbg defined headers
+//
 
-#include "Definition.h"
 #include "Configuration.h"
+#include "Definition.h"
+#include "commands.h"
+#include "common.h"
+#include "debugger.h"
 #include "framework.h"
+#include "help.h"
 #include "hprdbgctrl.h"
-#include "Commands.h"
 #include "list.h"
 
-
-#endif //PCH_H
+#endif // PCH_H

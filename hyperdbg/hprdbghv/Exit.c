@@ -271,7 +271,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
                 g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
             }
-            // LogInfo("Interrupt vector : 0x%x", InterruptExit.Vector);
+            LogInfo("Interrupt vector : 0x%x", InterruptExit.Vector);
             //
             // Re-inject the interrupt/exception
             //
@@ -336,6 +336,27 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         //__halt();
         //
+        break;
+    }
+    case EXIT_REASON_RDTSC:
+    {
+        //
+        // I realized that if you log anything here (LogInfo) then
+        // the system-halts, currently don't have any idea of how
+        // to solve it, in the future we solve it using tsc offsectiong
+        // or tsc scalling
+        //
+        ULONG64 Tsc    = __rdtsc();
+        GuestRegs->rax = 0x00000000ffffffff & Tsc;
+        GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+        break;
+    }
+    case EXIT_REASON_RDTSCP:
+    {
+        int     Aux    = 0;
+        ULONG64 Tsc    = __rdtscp(&Aux);
+        GuestRegs->rax = 0x00000000ffffffff & Tsc;
+        GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
         break;
     }
     default:

@@ -439,7 +439,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     //__vmx_vmwrite(EXCEPTION_BITMAP, 0x40); // #UDs 3nd bit
     //__vmx_vmwrite(EXCEPTION_BITMAP, 0xffffffff & ~(1 << 14)); // Anything execpt #PF
-    __vmx_vmwrite(EXCEPTION_BITMAP, 0xffffffff); // Anything
+    //__vmx_vmwrite(EXCEPTION_BITMAP, 0xffffffff); // Anything
 
     //
     // Set up EPT
