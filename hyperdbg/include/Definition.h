@@ -399,6 +399,11 @@ typedef struct _DEBUGGER_EVENT {
   BOOLEAN Enabled;
   UINT32 CoreId; // determines the core index to apply this event to, if it's
                  // 0xffffffff means that we have to apply it to all cores
+
+  UINT32
+      ProcessId; // determines the pid to apply this event to, if it's
+                 // 0xffffffff means that we have to apply it to all processes
+
   LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
   UINT32 CountOfActions;      // The total count of actions
 

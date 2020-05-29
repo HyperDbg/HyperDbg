@@ -68,6 +68,7 @@ DebuggerInitialize()
 PDEBUGGER_EVENT
 DebuggerCreateEvent(BOOLEAN                  Enabled,
                     UINT32                   CoreId,
+                    UINT32                   ProcessId,
                     DEBUGGER_EVENT_TYPE_ENUM EventType,
                     UINT64                   Tag,
                     UINT64                   OptionalParam1,
@@ -100,6 +101,7 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
     RtlZeroMemory(Event, sizeof(DEBUGGER_EVENT) + ConditionsBufferSize);
 
     Event->CoreId         = CoreId;
+    Event->ProcessId      = ProcessId;
     Event->Enabled        = Enabled;
     Event->EventType      = EventType;
     Event->Tag            = Tag;
@@ -339,6 +341,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     PLIST_ENTRY                 TempList  = 0;
     PLIST_ENTRY                 TempList2 = 0;
     DebuggerCheckForCondition * ConditionFunc;
+
     //
     // Check if triggering debugging actions are allowed or not
     //
@@ -426,6 +429,17 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
+        // Check if this event is for this process or not
+        //
+        if (CurrentEvent->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES && CurrentEvent->ProcessId != PsGetCurrentProcessId())
+        {
+            //
+            // This event is not related to either our process or all processes
+            //
+            continue;
+        }
+
+        //
         // For hidden hook read/writes we check whether the address
         // is in the range of what user specified or not, this is because
         // we get the events for all hidden hooks in a page granularity
@@ -439,6 +453,32 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             {
                 //
                 // The value is not withing our expected range
+                //
+                continue;
+            }
+        }
+
+        //
+        // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS then it means
+        // that it's detours hidden hook exec so we have to make sure
+        // to perform its actions, only if the hook is triggered for
+        // the address described in event, note that address in event
+        // is a physical address and the address that the function that
+        // triggers these events and sent here as the context is also
+        // converted to its physical form
+        //
+        // This way we are sure that no one can bypass our hook by remapping
+        // address to another virtual address as everything is physical
+        //
+        if (CurrentEvent->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+        {
+            //
+            // Context is the physical address
+            //
+            if (Context != CurrentEvent->OptionalParam1)
+            {
+                //
+                // The hook is not for this (physical) address
                 //
                 continue;
             }
@@ -850,8 +890,6 @@ DebuggerRemoveEvent(UINT64 Tag)
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    // DbgBreakPoint();
-
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
 
@@ -913,6 +951,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event = DebuggerCreateEvent(FALSE,
                                     EventDetails->CoreId,
+                                    EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
                                     EventDetails->OptionalParam1,
@@ -929,6 +968,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event = DebuggerCreateEvent(FALSE,
                                     EventDetails->CoreId,
+                                    EventDetails->ProcessId,
                                     EventDetails->EventType,
                                     EventDetails->Tag,
                                     EventDetails->OptionalParam1,
@@ -1016,6 +1056,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
         EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, FALSE, FALSE, TRUE);
+
+        //
+        // We set events OptionalParam1 here to make sure that our event is
+        // executed not for all hooks but for this special hook
+        //
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
@@ -1162,7 +1208,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
 //   //
 //   // Create event based on condition buffer
 //   //
-//   PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
+//   PDEBUGGER_EVENT Event1 = DebuggerCreateEvent(TRUE, DEBUGGER_EVENT_APPLY_TO_ALL_CORES, DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES, SYSCALL_HOOK_EFER, 0x85858585, sizeof(CondtionBuffer), CondtionBuffer);
 //
 //   if (!Event1)
 //   {
