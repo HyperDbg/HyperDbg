@@ -14,12 +14,15 @@
 using namespace std;
 
 string SeparateTo64BitValue(UINT64 Value) {
-  std::ostringstream ostringStream;
-  ostringStream << std::setw(16) << std::setfill('0') << std::hex << Value;
-  string temp = ostringStream.str();
 
-  temp.insert(8, 1, '`');
-  return temp;
+  ostringstream OstringStream;
+  string Temp;
+
+  OstringStream << setw(16) << setfill('0') << hex << Value;
+  Temp = OstringStream.str();
+
+  Temp.insert(8, 1, '`');
+  return Temp;
 }
 
 VOID PrintBits(size_t const size, void const *const ptr) {
@@ -37,16 +40,23 @@ VOID PrintBits(size_t const size, void const *const ptr) {
 }
 
 VOID ReplaceAll(string &str, const string &from, const string &to) {
+
+  size_t SartPos = 0;
+
   if (from.empty())
     return;
-  size_t start_pos = 0;
-  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-    str.replace(start_pos, from.length(), to);
-    start_pos += to.length(); // In case 'to' contains 'from', like replacing
-                              // 'x' with 'yx'
+
+  while ((SartPos = str.find(from, SartPos)) != std::string::npos) {
+    str.replace(SartPos, from.length(), to);
+    //
+    // In case 'to' contains 'from', like replacing
+    // 'x' with 'yx'
+    //
+    SartPos += to.length();
   }
 }
 const vector<string> Split(const string &s, const char &c) {
+
   string buff{""};
   vector<string> v;
 
@@ -63,20 +73,30 @@ const vector<string> Split(const string &s, const char &c) {
 
   return v;
 }
+
+//
 // check if given string is a numeric string or not
+//
 BOOLEAN IsNumber(const string &str) {
+
+  //
   // std::find_first_not_of searches the string for the first character
   // that does not match any of the characters specified in its arguments
+  //
   return !str.empty() &&
          (str.find_first_not_of("[0123456789]") == std::string::npos);
 }
 
+//
 // Function to split string str using given delimiter
+//
 vector<string> SplitIp(const string &str, char delim) {
-  auto i = 0;
-  vector<string> list;
 
-  auto pos = str.find(delim);
+  int i = 0;
+  vector<string> list;
+  size_t pos;
+
+  pos = str.find(delim);
 
   while (pos != string::npos) {
     list.push_back(str.substr(i, pos - i));
@@ -90,29 +110,35 @@ vector<string> SplitIp(const string &str, char delim) {
 }
 
 BOOLEAN IsHexNotation(string s) {
+
   BOOLEAN IsAnyThing = FALSE;
+
   for (char &c : s) {
+
     IsAnyThing = TRUE;
+
     if (!isxdigit(c)) {
       return FALSE;
     }
   }
   if (IsAnyThing) {
+
     return TRUE;
   }
   return FALSE;
 }
 
 vector<char> HexToBytes(const string &hex) {
-  std::vector<char> bytes;
+
+  vector<char> Bytes;
 
   for (unsigned int i = 0; i < hex.length(); i += 2) {
     std::string byteString = hex.substr(i, 2);
     char byte = (char)strtol(byteString.c_str(), NULL, 16);
-    bytes.push_back(byte);
+    Bytes.push_back(byte);
   }
 
-  return bytes;
+  return Bytes;
 }
 
 BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
@@ -163,10 +189,15 @@ BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
     return FALSE;
   }
   TempResult = stoi(TextToConvert, nullptr, 16);
+
+  //
+  // Apply the results
+  //
   *Result = TempResult;
 }
 
 BOOLEAN HasEnding(string const &fullString, string const &ending) {
+
   if (fullString.length() >= ending.length()) {
     return (0 == fullString.compare(fullString.length() - ending.length(),
                                     ending.length(), ending));
@@ -179,6 +210,7 @@ BOOLEAN HasEnding(string const &fullString, string const &ending) {
 // Function to validate an IP address
 //
 BOOLEAN ValidateIP(string ip) {
+
   //
   // split the string into tokens
   //
@@ -211,7 +243,12 @@ BOOLEAN ValidateIP(string ip) {
  * @return true if vmx is supported
  * @return false if vmx is not supported
  */
-BOOLEAN VmxSupportDetection() { return AsmVmxSupportDetection(); }
+BOOLEAN VmxSupportDetection() {
+  //
+  // Call asm function
+  //
+  return AsmVmxSupportDetection();
+}
 
 /**
  * @brief SetPrivilege enables/disables process token privilege
@@ -221,7 +258,8 @@ BOOLEAN VmxSupportDetection() { return AsmVmxSupportDetection(); }
  * @param bEnablePrivilege
  * @return BOOL
  */
-BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege) {
+BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege,
+                     BOOL bEnablePrivilege) {
   LUID luid;
   BOOLEAN bRet = FALSE;
 

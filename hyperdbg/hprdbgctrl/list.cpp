@@ -17,6 +17,7 @@ void InitializeListHead(PLIST_ENTRY ListHead) {
 }
 
 void InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry) {
+
   PLIST_ENTRY Flink;
 
   Flink = ListHead->Flink;

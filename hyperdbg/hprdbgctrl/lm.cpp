@@ -15,6 +15,7 @@ VOID CommandLmHelp() {
 
 int CommandLm(vector<string> SplittedCommand) {
 
+  PRTL_PROCESS_MODULES ModuleInfo;
   NTSTATUS status;
   ULONG i;
   char *Search;
@@ -24,8 +25,6 @@ int CommandLm(vector<string> SplittedCommand) {
     CommandLmHelp();
     return -1;
   }
-
-  PRTL_PROCESS_MODULES ModuleInfo;
 
   ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
       NULL, 1024 * 1024, MEM_COMMIT | MEM_RESERVE,

@@ -32,15 +32,14 @@ VOID CommandReadMemoryHelp() {
 
 VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
 
-  string FirstCommand = SplittedCommand.front();
-
   UINT32 Pid = 0;
   UINT32 Length = 0;
   UINT64 TargetAddress = 0;
-  bool IsNextProcessId = false;
-  bool IsFirstCommand = true;
+  BOOLEAN IsNextProcessId = FALSE;
+  BOOLEAN IsFirstCommand = TRUE;
+  BOOLEAN IsNextLength = FALSE;
 
-  bool IsNextLength = false;
+  string FirstCommand = SplittedCommand.front();
 
   if (SplittedCommand.size() == 1) {
     //
@@ -54,35 +53,35 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
 
   for (auto Section : SplittedCommand) {
     if (IsFirstCommand) {
-      IsFirstCommand = false;
+      IsFirstCommand = FALSE;
       continue;
     }
-    if (IsNextProcessId == true) {
+    if (IsNextProcessId == TRUE) {
       if (!ConvertStringToUInt32(Section, &Pid)) {
         ShowMessages("Err, you should enter a valid proc id\n\n");
         return;
       }
-      IsNextProcessId = false;
+      IsNextProcessId = FALSE;
       continue;
     }
 
-    if (IsNextLength == true) {
+    if (IsNextLength == TRUE) {
 
       if (!ConvertStringToUInt32(Section, &Length)) {
         ShowMessages("Err, you should enter a valid length\n\n");
         return;
       }
-      IsNextLength = false;
+      IsNextLength = FALSE;
       continue;
     }
 
     if (!Section.compare("l")) {
-      IsNextLength = true;
+      IsNextLength = TRUE;
       continue;
     }
 
     if (!Section.compare("pid")) {
-      IsNextProcessId = true;
+      IsNextProcessId = TRUE;
       continue;
     }
 
@@ -134,6 +133,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
     return;
   }
   if (Pid == 0) {
+
     //
     // Default process we read from current process
     //
@@ -174,6 +174,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
                                      DEBUGGER_READ_PHYSICAL_ADDRESS,
                                      READ_FROM_KERNEL, Pid, Length);
   }
+
   //
   // Disassembler (!u or u)
   //

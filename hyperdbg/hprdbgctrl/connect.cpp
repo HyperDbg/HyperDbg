@@ -32,7 +32,11 @@ VOID CommandConnectHelp() {
 
 VOID CommandConnect(vector<string> SplittedCommand) {
 
+  string ip;
+  string port;
+
   if (SplittedCommand.size() == 1) {
+
     //
     // Means that user entered just a connect so we have to
     // ask to connect to what ?
@@ -40,18 +44,20 @@ VOID CommandConnect(vector<string> SplittedCommand) {
     ShowMessages("incorrect use of '.connect'\n\n");
     CommandConnectHelp();
     return;
+
   } else if (SplittedCommand.at(1) == "local" && SplittedCommand.size() == 2) {
+
     //
     // connect to local debugger
     //
     ShowMessages("local debug current system\n");
     g_IsConnectedToDebugger = TRUE;
-
     return;
+
   } else if (SplittedCommand.size() == 3) {
 
-    string ip = SplittedCommand.at(1);
-    string port = SplittedCommand.at(2);
+    ip = SplittedCommand.at(1);
+    port = SplittedCommand.at(2);
 
     //
     // means that probably wants to connect to a remote

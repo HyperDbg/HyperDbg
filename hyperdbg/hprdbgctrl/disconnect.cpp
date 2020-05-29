@@ -15,7 +15,6 @@
 // Global Variables
 //
 extern BOOLEAN g_IsConnectedToDebugger;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
 
 VOID CommandDisconnectHelp() {
   ShowMessages(".disconnect : disconnect from a debugging session (it won't "

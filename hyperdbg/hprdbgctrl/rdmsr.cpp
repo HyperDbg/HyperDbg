@@ -97,7 +97,6 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
   //
   // allocate buffer for transfering messages
   //
-
   UINT64 *OutputBuffer = (UINT64 *)malloc(sizeof(UINT64) * NumCPU);
 
   ZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);

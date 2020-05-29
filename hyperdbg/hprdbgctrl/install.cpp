@@ -12,17 +12,16 @@
 #include "pch.h"
 
 BOOLEAN
-InstallDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName,
-              _In_ LPCTSTR ServiceExe);
+InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe);
 
 BOOLEAN
-RemoveDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName);
+RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
 
 BOOLEAN
-StartDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName);
+StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
 
 BOOLEAN
-StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName);
+StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
 
 /**
  * @brief Install driver
@@ -33,8 +32,7 @@ StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName);
  * @return BOOLEAN
  */
 BOOLEAN
-InstallDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName,
-              _In_ LPCTSTR ServiceExe) {
+InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
   SC_HANDLE schService;
   DWORD err;
 
@@ -123,11 +121,9 @@ InstallDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName,
  * @return BOOLEAN
  */
 BOOLEAN
-ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName,
-             _In_ USHORT Function) {
+ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
 
   SC_HANDLE schSCManager;
-
   BOOLEAN rCode = TRUE;
 
   //
@@ -239,7 +235,7 @@ ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName,
  * @return BOOLEAN
  */
 BOOLEAN
-RemoveDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
+RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   SC_HANDLE schService;
   BOOLEAN rCode;
 
@@ -303,7 +299,7 @@ RemoveDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
  * @return BOOLEAN
  */
 BOOLEAN
-StartDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
+StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   SC_HANDLE schService;
   DWORD err;
 
@@ -375,7 +371,7 @@ StartDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
  * @return BOOLEAN
  */
 BOOLEAN
-StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
+StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   BOOLEAN rCode = TRUE;
   SC_HANDLE schService;
   SERVICE_STATUS serviceStatus;
@@ -436,7 +432,7 @@ StopDriver(_In_ SC_HANDLE SchSCManager, _In_ LPCTSTR DriverName) {
  */
 BOOLEAN
 SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
-                _In_ ULONG BufferLength) {
+                ULONG BufferLength) {
   HANDLE fileHandle;
   DWORD driverLocLen = 0;
 

@@ -9,6 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+
 #include "pch.h"
 
 VOID CommandPteHelp() {
@@ -48,9 +49,8 @@ VOID CommandPte(vector<string> SplittedCommand) {
   //
   // Send IOCTL
   //
-
   Status = DeviceIoControl(
-      g_DeviceHandle,                                   // Handle to device
+      g_DeviceHandle,                                 // Handle to device
       IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // IO Control code
       &PteRead,                                       // Input Buffer to driver.
       SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Input buffer length

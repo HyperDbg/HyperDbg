@@ -9,6 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+
 #include "pch.h"
 
 VOID CommandMonitorHelp() {
@@ -47,7 +48,6 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   // Interpret and fill the general event and action fields
   //
-  //
   // We use HIDDEN_HOOK_READ_AND_WRITE here but it might be changed to
   // HIDDEN_HOOK_READ or HIDDEN_HOOK_WRITE it is because we are not sure what
   // kind event the user need
@@ -62,7 +62,6 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   // Interpret command specific details (if any)
   //
-
   for (auto Section : SplittedCommand) {
     if (!Section.compare("!monitor")) {
       continue;

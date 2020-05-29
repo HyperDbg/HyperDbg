@@ -9,6 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+
 #include "pch.h"
 
 VOID CommandHiddenHookHelp() {
@@ -53,7 +54,6 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
   //
   // Interpret command specific details (if any)
   //
-
   for (auto Section : SplittedCommand) {
     if (!Section.compare("!hiddenhook")) {
       continue;

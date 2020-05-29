@@ -37,8 +37,8 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
   string AppendedFinalBuffer;
   vector<string> SaveBuffer;
   vector<CHAR> ParsedBytes;
-  unsigned char *FinalBuffer;
   vector<int> IndexesToRemove;
+  UCHAR *FinalBuffer;
   int Index = 0;
 
   for (auto Section : *SplittedCommand) {
@@ -101,6 +101,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
       IsInState = TRUE;
       continue;
     }
+
     if (IsTextVisited && Section.rfind("{", 0) == 0) {
       //
       // Section starts with {
@@ -219,10 +220,10 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         }
       }
     } else {
+
       //
       // It's a code
       //
-
       if (Section.rfind("code{", 0) == 0) {
 
         //
@@ -350,13 +351,9 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
   return TRUE;
 }
 
-/* ==============================================================================================
- */
-
 /**
  * @brief Register the event to the kernel
  */
-
 BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32 EventBufferLength) {
@@ -367,6 +364,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   //
   // Test
   //
+
   /*
   ShowMessages("Tag : %llx\n", Event->Tag);
   ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
@@ -391,7 +389,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   //
 
   Status =
-      DeviceIoControl(g_DeviceHandle,                  // Handle to device
+      DeviceIoControl(g_DeviceHandle,                // Handle to device
                       IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
                       Event,                         // Input Buffer to driver.
                       EventBufferLength,             // Input buffer length
@@ -413,9 +411,6 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
   return TRUE;
 }
-
-/* ==============================================================================================
- */
 
 /**
  * @brief Register the action to the event
@@ -447,9 +442,8 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   //
   // Send IOCTL
   //
-
   Status =
-      DeviceIoControl(g_DeviceHandle,                       // Handle to device
+      DeviceIoControl(g_DeviceHandle,                     // Handle to device
                       IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
                       Action,              // Input Buffer to driver.
                       ActionsBufferLength, // Input buffer length

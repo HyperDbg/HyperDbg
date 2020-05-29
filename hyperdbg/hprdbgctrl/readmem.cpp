@@ -45,7 +45,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 
   ZeroMemory(OutputBuffer, Size);
 
-  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
+  Status = DeviceIoControl(g_DeviceHandle,             // Handle to device
                            IOCTL_DEBUGGER_READ_MEMORY, // IO Control code
                            &ReadMem, // Input Buffer to driver.
                            SIZEOF_DEBUGGER_READ_MEMORY, // Input buffer length
@@ -75,6 +75,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       // Print the hex code
       //
       for (size_t j = 0; j < 16; j++) {
+
         //
         // check to see if the address is valid or not
         //
@@ -84,6 +85,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
           ShowMessages("%02X ", OutputBuffer[i + j]);
         }
       }
+
       //
       // Print the character
       //

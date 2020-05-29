@@ -1,8 +1,14 @@
-// InstructionSet.cpp
-// Compile by using: cl /EHsc /W4 InstructionSet.cpp
-// processor: x86, x64
-// Uses the __cpuid intrinsic to get information about
-// CPU extended instruction set support.
+/**
+ * @file d-u.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief cpu commands
+ * @details
+ * @version 0.1
+ * @date 2020-05-29
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 
 #include "pch.h"
 
