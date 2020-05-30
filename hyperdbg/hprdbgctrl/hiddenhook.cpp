@@ -17,8 +17,8 @@ VOID CommandHiddenHookHelp() {
   ShowMessages(
       "syntax : \t!hiddenhook [Virtual Address (hex value)] core [core index "
       "(hex value)] pid [process id (hex value)] condition {[assembly "
-      "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-      "(hex value)] \n");
+      "in hex]} code {[assembly in hex]} buffer [pre-require buffer - (hex "
+      "value)] \n");
 
   ShowMessages("\t\te.g : !hiddenhook fffff801deadb000\n");
   ShowMessages("\t\te.g : !hiddenhook fffff801deadb000 pid 400\n");

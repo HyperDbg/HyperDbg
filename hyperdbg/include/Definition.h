@@ -69,6 +69,15 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
   SYSCALL_HOOK_EFER_SYSCALL,
   SYSCALL_HOOK_EFER_SYSRET,
 
+  CPUID_INSTRUCTION_EXECUTION,
+
+  RDMSR_INSTRUCTION_EXECUTION,
+  WRMSR_INSTRUCTION_EXECUTION,
+  IN_INSTRUCTION_EXECUTION,
+  OUT_INSTRUCTION_EXECUTION,
+  EXCEPTION_OCCURRED
+
+
 } DEBUGGER_EVENT_TYPE_ENUM;
 
 typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
@@ -401,8 +410,8 @@ typedef struct _DEBUGGER_EVENT {
                  // 0xffffffff means that we have to apply it to all cores
 
   UINT32
-      ProcessId; // determines the pid to apply this event to, if it's
-                 // 0xffffffff means that we have to apply it to all processes
+  ProcessId; // determines the pid to apply this event to, if it's
+             // 0xffffffff means that we have to apply it to all processes
 
   LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
   UINT32 CountOfActions;      // The total count of actions

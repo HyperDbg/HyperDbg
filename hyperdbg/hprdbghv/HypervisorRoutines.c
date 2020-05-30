@@ -242,8 +242,14 @@ HvGetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHA
 VOID
 HvHandleCpuid(PGUEST_REGS RegistersState)
 {
-    INT32 cpu_info[4];
-    ULONG Mode = 0;
+    INT32  cpu_info[4];
+    ULONG  Mode    = 0;
+    UINT64 Context = 0;
+
+    //
+    // Set the context (save eax for the debugger)
+    //
+    Context = RegistersState->rax;
 
     //
     // Otherwise, issue the CPUID to the logical processor based on the indexes
@@ -292,6 +298,14 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     RegistersState->rbx = cpu_info[1];
     RegistersState->rcx = cpu_info[2];
     RegistersState->rdx = cpu_info[3];
+
+    //
+    // As the context to event trigger, we send the eax before the cpuid
+    // so that the debugger can both read the eax as it's now changed by
+    // the cpuid instruction and also can modify the results
+    //
+    LogInfo("cpuid");
+    DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION, RegistersState, Context);
 }
 
 /**

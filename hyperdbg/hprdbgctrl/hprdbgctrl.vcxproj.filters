@@ -155,6 +155,9 @@
     <ClCompile Include="syscall-sysret.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
+    <ClCompile Include="cpuid.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

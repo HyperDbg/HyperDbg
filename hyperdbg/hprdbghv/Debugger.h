@@ -35,13 +35,19 @@ typedef struct _DEBUGGER_CORE_EVENTS
     //
     // Do not add varialbe to this this list, just LIST_ENTRY is allowed
     //
-    LIST_ENTRY HiddenHookReadAndWriteEventsHead;  // HIDDEN_HOOK_READ_AND_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY HiddenHookReadEventsHead;          // HIDDEN_HOOK_READ  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY HiddenHookWriteEventsHead;         // HIDDEN_HOOK_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY HiddenHooksExecDetourEventsHead;   // HIDDEN_HOOK_EXEC_DETOUR [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY HiddenHookExecCcEventsHead;        // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY SyscallHooksEferSyscallEventsHead; // SYSCALL_HOOK_EFER_SYSCALL [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
-    LIST_ENTRY SyscallHooksEferSysretEventsHead;  // SYSCALL_HOOK_EFER_SYSRET [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookReadAndWriteEventsHead;    // HIDDEN_HOOK_READ_AND_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookReadEventsHead;            // HIDDEN_HOOK_READ  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookWriteEventsHead;           // HIDDEN_HOOK_WRITE  [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHooksExecDetourEventsHead;     // HIDDEN_HOOK_EXEC_DETOUR [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY HiddenHookExecCcEventsHead;          // HIDDEN_HOOK_EXEC_CC [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY SyscallHooksEferSyscallEventsHead;   // SYSCALL_HOOK_EFER_SYSCALL [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY SyscallHooksEferSysretEventsHead;    // SYSCALL_HOOK_EFER_SYSRET [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY CpuidInstructionExecutionEventsHead; // CPUID_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY RdmsrInstructionExecutionEventsHead; // RDMSR_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY WrmsrInstructionExecutionEventsHead; // WRMSR_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY InInstructionExecutionEventsHead;    // IN_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY OutInstructionExecutionEventsHead;   // OUT_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY ExceptionOccurredEventsHead;         // EXCEPTION_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 

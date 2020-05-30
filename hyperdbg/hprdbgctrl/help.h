@@ -32,3 +32,4 @@ VOID CommandMonitorHelp();
 VOID CommandSyscallHelp();
 VOID CommandSysretHelp();
 VOID CommandHiddenHookHelp();
+VOID CommandCpuidHelp();

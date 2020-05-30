@@ -80,3 +80,5 @@ VOID CommandMonitor(vector<string> SplittedCommand);
 VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
 
 VOID CommandHiddenHook(vector<string> SplittedCommand);
+
+void CommandCpuid(vector<string> SplittedCommand);

@@ -36,6 +36,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
     VMEXIT_INTERRUPT_INFO InterruptExit         = {0};
     UINT64                GuestPhysicalAddr     = 0;
+    UINT64                GuestRsp              = 0;
     ULONG                 ExitReason            = 0;
     ULONG                 ExitQualification     = 0;
     ULONG                 Rflags                = 0;
@@ -54,6 +55,16 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
     g_GuestState[CurrentProcessorIndex].IncrementRip    = TRUE;
+
+    //
+    // Set the rsp in general purpose registers structure
+    //
+    __vmx_vmread(GUEST_RSP, &GuestRsp);
+    GuestRegs->rsp = GuestRsp;
+
+    //
+    // read the exit reason and exit qualification
+    //
 
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;

@@ -1157,7 +1157,7 @@ typedef struct _GUEST_REGS
     ULONG64 rcx;
     ULONG64 rdx; // 0x10
     ULONG64 rbx;
-    ULONG64 rsp; // 0x20         // rsp is not stored here
+    ULONG64 rsp; // 0x20 
     ULONG64 rbp;
     ULONG64 rsi; // 0x30
     ULONG64 rdi;

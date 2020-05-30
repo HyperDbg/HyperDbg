@@ -50,6 +50,12 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->HiddenHooksExecDetourEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSyscallEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSysretEventsHead);
+    InitializeListHead(&g_Events->CpuidInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->RdmsrInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->WrmsrInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->InInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->ExceptionOccurredEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -325,6 +331,24 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case SYSCALL_HOOK_EFER_SYSRET:
         InsertHeadList(&g_Events->SyscallHooksEferSysretEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case CPUID_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->CpuidInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case RDMSR_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->RdmsrInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case WRMSR_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->WrmsrInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case IN_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->InInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case OUT_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->OutInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case EXCEPTION_OCCURRED:
+        InsertHeadList(&g_Events->ExceptionOccurredEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
         //
         // Wrong event type
@@ -361,47 +385,92 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     //
     // Find the debugger events list base on the type of the event
     //
-    if (EventType == HIDDEN_HOOK_READ_AND_WRITE)
+    switch (EventType)
+    {
+    case HIDDEN_HOOK_READ_AND_WRITE:
     {
         TempList  = &g_Events->HiddenHookReadAndWriteEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == HIDDEN_HOOK_READ)
+    case HIDDEN_HOOK_READ:
     {
         TempList  = &g_Events->HiddenHookReadEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == HIDDEN_HOOK_WRITE)
+    case HIDDEN_HOOK_WRITE:
     {
         TempList  = &g_Events->HiddenHookWriteEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    case HIDDEN_HOOK_EXEC_DETOURS:
     {
         TempList  = &g_Events->HiddenHooksExecDetourEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == HIDDEN_HOOK_EXEC_CC)
+    case HIDDEN_HOOK_EXEC_CC:
     {
         TempList  = &g_Events->HiddenHookExecCcEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == SYSCALL_HOOK_EFER_SYSCALL)
+    case SYSCALL_HOOK_EFER_SYSCALL:
     {
         TempList  = &g_Events->SyscallHooksEferSyscallEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else if (EventType == SYSCALL_HOOK_EFER_SYSRET)
+    case SYSCALL_HOOK_EFER_SYSRET:
     {
         TempList  = &g_Events->SyscallHooksEferSysretEventsHead;
         TempList2 = TempList;
+        break;
     }
-    else
+    case CPUID_INSTRUCTION_EXECUTION:
     {
+        TempList  = &g_Events->CpuidInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case RDMSR_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->RdmsrInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case WRMSR_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->WrmsrInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case IN_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->InInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case OUT_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->OutInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case EXCEPTION_OCCURRED:
+    {
+        TempList  = &g_Events->ExceptionOccurredEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    default:
         //
         // Event type is not found
         //
         return FALSE;
+        break;
     }
 
     while (TempList2 != TempList->Flink)
@@ -890,6 +959,8 @@ DebuggerRemoveEvent(UINT64 Tag)
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
+    DbgBreakPoint();
+
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
 
@@ -1102,6 +1173,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 BOOLEAN
 DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
+    DbgBreakPoint();
     //
     // Check if Tag is valid or not
     //

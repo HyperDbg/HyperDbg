@@ -116,6 +116,7 @@
   <ItemGroup>
     <ClCompile Include="cls.cpp" />
     <ClCompile Include="connect.cpp" />
+    <ClCompile Include="cpuid.cpp" />
     <ClCompile Include="d-u.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="disconnect.cpp" />
