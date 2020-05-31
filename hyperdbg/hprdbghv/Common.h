@@ -136,11 +136,15 @@ SpinlockUnlock(volatile LONG * Lock);
 /* RPL Mask */
 #define RPL_MASK 3
 
+#define BITS_PER_LONG (sizeof(unsigned long) * 8)
+#define ORDER_LONG    (sizeof(unsigned long) == 4 ? 5 : 6)
+
+#define BITMAP_ENTRY(_nr, _bmap) ((_bmap))[(_nr) / BITS_PER_LONG]
+#define BITMAP_SHIFT(_nr)        ((_nr) % BITS_PER_LONG)
+
 //////////////////////////////////////////////////
 //					 Structures					//
 //////////////////////////////////////////////////
-
-
 
 /**
  * @brief R/EFlags structure
@@ -370,10 +374,14 @@ typedef enum _LOG_TYPE
 //			 Function Definitions				//
 //////////////////////////////////////////////////
 
+int
+TestBit(int nth, unsigned long * addr);
+
 void
-SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set);
+ClearBit(int nth, unsigned long * addr);
+
 void
-GetBit(PVOID Addr, UINT64 bit);
+SetBit(int nth, unsigned long * addr);
 
 BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);

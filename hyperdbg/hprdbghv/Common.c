@@ -70,58 +70,23 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 
     return TRUE;
 }
-/**
- * @brief Set Bits for a special address (used on MSR Bitmaps)
- * 
- * @param Addr Address to the byte
- * @param bit Bit address
- * @param Set Set or Unset
- */
-void
-SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set)
+
+int
+TestBit(int nth, unsigned long * addr)
 {
-    UINT64 byte;
-    UINT64 temp;
-    UINT64 n;
-    BYTE * Addr2;
-
-    byte = bit / 8;
-    temp = bit % 8;
-    n    = 7 - temp;
-
-    Addr2 = Addr;
-
-    if (Set)
-    {
-        Addr2[byte] |= (1 << n);
-    }
-    else
-    {
-        Addr2[byte] &= ~(1 << n);
-    }
+    return (BITMAP_ENTRY(nth, addr) >> BITMAP_SHIFT(nth)) & 1;
 }
 
-/**
- * @brief Get Bits of a special address (used on MSR Bitmaps)
- * 
- * @param Addr Address to the byte
- * @param bit Bit address
- * @return BOOLEAN Returns whther the bit is set or unset
- */
-BOOLEAN
-GetBit(PVOID Addr, UINT64 bit)
+void
+ClearBit(int nth, unsigned long * addr)
 {
-    UINT64 byte, k;
-    BYTE * Addr2;
+    BITMAP_ENTRY(nth, addr) &= ~(1UL << BITMAP_SHIFT(nth));
+}
 
-    byte = 0;
-    k    = 0;
-    byte = bit / 8;
-    k    = 7 - bit % 8;
-
-    Addr2 = Addr;
-
-    return Addr2[byte] & (1 << k);
+void
+SetBit(int nth, unsigned long * addr)
+{
+    BITMAP_ENTRY(nth, addr) |= (1UL << BITMAP_SHIFT(nth));
 }
 
 /**

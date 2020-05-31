@@ -304,7 +304,6 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     // so that the debugger can both read the eax as it's now changed by
     // the cpuid instruction and also can modify the results
     //
-    LogInfo("cpuid");
     DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION, RegistersState, Context);
 }
 
@@ -520,8 +519,8 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
  * 
  * @param Msr MSR Address
  * @param ProcessorID Processor to set MSR Bitmap for it
- * @param ReadDetection Unset read bit 
- * @param WriteDetection Unset write bit
+ * @param ReadDetection set read bit 
+ * @param WriteDetection set write bit
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
@@ -539,22 +538,71 @@ HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN Writ
     {
         if (ReadDetection)
         {
-            SetBit(g_GuestState[ProcessorID].MsrBitmapVirtualAddress, Msr, TRUE);
+            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            SetBit(g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048, Msr, TRUE);
+            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024, Msr - 0xC0000000, TRUE);
+            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
         }
         if (WriteDetection)
         {
-            SetBit(g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072, Msr - 0xC0000000, TRUE);
+            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
+        }
+    }
+    else
+    {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/**
+ * @brief UnSet bits in Msr Bitmap
+ * 
+ * @param Msr MSR Address
+ * @param ProcessorID Processor to set MSR Bitmap for it
+ * @param ReadDetection Unset read bit 
+ * @param WriteDetection Unset write bit
+ * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ */
+BOOLEAN
+HvUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+{
+    if (!ReadDetection && !WriteDetection)
+    {
+        //
+        // Invalid Command
+        //
+        return FALSE;
+    }
+
+    if (Msr <= 0x00001FFF)
+    {
+        if (ReadDetection)
+        {
+            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+        }
+        if (WriteDetection)
+        {
+            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
+        }
+    }
+    else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
+    {
+        if (ReadDetection)
+        {
+            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
+        }
+        if (WriteDetection)
+        {
+            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
         }
     }
     else

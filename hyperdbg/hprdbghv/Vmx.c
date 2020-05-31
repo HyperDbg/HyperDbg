@@ -156,6 +156,15 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     LogInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
 
     //
+    // Test, should be removed
+    //
+
+    HvSetMsrBitmap(0xc0000082, 0, TRUE, TRUE);
+    HvSetMsrBitmap(0xc0000082, 1, TRUE, TRUE);
+    HvSetMsrBitmap(0xc0000082, 2, TRUE, TRUE);
+    HvSetMsrBitmap(0xc0000082, 3, TRUE, TRUE);
+
+    //
     // Setting the state to indicate current core is currently virtualized
     //
 
@@ -376,7 +385,6 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     LogInfo("Secondary Proc Based VM Exec Controls (MSR_IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
 
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(0, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_PINBASED_CTLS : MSR_IA32_VMX_PINBASED_CTLS));
-    //__vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_PINBASED_CTLS : MSR_IA32_VMX_PINBASED_CTLS));
 
     __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.Fields.VmxCapabilityHint ? MSR_IA32_VMX_TRUE_EXIT_CTLS : MSR_IA32_VMX_EXIT_CTLS));
 

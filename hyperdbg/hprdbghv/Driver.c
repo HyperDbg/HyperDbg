@@ -379,6 +379,11 @@ DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    //
+    // Test should be removed
+    //
+    UINT64 Test = __readmsr(0xc0000082);
+
     PIO_STACK_LOCATION                        IrpStack;
     PREGISTER_NOTIFY_BUFFER                   RegisterEventRequest;
     PDEBUGGER_READ_MEMORY                     DebuggerReadMemRequest;

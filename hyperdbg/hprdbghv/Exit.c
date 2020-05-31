@@ -120,6 +120,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MSR_READ:
     {
+        DbgBreakPoint();
         EcxReg = GuestRegs->rcx & 0xffffffff;
         HvHandleMsrRead(GuestRegs);
 
@@ -127,6 +128,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MSR_WRITE:
     {
+        DbgBreakPoint();
         EcxReg = GuestRegs->rcx & 0xffffffff;
         HvHandleMsrWrite(GuestRegs);
 
