@@ -25,13 +25,12 @@ VOID CommandCpuidHelp() {
   ShowMessages("\t\te.g : !cpuid core 2 pid 400\n");
 }
 
-void CommandCpuid(vector<string> SplittedCommand) {
+VOID CommandCpuid(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
   PDEBUGGER_GENERAL_ACTION Action;
   UINT32 EventLength;
   UINT32 ActionLength;
-  UINT64 SpecialTarget;
 
   //
   // Interpret and fill the general event and action fields

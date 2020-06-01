@@ -16,6 +16,9 @@
 #include "DebuggerEvents.h"
 #include "GlobalVariables.h"
 #include "Hooks.h"
+#include "ExtensionCommands.h"
+#include "HypervisorRoutines.h"
+#include "DpcRoutines.h"
 #include "InlineAsm.h"
 
 BOOLEAN
@@ -960,13 +963,35 @@ BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
     DbgBreakPoint();
-
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
+    UINT32          ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
     // Validate the parameters
     //
+
+    //
+    // Check whether the core Id is valid or not, we read cores count
+    // here because we use it in later parts
+    //
+    if (EventDetails->CoreId != DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+    {
+        //
+        // Check if the core number is not invalid
+        //
+        if (EventDetails->CoreId >= ProcessorCount)
+        {
+            //
+            // CoreId is invalid (Set the error)
+            //
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_CORE_ID;
+            return FALSE;
+        }
+    }
+
     if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
         //
@@ -1133,6 +1158,63 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // executed not for all hooks but for this special hook
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+    }
+    else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Check if use wants all msrs or just one msr
+        //
+        if (EventDetails->OptionalParam1 == DEBUGGER_EVENT_MSR_READ_ALL_MSRS)
+        {
+            //
+            // Needs all msrs
+            //
+
+            //
+            // Let's see if it is for all cores or just one core
+            //
+            if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+            {
+                //
+                // All cores
+                //
+                ExtensionCommandDisableMsrBitmapAllCores();
+            }
+            else
+            {
+                //
+                // Just one core
+                //
+                DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformDisableMsrBitmap, NULL);
+            }
+        }
+        else
+        {
+            //
+            // Just one msr, let's set its bitmap to have maximum performance
+            //
+
+            //
+            // Let's see if it is for all cores or just one core
+            //
+            if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+            {
+                //
+                // All cores
+                //
+                for (size_t i = 0; i < ProcessorCount; i++)
+                {
+                    HvSetMsrBitmap(EventDetails->OptionalParam1, i, TRUE, FALSE);
+                }
+            }
+            else
+            {
+                //
+                // Just one core
+                //
+                HvSetMsrBitmap(EventDetails->OptionalParam1, EventDetails->CoreId, TRUE, FALSE);
+            }
+        }
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {

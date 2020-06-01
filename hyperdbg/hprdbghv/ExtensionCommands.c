@@ -21,7 +21,7 @@
 /**
  * @brief routines for !pte command
  * 
- * @return VOID 
+ * @return BOOLEAN 
  */
 BOOLEAN
 ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
@@ -78,4 +78,18 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     }
 
     return TRUE;
+}
+
+/**
+ * @brief routines for !msrread and !msrwrite command which 
+ * causes vm-exit on all msr reads and msr writes
+ * @return VOID 
+ */
+VOID
+ExtensionCommandDisableMsrBitmapAllCores()
+{
+    //
+    // Broadcast to all cores to disable their msr bitmaps
+    //
+    KeGenericCallDpc(BroadcastDpcDisableMsrBitmapsAllCores, 0x0);
 }

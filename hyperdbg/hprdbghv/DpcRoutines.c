@@ -12,6 +12,8 @@
  */
 #include "Common.h";
 #include "GlobalVariables.h";
+#include "Vmcall.h";
+#include "InlineAsm.h";
 
 /* lock for one core execution */
 volatile LONG OneCoreLock;
@@ -149,6 +151,26 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
     // read on MSR
     //
     g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Value = __readmsr(g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Msr);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}
+
+/**
+ * @brief Disable just on cores MSR bitmap
+ * 
+ * @return VOID 
+ */
+VOID
+DpcRoutinePerformDisableMsrBitmap(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable msr bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_MSR_BITMAP, 0, 0, 0);
 
     //
     // As this function is designed for a single,

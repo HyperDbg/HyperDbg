@@ -25,7 +25,7 @@
 #define VMCALL_UNHOOK_SINGLE_PAGE        0x7 // VMCALL to remove a single physical address from hook list
 #define VMCALL_ENABLE_SYSCALL_HOOK_EFER  0x8 // VMCALL to enable syscall hook using EFER SCE bit
 #define VMCALL_DISABLE_SYSCALL_HOOK_EFER 0x9 // VMCALL to disable syscall hook using EFER SCE bit
-
+#define VMCALL_DISABLE_MSR_BITMAP        0xa // VMCALL to disable msr bitmaps to exit on all msrs
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

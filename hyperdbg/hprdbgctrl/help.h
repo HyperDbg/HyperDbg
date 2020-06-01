@@ -33,3 +33,4 @@ VOID CommandSyscallHelp();
 VOID CommandSysretHelp();
 VOID CommandHiddenHookHelp();
 VOID CommandCpuidHelp();
+VOID CommandMsrreadHelp();

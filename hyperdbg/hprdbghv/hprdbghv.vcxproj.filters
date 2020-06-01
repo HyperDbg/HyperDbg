@@ -152,6 +152,9 @@
     <ClCompile Include="DebuggerEvents.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="Ioctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">

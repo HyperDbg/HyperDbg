@@ -37,6 +37,9 @@ HvGetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHA
 /* Set Msr Bitmap */
 BOOLEAN
 HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+/* UnSet Msr Bitmap */
+BOOLEAN
+HvUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 /* Returns the Cpu Based and Secondary Processor Based Controls and other controls based on hardware support */
 ULONG
@@ -81,7 +84,6 @@ HvSetMonitorTrapFlag(BOOLEAN Set);
 /* Set the vm-exit on cr3 for finding a process */
 VOID
 HvSetExitOnCr3Change(BOOLEAN Set);
-
 /* Returns the stack pointer, to change in the case of Vmxoff */
 UINT64
 HvReturnStackPointerForVmxoff();
@@ -91,10 +93,12 @@ HvReturnInstructionPointerForVmxoff();
 /* Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified */
 VOID
 HvRestoreRegisters();
-
 /* Remove single hook from the hooked pages list and invalidate TLB */
 BOOLEAN
 HvPerformPageUnHookSinglePage(UINT64 VirtualAddress);
 /* Remove all hooks from the hooked pages list and invalidate TLB */
 VOID
 HvPerformPageUnHookAllPages();
+/* Removes or adds suport for MSR Bitmaps */
+VOID
+HvDisableOrEnableMsrBitmaps(BOOLEAN Disable);

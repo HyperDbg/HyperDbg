@@ -125,6 +125,7 @@
     <ClCompile Include="hiddenhook.cpp" />
     <ClCompile Include="load.cpp" />
     <ClCompile Include="monitor.cpp" />
+    <ClCompile Include="msrread.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />

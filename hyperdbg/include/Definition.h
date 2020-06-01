@@ -77,7 +77,6 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
   OUT_INSTRUCTION_EXECUTION,
   EXCEPTION_OCCURRED
 
-
 } DEBUGGER_EVENT_TYPE_ENUM;
 
 typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
@@ -267,6 +266,8 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 #define DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES 0xffffffff
+#define DEBUGGER_EVENT_MSR_READ_ALL_MSRS 0xffffffff
+#define DEBUGGER_EVENT_MSR_WRITE_ALL_MSRS 0xffffffff
 
 //
 // Pseudo Regs Mask (It's a mask not a value)
@@ -437,6 +438,7 @@ typedef struct _DEBUGGER_EVENT {
 #define DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID 0xc0000003
 #define DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
 #define DEBUGEER_ERROR_INVALID_ADDRESS 0xc0000005
+#define DEBUGEER_ERROR_INVALID_CORE_ID 0xc0000006
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //

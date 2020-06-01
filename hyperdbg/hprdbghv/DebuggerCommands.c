@@ -76,6 +76,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
         {
             //
             // We have to change a single core's msr
+            //
 
             //
             // Check if the core number is not invalid

@@ -108,6 +108,7 @@
     <ClCompile Include="HiddenHooks.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
+    <ClCompile Include="Ioctl.c" />
     <ClCompile Include="Logging.c" />
     <ClCompile Include="MemoryManager.c" />
     <ClCompile Include="MemoryMapper.c" />

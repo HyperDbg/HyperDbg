@@ -156,15 +156,6 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     LogInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
 
     //
-    // Test, should be removed
-    //
-
-    HvSetMsrBitmap(0xc0000082, 0, TRUE, TRUE);
-    HvSetMsrBitmap(0xc0000082, 1, TRUE, TRUE);
-    HvSetMsrBitmap(0xc0000082, 2, TRUE, TRUE);
-    HvSetMsrBitmap(0xc0000082, 3, TRUE, TRUE);
-
-    //
     // Setting the state to indicate current core is currently virtualized
     //
 

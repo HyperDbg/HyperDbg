@@ -1028,3 +1028,33 @@ HvPerformPageUnHookAllPages()
     // No need to remove the list as it will automatically remove by the pool uninitializer
     //
 }
+
+/**
+ * @brief if Disable is true means to exit on all msrs
+ * 
+ * @param Disable If true, removes all msr bitmaps and vm-exit happens
+ * @return VOID 
+ */
+VOID
+HvDisableOrEnableMsrBitmaps(BOOLEAN Disable)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flag
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (!Disable)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_ACTIVATE_MSR_BITMAP;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_ACTIVATE_MSR_BITMAP;
+    }
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}

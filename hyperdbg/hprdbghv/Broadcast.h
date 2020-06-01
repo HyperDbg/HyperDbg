@@ -12,7 +12,6 @@
 #pragma once
 #include <ntddk.h>
 
-
 //////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
@@ -25,3 +24,5 @@ VOID
 BroadcastDpcWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
 VOID
 BroadcastDpcReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+VOID
+BroadcastDpcDisableMsrBitmapsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

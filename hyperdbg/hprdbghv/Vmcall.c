@@ -12,6 +12,7 @@
 
 #include "Vmcall.h"
 #include "GlobalVariables.h"
+#include "HypervisorRoutines.h"
 #include "Hooks.h"
 #include "Common.h"
 #include "Invept.h"
@@ -112,6 +113,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     case VMCALL_DISABLE_SYSCALL_HOOK_EFER:
     {
         SyscallHookConfigureEFER(FALSE);
+        break;
+    }
+    case VMCALL_DISABLE_MSR_BITMAP:
+    {
+        HvDisableOrEnableMsrBitmaps(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
         break;
     }
     default:

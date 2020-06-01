@@ -81,4 +81,6 @@ VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
 
 VOID CommandHiddenHook(vector<string> SplittedCommand);
 
-void CommandCpuid(vector<string> SplittedCommand);
+VOID CommandCpuid(vector<string> SplittedCommand);
+
+VOID CommandMsrread(vector<string> SplittedCommand);

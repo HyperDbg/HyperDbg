@@ -120,17 +120,27 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_MSR_READ:
     {
-        DbgBreakPoint();
         EcxReg = GuestRegs->rcx & 0xffffffff;
         HvHandleMsrRead(GuestRegs);
+
+        //
+        // As the context to event trigger, we send the ecx
+        // which is the MSR index
+        //
+        DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION, GuestRegs, EcxReg);
 
         break;
     }
     case EXIT_REASON_MSR_WRITE:
     {
-        DbgBreakPoint();
         EcxReg = GuestRegs->rcx & 0xffffffff;
         HvHandleMsrWrite(GuestRegs);
+
+        //
+        // As the context to event trigger, we send the ecx
+        // which is the MSR index
+        //
+        DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION, GuestRegs, EcxReg);
 
         break;
     }
