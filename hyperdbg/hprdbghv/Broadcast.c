@@ -126,12 +126,12 @@ BroadcastDpcReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
  * @return VOID 
  */
 VOID
-BroadcastDpcDisableMsrBitmapsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+BroadcastDpcChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
     // Disable msr bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_DISABLE_MSR_BITMAP, 0, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

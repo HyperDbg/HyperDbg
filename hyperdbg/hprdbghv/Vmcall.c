@@ -115,9 +115,9 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         SyscallHookConfigureEFER(FALSE);
         break;
     }
-    case VMCALL_DISABLE_MSR_BITMAP:
+    case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        HvDisableOrEnableMsrBitmaps(TRUE);
+        HvPerformMsrBitmapReadChange(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

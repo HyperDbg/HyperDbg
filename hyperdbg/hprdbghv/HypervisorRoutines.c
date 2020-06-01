@@ -1030,31 +1030,25 @@ HvPerformPageUnHookAllPages()
 }
 
 /**
- * @brief if Disable is true means to exit on all msrs
+ * @brief Change MSR Bitmap for read
  * 
- * @param Disable If true, removes all msr bitmaps and vm-exit happens
+ * @param 
  * @return VOID 
  */
 VOID
-HvDisableOrEnableMsrBitmaps(BOOLEAN Disable)
+HvPerformMsrBitmapReadChange(UINT64 MsrMask)
 {
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flag
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (!Disable)
+    if (MsrMask == DEBUGGER_EVENT_MSR_READ_ALL_MSRS)
     {
-        CpuBasedVmExecControls |= CPU_BASED_ACTIVATE_MSR_BITMAP;
+        //
+        // Means all the bitmaps should be put to 1
+        //
     }
     else
     {
-        CpuBasedVmExecControls &= ~CPU_BASED_ACTIVATE_MSR_BITMAP;
+        //
+        // Means only one msr bitmap is target
+        //
+        HvSetMsrBitmap(MsrMask, KeGetCurrentProcessorNumber(), TRUE, FALSE);
     }
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 }

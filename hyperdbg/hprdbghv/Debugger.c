@@ -1178,14 +1178,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 //
                 // All cores
                 //
-                ExtensionCommandDisableMsrBitmapAllCores();
             }
             else
             {
                 //
                 // Just one core
                 //
-                DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformDisableMsrBitmap, NULL);
             }
         }
         else
@@ -1202,17 +1200,14 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 //
                 // All cores
                 //
-                for (size_t i = 0; i < ProcessorCount; i++)
-                {
-                    HvSetMsrBitmap(EventDetails->OptionalParam1, i, TRUE, FALSE);
-                }
+                ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
             }
             else
             {
                 //
                 // Just one core
                 //
-                HvSetMsrBitmap(EventDetails->OptionalParam1, EventDetails->CoreId, TRUE, FALSE);
+                DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, EventDetails->OptionalParam1);
             }
         }
     }

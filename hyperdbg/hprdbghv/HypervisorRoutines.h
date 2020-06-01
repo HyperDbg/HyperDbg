@@ -99,6 +99,6 @@ HvPerformPageUnHookSinglePage(UINT64 VirtualAddress);
 /* Remove all hooks from the hooked pages list and invalidate TLB */
 VOID
 HvPerformPageUnHookAllPages();
-/* Removes or adds suport for MSR Bitmaps */
+/* Change MSR Bitmap for read */
 VOID
-HvDisableOrEnableMsrBitmaps(BOOLEAN Disable);
+HvPerformMsrBitmapReadChange(UINT64 MsrMask);

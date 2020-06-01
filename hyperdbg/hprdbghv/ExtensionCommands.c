@@ -86,10 +86,10 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
  * @return VOID 
  */
 VOID
-ExtensionCommandDisableMsrBitmapAllCores()
+ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 {
     //
     // Broadcast to all cores to disable their msr bitmaps
     //
-    KeGenericCallDpc(BroadcastDpcDisableMsrBitmapsAllCores, 0x0);
+    KeGenericCallDpc(BroadcastDpcChangeMsrBitmapReadOnAllCores, BitmapMask);
 }

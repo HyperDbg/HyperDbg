@@ -160,17 +160,17 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
 }
 
 /**
- * @brief Disable just on cores MSR bitmap
+ * @brief change msr bitmap read on a single core
  * 
  * @return VOID 
  */
 VOID
-DpcRoutinePerformDisableMsrBitmap(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
-    // Disable msr bitmaps from vmx-root
+    // change msr bitmap (read)
     //
-    AsmVmxVmcall(VMCALL_DISABLE_MSR_BITMAP, 0, 0, 0);
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_READ, DeferredContext, 0, 0);
 
     //
     // As this function is designed for a single,
