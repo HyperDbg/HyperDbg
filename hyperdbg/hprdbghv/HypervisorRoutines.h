@@ -108,3 +108,6 @@ HvPerformMsrBitmapWriteChange(UINT64 MsrMask);
 /* Set vm-exit for tsc instructions (rdtsc/rdtscp) */
 VOID
 HvSetTscVmexit(BOOLEAN Set);
+/* Set vm-exit for rdpmc instructions */
+VOID
+HvSetPmcVmexit(BOOLEAN Set);

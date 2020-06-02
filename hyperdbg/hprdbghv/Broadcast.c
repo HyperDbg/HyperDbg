@@ -191,3 +191,27 @@ BroadcastDpcEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Enables rdpmc exiting in primary cpu-based controls
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Enables rdpmc exiting in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_SET_RDPMC_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

@@ -121,3 +121,17 @@ ExtensionCommandEnableRdtscExitingAllCores()
     //
     KeGenericCallDpc(BroadcastDpcEnableRdtscExitingAllCores, NULL);
 }
+
+/**
+ * @brief routines for !pmc 
+ * @details causes vm-exit on all execution of rdpmc 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandEnableRdpmcExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableRdpmcExitingAllCores, NULL);
+}

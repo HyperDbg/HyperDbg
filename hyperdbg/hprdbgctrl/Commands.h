@@ -88,3 +88,5 @@ VOID CommandMsrread(vector<string> SplittedCommand);
 VOID CommandMsrwrite(vector<string> SplittedCommand);
 
 VOID CommandTsc(vector<string> SplittedCommand);
+
+VOID CommandPmc(vector<string> SplittedCommand);

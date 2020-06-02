@@ -60,6 +60,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->ExceptionOccurredEventsHead);
     InitializeListHead(&g_Events->TscInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->PmcInstructionExecutionEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -356,6 +357,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case TSC_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->TscInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case PMC_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->PmcInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
         //
         // Wrong event type
@@ -475,6 +479,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     case TSC_INSTRUCTION_EXECUTION:
     {
         TempList  = &g_Events->TscInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case PMC_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->PmcInstructionExecutionEventsHead;
         TempList2 = TempList;
         break;
     }
@@ -1248,6 +1258,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // Just one core
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
+        }
+    }
+    else if (EventDetails->EventType == PMC_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandEnableRdpmcExitingAllCores();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
         }
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)

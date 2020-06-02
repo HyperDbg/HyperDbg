@@ -1111,3 +1111,34 @@ HvSetTscVmexit(BOOLEAN Set)
     //
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 }
+
+/**
+ * @brief Set vm-exit for rdpmc instructions 
+ * @details Should be called in vmx-root
+ * 
+ * @param Set Set or unset the vm-exits
+ * @return VOID 
+ */
+VOID
+HvSetPmcVmexit(BOOLEAN Set)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_RDPMC_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_RDPMC_EXITING;
+    }
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}

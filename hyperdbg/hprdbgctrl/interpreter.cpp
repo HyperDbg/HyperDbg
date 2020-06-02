@@ -84,6 +84,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandMsrwrite(SplittedCommand);
   } else if (!FirstCommand.compare("!tsc")) {
     CommandTsc(SplittedCommand);
+  } else if (!FirstCommand.compare("!pmc")) {
+    CommandPmc(SplittedCommand);
   } else if (!FirstCommand.compare("!syscall") ||
              !FirstCommand.compare("!sysret")) {
     CommandSyscallAndSysret(SplittedCommand);

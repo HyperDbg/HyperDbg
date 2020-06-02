@@ -127,6 +127,7 @@
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />
+    <ClCompile Include="pmc.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />

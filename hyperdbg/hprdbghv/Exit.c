@@ -396,6 +396,20 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_RDPMC:
+    {
+        EcxReg         = GuestRegs->rcx & 0xffffffff;
+        ULONG64 Pmc    = __readpmc(EcxReg);
+        GuestRegs->rax = 0x00000000ffffffff & Pmc;
+        GuestRegs->rdx = 0x00000000ffffffff & (Pmc >> 32);
+
+        //
+        // As the context to event trigger, we send the NULL
+        //
+        DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+
+        break;
+    }
     default:
     {
         LogError("Unkown Vmexit, reason : 0x%llx", ExitReason);
