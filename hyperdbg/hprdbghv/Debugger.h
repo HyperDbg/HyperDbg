@@ -48,6 +48,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
     LIST_ENTRY InInstructionExecutionEventsHead;    // IN_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
     LIST_ENTRY OutInstructionExecutionEventsHead;   // OUT_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
     LIST_ENTRY ExceptionOccurredEventsHead;         // EXCEPTION_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
+    LIST_ENTRY TscInstructionExecutionEventsHead;   // TSC_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents ]
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 

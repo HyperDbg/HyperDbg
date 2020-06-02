@@ -198,3 +198,23 @@ DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredCont
     //
     SpinlockUnlock(&OneCoreLock);
 }
+
+/**
+ * @brief change msr bitmap write on a single core
+ * 
+ * @return VOID 
+ */
+VOID
+DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // enable rdtsc/rdtscp exiting
+    //
+    AsmVmxVmcall(VMCALL_SET_RDTSC_EXITING, DeferredContext, 0, 0);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}

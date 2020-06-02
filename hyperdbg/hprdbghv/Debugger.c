@@ -59,6 +59,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->InInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->ExceptionOccurredEventsHead);
+    InitializeListHead(&g_Events->TscInstructionExecutionEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -352,6 +353,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case EXCEPTION_OCCURRED:
         InsertHeadList(&g_Events->ExceptionOccurredEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case TSC_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->TscInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
         //
         // Wrong event type
@@ -465,6 +469,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     case EXCEPTION_OCCURRED:
     {
         TempList  = &g_Events->ExceptionOccurredEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case TSC_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->TscInstructionExecutionEventsHead;
         TempList2 = TempList;
         break;
     }
@@ -974,7 +984,6 @@ DebuggerRemoveEvent(UINT64 Tag)
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    DbgBreakPoint();
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
     UINT32          ProcessorCount = KeQueryActiveProcessorCount(0);
@@ -1221,9 +1230,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    else if (EventDetails->EventType == TSC_INSTRUCTION_EXECUTION)
     {
-        DbgBreakPoint();
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandEnableRdtscExitingAllCores();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
+        }
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
     {
@@ -1260,7 +1285,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 BOOLEAN
 DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
 {
-    DbgBreakPoint();
     //
     // Check if Tag is valid or not
     //

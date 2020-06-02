@@ -26,7 +26,8 @@
 #define VMCALL_ENABLE_SYSCALL_HOOK_EFER  0x8 // VMCALL to enable syscall hook using EFER SCE bit
 #define VMCALL_DISABLE_SYSCALL_HOOK_EFER 0x9 // VMCALL to disable syscall hook using EFER SCE bit
 #define VMCALL_CHANGE_MSR_BITMAP_READ    0xa // VMCALL to change MSR Bitmap Read
-#define VMCALL_CHANGE_MSR_BITMAP_WRITE    0xb // VMCALL to change MSR Bitmap Write
+#define VMCALL_CHANGE_MSR_BITMAP_WRITE   0xb // VMCALL to change MSR Bitmap Write
+#define VMCALL_SET_RDTSC_EXITING         0xc // VMCALL to enables rdtsc/rdtscp exiting in primary cpu-based controls
 
 //////////////////////////////////////////////////
 //				    Functions					//

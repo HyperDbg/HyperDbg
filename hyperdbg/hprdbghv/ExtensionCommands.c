@@ -81,8 +81,8 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
 }
 
 /**
- * @brief routines for !msrread and !msrwrite command which 
- * causes vm-exit on all msr reads 
+ * @brief routines for !msrread command which 
+ * @details causes vm-exit on all msr reads 
  * @return VOID 
  */
 VOID
@@ -95,8 +95,8 @@ ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 }
 
 /**
- * @brief routines for !msrread and !msrwrite command which 
- * causes vm-exit on all msr writes 
+ * @brief routines for !msrwrite command which 
+ * @details causes vm-exit on all msr writes 
  * @return VOID 
  */
 VOID
@@ -106,4 +106,18 @@ ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
     // Broadcast to all cores
     //
     KeGenericCallDpc(BroadcastDpcChangeMsrBitmapWriteOnAllCores, BitmapMask);
+}
+
+/**
+ * @brief routines for !tsc 
+ * @details causes vm-exit on all execution of rdtsc/rdtscp 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandEnableRdtscExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableRdtscExitingAllCores, NULL);
 }

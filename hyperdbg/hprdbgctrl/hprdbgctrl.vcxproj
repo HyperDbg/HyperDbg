@@ -131,6 +131,7 @@
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
+    <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unload.cpp" />
     <ClCompile Include="wrmsr.cpp" />
     <MASM Include="AsmVmxChecks.asm">

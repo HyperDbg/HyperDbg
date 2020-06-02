@@ -86,3 +86,5 @@ VOID CommandCpuid(vector<string> SplittedCommand);
 VOID CommandMsrread(vector<string> SplittedCommand);
 
 VOID CommandMsrwrite(vector<string> SplittedCommand);
+
+VOID CommandTsc(vector<string> SplittedCommand);

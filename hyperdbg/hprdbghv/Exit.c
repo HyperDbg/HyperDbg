@@ -367,11 +367,18 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // I realized that if you log anything here (LogInfo) then
         // the system-halts, currently don't have any idea of how
         // to solve it, in the future we solve it using tsc offsectiong
-        // or tsc scalling
+        // or tsc scalling (The reason is because of that fucking patchguard :( )
         //
         ULONG64 Tsc    = __rdtsc();
         GuestRegs->rax = 0x00000000ffffffff & Tsc;
         GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+
+        //
+        // As the context to event trigger, we send the false which means
+        // it's an rdtsc (for rdtscp we set Context to true)
+        //
+        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, FALSE);
+
         break;
     }
     case EXIT_REASON_RDTSCP:
@@ -380,6 +387,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         ULONG64 Tsc    = __rdtscp(&Aux);
         GuestRegs->rax = 0x00000000ffffffff & Tsc;
         GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+
+        //
+        // As the context to event trigger, we send the false which means
+        // it's an rdtsc (for rdtscp we set Context to true)
+        //
+        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, TRUE);
+
         break;
     }
     default:

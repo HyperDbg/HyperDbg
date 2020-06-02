@@ -167,3 +167,27 @@ BroadcastDpcChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PV
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Enables rdtsc/rdtscp exiting in primary cpu-based controls
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Enables rdtsc/rdtscp exiting in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_SET_RDTSC_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

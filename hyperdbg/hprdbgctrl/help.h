@@ -35,3 +35,4 @@ VOID CommandHiddenHookHelp();
 VOID CommandCpuidHelp();
 VOID CommandMsrreadHelp();
 VOID CommandMsrwriteHelp();
+VOID CommandTscHelp();

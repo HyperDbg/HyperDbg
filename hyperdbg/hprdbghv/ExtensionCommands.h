@@ -23,3 +23,5 @@ VOID
 ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask);
 VOID
 ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask);
+VOID
+ExtensionCommandEnableRdtscExitingAllCores();

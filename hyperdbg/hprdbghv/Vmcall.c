@@ -127,6 +127,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SET_RDTSC_EXITING:
+    {
+        HvSetTscVmexit(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

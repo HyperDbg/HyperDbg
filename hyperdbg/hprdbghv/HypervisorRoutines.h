@@ -105,3 +105,6 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask);
 /* Change MSR Bitmap for write */
 VOID
 HvPerformMsrBitmapWriteChange(UINT64 MsrMask);
+/* Set vm-exit for tsc instructions (rdtsc/rdtscp) */
+VOID
+HvSetTscVmexit(BOOLEAN Set);
