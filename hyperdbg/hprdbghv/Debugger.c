@@ -542,15 +542,27 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         // This way we are sure that no one can bypass our hook by remapping
         // address to another virtual address as everything is physical
         //
-        if (CurrentEvent->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+        if (CurrentEvent->EventType == HIDDEN_HOOK_EXEC_DETOURS && Context != CurrentEvent->OptionalParam1)
         {
             //
             // Context is the physical address
             //
-            if (Context != CurrentEvent->OptionalParam1)
+
+            //
+            // The hook is not for this (physical) address
+            //
+            continue;
+        }
+
+        //
+        // check if MSR exit is what we want or not
+        //
+        if (CurrentEvent->EventType == RDMSR_INSTRUCTION_EXECUTION || CurrentEvent->EventType == WRMSR_INSTRUCTION_EXECUTION)
+        {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context)
             {
                 //
-                // The hook is not for this (physical) address
+                // The msr is not what we want
                 //
                 continue;
             }
@@ -668,7 +680,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // Test (Should be removed)
     //
     //LogInfo("%x       Called from : %llx", Tag, Context);
-    LogInfo("Rax : %llx , Rbx : %llx", Regs->rax, Regs->rbx);
+    LogInfo("Rax : %llx , Rbx : %llx , Context : %llx", Regs->rax, Regs->rbx, Context);
     return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -1162,54 +1174,52 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
     {
         //
-        // Check if use wants all msrs or just one msr
+        // Let's see if it is for all cores or just one core
         //
-        if (EventDetails->OptionalParam1 == DEBUGGER_EVENT_MSR_READ_ALL_MSRS)
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
-            // Needs all msrs
+            // All cores
             //
-
-            //
-            // Let's see if it is for all cores or just one core
-            //
-            if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-            {
-                //
-                // All cores
-                //
-            }
-            else
-            {
-                //
-                // Just one core
-                //
-            }
+            ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
         }
         else
         {
             //
-            // Just one msr, let's set its bitmap to have maximum performance
+            // Just one core
             //
-
-            //
-            // Let's see if it is for all cores or just one core
-            //
-            if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
-            {
-                //
-                // All cores
-                //
-                ExtensionCommandChangeAllMsrBitmapReadAllCores(EventDetails->OptionalParam1);
-            }
-            else
-            {
-                //
-                // Just one core
-                //
-                DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, EventDetails->OptionalParam1);
-            }
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapReadOnSingleCore, EventDetails->OptionalParam1);
         }
+
+        //
+        // Setting an indicator to MSR
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
+    else if (EventDetails->EventType == WRMSR_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandChangeAllMsrBitmapWriteAllCores(EventDetails->OptionalParam1);
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore, EventDetails->OptionalParam1);
+        }
+
+        //
+        // Setting an indicator to MSR
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {

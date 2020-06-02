@@ -21,3 +21,5 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails);
 
 VOID
 ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask);
+VOID
+ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask);

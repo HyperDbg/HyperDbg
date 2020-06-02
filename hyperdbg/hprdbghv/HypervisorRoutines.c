@@ -467,8 +467,6 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //
     if (GuestRegs->rcx == MSR_EFER)
     {
-        DbgBreakPoint();
-
         EFER_MSR MsrEFER;
         MsrEFER.Flags         = msr.Content;
         MsrEFER.SyscallEnable = TRUE;
@@ -1031,24 +1029,54 @@ HvPerformPageUnHookAllPages()
 
 /**
  * @brief Change MSR Bitmap for read
- * 
+ * @details should be called in vmx-root mode
  * @param 
  * @return VOID 
  */
 VOID
 HvPerformMsrBitmapReadChange(UINT64 MsrMask)
 {
-    if (MsrMask == DEBUGGER_EVENT_MSR_READ_ALL_MSRS)
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
+        memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 1, 2048);
     }
     else
     {
         //
         // Means only one msr bitmap is target
         //
-        HvSetMsrBitmap(MsrMask, KeGetCurrentProcessorNumber(), TRUE, FALSE);
+        HvSetMsrBitmap(MsrMask, CoreIndex, TRUE, FALSE);
+    }
+}
+
+/**
+ * @brief Change MSR Bitmap for write
+ * @details should be called in vmx-root mode
+ * @param 
+ * @return VOID 
+ */
+VOID
+HvPerformMsrBitmapWriteChange(UINT64 MsrMask)
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
+    {
+        //
+        // Means all the bitmaps should be put to 1
+        //
+        memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 1, 2048);
+    }
+    else
+    {
+        //
+        // Means only one msr bitmap is target
+        //
+        HvSetMsrBitmap(MsrMask, CoreIndex, FALSE, TRUE);
     }
 }

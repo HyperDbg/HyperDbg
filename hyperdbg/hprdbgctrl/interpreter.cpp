@@ -80,6 +80,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandCpuid(SplittedCommand);
   } else if (!FirstCommand.compare("!msrread")) {
     CommandMsrread(SplittedCommand);
+  } else if (!FirstCommand.compare("!msrwrite")) {
+    CommandMsrwrite(SplittedCommand);
   } else if (!FirstCommand.compare("!syscall") ||
              !FirstCommand.compare("!sysret")) {
     CommandSyscallAndSysret(SplittedCommand);

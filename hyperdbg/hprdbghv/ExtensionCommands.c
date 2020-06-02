@@ -82,14 +82,28 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
 
 /**
  * @brief routines for !msrread and !msrwrite command which 
- * causes vm-exit on all msr reads and msr writes
+ * causes vm-exit on all msr reads 
  * @return VOID 
  */
 VOID
 ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 {
     //
-    // Broadcast to all cores to disable their msr bitmaps
+    // Broadcast to all cores
     //
     KeGenericCallDpc(BroadcastDpcChangeMsrBitmapReadOnAllCores, BitmapMask);
+}
+
+/**
+ * @brief routines for !msrread and !msrwrite command which 
+ * causes vm-exit on all msr writes 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcChangeMsrBitmapWriteOnAllCores, BitmapMask);
 }

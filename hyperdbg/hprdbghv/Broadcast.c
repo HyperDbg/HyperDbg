@@ -143,3 +143,27 @@ BroadcastDpcChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVO
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable msr bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

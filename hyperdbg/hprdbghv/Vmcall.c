@@ -121,6 +121,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_CHANGE_MSR_BITMAP_WRITE:
+    {
+        HvPerformMsrBitmapWriteChange(OptionalParam1);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

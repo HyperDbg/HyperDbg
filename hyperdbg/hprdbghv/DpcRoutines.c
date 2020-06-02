@@ -178,3 +178,23 @@ DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredConte
     //
     SpinlockUnlock(&OneCoreLock);
 }
+
+/**
+ * @brief change msr bitmap write on a single core
+ * 
+ * @return VOID 
+ */
+VOID
+DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // change msr bitmap (write)
+    //
+    AsmVmxVmcall(VMCALL_CHANGE_MSR_BITMAP_WRITE, DeferredContext, 0, 0);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}

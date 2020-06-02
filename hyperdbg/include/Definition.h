@@ -266,8 +266,7 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 #define DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES 0xffffffff
-#define DEBUGGER_EVENT_MSR_READ_ALL_MSRS 0xffffffff
-#define DEBUGGER_EVENT_MSR_WRITE_ALL_MSRS 0xffffffff
+#define DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS 0xffffffff
 
 //
 // Pseudo Regs Mask (It's a mask not a value)

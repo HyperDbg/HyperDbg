@@ -102,3 +102,6 @@ HvPerformPageUnHookAllPages();
 /* Change MSR Bitmap for read */
 VOID
 HvPerformMsrBitmapReadChange(UINT64 MsrMask);
+/* Change MSR Bitmap for write */
+VOID
+HvPerformMsrBitmapWriteChange(UINT64 MsrMask);

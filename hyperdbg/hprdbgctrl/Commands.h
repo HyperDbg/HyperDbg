@@ -84,3 +84,5 @@ VOID CommandHiddenHook(vector<string> SplittedCommand);
 VOID CommandCpuid(vector<string> SplittedCommand);
 
 VOID CommandMsrread(vector<string> SplittedCommand);
+
+VOID CommandMsrwrite(vector<string> SplittedCommand);

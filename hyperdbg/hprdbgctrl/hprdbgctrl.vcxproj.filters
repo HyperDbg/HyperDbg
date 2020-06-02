@@ -161,6 +161,9 @@
     <ClCompile Include="msrread.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
+    <ClCompile Include="msrwrite.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">
