@@ -2,14 +2,14 @@
 [![Docs](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg)](https://docs.hyperdbg.com)
 [![Doxygen](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg)](https://doxygen.hyperdbg.com)
 [![License: GPL v3](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![HyperDbg Twitter](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/hyperdbg-twitter-badge.png)](https://twitter.com/HyperDbg)
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/HyperDbg-Cat.Circle.jpg" alt="HyperDbg Debugger"></a></br>
 
 # HyperDbg Debugger 
 #### (is not yet released/finished) - We planned for first-release in late October 2020
 
-Follow HyperDbg on Twitter to get notified about new releases ! (https://twitter.com/HyperDbg)
+Follow HyperDbg on Twitter to get notified about new releases ! 
+(https://twitter.com/HyperDbg)
 
 ## Description
 
