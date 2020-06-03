@@ -135,3 +135,17 @@ ExtensionCommandEnableRdpmcExitingAllCores()
     //
     KeGenericCallDpc(BroadcastDpcEnableRdpmcExitingAllCores, NULL);
 }
+
+/**
+ * @brief routines for !exception command which 
+ * @details causes vm-exit when exception occurred 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcSetExceptionBitmapOnAllCores, ExceptionIndex);
+}

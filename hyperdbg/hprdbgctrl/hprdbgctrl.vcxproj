@@ -120,6 +120,7 @@
     <ClCompile Include="d-u.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="disconnect.cpp" />
+    <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="hiddenhook.cpp" />

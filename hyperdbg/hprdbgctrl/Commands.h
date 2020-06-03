@@ -90,3 +90,5 @@ VOID CommandMsrwrite(vector<string> SplittedCommand);
 VOID CommandTsc(vector<string> SplittedCommand);
 
 VOID CommandPmc(vector<string> SplittedCommand);
+
+VOID CommandException(vector<string> SplittedCommand);

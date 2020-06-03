@@ -238,3 +238,23 @@ DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContex
     //
     SpinlockUnlock(&OneCoreLock);
 }
+
+/**
+ * @brief change exception bitmap on a single core
+ * 
+ * @return VOID 
+ */
+VOID
+DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // change msr exception bitmap
+    //
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}

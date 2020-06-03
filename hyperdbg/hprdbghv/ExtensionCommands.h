@@ -27,3 +27,5 @@ VOID
 ExtensionCommandEnableRdtscExitingAllCores();
 VOID
 ExtensionCommandEnableRdpmcExitingAllCores();
+VOID
+ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex);

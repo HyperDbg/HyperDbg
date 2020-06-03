@@ -589,6 +589,20 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
+        // check if exception is what we need or not
+        //
+        if (CurrentEvent->EventType == EXCEPTION_OCCURRED)
+        {
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context)
+            {
+                //
+                // The exception is not what we want
+                //
+                continue;
+            }
+        }
+
+        //
         // Check if condtion is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
@@ -1023,6 +1037,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         }
     }
 
+    if (EventDetails->EventType == EXCEPTION_OCCURRED)
+    {
+        //
+        // Check if the exception entry doesn't exceed the first 32 entry
+        //
+        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 33)
+        {
+            //
+            // We don't support entries other than first 32 IDT indexes,
+            // it is because we use exception bitmaps and in order to support
+            // more than 32 indexes we should use pin-based external interrupt
+            // exiting which is completely different, so for first release we
+            // just support exception bitmap fields of VMCS
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
+            return FALSE;
+        }
+    }
+
     if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
         //
@@ -1279,6 +1313,32 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
         }
+    }
+    else if (EventDetails->EventType == EXCEPTION_OCCURRED)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandSetExceptionBitmapAllCores(EventDetails->OptionalParam1);
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, EventDetails->OptionalParam1);
+        }
+
+        //
+        // Set the event's target exception
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
     {

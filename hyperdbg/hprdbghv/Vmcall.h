@@ -29,6 +29,7 @@
 #define VMCALL_CHANGE_MSR_BITMAP_WRITE   0xb // VMCALL to change MSR Bitmap Write
 #define VMCALL_SET_RDTSC_EXITING         0xc // VMCALL to enables rdtsc/rdtscp exiting in primary cpu-based controls
 #define VMCALL_SET_RDPMC_EXITING         0xd // VMCALL to enables rdpmc exiting in primary cpu-based controls
+#define VMCALL_SET_EXCEPTION_BITMAP      0xe // VMCALL to set exception bitmap on VMCS
 
 //////////////////////////////////////////////////
 //				    Functions					//

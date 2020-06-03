@@ -111,3 +111,6 @@ HvSetTscVmexit(BOOLEAN Set);
 /* Set vm-exit for rdpmc instructions */
 VOID
 HvSetPmcVmexit(BOOLEAN Set);
+/* Set exception bitmap in VMCS */
+VOID
+HvSetExceptionBitmap(UINT32 IdtIndex);

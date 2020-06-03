@@ -1142,3 +1142,34 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 }
+
+/**
+ * @brief Set exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @param IdtIndex Interrupt Descriptor Table index of exception 
+ * @return VOID 
+ */
+VOID
+HvSetExceptionBitmap(UINT32 IdtIndex)
+{
+    UINT32 ExceptionBitmap = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(EXCEPTION_BITMAP, &ExceptionBitmap);
+
+    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES)
+    {
+        ExceptionBitmap = 0xffffffff;
+    }
+    else
+    {
+        ExceptionBitmap |= 1 << IdtIndex;
+    }
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
+}

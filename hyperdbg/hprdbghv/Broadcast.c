@@ -215,3 +215,27 @@ BroadcastDpcEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable msr bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

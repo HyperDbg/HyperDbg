@@ -272,6 +272,7 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 #define DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES 0xffffffff
 #define DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS 0xffffffff
+#define DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES 0xffffffff
 
 //
 // Pseudo Regs Mask (It's a mask not a value)
@@ -443,6 +444,7 @@ typedef struct _DEBUGGER_EVENT {
 #define DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
 #define DEBUGEER_ERROR_INVALID_ADDRESS 0xc0000005
 #define DEBUGEER_ERROR_INVALID_CORE_ID 0xc0000006
+#define DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES 0xc0000007
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //

@@ -37,3 +37,4 @@ VOID CommandMsrreadHelp();
 VOID CommandMsrwriteHelp();
 VOID CommandTscHelp();
 VOID CommandPmcHelp();
+VOID CommandExceptionHelp();
