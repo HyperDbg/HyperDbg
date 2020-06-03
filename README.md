@@ -2,6 +2,7 @@
 [![Docs](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg)](https://docs.hyperdbg.com)
 [![Doxygen](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg)](https://doxygen.hyperdbg.com)
 [![License: GPL v3](https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Twitter: HyperDbg](https://img.shields.io/badge/Follow-Twitter%3AHyperDbg-skyblue)](https://twitter.com/HyperDbg)
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/HyperDbg-Cat.Circle.jpg" alt="HyperDbg Debugger"></a></br>
 
