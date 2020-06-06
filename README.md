@@ -42,10 +42,10 @@ Here's a diagram that shows how HyperDbg works !
 
 
 ## Plugins
-The plugin framework is not ready for the current version. Future HyperDbg's will support plugins.
+The plugin framework is not ready for the current version of HyperDbg. Future versions will support plugins.
 
 ## Donations to charity
-We spent thousands of hours on HyperDbg and it's free and open-source for you, If you want to help to develop HyperDbg, please donate children in Africa and send a picture of your donation to us, this makes all HyperDbg developers, super happy ! Don't hesitate to send us the pictures, this way we know that we're doing something useful. (https://www.compassion.com/donate/donate-to-children-in-africa.htm)
+We spent thousands of hours on HyperDbg and it's free and open-source for you, If you want to help to develop HyperDbg, please donate to children in Africa and send a picture of your donation to us, this makes all HyperDbg developers, super happy ! Don't hesitate to send us the pictures, this way we know that we're doing something useful. (https://www.compassion.com/donate/donate-to-children-in-africa.htm)
 
 ## Credits
  Developers :<br />
