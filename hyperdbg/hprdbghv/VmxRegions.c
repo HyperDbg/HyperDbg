@@ -259,13 +259,13 @@ BOOLEAN
 VmxAllocateMsrBitmap(INT ProcessorID)
 {
     //
-    // Allocate memory for MSRBitMap
+    // Allocate memory for MSR Bitmap
     //
     g_GuestState[ProcessorID].MsrBitmapVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
 
     if (g_GuestState[ProcessorID].MsrBitmapVirtualAddress == NULL)
     {
-        LogError("Insufficient memory in allocationg Msr bitmaps");
+        LogError("Insufficient memory in allocationg Msr Bitmaps");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].MsrBitmapVirtualAddress, PAGE_SIZE);
@@ -275,16 +275,57 @@ VmxAllocateMsrBitmap(INT ProcessorID)
     LogInfo("Msr Bitmap Virtual Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
     LogInfo("Msr Bitmap Physical Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
 
+    return TRUE;
+}
+
+/**
+ * @brief Allocate a buffer forr I/O Bitmap
+ * 
+ * @param ProcessorID 
+ * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
+ */
+BOOLEAN
+VmxAllocateIoBitmaps(INT ProcessorID)
+{
     //
-    // (Uncomment if you want to break on RDMSR and WRMSR to a special MSR Register)
+    // Allocate memory for I/O Bitmap (A)
     //
+    g_GuestState[ProcessorID].IoBitmapVirtualAddressA = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
+
+    if (g_GuestState[ProcessorID].IoBitmapVirtualAddressA == NULL)
+    {
+        LogError("Insufficient memory in allocationg I/O Bitmaps A");
+        return FALSE;
+    }
+    RtlZeroMemory(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, PAGE_SIZE);
+
+    g_GuestState[ProcessorID].IoBitmapPhysicalAddressA = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+
+    LogInfo("I/O Bitmap A Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+    LogInfo("I/O Bitmap A Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressA);
+
     //
-    // if (HvSetMsrBitmap(0xc0000082, ProcessorID, TRUE, TRUE))
-    // {
-    // 	LogError("Invalid parameters sent to the HvSetMsrBitmap function");
-    //	return FALSE;
-    // }
+    // Allocate memory for I/O Bitmap (B)
     //
+    g_GuestState[ProcessorID].IoBitmapVirtualAddressB = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
+
+    if (g_GuestState[ProcessorID].IoBitmapVirtualAddressB == NULL)
+    {
+        LogError("Insufficient memory in allocationg I/O Bitmaps B");
+        return FALSE;
+    }
+    RtlZeroMemory(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, PAGE_SIZE);
+
+    g_GuestState[ProcessorID].IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+
+    LogInfo("I/O Bitmap B Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+    LogInfo("I/O Bitmap B Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
+
+    //
+    // Test Should be removed
+    //
+    memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+    memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
 
     return TRUE;
 }

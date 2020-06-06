@@ -75,6 +75,17 @@ HvVmxInitialize()
             //
             return FALSE;
         }
+
+        //
+        // Allocating I/O Bit
+        //
+        if (!VmxAllocateIoBitmaps(ProcessorID))
+        {
+            //
+            // Some error in allocating I/O Bitmaps
+            //
+            return FALSE;
+        }
     }
 
     //
@@ -1043,7 +1054,7 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask)
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 1, 2048);
+        memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0xff, 2048);
     }
     else
     {
@@ -1070,7 +1081,7 @@ HvPerformMsrBitmapWriteChange(UINT64 MsrMask)
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 1, 2048);
+        memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0xff, 2048);
     }
     else
     {

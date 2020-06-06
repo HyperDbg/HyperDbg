@@ -167,7 +167,6 @@
 /* Stack size */
 #define VMM_STACK_SIZE 0x8000
 
-
 typedef union _HYPERCALL_INPUT_VALUE
 {
     UINT64 Value;
@@ -296,7 +295,6 @@ enum HYPERCALL_CODE
     HvCallFlushGuestPhysicalAddressSpace = 0x00AF,
     HvCallFlushGuestPhysicalAddressList  = 0x00B0
 };
-
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -492,6 +490,10 @@ typedef struct _VIRTUAL_MACHINE_STATE
     UINT64                    VmmStack;                   // Stack for VMM in VM-Exit State
     UINT64                    MsrBitmapVirtualAddress;    // Msr Bitmap Virtual Address
     UINT64                    MsrBitmapPhysicalAddress;   // Msr Bitmap Physical Address
+    UINT64                    IoBitmapVirtualAddressA;    // I/O Bitmap Virtual Address (A)
+    UINT64                    IoBitmapPhysicalAddressA;   // I/O Bitmap Physical Address (A)
+    UINT64                    IoBitmapVirtualAddressB;    // I/O Bitmap Virtual Address (B)
+    UINT64                    IoBitmapPhysicalAddressB;   // I/O Bitmap Physical Address (B)
     PROCESSOR_DEBUGGING_STATE DebuggingState;             // Holds the debugging state of the processor (used by HyperDbg to execute commands)
     VMX_VMXOFF_STATE          VmxoffState;                // Shows the vmxoff state of the guest
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint;     // It shows the detail of the hooked paged that should be restore in MTF vm-exit
@@ -562,6 +564,8 @@ BOOLEAN
 VmxAllocateVmmStack(INT ProcessorID);
 BOOLEAN
 VmxAllocateMsrBitmap(INT ProcessorID);
+BOOLEAN
+VmxAllocateIoBitmaps(INT ProcessorID);
 
 /* VMX Instructions */
 VOID

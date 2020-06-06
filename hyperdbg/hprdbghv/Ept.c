@@ -830,7 +830,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 18;
-         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions), 64))
+         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions), TRUE))
     {
         //
         // Get the full size of instructions necessary to copy

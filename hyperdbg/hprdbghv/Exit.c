@@ -23,6 +23,7 @@
 #include "Invept.h"
 #include "HypervisorRoutines.h"
 #include "Events.h"
+#include "IoHandler.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons
@@ -31,10 +32,13 @@
  * @return BOOLEAN Return True if VMXOFF executed (not in vmx anymore),
  *  or return false if we are still in vmx (so we should use vm resume)
  */
+
 BOOLEAN
 VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
     VMEXIT_INTERRUPT_INFO InterruptExit         = {0};
+    IO_EXIT_QUALIFICATION IoQualification       = {0};
+    RFLAGS                Flags                 = {0};
     UINT64                GuestPhysicalAddr     = 0;
     UINT64                GuestRsp              = 0;
     ULONG                 ExitReason            = 0;
@@ -152,21 +156,20 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
     case EXIT_REASON_IO_INSTRUCTION:
     {
-        LogError("Exit reason for I/O instructions are not supported yet.");
-        break;
-    }
-    case EXIT_REASON_EPT_VIOLATION:
-    {
         //
-        // Reading guest physical address
+        // Read the I/O Qualification which indicates the I/O instruction
         //
-        __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+        __vmx_vmread(EXIT_QUALIFICATION, &IoQualification);
 
-        if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
-        {
-            LogError("There were errors in handling Ept Violation");
-        }
+        //
+        // Read Guest's RFLAGS
+        //
+        __vmx_vmread(GUEST_RFLAGS, &Flags);
 
+        //
+        // Call the I/O Handler
+        //
+        IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
         break;
     }
     case EXIT_REASON_EPT_MISCONFIG:

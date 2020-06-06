@@ -155,6 +155,9 @@
     <ClCompile Include="Ioctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IoHandler.c">
+      <Filter>Source Files\VMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -231,6 +234,9 @@
     </ClInclude>
     <ClInclude Include="DebuggerEvents.h">
       <Filter>Header Files\Debugger\Essentials</Filter>
+    </ClInclude>
+    <ClInclude Include="IoHandler.h">
+      <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
