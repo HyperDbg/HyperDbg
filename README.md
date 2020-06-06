@@ -10,7 +10,7 @@
 #### (is not yet released/finished) - We planned for first-release in late October 2020
 
 Follow HyperDbg on Twitter to get notified about new releases ! 
-(https://twitter.com/HyperDbg)
+<p align="center">(https://twitter.com/HyperDbg)</p>
 
 ## Description
 
