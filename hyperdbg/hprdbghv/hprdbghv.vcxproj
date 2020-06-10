@@ -105,6 +105,7 @@
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
     <ClCompile Include="Exit.c" />
+    <ClCompile Include="ExternalInterrupt.c" />
     <ClCompile Include="HiddenHooks.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />

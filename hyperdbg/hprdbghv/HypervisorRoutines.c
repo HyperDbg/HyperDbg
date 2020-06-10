@@ -1184,3 +1184,71 @@ HvSetExceptionBitmap(UINT32 IdtIndex)
     //
     __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
 }
+
+/**
+ * @brief Set Interrupt-window exiting
+ * 
+ * @param Set Set or unset the Interrupt Window-exiting
+ * @return VOID 
+ */
+VOID
+HvSetInterruptWindowExiting(BOOLEAN Set)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    //
+    // interrupt-window exiting
+    //
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_INTR_PENDING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_INTR_PENDING;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set the nmi-Window exiting
+ * 
+ * @param Set Set or unset the Interrupt Window-exiting
+ * @return VOID 
+ */
+VOID
+HvSetNmiWindowExiting(BOOLEAN Set)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    //
+    // nmi-window exiting
+    //
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_VIRTUAL_NMI_PENDING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_VIRTUAL_NMI_PENDING;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}

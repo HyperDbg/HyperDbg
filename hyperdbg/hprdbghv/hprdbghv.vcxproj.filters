@@ -158,6 +158,9 @@
     <ClCompile Include="IoHandler.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
+    <ClCompile Include="ExternalInterrupt.c">
+      <Filter>Source Files\VMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">

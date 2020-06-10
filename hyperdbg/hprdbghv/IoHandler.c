@@ -186,7 +186,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
         //
         UINT64 GpReg = IoQualification.AccessType == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
 
-        if (Flags.DF)
+        if (Flags.DirectionFlag)
         {
             GpReg -= Count * Size;
         }

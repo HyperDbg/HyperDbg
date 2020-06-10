@@ -324,8 +324,8 @@ VmxAllocateIoBitmaps(INT ProcessorID)
     //
     // Test Should be removed
     //
-    memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-    memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+    // memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+    // memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
 
     return TRUE;
 }

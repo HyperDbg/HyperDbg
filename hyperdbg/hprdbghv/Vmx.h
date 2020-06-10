@@ -167,6 +167,9 @@
 /* Stack size */
 #define VMM_STACK_SIZE 0x8000
 
+/* Pending External Interrups Buffer Capacity */
+#define PENDING_INTERRUPTS_BUFFER_CAPACITY 64
+
 typedef union _HYPERCALL_INPUT_VALUE
 {
     UINT64 Value;
@@ -480,24 +483,31 @@ typedef struct _VMX_VMXOFF_STATE
  */
 typedef struct _VIRTUAL_MACHINE_STATE
 {
-    BOOLEAN                   IsOnVmxRootMode;            // Detects whether the current logical core is on Executing on VMX Root Mode
-    BOOLEAN                   IncrementRip;               // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
-    BOOLEAN                   HasLaunched;                // Indicate whether the core is virtualized or not
-    UINT64                    VmxonRegionPhysicalAddress; // Vmxon region physical address
-    UINT64                    VmxonRegionVirtualAddress;  // VMXON region virtual address
-    UINT64                    VmcsRegionPhysicalAddress;  // VMCS region physical address
-    UINT64                    VmcsRegionVirtualAddress;   // VMCS region virtual address
-    UINT64                    VmmStack;                   // Stack for VMM in VM-Exit State
-    UINT64                    MsrBitmapVirtualAddress;    // Msr Bitmap Virtual Address
-    UINT64                    MsrBitmapPhysicalAddress;   // Msr Bitmap Physical Address
-    UINT64                    IoBitmapVirtualAddressA;    // I/O Bitmap Virtual Address (A)
-    UINT64                    IoBitmapPhysicalAddressA;   // I/O Bitmap Physical Address (A)
-    UINT64                    IoBitmapVirtualAddressB;    // I/O Bitmap Virtual Address (B)
-    UINT64                    IoBitmapPhysicalAddressB;   // I/O Bitmap Physical Address (B)
-    PROCESSOR_DEBUGGING_STATE DebuggingState;             // Holds the debugging state of the processor (used by HyperDbg to execute commands)
-    VMX_VMXOFF_STATE          VmxoffState;                // Shows the vmxoff state of the guest
-    PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint;     // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    MEMORY_MAPPER_ADDRESSES   MemoryMapper;               // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
+    BOOLEAN IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
+    BOOLEAN IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
+    BOOLEAN HasLaunched;                                                   // Indicate whether the core is virtualized or not
+    UINT64  VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
+    UINT64  VmxonRegionVirtualAddress;                                     // VMXON region virtual address
+    UINT64  VmcsRegionPhysicalAddress;                                     // VMCS region physical address
+    UINT64  VmcsRegionVirtualAddress;                                      // VMCS region virtual address
+    UINT64  VmmStack;                                                      // Stack for VMM in VM-Exit State
+    UINT64  MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
+    UINT64  MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
+    UINT64  IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)
+    UINT64  IoBitmapPhysicalAddressA;                                      // I/O Bitmap Physical Address (A)
+    UINT64  IoBitmapVirtualAddressB;                                       // I/O Bitmap Virtual Address (B)
+    UINT64  IoBitmapPhysicalAddressB;                                      // I/O Bitmap Physical Address (B)
+    UINT32  PendingExternalInterrupts[PENDING_INTERRUPTS_BUFFER_CAPACITY]; // This list holds a buffer for external-interrupts that are in pending state due to the external-interrupt
+                                                                           // blocking and waits for interrupt-window exiting
+                                                                           // From hvpp :
+                                                                           // Pending interrupt queue (FIFO).
+                                                                           // Make storage for up-to 64 pending interrupts.
+                                                                           // In practice I haven't seen more than 2 pending interrupts.
+
+    PROCESSOR_DEBUGGING_STATE DebuggingState;         // Holds the debugging state of the processor (used by HyperDbg to execute commands)
+    VMX_VMXOFF_STATE          VmxoffState;            // Shows the vmxoff state of the guest
+    PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    MEMORY_MAPPER_ADDRESSES   MemoryMapper;           // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 /**
