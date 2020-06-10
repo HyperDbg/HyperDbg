@@ -105,7 +105,7 @@
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
     <ClCompile Include="Exit.c" />
-    <ClCompile Include="ExternalInterrupt.c" />
+    <ClCompile Include="IdtEmulation.c" />
     <ClCompile Include="HiddenHooks.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
@@ -146,6 +146,7 @@
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Hooks.h" />
     <ClInclude Include="HypervisorRoutines.h" />
+    <ClInclude Include="IdtEmulation.h" />
     <ClInclude Include="InlineAsm.h" />
     <ClInclude Include="Invept.h" />
     <ClInclude Include="IoHandler.h" />

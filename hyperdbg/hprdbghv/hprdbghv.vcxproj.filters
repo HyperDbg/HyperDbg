@@ -158,7 +158,7 @@
     <ClCompile Include="IoHandler.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
-    <ClCompile Include="ExternalInterrupt.c">
+    <ClCompile Include="IdtEmulation.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
   </ItemGroup>
@@ -239,6 +239,9 @@
       <Filter>Header Files\Debugger\Essentials</Filter>
     </ClInclude>
     <ClInclude Include="IoHandler.h">
+      <Filter>Header Files\Hypervisor</Filter>
+    </ClInclude>
+    <ClInclude Include="IdtEmulation.h">
       <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
   </ItemGroup>

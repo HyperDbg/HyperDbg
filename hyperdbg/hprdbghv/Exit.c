@@ -24,24 +24,7 @@
 #include "HypervisorRoutines.h"
 #include "Events.h"
 #include "IoHandler.h"
-
-typedef struct _INTERRUPTIBILITY_STATE
-{
-    union
-    {
-        UINT32 Flags;
-
-        struct
-        {
-            UINT32 BlockingBySti : 1;
-            UINT32 BlockingByMovSs : 1;
-            UINT32 BlockingBySmi : 1;
-            UINT32 BlockingByNmi : 1;
-            UINT32 EnclaveInterruption : 1;
-            UINT32 Reserved : 27;
-        };
-    };
-} INTERRUPTIBILITY_STATE, *PINTERRUPTIBILITY_STATE;
+#include "IdtEmulation.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons
@@ -62,9 +45,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 ExitReason            = 0;
     ULONG                 ExitQualification     = 0;
     ULONG                 Rflags                = 0;
-    RFLAGS                GuestRflags           = {0};
     ULONG                 EcxReg                = 0;
-    ULONG                 ErrorCode             = 0;
     ULONG                 ExitInstructionLength = 0;
     ULONG                 CurrentProcessorIndex = 0;
 
@@ -245,130 +226,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_EXCEPTION_NMI:
     {
         //
-        // Exception or non-maskable interrupt (NMI). Either:
-        //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception's vector was set to 1
-        //	2: An NMI was delivered to the logical processor and the "NMI exiting" VM-execution control was 1.
-        //
-        // VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
-        // Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
-        //
-
-        //
         // read the exit reason
         //
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
-        if (InterruptExit.InterruptionType == INTERRUPT_TYPE_SOFTWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT)
-        {
-            ULONG64 GuestRip;
-            //
-            // Reading guest's RIP
-            //
-            __vmx_vmread(GUEST_RIP, &GuestRip);
-
-            //
-            // notify the user about #BP
-            //
-            //LogInfo("Breakpoint Hit (Process Id : 0x%x) at : %llx ", PsGetCurrentProcessId(), GuestRip);
-            //
-            //
-
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-
-            //
-            // re-inject #BP back to the guest
-            //
-            EventInjectBreakpoint();
-        }
-        else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_UNDEFINED_OPCODE)
-        {
-            //
-            // Handle the #UD, checking if this exception was intentional.
-            //
-            if (!SyscallHookHandleUD(GuestRegs, CurrentProcessorIndex))
-            {
-                //
-                // If this #UD was found to be unintentional, inject a #UD interruption into the guest.
-                //
-                EventInjectUndefinedOpcode();
-            }
-        }
-        else if (InterruptExit.Vector == EXCEPTION_VECTOR_PAGE_FAULT)
-        {
-            //
-            // #PF is treated differently, we have to deal with cr2 too.
-            //
-            PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
-
-            __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &PageFaultCode);
-
-            UINT64 PageFaultAddress = 0;
-
-            __vmx_vmread(EXIT_QUALIFICATION, &PageFaultAddress);
-
-            //
-            // Test
-            //
-            // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
-            //
-
-            //
-            // Cr2 is used as the page-fault address
-            //
-            __writecr2(PageFaultAddress);
-
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-
-            //
-            // Re-inject the interrupt/exception
-            //
-            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
-
-            //
-            // re-write error code (if any)
-            //
-            if (InterruptExit.ErrorCodeValid)
-            {
-                //
-                // Read the error code
-                //
-                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
-
-                //
-                // Write the error code
-                //
-                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-            }
-        }
-        else
-        {
-            //
-            // Test
-            //
-            //LogInfo("Interrupt vector : 0x%x", InterruptExit.Vector);
-            //
-
-            //
-            // Re-inject the interrupt/exception
-            //
-            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
-
-            //
-            // re-write error code (if any)
-            //
-            if (InterruptExit.ErrorCodeValid)
-            {
-                //
-                // Read the error code
-                //
-                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
-
-                //
-                // Write the error code
-                //
-                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-            }
-        }
+        //
+        // Call the Exception Bitmap and NMI Handler
+        //
+        IdtEmulationHandleExceptionAndNmi(InterruptExit, CurrentProcessorIndex, GuestRegs);
 
         //
         // Trigger the event
@@ -382,169 +247,25 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_EXTERNAL_INTERRUPT:
     {
-        BOOLEAN                Interruptible         = TRUE;
-        INTERRUPTIBILITY_STATE InterruptibilityState = {0};
-
         //
         // read the exit reason (for interrupt)
         //
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
-        if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
-        {
-            __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
-            __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityState);
-
-            //
-            // External interrupts cannot be injected into the
-            // guest if guest isn't interruptible (e.g.: guest
-            // is blocked by "mov ss", or EFLAGS.IF == 0).
-            //
-            Interruptible = GuestRflags.InterruptEnableFlag && InterruptibilityState.Flags;
-            if (Interruptible)
-            {
-                //
-                // Re-inject the interrupt/exception
-                //
-                __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
-
-                //
-                // re-write error code (if any)
-                //
-                if (InterruptExit.ErrorCodeValid)
-                {
-                    //
-                    // Read the error code
-                    //
-                    __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
-
-                    //
-                    // Write the error code
-                    //
-                    __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-                }
-            }
-            else
-            {
-                //
-                // We can't inject interrupt because the guest's state is not interruptible
-                // we have to queue it an re-inject it when the interrupt window is opened !
-                //
-                for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
-                {
-                    //
-                    // Find an empty space
-                    //
-                    if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] == NULL)
-                    {
-                        //
-                        // Save it for future re-injection (interrupt-window exiting)
-                        //
-                        g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = InterruptExit.Flags;
-                    }
-                }
-
-                //
-                // Enable Interrupt-window exiting.
-                //
-                HvSetInterruptWindowExiting(TRUE);
-            }
-
-            //
-            // avoid incrementing rip
-            //
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-        }
-        else
-        {
-            LogError("Why we are here ? It's a vm-exit due to the external"
-                     "interrupt and its type is not external interrupt? weird!");
-        }
+        //
+        // Call External Interrupt Handler
+        //
+        IdtEmulationHandleExternalInterrupt(InterruptExit, CurrentProcessorIndex);
 
         break;
     }
     case EXIT_REASON_PENDING_VIRT_INTR:
     {
         //
-        // Find the pending interrupt to inject
+        // Call the interrupt-window exiting handler to re-inject the previous
+        // interrupts or disable the interrupt-window exiting bit
         //
-        //for (int i = PENDING_INTERRUPTS_BUFFER_CAPACITY; i >= 0; --i)
-        for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
-        {
-            //
-            // Find an empty space
-            //
-            if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] != NULL)
-            {
-                //
-                // Save it for re-injection (interrupt-window exiting)
-                //
-                InterruptExit.Flags = g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i];
-
-                //
-                // Free the entry
-                //
-                g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = NULL;
-                break;
-            }
-        }
-
-        if (InterruptExit.Flags == 0)
-        {
-            //
-            // Nothing left in pending state, let's disable the interrupt window exiting
-            //
-            HvSetInterruptWindowExiting(FALSE);
-            DbgBreakPoint();
-        }
-        else
-        {
-            //////////////////////////////////////////////////////////////////
-            int index = 0;
-            for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
-            {
-                //
-                // Find an empty space
-                //
-                if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] != NULL)
-                {
-                    //
-                    // Save it for re-injection (interrupt-window exiting)
-                    //
-                    InterruptExit.Flags = g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i];
-
-                    index++;
-                }
-            }
-
-            DbgBreakPoint();
-            //////////////////////////////////////////////////////////////////
-            //
-            // Re-inject the interrupt/exception
-            //
-            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
-
-            //
-            // re-write error code (if any)
-            //
-            if (InterruptExit.ErrorCodeValid)
-            {
-                //
-                // Read the error code
-                //
-                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
-
-                //
-                // Write the error code
-                //
-                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
-            }
-        }
-
-        //
-        // avoid incrementing rip
-        //
-        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+        IdtEmulationHandleInterruptWindowExiting(CurrentProcessorIndex);
 
         break;
     }
