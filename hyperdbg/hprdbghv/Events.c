@@ -77,6 +77,17 @@ EventInjectUndefinedOpcode()
 }
 
 /**
+ * @brief Inject Debug Breakpoint Exception
+ * 
+ * @return VOID 
+ */
+VOID
+EventInjectDebugBreakpoint()
+{
+    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, FALSE, 0);
+}
+
+/**
  * @brief Inject #PF to the guest (Page-Fault for EFER Injector)
  * 
  * @param ErrorCode 

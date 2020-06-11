@@ -60,7 +60,16 @@ typedef enum _EXCEPTION_VECTORS
     EXCEPTION_VECTOR_RESERVED9,
     EXCEPTION_VECTOR_RESERVED10,
     EXCEPTION_VECTOR_RESERVED11,
-    EXCEPTION_VECTOR_RESERVED12
+    EXCEPTION_VECTOR_RESERVED12,
+
+    //
+    // NT (Windows) specific exception vectors.
+    //
+    APC_INTERRUPT   = 31,
+    DPC_INTERRUPT   = 47,
+    CLOCK_INTERRUPT = 209,
+    PMI_INTERRUPT   = 254,
+
 } EXCEPTION_VECTORS;
 
 /**
@@ -133,3 +142,5 @@ VOID
 EventInjectUndefinedOpcode();
 VOID
 EventInjectPageFault(ULONG32 ErrorCode);
+VOID
+EventInjectDebugBreakpoint();

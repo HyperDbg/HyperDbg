@@ -26,6 +26,330 @@
 #include "IoHandler.h"
 #include "IdtEmulation.h"
 
+typedef enum MOV_TO_DEBUG_REG
+{
+    AccessToDebugRegister   = 0,
+    AccessFromDebugRegister = 1,
+};
+
+typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
+{
+    UINT64 Flags;
+
+    struct
+    {
+        UINT64 DrNumber : 3;
+        UINT64 Reserved1 : 1;
+        UINT64 AccessType : 1;
+        UINT64 Reserved2 : 3;
+        UINT64 GpRegister : 4;
+    };
+} MOV_TO_DEBUG_REG_QUALIFICATION, *PMOV_TO_DEBUG_REG_QUALIFICATION;
+
+typedef struct _CONTROL_REGISTER_4
+{
+    union
+    {
+        UINT64 Flags;
+
+        struct
+        {
+            UINT64 VirtualModeExtensions : 1;
+            UINT64 ProtectedModeVirtualInterrupts : 1;
+            UINT64 TimestampDisable : 1;
+            UINT64 DebuggingExtensions : 1;
+            UINT64 PageSizeExtensions : 1;
+            UINT64 PhysicalAddressExtension : 1;
+            UINT64 MachineCheckEnable : 1;
+            UINT64 PageGlobalEnable : 1;
+            UINT64 PerformanceMonitoringCounterEnable : 1;
+            UINT64 OsFxsaveFxrstorSupport : 1;
+            UINT64 OsXmmExceptionSupport : 1;
+            UINT64 UsermodeInstructionPrevention : 1;
+            UINT64 Reserved1 : 1;
+            UINT64 VmxEnable : 1;
+            UINT64 SmxEnable : 1;
+            UINT64 Reserved2 : 1;
+            UINT64 FsGsBaseEnable : 1;
+            UINT64 PcidEnable : 1;
+            UINT64 OsXsave : 1;
+            UINT64 Reserved3 : 1;
+            UINT64 SmepEnable : 1;
+            UINT64 SmapEnable : 1;
+            UINT64 ProtectionKeyEnable : 1;
+        };
+    };
+} CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
+
+typedef union _DEBUG_REGISTER_7
+{
+    UINT64 Flags;
+
+    struct
+    {
+        UINT64 LocalBreakpoint0 : 1;
+        UINT64 GlobalBreakpoint0 : 1;
+        UINT64 LocalBreakpoint1 : 1;
+        UINT64 GlobalBreakpoint1 : 1;
+        UINT64 LocalBreakpoint2 : 1;
+        UINT64 GlobalBreakpoint2 : 1;
+        UINT64 LocalBreakpoint3 : 1;
+        UINT64 GlobalBreakpoint3 : 1;
+        UINT64 LocalExactBreakpoint : 1;
+        UINT64 GlobalExactBreakpoint : 1;
+        UINT64 Reserved1 : 1; // always 1
+        UINT64 RestrictedTransactionalMemory : 1;
+        UINT64 Reserved2 : 1; // always 0
+        UINT64 GeneralDetect : 1;
+        UINT64 Reserved3 : 2; // always 0
+        UINT64 ReadWrite0 : 2;
+        UINT64 Length0 : 2;
+        UINT64 ReadWrite1 : 2;
+        UINT64 Length1 : 2;
+        UINT64 ReadWrite2 : 2;
+        UINT64 Length2 : 2;
+        UINT64 ReadWrite3 : 2;
+        UINT64 Length3 : 2;
+    };
+} DEBUG_REGISTER_7, *PDEBUG_REGISTER_7;
+
+typedef union DEBUG_REGISTER_6
+{
+    UINT64 Flags;
+
+    struct
+    {
+        UINT64 BreakpointCondition : 4;
+        UINT64 Reserved1 : 8; // always 1
+        UINT64 Reserved2 : 1; // always 0
+        UINT64 DebugRegisterAccessDetected : 1;
+        UINT64 SingleInstruction : 1;
+        UINT64 TaskSwitch : 1;
+        UINT64 RestrictedTransactionalMemory : 1;
+        UINT64 Reserved3 : 15; // always 1
+    };
+} DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
+
+/**
+ * @brief Get the Guest Cs Selector
+ * 
+ * @return VOID 
+ */
+
+SEGMENT_SELECTOR
+GetGuestCs()
+{
+    SEGMENT_SELECTOR Cs;
+
+    __vmx_vmread(GUEST_CS_BASE, &Cs.BASE);
+    __vmx_vmread(GUEST_CS_LIMIT, &Cs.LIMIT);
+    __vmx_vmread(GUEST_CS_AR_BYTES, &Cs.ATTRIBUTES.UCHARs);
+    __vmx_vmread(GUEST_CS_SELECTOR, &Cs.SEL);
+
+    return Cs;
+}
+
+VOID
+HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
+{
+    MOV_TO_DEBUG_REG_QUALIFICATION ExitQualification;
+    CONTROL_REGISTER_4             Cr4;
+    DEBUG_REGISTER_7               Dr7;
+    SEGMENT_SELECTOR               Cs;
+    UINT64 *                       GpRegs = Regs;
+    //
+    // The implementation is derived from Hvpp
+    //
+    __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
+
+    UINT64 GpRegister = GpRegs[ExitQualification.GpRegister];
+
+    //
+    // The MOV DR instruction causes a VM exit if the "MOV-DR exiting"
+    // VM-execution control is 1.  Such VM exits represent an exception
+    // to the principles identified in Section 25.1.1 (Relative Priority
+    // of Faults and VM Exits) in that they take priority over the
+    // following: general-protection exceptions based on privilege level;
+    // and invalid-opcode exceptions that occur because CR4.DE = 1 and the
+    // instruction specified access to DR4 or DR5.
+    // (ref: Vol3C[25.1.3(Instructions That Cause VM Exits Conditionally)])
+    //
+    // TL;DR:
+    //   CPU usually prioritizes exceptions.  For example RDMSR executed
+    //   at CPL = 3 won't cause VM-exit - it causes #GP instead.  MOV DR
+    //   is exception to this rule, as it ALWAYS cause VM-exit.
+    //
+    //   Normally, CPU allows you to write to DR registers only at CPL=0,
+    //   otherwise it causes #GP.  Therefore we'll simulate the exact same
+    //   behavior here.
+    //
+
+    Cs = GetGuestCs();
+
+    if (Cs.ATTRIBUTES.Fields.DPL != 0)
+    {
+        EventInjectGeneralProtection();
+
+        //
+        // Redo the instruction
+        //
+        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        return;
+    }
+
+    //
+    // Debug registers DR4 and DR5 are reserved when debug extensions
+    // are enabled (when the DE flag in control register CR4 is set)
+    // and attempts to reference the DR4 and DR5 registers cause
+    // invalid-opcode exceptions (#UD).
+    // When debug extensions are not enabled (when the DE flag is clear),
+    // these registers are aliased to debug registers DR6 and DR7.
+    // (ref: Vol3B[17.2.2(Debug Registers DR4 and DR5)])
+    //
+
+    //
+    // Read guest cr4
+    //
+    __vmx_vmread(GUEST_CR4, &Cr4);
+
+    if (ExitQualification.DrNumber == 4 || ExitQualification.DrNumber == 5)
+    {
+        if (Cr4.DebuggingExtensions)
+        {
+            EventInjectUndefinedOpcode();
+
+            //
+            // Redo the instruction
+            //
+            g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+            return;
+        }
+        else
+        {
+            ExitQualification.DrNumber += 2;
+        }
+    }
+
+    //
+    // Enables (when set) debug-register protection, which causes a
+    // debug exception to be generated prior to any MOV instruction
+    // that accesses a debug register.  When such a condition is
+    // detected, the BD flag in debug status register DR6 is set prior
+    // to generating the exception.  This condition is provided to
+    // support in-circuit emulators.
+    // When the emulator needs to access the debug registers, emulator
+    // software can set the GD flag to prevent interference from the
+    // program currently executing on the processor.
+    // The processor clears the GD flag upon entering to the debug
+    // exception handler, to allow the handler access to the debug
+    // registers.
+    // (ref: Vol3B[17.2.4(Debug Control Register (DR7)])
+    //
+
+    //
+    // Read the DR7
+    //
+    __vmx_vmread(GUEST_DR7, &Dr7);
+
+    if (Dr7.GeneralDetect)
+    {
+        DEBUG_REGISTER_6 Dr6;
+        Dr6.Flags                       = __readdr(6);
+        Dr6.BreakpointCondition         = 0;
+        Dr6.DebugRegisterAccessDetected = TRUE;
+        __writedr(6, Dr6.Flags);
+
+        Dr7.GeneralDetect = FALSE;
+
+        __vmx_vmwrite(GUEST_DR7, Dr7.Flags);
+
+        EventInjectDebugBreakpoint();
+
+        //
+        // Redo the instruction
+        //
+        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        return;
+    }
+
+    //
+    // In 64-bit mode, the upper 32 bits of DR6 and DR7 are reserved
+    // and must be written with zeros.  Writing 1 to any of the upper
+    // 32 bits results in a #GP(0) exception.
+    // (ref: Vol3B[17.2.6(Debug Registers and Intel® 64 Processors)])
+    //
+    if (ExitQualification.AccessType == AccessToDebugRegister &&
+        (ExitQualification.DrNumber == 6 || ExitQualification.DrNumber == 7) &&
+        (GpRegister >> 32) != 0)
+    {
+        EventInjectGeneralProtection();
+
+        //
+        // Redo the instruction
+        //
+        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        return;
+    }
+
+    switch (ExitQualification.AccessType)
+    {
+    case AccessToDebugRegister:
+        switch (ExitQualification.DrNumber)
+        {
+        case 0:
+            __writedr(0, GpRegister);
+            break;
+        case 1:
+            __writedr(1, GpRegister);
+            break;
+        case 2:
+            __writedr(2, GpRegister);
+            break;
+        case 3:
+            __writedr(3, GpRegister);
+            break;
+        case 6:
+            __writedr(6, GpRegister);
+            break;
+        case 7:
+            __writedr(7, GpRegister);
+            break;
+        default:
+            break;
+        }
+        break;
+
+    case AccessFromDebugRegister:
+        switch (ExitQualification.DrNumber)
+        {
+        case 0:
+            GpRegister = __readdr(0);
+            break;
+        case 1:
+            GpRegister = __readdr(1);
+            break;
+        case 2:
+            GpRegister = __readdr(2);
+            break;
+        case 3:
+            GpRegister = __readdr(3);
+            break;
+        case 6:
+            GpRegister = __readdr(6);
+            break;
+        case 7:
+            GpRegister = __readdr(7);
+            break;
+        default:
+            break;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
 /**
  * @brief VM-Exit handler for different exit reasons
  * 
@@ -355,6 +679,16 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // As the context to event trigger, we send the NULL
         //
         DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+
+        break;
+    }
+    case EXIT_REASON_DR_ACCESS:
+    {
+        LogInfo("Debug register accessed");
+        //
+        // Handle access to debug registers
+        //
+        HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 
         break;
     }

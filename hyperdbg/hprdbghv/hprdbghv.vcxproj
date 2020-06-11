@@ -101,7 +101,7 @@
     <ClCompile Include="DebuggerEvents.c" />
     <ClCompile Include="DpcRoutines.c" />
     <ClCompile Include="ExtensionCommands.c" />
-    <ClCompile Include="EFERHook.c" />
+    <ClCompile Include="EferHook23.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
     <ClCompile Include="Exit.c" />

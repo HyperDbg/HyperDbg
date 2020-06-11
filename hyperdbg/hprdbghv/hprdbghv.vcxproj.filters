@@ -119,9 +119,6 @@
     <ClCompile Include="SsdtHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
-    <ClCompile Include="EFERHook.c">
-      <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
-    </ClCompile>
     <ClCompile Include="HiddenHooks.c">
       <Filter>Source Files\Debugger\Features\Hooks</Filter>
     </ClCompile>
@@ -160,6 +157,9 @@
     </ClCompile>
     <ClCompile Include="IdtEmulation.c">
       <Filter>Source Files\VMX</Filter>
+    </ClCompile>
+    <ClCompile Include="EferHook23.c">
+      <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
