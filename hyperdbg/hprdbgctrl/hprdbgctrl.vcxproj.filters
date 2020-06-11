@@ -173,6 +173,18 @@
     <ClCompile Include="exception.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
+    <ClCompile Include="dr.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="interrupt.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ioin.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="ioout.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

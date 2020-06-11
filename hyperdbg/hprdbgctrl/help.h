@@ -38,3 +38,7 @@ VOID CommandMsrwriteHelp();
 VOID CommandTscHelp();
 VOID CommandPmcHelp();
 VOID CommandExceptionHelp();
+VOID CommandDrHelp();
+VOID CommandInterruptHelp();
+VOID CommandIooutHelp();
+VOID CommandIoinHelp();

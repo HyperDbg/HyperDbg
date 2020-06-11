@@ -92,3 +92,11 @@ VOID CommandTsc(vector<string> SplittedCommand);
 VOID CommandPmc(vector<string> SplittedCommand);
 
 VOID CommandException(vector<string> SplittedCommand);
+
+VOID CommandDr(vector<string> SplittedCommand);
+
+VOID CommandInterrupt(vector<string> SplittedCommand);
+
+VOID CommandIoin(vector<string> SplittedCommand);
+
+VOID CommandIoout(vector<string> SplittedCommand);

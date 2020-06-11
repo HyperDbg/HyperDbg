@@ -120,10 +120,14 @@
     <ClCompile Include="d-u.cpp" />
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="disconnect.cpp" />
+    <ClCompile Include="dr.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="hiddenhook.cpp" />
+    <ClCompile Include="interrupt.cpp" />
+    <ClCompile Include="ioin.cpp" />
+    <ClCompile Include="ioout.cpp" />
     <ClCompile Include="load.cpp" />
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="msrread.cpp" />

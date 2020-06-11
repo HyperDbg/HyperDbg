@@ -50,8 +50,7 @@ VOID CommandException(vector<string> SplittedCommand) {
   }
 
   //
-  // Interpret command specific details (if any), it is because we can use
-  // special msr bitmap here
+  // Interpret command specific details (if any)
   //
   for (auto Section : SplittedCommand) {
     if (!Section.compare("!exception")) {
@@ -59,7 +58,7 @@ VOID CommandException(vector<string> SplittedCommand) {
     } else if (!GetEntry) {
 
       //
-      // It's probably an msr
+      // It's probably an index
       //
       if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
         //
@@ -95,7 +94,7 @@ VOID CommandException(vector<string> SplittedCommand) {
   }
 
   //
-  // Set the target msr (if not specific then it means all exceptions)
+  // Set the target exception (if not specific then it means all exceptions)
   //
   Event->OptionalParam1 = SpecialTarget;
 
