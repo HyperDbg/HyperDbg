@@ -99,36 +99,6 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 }
 
 /**
- * @brief Set the Guest Cs selector
- * 
- * @param Cs The CS Selector for the guest
- * @return VOID 
- */
-VOID
-SetGuestCs(PSEGMENT_SELECTOR Cs)
-{
-    __vmx_vmwrite(GUEST_CS_BASE, Cs->BASE);
-    __vmx_vmwrite(GUEST_CS_LIMIT, Cs->LIMIT);
-    __vmx_vmwrite(GUEST_CS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
-}
-
-/**
- * @brief Set the Guest Ss selector
- * 
- * @param Ss The SS Selector for the guest
- * @return VOID 
- */
-VOID
-SetGuestSs(PSEGMENT_SELECTOR Ss)
-{
-    __vmx_vmwrite(GUEST_SS_BASE, Ss->BASE);
-    __vmx_vmwrite(GUEST_SS_LIMIT, Ss->LIMIT);
-    __vmx_vmwrite(GUEST_SS_AR_BYTES, Ss->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_SS_SELECTOR, Ss->SEL);
-}
-
-/**
  * @brief This function emulates the SYSCALL execution 
  * 
  * @param Regs Guest registers

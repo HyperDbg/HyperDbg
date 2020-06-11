@@ -158,8 +158,11 @@
     <ClCompile Include="IdtEmulation.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
-    <ClCompile Include="EferHook23.c">
+    <ClCompile Include="EferHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
+    </ClCompile>
+    <ClCompile Include="SegmentRegs.c">
+      <Filter>Source Files\VMX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

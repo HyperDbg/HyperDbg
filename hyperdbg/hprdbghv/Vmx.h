@@ -461,6 +461,12 @@ typedef enum _VMCS_FIELDS
     HOST_RIP                     = 0x00006c16,
 };
 
+typedef enum MOV_TO_DEBUG_REG
+{
+    AccessToDebugRegister   = 0,
+    AccessFromDebugRegister = 1,
+};
+
 //////////////////////////////////////////////////
 //			 Structures & Unions				//
 //////////////////////////////////////////////////
@@ -552,6 +558,33 @@ typedef union _MOV_CR_QUALIFICATION
         ULONG Reserved3;
     } Fields;
 } MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
+
+typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
+{
+    UINT64 Flags;
+
+    struct
+    {
+        UINT64 DrNumber : 3;
+        UINT64 Reserved1 : 1;
+        UINT64 AccessType : 1;
+        UINT64 Reserved2 : 3;
+        UINT64 GpRegister : 4;
+    };
+} MOV_TO_DEBUG_REG_QUALIFICATION, *PMOV_TO_DEBUG_REG_QUALIFICATION;
+
+//////////////////////////////////////////////////
+//				Segment Functions				//
+//////////////////////////////////////////////////
+
+SEGMENT_SELECTOR
+GetGuestCs();
+
+VOID
+SetGuestCs(PSEGMENT_SELECTOR Cs);
+
+VOID
+SetGuestSs(PSEGMENT_SELECTOR Ss);
 
 //////////////////////////////////////////////////
 //					Functions					//

@@ -120,3 +120,6 @@ HvSetInterruptWindowExiting(BOOLEAN Set);
 /* Set the nmi-Window exiting */
 VOID
 HvSetNmiWindowExiting(BOOLEAN Set);
+/* Handle Mov to Debug Registers Exitings */
+VOID
+HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs);
