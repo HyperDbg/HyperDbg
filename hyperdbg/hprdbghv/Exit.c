@@ -257,6 +257,17 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         IdtEmulationHandleExternalInterrupt(InterruptExit, CurrentProcessorIndex);
 
+        //
+        // Trigger the event
+        //
+        // As the context to event trigger, we send the vector index
+        //
+        // Keep in mind that interrupt might be inseted in pending list
+        // because the guest is not in a interruptible state and will
+        // be re-injected when the guest is ready for interrupts
+        //
+        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
+
         break;
     }
     case EXIT_REASON_PENDING_VIRT_INTR:
@@ -364,6 +375,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // Handle access to debug registers
         //
         HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
+
+        //
+        // Trigger the event
+        //
+        // As the context to event trigger, we send NULL
+        //
+        DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED, GuestRegs, NULL);
 
         break;
     }

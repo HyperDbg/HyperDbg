@@ -1461,3 +1461,81 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         break;
     }
 }
+
+/**
+ * @brief Set the Mov to Debug Registers Exiting
+ * 
+ * @param Set Set or unset the Mov to Debug Registers Exiting
+ * @return VOID 
+ */
+VOID
+HvSetMovDebugRegsExiting(BOOLEAN Set)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_MOV_DR_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_MOV_DR_EXITING;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set the External Interrupt Exiting
+ * 
+ * @param Set Set or unset the External Interrupt Exiting
+ * @return VOID 
+ */
+VOID
+HvSetExternalInterruptExiting(BOOLEAN Set)
+{
+    ULONG PinBasedControls = 0;
+    ULONG VmExitControls   = 0;
+
+    //
+    // In order to enable External Interrupt Exiting we have to set
+    // PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT in vmx
+    // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
+    // we should enable VM_EXIT_ACK_INTR_ON_EXIT on vmx vm-exit
+    // controls (VM_EXIT_CONTROLS), also this function might not
+    // always be successful if the guest is not in the interruptible
+    // state so it wait for and interrupt-window exiting to re-inject
+    // the interrupt into the guest
+    //
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
+    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+
+    if (Set)
+    {
+        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
+        VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
+    }
+    else
+    {
+        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT;
+        VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
+    __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+}

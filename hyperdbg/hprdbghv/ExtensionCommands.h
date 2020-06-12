@@ -29,3 +29,7 @@ VOID
 ExtensionCommandEnableRdpmcExitingAllCores();
 VOID
 ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+VOID
+ExtensionCommandEnableMovDebugRegistersExiyingAllCores();
+VOID
+ExtensionCommandSetExternalInterruptExitingAllCores();

@@ -123,3 +123,9 @@ HvSetNmiWindowExiting(BOOLEAN Set);
 /* Handle Mov to Debug Registers Exitings */
 VOID
 HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs);
+/* Set the Mov to Debug Registers Exiting */
+VOID
+HvSetMovDebugRegsExiting(BOOLEAN Set);
+/* Set the External Interrupt Exiting */
+VOID
+HvSetExternalInterruptExiting(BOOLEAN Set);

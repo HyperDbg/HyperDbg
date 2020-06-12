@@ -56,11 +56,13 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->CpuidInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->RdmsrInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->WrmsrInstructionExecutionEventsHead);
-    InitializeListHead(&g_Events->InInstructionExecutionEventsHead);
-    InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->ExceptionOccurredEventsHead);
     InitializeListHead(&g_Events->TscInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->PmcInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->InInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
+    InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -345,12 +347,6 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case WRMSR_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->WrmsrInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
-    case IN_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->InInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
-    case OUT_INSTRUCTION_EXECUTION:
-        InsertHeadList(&g_Events->OutInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
-        break;
     case EXCEPTION_OCCURRED:
         InsertHeadList(&g_Events->ExceptionOccurredEventsHead, &(Event->EventsOfSameTypeList));
         break;
@@ -359,6 +355,18 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
         break;
     case PMC_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->PmcInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case IN_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->InInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case OUT_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->OutInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case DEBUG_REGISTERS_ACCESSED:
+        InsertHeadList(&g_Events->DebugRegistersAccessedEventsHead, &(Event->EventsOfSameTypeList));
+        break;
+    case EXTERNAL_INTERRUPT_OCCURRED:
+        InsertHeadList(&g_Events->ExternalInterruptOccurredEventsHead, &(Event->EventsOfSameTypeList));
         break;
     default:
         //
@@ -458,18 +466,6 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList2 = TempList;
         break;
     }
-    case IN_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->InInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
-    case OUT_INSTRUCTION_EXECUTION:
-    {
-        TempList  = &g_Events->OutInstructionExecutionEventsHead;
-        TempList2 = TempList;
-        break;
-    }
     case EXCEPTION_OCCURRED:
     {
         TempList  = &g_Events->ExceptionOccurredEventsHead;
@@ -485,6 +481,30 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     case PMC_INSTRUCTION_EXECUTION:
     {
         TempList  = &g_Events->PmcInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case IN_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->InInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case OUT_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->OutInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case DEBUG_REGISTERS_ACCESSED:
+    {
+        TempList  = &g_Events->DebugRegistersAccessedEventsHead;
+        TempList2 = TempList;
+        break;
+    }
+    case EXTERNAL_INTERRUPT_OCCURRED:
+    {
+        TempList  = &g_Events->ExternalInterruptOccurredEventsHead;
         TempList2 = TempList;
         break;
     }
@@ -529,6 +549,24 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             // This event is not related to either our process or all processes
             //
             continue;
+        }
+
+        //
+        // For external interrupt exiting events we check whether the
+        // vector match the event's vector or not
+        //
+        if (CurrentEvent->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+        {
+            //
+            // Context is the physical address
+            //
+            if (Context != CurrentEvent->OptionalParam1)
+            {
+                //
+                // The interrupt is not for this event
+                //
+                continue;
+            }
         }
 
         //
@@ -1013,7 +1051,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     UINT32          ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Validate the parameters
+    // ----------------------------------------------------------------------------------
+    // Validate the Event's  parameters
+    // ----------------------------------------------------------------------------------
     //
 
     //
@@ -1048,16 +1088,30 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // We don't support entries other than first 32 IDT indexes,
             // it is because we use exception bitmaps and in order to support
             // more than 32 indexes we should use pin-based external interrupt
-            // exiting which is completely different, so for first release we
-            // just support exception bitmap fields of VMCS
+            // exiting which is completely different
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
             ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
     }
-
-    if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+    {
+        //
+        // Check if the exception entry is between 33 to 255
+        //
+        if (!(EventDetails->OptionalParam1 >= 33 && EventDetails->OptionalParam1 <= 0xff))
+        {
+            //
+            // The IDT Entry is either invalid or is not in the range
+            // of the pin-based external interrupt exiting controls
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
+            return FALSE;
+        }
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
         //
         // First check if the address are valid
@@ -1101,6 +1155,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
+
+    //
+    // ----------------------------------------------------------------------------------
+    // Create Event
+    // ----------------------------------------------------------------------------------
+    //
 
     //
     // We initialize event with disabled mode as it doesn't have action yet
@@ -1153,6 +1213,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     // Register the event
     //
     DebuggerRegisterEvent(Event);
+
+    //
+    // ----------------------------------------------------------------------------------
+    // Enable Event
+    // ----------------------------------------------------------------------------------
+    //
 
     //
     // Now we should configure the cpu to generate the events
@@ -1314,6 +1380,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
         }
     }
+    else if (EventDetails->EventType == DEBUG_REGISTERS_ACCESSED)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandEnableMovDebugRegistersExiyingAllCores();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
+        }
+    }
     else if (EventDetails->EventType == EXCEPTION_OCCURRED)
     {
         //
@@ -1337,6 +1423,32 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         //
         // Set the event's target exception
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
+    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandSetExternalInterruptExitingAllCores();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, NULL);
+        }
+
+        //
+        // Set the event's target interrupt
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
     }

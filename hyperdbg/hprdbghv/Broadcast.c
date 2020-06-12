@@ -217,7 +217,7 @@ BroadcastDpcEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 }
 
 /**
- * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
+ * @brief Enable Exception Bitmaps on all cores
  * 
  * @return VOID 
  */
@@ -225,9 +225,57 @@ VOID
 BroadcastDpcSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
-    // Disable msr bitmaps from vmx-root
+    // Enable Exception Bitmaps from vmx-root
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Enables mov debug registers exitings
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Enables mov debug registers exitings in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Enable vm-exit on all cores for external interrupts
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Enable External Interrupts vm-exit from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING, 0, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

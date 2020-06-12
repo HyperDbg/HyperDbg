@@ -145,6 +145,18 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING:
+    {
+        HvSetMovDebugRegsExiting(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING:
+    {
+        HvSetExternalInterruptExiting(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

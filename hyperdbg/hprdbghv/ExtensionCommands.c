@@ -149,3 +149,31 @@ ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     //
     KeGenericCallDpc(BroadcastDpcSetExceptionBitmapOnAllCores, ExceptionIndex);
 }
+
+/**
+ * @brief routines for !dr 
+ * @details causes vm-exit on all accesses to debug registers 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandEnableMovDebugRegistersExiyingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableMovDebigRegisterExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines for !interrupt command which 
+ * @details causes vm-exit when external interrupt occurs 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandSetExternalInterruptExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcSetEnableExternalInterruptExitingOnAllCores, NULL);
+}
