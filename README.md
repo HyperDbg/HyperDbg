@@ -31,7 +31,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 ## How does it work?
 
 We explained about how HyperDbg internally works and how we designed its features in details, take a look at : </br>
-<p align="center">(https://docs.hyperdbg.com/how-does-it-work)</p>
+<p align="center">(https://docs.hyperdbg.com/design)</p>
 
 Here's a diagram that shows how HyperDbg works !
 </br>
