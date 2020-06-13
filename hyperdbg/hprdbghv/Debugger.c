@@ -552,11 +552,14 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
-        // For external interrupt exiting events we check whether the
-        // vector match the event's vector or not
+        // Check event type specific conditions
         //
-        if (CurrentEvent->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+        switch (CurrentEvent->EventType)
         {
+        case EXTERNAL_INTERRUPT_OCCURRED:
+            //
+            // For external interrupt exiting events we check whether the
+            // vector match the event's vector or not
             //
             // Context is the physical address
             //
@@ -567,15 +570,16 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
-        }
+            break;
+        case HIDDEN_HOOK_READ_AND_WRITE:
+        case HIDDEN_HOOK_READ:
+        case HIDDEN_HOOK_WRITE:
+            //
+            // For hidden hook read/writes we check whether the address
+            // is in the range of what user specified or not, this is because
+            // we get the events for all hidden hooks in a page granularity
+            //
 
-        //
-        // For hidden hook read/writes we check whether the address
-        // is in the range of what user specified or not, this is because
-        // we get the events for all hidden hooks in a page granularity
-        //
-        if (CurrentEvent->EventType == HIDDEN_HOOK_READ_AND_WRITE || CurrentEvent->EventType == HIDDEN_HOOK_READ || CurrentEvent->EventType == HIDDEN_HOOK_WRITE)
-        {
             //
             // Context is the physical address
             //
@@ -586,37 +590,37 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
-        }
+            break;
+        case HIDDEN_HOOK_EXEC_DETOURS:
+            //
+            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS then it means
+            // that it's detours hidden hook exec so we have to make sure
+            // to perform its actions, only if the hook is triggered for
+            // the address described in event, note that address in event
+            // is a physical address and the address that the function that
+            // triggers these events and sent here as the context is also
+            // converted to its physical form
+            //
+            // This way we are sure that no one can bypass our hook by remapping
+            // address to another virtual address as everything is physical
+            //
+            if (Context != CurrentEvent->OptionalParam1)
+            {
+                //
+                // Context is the physical address
+                //
 
-        //
-        // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS then it means
-        // that it's detours hidden hook exec so we have to make sure
-        // to perform its actions, only if the hook is triggered for
-        // the address described in event, note that address in event
-        // is a physical address and the address that the function that
-        // triggers these events and sent here as the context is also
-        // converted to its physical form
-        //
-        // This way we are sure that no one can bypass our hook by remapping
-        // address to another virtual address as everything is physical
-        //
-        if (CurrentEvent->EventType == HIDDEN_HOOK_EXEC_DETOURS && Context != CurrentEvent->OptionalParam1)
-        {
+                //
+                // The hook is not for this (physical) address
+                //
+                continue;
+            }
+            break;
+        case RDMSR_INSTRUCTION_EXECUTION:
+        case WRMSR_INSTRUCTION_EXECUTION:
             //
-            // Context is the physical address
+            // check if MSR exit is what we want or not
             //
-
-            //
-            // The hook is not for this (physical) address
-            //
-            continue;
-        }
-
-        //
-        // check if MSR exit is what we want or not
-        //
-        if (CurrentEvent->EventType == RDMSR_INSTRUCTION_EXECUTION || CurrentEvent->EventType == WRMSR_INSTRUCTION_EXECUTION)
-        {
             if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS && CurrentEvent->OptionalParam1 != Context)
             {
                 //
@@ -624,13 +628,11 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
-        }
-
-        //
-        // check if exception is what we need or not
-        //
-        if (CurrentEvent->EventType == EXCEPTION_OCCURRED)
-        {
+            break;
+        case EXCEPTION_OCCURRED:
+            //
+            // check if exception is what we need or not
+            //
             if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && CurrentEvent->OptionalParam1 != Context)
             {
                 //
@@ -638,6 +640,22 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+            break;
+        case IN_INSTRUCTION_EXECUTION:
+        case OUT_INSTRUCTION_EXECUTION:
+            //
+            // check if I/O port is what we want or not
+            //
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_ALL_IO_PORTS && CurrentEvent->OptionalParam1 != Context)
+            {
+                //
+                // The port is not what we want
+                //
+                continue;
+            }
+            break;
+        default:
+            break;
         }
 
         //
@@ -752,7 +770,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // Test (Should be removed)
     //
     //LogInfo("%x       Called from : %llx", Tag, Context);
-    LogInfo("Rax : %llx , Rbx : %llx , Context : %llx", Regs->rax, Regs->rbx, Context);
+    LogInfo(" Rax : %llx , Rbx : %llx , Context : 0x%llx ", Regs->rax, Regs->rbx, Context);
     return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -1340,6 +1358,31 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
+    else if (EventDetails->EventType == IN_INSTRUCTION_EXECUTION || EventDetails->EventType == OUT_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandIoBitmapChangeAllCores(EventDetails->OptionalParam1);
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformChangeIoBitmapOnSingleCore, EventDetails->OptionalParam1);
+        }
+
+        //
+        // Setting an indicator to MSR
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
     else if (EventDetails->EventType == TSC_INSTRUCTION_EXECUTION)
     {
         //
@@ -1444,7 +1487,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // Just one core
             //
-            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExceptionBitmapOnSingleCore, NULL);
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformSetExternalInterruptExitingOnSingleCore, NULL);
         }
 
         //

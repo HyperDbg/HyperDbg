@@ -32,6 +32,7 @@
 #define VMCALL_SET_EXCEPTION_BITMAP              0xe  // VMCALL to set exception bitmap on VMCS
 #define VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING  0xf  // VMCALL to enable mov to debug registers exiting
 #define VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x10 // VMCALL to enable external interrupt exiting
+#define VMCALL_CHANGE_IO_BITMAP                  0x11 // VMCALL to I/O Bitmaps (A & B)
 
 //////////////////////////////////////////////////
 //				    Functions					//

@@ -1069,7 +1069,7 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask)
 /**
  * @brief Change MSR Bitmap for write
  * @details should be called in vmx-root mode
- * @param 
+ * @param MsrMask MSR
  * @return VOID 
  */
 VOID
@@ -1538,4 +1538,58 @@ HvSetExternalInterruptExiting(BOOLEAN Set)
     //
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
     __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+}
+
+/**
+ * @brief Set bits in I/O Bitmap
+ * 
+ * @param Port Port
+ * @param ProcessorID Processor ID
+ * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
+ */
+BOOLEAN
+HvSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
+{
+    if (Port <= 0x7FFF)
+    {
+        SetBit(Port, g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+    }
+    else if ((0x8000 <= Port) && (Port <= 0xFFFF))
+    {
+        SetBit(Port - 0x8000, g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Change I/O Bitmap 
+ * @details should be called in vmx-root mode
+ * @param IoPort Port 
+ * @return VOID 
+ */
+VOID
+HvPerformIoBitmapChange(UINT64 Port)
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
+    {
+        //
+        // Means all the bitmaps should be put to 1
+        //
+        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+    }
+    else
+    {
+        //
+        // Means only one i/o bitmap is target
+        //
+        HvSetIoBitmap(Port, CoreIndex);
+    }
 }

@@ -321,11 +321,5 @@ VmxAllocateIoBitmaps(INT ProcessorID)
     LogInfo("I/O Bitmap B Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
     LogInfo("I/O Bitmap B Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
 
-    //
-    // Test Should be removed
-    //
-    // memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-    // memset(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
-
     return TRUE;
 }

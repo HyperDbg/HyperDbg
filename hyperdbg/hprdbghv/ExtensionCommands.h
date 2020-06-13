@@ -33,3 +33,5 @@ VOID
 ExtensionCommandEnableMovDebugRegistersExiyingAllCores();
 VOID
 ExtensionCommandSetExternalInterruptExitingAllCores();
+VOID
+ExtensionCommandIoBitmapChangeAllCores(UINT64 Port);

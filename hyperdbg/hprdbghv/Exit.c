@@ -171,6 +171,18 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
 
+        //
+        // As the context to event trigger, port address
+        //
+        if (IoQualification.AccessType == AccessIn)
+        {
+            DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
+        }
+        else if (IoQualification.AccessType == AccessOut)
+        {
+            DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
+        }
+
         break;
     }
     case EXIT_REASON_EPT_MISCONFIG:

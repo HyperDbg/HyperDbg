@@ -177,3 +177,17 @@ ExtensionCommandSetExternalInterruptExitingAllCores()
     //
     KeGenericCallDpc(BroadcastDpcSetEnableExternalInterruptExitingOnAllCores, NULL);
 }
+
+/**
+ * @brief routines for !ioin and !ioout command which 
+ * @details causes vm-exit on all i/o instructions or one port 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandIoBitmapChangeAllCores(UINT64 Port)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcChangeIoBitmapOnAllCores, Port);
+}

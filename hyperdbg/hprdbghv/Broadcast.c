@@ -287,3 +287,27 @@ BroadcastDpcSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferr
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Change I/O Bitmaps on all cores
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Change I/O Bitmaps on all cores
+    //
+    AsmVmxVmcall(VMCALL_CHANGE_IO_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

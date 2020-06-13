@@ -32,13 +32,13 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
     UINT32 Count = 0;
     UINT32 Size  = 0;
     UINT64 GpReg = 0;
+
     //
     // VMWare tools uses port  (port 0x5658/0x5659) as I/O backdoor
     // This function will not handle these cases so if you put bitmap
     // to cause vm-exit on port 0x5658/0x5659 then VMWare tools will
     // crash
     //
-    LogInfo("I/O rax = %llx , rdx = %llx ", GuestRegs->rax, GuestRegs->rdx);
 
     union
     {

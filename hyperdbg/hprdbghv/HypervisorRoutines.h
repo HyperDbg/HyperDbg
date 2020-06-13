@@ -40,11 +40,9 @@ HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN Writ
 /* UnSet Msr Bitmap */
 BOOLEAN
 HvUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
-
 /* Returns the Cpu Based and Secondary Processor Based Controls and other controls based on hardware support */
 ULONG
 HvAdjustControls(ULONG Ctl, ULONG Msr);
-
 /* Notify all cores about EPT Invalidation */
 VOID
 HvNotifyAllToInvalidateEpt();
@@ -129,3 +127,9 @@ HvSetMovDebugRegsExiting(BOOLEAN Set);
 /* Set the External Interrupt Exiting */
 VOID
 HvSetExternalInterruptExiting(BOOLEAN Set);
+/* Set bits in I/O Bitmap */
+BOOLEAN
+HvSetIoBitmap(UINT64 Port, UINT32 ProcessorID);
+/* Change I/O Bitmap */
+VOID
+HvPerformIoBitmapChange(UINT64 Port);
