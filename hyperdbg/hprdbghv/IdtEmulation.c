@@ -63,6 +63,11 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             // If this #UD was found to be unintentional, inject a #UD interruption into the guest.
             //
             EventInjectUndefinedOpcode();
+
+            //
+            // Suppress RIP increment
+            //
+            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
         }
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_PAGE_FAULT)
