@@ -10,6 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
+
 #include <ntddk.h>
 #include "Common.h"
 #include "Debugger.h"
@@ -650,6 +651,25 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             {
                 //
                 // The port is not what we want
+                //
+                continue;
+            }
+            break;
+        case SYSCALL_HOOK_EFER_SYSCALL:
+
+            //
+            // case SYSCALL_HOOK_EFER_SYSRET:
+            //
+            // I don't know how to find syscall number when sysret is executed so
+            // that's why we don't support extra argument for sysret
+
+            //
+            // check syscall number
+            //
+            if (CurrentEvent->OptionalParam1 != DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS && CurrentEvent->OptionalParam1 != Context)
+            {
+                //
+                // The syscall number is not what we want
                 //
                 continue;
             }
@@ -1498,10 +1518,20 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
     {
         DebuggerEventEnableEferOnAllProcessors();
+
+        //
+        // Set the event's target syscall number
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSRET)
     {
         DebuggerEventEnableEferOnAllProcessors();
+
+        //
+        // Set the event's target syscall number
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
     }
     else
     {

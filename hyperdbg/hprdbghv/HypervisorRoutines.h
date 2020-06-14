@@ -112,6 +112,9 @@ HvSetPmcVmexit(BOOLEAN Set);
 /* Set exception bitmap in VMCS */
 VOID
 HvSetExceptionBitmap(UINT32 IdtIndex);
+/* Unset exception bitmap in VMCS */
+VOID
+HvUnsetExceptionBitmap(UINT32 IdtIndex);
 /* Set Interrupt-window exiting */
 VOID
 HvSetInterruptWindowExiting(BOOLEAN Set);
