@@ -11,6 +11,7 @@
  */
 #include "Events.h"
 #include "Vmx.h"
+#include "GlobalVariables.h"
 
 /**
  * @brief Injects interruption to a guest
@@ -71,9 +72,14 @@ EventInjectGeneralProtection()
  * @return VOID 
  */
 VOID
-EventInjectUndefinedOpcode()
+EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex)
 {
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_UNDEFINED_OPCODE, FALSE, 0);
+
+    //
+    // Suppress RIP increment
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 }
 
 /**

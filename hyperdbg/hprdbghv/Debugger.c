@@ -789,8 +789,9 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // -----------------------------------------------------------------------------------------------------
     // Test (Should be removed)
     //
-    //LogInfo("%x       Called from : %llx", Tag, Context);
-    LogInfo(" Rax : %llx , Rbx : %llx , Context : 0x%llx ", Regs->rax, Regs->rbx, Context);
+    // LogInfo("%x       Called from : %llx", Tag, Context);
+    //
+    LogInfo("Process Id : %x , Rax : %llx , Rbx : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->rbx, Context);
     return;
     //
     // -----------------------------------------------------------------------------------------------------

@@ -139,7 +139,7 @@ EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vecto
 VOID
 EventInjectGeneralProtection();
 VOID
-EventInjectUndefinedOpcode();
+EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex);
 VOID
 EventInjectPageFault(ULONG32 ErrorCode);
 VOID

@@ -113,9 +113,6 @@
     <ClCompile Include="Events.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
-    <ClCompile Include="Exit.c">
-      <Filter>Source Files\VMX</Filter>
-    </ClCompile>
     <ClCompile Include="SsdtHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
@@ -162,6 +159,15 @@
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
     <ClCompile Include="SegmentRegs.c">
+      <Filter>Source Files\VMX</Filter>
+    </ClCompile>
+    <ClCompile Include="Counters.c">
+      <Filter>Source Files\VMX</Filter>
+    </ClCompile>
+    <ClCompile Include="CrossVmexits.c">
+      <Filter>Source Files\VMX</Filter>
+    </ClCompile>
+    <ClCompile Include="Vmexit.c">
       <Filter>Source Files\VMX</Filter>
     </ClCompile>
   </ItemGroup>
@@ -245,6 +251,9 @@
       <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
     <ClInclude Include="IdtEmulation.h">
+      <Filter>Header Files\Hypervisor</Filter>
+    </ClInclude>
+    <ClInclude Include="Counters.h">
       <Filter>Header Files\Hypervisor</Filter>
     </ClInclude>
   </ItemGroup>

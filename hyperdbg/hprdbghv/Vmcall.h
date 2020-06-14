@@ -38,6 +38,10 @@
 //				    Functions					//
 //////////////////////////////////////////////////
 
+/* Handle vm-exits of VMCALLs */
+NTSTATUS
+VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs);
+
 /* Main handler for VMCALLs */
 NTSTATUS
 VmxVmcallHandler(UINT64 VmcallNumber, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3);

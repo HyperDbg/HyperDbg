@@ -96,6 +96,8 @@
   <ItemGroup>
     <ClCompile Include="BreakControl.c" />
     <ClCompile Include="Broadcast.c" />
+    <ClCompile Include="Counters.c" />
+    <ClCompile Include="CrossVmexits.c" />
     <ClCompile Include="Debugger.c" />
     <ClCompile Include="DebuggerCommands.c" />
     <ClCompile Include="DebuggerEvents.c" />
@@ -104,7 +106,7 @@
     <ClCompile Include="EferHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
-    <ClCompile Include="Exit.c" />
+    <ClCompile Include="Vmexit.c" />
     <ClCompile Include="IdtEmulation.c" />
     <ClCompile Include="HiddenHooks.c" />
     <ClCompile Include="HypervisorRoutines.c" />
@@ -137,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="BreakControl.h" />
     <ClInclude Include="Broadcast.h" />
+    <ClInclude Include="Counters.h" />
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebuggerCommands.h" />
     <ClInclude Include="DebuggerEvents.h" />

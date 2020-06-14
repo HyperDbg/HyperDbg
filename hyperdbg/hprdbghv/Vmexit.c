@@ -24,6 +24,7 @@
 #include "HypervisorRoutines.h"
 #include "Events.h"
 #include "IoHandler.h"
+#include "Counters.h"
 #include "IdtEmulation.h"
 
 /**
@@ -107,16 +108,31 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_VMXON:
     case EXIT_REASON_VMLAUNCH:
     {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
-
         //
         // cf=1 indicate vm instructions fail
         //
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1);
+        //__vmx_vmread(GUEST_RFLAGS, &Rflags);
+        //__vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1);
+
+        //
+        // Handle unconditional vm-exits (inject #ud)
+        //
+        EventInjectUndefinedOpcode(CurrentProcessorIndex);
 
         break;
     }
+    case EXIT_REASON_INVEPT:
+    case EXIT_REASON_INVVPID:
+    case EXIT_REASON_GETSEC:
+    case EXIT_REASON_INVD:
+    {
+        //
+        // Handle unconditional vm-exits (inject #ud)
+        //
+        EventInjectUndefinedOpcode(CurrentProcessorIndex);
 
+        break;
+    }
     case EXIT_REASON_CR_ACCESS:
     {
         HvHandleControlRegisterAccess(GuestRegs);
@@ -196,43 +212,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_VMCALL:
     {
         //
-        // Check if it's our routines that request the VMCALL our it relates to Hyper-V
+        // Handle vm-exits of VMCALLs
         //
-        if (GuestRegs->r10 == 0x48564653 && GuestRegs->r11 == 0x564d43414c4c && GuestRegs->r12 == 0x4e4f485950455256)
-        {
-            //
-            // Then we have to manage it as it relates to us
-            //
-            GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
-        }
-        else
-        {
-            HYPERCALL_INPUT_VALUE InputValue = {0};
-            InputValue.Value                 = GuestRegs->rcx;
+        VmxHandleVmcallVmExit(GuestRegs);
 
-            switch (InputValue.Bitmap.CallCode)
-            {
-            case HvSwitchVirtualAddressSpace:
-            case HvFlushVirtualAddressSpace:
-            case HvFlushVirtualAddressList:
-            case HvCallFlushVirtualAddressSpaceEx:
-            case HvCallFlushVirtualAddressListEx:
-            {
-                InvvpidAllContexts();
-                break;
-            }
-            case HvCallFlushGuestPhysicalAddressSpace:
-            case HvCallFlushGuestPhysicalAddressList:
-            {
-                InveptSingleContext(g_EptState->EptPointer.Flags);
-                break;
-            }
-            }
-            //
-            // Let the top-level hypervisor to manage it
-            //
-            GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
-        }
         break;
     }
     case EXIT_REASON_EXCEPTION_NMI:
@@ -328,6 +311,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_HLT:
     {
         //
+        // We don't wanna halt
+        //
+
+        //
         //__halt();
         //
         break;
@@ -335,14 +322,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_RDTSC:
     {
         //
-        // I realized that if you log anything here (LogInfo) then
-        // the system-halts, currently don't have any idea of how
-        // to solve it, in the future we solve it using tsc offsectiong
-        // or tsc scalling (The reason is because of that fucking patchguard :( )
+        // handle rdtsc (emulate rdtsc)
         //
-        ULONG64 Tsc    = __rdtsc();
-        GuestRegs->rax = 0x00000000ffffffff & Tsc;
-        GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+        CounterEmulateRdtsc(GuestRegs);
 
         //
         // As the context to event trigger, we send the false which means
@@ -354,10 +336,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_RDTSCP:
     {
-        int     Aux    = 0;
-        ULONG64 Tsc    = __rdtscp(&Aux);
-        GuestRegs->rax = 0x00000000ffffffff & Tsc;
-        GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+        //
+        // handle rdtscp (emulate rdtscp)
+        //
+        CounterEmulateRdtscp(GuestRegs);
 
         //
         // As the context to event trigger, we send the false which means
@@ -369,10 +351,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_RDPMC:
     {
-        EcxReg         = GuestRegs->rcx & 0xffffffff;
-        ULONG64 Pmc    = __readpmc(EcxReg);
-        GuestRegs->rax = 0x00000000ffffffff & Pmc;
-        GuestRegs->rdx = 0x00000000ffffffff & (Pmc >> 32);
+        //
+        // handle rdpmc (emulate rdpmc)
+        //
+        CounterEmulateRdpmc(GuestRegs);
 
         //
         // As the context to event trigger, we send the NULL
@@ -397,6 +379,16 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_XSETBV:
+    {
+        //
+        // Handle xsetbv (unconditional vm-exit)
+        //
+        EcxReg = GuestRegs->rcx & 0xffffffff;
+        VmxHandleXsetbv(EcxReg, GuestRegs->rdx << 32 | GuestRegs->rax);
+
+        break;
+    }
     default:
     {
         LogError("Unkown Vmexit, reason : 0x%llx", ExitReason);
@@ -404,6 +396,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     }
 
+    //
+    // Check whether we need to increment the guest's ip or not
+    // Also, we should not increment rip if a vmxoff executed
+    //
     if (!g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted && g_GuestState[CurrentProcessorIndex].IncrementRip)
     {
         HvResumeToNextInstruction();

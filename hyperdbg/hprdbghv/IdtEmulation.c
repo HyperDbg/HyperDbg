@@ -33,6 +33,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
     if (InterruptExit.InterruptionType == INTERRUPT_TYPE_SOFTWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT)
     {
         ULONG64 GuestRip;
+
         //
         // Reading guest's RIP
         //
@@ -62,12 +63,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             //
             // If this #UD was found to be unintentional, inject a #UD interruption into the guest.
             //
-            EventInjectUndefinedOpcode();
-
-            //
-            // Suppress RIP increment
-            //
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+            EventInjectUndefinedOpcode(CurrentProcessorIndex);
         }
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_PAGE_FAULT)

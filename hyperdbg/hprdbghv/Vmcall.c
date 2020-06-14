@@ -16,6 +16,57 @@
 #include "Hooks.h"
 #include "Common.h"
 #include "Invept.h"
+#include "InlineAsm.h"
+#include "Vpid.h"
+
+/**
+ * @brief Handle vm-exits of VMCALLs
+ * 
+ * @param GuestRegs Guest Registers
+ * @return NTSTATUS 
+ */
+NTSTATUS
+VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
+{
+    //
+    // Check if it's our routines that request the VMCALL our it relates to Hyper-V
+    //
+    if (GuestRegs->r10 == 0x48564653 && GuestRegs->r11 == 0x564d43414c4c && GuestRegs->r12 == 0x4e4f485950455256)
+    {
+        //
+        // Then we have to manage it as it relates to us
+        //
+        GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
+    }
+    else
+    {
+        HYPERCALL_INPUT_VALUE InputValue = {0};
+        InputValue.Value                 = GuestRegs->rcx;
+
+        switch (InputValue.Bitmap.CallCode)
+        {
+        case HvSwitchVirtualAddressSpace:
+        case HvFlushVirtualAddressSpace:
+        case HvFlushVirtualAddressList:
+        case HvCallFlushVirtualAddressSpaceEx:
+        case HvCallFlushVirtualAddressListEx:
+        {
+            InvvpidAllContexts();
+            break;
+        }
+        case HvCallFlushGuestPhysicalAddressSpace:
+        case HvCallFlushGuestPhysicalAddressList:
+        {
+            InveptSingleContext(g_EptState->EptPointer.Flags);
+            break;
+        }
+        }
+        //
+        // Let the top-level hypervisor to manage it
+        //
+        GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
+    }
+}
 
 /**
  * @brief Main Vmcall Handler

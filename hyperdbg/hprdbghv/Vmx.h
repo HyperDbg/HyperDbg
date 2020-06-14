@@ -609,6 +609,8 @@ BOOLEAN
 VmxAllocateMsrBitmap(INT ProcessorID);
 BOOLEAN
 VmxAllocateIoBitmaps(INT ProcessorID);
+VOID
+VmxHandleXsetbv(UINT32 Reg, UINT64 Value);
 
 /* VMX Instructions */
 VOID

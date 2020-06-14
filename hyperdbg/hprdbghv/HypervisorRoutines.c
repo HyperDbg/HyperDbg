@@ -1359,12 +1359,10 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     {
         if (Cr4.DebuggingExtensions)
         {
-            EventInjectUndefinedOpcode();
-
             //
-            // Redo the instruction
+            // re-inject #UD
             //
-            g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+            EventInjectUndefinedOpcode(ProcessorIndex);
             return;
         }
         else
