@@ -6,7 +6,7 @@
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/HyperDbg-Cat.Circle.jpg" alt="HyperDbg Debugger"></a></br>
 
-# HyperDbg Debugger 
+# HyperDbg Debugger (is NOT in a WORKING STATE - YOU SHOULD NOT USE IT, but you can read codes, please wait for first release in late October)
 #### (is not yet released/finished) - We planned for first-release in late October 2020
 
 Follow HyperDbg on Twitter to get notified about new releases ! 
