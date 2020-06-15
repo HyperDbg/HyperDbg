@@ -62,7 +62,7 @@ We spent thousands of hours on HyperDbg and it's free and open-source for you, I
 ## Contributing
 Contributing in HyperDbg is super appreciated.
 
-If you want to create a pull request or contribute in HyperDbg please read [Contribution Guide](https://github.com/SinaKarvandi/HyperDbg/blob/master/CONTRIBUTING.md).
+If you want to create a pull request or contribute in HyperDbg please read [Contribution Guide](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md).
 
 
 ## License
