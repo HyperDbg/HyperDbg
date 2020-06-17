@@ -24,4 +24,4 @@ VOID
 DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
 
 BOOLEAN
-DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableForRead, BOOLEAN EnableForWrite);
+DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite);

@@ -13,6 +13,7 @@
 #pragma once
 #include "Ept.h"
 #include "Configuration.h"
+#include "MemoryMapper.h"
 #include "Trace.h"
 
 //////////////////////////////////////////////////
@@ -141,6 +142,8 @@ SpinlockUnlock(volatile LONG * Lock);
 
 #define BITMAP_ENTRY(_nr, _bmap) ((_bmap))[(_nr) / BITS_PER_LONG]
 #define BITMAP_SHIFT(_nr)        ((_nr) % BITS_PER_LONG)
+
+#define PAGE_OFFSET(Va) ((PVOID)((ULONG_PTR)(Va) & (PAGE_SIZE - 1)))
 
 //////////////////////////////////////////////////
 //					 Structures					//
@@ -469,16 +472,25 @@ BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
 
 UINT64
+PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
+
+UINT64
 VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
 
 UINT64
-PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
+VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId);
 
 int
 MathPower(int Base, int Exp);
 
 UINT64
 FindSystemDirectoryTableBase();
+
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId);
+
+VOID
+RestoreToPreviousProcess(CR3_TYPE PreviousProcess);
 
 //////////////////////////////////////////////////
 //			 WDK Major Functions				//

@@ -1269,7 +1269,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
         }
 
         //
@@ -1287,7 +1287,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
         }
 
         //
@@ -1308,7 +1308,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
         }
 
         //
@@ -1321,7 +1321,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
-        EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, FALSE, FALSE, TRUE);
+        EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
         //
         // We set events OptionalParam1 here to make sure that our event is

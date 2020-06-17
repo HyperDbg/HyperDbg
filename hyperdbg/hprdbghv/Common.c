@@ -9,8 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include <wdf.h>
+#include <ntifs.h>
 #include "Msr.h"
 #include "Common.h"
 #include "Vmx.h"
@@ -99,6 +98,107 @@ UINT64
 VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
+}
+
+/**
+ * @brief Switch to another process's cr3
+ * 
+ * @param ProcessId ProcessId to switch
+ * @return CR3_TYPE The cr3 of current process which can be
+ * used by RestoreToPreviousProcess function
+ */
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
+{
+    UINT64    GuestCr3;
+    PEPROCESS TargetEprocess;
+    CR3_TYPE  CurrentProcessCr3 = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    {
+        //
+        // There was an error, probably the process id was not found
+        //
+        return CurrentProcessCr3;
+    }
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
+    GuestCr3                     = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Read the current cr3
+    //
+    CurrentProcessCr3.Flags = __readcr3();
+
+    //
+    // Change to a new cr3 (of target process)
+    //
+    __writecr3(GuestCr3);
+
+    return CurrentProcessCr3;
+}
+
+/**
+ * @brief Switch to previous process's cr3
+ * 
+ * @param PreviousProcess Cr3 of previous process which 
+ * is returned by SwitchOnAnotherProcessMemoryLayout
+ * @return VOID 
+ */
+VOID
+RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
+{
+    //
+    // Restore the original cr3
+    //
+    __writecr3(PreviousProcess.Flags);
+}
+
+/**
+ * @brief Converts Virtual Address to Physical Address based
+ * on a specific process id's kernel cr3
+ * 
+ * @param VirtualAddress The target virtual address
+ * @param ProcessId The target's process id
+ * @return UINT64 Returns the physical address
+ */
+UINT64
+VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId)
+{
+    CR3_TYPE CurrentProcessCr3;
+    UINT64   PhysicalAddress;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentProcessCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Read the physical address based on new cr3
+    //
+    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return PhysicalAddress;
 }
 
 /**

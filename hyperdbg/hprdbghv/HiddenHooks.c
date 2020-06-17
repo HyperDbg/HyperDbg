@@ -49,10 +49,10 @@ HiddenHooksTest()
     //
     // Hook Test
     //
-    //EptPageHook(KeGetCurrentThread(), NULL, NULL, TRUE, TRUE, FALSE);
-    //EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
-    //EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
-    EptPageHook(NtCreateFile, AsmGeneralDetourHook, (PVOID *)&NtCreateFileOrig, FALSE, FALSE, TRUE);
+    //EptPageHook(KeGetCurrentThread(), NULL, PsGetCurrentProcessId(), NULL, TRUE, TRUE, FALSE);
+    //EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
+    //EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
+    EptPageHook(NtCreateFile, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&NtCreateFileOrig, FALSE, FALSE, TRUE);
     //
     // Unhook Tests
     //HvPerformPageUnHookSinglePage(ExAllocatePoolWithTag);

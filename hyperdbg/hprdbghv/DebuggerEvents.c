@@ -102,7 +102,7 @@ DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledF
  * @return VOID 
  */
 BOOLEAN
-DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableForRead, BOOLEAN EnableForWrite)
+DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite)
 {
     //
     // Check if the detail is ok for either read or write or both
@@ -125,5 +125,5 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, BOOLEAN EnableF
     //
     // Perform the EPT Hook
     //
-    EptPageHook(Address, NULL, NULL, EnableForRead, EnableForWrite, FALSE);
+    EptPageHook(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
 }

@@ -804,17 +804,19 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
  * @brief Hook ins
  * 
  * @param Hook The details of hooked pages
+ * @param ProcessId The target Process Id
  * @param TargetFunction Target function that needs to be hooked
+ * @param TargetFunctionInSafeMemory Target content in the safe memory (used in Length Disassembler Engine)
  * @param HookFunction The function that will be called when hook triggered
- * @param OrigFunction A pointer to write the restore point on it (HookFunction should finally jump to this address)
  * @return BOOLEAN Returns true if the hook was successfull or returns false if it was not successfull
  */
 BOOLEAN
-EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVOID HookFunction)
+EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID TargetFunction, PVOID TargetFunctionInSafeMemory, PVOID HookFunction)
 {
     PHIDDEN_HOOKS_DETOUR_DETAILS DetourHookDetails;
     SIZE_T                       SizeOfHookedInstructions;
     SIZE_T                       OffsetIntoPage;
+    CR3_TYPE                     Cr3OfCurrentProcess;
 
     OffsetIntoPage = ADDRMASK_EPT_PML1_OFFSET((SIZE_T)TargetFunction);
     LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
@@ -830,7 +832,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     for (SizeOfHookedInstructions = 0;
          SizeOfHookedInstructions < 18;
-         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunction + SizeOfHookedInstructions), TRUE))
+         SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions), TRUE))
     {
         //
         // Get the full size of instructions necessary to copy
@@ -856,7 +858,21 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, PVOID TargetFunction, PVO
     //
     // Copy the trampoline instructions in
     //
-    RtlCopyMemory(Hook->Trampoline, TargetFunction, SizeOfHookedInstructions);
+
+    // Switch to target process
+    //
+    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+    //
+    // The following line can't be used in user mode addresses
+    // RtlCopyMemory(Hook->Trampoline, TargetFunction, SizeOfHookedInstructions);
+    //
+    MemoryMapperReadMemorySafe(TargetFunction, Hook->Trampoline, SizeOfHookedInstructions);
+
+    //
+    // Restore to original process
+    //
+    RestoreToPreviousProcess(Cr3OfCurrentProcess);
 
     //
     // Add the absolute jump back to the original function
@@ -996,23 +1012,26 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
  * 
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
- * @param OrigFunction A pointer to write the restore point on it (HookFunction should finally jump to this address)
+ * @param ProcessId The process id to translate based on that process's cr3
  * @param UnsetRead Hook READ Access
  * @param UnsetWrite Hook WRITE Access
  * @param UnsetExecute Hook EXECUTE Access
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
+EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
     SIZE_T                  PhysicalAddress;
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
+    UINT64                  TargetAddressInSafeMemory;
+    UINT64                  PageOffset;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     ULONG                   LogicalCoreIndex;
+    CR3_TYPE                Cr3OfCurrentProcess;
 
     //
     // Check whether we are in VMX Root Mode or Not
@@ -1031,7 +1050,25 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, B
     //
     VirtualTarget = PAGE_ALIGN(TargetAddress);
 
-    PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddress(VirtualTarget);
+    //
+    // Here we have to change the CR3, it is because we are in SYSTEM process
+    // and if the target address is not mapped in SYSTEM address space (e.g
+    // user mode address of another process) then the translation is invalid
+    //
+
+    //
+    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+    // or if process id is 0 then we use the cr32 of current process
+    //
+    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
+    {
+        ProcessId = PsGetCurrentProcessId();
+    }
+
+    //
+    // Find cr3 of target core
+    //
+    PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
 
     if (!PhysicalAddress)
     {
@@ -1149,14 +1186,36 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, B
         ChangedEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
 
         //
-        // Copy the content to the fake page
+        // Switch to target process
         //
-        RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
+        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+        //
+        // Copy the content to the fake page
+        // The following line can't be used in user mode addresses
+        // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
+        //
+        MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
+
+        //
+        // Restore to original process
+        //
+        RestoreToPreviousProcess(Cr3OfCurrentProcess);
+
+        //
+        // Compute new offset of target offset into a safe bufferr
+        // It will be used to compute the length of the detours 
+        // address because we might have a user mode code
+        //
+        TargetAddressInSafeMemory = &HookedPage->FakePageContents;
+        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
+        PageOffset                = PAGE_OFFSET(TargetAddress);
+        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
 
         //
         // Create Hook
         //
-        if (!EptHookInstructionMemory(HookedPage, TargetAddress, HookFunction))
+        if (!EptHookInstructionMemory(HookedPage, ProcessId, TargetAddress, TargetAddressInSafeMemory, HookFunction))
         {
             LogError("Could not build the hook.");
             return FALSE;
@@ -1199,14 +1258,14 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, B
  * 
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
- * @param OrigFunction A pointer to write the restore point on it (HookFunction should finally jump to this address)
+ * @param ProcessId The process id to translate based on that process's cr3
  * @param SetHookForRead Hook READ Access
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
 {
     ULONG                   LogicalProcCounts;
     PVOID                   PreAllocBuff;
@@ -1268,7 +1327,7 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOO
         //
         UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, NULL) == STATUS_SUCCESS)
+        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, ProcessId) == STATUS_SUCCESS)
         {
             LogInfo("Hook applied from VMX Root Mode");
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
@@ -1288,7 +1347,7 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOO
     }
     else
     {
-        if (EptPerformPageHook(TargetAddress, HookFunction, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
+        if (EptPerformPageHook(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
         {
             LogInfo("[*] Hook applied (VM has not launched)");
             return TRUE;

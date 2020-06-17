@@ -1157,7 +1157,7 @@ typedef struct _GUEST_REGS
     ULONG64 rcx;
     ULONG64 rdx; // 0x10
     ULONG64 rbx;
-    ULONG64 rsp; // 0x20 
+    ULONG64 rsp; // 0x20
     ULONG64 rbp;
     ULONG64 rsi; // 0x30
     ULONG64 rdi;
@@ -1179,10 +1179,10 @@ BOOLEAN
 EptBuildMtrrMap();
 /* Hook in VMX Root Mode (A pre-allocated buffer should be available) */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
+EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
 /* Hook in VMX Non Root Mode */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
 /* Initialize EPT Table based on Processor Index */
 BOOLEAN
 EptLogicalProcessorInitialize();
