@@ -46,7 +46,7 @@ DebuggerEventDisableEferOnAllProcessors()
  * @return VOID 
  */
 VOID
-DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
+DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -72,9 +72,9 @@ DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledF
     // Iterate through the list of hooked pages details to find
     // and return where want to jump after this functions
     //
-    TempList = &g_HiddenHooksDetourListHead;
+    TempList = &g_EptHook2sDetourListHead;
 
-    while (&g_HiddenHooksDetourListHead != TempList->Flink)
+    while (&g_EptHook2sDetourListHead != TempList->Flink)
     {
         TempList                                          = TempList->Flink;
         PHIDDEN_HOOKS_DETOUR_DETAILS CurrentHookedDetails = CONTAINING_RECORD(TempList, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList);

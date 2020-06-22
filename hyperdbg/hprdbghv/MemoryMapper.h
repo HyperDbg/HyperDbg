@@ -15,7 +15,6 @@
 #pragma once
 #include <ntddk.h>
 
-
 //////////////////////////////////////////////////
 //				    Definitions					//
 //////////////////////////////////////////////////
@@ -37,7 +36,6 @@ typedef enum _PML
     PML4    // Page Map Level 4
 } PML;
 
-
 //////////////////////////////////////////////////
 //					Structures					//
 //////////////////////////////////////////////////
@@ -47,7 +45,6 @@ typedef struct _MEMORY_MAPPER_ADDRESSES
     UINT64 PteVirtualAddress; // The virtual address of PTE
     UINT64 VirualAddress;     // The actual kernel virtual address to read or write
 } MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
-
 
 //
 // Page Table Entry
@@ -297,3 +294,6 @@ MemoryMapperInitialize();
 
 VOID
 MemoryMapperUninitialize();
+
+UINT64
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId);

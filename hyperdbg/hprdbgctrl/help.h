@@ -31,7 +31,7 @@ VOID CommandPteHelp();
 VOID CommandMonitorHelp();
 VOID CommandSyscallHelp();
 VOID CommandSysretHelp();
-VOID CommandHiddenHookHelp();
+VOID CommandEptHook2Help();
 VOID CommandCpuidHelp();
 VOID CommandMsrreadHelp();
 VOID CommandMsrwriteHelp();

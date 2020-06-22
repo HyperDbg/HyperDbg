@@ -1,5 +1,5 @@
 /**
- * @file HiddenHooks.c
+ * @file EptHook2s.c
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Implementation of different EPT hidden hooks functions
  * @details All the R/W hooks, Execute hooks and hardware register simulators
@@ -44,7 +44,7 @@ ExAllocatePoolWithTagHook(
  * @return VOID 
  */
 VOID
-HiddenHooksTest()
+EptHook2sTest()
 {
     //
     // Hook Test

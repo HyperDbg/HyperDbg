@@ -47,11 +47,11 @@ DebuggerInitialize()
     // Initialize lists relating to the debugger events store
     //
 
-    InitializeListHead(&g_Events->HiddenHookExecCcEventsHead);
-    InitializeListHead(&g_Events->HiddenHookReadAndWriteEventsHead);
-    InitializeListHead(&g_Events->HiddenHookReadEventsHead);
-    InitializeListHead(&g_Events->HiddenHookWriteEventsHead);
-    InitializeListHead(&g_Events->HiddenHooksExecDetourEventsHead);
+    InitializeListHead(&g_Events->EptHook2ExecCcEventsHead);
+    InitializeListHead(&g_Events->EptHook2ReadAndWriteEventsHead);
+    InitializeListHead(&g_Events->EptHook2ReadEventsHead);
+    InitializeListHead(&g_Events->EptHook2WriteEventsHead);
+    InitializeListHead(&g_Events->EptHook2sExecDetourEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSyscallEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSysretEventsHead);
     InitializeListHead(&g_Events->CpuidInstructionExecutionEventsHead);
@@ -68,7 +68,7 @@ DebuggerInitialize()
     //
     // Initialize the list of hidden hooks headers
     //
-    InitializeListHead(&g_HiddenHooksDetourListHead);
+    InitializeListHead(&g_EptHook2sDetourListHead);
 
     //
     // Enabled Debugger Events
@@ -319,19 +319,19 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     switch (Event->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
-        InsertHeadList(&g_Events->HiddenHookReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHook2ReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_READ:
-        InsertHeadList(&g_Events->HiddenHookReadEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHook2ReadEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_WRITE:
-        InsertHeadList(&g_Events->HiddenHookWriteEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHook2WriteEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_EXEC_DETOURS:
-        InsertHeadList(&g_Events->HiddenHooksExecDetourEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHook2sExecDetourEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_EXEC_CC:
-        InsertHeadList(&g_Events->HiddenHookExecCcEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHook2ExecCcEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case SYSCALL_HOOK_EFER_SYSCALL:
         InsertHeadList(&g_Events->SyscallHooksEferSyscallEventsHead, &(Event->EventsOfSameTypeList));
@@ -409,31 +409,31 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
     {
-        TempList  = &g_Events->HiddenHookReadAndWriteEventsHead;
+        TempList  = &g_Events->EptHook2ReadAndWriteEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_READ:
     {
-        TempList  = &g_Events->HiddenHookReadEventsHead;
+        TempList  = &g_Events->EptHook2ReadEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_WRITE:
     {
-        TempList  = &g_Events->HiddenHookWriteEventsHead;
+        TempList  = &g_Events->EptHook2WriteEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_EXEC_DETOURS:
     {
-        TempList  = &g_Events->HiddenHooksExecDetourEventsHead;
+        TempList  = &g_Events->EptHook2sExecDetourEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_EXEC_CC:
     {
-        TempList  = &g_Events->HiddenHookExecCcEventsHead;
+        TempList  = &g_Events->EptHook2ExecCcEventsHead;
         TempList2 = TempList;
         break;
     }
@@ -1087,6 +1087,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 {
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
+    UINT32          TempPid;
     UINT32          ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
@@ -1155,7 +1156,13 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // First check if the address are valid
         //
-        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL)
+        TempPid = EventDetails->ProcessId;
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        {
+            TempPid = PsGetCurrentProcessId();
+        }
+
+        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL)
         {
             //
             // Address is invalid (Set the error)

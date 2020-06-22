@@ -79,7 +79,7 @@ VOID CommandMonitor(vector<string> SplittedCommand);
 
 VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
 
-VOID CommandHiddenHook(vector<string> SplittedCommand);
+VOID CommandEptHook2(vector<string> SplittedCommand);
 
 VOID CommandCpuid(vector<string> SplittedCommand);
 

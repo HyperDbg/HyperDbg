@@ -899,7 +899,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID T
     //
     // Insert it to the list of hooked pages
     //
-    InsertHeadList(&g_HiddenHooksDetourListHead, &(DetourHookDetails->OtherHooksList));
+    InsertHeadList(&g_EptHook2sDetourListHead, &(DetourHookDetails->OtherHooksList));
 
     //
     // Write the absolute jump to our shadow page memory to jump to our hook

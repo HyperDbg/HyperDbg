@@ -74,8 +74,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandPte(SplittedCommand);
   } else if (!FirstCommand.compare("!monitor")) {
     CommandMonitor(SplittedCommand);
-  } else if (!FirstCommand.compare("!hiddenhook")) {
-    CommandHiddenHook(SplittedCommand);
+  } else if (!FirstCommand.compare("!epthook2")) {
+    CommandEptHook2(SplittedCommand);
   } else if (!FirstCommand.compare("!cpuid")) {
     CommandCpuid(SplittedCommand);
   } else if (!FirstCommand.compare("!msrread")) {
@@ -107,9 +107,9 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
              !FirstCommand.compare("!dd") || !FirstCommand.compare("!dq") ||
              !FirstCommand.compare("!u") || !FirstCommand.compare("u")) {
     CommandReadMemoryAndDisassembler(SplittedCommand);
-  } else if (!FirstCommand.compare("!hiddenhook") ||
+  } else if (!FirstCommand.compare("!epthook2") ||
              !FirstCommand.compare("bh")) {
-    CommandHiddenHook(SplittedCommand);
+    CommandEptHook2(SplittedCommand);
   } else {
     ShowMessages("Couldn't resolve error at '%s'", FirstCommand.c_str());
     ShowMessages("\n");

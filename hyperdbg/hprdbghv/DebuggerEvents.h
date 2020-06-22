@@ -21,7 +21,7 @@ VOID
 DebuggerEventDisableEferOnAllProcessors();
 
 VOID
-DebuggerEventHiddenHookGeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
+DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
 
 BOOLEAN
 DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite);

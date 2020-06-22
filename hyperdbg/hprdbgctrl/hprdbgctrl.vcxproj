@@ -124,7 +124,7 @@
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
-    <ClCompile Include="hiddenhook.cpp" />
+    <ClCompile Include="epthook2.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />

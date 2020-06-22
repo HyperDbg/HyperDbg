@@ -132,4 +132,4 @@ PVOID(*ExAllocatePoolWithTagOrig)
 // ----------------------------------------------------------------------
 
 VOID
-HiddenHooksTest();
+EptHook2sTest();

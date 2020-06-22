@@ -12,7 +12,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
+
+#include <ntifs.h>
 #include "GlobalVariables.h"
 #include "Vpid.h"
 #include "Common.h"
@@ -313,4 +314,76 @@ MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZ
         g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
         g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
         g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+
+/**
+ * @brief Reserve user mode address (not allocated) in the target user mode application
+ * 
+ * @return Reserved address in the target user mode application
+ */
+UINT64
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId)
+{
+    NTSTATUS   Status;
+    PVOID      AllocPtr  = NULL;
+    SIZE_T     AllocSize = PAGE_SIZE;
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsGetCurrentProcessId() != ProcessId)
+    {
+        //
+        // User needs another process memory
+        //
+
+        if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        {
+            //
+            // if the process not found
+            //
+            return STATUS_UNSUCCESSFUL;
+        }
+        __try
+        {
+            KeStackAttachProcess(SourceProcess, &State);
+
+            //
+            // Allocate (not allocate, just reserve) in memory in target process
+            //
+            Status = ZwAllocateVirtualMemory(
+                NtCurrentProcess(),
+                &AllocPtr,
+                NULL,
+                &AllocSize,
+                MEM_RESERVE,
+                PAGE_EXECUTE_READWRITE);
+
+            KeUnstackDetachProcess(&State);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            KeUnstackDetachProcess(&State);
+            return STATUS_UNSUCCESSFUL;
+        }
+    }
+    else
+    {
+        //
+        // Allocate (not allocate, just reserve) in memory in target process
+        //
+        Status = ZwAllocateVirtualMemory(
+            NtCurrentProcess(),
+            &AllocPtr,
+            NULL,
+            &AllocSize,
+            MEM_RESERVE,
+            PAGE_EXECUTE_READWRITE);
+    }
+
+    if (!NT_SUCCESS(Status))
+    {
+        return NULL;
+    }
+
+    return AllocPtr;
 }

@@ -76,4 +76,4 @@ BOOLEAN g_HandleInUse;
  * @brief List header of hidden hooks detour
  * 
  */
-LIST_ENTRY g_HiddenHooksDetourListHead;
+LIST_ENTRY g_EptHook2sDetourListHead;

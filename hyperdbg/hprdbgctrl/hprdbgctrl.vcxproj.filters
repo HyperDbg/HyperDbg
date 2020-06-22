@@ -128,9 +128,6 @@
     <ClCompile Include="formats.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
-    <ClCompile Include="hiddenhook.cpp">
-      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
-    </ClCompile>
     <ClCompile Include="lm.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
@@ -183,6 +180,9 @@
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
     <ClCompile Include="ioout.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="epthook2.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
   </ItemGroup>

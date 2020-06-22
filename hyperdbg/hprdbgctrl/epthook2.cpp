@@ -1,7 +1,7 @@
 /**
- * @file hiddenhook.cpp
+ * @file epthook2.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief !hiddenhook command
+ * @brief !epthook2 command
  * @details
  * @version 0.1
  * @date 2020-05-27
@@ -12,20 +12,20 @@
 
 #include "pch.h"
 
-VOID CommandHiddenHookHelp() {
-  ShowMessages("!hiddenhook : Puts a hidden-hook EPT (detours) .\n\n");
+VOID CommandEptHook2Help() {
+  ShowMessages("!epthook2 : Puts a hidden-hook EPT (detours) .\n\n");
   ShowMessages(
-      "syntax : \t!hiddenhook [Virtual Address (hex value)] core [core index "
+      "syntax : \t!epthook2 [Virtual Address (hex value)] core [core index "
       "(hex value)] pid [process id (hex value)] condition {[assembly "
       "in hex]} code {[assembly in hex]} buffer [pre-require buffer - (hex "
       "value)] \n");
 
-  ShowMessages("\t\te.g : !hiddenhook fffff801deadb000\n");
-  ShowMessages("\t\te.g : !hiddenhook fffff801deadb000 pid 400\n");
-  ShowMessages("\t\te.g : !hiddenhook fffff801deadb000 core 2 pid 400\n");
+  ShowMessages("\t\te.g : !epthook2 fffff801deadb000\n");
+  ShowMessages("\t\te.g : !epthook2 fffff801deadb000 pid 400\n");
+  ShowMessages("\t\te.g : !epthook2 fffff801deadb000 core 2 pid 400\n");
 }
 
-VOID CommandHiddenHook(vector<string> SplittedCommand) {
+VOID CommandEptHook2(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
   PDEBUGGER_GENERAL_ACTION Action;
@@ -35,8 +35,8 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
   UINT64 OptionalParam1 = 0; // Set the target address
 
   if (SplittedCommand.size() < 2) {
-    ShowMessages("incorrect use of '!hiddenhook'\n");
-    CommandHiddenHookHelp();
+    ShowMessages("incorrect use of '!epthook2'\n");
+    CommandEptHook2Help();
     return;
   }
 
@@ -47,7 +47,7 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, HIDDEN_HOOK_EXEC_DETOURS, &Event, &EventLength,
           &Action, &ActionLength)) {
-    CommandHiddenHookHelp();
+    CommandEptHook2Help();
     return;
   }
 
@@ -55,7 +55,7 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
   // Interpret command specific details (if any)
   //
   for (auto Section : SplittedCommand) {
-    if (!Section.compare("!hiddenhook")) {
+    if (!Section.compare("!epthook2")) {
       continue;
     } else if (!GetAddress) {
       //
@@ -66,7 +66,7 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
         // Unkonwn parameter
         //
         ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-        CommandHiddenHookHelp();
+        CommandEptHook2Help();
         return;
       } else {
         GetAddress = TRUE;
@@ -76,7 +76,7 @@ VOID CommandHiddenHook(vector<string> SplittedCommand) {
       // Unkonwn parameter
       //
       ShowMessages("Unknown parameter '%s'\n", Section.c_str());
-      CommandHiddenHookHelp();
+      CommandEptHook2Help();
       return;
     }
   }

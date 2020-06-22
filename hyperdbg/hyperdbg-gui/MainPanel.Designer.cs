@@ -56,7 +56,7 @@
             this.stepOutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.rWHiddenHooksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rWEptHook2sToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.whatsThisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.whatsThisToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.howToUseToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -326,7 +326,7 @@
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.rWHiddenHooksToolStripMenuItem,
+            this.rWEptHook2sToolStripMenuItem,
             this.syscallHookToolStripMenuItem,
             this.toolStripMenuItem4,
             this.functionTracerToolStripMenuItem});
@@ -334,16 +334,16 @@
             this.toolStripMenuItem1.Size = new System.Drawing.Size(125, 38);
             this.toolStripMenuItem1.Text = "Features";
             // 
-            // rWHiddenHooksToolStripMenuItem
+            // rWEptHook2sToolStripMenuItem
             // 
-            this.rWHiddenHooksToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.rWEptHook2sToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.whatsThisToolStripMenuItem,
             this.howToUseToolStripMenuItem,
             this.hiddenBreakpointExecutionHookToolStripMenuItem});
-            this.rWHiddenHooksToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("rWHiddenHooksToolStripMenuItem.Image")));
-            this.rWHiddenHooksToolStripMenuItem.Name = "rWHiddenHooksToolStripMenuItem";
-            this.rWHiddenHooksToolStripMenuItem.Size = new System.Drawing.Size(312, 44);
-            this.rWHiddenHooksToolStripMenuItem.Text = "Hidden Hooks";
+            this.rWEptHook2sToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("rWEptHook2sToolStripMenuItem.Image")));
+            this.rWEptHook2sToolStripMenuItem.Name = "rWEptHook2sToolStripMenuItem";
+            this.rWEptHook2sToolStripMenuItem.Size = new System.Drawing.Size(312, 44);
+            this.rWEptHook2sToolStripMenuItem.Text = "Hidden Hooks";
             // 
             // whatsThisToolStripMenuItem
             // 
@@ -1008,7 +1008,7 @@
         private System.Windows.Forms.ToolStripMenuItem checkForUpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem rWHiddenHooksToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem rWEptHook2sToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem syscallHookToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem registersToolStripMenuItem;
