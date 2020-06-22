@@ -47,10 +47,10 @@ DebuggerInitialize()
     // Initialize lists relating to the debugger events store
     //
 
-    InitializeListHead(&g_Events->EptHook2ExecCcEventsHead);
-    InitializeListHead(&g_Events->EptHook2ReadAndWriteEventsHead);
-    InitializeListHead(&g_Events->EptHook2ReadEventsHead);
-    InitializeListHead(&g_Events->EptHook2WriteEventsHead);
+    InitializeListHead(&g_Events->EptHookExecCcEventsHead);
+    InitializeListHead(&g_Events->HiddenHookReadAndWriteEventsHead);
+    InitializeListHead(&g_Events->HiddenHookReadEventsHead);
+    InitializeListHead(&g_Events->HiddenHookWriteEventsHead);
     InitializeListHead(&g_Events->EptHook2sExecDetourEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSyscallEventsHead);
     InitializeListHead(&g_Events->SyscallHooksEferSysretEventsHead);
@@ -319,19 +319,19 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     switch (Event->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
-        InsertHeadList(&g_Events->EptHook2ReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->HiddenHookReadAndWriteEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_READ:
-        InsertHeadList(&g_Events->EptHook2ReadEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->HiddenHookReadEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_WRITE:
-        InsertHeadList(&g_Events->EptHook2WriteEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->HiddenHookWriteEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_EXEC_DETOURS:
         InsertHeadList(&g_Events->EptHook2sExecDetourEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case HIDDEN_HOOK_EXEC_CC:
-        InsertHeadList(&g_Events->EptHook2ExecCcEventsHead, &(Event->EventsOfSameTypeList));
+        InsertHeadList(&g_Events->EptHookExecCcEventsHead, &(Event->EventsOfSameTypeList));
         break;
     case SYSCALL_HOOK_EFER_SYSCALL:
         InsertHeadList(&g_Events->SyscallHooksEferSyscallEventsHead, &(Event->EventsOfSameTypeList));
@@ -409,19 +409,19 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
     {
-        TempList  = &g_Events->EptHook2ReadAndWriteEventsHead;
+        TempList  = &g_Events->HiddenHookReadAndWriteEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_READ:
     {
-        TempList  = &g_Events->EptHook2ReadEventsHead;
+        TempList  = &g_Events->HiddenHookReadEventsHead;
         TempList2 = TempList;
         break;
     }
     case HIDDEN_HOOK_WRITE:
     {
-        TempList  = &g_Events->EptHook2WriteEventsHead;
+        TempList  = &g_Events->HiddenHookWriteEventsHead;
         TempList2 = TempList;
         break;
     }
@@ -433,7 +433,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     }
     case HIDDEN_HOOK_EXEC_CC:
     {
-        TempList  = &g_Events->EptHook2ExecCcEventsHead;
+        TempList  = &g_Events->EptHookExecCcEventsHead;
         TempList2 = TempList;
         break;
     }

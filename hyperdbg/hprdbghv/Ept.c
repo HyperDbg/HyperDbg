@@ -745,7 +745,7 @@ EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
     TargetBuffer[4] = 0x00;
 
     //
-    // mov r15, Target
+    // mov r11, Target
     //
     TargetBuffer[5] = 0x49;
     TargetBuffer[6] = 0xBB;
@@ -756,7 +756,7 @@ EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
     *((PSIZE_T)&TargetBuffer[7]) = TargetAddress;
 
     //
-    // push r15
+    // push r11
     //
     TargetBuffer[15] = 0x41;
     TargetBuffer[16] = 0x53;
@@ -778,7 +778,7 @@ VOID
 EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
 {
     //
-    // mov r15, Target
+    // mov r11, Target
     //
     TargetBuffer[0] = 0x49;
     TargetBuffer[1] = 0xBB;
@@ -789,7 +789,7 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
     *((PSIZE_T)&TargetBuffer[2]) = TargetAddress;
 
     //
-    // push r15
+    // push r11
     //
     TargetBuffer[10] = 0x41;
     TargetBuffer[11] = 0x53;
