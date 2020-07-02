@@ -791,6 +791,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     //
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
+
     LogInfo("Process Id : %x , Rax : %llx , Rbx : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->rbx, Context);
     return;
     //

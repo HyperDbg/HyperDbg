@@ -288,7 +288,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
         //
 
         cpu_info[0] = HYPERV_CPUID_INTERFACE;
-        cpu_info[1] = 'epyH'; /* "[Hyperdbg] [H]yper[v]isor = HyperdbgHv" */
+        cpu_info[1] = 'epyH'; // "[Hyperdbg] [H]yper[v]isor = HyperdbgHv" 
         cpu_info[2] = 'gbdr';
         cpu_info[3] = '  vH';
     }
