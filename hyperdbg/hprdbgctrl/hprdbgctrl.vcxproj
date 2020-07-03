@@ -136,6 +136,7 @@
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
+    <ClCompile Include="script.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unload.cpp" />

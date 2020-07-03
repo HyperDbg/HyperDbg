@@ -188,6 +188,9 @@
     <ClCompile Include="vmcall.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
+    <ClCompile Include="script.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

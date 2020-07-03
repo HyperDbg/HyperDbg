@@ -61,6 +61,8 @@ VOID CommandLoad(vector<string> SplittedCommand);
 
 VOID CommandUnload(vector<string> SplittedCommand);
 
+VOID CommandScript(vector<string> SplittedCommand, string Command);
+
 VOID CommandCpu(vector<string> SplittedCommand);
 
 VOID CommandExit(vector<string> SplittedCommand);

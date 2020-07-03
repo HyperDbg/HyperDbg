@@ -24,6 +24,7 @@ VOID CommandCpuHelp();
 VOID CommandUnloadHelp();
 VOID CommandLoadHelp();
 VOID CommandConnectHelp();
+VOID CommandScriptHelp();
 VOID CommandFormatsHelp();
 VOID CommandRdmsrHelp();
 VOID CommandWrmsrHelp();

@@ -43,6 +43,8 @@ BOOLEAN VmxSupportDetection();
 
 BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
 
+void Trim(std::string& s);
+
 //////////////////////////////////////////////////
 //				    Structures                  //
 //////////////////////////////////////////////////
