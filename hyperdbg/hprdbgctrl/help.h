@@ -42,3 +42,4 @@ VOID CommandDrHelp();
 VOID CommandInterruptHelp();
 VOID CommandIooutHelp();
 VOID CommandIoinHelp();
+VOID CommandVmcallHelp();

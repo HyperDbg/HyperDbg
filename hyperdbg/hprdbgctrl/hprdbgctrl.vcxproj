@@ -139,6 +139,7 @@
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unload.cpp" />
+    <ClCompile Include="vmcall.cpp" />
     <ClCompile Include="wrmsr.cpp" />
     <MASM Include="AsmVmxChecks.asm">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

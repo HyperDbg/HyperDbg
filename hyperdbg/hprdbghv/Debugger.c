@@ -64,6 +64,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
+    InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -368,6 +369,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
         break;
     case EXTERNAL_INTERRUPT_OCCURRED:
         InsertHeadList(&g_Events->ExternalInterruptOccurredEventsHead, &(Event->EventsOfSameTypeList));
+        break;  
+    case VMCALL_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
     default:
         //
@@ -506,6 +510,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
         TempList  = &g_Events->ExternalInterruptOccurredEventsHead;
+        TempList2 = TempList;
+        break;
+    }   
+    case VMCALL_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->VmcallInstructionExecutionEventsHead;
         TempList2 = TempList;
         break;
     }

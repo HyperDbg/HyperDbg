@@ -100,3 +100,5 @@ VOID CommandInterrupt(vector<string> SplittedCommand);
 VOID CommandIoin(vector<string> SplittedCommand);
 
 VOID CommandIoout(vector<string> SplittedCommand);
+
+VOID CommandVmcall(vector<string> SplittedCommand);

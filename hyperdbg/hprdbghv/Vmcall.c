@@ -29,6 +29,14 @@ NTSTATUS
 VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
 {
     //
+    // Triggeer the event
+    //
+    // As the context to event trigger, we send NULL
+    // Registers are the best source to know the purpose
+    //
+    DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+
+    //
     // Check if it's our routines that request the VMCALL our it relates to Hyper-V
     //
     if (GuestRegs->r10 == 0x48564653 && GuestRegs->r11 == 0x564d43414c4c && GuestRegs->r12 == 0x4e4f485950455256)
