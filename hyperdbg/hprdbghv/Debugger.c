@@ -692,6 +692,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         // Check if condtion is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
+
         if (CurrentEvent->ConditionsBufferSize != 0)
         {
             //
@@ -702,7 +703,9 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             //
             // Run and check for results
             //
-            if (ConditionFunc(Regs, Context) == 0)
+            // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
+            //
+            if (AsmDebuggerConditionCodeHandler(Regs, Context, ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -785,7 +788,6 @@ VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
     PVOID                       ReturnBufferToUsermodeAddress = 0;
-    DebuggerRunCustomCodeFunc * Func;
 
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -802,8 +804,8 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
 
-    LogInfo("Process Id : %x , Rax : %llx , Rbx : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->rbx, Context);
-    return;
+    LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
+    //return;
     //
     // -----------------------------------------------------------------------------------------------------
     //
@@ -814,26 +816,17 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     if (Action->RequestedBuffer.RequestBufferSize == 0)
     {
         //
-        // Means that this custom code doesn't requested a pre-allocated buffer
+        // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
-
-        //
-        // Execute the code (The pre-allocated buffer is null)
-        //
-        Func(NULL, Regs, Context);
+        AsmDebuggerCustomCodeHandler(NULL, Regs, Context, Action->CustomCodeBufferAddress);
     }
     else
     {
         //
-        // Means that this custom code doesn't requested a pre-allocated buffer
+        // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
+        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
 
-        //
-        // Execute the code (with requested buffer parameter)
-        //
-        ReturnBufferToUsermodeAddress = Func(Action->RequestedBuffer.RequstBufferAddress, Regs, Context);
     }
 
     //
@@ -1623,7 +1616,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
 
         CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
         CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        CustomCode.OptionalRequestedBufferSize = Action->CustomCodeBufferSize;
+        CustomCode.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
 
         //
         // Add action to event

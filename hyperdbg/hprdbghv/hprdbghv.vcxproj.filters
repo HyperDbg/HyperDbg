@@ -16,9 +16,6 @@
     <Filter Include="Source Files\Common">
       <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\EPT">
-      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Assembly">
       <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
     </Filter>
@@ -40,12 +37,6 @@
     <Filter Include="Header Files\Common">
       <UniqueIdentifier>{552ad1ee-f507-4577-96c0-a421e5060907}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\EPT">
-      <UniqueIdentifier>{0e525115-4ff2-45b4-ba02-f8fd40582ad3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Hypervisor">
-      <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Misc">
       <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
     </Filter>
@@ -58,14 +49,29 @@
     <Filter Include="Header Files\Debugger\Features">
       <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\VMX">
-      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\Essentials">
       <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Debugger\Essentials">
       <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VMM">
+      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VMM\VMX">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VMM\EPT">
+      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VMM">
+      <UniqueIdentifier>{7bb3397e-cb3d-4625-8ee3-742475b27948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VMM\EPT">
+      <UniqueIdentifier>{0e525115-4ff2-45b4-ba02-f8fd40582ad3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\VMM\VMX">
+      <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -78,28 +84,28 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vmcall.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Common.c">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="HypervisorRoutines.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Invept.c">
-      <Filter>Source Files\EPT</Filter>
+      <Filter>Source Files\VMM\EPT</Filter>
     </ClCompile>
     <ClCompile Include="Ept.c">
-      <Filter>Source Files\EPT</Filter>
+      <Filter>Source Files\VMM\EPT</Filter>
     </ClCompile>
     <ClCompile Include="VmxRegions.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Vmx.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Vpid.c">
-      <Filter>Source Files\EPT</Filter>
+      <Filter>Source Files\VMM\EPT</Filter>
     </ClCompile>
     <ClCompile Include="Logging.c">
       <Filter>Source Files\Common</Filter>
@@ -111,7 +117,7 @@
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="Events.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="SsdtHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
@@ -150,25 +156,25 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IoHandler.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="IdtEmulation.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="EferHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
     <ClCompile Include="SegmentRegs.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Counters.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="CrossVmexits.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
     <ClCompile Include="Vmexit.c">
-      <Filter>Source Files\VMX</Filter>
+      <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -197,25 +203,25 @@
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="Ept.h">
-      <Filter>Header Files\EPT</Filter>
+      <Filter>Header Files\VMM\EPT</Filter>
     </ClInclude>
     <ClInclude Include="Invept.h">
-      <Filter>Header Files\EPT</Filter>
+      <Filter>Header Files\VMM\EPT</Filter>
     </ClInclude>
     <ClInclude Include="Vpid.h">
-      <Filter>Header Files\EPT</Filter>
+      <Filter>Header Files\VMM\EPT</Filter>
     </ClInclude>
     <ClInclude Include="Events.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="Vmx.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="Vmcall.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="HypervisorRoutines.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="Hooks.h">
       <Filter>Header Files\Debugger\Features</Filter>
@@ -248,13 +254,13 @@
       <Filter>Header Files\Debugger\Essentials</Filter>
     </ClInclude>
     <ClInclude Include="IoHandler.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="IdtEmulation.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
     <ClInclude Include="Counters.h">
-      <Filter>Header Files\Hypervisor</Filter>
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

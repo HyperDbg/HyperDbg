@@ -98,3 +98,7 @@ AsmReloadIdtr(void * GdtBase, unsigned long GdtLimit);
 //
 extern void
 AsmGeneralDetourHook();
+unsigned long long
+AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
+unsigned long long
+AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
