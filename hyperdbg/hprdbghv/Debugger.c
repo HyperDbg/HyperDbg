@@ -369,7 +369,7 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
         break;
     case EXTERNAL_INTERRUPT_OCCURRED:
         InsertHeadList(&g_Events->ExternalInterruptOccurredEventsHead, &(Event->EventsOfSameTypeList));
-        break;  
+        break;
     case VMCALL_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
@@ -512,7 +512,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList  = &g_Events->ExternalInterruptOccurredEventsHead;
         TempList2 = TempList;
         break;
-    }   
+    }
     case VMCALL_INSTRUCTION_EXECUTION:
     {
         TempList  = &g_Events->VmcallInstructionExecutionEventsHead;
@@ -787,7 +787,7 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    PVOID                       ReturnBufferToUsermodeAddress = 0;
+    PVOID ReturnBufferToUsermodeAddress = 0;
 
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -804,7 +804,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
 
-    LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
+    //LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
     //return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -825,14 +825,13 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
-
+        ReturnBufferToUsermodeAddress = AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
     }
 
     //
     // Check if we need to send the buffer to the usermode or not we only send
     // buffer in usermode if the user requested a pre allocated buffer and
-    //return its address (in RAX), it's obvious the user might request a buffer
+    // return its address (in RAX), it's obvious the user might request a buffer
     // and at last return another address (which is not the address of pre]
     // allocated buffer), no matter, we send the user specific buffer with the
     // size of the request for pre allocated buffer

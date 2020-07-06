@@ -177,6 +177,8 @@ void ReadIrpBasedBuffer() {
           break;
 
         default:
+          ShowMessages("Message From Debugger :\n");
+          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
           break;
         }
       } else {
