@@ -125,6 +125,7 @@
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="epthook2.cpp" />
+    <ClCompile Include="hide.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
@@ -139,6 +140,7 @@
     <ClCompile Include="script.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="tsc.cpp" />
+    <ClCompile Include="unhide.cpp" />
     <ClCompile Include="unload.cpp" />
     <ClCompile Include="vmcall.cpp" />
     <ClCompile Include="wrmsr.cpp" />

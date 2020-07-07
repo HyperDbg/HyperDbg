@@ -113,14 +113,15 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
   MsrWriteRequest.CoreNumber = CoreNumer;
   MsrWriteRequest.Value = Value;
 
-  Status = DeviceIoControl(g_DeviceHandle,                   // Handle to device
-                           IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
-                           &MsrWriteRequest, // Input Buffer to driver.
-                           SIZEOF_READ_AND_WRITE_ON_MSR, // Input buffer length
-                           NULL, // Output Buffer from driver.
-                           NULL, // Length of output buffer in bytes.
-                           NULL, // Bytes placed in buffer.
-                           NULL  // synchronous call
+  Status = DeviceIoControl(
+      g_DeviceHandle,                        // Handle to device
+      IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control code
+      &MsrWriteRequest,                      // Input Buffer to driver.
+      SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Input buffer length
+      NULL,                                  // Output Buffer from driver.
+      NULL, // Length of output buffer in bytes.
+      NULL, // Bytes placed in buffer.
+      NULL  // synchronous call
   );
 
   if (!Status) {

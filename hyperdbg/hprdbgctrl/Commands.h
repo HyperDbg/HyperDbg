@@ -104,3 +104,7 @@ VOID CommandIoin(vector<string> SplittedCommand);
 VOID CommandIoout(vector<string> SplittedCommand);
 
 VOID CommandVmcall(vector<string> SplittedCommand);
+
+VOID CommandHide(vector<string> SplittedCommand);
+
+VOID CommandUnhide(vector<string> SplittedCommand);

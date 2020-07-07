@@ -73,6 +73,9 @@
     <Filter Include="Header Files\VMM\VMX">
       <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Transparency">
+      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -176,6 +179,9 @@
     <ClCompile Include="Vmexit.c">
       <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
+    <ClCompile Include="Transparency.c">
+      <Filter>Source Files\Debugger\Transparency</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -261,6 +267,9 @@
     </ClInclude>
     <ClInclude Include="Counters.h">
       <Filter>Header Files\VMM\VMX</Filter>
+    </ClInclude>
+    <ClInclude Include="Transparency.h">
+      <Filter>Header Files\Debugger\Features</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

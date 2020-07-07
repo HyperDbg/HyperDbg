@@ -31,9 +31,6 @@
     <Filter Include="Source Files\Common">
       <UniqueIdentifier>{f2afff38-c518-4252-bd1d-7573d4190f44}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\DrvLoader">
-      <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\Commands\Debugging Commands">
       <UniqueIdentifier>{b19aa95a-347c-4c7a-b96c-ad4d05bdc05c}</UniqueIdentifier>
     </Filter>
@@ -42,6 +39,9 @@
     </Filter>
     <Filter Include="Source Files\Debugger\Commands\Meta Commands">
       <UniqueIdentifier>{87fb4212-f9a2-4dba-b943-b1d3a7807c28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Driver Loader">
+      <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -102,7 +102,7 @@
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="install.cpp">
-      <Filter>Source Files\DrvLoader</Filter>
+      <Filter>Source Files\Driver Loader</Filter>
     </ClCompile>
     <ClCompile Include="disassembler.cpp">
       <Filter>Source Files\Debugger\Implementations</Filter>
@@ -190,6 +190,12 @@
     </ClCompile>
     <ClCompile Include="script.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="hide.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="unhide.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

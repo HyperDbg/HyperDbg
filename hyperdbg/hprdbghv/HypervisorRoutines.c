@@ -270,37 +270,45 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     __cpuidex(cpu_info, (INT32)RegistersState->rax, (INT32)RegistersState->rcx);
 
     //
-    // Check if this was CPUID 1h, which is the features request
+    // check whether we are in transparent mode or not
+    // if we are in transparent mode then ignore the
+    // cpuid modifications e.g. hyperviosr name or bit
     //
-    if (RegistersState->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+    if (!g_TransparentMode)
     {
         //
-        // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication
+        // Check if this was CPUID 1h, which is the features request
         //
-        cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
-    }
-    else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
-    {
-        //
-        // Return a maximum supported hypervisor CPUID leaf range and a vendor
-        // ID signature as required by the spec
-        //
+        if (RegistersState->rax == CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS)
+        {
+            //
+            // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
+            // reserved for this indication
+            //
+            cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+        }
+        else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
+        {
+            //
+            // Return a maximum supported hypervisor CPUID leaf range and a vendor
+            // ID signature as required by the spec
+            //
 
-        cpu_info[0] = HYPERV_CPUID_INTERFACE;
-        cpu_info[1] = 'epyH'; // "[Hyperdbg] [H]yper[v]isor = HyperdbgHv" 
-        cpu_info[2] = 'gbdr';
-        cpu_info[3] = '  vH';
-    }
-    else if (RegistersState->rax == HYPERV_CPUID_INTERFACE)
-    {
-        //
-        // Return non Hv#1 value. This indicate that our hypervisor does NOT
-        // conform to the Microsoft hypervisor interface.
-        //
+            cpu_info[0] = HYPERV_CPUID_INTERFACE;
+            cpu_info[1] = 'epyH'; // [HyperDbg.com]
+            cpu_info[2] = 'gbDr';
+            cpu_info[3] = 'moc.';
+        }
+        else if (RegistersState->rax == HYPERV_CPUID_INTERFACE)
+        {
+            //
+            // Return non Hv#1 value. This indicate that our hypervisor does NOT
+            // conform to the Microsoft hypervisor interface.
+            //
 
-        cpu_info[0] = '0#vH'; // Hv#0
-        cpu_info[1] = cpu_info[2] = cpu_info[3] = 0;
+            cpu_info[0] = '0#vH'; // Hv#0
+            cpu_info[1] = cpu_info[2] = cpu_info[3] = 0;
+        }
     }
 
     //

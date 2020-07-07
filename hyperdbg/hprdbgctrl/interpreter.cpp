@@ -103,6 +103,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   } else if (!FirstCommand.compare("!syscall") ||
              !FirstCommand.compare("!sysret")) {
     CommandSyscallAndSysret(SplittedCommand);
+  } else if (!FirstCommand.compare("!hide")) {
+    CommandHide(SplittedCommand);
+  } else if (!FirstCommand.compare("!unhide")) {
+    CommandUnhide(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||

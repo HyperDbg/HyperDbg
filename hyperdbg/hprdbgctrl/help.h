@@ -44,3 +44,5 @@ VOID CommandInterruptHelp();
 VOID CommandIooutHelp();
 VOID CommandIoinHelp();
 VOID CommandVmcallHelp();
+VOID CommandHideHelp();
+VOID CommandUnhideHelp();

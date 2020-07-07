@@ -76,6 +76,11 @@ DebuggerInitialize()
     //
     g_EnableDebuggerEvents = TRUE;
 
+    //
+    // Show that debugger is not in transparent-mode
+    //
+    g_TransparentMode = FALSE;
+
     return TRUE;
 }
 
