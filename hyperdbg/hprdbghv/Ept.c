@@ -21,6 +21,8 @@
 #include "PoolManager.h"
 #include "Hooks.h"
 #include "LengthDisassemblerEngine.h"
+#include "Events.h"
+#include "DebuggerEvents.h"
 
 /**
  * @brief Check whether EPT features are present or not
@@ -621,7 +623,7 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
-            // We found an address that match the details
+            // We found an address that matches the details
             //
             // Returning true means that the caller should return to the ept state to
             // the previous state when this instruction is executed
@@ -947,7 +949,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         //
         // Generally, we should never reach here, we didn't implement HyperDbg like this ;)
         //
-        LogInfo("Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
+        LogError("Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
@@ -997,6 +999,9 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
         return FALSE;
     }
 
+    //
+    // Restore to its orginal entry for one instruction
+    //
     EptSetPML1AndInvalidateTLB(HookedEntryDetails->EntryAddress, HookedEntryDetails->OriginalEntry, INVEPT_SINGLE_CONTEXT);
 
     //
@@ -1006,7 +1011,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
 }
 
 /**
- * @brief The main function that performs EPT page hook
+ * @brief The main function that performs EPT page hook with hidden detours and monitor
  * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
  * This function have to be called through a VMCALL in VMX Root Mode
  * 
@@ -1019,7 +1024,7 @@ EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetail
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
+EptPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -1204,7 +1209,7 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BO
 
         //
         // Compute new offset of target offset into a safe bufferr
-        // It will be used to compute the length of the detours 
+        // It will be used to compute the length of the detours
         // address because we might have a user mode code
         //
         TargetAddressInSafeMemory = &HookedPage->FakePageContents;
@@ -1255,7 +1260,8 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BO
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- * 
+ * @details this command uses hidden detours
+ *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
  * @param ProcessId The process id to translate based on that process's cr3
@@ -1265,14 +1271,10 @@ EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BO
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
+EptPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)
 {
-    ULONG                   LogicalProcCounts;
-    PVOID                   PreAllocBuff;
-    PVOID                   PagedAlignTarget;
-    PEPT_HOOKED_PAGE_DETAIL HookedPageDetail;
-    UINT32                  PageHookMask = 0;
-    ULONG                   LogicalCoreIndex;
+    UINT32 PageHookMask = 0;
+    ULONG  LogicalCoreIndex;
 
     //
     // Check for the features to avoid EPT Violation problems
@@ -1347,7 +1349,7 @@ EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN S
     }
     else
     {
-        if (EptPerformPageHook(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
+        if (EptPerformPageHook2(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
         {
             LogInfo("[*] Hook applied (VM has not launched)");
             return TRUE;
@@ -1467,4 +1469,290 @@ EptPageUnHookAllPages()
         //
         EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
     }
+}
+
+/**
+ * @brief The main function that performs EPT page hook with hidden breakpoint
+ * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
+ * This function have to be called through a VMCALL in VMX Root Mode
+ * 
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param ProcessId The process id to translate based on that process's cr3
+ * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
+ */
+BOOLEAN
+EptPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
+{
+    EPT_PML1_ENTRY          ChangedEntry;
+    INVEPT_DESCRIPTOR       Descriptor;
+    SIZE_T                  PhysicalAddress;
+    PVOID                   VirtualTarget;
+    PVOID                   TargetBuffer;
+    UINT64                  TargetAddressInSafeMemory;
+    UINT64                  PageOffset;
+    PEPT_PML1_ENTRY         TargetPage;
+    PEPT_HOOKED_PAGE_DETAIL HookedPage;
+    ULONG                   LogicalCoreIndex;
+    CR3_TYPE                Cr3OfCurrentProcess;
+
+    //
+    // Check whether we are in VMX Root Mode or Not
+    //
+    LogicalCoreIndex = KeGetCurrentProcessorIndex();
+
+    if (g_GuestState[LogicalCoreIndex].IsOnVmxRootMode && !g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        return FALSE;
+    }
+
+    //
+    // Translate the page from a physical address to virtual so we can read its memory.
+    // This function will return NULL if the physical address was not already mapped in
+    // virtual memory.
+    //
+    VirtualTarget = PAGE_ALIGN(TargetAddress);
+
+    //
+    // Here we have to change the CR3, it is because we are in SYSTEM process
+    // and if the target address is not mapped in SYSTEM address space (e.g
+    // user mode address of another process) then the translation is invalid
+    //
+
+    //
+    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+    // or if process id is 0 then we use the cr32 of current process
+    //
+    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
+    {
+        ProcessId = PsGetCurrentProcessId();
+    }
+
+    //
+    // Find cr3 of target core
+    //
+    PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
+
+    if (!PhysicalAddress)
+    {
+        LogError("Target address could not be mapped to physical memory");
+        return FALSE;
+    }
+
+    //
+    // Set target buffer, request buffer from pool manager,
+    // we also need to allocate new page to replace the current page ASAP
+    //
+    TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+
+    if (!TargetBuffer)
+    {
+        LogError("There is no pre-allocated buffer available");
+        return FALSE;
+    }
+
+    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalAddress, LogicalCoreIndex))
+    {
+        LogError("Could not split page for the address : 0x%llx", PhysicalAddress);
+        return FALSE;
+    }
+
+    //
+    // Pointer to the page entry in the page table
+    //
+    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalAddress);
+
+    //
+    // Ensure the target is valid
+    //
+    if (!TargetPage)
+    {
+        LogError("Failed to get PML1 entry of the target address");
+        return FALSE;
+    }
+
+    //
+    // Save the original permissions of the page
+    //
+    ChangedEntry = *TargetPage;
+
+    //
+    // Save the detail of hooked page to keep track of it
+    //
+    HookedPage = PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+    if (!HookedPage)
+    {
+        LogError("There is no pre-allocated pool for saving hooked page details");
+        return FALSE;
+    }
+
+    //
+    // This is a hidden breakpoint
+    //
+    HookedPage->IsHiddenBreakpoint = TRUE;
+
+    //
+    // Save the virtual address
+    //
+    HookedPage->VirtualAddress = TargetAddress;
+
+    //
+    // Save the physical address
+    //
+    HookedPage->PhysicalBaseAddress = PhysicalAddress;
+
+    //
+    // Fake page content physical address
+    //
+    HookedPage->PhysicalBaseAddressOfFakePageContents = (SIZE_T)VirtualAddressToPhysicalAddress(&HookedPage->FakePageContents[0]) / PAGE_SIZE;
+
+    //
+    // Save the entry address
+    //
+    HookedPage->EntryAddress = TargetPage;
+
+    //
+    // Save the orginal entry
+    //
+    HookedPage->OriginalEntry = *TargetPage;
+
+    //
+    // Show that entry has hidden hooks for execution
+    //
+    HookedPage->IsExecutionHook = TRUE;
+
+    //
+    // In execution hook, we have to make sure to unset read, write because
+    // an EPT violation should occur for these cases and we can swap the original page
+    //
+    ChangedEntry.ReadAccess    = 0;
+    ChangedEntry.WriteAccess   = 0;
+    ChangedEntry.ExecuteAccess = 1;
+
+    //
+    // Also set the current pfn to fake page
+    //
+    ChangedEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
+
+    //
+    // Compute new offset of target offset into a safe bufferr
+    // It will be used to compute the length of the detours
+    // address because we might have a user mode code
+    //
+    TargetAddressInSafeMemory = &HookedPage->FakePageContents;
+    TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
+    PageOffset                = PAGE_OFFSET(TargetAddress);
+    TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+
+    //
+    // Switch to target process
+    //
+    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+    //
+    // Copy the content to the fake page
+    // The following line can't be used in user mode addresses
+    // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
+    //
+    MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
+
+    //
+    // Set the breakpoint on the fake page
+    //
+    *(BYTE *)TargetAddressInSafeMemory = 0xcc;
+
+    //
+    // Restore to original process
+    //
+    RestoreToPreviousProcess(Cr3OfCurrentProcess);
+
+    //
+    // Save the modified entry
+    //
+    HookedPage->ChangedEntry = ChangedEntry;
+
+    //
+    // Add it to the list
+    //
+    InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
+
+    //
+    // if not launched, there is no need to modify it on a safe environment
+    //
+    if (!g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        //
+        // Apply the hook to EPT
+        //
+        TargetPage->Flags = ChangedEntry.Flags;
+    }
+    else
+    {
+        //
+        // Apply the hook to EPT
+        //
+        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
+ * @details this command uses hidden breakpoints (0xcc) to hook
+ * 
+ * @param TargetAddress The address of function or memory address to be hooked
+ * @param HookFunction The function that will be called when hook triggered
+ * @param ProcessId The process id to translate based on that process's cr3
+ * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
+ */
+BOOLEAN
+EptPageHook(PVOID TargetAddress, UINT32 ProcessId)
+{
+    PEPT_HOOKED_PAGE_DETAIL HookedPageDetail;
+    ULONG                   LogicalCoreIndex;
+
+    //
+    // Check whether we are in VMX Root Mode or Not
+    //
+    LogicalCoreIndex = KeGetCurrentProcessorIndex();
+
+    if (g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        //
+        // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
+        //
+        DebuggerEventEnableBreakpointExitingOnExceptionBitmapAllCores();
+
+        if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, ProcessId, NULL) == STATUS_SUCCESS)
+        {
+            LogInfo("Hidden breakpoint hook applied from VMX Root Mode");
+
+            if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
+            {
+                //
+                // Now we have to notify all the core to invalidate their EPT
+                //
+                HvNotifyAllToInvalidateEpt();
+            }
+            else
+            {
+                LogError("Unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode.");
+            }
+
+            return TRUE;
+        }
+    }
+    else
+    {
+        if (EptPerformPageHook(TargetAddress, ProcessId) == TRUE)
+        {
+            LogInfo("[*] Hidden breakpoint hook applied (VM has not launched)");
+            return TRUE;
+        }
+    }
+    LogWarning("Hidden breakpoint hook not applied");
+
+    return FALSE;
 }

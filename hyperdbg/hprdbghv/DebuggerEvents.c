@@ -41,6 +41,20 @@ DebuggerEventDisableEferOnAllProcessors()
 }
 
 /**
+ * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
+*
+* @return VOID 
+ */
+VOID
+DebuggerEventEnableBreakpointExitingOnExceptionBitmapAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
+}
+
+/**
  * @brief routines to generally handle breakpoint hit for detour 
  * 
  * @return VOID 
@@ -125,5 +139,5 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     //
     // Perform the EPT Hook
     //
-    EptPageHook(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
+    EptPageHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
 }

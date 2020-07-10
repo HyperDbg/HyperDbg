@@ -18,6 +18,7 @@
 #include "Invept.h"
 #include "InlineAsm.h"
 #include "Vpid.h"
+#include "Events.h"
 
 /**
  * @brief Handle vm-exits of VMCALLs
@@ -113,13 +114,10 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
-        //
-        // Mask is the upper 32 bits to this Vmcall
-        //
-
     case VMCALL_CHANGE_PAGE_ATTRIB:
     {
         //
+        // Mask is the upper 32 bits to this Vmcall
         // Upper 32 bits of the Vmcall contains the attribute mask
         //
         UINT32 AttributeMask = (UINT32)((VmcallNumber & 0xFFFFFFFF00000000LL) >> 32);
@@ -128,12 +126,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         UnsetWrite = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
         UnsetExec  = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
 
-        HookResult = EptPerformPageHook(OptionalParam1 /* TargetAddress */,
-                                        OptionalParam2 /* Hook Function*/,
-                                        OptionalParam3,
-                                        UnsetRead,
-                                        UnsetWrite,
-                                        UnsetExec);
+        HookResult = EptPerformPageHook2(OptionalParam1 /* TargetAddress */,
+                                         OptionalParam2 /* Hook Function*/,
+                                         OptionalParam3 /* Process Id */,
+                                         UnsetRead,
+                                         UnsetWrite,
+                                         UnsetExec);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -221,6 +219,26 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     {
         HvPerformIoBitmapChange(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_HIDDEN_CC_BREAKPOINT:
+    {
+        HookResult = EptPerformPageHook(OptionalParam1,  /* TargetAddress */
+                                        OptionalParam2); /* process id */
+
+        VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
+
+        break;
+    }
+    case VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP:
+    {
+        //
+        // Enable vm-exits on breakpoints (exception bitmap)
+        //
+        HvSetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
+
+        VmcallStatus = STATUS_SUCCESS;
+
         break;
     }
     default:

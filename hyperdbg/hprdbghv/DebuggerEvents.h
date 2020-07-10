@@ -23,5 +23,8 @@ DebuggerEventDisableEferOnAllProcessors();
 VOID
 DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
 
+VOID
+DebuggerEventEnableBreakpointExitingOnExceptionBitmapAllCores();
+
 BOOLEAN
 DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite);

@@ -607,15 +607,16 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+        case HIDDEN_HOOK_EXEC_CC:
         case HIDDEN_HOOK_EXEC_DETOURS:
             //
-            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS then it means
-            // that it's detours hidden hook exec so we have to make sure
-            // to perform its actions, only if the hook is triggered for
-            // the address described in event, note that address in event
-            // is a physical address and the address that the function that
-            // triggers these events and sent here as the context is also
-            // converted to its physical form
+            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS or its
+            // HIDDEN_HOOK_EXEC_CC then it means that it's detours hidden
+            // hook exec so we have to make sure to perform its actions
+            // , only if the hook is triggered for the address described in
+            // event, note that address in event is a physical address and
+            // the address that the function that triggers these events and
+            // sent here as the context is also converted to its physical form
             //
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
@@ -809,8 +810,8 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
 
-    //LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
-    //return;
+    LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
+    return;
     //
     // -----------------------------------------------------------------------------------------------------
     //
@@ -1159,7 +1160,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
         //
         // First check if the address are valid
@@ -1334,9 +1335,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
     }
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    {
+        EptPageHook(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId);
+
+        //
+        // We set events OptionalParam1 here to make sure that our event is
+        // executed not for all hooks but for this special hook
+        //
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
-        EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
+        EptPageHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
         //
         // We set events OptionalParam1 here to make sure that our event is

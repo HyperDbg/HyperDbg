@@ -1085,6 +1085,12 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     LIST_ENTRY PageHookList;
 
     /**
+	 * @brief If TRUE shows that this is the information about 
+	 * a hidden breakpoint command (not a monitor or hidden detours)
+	 */
+    BOOLEAN IsHiddenBreakpoint;
+
+    /**
 	* @brief The virtual address from the caller prespective view (cr3)
 	*/
     UINT64 VirtualAddress;
@@ -1177,12 +1183,18 @@ EptCheckFeatures();
 /* Build MTRR Map */
 BOOLEAN
 EptBuildMtrrMap();
-/* Hook in VMX Root Mode (A pre-allocated buffer should be available) */
+/* Hook in VMX Root Mode with hidden breakpoints (A pre-allocated buffer should be available) */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
-/* Hook in VMX Non Root Mode */
+EptPerformPageHook(PVOID TargetAddress, UINT32 ProcessId);
+/* Hook in VMX Root Mode with hidden detours and monitor (A pre-allocated buffer should be available) */
 BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+EptPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
+/* Hook in VMX Non Root Mode (hidden breakpoint) */
+BOOLEAN
+EptPageHook(PVOID TargetAddress, UINT32 ProcessId);
+/* Hook in VMX Non Root Mode (hidden detours) */
+BOOLEAN
+EptPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
 /* Initialize EPT Table based on Processor Index */
 BOOLEAN
 EptLogicalProcessorInitialize();

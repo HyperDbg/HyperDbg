@@ -201,6 +201,20 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_EPT_VIOLATION:
+    {
+        //
+        // Reading guest physical address
+        //
+        __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+
+        if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
+        {
+            LogError("There were errors in handling Ept Violation");
+        }
+
+        break;
+    }
     case EXIT_REASON_EPT_MISCONFIG:
     {
         __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);

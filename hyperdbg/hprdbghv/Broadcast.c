@@ -311,3 +311,27 @@ BroadcastDpcChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Enable breakpoint exiting on exception bitmaps on all cores
+ * 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Change exception bitmap
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

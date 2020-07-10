@@ -38,21 +38,30 @@ ExAllocatePoolWithTagHook(
     return ExAllocatePoolWithTagOrig(PoolType, NumberOfBytes, Tag);
 }
 
+VOID
+Test()
+{
+    DbgBreakPoint();
+}
+
 /**
  * @brief Make examples for testing hidden hooks
  * 
  * @return VOID 
  */
 VOID
-EptHook2sTest()
+HiddenHookTest()
 {
     //
     // Hook Test
     //
-    //EptPageHook(KeGetCurrentThread(), NULL, PsGetCurrentProcessId(), NULL, TRUE, TRUE, FALSE);
-    //EptPageHook(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
-    //EptPageHook(ExAllocatePoolWithTag, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
-    EptPageHook(NtCreateFile, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&NtCreateFileOrig, FALSE, FALSE, TRUE);
+    //EptPageHook2(KeGetCurrentThread(), NULL, PsGetCurrentProcessId(), NULL, TRUE, TRUE, FALSE);
+    //EptPageHook2(ExAllocatePoolWithTag, ExAllocatePoolWithTagHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
+    //EptPageHook2(ExAllocatePoolWithTag, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&ExAllocatePoolWithTagOrig, FALSE, FALSE, TRUE);
+    //EptPageHook2(NtCreateFile, AsmGeneralDetourHook, PsGetCurrentProcessId(), (PVOID *)&NtCreateFileOrig, FALSE, FALSE, TRUE);
+
+    EptPageHook(ExAllocatePoolWithTag, Test, PsGetCurrentProcessId());
+
     //
     // Unhook Tests
     //HvPerformPageUnHookSinglePage(ExAllocatePoolWithTag);

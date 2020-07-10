@@ -114,11 +114,6 @@ NTSTATUS(*NtCreateFileOrig)
     PVOID              EaBuffer,
     ULONG              EaLength);
 
-VOID
-SSyscallHookEnableSCE();
-VOID
-SyscallHookDisableSCE();
-
 //////////////////////////////////////////////////
 //				   Hidden Hooks					//
 //////////////////////////////////////////////////
@@ -132,4 +127,4 @@ PVOID(*ExAllocatePoolWithTagOrig)
 // ----------------------------------------------------------------------
 
 VOID
-EptHook2sTest();
+HiddenHookTest();

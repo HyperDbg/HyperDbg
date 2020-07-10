@@ -121,6 +121,7 @@
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="disconnect.cpp" />
     <ClCompile Include="dr.cpp" />
+    <ClCompile Include="epthook.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />

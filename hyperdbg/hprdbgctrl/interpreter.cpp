@@ -78,6 +78,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandMonitor(SplittedCommand);
   } else if (!FirstCommand.compare("!vmcall")) {
     CommandVmcall(SplittedCommand);
+  } else if (!FirstCommand.compare("!epthook")) {
+    CommandEptHook(SplittedCommand);
   } else if (!FirstCommand.compare("!epthook2")) {
     CommandEptHook2(SplittedCommand);
   } else if (!FirstCommand.compare("!cpuid")) {
