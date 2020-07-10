@@ -1700,7 +1700,14 @@ EptPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- * @details this command uses hidden breakpoints (0xcc) to hook
+ *
+ * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE 
+ * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
+ * clear here, if we want to broadcast to enable exception bitmaps on all cores when vmlaunch is not executed 
+ * then that's ok but a user might call this function when we didn't configure the vmcs, it's a problem! we 
+ * can solve it by giving a hint to vmcs configure function to make it ok for future configuration but that
+ * sounds stupid, I think it's better to not support this feature. Btw, debugger won't use this function in
+ * the above mentioned method, so we won't have any problem with this :)
  * 
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
@@ -1746,13 +1753,11 @@ EptPageHook(PVOID TargetAddress, UINT32 ProcessId)
     }
     else
     {
-        if (EptPerformPageHook(TargetAddress, ProcessId) == TRUE)
-        {
-            LogInfo("[*] Hidden breakpoint hook applied (VM has not launched)");
-            return TRUE;
-        }
+        //
+        // We won't support this type of breakpoint when VMLAUNCH is not executed
+        // take a look at "details" about the function to see why we decide to not
+        // support this feature.
+        //
+        return FALSE;
     }
-    LogWarning("Hidden breakpoint hook not applied");
-
-    return FALSE;
 }

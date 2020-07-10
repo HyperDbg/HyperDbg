@@ -59,7 +59,6 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
                 // of where triggered this event
                 //
                 DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
-                LogInfo("Called : %llx", GuestRip);
 
                 //
                 // Restore to its orginal entry for one instruction
