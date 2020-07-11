@@ -46,6 +46,7 @@
 #include <vector>
 #include <winioctl.h>
 #include <winternl.h>
+#include <fstream>
 
 //
 // HyperDbg defined headers

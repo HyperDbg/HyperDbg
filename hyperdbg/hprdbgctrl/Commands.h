@@ -61,6 +61,8 @@ VOID CommandLoad(vector<string> SplittedCommand);
 
 VOID CommandUnload(vector<string> SplittedCommand);
 
+VOID CommandScript(vector<string> SplittedCommand, string Command);
+
 VOID CommandCpu(vector<string> SplittedCommand);
 
 VOID CommandExit(vector<string> SplittedCommand);
@@ -78,6 +80,8 @@ VOID CommandPte(vector<string> SplittedCommand);
 VOID CommandMonitor(vector<string> SplittedCommand);
 
 VOID CommandSyscallAndSysret(vector<string> SplittedCommand);
+
+VOID CommandEptHook(vector<string> SplittedCommand);
 
 VOID CommandEptHook2(vector<string> SplittedCommand);
 
@@ -100,3 +104,9 @@ VOID CommandInterrupt(vector<string> SplittedCommand);
 VOID CommandIoin(vector<string> SplittedCommand);
 
 VOID CommandIoout(vector<string> SplittedCommand);
+
+VOID CommandVmcall(vector<string> SplittedCommand);
+
+VOID CommandHide(vector<string> SplittedCommand);
+
+VOID CommandUnhide(vector<string> SplittedCommand);

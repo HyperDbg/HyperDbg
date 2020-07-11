@@ -77,3 +77,10 @@ BOOLEAN g_HandleInUse;
  * 
  */
 LIST_ENTRY g_EptHook2sDetourListHead;
+
+/**
+ * @brief Shows whether the debugger transparent mode 
+ * is enabled (true) or not (false)
+ * 
+ */
+BOOLEAN g_TransparentMode;

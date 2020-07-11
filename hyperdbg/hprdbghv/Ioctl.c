@@ -20,6 +20,7 @@
 #include "DebuggerCommands.h"
 #include "Hooks.h"
 #include "Debugger.h"
+#include "Transparency.h"
 
 /**
  * @brief Driver IOCTL Dispatcher
@@ -31,19 +32,20 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION                        IrpStack;
-    PREGISTER_NOTIFY_BUFFER                   RegisterEventRequest;
-    PDEBUGGER_READ_MEMORY                     DebuggerReadMemRequest;
-    PDEBUGGER_READ_AND_WRITE_ON_MSR           DebuggerReadOrWriteMsrRequest;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS DebuggerPteRequest;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER     RegBufferResult;
-    PDEBUGGER_GENERAL_EVENT_DETAIL            DebuggerNewEventRequest;
-    PDEBUGGER_GENERAL_ACTION                  DebuggerNewActionRequest;
-    NTSTATUS                                  Status;
-    ULONG                                     InBuffLength;  // Input buffer length
-    ULONG                                     OutBuffLength; // Output buffer length
-    SIZE_T                                    ReturnSize;
-    BOOLEAN                                   DoNotChangeInformation = FALSE;
+    PIO_STACK_LOCATION                           IrpStack;
+    PREGISTER_NOTIFY_BUFFER                      RegisterEventRequest;
+    PDEBUGGER_READ_MEMORY                        DebuggerReadMemRequest;
+    PDEBUGGER_READ_AND_WRITE_ON_MSR              DebuggerReadOrWriteMsrRequest;
+    PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE DebuggerHideAndUnhideRequest;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    DebuggerPteRequest;
+    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER        RegBufferResult;
+    PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
+    PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
+    NTSTATUS                                     Status;
+    ULONG                                        InBuffLength;  // Input buffer length
+    ULONG                                        OutBuffLength; // Output buffer length
+    SIZE_T                                       ReturnSize;
+    BOOLEAN                                      DoNotChangeInformation = FALSE;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -158,7 +160,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_READ_AND_WRITE_ON_MSR || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR || Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -205,6 +207,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 DoNotChangeInformation = TRUE;
             }
+
+            break;
+
         case IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS:
             //
             // First validate the parameters.
@@ -289,6 +294,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+
         case IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT:
 
             //
@@ -327,6 +333,73 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+        case IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER:
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerHideAndUnhideRequest = (PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // check if it's a !hide or !unhide command
+            //
+            if (DebuggerHideAndUnhideRequest->IsHide == TRUE)
+            {
+                //
+                // It's a hide request
+                //
+                Status = TransparentHideDebugger();
+            }
+            else
+            {
+                //
+                // It's a unhide request
+                //
+                Status = TransparentUnhideDebugger();
+            }
+
+            if (Status == STATUS_SUCCESS)
+            {
+                //
+                // Set the status
+                //
+                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            }
+            else
+            {
+                //
+                // Set the status
+                //
+                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+            }
+
+            //
+            // Set size
+            //
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         default:
             LogError("Unknow IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;

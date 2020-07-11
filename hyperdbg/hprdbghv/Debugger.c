@@ -64,6 +64,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->OutInstructionExecutionEventsHead);
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
+    InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -74,6 +75,11 @@ DebuggerInitialize()
     // Enabled Debugger Events
     //
     g_EnableDebuggerEvents = TRUE;
+
+    //
+    // Show that debugger is not in transparent-mode
+    //
+    g_TransparentMode = FALSE;
 
     return TRUE;
 }
@@ -369,6 +375,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case EXTERNAL_INTERRUPT_OCCURRED:
         InsertHeadList(&g_Events->ExternalInterruptOccurredEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case VMCALL_INSTRUCTION_EXECUTION:
+        InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
         //
         // Wrong event type
@@ -509,6 +518,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList2 = TempList;
         break;
     }
+    case VMCALL_INSTRUCTION_EXECUTION:
+    {
+        TempList  = &g_Events->VmcallInstructionExecutionEventsHead;
+        TempList2 = TempList;
+        break;
+    }
     default:
         //
         // Event type is not found
@@ -592,15 +607,16 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+        case HIDDEN_HOOK_EXEC_CC:
         case HIDDEN_HOOK_EXEC_DETOURS:
             //
-            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS then it means
-            // that it's detours hidden hook exec so we have to make sure
-            // to perform its actions, only if the hook is triggered for
-            // the address described in event, note that address in event
-            // is a physical address and the address that the function that
-            // triggers these events and sent here as the context is also
-            // converted to its physical form
+            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS or its
+            // HIDDEN_HOOK_EXEC_CC then it means that it's detours hidden
+            // hook exec so we have to make sure to perform its actions
+            // , only if the hook is triggered for the address described in
+            // event, note that address in event is a physical address and
+            // the address that the function that triggers these events and
+            // sent here as the context is also converted to its physical form
             //
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
@@ -682,6 +698,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         // Check if condtion is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
+
         if (CurrentEvent->ConditionsBufferSize != 0)
         {
             //
@@ -692,7 +709,9 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             //
             // Run and check for results
             //
-            if (ConditionFunc(Regs, Context) == 0)
+            // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
+            //
+            if (AsmDebuggerConditionCodeHandler(Regs, Context, ConditionFunc) == 0)
             {
                 //
                 // The condition function returns null, mean that the
@@ -774,8 +793,7 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    PVOID                       ReturnBufferToUsermodeAddress = 0;
-    DebuggerRunCustomCodeFunc * Func;
+    PVOID ReturnBufferToUsermodeAddress = 0;
 
     if (Action->CustomCodeBufferSize == 0)
     {
@@ -791,7 +809,8 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     //
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
-    LogInfo("Process Id : %x , Rax : %llx , Rbx : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->rbx, Context);
+
+    LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
     return;
     //
     // -----------------------------------------------------------------------------------------------------
@@ -803,32 +822,22 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     if (Action->RequestedBuffer.RequestBufferSize == 0)
     {
         //
-        // Means that this custom code doesn't requested a pre-allocated buffer
+        // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
-
-        //
-        // Execute the code (The pre-allocated buffer is null)
-        //
-        Func(NULL, Regs, Context);
+        AsmDebuggerCustomCodeHandler(NULL, Regs, Context, Action->CustomCodeBufferAddress);
     }
     else
     {
         //
-        // Means that this custom code doesn't requested a pre-allocated buffer
+        // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        Func = (DebuggerRunCustomCodeFunc *)Action->CustomCodeBufferAddress;
-
-        //
-        // Execute the code (with requested buffer parameter)
-        //
-        ReturnBufferToUsermodeAddress = Func(Action->RequestedBuffer.RequstBufferAddress, Regs, Context);
+        ReturnBufferToUsermodeAddress = AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
     }
 
     //
     // Check if we need to send the buffer to the usermode or not we only send
     // buffer in usermode if the user requested a pre allocated buffer and
-    //return its address (in RAX), it's obvious the user might request a buffer
+    // return its address (in RAX), it's obvious the user might request a buffer
     // and at last return another address (which is not the address of pre]
     // allocated buffer), no matter, we send the user specific buffer with the
     // size of the request for pre allocated buffer
@@ -1092,7 +1101,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
     //
     // ----------------------------------------------------------------------------------
-    // Validate the Event's  parameters
+    // Validate the Event's parameters
     // ----------------------------------------------------------------------------------
     //
 
@@ -1151,7 +1160,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
         //
         // First check if the address are valid
@@ -1326,15 +1335,32 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
-        EptPageHook(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
+        EptHook(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId);
 
         //
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    {
+        EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
+
+        TempPid = EventDetails->ProcessId;
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        {
+            TempPid = PsGetCurrentProcessId();
+        }
+
+        //
+        // We set events OptionalParam1 here to make sure that our event is
+        // executed not for all hooks but for this special hook
+        // Also, we are sure that this is not null because we checked it before
+        //
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid);
     }
     else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
     {
@@ -1612,7 +1638,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
 
         CustomCode.CustomCodeBufferSize        = Action->CustomCodeBufferSize;
         CustomCode.CustomCodeBufferAddress     = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
-        CustomCode.OptionalRequestedBufferSize = Action->CustomCodeBufferSize;
+        CustomCode.OptionalRequestedBufferSize = Action->PreAllocatedBuffer;
 
         //
         // Add action to event

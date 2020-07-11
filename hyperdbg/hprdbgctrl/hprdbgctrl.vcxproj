@@ -121,10 +121,12 @@
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="disconnect.cpp" />
     <ClCompile Include="dr.cpp" />
+    <ClCompile Include="epthook.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="epthook2.cpp" />
+    <ClCompile Include="hide.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
@@ -136,9 +138,12 @@
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
+    <ClCompile Include="script.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="tsc.cpp" />
+    <ClCompile Include="unhide.cpp" />
     <ClCompile Include="unload.cpp" />
+    <ClCompile Include="vmcall.cpp" />
     <ClCompile Include="wrmsr.cpp" />
     <MASM Include="AsmVmxChecks.asm">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

@@ -83,7 +83,9 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
   DEBUG_REGISTERS_ACCESSED,
 
   TSC_INSTRUCTION_EXECUTION,
-  PMC_INSTRUCTION_EXECUTION
+  PMC_INSTRUCTION_EXECUTION,
+
+  VMCALL_INSTRUCTION_EXECUTION,
 
 } DEBUGGER_EVENT_TYPE_ENUM;
 
@@ -249,7 +251,8 @@ typedef struct _DEBUGGER_READ_MEMORY {
 /* ==============================================================================================
  */
 
-#define SIZEOF_READ_AND_WRITE_ON_MSR sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
+#define SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR                                  \
+  sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
 #define DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES 0xffffffff
 
 typedef enum _DEBUGGER_MSR_ACTION_TYPE {
@@ -268,6 +271,22 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
   UINT64 Value;
 
 } DEBUGGER_READ_AND_WRITE_ON_MSR, *PDEBUGGER_READ_AND_WRITE_ON_MSR;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE                     \
+  sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)
+
+typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE {
+
+  BOOLEAN IsHide;
+  UINT64 KernelStatus; /* DEBUGEER_OPERATION_WAS_SUCCESSFULL ,
+                          DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
+                          */
+
+} DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,
+    *PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
 
 /* ==============================================================================================
  */
@@ -439,6 +458,12 @@ typedef struct _DEBUGGER_EVENT {
 } DEBUGGER_EVENT, *PDEBUGGER_EVENT;
 
 //////////////////////////////////////////////////
+//		    	Debugger Success Codes            //
+//////////////////////////////////////////////////
+
+#define DEBUGEER_OPERATION_WAS_SUCCESSFULL 0xFFFFFFFF
+
+//////////////////////////////////////////////////
 //		    	Debugger Error Codes            //
 //////////////////////////////////////////////////
 
@@ -451,6 +476,7 @@ typedef struct _DEBUGGER_EVENT {
 #define DEBUGEER_ERROR_INVALID_CORE_ID 0xc0000006
 #define DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES 0xc0000007
 #define DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID 0xc0000008
+#define DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER 0xc0000009
 
 //////////////////////////////////////////////////
 //					IOCTLs                      //
@@ -479,3 +505,6 @@ typedef struct _DEBUGGER_EVENT {
 
 #define IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT                                     \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x807, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER             \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x808, METHOD_BUFFERED, FILE_ANY_ACCESS)

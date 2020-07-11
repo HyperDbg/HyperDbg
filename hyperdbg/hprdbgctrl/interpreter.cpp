@@ -62,6 +62,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandExit(SplittedCommand);
   } else if (!FirstCommand.compare("unload")) {
     CommandUnload(SplittedCommand);
+  } else if (!FirstCommand.compare(".script")) {
+    CommandScript(SplittedCommand, CommandString);
   } else if (!FirstCommand.compare("cpu")) {
     CommandCpu(SplittedCommand);
   } else if (!FirstCommand.compare("wrmsr")) {
@@ -74,6 +76,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandPte(SplittedCommand);
   } else if (!FirstCommand.compare("!monitor")) {
     CommandMonitor(SplittedCommand);
+  } else if (!FirstCommand.compare("!vmcall")) {
+    CommandVmcall(SplittedCommand);
+  } else if (!FirstCommand.compare("!epthook")) {
+    CommandEptHook(SplittedCommand);
   } else if (!FirstCommand.compare("!epthook2")) {
     CommandEptHook2(SplittedCommand);
   } else if (!FirstCommand.compare("!cpuid")) {
@@ -99,6 +105,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   } else if (!FirstCommand.compare("!syscall") ||
              !FirstCommand.compare("!sysret")) {
     CommandSyscallAndSysret(SplittedCommand);
+  } else if (!FirstCommand.compare("!hide")) {
+    CommandHide(SplittedCommand);
+  } else if (!FirstCommand.compare("!unhide")) {
+    CommandUnhide(SplittedCommand);
   } else if (!FirstCommand.compare("lm")) {
     CommandLm(SplittedCommand);
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||

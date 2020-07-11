@@ -126,7 +126,7 @@ void CommandSyscallAndSysret(vector<string> SplittedCommand) {
       }
 
       //
-      // Set the target I/O port
+      // Set the target syscall
       //
       Event->OptionalParam1 = SpecialTarget;
   }

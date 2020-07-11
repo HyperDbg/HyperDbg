@@ -1085,6 +1085,12 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     LIST_ENTRY PageHookList;
 
     /**
+	 * @brief If TRUE shows that this is the information about 
+	 * a hidden breakpoint command (not a monitor or hidden detours)
+	 */
+    BOOLEAN IsHiddenBreakpoint;
+
+    /**
 	* @brief The virtual address from the caller prespective view (cr3)
 	*/
     UINT64 VirtualAddress;
@@ -1154,21 +1160,21 @@ typedef enum _INVEPT_TYPE
 typedef struct _GUEST_REGS
 {
     ULONG64 rax; // 0x00
-    ULONG64 rcx;
+    ULONG64 rcx; // 0x08
     ULONG64 rdx; // 0x10
-    ULONG64 rbx;
+    ULONG64 rbx; // 0x18
     ULONG64 rsp; // 0x20
-    ULONG64 rbp;
+    ULONG64 rbp; // 0x28
     ULONG64 rsi; // 0x30
-    ULONG64 rdi;
-    ULONG64 r8; // 0x40
-    ULONG64 r9;
+    ULONG64 rdi; // 0x38
+    ULONG64 r8;  // 0x40
+    ULONG64 r9;  // 0x48
     ULONG64 r10; // 0x50
-    ULONG64 r11;
+    ULONG64 r11; // 0x58
     ULONG64 r12; // 0x60
-    ULONG64 r13;
+    ULONG64 r13; // 0x68
     ULONG64 r14; // 0x70
-    ULONG64 r15;
+    ULONG64 r15; // 0x78
 } GUEST_REGS, *PGUEST_REGS;
 
 /* Check for EPT Features */
@@ -1177,12 +1183,9 @@ EptCheckFeatures();
 /* Build MTRR Map */
 BOOLEAN
 EptBuildMtrrMap();
-/* Hook in VMX Root Mode (A pre-allocated buffer should be available) */
+/* Convert 2MB pages to 4KB pages */
 BOOLEAN
-EptPerformPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
-/* Hook in VMX Non Root Mode */
-BOOLEAN
-EptPageHook(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SIZE_T PhysicalAddress, ULONG CoreIndex);
 /* Initialize EPT Table based on Processor Index */
 BOOLEAN
 EptLogicalProcessorInitialize();
@@ -1201,12 +1204,3 @@ EptHandleMisconfiguration(UINT64 GuestAddress);
 /* This function set the specific PML1 entry in a spinlock protected area then	invalidate the TLB , this function should be called from vmx root-mode */
 VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType);
-/* Handle hooked pages in Vmx-root mode */
-BOOLEAN
-EptHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
-/* Remove a special hook from the hooked pages lists */
-BOOLEAN
-EptPageUnHookSinglePage(SIZE_T PhysicalAddress);
-/* Remove all hooks from the hooked pages lists */
-VOID
-EptPageUnHookAllPages();

@@ -11,6 +11,7 @@
  */
 
 #pragma once
+#include "Common.h"
 
 //////////////////////////////////////////////////
 //				   Syscall Hook					//
@@ -114,11 +115,6 @@ NTSTATUS(*NtCreateFileOrig)
     PVOID              EaBuffer,
     ULONG              EaLength);
 
-VOID
-SSyscallHookEnableSCE();
-VOID
-SyscallHookDisableSCE();
-
 //////////////////////////////////////////////////
 //				   Hidden Hooks					//
 //////////////////////////////////////////////////
@@ -131,5 +127,24 @@ PVOID(*ExAllocatePoolWithTagOrig)
 
 // ----------------------------------------------------------------------
 
+/* Hook in VMX Root Mode with hidden breakpoints (A pre-allocated buffer should be available) */
+BOOLEAN
+EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId);
+/* Hook in VMX Root Mode with hidden detours and monitor (A pre-allocated buffer should be available) */
+BOOLEAN
+EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
+/* Hook in VMX Non Root Mode (hidden breakpoint) */
+BOOLEAN
+EptHook(PVOID TargetAddress, UINT32 ProcessId);
+/* Hook in VMX Non Root Mode (hidden detours) */
+BOOLEAN
+EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
+/* Handle hooked pages in Vmx-root mode */
+BOOLEAN
+EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
+/* Remove a special hook from the hooked pages lists */
+BOOLEAN
+EptHookUnHookSinglePage(SIZE_T PhysicalAddress);
+/* Remove all hooks from the hooked pages lists */
 VOID
-EptHook2sTest();
+EptHookUnHookAllPages();

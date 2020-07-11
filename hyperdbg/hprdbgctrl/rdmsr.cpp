@@ -102,14 +102,14 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
   ZeroMemory(OutputBuffer, sizeof(UINT64) * NumCPU);
 
   Status = DeviceIoControl(
-      g_DeviceHandle,                     // Handle to device
-      IOCTL_DEBUGGER_READ_OR_WRITE_MSR, // IO Control code
-      &MsrReadRequest,                  // Input Buffer to driver.
-      SIZEOF_READ_AND_WRITE_ON_MSR,     // Input buffer length
-      OutputBuffer,                     // Output Buffer from driver.
-      sizeof(UINT64) * NumCPU,          // Length of output buffer in bytes.
-      &ReturnedLength,                  // Bytes placed in buffer.
-      NULL                              // synchronous call
+      g_DeviceHandle,                        // Handle to device
+      IOCTL_DEBUGGER_READ_OR_WRITE_MSR,      // IO Control code
+      &MsrReadRequest,                       // Input Buffer to driver.
+      SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR, // Input buffer length
+      OutputBuffer,                          // Output Buffer from driver.
+      sizeof(UINT64) * NumCPU, // Length of output buffer in bytes.
+      &ReturnedLength,         // Bytes placed in buffer.
+      NULL                     // synchronous call
   );
 
   if (!Status) {

@@ -1,10 +1,10 @@
 /**
- * @file epthook2.cpp
+ * @file epthook.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief !epthook2 command
+ * @brief !epthook command
  * @details
  * @version 0.1
- * @date 2020-05-27
+ * @date 2020-07-10
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -12,20 +12,20 @@
 
 #include "pch.h"
 
-VOID CommandEptHook2Help() {
-  ShowMessages("!epthook2 : Puts a hidden-hook EPT (detours) .\n\n");
+VOID CommandEptHookHelp() {
+  ShowMessages("!epthook : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
   ShowMessages(
-      "syntax : \t!epthook2 [Virtual Address (hex value)] core [core index "
+      "syntax : \t!epthook [Virtual Address (hex value)] core [core index "
       "(hex value)] pid [process id (hex value)] condition {[assembly "
       "in hex]} code {[assembly in hex]} buffer [pre-require buffer - (hex "
       "value)] \n");
 
-  ShowMessages("\t\te.g : !epthook2 fffff801deadb000\n");
-  ShowMessages("\t\te.g : !epthook2 fffff801deadb000 pid 400\n");
-  ShowMessages("\t\te.g : !epthook2 fffff801deadb000 core 2 pid 400\n");
+  ShowMessages("\t\te.g : !epthook fffff801deadb000\n");
+  ShowMessages("\t\te.g : !epthook fffff801deadb000 pid 400\n");
+  ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");
 }
 
-VOID CommandEptHook2(vector<string> SplittedCommand) {
+VOID CommandEptHook(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
   PDEBUGGER_GENERAL_ACTION Action;
@@ -35,19 +35,18 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
   UINT64 OptionalParam1 = 0; // Set the target address
 
   if (SplittedCommand.size() < 2) {
-    ShowMessages("incorrect use of '!epthook2'\n");
-    CommandEptHook2Help();
+    ShowMessages("incorrect use of '!epthook'\n");
+    CommandEptHookHelp();
     return;
   }
 
   //
   // Interpret and fill the general event and action fields
   //
-
   if (!InterpretGeneralEventAndActionsFields(
-          &SplittedCommand, HIDDEN_HOOK_EXEC_DETOURS, &Event, &EventLength,
-          &Action, &ActionLength)) {
-    CommandEptHook2Help();
+          &SplittedCommand, HIDDEN_HOOK_EXEC_CC, &Event, &EventLength, &Action,
+          &ActionLength)) {
+    CommandEptHookHelp();
     return;
   }
 
@@ -55,7 +54,7 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
   // Interpret command specific details (if any)
   //
   for (auto Section : SplittedCommand) {
-    if (!Section.compare("!epthook2")) {
+    if (!Section.compare("!epthook")) {
       continue;
     } else if (!GetAddress) {
       //
@@ -66,7 +65,7 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
         // Unkonwn parameter
         //
         ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-        CommandEptHook2Help();
+        CommandEptHookHelp();
         return;
       } else {
         GetAddress = TRUE;
@@ -76,12 +75,13 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
       // Unkonwn parameter
       //
       ShowMessages("Unknown parameter '%s'\n", Section.c_str());
-      CommandEptHook2Help();
+      CommandEptHookHelp();
       return;
     }
   }
   if (OptionalParam1 == 0) {
-    ShowMessages("Please choose an address to put the hook on it.\n");
+    ShowMessages(
+        "Please choose an address to put the hidden breakpoint on it.\n");
     return;
   }
 

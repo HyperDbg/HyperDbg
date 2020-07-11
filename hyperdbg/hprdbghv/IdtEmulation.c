@@ -19,7 +19,10 @@
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    ULONG ErrorCode = 0;
+    ULONG       ErrorCode = 0;
+    ULONG64     GuestRip;
+    PLIST_ENTRY TempList  = 0;
+    BOOLEAN     IsHandled = FALSE;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -32,26 +35,73 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
 
     if (InterruptExit.InterruptionType == INTERRUPT_TYPE_SOFTWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT)
     {
-        ULONG64 GuestRip;
-
         //
         // Reading guest's RIP
         //
         __vmx_vmread(GUEST_RIP, &GuestRip);
 
         //
+        // Check whether the breakpoint was due to a !epthook command or not
+        //
+        TempList = &g_EptState->HookedPagesList;
+
+        while (&g_EptState->HookedPagesList != TempList->Flink)
+        {
+            TempList                            = TempList->Flink;
+            PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+            if (HookedEntry->IsExecutionHook && HookedEntry->VirtualAddress == GuestRip)
+            {
+                //
+                // We found an address that matches the details, let's trigger the event
+                //
+                // As the context to event trigger, we send the rip
+                // of where triggered this event
+                //
+                DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
+
+                //
+                // Restore to its orginal entry for one instruction
+                //
+                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+
+                //
+                // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                //
+                g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
+
+                //
+                // We have to set Monitor trap flag and give it the HookedEntry to work with
+                //
+                HvSetMonitorTrapFlag(TRUE);
+
+                //
+                // Indicate that we handled the ept violation
+                //
+                IsHandled = TRUE;
+
+                //
+                // Get out of the loop
+                //
+                break;
+            }
+        }
+
+        //
         // notify the user about #BP
         //
         //LogInfo("Breakpoint Hit (Process Id : 0x%x) at : %llx ", PsGetCurrentProcessId(), GuestRip);
-        //
         //
 
         g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
         //
-        // re-inject #BP back to the guest
+        // re-inject #BP back to the guest if not handled by the hidden breakpoint
         //
-        EventInjectBreakpoint();
+        if (!IsHandled)
+        {
+            EventInjectBreakpoint();
+        }
     }
     else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_UNDEFINED_OPCODE)
     {
