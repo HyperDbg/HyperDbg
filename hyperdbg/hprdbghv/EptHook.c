@@ -57,7 +57,7 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
-    SIZE_T                  PhysicalAddress;
+    SIZE_T                  PhysicalBaseAddress;
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
     UINT64                  TargetAddressInSafeMemory;
@@ -66,6 +66,9 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     ULONG                   LogicalCoreIndex;
     CR3_TYPE                Cr3OfCurrentProcess;
+    PEPT_HOOKED_PAGE_DETAIL HookedEntry      = NULL;
+    BOOLEAN                 HookedEntryFound = FALSE;
+    PLIST_ENTRY             TempList         = 0;
 
     //
     // Check whether we are in VMX Root Mode or Not
@@ -102,168 +105,247 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
     //
     // Find cr3 of target core
     //
-    PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
 
-    if (!PhysicalAddress)
+    if (!PhysicalBaseAddress)
     {
         LogError("Target address could not be mapped to physical memory");
         return FALSE;
     }
 
     //
-    // Set target buffer, request buffer from pool manager,
-    // we also need to allocate new page to replace the current page ASAP
+    // try to see if we can find the address
     //
-    TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
-    if (!TargetBuffer)
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
     {
-        LogError("There is no pre-allocated buffer available");
-        return FALSE;
-    }
+        TempList    = TempList->Flink;
+        HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
 
-    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalAddress, LogicalCoreIndex))
-    {
-        LogError("Could not split page for the address : 0x%llx", PhysicalAddress);
-        return FALSE;
-    }
-
-    //
-    // Pointer to the page entry in the page table
-    //
-    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalAddress);
-
-    //
-    // Ensure the target is valid
-    //
-    if (!TargetPage)
-    {
-        LogError("Failed to get PML1 entry of the target address");
-        return FALSE;
+        if (HookedEntry->PhysicalBaseAddress == PhysicalBaseAddress)
+        {
+            //
+            // Means that we find the address
+            //
+            HookedEntryFound = TRUE;
+            break;
+        }
     }
 
     //
-    // Save the original permissions of the page
+    // Check if this address is previously splitted and converted to a breakpoint structure or not
     //
-    ChangedEntry = *TargetPage;
-
-    //
-    // Save the detail of hooked page to keep track of it
-    //
-    HookedPage = PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
-
-    if (!HookedPage)
-    {
-        LogError("There is no pre-allocated pool for saving hooked page details");
-        return FALSE;
-    }
-
-    //
-    // This is a hidden breakpoint
-    //
-    HookedPage->IsHiddenBreakpoint = TRUE;
-
-    //
-    // Save the virtual address
-    //
-    HookedPage->VirtualAddress = TargetAddress;
-
-    //
-    // Save the physical address
-    //
-    HookedPage->PhysicalBaseAddress = PhysicalAddress;
-
-    //
-    // Fake page content physical address
-    //
-    HookedPage->PhysicalBaseAddressOfFakePageContents = (SIZE_T)VirtualAddressToPhysicalAddress(&HookedPage->FakePageContents[0]) / PAGE_SIZE;
-
-    //
-    // Save the entry address
-    //
-    HookedPage->EntryAddress = TargetPage;
-
-    //
-    // Save the orginal entry
-    //
-    HookedPage->OriginalEntry = *TargetPage;
-
-    //
-    // Show that entry has hidden hooks for execution
-    //
-    HookedPage->IsExecutionHook = TRUE;
-
-    //
-    // In execution hook, we have to make sure to unset read, write because
-    // an EPT violation should occur for these cases and we can swap the original page
-    //
-    ChangedEntry.ReadAccess    = 0;
-    ChangedEntry.WriteAccess   = 0;
-    ChangedEntry.ExecuteAccess = 1;
-
-    //
-    // Also set the current pfn to fake page
-    //
-    ChangedEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
-
-    //
-    // Compute new offset of target offset into a safe bufferr
-    // It will be used to compute the length of the detours
-    // address because we might have a user mode code
-    //
-    TargetAddressInSafeMemory = &HookedPage->FakePageContents;
-    TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
-    PageOffset                = PAGE_OFFSET(TargetAddress);
-    TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
-
-    //
-    // Switch to target process
-    //
-    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
-
-    //
-    // Copy the content to the fake page
-    // The following line can't be used in user mode addresses
-    // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
-    //
-    MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
-
-    //
-    // Set the breakpoint on the fake page
-    //
-    *(BYTE *)TargetAddressInSafeMemory = 0xcc;
-
-    //
-    // Restore to original process
-    //
-    RestoreToPreviousProcess(Cr3OfCurrentProcess);
-
-    //
-    // Save the modified entry
-    //
-    HookedPage->ChangedEntry = ChangedEntry;
-
-    //
-    // Add it to the list
-    //
-    InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
-
-    //
-    // if not launched, there is no need to modify it on a safe environment
-    //
-    if (!g_GuestState[LogicalCoreIndex].HasLaunched)
+    if (HookedEntryFound && HookedEntry)
     {
         //
-        // Apply the hook to EPT
+        // Here we should add the breakpoint to previous breakpoint
         //
-        TargetPage->Flags = ChangedEntry.Flags;
+        if (HookedEntry->CountOfBreakpoints >= MaximumHiddenBreakpointsOnPage)
+        {
+            //
+            // Means that breakpoint is full !
+            // we can't apply this breakpoint
+            //
+            return FALSE;
+        }
+
+        //
+        // Apply the hook 0xcc
+        //
+
+        // Compute new offset of target offset into a safe bufferr
+        // It will be used to compute the length of the detours
+        // address because we might have a user mode code
+        //
+        TargetAddressInSafeMemory = &HookedEntry->FakePageContents;
+        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
+        PageOffset                = PAGE_OFFSET(TargetAddress);
+        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+
+        //
+        // Set the breakpoint on the fake page
+        //
+        *(BYTE *)TargetAddressInSafeMemory = 0xcc;
+
+        //
+        // Add target address to the list of breakpoints
+        //
+        HookedEntry->BreakpointAddresses[HookedEntry->CountOfBreakpoints] = TargetAddress;
+
+        //
+        // Add to the breakpoint counts
+        //
+        HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints + 1;
     }
     else
     {
         //
-        // Apply the hook to EPT
+        // Set target buffer, request buffer from pool manager,
+        // we also need to allocate new page to replace the current page ASAP
         //
-        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+        TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
+
+        if (!TargetBuffer)
+        {
+            LogError("There is no pre-allocated buffer available");
+            return FALSE;
+        }
+
+        if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
+        {
+            LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
+            return FALSE;
+        }
+
+        //
+        // Pointer to the page entry in the page table
+        //
+        TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalBaseAddress);
+
+        //
+        // Ensure the target is valid
+        //
+        if (!TargetPage)
+        {
+            LogError("Failed to get PML1 entry of the target address");
+            return FALSE;
+        }
+
+        //
+        // Save the original permissions of the page
+        //
+        ChangedEntry = *TargetPage;
+
+        //
+        // Save the detail of hooked page to keep track of it
+        //
+        HookedPage = PoolManagerRequestPool(TRACKING_HOOKED_PAGES, TRUE, sizeof(EPT_HOOKED_PAGE_DETAIL));
+
+        if (!HookedPage)
+        {
+            LogError("There is no pre-allocated pool for saving hooked page details");
+            return FALSE;
+        }
+
+        //
+        // This is a hidden breakpoint
+        //
+        HookedPage->IsHiddenBreakpoint = TRUE;
+
+        //
+        // Save the virtual address
+        //
+        HookedPage->VirtualAddress = TargetAddress;
+
+        //
+        // Save the physical address
+        //
+        HookedPage->PhysicalBaseAddress = PhysicalBaseAddress;
+
+        //
+        // Fake page content physical address
+        //
+        HookedPage->PhysicalBaseAddressOfFakePageContents = (SIZE_T)VirtualAddressToPhysicalAddress(&HookedPage->FakePageContents[0]) / PAGE_SIZE;
+
+        //
+        // Save the entry address
+        //
+        HookedPage->EntryAddress = TargetPage;
+
+        //
+        // Save the orginal entry
+        //
+        HookedPage->OriginalEntry = *TargetPage;
+
+        //
+        // Show that entry has hidden hooks for execution
+        //
+        HookedPage->IsExecutionHook = TRUE;
+
+        //
+        // Save the address of (first) new breakpoint
+        //
+        HookedPage->BreakpointAddresses[0] = TargetAddress;
+
+        //
+        // Change the counter (set it to 1)
+        //
+        HookedPage->CountOfBreakpoints = 1;
+
+        //
+        // In execution hook, we have to make sure to unset read, write because
+        // an EPT violation should occur for these cases and we can swap the original page
+        //
+        ChangedEntry.ReadAccess    = 0;
+        ChangedEntry.WriteAccess   = 0;
+        ChangedEntry.ExecuteAccess = 1;
+
+        //
+        // Also set the current pfn to fake page
+        //
+        ChangedEntry.PageFrameNumber = HookedPage->PhysicalBaseAddressOfFakePageContents;
+
+        //
+        // Compute new offset of target offset into a safe bufferr
+        // It will be used to compute the length of the detours
+        // address because we might have a user mode code
+        //
+        TargetAddressInSafeMemory = &HookedPage->FakePageContents;
+        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
+        PageOffset                = PAGE_OFFSET(TargetAddress);
+        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+
+        //
+        // Switch to target process
+        //
+        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+        //
+        // Copy the content to the fake page
+        // The following line can't be used in user mode addresses
+        // RtlCopyBytes(&HookedPage->FakePageContents, VirtualTarget, PAGE_SIZE);
+        //
+        MemoryMapperReadMemorySafe(VirtualTarget, &HookedPage->FakePageContents, PAGE_SIZE);
+
+        //
+        // Set the breakpoint on the fake page
+        //
+        *(BYTE *)TargetAddressInSafeMemory = 0xcc;
+
+        //
+        // Restore to original process
+        //
+        RestoreToPreviousProcess(Cr3OfCurrentProcess);
+
+        //
+        // Save the modified entry
+        //
+        HookedPage->ChangedEntry = ChangedEntry;
+
+        //
+        // Add it to the list
+        //
+        InsertHeadList(&g_EptState->HookedPagesList, &(HookedPage->PageHookList));
+
+        //
+        // if not launched, there is no need to modify it on a safe environment
+        //
+        if (!g_GuestState[LogicalCoreIndex].HasLaunched)
+        {
+            //
+            // Apply the hook to EPT
+            //
+            TargetPage->Flags = ChangedEntry.Flags;
+        }
+        else
+        {
+            //
+            // Apply the hook to EPT
+            //
+            EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+        }
     }
 
     return TRUE;

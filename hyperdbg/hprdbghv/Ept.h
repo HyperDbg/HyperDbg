@@ -14,6 +14,12 @@
 #include "Common.h"
 
 //////////////////////////////////////////////////
+//				Debugger Config                 //
+//////////////////////////////////////////////////
+
+#define MaximumHiddenBreakpointsOnPage 40
+
+//////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
 
@@ -1132,6 +1138,18 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
 	 * @brief This field shows whether the hook contains a hidden hook for execution or not
 	 */
     BOOLEAN IsExecutionHook;
+
+    /**
+	 * @brief Address of hooked pages (multiple breakpoints on a single page)
+	 * this is only used in hidden breakpoints (not hidden detours)
+	 */
+    UINT64 BreakpointAddresses[MaximumHiddenBreakpointsOnPage];
+
+    /**
+	 * @brief Count of breakpoints (multiple breakpoints on a single page)
+	 * this is only used in hidden breakpoints (not hidden detours)
+	 */
+    UINT64 CountOfBreakpoints;
 
 } EPT_HOOKED_PAGE_DETAIL, *PEPT_HOOKED_PAGE_DETAIL;
 

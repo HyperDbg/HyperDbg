@@ -50,40 +50,46 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             TempList                            = TempList->Flink;
             PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
 
-            if (HookedEntry->IsExecutionHook && HookedEntry->VirtualAddress == GuestRip)
+            if (HookedEntry->IsExecutionHook)
             {
-                //
-                // We found an address that matches the details, let's trigger the event
-                //
-                // As the context to event trigger, we send the rip
-                // of where triggered this event
-                //
-                DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
+                for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+                {
+                    if (HookedEntry->BreakpointAddresses[i] == GuestRip)
+                    {
+                        //
+                        // We found an address that matches the details, let's trigger the event
+                        //
+                        // As the context to event trigger, we send the rip
+                        // of where triggered this event
+                        //
+                        DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
 
-                //
-                // Restore to its orginal entry for one instruction
-                //
-                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                        //
+                        // Restore to its orginal entry for one instruction
+                        //
+                        EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
 
-                //
-                // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
-                //
-                g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
+                        //
+                        // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                        //
+                        g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
 
-                //
-                // We have to set Monitor trap flag and give it the HookedEntry to work with
-                //
-                HvSetMonitorTrapFlag(TRUE);
+                        //
+                        // We have to set Monitor trap flag and give it the HookedEntry to work with
+                        //
+                        HvSetMonitorTrapFlag(TRUE);
 
-                //
-                // Indicate that we handled the ept violation
-                //
-                IsHandled = TRUE;
+                        //
+                        // Indicate that we handled the ept violation
+                        //
+                        IsHandled = TRUE;
 
-                //
-                // Get out of the loop
-                //
-                break;
+                        //
+                        // Get out of the loop
+                        //
+                        break;
+                    }
+                }
             }
         }
 

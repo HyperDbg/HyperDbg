@@ -29,9 +29,9 @@
 #define DbgPrintLimitation 512
 #define DebuggerEventTagStartSeed 0x1000000
 
+
 //////////////////////////////////////////////////
-//					Installer
-////
+//					Installer                   //
 //////////////////////////////////////////////////
 
 #define DRIVER_NAME "hprdbghv"
