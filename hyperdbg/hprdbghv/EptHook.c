@@ -691,7 +691,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
-    SIZE_T                  PhysicalAddress;
+    SIZE_T                  PhysicalBaseAddress;
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
     UINT64                  TargetAddressInSafeMemory;
@@ -700,6 +700,8 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     ULONG                   LogicalCoreIndex;
     CR3_TYPE                Cr3OfCurrentProcess;
+    PLIST_ENTRY             TempList    = 0;
+    PEPT_HOOKED_PAGE_DETAIL HookedEntry = NULL;
 
     //
     // Check whether we are in VMX Root Mode or Not
@@ -736,12 +738,33 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
     //
     // Find cr3 of target core
     //
-    PhysicalAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
 
-    if (!PhysicalAddress)
+    if (!PhysicalBaseAddress)
     {
         LogError("Target address could not be mapped to physical memory");
         return FALSE;
+    }
+
+    //
+    // try to see if we can find the address
+    //
+
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList    = TempList->Flink;
+        HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        if (HookedEntry->PhysicalBaseAddress == PhysicalBaseAddress)
+        {
+            //
+            // Means that we find the address and !epthook2 doesn't support
+            // multiple breakpoints in on page
+            //
+            return FALSE;
+        }
     }
 
     //
@@ -756,16 +779,16 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
         return FALSE;
     }
 
-    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalAddress, LogicalCoreIndex))
+    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
-        LogError("Could not split page for the address : 0x%llx", PhysicalAddress);
+        LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
         return FALSE;
     }
 
     //
     // Pointer to the page entry in the page table
     //
-    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalAddress);
+    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalBaseAddress);
 
     //
     // Ensure the target is valid
@@ -813,7 +836,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
     //
     // Save the physical address
     //
-    HookedPage->PhysicalBaseAddress = PhysicalAddress;
+    HookedPage->PhysicalBaseAddress = PhysicalBaseAddress;
 
     //
     // Fake page content physical address
