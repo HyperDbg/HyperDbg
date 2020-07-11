@@ -1349,11 +1349,18 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     {
         EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
+        TempPid = EventDetails->ProcessId;
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        {
+            TempPid = PsGetCurrentProcessId();
+        }
+
         //
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
+        // Also, we are sure that this is not null because we checked it before
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid);
     }
     else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
     {
