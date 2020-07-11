@@ -1101,7 +1101,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
     //
     // ----------------------------------------------------------------------------------
-    // Validate the Event's  parameters
+    // Validate the Event's parameters
     // ----------------------------------------------------------------------------------
     //
 
@@ -1337,7 +1337,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
-        EptPageHook(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId);
+        EptHook(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId);
 
         //
         // We set events OptionalParam1 here to make sure that our event is
@@ -1347,7 +1347,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
-        EptPageHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
+        EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
         //
         // We set events OptionalParam1 here to make sure that our event is

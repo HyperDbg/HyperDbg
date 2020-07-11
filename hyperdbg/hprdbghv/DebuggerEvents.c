@@ -139,5 +139,5 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     //
     // Perform the EPT Hook
     //
-    EptPageHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
+    EptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
 }

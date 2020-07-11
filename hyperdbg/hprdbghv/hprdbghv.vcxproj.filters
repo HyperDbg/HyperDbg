@@ -125,9 +125,6 @@
     <ClCompile Include="SsdtHook.c">
       <Filter>Source Files\Debugger\Features\Hooks\SyscallHook</Filter>
     </ClCompile>
-    <ClCompile Include="HiddenHooks.c">
-      <Filter>Source Files\Debugger\Features\Hooks</Filter>
-    </ClCompile>
     <ClCompile Include="ExtensionCommands.c">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
@@ -181,6 +178,9 @@
     </ClCompile>
     <ClCompile Include="Transparency.c">
       <Filter>Source Files\Debugger\Transparency</Filter>
+    </ClCompile>
+    <ClCompile Include="EptHook.c">
+      <Filter>Source Files\Debugger\Features\Hooks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

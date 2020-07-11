@@ -19,6 +19,7 @@
 #include "InlineAsm.h"
 #include "Vpid.h"
 #include "Events.h"
+#include "Hooks.h"
 
 /**
  * @brief Handle vm-exits of VMCALLs
@@ -126,12 +127,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         UnsetWrite = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
         UnsetExec  = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
 
-        HookResult = EptPerformPageHook2(OptionalParam1 /* TargetAddress */,
-                                         OptionalParam2 /* Hook Function*/,
-                                         OptionalParam3 /* Process Id */,
-                                         UnsetRead,
-                                         UnsetWrite,
-                                         UnsetExec);
+        HookResult = EptHookPerformPageHook2(OptionalParam1 /* TargetAddress */,
+                                             OptionalParam2 /* Hook Function*/,
+                                             OptionalParam3 /* Process Id */,
+                                             UnsetRead,
+                                             UnsetWrite,
+                                             UnsetExec);
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
@@ -151,13 +152,13 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_UNHOOK_ALL_PAGES:
     {
-        EptPageUnHookAllPages();
+        EptHookUnHookAllPages();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNHOOK_SINGLE_PAGE:
     {
-        if (!EptPageUnHookSinglePage(OptionalParam1))
+        if (!EptHookUnHookSinglePage(OptionalParam1))
         {
             VmcallStatus = STATUS_UNSUCCESSFUL;
         }
@@ -223,8 +224,8 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_SET_HIDDEN_CC_BREAKPOINT:
     {
-        HookResult = EptPerformPageHook(OptionalParam1,  /* TargetAddress */
-                                        OptionalParam2); /* process id */
+        HookResult = EptHookPerformPageHook(OptionalParam1,  /* TargetAddress */
+                                            OptionalParam2); /* process id */
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 

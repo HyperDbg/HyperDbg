@@ -109,7 +109,7 @@
     <ClCompile Include="Transparency.c" />
     <ClCompile Include="Vmexit.c" />
     <ClCompile Include="IdtEmulation.c" />
-    <ClCompile Include="HiddenHooks.c" />
+    <ClCompile Include="EptHook.c" />
     <ClCompile Include="HypervisorRoutines.c" />
     <ClCompile Include="Invept.c" />
     <ClCompile Include="Ioctl.c" />
