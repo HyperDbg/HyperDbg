@@ -13,7 +13,8 @@
 #include "pch.h"
 
 VOID CommandExceptionHelp() {
-  ShowMessages("!exception : monitors the first 32 entry of IDT.\n\n");
+  ShowMessages("!exception : monitors the first 32 entry of IDT (starting from "
+               "zero).\n\n");
   ShowMessages(
       "syntax : \t!exception [entry index (hex value) - if not specific means "
       "first 32 entries of IDT] core [core index (hex value)] pid [process id "
@@ -69,14 +70,14 @@ VOID CommandException(vector<string> SplittedCommand) {
         return;
       } else {
         //
-        // Check if entry is valid or not
+        // Check if entry is valid or not (start from zero)
         //
-        if (SpecialTarget >= 33) {
+        if (SpecialTarget >= 31) {
           //
           // Entry is invalid (this command is designed for just first 32
           // entries)
           //
-          ShowMessages("The entry should be between 0x0 to 0x20 or first 32 "
+          ShowMessages("The entry should be between 0x0 to 0x1f or first 32 "
                        "entries.'\n\n");
           CommandExceptionHelp();
           return;

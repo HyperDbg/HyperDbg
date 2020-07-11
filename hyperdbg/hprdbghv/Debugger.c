@@ -1129,9 +1129,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     if (EventDetails->EventType == EXCEPTION_OCCURRED)
     {
         //
-        // Check if the exception entry doesn't exceed the first 32 entry
+        // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 33)
+        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 31)
         {
             //
             // We don't support entries other than first 32 IDT indexes,
@@ -1147,9 +1147,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
     {
         //
-        // Check if the exception entry is between 33 to 255
+        // Check if the exception entry is between 32 to 255
         //
-        if (!(EventDetails->OptionalParam1 >= 33 && EventDetails->OptionalParam1 <= 0xff))
+        if (!(EventDetails->OptionalParam1 >= 32 && EventDetails->OptionalParam1 <= 0xff))
         {
             //
             // The IDT Entry is either invalid or is not in the range

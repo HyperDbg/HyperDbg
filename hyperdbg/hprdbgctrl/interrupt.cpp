@@ -13,13 +13,13 @@
 #include "pch.h"
 
 VOID CommandInterruptHelp() {
-  ShowMessages("!interrupt : monitors the external interrupt (IDT > 32).\n\n");
+  ShowMessages("!interrupt : monitors the external interrupt (IDT >= 32).\n\n");
   ShowMessages("syntax : \t!interrupt [entry index (hex value) - should be "
                "selected] core [core index (hex value)] pid [process id (hex "
                "value)] condition {[assembly in hex]} code {[assembly in hex]} "
                "buffer [pre-require buffer - (hex value)] \n");
-  ShowMessages("\nNote : The index should be greater than 0x20 (33) and less "
-               "than 0xFF (255).\n");
+  ShowMessages("\nNote : The index should be greater than 0x20 (32) and less "
+               "than 0xFF (255) - starting from zero.\n");
   ShowMessages("\t\te.g : !interrupt 0x2f\n");
   ShowMessages("\t\te.g : !interrupt 0x2f pid 400\n");
   ShowMessages("\t\te.g : !interrupt 0x2f core 2 pid 400\n");
@@ -47,7 +47,7 @@ VOID CommandInterrupt(vector<string> SplittedCommand) {
 
   //
   // Interpret command specific details (if any)
-  // 
+  //
   //
   for (auto Section : SplittedCommand) {
     if (!Section.compare("!interrupt")) {
@@ -68,13 +68,13 @@ VOID CommandInterrupt(vector<string> SplittedCommand) {
         //
         // Check if entry is valid or not
         //
-        if (!(SpecialTarget >= 33 && SpecialTarget <= 0xff)) {
+        if (!(SpecialTarget >= 32 && SpecialTarget <= 0xff)) {
           //
           // Entry is invalid (this command is designed for just entries
-          // between 33 to 255)
+          // between 32 to 255)
           //
-          ShowMessages("The entry should be between 0x21 to 0xFF or the "
-                       "entries between 33 to 255.\n\n");
+          ShowMessages("The entry should be between 0x20 to 0xFF or the "
+                       "entries between 32 to 255.\n\n");
           CommandInterruptHelp();
           return;
         }
