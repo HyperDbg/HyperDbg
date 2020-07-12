@@ -93,7 +93,7 @@ VOID
 HvRestoreRegisters();
 /* Remove single hook from the hooked pages list and invalidate TLB */
 BOOLEAN
-HvPerformPageUnHookSinglePage(UINT64 VirtualAddress);
+HvPerformPageUnHookSinglePage(UINT64 VirtualAddress, UINT32 ProcessId);
 /* Remove all hooks from the hooked pages list and invalidate TLB */
 VOID
 HvPerformPageUnHookAllPages();
@@ -136,3 +136,9 @@ HvSetIoBitmap(UINT64 Port, UINT32 ProcessorID);
 /* Change I/O Bitmap */
 VOID
 HvPerformIoBitmapChange(UINT64 Port);
+/* routines to enable vm-exit for breakpoints (exception bitmap) */
+VOID
+HvEnableBreakpointExitingOnExceptionBitmapAllCores();
+/* routines to disable vm-exit for breakpoints (exception bitmap) */
+VOID
+HvDisableBreakpointExitingOnExceptionBitmapAllCores();

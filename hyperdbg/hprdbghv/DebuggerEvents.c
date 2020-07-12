@@ -41,20 +41,6 @@ DebuggerEventDisableEferOnAllProcessors()
 }
 
 /**
- * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
-*
-* @return VOID 
- */
-VOID
-DebuggerEventEnableBreakpointExitingOnExceptionBitmapAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
-}
-
-/**
  * @brief routines to generally handle breakpoint hit for detour 
  * 
  * @return VOID 

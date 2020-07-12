@@ -1091,12 +1091,6 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     LIST_ENTRY PageHookList;
 
     /**
-	 * @brief If TRUE shows that this is the information about 
-	 * a hidden breakpoint command (not a monitor or hidden detours)
-	 */
-    BOOLEAN IsHiddenBreakpoint;
-
-    /**
 	* @brief The virtual address from the caller prespective view (cr3)
 	*/
     UINT64 VirtualAddress;
@@ -1140,10 +1134,22 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsExecutionHook;
 
     /**
+	 * @brief If TRUE shows that this is the information about 
+	 * a hidden breakpoint command (not a monitor or hidden detours)
+	 */
+    BOOLEAN IsHiddenBreakpoint;
+
+    /**
 	 * @brief Address of hooked pages (multiple breakpoints on a single page)
 	 * this is only used in hidden breakpoints (not hidden detours)
 	 */
     UINT64 BreakpointAddresses[MaximumHiddenBreakpointsOnPage];
+
+    /**
+	 * @brief Character that was previously used in BreakpointAddresses
+	 * this is only used in hidden breakpoints (not hidden detours)
+	 */
+    CHAR PreviousBytesOnBreakpointAddresses[MaximumHiddenBreakpointsOnPage];
 
     /**
 	 * @brief Count of breakpoints (multiple breakpoints on a single page)

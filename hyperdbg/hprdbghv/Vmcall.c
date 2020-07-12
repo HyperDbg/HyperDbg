@@ -242,6 +242,17 @@ VmxVmcallHandler(UINT64 VmcallNumber,
 
         break;
     }
+    case VMCALL_DISABLE_BREAKPOINT_ON_EXCEPTION_BITMAP:
+    {
+        //
+        // Disable vm-exits on breakpoints (exception bitmap)
+        //
+        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
+
+        VmcallStatus = STATUS_SUCCESS;
+
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

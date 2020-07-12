@@ -20,6 +20,7 @@
 #include "Vmcall.h"
 #include "Dpc.h"
 #include "Events.h"
+#include "Broadcast.h"
 
 /**
  * @brief Initialize Vmx operation
@@ -978,12 +979,20 @@ HvDpcBroadcastRemoveHookAndInvalidateSingleEntry(KDPC * Dpc, PVOID DeferredConte
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-HvPerformPageUnHookSinglePage(UINT64 VirtualAddress)
+HvPerformPageUnHookSinglePage(UINT64 VirtualAddress, UINT32 ProcessId)
 {
-    PLIST_ENTRY TempList = 0;
     SIZE_T      PhysicalAddress;
+    UINT64      TargetAddressInFakePageContent;
+    UINT64      PageOffset;
+    PLIST_ENTRY TempList                   = 0;
+    BOOLEAN     FoundHiddenBreakpointEntry = FALSE;
 
-    PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddress(VirtualAddress));
+    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
+    {
+        ProcessId = PsGetCurrentProcessId();
+    }
+
+    PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
 
     //
     // Should be called from vmx non-root
@@ -999,19 +1008,126 @@ HvPerformPageUnHookSinglePage(UINT64 VirtualAddress)
         TempList                            = TempList->Flink;
         PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
 
-        if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
+        //
+        // Check if it's a hidden breakpoint or hidden detours
+        //
+        if (HookedEntry->IsHiddenBreakpoint)
         {
             //
-            // Remove it in all the cores
+            // It's a hidden breakpoint (we have to search through an array of addresses)
             //
-            KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            {
+                if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
+                {
+                    //
+                    // We found an address that matches this entry
+                    //
 
-            //
-            // remove the entry from the list
-            //
-            RemoveEntryList(HookedEntry->PageHookList.Flink);
+                    //
+                    // Check if it's a single breakpoint
+                    //
+                    if (HookedEntry->CountOfBreakpoints == 1)
+                    {
+                        //
+                        // Remove the hook entirely on all cores
+                        //
+                        KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
 
-            return TRUE;
+                        //
+                        // remove the entry from the list
+                        //
+                        RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                        //
+                        // Check if there is any other breakpoints, if no then we have to disalbe
+                        // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
+                        // to visit all the entries to see if there is any entries
+                        //
+                        TempList = &g_EptState->HookedPagesList;
+                        while (&g_EptState->HookedPagesList != TempList->Flink)
+                        {
+                            TempList                            = TempList->Flink;
+                            PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+                            if (HookedEntry->IsHiddenBreakpoint)
+                            {
+                                FoundHiddenBreakpointEntry = TRUE;
+                                break;
+                            }
+                        }
+
+                        if (!FoundHiddenBreakpointEntry)
+                        {
+                            //
+                            // Did not find any entry, let's disable the breakpoints vm-exits
+                            // on exception bitmaps
+                            //
+                            HvDisableBreakpointExitingOnExceptionBitmapAllCores();
+                        }
+                        return TRUE;
+                    }
+                    else
+                    {
+                        //
+                        // Set 0xcc to its previous value
+                        //
+                        TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
+                        TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
+                        PageOffset                     = PAGE_OFFSET(VirtualAddress);
+                        TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+
+                        //
+                        // Set the previous value
+                        //
+                        *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
+
+                        //
+                        // Remove just that special entry
+                        // Btw, No need to remove it, it will be replace automatically
+                        //
+                        HookedEntry->BreakpointAddresses[i] = NULL;
+                        HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
+
+                        //
+                        // all addresses to a lower array index (because one entry is
+                        // missing and might) be in the middle of the array
+                        //
+                        for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
+                        {
+                            HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
+                            HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
+                        }
+
+                        //
+                        // Decrease the count of breakpoints
+                        //
+                        HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints - 1;
+
+                        return TRUE;
+                    }
+                }
+            }
+        }
+        else
+        {
+            //
+            // It's a hidden detours
+            //
+            if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
+            {
+                //
+                // Remove it in all the cores
+                //
+                KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+
+                //
+                // remove the entry from the list
+                //
+                RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                return TRUE;
+            }
         }
     }
     //
@@ -1629,4 +1745,32 @@ HvPerformIoBitmapChange(UINT64 Port)
         //
         HvSetIoBitmap(Port, CoreIndex);
     }
+}
+
+/**
+ * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
+*
+* @return VOID 
+ */
+VOID
+HvEnableBreakpointExitingOnExceptionBitmapAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to disable vm-exit for breakpoints (exception bitmap) 
+*
+* @return VOID 
+ */
+VOID
+HvDisableBreakpointExitingOnExceptionBitmapAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcDisableBreakpointOnExceptionBitmapOnAllCores, NULL);
 }

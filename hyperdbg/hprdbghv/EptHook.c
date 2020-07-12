@@ -60,12 +60,13 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
     SIZE_T                  PhysicalBaseAddress;
     PVOID                   VirtualTarget;
     PVOID                   TargetBuffer;
-    UINT64                  TargetAddressInSafeMemory;
+    UINT64                  TargetAddressInFakePageContent;
     UINT64                  PageOffset;
     PEPT_PML1_ENTRY         TargetPage;
     PEPT_HOOKED_PAGE_DETAIL HookedPage;
     ULONG                   LogicalCoreIndex;
     CR3_TYPE                Cr3OfCurrentProcess;
+    BYTE                    OriginalByte;
     PEPT_HOOKED_PAGE_DETAIL HookedEntry      = NULL;
     BOOLEAN                 HookedEntryFound = FALSE;
     PLIST_ENTRY             TempList         = 0;
@@ -159,20 +160,30 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
         // It will be used to compute the length of the detours
         // address because we might have a user mode code
         //
-        TargetAddressInSafeMemory = &HookedEntry->FakePageContents;
-        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
-        PageOffset                = PAGE_OFFSET(TargetAddress);
-        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+        TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
+        TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
+        PageOffset                     = PAGE_OFFSET(TargetAddress);
+        TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+
+        //
+        // Read the original byte
+        //
+        OriginalByte = *(BYTE *)TargetAddressInFakePageContent;
 
         //
         // Set the breakpoint on the fake page
         //
-        *(BYTE *)TargetAddressInSafeMemory = 0xcc;
+        *(BYTE *)TargetAddressInFakePageContent = 0xcc;
 
         //
         // Add target address to the list of breakpoints
         //
         HookedEntry->BreakpointAddresses[HookedEntry->CountOfBreakpoints] = TargetAddress;
+
+        //
+        // Save the original byte
+        //
+        HookedEntry->PreviousBytesOnBreakpointAddresses[HookedEntry->CountOfBreakpoints] = OriginalByte;
 
         //
         // Add to the breakpoint counts
@@ -292,10 +303,10 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
         // It will be used to compute the length of the detours
         // address because we might have a user mode code
         //
-        TargetAddressInSafeMemory = &HookedPage->FakePageContents;
-        TargetAddressInSafeMemory = PAGE_ALIGN(TargetAddressInSafeMemory);
-        PageOffset                = PAGE_OFFSET(TargetAddress);
-        TargetAddressInSafeMemory = TargetAddressInSafeMemory + PageOffset;
+        TargetAddressInFakePageContent = &HookedPage->FakePageContents;
+        TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
+        PageOffset                     = PAGE_OFFSET(TargetAddress);
+        TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
 
         //
         // Switch to target process
@@ -312,7 +323,7 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         // Set the breakpoint on the fake page
         //
-        *(BYTE *)TargetAddressInSafeMemory = 0xcc;
+        *(BYTE *)TargetAddressInFakePageContent = 0xcc;
 
         //
         // Restore to original process
@@ -383,7 +394,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
         //
-        DebuggerEventEnableBreakpointExitingOnExceptionBitmapAllCores();
+        HvEnableBreakpointExitingOnExceptionBitmapAllCores();
 
         if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, ProcessId, NULL) == STATUS_SUCCESS)
         {
@@ -416,7 +427,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 }
 
 /**
- * @brief Remove and Invalidate Hook in TLB
+ * @brief Remove and Invalidate Hook in TLB (Hidden Detours and if counter of hidden breakpoint is zero)
  * @warning This function won't remove entries from LIST_ENTRY,
  *  just invalidate the paging, use HvPerformPageUnHookSinglePage instead
  * 
