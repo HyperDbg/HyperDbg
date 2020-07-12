@@ -91,12 +91,6 @@ HvReturnInstructionPointerForVmxoff();
 /* Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified */
 VOID
 HvRestoreRegisters();
-/* Remove single hook from the hooked pages list and invalidate TLB */
-BOOLEAN
-HvPerformPageUnHookSinglePage(UINT64 VirtualAddress, UINT32 ProcessId);
-/* Remove all hooks from the hooked pages list and invalidate TLB */
-VOID
-HvPerformPageUnHookAllPages();
 /* Change MSR Bitmap for read */
 VOID
 HvPerformMsrBitmapReadChange(UINT64 MsrMask);
@@ -142,3 +136,9 @@ HvEnableBreakpointExitingOnExceptionBitmapAllCores();
 /* routines to disable vm-exit for breakpoints (exception bitmap) */
 VOID
 HvDisableBreakpointExitingOnExceptionBitmapAllCores();
+/* The broadcast function which removes the single hook and invalidate TLB */
+VOID
+HvDpcBroadcastRemoveHookAndInvalidateSingleEntry(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+/* The broadcast function which removes all the hooks and invalidate TLB */
+VOID
+HvDpcBroadcastRemoveHookAndInvalidateAllEntries(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

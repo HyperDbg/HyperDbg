@@ -23,6 +23,7 @@
 #include "GlobalVariables.h"
 #include "LengthDisassemblerEngine.h"
 #include "DebuggerEvents.h"
+#include "Dpc.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag
@@ -429,14 +430,14 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 /**
  * @brief Remove and Invalidate Hook in TLB (Hidden Detours and if counter of hidden breakpoint is zero)
  * @warning This function won't remove entries from LIST_ENTRY,
- *  just invalidate the paging, use HvPerformPageUnHookSinglePage instead
+ *  just invalidate the paging, use EptHookUnHookSingleAddress instead
  * 
  * 
  * @param PhysicalAddress 
  * @return BOOLEAN Return false if there was an error or returns true if it was successfull
  */
 BOOLEAN
-EptHookUnHookSinglePage(SIZE_T PhysicalAddress)
+EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
 {
     PLIST_ENTRY TempList = 0;
 
@@ -470,12 +471,12 @@ EptHookUnHookSinglePage(SIZE_T PhysicalAddress)
 
 /**
  * @brief Remove and Invalidate Hook in TLB
- * @warning This function won't remove entries from LIST_ENTRY, just invalidate the paging, use HvPerformPageUnHookAllPages instead
+ * @warning This function won't remove entries from LIST_ENTRY, just invalidate the paging, use EptHookUnHookAll instead
  * 
  * @return VOID 
  */
 VOID
-EptHookUnHookAllPages()
+EptHookRestoreAllHooksToOrginalEntry()
 {
     PLIST_ENTRY TempList = 0;
 
@@ -1154,4 +1155,196 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
     // Means that restore the Entry to the previous state after current instruction executed in the guest
     //
     return TRUE;
+}
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * @details Should be called from vmx non-root
+ * 
+ * @param VirtualAddress Virtual address to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
+{
+    SIZE_T      PhysicalAddress;
+    UINT64      TargetAddressInFakePageContent;
+    UINT64      PageOffset;
+    PLIST_ENTRY TempList                   = 0;
+    BOOLEAN     FoundHiddenBreakpointEntry = FALSE;
+
+    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
+    {
+        ProcessId = PsGetCurrentProcessId();
+    }
+
+    PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
+
+    //
+    // Should be called from vmx non-root
+    //
+    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    {
+        return FALSE;
+    }
+
+    TempList = &g_EptState->HookedPagesList;
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        //
+        // Check if it's a hidden breakpoint or hidden detours
+        //
+        if (HookedEntry->IsHiddenBreakpoint)
+        {
+            //
+            // It's a hidden breakpoint (we have to search through an array of addresses)
+            //
+            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            {
+                if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
+                {
+                    //
+                    // We found an address that matches this entry
+                    //
+
+                    //
+                    // Check if it's a single breakpoint
+                    //
+                    if (HookedEntry->CountOfBreakpoints == 1)
+                    {
+                        //
+                        // Remove the hook entirely on all cores
+                        //
+                        KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+
+                        //
+                        // remove the entry from the list
+                        //
+                        RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                        //
+                        // Check if there is any other breakpoints, if no then we have to disalbe
+                        // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
+                        // to visit all the entries to see if there is any entries
+                        //
+                        TempList = &g_EptState->HookedPagesList;
+                        while (&g_EptState->HookedPagesList != TempList->Flink)
+                        {
+                            TempList                            = TempList->Flink;
+                            PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+                            if (HookedEntry->IsHiddenBreakpoint)
+                            {
+                                FoundHiddenBreakpointEntry = TRUE;
+                                break;
+                            }
+                        }
+
+                        if (!FoundHiddenBreakpointEntry)
+                        {
+                            //
+                            // Did not find any entry, let's disable the breakpoints vm-exits
+                            // on exception bitmaps
+                            //
+                            HvDisableBreakpointExitingOnExceptionBitmapAllCores();
+                        }
+                        return TRUE;
+                    }
+                    else
+                    {
+                        //
+                        // Set 0xcc to its previous value
+                        //
+                        TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
+                        TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
+                        PageOffset                     = PAGE_OFFSET(VirtualAddress);
+                        TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+
+                        //
+                        // Set the previous value
+                        //
+                        *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
+
+                        //
+                        // Remove just that special entry
+                        // Btw, No need to remove it, it will be replace automatically
+                        //
+                        HookedEntry->BreakpointAddresses[i]                = NULL;
+                        HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
+
+                        //
+                        // all addresses to a lower array index (because one entry is
+                        // missing and might) be in the middle of the array
+                        //
+                        for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
+                        {
+                            HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
+                            HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
+                        }
+
+                        //
+                        // Decrease the count of breakpoints
+                        //
+                        HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints - 1;
+
+                        return TRUE;
+                    }
+                }
+            }
+        }
+        else
+        {
+            //
+            // It's a hidden detours
+            //
+            if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
+            {
+                //
+                // Remove it in all the cores
+                //
+                KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+
+                //
+                // remove the entry from the list
+                //
+                RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                return TRUE;
+            }
+        }
+    }
+    //
+    // Nothing found , probably the list is not found
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Remove all hooks from the hooked pages list and invalidate TLB
+ * @detailsShould be called from Vmx Non-root
+ * 
+ * @return VOID 
+ */
+VOID
+EptHookUnHookAll()
+{
+    //
+    // Should be called from vmx non-root
+    //
+    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    {
+        return;
+    }
+
+    //
+    // Remove it in all the cores
+    //
+    KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateAllEntries, 0x0);
+
+    //
+    // No need to remove the list as it will automatically remove by the pool uninitializer
+    //
 }

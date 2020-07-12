@@ -152,13 +152,13 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_UNHOOK_ALL_PAGES:
     {
-        EptHookUnHookAllPages();
+        EptHookRestoreAllHooksToOrginalEntry();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_UNHOOK_SINGLE_PAGE:
     {
-        if (!EptHookUnHookSinglePage(OptionalParam1))
+        if (!EptHookRestoreSingleHookToOrginalEntry(OptionalParam1))
         {
             VmcallStatus = STATUS_UNSUCCESSFUL;
         }

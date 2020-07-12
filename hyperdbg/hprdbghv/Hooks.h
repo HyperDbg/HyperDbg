@@ -144,7 +144,13 @@ BOOLEAN
 EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
 /* Remove a special hook from the hooked pages lists */
 BOOLEAN
-EptHookUnHookSinglePage(SIZE_T PhysicalAddress);
+EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress);
+/* Remove all hooks from the hooked pages lists (Should be called in vmx-root)*/
+VOID
+EptHookRestoreAllHooksToOrginalEntry();
 /* Remove all hooks from the hooked pages lists */
 VOID
-EptHookUnHookAllPages();
+EptHookUnHookAll();
+/* Remove single hook from the hooked pages list and invalidate TLB */
+BOOLEAN
+EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId);
