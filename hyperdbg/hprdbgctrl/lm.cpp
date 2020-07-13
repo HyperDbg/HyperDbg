@@ -1,3 +1,14 @@
+/**
+ * @file lm.cpp
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief lm command
+ * @details
+ * @version 0.1
+ * @date 2020-07-13
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #include "pch.h"
 
 using namespace std;

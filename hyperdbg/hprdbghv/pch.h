@@ -5,7 +5,7 @@
  * @details 
  *
  * @version 0.1
- * @date 2020-06-01
+ * @date 2020-07-13
  * 
  * @copyright This project is released under the GNU Public License v3.
  * 

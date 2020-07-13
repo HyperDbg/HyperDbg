@@ -1,5 +1,5 @@
 /**
- * @file syscall-sysret.cpp
+ * @file cpuid.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief !cpuid commands
  * @details
@@ -9,7 +9,6 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #include "pch.h"
 
 VOID CommandCpuidHelp() {

@@ -9,7 +9,6 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #pragma once
 
 #define CONTAINING_RECORD(address, type, field)                                \

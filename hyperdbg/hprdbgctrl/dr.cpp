@@ -1,5 +1,5 @@
 /**
- * @file dt.cpp
+ * @file dr.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief !dr commands
  * @details
@@ -9,7 +9,6 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #include "pch.h"
 
 VOID CommandDrHelp() {

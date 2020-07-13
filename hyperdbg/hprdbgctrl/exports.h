@@ -9,15 +9,16 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+#pragma once
 
-#include "pch.h"
 
 //////////////////////////////////////////////////
 //					  Exports                   //
 //////////////////////////////////////////////////
 
-#pragma once
+//
 // Exports
+//
 extern "C" {
 extern bool inline AsmVmxSupportDetection();
 __declspec(dllexport) int __cdecl HyperdbgLoad();

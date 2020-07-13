@@ -1,5 +1,5 @@
 /**
- * @file ntifs2.h
+ * @file Ntifs2.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Headers from ntifs.h which is not compatible with other parts
  * @details

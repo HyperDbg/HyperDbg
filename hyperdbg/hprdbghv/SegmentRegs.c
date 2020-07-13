@@ -9,14 +9,13 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
+#include "pch.h"
 
 /**
  * @brief Get the Guest Cs Selector
  * 
  * @return VOID 
  */
-
-#include "pch.h"
 
 SEGMENT_SELECTOR
 GetGuestCs()

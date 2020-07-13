@@ -1,5 +1,5 @@
 /**
- * @file EFERHook.c
+ * @file EferHook.c
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Implenetation of the fucntions related to the EFER Syscall Hook
  * @details This is derived by the method demonstrated at
@@ -14,7 +14,6 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
 #include "pch.h"
 
 /**
