@@ -10,8 +10,7 @@
  * 
  */
 #pragma once
-#include <ntddk.h>
-#include "Common.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //				Debugger Config                 //

@@ -10,7 +10,7 @@
  * 
  */
 #pragma once
-#include <ntddk.h>
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //					Definitions					//
@@ -106,20 +106,6 @@ typedef union _INTERRUPT_INFO
     };
     UINT32 Flags;
 } INTERRUPT_INFO, *PINTERRUPT_INFO;
-
-typedef union _VMEXIT_INTERRUPT_INFO
-{
-    struct
-    {
-        UINT32 Vector : 8;
-        UINT32 InterruptionType : 3;
-        UINT32 ErrorCodeValid : 1;
-        UINT32 NmiUnblocking : 1;
-        UINT32 Reserved : 18;
-        UINT32 Valid : 1;
-    };
-    UINT32 Flags;
-} VMEXIT_INTERRUPT_INFO, *PVMEXIT_INTERRUPT_INFO;
 
 typedef struct _EVENT_INFORMATION
 {

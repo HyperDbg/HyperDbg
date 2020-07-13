@@ -13,7 +13,7 @@
  * 
  */
 #pragma once
-#include <ntddk.h>
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //				    Definitions					//

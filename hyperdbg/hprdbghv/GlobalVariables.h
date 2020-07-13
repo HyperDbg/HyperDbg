@@ -13,10 +13,7 @@
  * 
  */
 #pragma once
-#include <ntddk.h>
-#include "Vmx.h"
-#include "Logging.h"
-#include "PoolManager.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //				Global Variables				//

@@ -11,7 +11,7 @@
  */
 
 #pragma once
-#include "Common.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //				   Syscall Hook					//

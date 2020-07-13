@@ -10,17 +10,9 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include <wdf.h>
-#include "Common.h"
+#include "pch.h"
 #include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
-#include "Logging.h"
-#include "ExtensionCommands.h"
-#include "DebuggerCommands.h"
-#include "Hooks.h"
-#include "Debugger.h"
-#include "Transparency.h"
 
 /**
  * @brief Driver IOCTL Dispatcher

@@ -10,11 +10,8 @@
  * 
  */
 #pragma once
-#include "Dpc.h"
-#include "Vmcall.h"
-#include "DebuggerCommands.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "InlineAsm.h"
 
 /**
  * @brief Broadcast syscall hook to all cores

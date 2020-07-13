@@ -9,8 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "Invept.h"
-#include "InlineAsm.h"
+#include "pch.h"
 
 /**
  * @brief Invoke the Invept instruction

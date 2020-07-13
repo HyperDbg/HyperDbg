@@ -10,10 +10,7 @@
  * 
  */
 #pragma once
-#include <ntddk.h>
-#include "Debugger.h"
-#include "Ept.h"
-#include "MemoryMapper.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //					Constants					//
@@ -572,19 +569,6 @@ typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
         UINT64 GpRegister : 4;
     };
 } MOV_TO_DEBUG_REG_QUALIFICATION, *PMOV_TO_DEBUG_REG_QUALIFICATION;
-
-//////////////////////////////////////////////////
-//				Segment Functions				//
-//////////////////////////////////////////////////
-
-SEGMENT_SELECTOR
-GetGuestCs();
-
-VOID
-SetGuestCs(PSEGMENT_SELECTOR Cs);
-
-VOID
-SetGuestSs(PSEGMENT_SELECTOR Ss);
 
 //////////////////////////////////////////////////
 //					Functions					//

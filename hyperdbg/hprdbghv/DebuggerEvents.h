@@ -11,8 +11,7 @@
  */
 
 #pragma once
-#include <ntddk.h>
-#include "Common.h"
+#include "pch.h"
 
 VOID
 DebuggerEventEnableEferOnAllProcessors();

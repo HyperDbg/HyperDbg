@@ -66,6 +66,8 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
@@ -85,6 +87,8 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -138,7 +142,6 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BreakControl.h" />
     <ClInclude Include="Broadcast.h" />
     <ClInclude Include="Counters.h" />
     <ClInclude Include="Debugger.h" />
@@ -149,6 +152,7 @@
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
     <ClInclude Include="GlobalVariables.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Hooks.h" />
     <ClInclude Include="HypervisorRoutines.h" />
     <ClInclude Include="IdtEmulation.h" />

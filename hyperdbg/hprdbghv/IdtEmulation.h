@@ -10,8 +10,7 @@
  * 
  */
 #pragma once
-#include "Events.h"
-#include "Common.h"
+#include "pch.h"
 
 typedef struct _INTERRUPTIBILITY_STATE
 {
@@ -30,6 +29,20 @@ typedef struct _INTERRUPTIBILITY_STATE
         };
     };
 } INTERRUPTIBILITY_STATE, *PINTERRUPTIBILITY_STATE;
+
+typedef union _VMEXIT_INTERRUPT_INFO
+{
+    struct
+    {
+        UINT32 Vector : 8;
+        UINT32 InterruptionType : 3;
+        UINT32 ErrorCodeValid : 1;
+        UINT32 NmiUnblocking : 1;
+        UINT32 Reserved : 18;
+        UINT32 Valid : 1;
+    };
+    UINT32 Flags;
+} VMEXIT_INTERRUPT_INFO, *PVMEXIT_INTERRUPT_INFO;
 
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);

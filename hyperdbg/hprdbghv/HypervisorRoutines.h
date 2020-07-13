@@ -12,8 +12,7 @@
  */
 
 #pragma once
-#include "Msr.h"
-#include "Vmx.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //					Functions					//
@@ -31,9 +30,6 @@ VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
 /* Set Guest Selector Registers */
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
-/* Get Segment Descriptor */
-BOOLEAN
-HvGetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
 /* Set Msr Bitmap */
 BOOLEAN
 HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);

@@ -9,17 +9,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
-#include "Msr.h"
-#include "Vmx.h"
-#include "Common.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "Dpc.h"
-#include "InlineAsm.h"
-#include "Vpid.h"
-#include "Invept.h"
 
 /**
  * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)

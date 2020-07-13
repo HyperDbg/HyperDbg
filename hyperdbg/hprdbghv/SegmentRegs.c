@@ -16,8 +16,7 @@
  * @return VOID 
  */
 
-#include "Vmx.h"
-
+#include "pch.h"
 
 SEGMENT_SELECTOR
 GetGuestCs()

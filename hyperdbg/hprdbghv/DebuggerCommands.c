@@ -9,12 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "Broadcast.h"
-#include "Dpc.h"
-#include "Debugger.h"
-#include "Logging.h"
-#include "DpcRoutines.h"
-#include "Common.h"
+#include "pch.h"
 #include "GlobalVariables.h"
 
 NTSTATUS

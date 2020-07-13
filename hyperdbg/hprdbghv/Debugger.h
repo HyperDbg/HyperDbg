@@ -11,9 +11,7 @@
  */
 
 #pragma once
-#include <ntddk.h>
-#include "Common.h"
-#include "Logging.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //				Memory Manager		    		//

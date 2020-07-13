@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "Common.h"
+#include "pch.h"
 
 VOID
 CounterEmulateRdtsc(PGUEST_REGS GuestRegs)

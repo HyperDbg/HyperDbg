@@ -10,10 +10,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "Common.h";
+#include "pch.h"
 #include "GlobalVariables.h";
-#include "Vmcall.h";
-#include "InlineAsm.h";
 
 /* lock for one core execution */
 volatile LONG OneCoreLock;

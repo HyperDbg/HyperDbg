@@ -11,6 +11,7 @@
  */
 
 #pragma once
+#include "pch.h"
 
 //
 // ====================  Vmx Operations ====================

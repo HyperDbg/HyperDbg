@@ -11,16 +11,8 @@
  * 
  */
 
-#include <ntddk.h>
-#include "Common.h"
-#include "Debugger.h"
-#include "DebuggerEvents.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "Hooks.h"
-#include "ExtensionCommands.h"
-#include "HypervisorRoutines.h"
-#include "DpcRoutines.h"
-#include "InlineAsm.h"
 
 BOOLEAN
 DebuggerInitialize()

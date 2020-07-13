@@ -10,9 +10,7 @@
  * 
  */
 #include <ntifs.h>
-#include "Msr.h"
-#include "Common.h"
-#include "Vmx.h"
+#include "pch.h"
 
 /**
  * @brief Power function in order to computer address for MSR bitmaps
@@ -140,6 +138,59 @@ SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
     __writecr3(GuestCr3);
 
     return CurrentProcessCr3;
+}
+
+/**
+ * @brief Get Segment Descriptor
+ * 
+ * @param SegmentSelector 
+ * @param Selector 
+ * @param GdtBase 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
+{
+    PSEGMENT_DESCRIPTOR SegDesc;
+
+    if (!SegmentSelector)
+        return FALSE;
+
+    if (Selector & 0x4)
+    {
+        return FALSE;
+    }
+
+    SegDesc = (PSEGMENT_DESCRIPTOR)((PUCHAR)GdtBase + (Selector & ~0x7));
+
+    SegmentSelector->SEL               = Selector;
+    SegmentSelector->BASE              = SegDesc->BASE0 | SegDesc->BASE1 << 16 | SegDesc->BASE2 << 24;
+    SegmentSelector->LIMIT             = SegDesc->LIMIT0 | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
+    SegmentSelector->ATTRIBUTES.UCHARs = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
+
+    if (!(SegDesc->ATTR0 & 0x10))
+    {
+        //
+        // LA_ACCESSED
+        //
+        ULONG64 tmp;
+
+        //
+        // this is a TSS or callgate etc, save the base high part
+        //
+        tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
+        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+    }
+
+    if (SegmentSelector->ATTRIBUTES.Fields.G)
+    {
+        //
+        // 4096-bit granularity is enabled for this segment, scale the limit
+        //
+        SegmentSelector->LIMIT = (SegmentSelector->LIMIT << 12) + 0xfff;
+    }
+
+    return TRUE;
 }
 
 /**

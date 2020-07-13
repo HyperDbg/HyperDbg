@@ -10,8 +10,7 @@
  * 
  */
 #pragma once
-#include "Vmx.h"
-#include "Ept.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //                   Structures		   			//

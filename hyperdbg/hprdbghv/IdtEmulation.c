@@ -10,10 +10,8 @@
  * 
  */
 
-#include "Vmx.h"
-#include "Events.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "IdtEmulation.h"
 #include "HypervisorRoutines.h"
 
 VOID

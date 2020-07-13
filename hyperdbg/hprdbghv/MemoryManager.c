@@ -11,7 +11,7 @@
  */
 
 #include <ntifs.h>
-#include "Definition.h"
+#include "pch.h"
 
 NTSTATUS
 MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize)
@@ -106,4 +106,3 @@ MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_ME
         }
     }
 }
-

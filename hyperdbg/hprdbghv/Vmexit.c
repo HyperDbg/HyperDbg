@@ -10,22 +10,9 @@
  * 
  */
 
-#include "Vmx.h"
-#include "Common.h"
-#include "Ept.h"
-#include "InlineAsm.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "Vmcall.h"
-#include "Vpid.h"
-#include "Invept.h"
-#include "Vmcall.h"
-#include "Hooks.h"
-#include "Invept.h"
-#include "HypervisorRoutines.h"
-#include "Events.h"
 #include "IoHandler.h"
-#include "Counters.h"
-#include "IdtEmulation.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons

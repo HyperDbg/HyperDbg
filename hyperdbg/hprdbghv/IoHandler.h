@@ -10,7 +10,7 @@
  * 
  */
 
-#include <ntddk.h>
+#include "pch.h"
 
 //
 // Uncomment this if you plan to intercept I/O ports 0x5658/0x5659
@@ -165,7 +165,9 @@ IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
     __outdwordstring(port, (unsigned long *)data, count);
 }
 
+//
 // Functions
+//
 
 VOID
 IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags);

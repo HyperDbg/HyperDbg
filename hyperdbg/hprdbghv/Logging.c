@@ -9,11 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include <ntstrsafe.h>
-#include "Common.h"
-#include "Logging.h"
-#include "Trace.h"
+#include "pch.h"
 #include "GlobalVariables.h"
 #include "Logging.tmh"
 

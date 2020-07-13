@@ -14,12 +14,12 @@
 
 #pragma once
 #ifndef LDISASM_H
-#    define LDISASM_H
+#define LDISASM_H
 
-#    include <ntddk.h>
+#include "pch.h"
 
-#    define LDISASM_R (*b >> 4)  // Four high-order bits of an opcode to index a row of the opcode table
-#    define LDISASM_C (*b & 0xF) // Four low-order bits to index a column of the table
+#define LDISASM_R (*b >> 4)  // Four high-order bits of an opcode to index a row of the opcode table
+#define LDISASM_C (*b & 0xF) // Four low-order bits to index a column of the table
 
 static const UINT8 legacyPrefixes[] = {0xF0, 0xF2, 0xF3, 0x2E, 0x36, 0x3E, 0x26, 0x64, 0x65, 0x66, 0x67};
 static const UINT8 op1modrm[]       = {0x62, 0x63, 0x69, 0x6B, 0xC0, 0xC1, 0xC4, 0xC5, 0xC6, 0xC7, 0xD0, 0xD1, 0xD2, 0xD3, 0xF6, 0xF7, 0xFE, 0xFF};

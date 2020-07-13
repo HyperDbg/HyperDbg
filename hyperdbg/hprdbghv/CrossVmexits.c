@@ -9,9 +9,10 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
+#include "pch.h"
 
-VOID VmxHandleXsetbv(UINT32 Reg, UINT64 Value) 
+VOID
+VmxHandleXsetbv(UINT32 Reg, UINT64 Value)
 {
     _xsetbv(Reg, Value);
 }

@@ -11,10 +11,7 @@
  */
 
 #pragma once
-#include "Ept.h"
-#include "Configuration.h"
-#include "MemoryMapper.h"
-#include "Trace.h"
+#include "pch.h"
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -150,40 +147,6 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 /**
- * @brief R/EFlags structure
- * 
- */
-typedef union _RFLAGS
-{
-    struct
-    {
-        UINT64 CarryFlag : 1;
-        UINT64 ReadAs1 : 1;
-        UINT64 ParityFlag : 1;
-        UINT64 Reserved1 : 1;
-        UINT64 AuxiliaryCarryFlag : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 ZeroFlag : 1;
-        UINT64 SignFlag : 1;
-        UINT64 TrapFlag : 1;
-        UINT64 InterruptEnableFlag : 1;
-        UINT64 DirectionFlag : 1;
-        UINT64 OverflowFlag : 1;
-        UINT64 IoPrivilegeLevel : 2;
-        UINT64 NestedTaskFlag : 1;
-        UINT64 Reserved3 : 1;
-        UINT64 ResumeFlag : 1;
-        UINT64 Virtual8086ModeFlag : 1;
-        UINT64 AlignmentCheckFlag : 1;
-        UINT64 VirtualInterruptFlag : 1;
-        UINT64 VirtualInterruptPendingFlag : 1;
-        UINT64 IdentificationFlag : 1;
-    };
-
-    UINT64 Value;
-} RFLAGS, *PRFLAGS;
-
-/**
  * @brief Segment attributes
  * 
  */
@@ -207,18 +170,6 @@ typedef union _SEGMENT_ATTRIBUTES
 } SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
 
 /**
- * @brief Segment selector
- * 
- */
-typedef struct _SEGMENT_SELECTOR
-{
-    USHORT             SEL;
-    SEGMENT_ATTRIBUTES ATTRIBUTES;
-    ULONG32            LIMIT;
-    ULONG64            BASE;
-} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
-
-/**
  * @brief Segment Descriptor
  * 
  */
@@ -231,6 +182,18 @@ typedef struct _SEGMENT_DESCRIPTOR
     UCHAR  LIMIT1ATTR1;
     UCHAR  BASE2;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
+
+/**
+ * @brief Segment selector
+ * 
+ */
+typedef struct _SEGMENT_SELECTOR
+{
+    USHORT             SEL;
+    SEGMENT_ATTRIBUTES ATTRIBUTES;
+    ULONG32            LIMIT;
+    ULONG64            BASE;
+} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
 
 /**
  * @brief CPUID Registers
@@ -357,6 +320,36 @@ typedef union DEBUG_REGISTER_6
     };
 } DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
 
+typedef union _RFLAGS
+{
+    struct
+    {
+        UINT64 CarryFlag : 1;
+        UINT64 ReadAs1 : 1;
+        UINT64 ParityFlag : 1;
+        UINT64 Reserved1 : 1;
+        UINT64 AuxiliaryCarryFlag : 1;
+        UINT64 Reserved2 : 1;
+        UINT64 ZeroFlag : 1;
+        UINT64 SignFlag : 1;
+        UINT64 TrapFlag : 1;
+        UINT64 InterruptEnableFlag : 1;
+        UINT64 DirectionFlag : 1;
+        UINT64 OverflowFlag : 1;
+        UINT64 IoPrivilegeLevel : 2;
+        UINT64 NestedTaskFlag : 1;
+        UINT64 Reserved3 : 1;
+        UINT64 ResumeFlag : 1;
+        UINT64 Virtual8086ModeFlag : 1;
+        UINT64 AlignmentCheckFlag : 1;
+        UINT64 VirtualInterruptFlag : 1;
+        UINT64 VirtualInterruptPendingFlag : 1;
+        UINT64 IdentificationFlag : 1;
+    };
+
+    UINT64 Value;
+} RFLAGS, *PRFLAGS;
+
 //////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////
@@ -456,6 +449,19 @@ typedef enum _LOG_TYPE
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
 //////////////////////////////////////////////////
+//				Segment Functions				//
+//////////////////////////////////////////////////
+
+SEGMENT_SELECTOR
+GetGuestCs();
+
+VOID
+SetGuestCs(PSEGMENT_SELECTOR Cs);
+
+VOID
+SetGuestSs(PSEGMENT_SELECTOR Ss);
+
+//////////////////////////////////////////////////
 //			 Function Definitions				//
 //////////////////////////////////////////////////
 
@@ -537,3 +543,6 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
 /* SYSCALL instruction emulation routine */
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
+/* Get Segment Descriptor */
+BOOLEAN
+GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);

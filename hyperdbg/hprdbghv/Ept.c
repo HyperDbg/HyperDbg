@@ -10,19 +10,10 @@
  * 
  */
 
-#include "Vmx.h"
-#include "Ept.h"
-#include "Common.h"
-#include "InlineAsm.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "Invept.h"
 #include "HypervisorRoutines.h"
-#include "Vmcall.h"
-#include "PoolManager.h"
-#include "Hooks.h"
-#include "LengthDisassemblerEngine.h"
-#include "Events.h"
-#include "DebuggerEvents.h"
+
 
 /**
  * @brief Check whether EPT features are present or not

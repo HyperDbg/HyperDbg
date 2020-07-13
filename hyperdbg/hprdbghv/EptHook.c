@@ -12,18 +12,9 @@
  * 
  */
 
-#include <ntifs.h>
-#include "Common.h"
-#include "Ept.h"
-#include "InlineAsm.h"
-#include "Logging.h"
-#include "Hooks.h"
 #include "HypervisorRoutines.h"
-#include "Vmcall.h"
 #include "GlobalVariables.h"
-#include "LengthDisassemblerEngine.h"
-#include "DebuggerEvents.h"
-#include "Dpc.h"
+#include "pch.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag

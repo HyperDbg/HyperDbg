@@ -11,13 +11,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include "PoolManager.h"
-#include "Logging.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "PoolManager.h"
-#include "Common.h"
-#include "Hooks.h"
 
 /**
  * @brief Initializes the pool manager

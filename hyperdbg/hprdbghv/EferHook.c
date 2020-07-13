@@ -14,18 +14,10 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include <ntddk.h>
-#include <Windef.h>
-#include "Common.h"
-#include "Msr.h"
-#include "Hooks.h"
-#include "Invept.h"
-#include "Events.h"
-#include "HypervisorRoutines.h"
+
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "MemoryMapper.h"
-#include "Vmx.h"
-#include "Logging.h"
+
 
 /**
  * @brief This function enables or disables EFER syscall hoo

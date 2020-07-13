@@ -15,8 +15,7 @@
 
 #include <ntifs.h>
 #include "GlobalVariables.h"
-#include "Vpid.h"
-#include "Common.h"
+#include "pch.h"
 
 UINT64
 MemoryMapperGetIndex(PML Level, UINT64 Va)

@@ -10,16 +10,9 @@
  * 
  */
 
-#include "Vmcall.h"
+#include "pch.h"
 #include "GlobalVariables.h"
 #include "HypervisorRoutines.h"
-#include "Hooks.h"
-#include "Common.h"
-#include "Invept.h"
-#include "InlineAsm.h"
-#include "Vpid.h"
-#include "Events.h"
-#include "Hooks.h"
 
 /**
  * @brief Handle vm-exits of VMCALLs
