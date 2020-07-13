@@ -9,7 +9,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "pch.h"
+
+#pragma once
 
 NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext);

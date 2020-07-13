@@ -11,7 +11,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h";
 
 /* lock for one core execution */
 volatile LONG OneCoreLock;

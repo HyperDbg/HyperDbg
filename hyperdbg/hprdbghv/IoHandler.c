@@ -11,7 +11,6 @@
  */
 
 #include "pch.h"
-#include "IoHandler.h"
 
 /**
  * @brief VM-Exit handler for I/O Instructions (in/out)

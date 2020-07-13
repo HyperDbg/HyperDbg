@@ -11,7 +11,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Driver IOCTL Dispatcher

@@ -10,7 +10,6 @@
  * 
  */
 #pragma once
-#include "pch.h"
 
 VOID
 CounterEmulateRdtsc(PGUEST_REGS GuestRegs);

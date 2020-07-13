@@ -10,7 +10,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)

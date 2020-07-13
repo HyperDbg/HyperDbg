@@ -10,7 +10,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Initialize Vmx operation

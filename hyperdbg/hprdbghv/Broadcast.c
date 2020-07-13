@@ -11,7 +11,6 @@
  */
 #pragma once
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Broadcast syscall hook to all cores

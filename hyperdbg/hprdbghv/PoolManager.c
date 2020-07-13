@@ -12,7 +12,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Initializes the pool manager

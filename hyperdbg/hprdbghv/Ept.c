@@ -11,8 +11,6 @@
  */
 
 #include "pch.h"
-#include "GlobalVariables.h"
-
 
 /**
  * @brief Check whether EPT features are present or not

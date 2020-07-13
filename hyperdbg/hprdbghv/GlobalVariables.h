@@ -13,7 +13,6 @@
  * 
  */
 #pragma once
-#include "pch.h"
 
 //////////////////////////////////////////////////
 //				Global Variables				//

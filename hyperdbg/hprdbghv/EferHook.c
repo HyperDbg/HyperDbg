@@ -16,8 +16,6 @@
  */
 
 #include "pch.h"
-#include "GlobalVariables.h"
-
 
 /**
  * @brief This function enables or disables EFER syscall hoo

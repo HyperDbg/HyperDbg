@@ -1,11 +1,29 @@
+/**
+ * @file pch.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Pre-compiled headers 
+ * @details 
+ *
+ * @version 0.1
+ * @date 2020-06-01
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #pragma once
 
+//
+// Windows defined functions
+//
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
 #include <ntstrsafe.h>
 #include <Windef.h>
 
+//
+// HyperDbg Kernel-mode headers
+//
 #include "Definition.h"
 #include "Configuration.h"
 #include "Dpc.h"
@@ -35,3 +53,5 @@
 #include "ExtensionCommands.h"
 #include "HypervisorRoutines.h"
 #include "Ntifs2.h"
+#include "IoHandler.h"
+#include "GlobalVariables.h"

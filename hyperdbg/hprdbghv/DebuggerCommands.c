@@ -10,7 +10,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 NTSTATUS
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize)

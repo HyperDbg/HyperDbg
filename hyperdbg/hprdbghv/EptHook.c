@@ -12,7 +12,6 @@
  * 
  */
 #include "pch.h"
-#include "GlobalVariables.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag

@@ -12,7 +12,6 @@
  * 
  */
 #pragma once
-#include "pch.h"
 
 NTSTATUS
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize);

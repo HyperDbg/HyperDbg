@@ -11,8 +11,6 @@
  */
 
 #include "pch.h"
-#include "GlobalVariables.h"
-#include "IoHandler.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons

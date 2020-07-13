@@ -14,7 +14,6 @@
  */
 
 #include "pch.h"
-#include "GlobalVariables.h"
 
 UINT64
 MemoryMapperGetIndex(PML Level, UINT64 Va)

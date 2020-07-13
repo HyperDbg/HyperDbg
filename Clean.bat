@@ -12,6 +12,7 @@ del    *.ipch   /s
 del    *.obj    /s
 del    *.sbr    /s
 del    *.tlog   /s
+del    *.pch    /s
 
 echo Removing build folders ...
 echo.

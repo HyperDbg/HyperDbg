@@ -10,6 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+#pragma once
 
 /**
  * @brief Configures whether to show the current system time in the output of
@@ -38,9 +39,9 @@
  */
 
 //
-// Should be FALSE, I realized that if we enable this flag, we end up in a situation
-// that DbgPrint halts the system because it is executing in Dispatch-level in a 
-// DPC routine, I left it to FALSE for future attention
+// Should be FALSE, I realized that if we enable this flag, we end up in a
+// situation that DbgPrint halts the system because it is executing in
+// Dispatch-level in a DPC routine, I left it to FALSE for future attention
 //
 #define ShowMessagesOnDebugger FALSE
 

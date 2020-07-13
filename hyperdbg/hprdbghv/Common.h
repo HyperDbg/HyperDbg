@@ -9,9 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
 #pragma once
-#include "pch.h"
 
 //////////////////////////////////////////////////
 //					Enums						//

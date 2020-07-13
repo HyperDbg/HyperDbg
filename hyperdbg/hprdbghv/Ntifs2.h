@@ -10,7 +10,6 @@
  * 
  */
 #pragma once
-#include "pch.h"
 
 typedef struct _KAPC_STATE
 {

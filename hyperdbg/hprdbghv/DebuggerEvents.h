@@ -11,7 +11,6 @@
  */
 
 #pragma once
-#include "pch.h"
 
 VOID
 DebuggerEventEnableEferOnAllProcessors();

@@ -9,8 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
-#include "pch.h"
+#pragma once
 
 //
 // Uncomment this if you plan to intercept I/O ports 0x5658/0x5659
