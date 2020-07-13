@@ -24,7 +24,7 @@
  * 
  */
 
-#include <ntddk.h>
+#include "pch.h"
 
 /**
  * @brief The maximum wait before PAUSE
@@ -38,7 +38,7 @@ static unsigned MaxWait = 65536;
  * @param LONG Lock variable
  * @return BOOLEAN If it was successfull on getting the lock
  */
-inline BOOLEAN
+BOOLEAN
 SpinlockTryLock(volatile LONG * Lock)
 {
     return (!(*Lock) && !_interlockedbittestandset(Lock, 0));

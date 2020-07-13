@@ -11,7 +11,6 @@
  */
 #include "pch.h"
 #include "GlobalVariables.h"
-#include "HypervisorRoutines.h"
 
 /**
  * @brief Initialize Vmx operation

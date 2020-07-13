@@ -12,7 +12,6 @@
 
 #include "pch.h"
 #include "GlobalVariables.h"
-#include "HypervisorRoutines.h"
 
 /**
  * @brief Handle vm-exits of VMCALLs

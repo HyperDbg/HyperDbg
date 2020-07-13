@@ -34,3 +34,4 @@
 #include "DebuggerCommands.h"
 #include "ExtensionCommands.h"
 #include "HypervisorRoutines.h"
+#include "Ntifs2.h"

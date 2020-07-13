@@ -9,18 +9,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "Msr.h"
-#include "Vmx.h"
-#include "Common.h"
-#include "Ept.h"
-#include "InlineAsm.h"
+#include "pch.h"
 #include "GlobalVariables.h"
-#include "Vmcall.h"
-#include "HypervisorRoutines.h"
-#include "Invept.h"
-#include "Vpid.h"
-#include "Dpc.h"
-#include "Events.h"
 
 /**
  * @brief Initialize VMX Operation

@@ -12,7 +12,6 @@
 
 #include "pch.h"
 #include "GlobalVariables.h"
-#include "HypervisorRoutines.h"
 
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)

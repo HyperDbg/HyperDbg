@@ -11,10 +11,8 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
-#include "HypervisorRoutines.h"
-#include "GlobalVariables.h"
 #include "pch.h"
+#include "GlobalVariables.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag

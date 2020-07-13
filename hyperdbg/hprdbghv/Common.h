@@ -36,11 +36,11 @@ typedef enum _SEGMENT_REGISTERS
 //////////////////////////////////////////////////
 //				 Spinlock Funtions				//
 //////////////////////////////////////////////////
-inline BOOLEAN
+BOOLEAN
 SpinlockTryLock(volatile LONG * Lock);
-inline void
+void
 SpinlockLock(volatile LONG * Lock);
-inline void
+void
 SpinlockUnlock(volatile LONG * Lock);
 
 //////////////////////////////////////////////////

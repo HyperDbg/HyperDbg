@@ -10,7 +10,6 @@
  * 
  */
 
-#include <ntifs.h>
 #include "pch.h"
 
 NTSTATUS

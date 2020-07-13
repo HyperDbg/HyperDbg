@@ -11,7 +11,6 @@
  * 
  */
 #include "pch.h"
-#include "HypervisorRoutines.h"
 #include "GlobalVariables.h"
 
 /**

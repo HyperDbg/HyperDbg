@@ -66,8 +66,9 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(SolutionDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
@@ -87,8 +88,9 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(SolutionDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,6 +154,7 @@
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
     <ClInclude Include="GlobalVariables.h" />
+    <ClInclude Include="Ntifs2.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Hooks.h" />
     <ClInclude Include="HypervisorRoutines.h" />
