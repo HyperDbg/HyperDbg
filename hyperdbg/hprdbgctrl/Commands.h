@@ -48,6 +48,9 @@ VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       DEBUGGER_READ_MEMORY_TYPE MemoryType,
                                       DEBUGGER_READ_READING_TYPE ReadingType,
                                       UINT32 Pid, UINT Size);
+
+VOID CommandTest(vector<string> SplittedCommand);
+
 VOID CommandClearScreen();
 
 VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand);

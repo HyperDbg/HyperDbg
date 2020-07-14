@@ -63,6 +63,8 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandUnload(SplittedCommand);
   } else if (!FirstCommand.compare(".script")) {
     CommandScript(SplittedCommand, CommandString);
+  } else if (!FirstCommand.compare("test")) {
+    CommandTest(SplittedCommand);
   } else if (!FirstCommand.compare("cpu")) {
     CommandCpu(SplittedCommand);
   } else if (!FirstCommand.compare("wrmsr")) {

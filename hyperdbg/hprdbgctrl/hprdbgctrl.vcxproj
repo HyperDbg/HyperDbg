@@ -112,6 +112,7 @@
     <ClInclude Include="install.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="tests.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cls.cpp" />
@@ -140,6 +141,8 @@
     <ClCompile Include="readmem.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="eptcommands.cpp" />
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unhide.cpp" />
     <ClCompile Include="unload.cpp" />

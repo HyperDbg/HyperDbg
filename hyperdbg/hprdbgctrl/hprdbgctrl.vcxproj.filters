@@ -43,6 +43,9 @@
     <Filter Include="Source Files\Driver Loader">
       <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Test">
+      <UniqueIdentifier>{c444d625-bb46-481a-a5ac-04db9c52d0f5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -73,6 +76,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="install.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -199,6 +205,12 @@
     </ClCompile>
     <ClCompile Include="epthook.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="test.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="eptcommands.cpp">
+      <Filter>Source Files\Debugger\Test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

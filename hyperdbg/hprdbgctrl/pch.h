@@ -61,6 +61,7 @@
 #include "help.h"
 #include "install.h"
 #include "list.h"
+#include "tests.h"
 
 #endif // PCH_H
 
