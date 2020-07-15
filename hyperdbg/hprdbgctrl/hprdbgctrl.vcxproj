@@ -111,6 +111,7 @@
     <ClInclude Include="help.h" />
     <ClInclude Include="install.h" />
     <ClInclude Include="list.h" />
+    <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="tests.h" />
   </ItemGroup>
@@ -135,6 +136,7 @@
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />
+    <ClCompile Include="namedpipe.cpp" />
     <ClCompile Include="pmc.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
