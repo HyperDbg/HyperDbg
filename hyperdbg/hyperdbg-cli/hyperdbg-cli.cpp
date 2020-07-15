@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include <Windows.h>
 #include <string>
@@ -39,15 +39,38 @@ extern "C"
 
 /**
  * @brief CLI main function
- * 
- * @return int 
+ *
+ * @return int
  */
-int main()
-{
+int main(int argc, char* argv[]) {
+
+
+	if (argc != 1) {
+
+		//
+		// User-passed arguments to the debugger
+		//
+		if (!strcmp(argv[1], "--script")) {
+
+			char ScriptBuffer[MAX_PATH + 10] = { 0 };
+			//
+			// Executing the script
+			//
+			sprintf_s(ScriptBuffer, sizeof(ScriptBuffer), ".script %s", argv[2]);
+			HyperdbgInterpreter(ScriptBuffer);
+			printf("\n");
+		}
+		else
+		{
+			printf("invalid command line options passed to HyperDbg !\n");
+			return 1;
+		}
+	}
+
 	//
 	// Put to ease the test, it will be removed
 	//
-	
+
 	/* if (HyperdbgInstallDriver()) {
 		return 1;
 	}
@@ -58,18 +81,18 @@ int main()
 	_getch();
 	_getch();
 	return 0; */
-	
+
 
 	// ---------------------------------------------------------
 
-	
+
 	bool ExitFromDebugger = false;
 
-	printf("HyperDbg Debugger [core version: v%s]\n",Version);
+	printf("HyperDbg Debugger [core version: v%s]\n", Version);
 	printf("Please visit https://docs.hyperdbg.com for more information...\n");
 	printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
 
-	while (!ExitFromDebugger) 
+	while (!ExitFromDebugger)
 	{
 		printf("HyperDbg >");
 
