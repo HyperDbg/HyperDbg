@@ -1,7 +1,7 @@
 /**
  * @file script.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief script command
+ * @brief .script command
  * @details
  * @version 0.1
  * @date 2020-07-03
@@ -12,6 +12,8 @@
 #include "pch.h"
 
 using namespace std;
+
+extern BOOLEAN g_ExecutingScript;
 
 VOID CommandScriptHelp() {
   ShowMessages(".script : run a HyperDbg script.\n\n");
@@ -52,9 +54,16 @@ VOID CommandScript(vector<string> SplittedCommand, string Command) {
   ifstream File(Command);
   if (File.is_open()) {
     IsOpened = TRUE;
+
+    //
+    // Indicate that it's a script
+    //
+    g_ExecutingScript = TRUE;
+
     while (std::getline(File, Line)) {
       ShowMessages("HyperDbg >%s\n", Line.c_str());
       CommandExecutionResult = HyperdbgInterpreter(Line.c_str());
+      ShowMessages("\n");
 
       //
       // if the debugger encounters an exit state then the return will be 1
@@ -66,6 +75,12 @@ VOID CommandScript(vector<string> SplittedCommand, string Command) {
         exit(0);
       }
     }
+
+    //
+    // Indicate that script is finished
+    //
+    g_ExecutingScript = FALSE;
+
     File.close();
   }
 

@@ -12,6 +12,8 @@
 #include "pch.h"
 
 using namespace std;
+extern BOOLEAN g_LogOpened;
+extern BOOLEAN g_ExecutingScript;
 
 /**
  * @brief Interpret commands
@@ -23,6 +25,15 @@ using namespace std;
 int _cdecl HyperdbgInterpreter(const char *Command) {
 
   string CommandString(Command);
+
+  //
+  // Save the command into log open file
+  //
+  if (g_LogOpened && !g_ExecutingScript) {
+    LogopenSaveToFile("HyperDbg >");
+    LogopenSaveToFile(Command);
+    LogopenSaveToFile("\n");
+  }
 
   //
   // Convert to lower case
@@ -63,6 +74,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandUnload(SplittedCommand);
   } else if (!FirstCommand.compare(".script")) {
     CommandScript(SplittedCommand, CommandString);
+  } else if (!FirstCommand.compare(".logopen")) {
+    CommandLogopen(SplittedCommand, CommandString);
+  } else if (!FirstCommand.compare(".logclose")) {
+    CommandLogclose(SplittedCommand);
   } else if (!FirstCommand.compare("test")) {
     CommandTest(SplittedCommand);
   } else if (!FirstCommand.compare("cpu")) {
@@ -126,5 +141,11 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     ShowMessages("\n");
   }
 
+  //
+  // Save the command into log open file
+  //
+  if (g_LogOpened && !g_ExecutingScript) {
+    LogopenSaveToFile("\n");
+  }
   return 0;
 }

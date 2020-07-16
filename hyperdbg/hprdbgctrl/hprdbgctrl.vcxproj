@@ -133,6 +133,8 @@
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
     <ClCompile Include="load.cpp" />
+    <ClCompile Include="logclose.cpp" />
+    <ClCompile Include="logopen.cpp" />
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />

@@ -112,3 +112,7 @@ VOID CommandVmcall(vector<string> SplittedCommand);
 VOID CommandHide(vector<string> SplittedCommand);
 
 VOID CommandUnhide(vector<string> SplittedCommand);
+
+VOID CommandLogopen(vector<string> SplittedCommand, string Command);
+
+VOID CommandLogclose(vector<string> SplittedCommand);

@@ -30,7 +30,7 @@ VOID CommandDisconnect(vector<string> SplittedCommand) {
     return;
   }
   if (!g_IsConnectedToDebugger) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
+    ShowMessages("you're not connected to any instance of HyperDbg, did you "
                  "use '.connect'? \n");
     return;
   }

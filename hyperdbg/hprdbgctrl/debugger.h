@@ -35,3 +35,5 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     PUINT32 ActionBufferLength);
 
 UINT64 GetNewDebuggerEventTag();
+
+VOID LogopenSaveToFile(const char *Text);

@@ -22,6 +22,7 @@ extern Callback g_MessageHandler;
 extern TCHAR g_DriverLocation[MAX_PATH];
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
+extern BOOLEAN g_LogOpened;
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -49,21 +50,29 @@ void ShowMessages(const char *Fmt, ...) {
     va_start(Args, Fmt);
     vprintf(Fmt, Args);
     va_end(Args);
-    return;
+    if (!g_LogOpened) {
+      return;
+    }
   }
 
   va_start(ArgList, Fmt);
-
   int sprintfresult =
       vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
   va_end(ArgList);
 
   if (sprintfresult != -1) {
+    if (g_LogOpened) {
+      //
+      // .logopen command executed
+      //
+      LogopenSaveToFile(TempMessage);
+    }
     if (g_MessageHandler != NULL) {
+      //
+      // There is another handler
+      //
       g_MessageHandler(TempMessage);
     }
-  } else {
-    MessageBoxA(0, "Error occured in send date to managed code !", "error", 0);
   }
 }
 

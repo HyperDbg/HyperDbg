@@ -29,6 +29,12 @@ TCHAR g_DriverLocation[MAX_PATH] = {0};
 
 Callback g_MessageHandler = 0;
 
-BOOLEAN g_IsVmxOffProcessStart; // Show whether the vmxoff process start or not
+BOOLEAN g_IsVmxOffProcessStart; // Shows whether the vmxoff process start or not
 
 HANDLE g_DeviceHandle;
+
+BOOLEAN g_LogOpened = FALSE;
+
+ofstream g_LogOpenFile;
+
+BOOLEAN g_ExecutingScript = FALSE;

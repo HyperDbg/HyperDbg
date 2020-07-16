@@ -43,11 +43,11 @@
     <Filter Include="Source Files\Driver Loader">
       <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Test">
-      <UniqueIdentifier>{c444d625-bb46-481a-a5ac-04db9c52d0f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\Communication">
       <UniqueIdentifier>{7522bb67-3e10-4cdc-8d80-13d45ea74661}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Tests">
+      <UniqueIdentifier>{c444d625-bb46-481a-a5ac-04db9c52d0f5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -216,10 +216,16 @@
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
     <ClCompile Include="eptcommands.cpp">
-      <Filter>Source Files\Debugger\Test</Filter>
+      <Filter>Source Files\Debugger\Tests</Filter>
     </ClCompile>
     <ClCompile Include="namedpipe.cpp">
       <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="logopen.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="logclose.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
