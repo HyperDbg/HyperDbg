@@ -28,6 +28,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_READ_AND_WRITE_ON_MSR              DebuggerReadOrWriteMsrRequest;
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE DebuggerHideAndUnhideRequest;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    DebuggerPteRequest;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER        RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
@@ -382,6 +383,47 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Set size
             //
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+        case IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerVa2paAndPa2vaRequest = (PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            ExtensionCommandVa2paAndPa2va(DebuggerVa2paAndPa2vaRequest);
+
+            //
+            // Configure IRP status
+            //
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS;
+            Status                    = STATUS_SUCCESS;
 
             //
             // Avoid zeroing it

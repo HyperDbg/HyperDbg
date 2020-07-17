@@ -49,3 +49,5 @@ VOID CommandUnhideHelp();
 VOID CommandTestHelp();
 VOID CommandLogopenHelp();
 VOID CommandLogcloseHelp();
+VOID CommandVa2paHelp();
+VOID CommandPa2vaHelp();

@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandHideHelp() {
-  ShowMessages("!hide : tries to make HyperDbg transparent from anti-debugging "
+  ShowMessages("!hide : Tries to make HyperDbg transparent from anti-debugging "
                "and anti-hypervisor methods.\n\n");
   ShowMessages("syntax : \t!hide\n");
   ShowMessages("\t\te.g : !hide\n");

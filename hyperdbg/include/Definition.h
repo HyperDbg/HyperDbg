@@ -30,7 +30,6 @@
 #define DbgPrintLimitation 512
 #define DebuggerEventTagStartSeed 0x1000000
 
-
 //////////////////////////////////////////////////
 //					Installer                   //
 //////////////////////////////////////////////////
@@ -215,6 +214,21 @@ typedef struct _DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS {
 
 } DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,
     *PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS                               \
+  sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS)
+
+typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS {
+
+  UINT64 VirtualAddress;
+  UINT64 PhysicalAddress;
+  UINT32 ProcessId;
+  BOOLEAN IsVirtual2Physical;
+
+} DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, *PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS;
 
 /* ==============================================================================================
  */
@@ -509,3 +523,6 @@ typedef struct _DEBUGGER_EVENT {
 
 #define IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER             \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x808, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS                                \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x809, METHOD_BUFFERED, FILE_ANY_ACCESS)

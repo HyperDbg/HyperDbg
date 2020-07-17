@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandExceptionHelp() {
-  ShowMessages("!exception : monitors the first 32 entry of IDT (starting from "
+  ShowMessages("!exception : Monitors the first 32 entry of IDT (starting from "
                "zero).\n\n");
   ShowMessages(
       "syntax : \t!exception [entry index (hex value) - if not specific means "

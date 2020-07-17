@@ -227,6 +227,12 @@
     <ClCompile Include="logclose.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
+    <ClCompile Include="va2pa.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="pa2va.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

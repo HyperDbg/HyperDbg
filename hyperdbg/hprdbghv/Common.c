@@ -209,6 +209,51 @@ RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 }
 
 /**
+ * @brief Converts Physical Address to Virtual Address based
+ * on a specific process id's kernel cr3
+ * 
+ * @param PhysicalAddress The target physical address
+ * @param ProcessId The target's process id
+ * @return UINT64 Returns the virtual address
+ */
+UINT64
+PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId)
+{
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
+    PHYSICAL_ADDRESS PhysicalAddr;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentProcessCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Read the virtual address based on new cr3
+    //
+    PhysicalAddr.QuadPart = PhysicalAddress;
+    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return VirtualAddress;
+}
+
+/**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process id's kernel cr3
  * 

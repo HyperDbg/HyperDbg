@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandMsrreadHelp() {
-  ShowMessages("!msrread : detect the execution of rdmsr instructions.\n\n");
+  ShowMessages("!msrread : Detects the execution of rdmsr instructions.\n\n");
   ShowMessages("syntax : \t!msrread [msr (hex value) - if not specific means "
                "all msrs] core [core index (hex value)] pid [process id (hex "
                "value)] condition {[assembly "

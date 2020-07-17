@@ -484,6 +484,9 @@ VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
 UINT64
 VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId);
 
+UINT64
+PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId);
+
 int
 MathPower(int Base, int Exp);
 

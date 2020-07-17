@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandMsrwriteHelp() {
-  ShowMessages("!msrwrite : detect the execution of wrmsr instructions.\n\n");
+  ShowMessages("!msrwrite : Detects the execution of wrmsr instructions.\n\n");
   ShowMessages("syntax : \t!msrwrite [msr (hex value) - if not specific means "
                "all msrs] core [core index (hex value)] pid [process id (hex "
                "value)] condition {[assembly "

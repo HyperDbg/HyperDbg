@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandInterruptHelp() {
-  ShowMessages("!interrupt : monitors the external interrupt (IDT >= 32).\n\n");
+  ShowMessages("!interrupt : Monitors the external interrupt (IDT >= 32).\n\n");
   ShowMessages("syntax : \t!interrupt [entry index (hex value) - should be "
                "selected] core [core index (hex value)] pid [process id (hex "
                "value)] condition {[assembly in hex]} code {[assembly in hex]} "

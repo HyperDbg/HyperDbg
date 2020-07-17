@@ -13,6 +13,44 @@
 #include "pch.h"
 
 /**
+ * @brief routines for !va2pa and !pa2va commands
+ * 
+ * @return BOOLEAN 
+ */
+VOID
+ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
+{
+    if (AddressDetails->ProcessId == PsGetCurrentProcessId())
+    {
+        //
+        // It's on current process address space
+        //
+        if (AddressDetails->IsVirtual2Physical)
+        {
+            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+        }
+        else
+        {
+            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddress(AddressDetails->PhysicalAddress);
+        }
+    }
+    else
+    {
+        //
+        // It's on another process address space
+        //
+        if (AddressDetails->IsVirtual2Physical)
+        {
+            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
+        }
+        else
+        {
+            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressByProcessId(AddressDetails->PhysicalAddress, AddressDetails->ProcessId);
+        }
+    }
+}
+
+/**
  * @brief routines for !pte command
  * 
  * @return BOOLEAN 

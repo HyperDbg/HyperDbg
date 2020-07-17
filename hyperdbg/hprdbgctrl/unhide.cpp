@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandUnhideHelp() {
-  ShowMessages("!unhide : reveals the debugger to the applications.\n\n");
+  ShowMessages("!unhide : Reveals the debugger to the applications.\n\n");
   ShowMessages("syntax : \t!unhide\n");
   ShowMessages("\t\te.g : !unhide\n");
 }

@@ -17,6 +17,8 @@
 
 BOOLEAN
 ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails);
+VOID
+ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails);
 
 VOID
 ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask);

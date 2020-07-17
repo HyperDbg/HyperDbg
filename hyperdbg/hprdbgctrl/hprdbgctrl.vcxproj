@@ -139,6 +139,7 @@
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />
     <ClCompile Include="namedpipe.cpp" />
+    <ClCompile Include="pa2va.cpp" />
     <ClCompile Include="pmc.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unhide.cpp" />
     <ClCompile Include="unload.cpp" />
+    <ClCompile Include="va2pa.cpp" />
     <ClCompile Include="vmcall.cpp" />
     <ClCompile Include="wrmsr.cpp" />
     <MASM Include="AsmVmxChecks.asm">

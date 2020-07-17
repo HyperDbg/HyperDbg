@@ -116,3 +116,7 @@ VOID CommandUnhide(vector<string> SplittedCommand);
 VOID CommandLogopen(vector<string> SplittedCommand, string Command);
 
 VOID CommandLogclose(vector<string> SplittedCommand);
+
+VOID CommandVa2pa(vector<string> SplittedCommand);
+
+VOID CommandPa2va(vector<string> SplittedCommand);

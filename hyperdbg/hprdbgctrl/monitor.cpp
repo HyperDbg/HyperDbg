@@ -12,7 +12,7 @@
 #include "pch.h"
 
 VOID CommandMonitorHelp() {
-  ShowMessages("!monitor : Monitor address rang for read and writes.\n\n");
+  ShowMessages("!monitor : Monitor address range for read and writes.\n\n");
   ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
                "(hex value)] [To Virtual Address (hex value)] core [core index "
                "(hex value)] pid [process id (hex value)] condition {[assembly "

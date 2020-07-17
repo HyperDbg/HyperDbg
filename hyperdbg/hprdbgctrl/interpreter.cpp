@@ -86,6 +86,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandWrmsr(SplittedCommand);
   } else if (!FirstCommand.compare("rdmsr")) {
     CommandRdmsr(SplittedCommand);
+  } else if (!FirstCommand.compare("!va2pa")) {
+    CommandVa2pa(SplittedCommand);
+  } else if (!FirstCommand.compare("!pa2va")) {
+    CommandPa2va(SplittedCommand);
   } else if (!FirstCommand.compare(".formats")) {
     CommandFormats(SplittedCommand);
   } else if (!FirstCommand.compare("!pte")) {
@@ -147,5 +151,6 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   if (g_LogOpened && !g_ExecutingScript) {
     LogopenSaveToFile("\n");
   }
+
   return 0;
 }
