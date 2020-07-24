@@ -51,3 +51,4 @@ VOID CommandLogopenHelp();
 VOID CommandLogcloseHelp();
 VOID CommandVa2paHelp();
 VOID CommandPa2vaHelp();
+VOID CommandEventsHelp();

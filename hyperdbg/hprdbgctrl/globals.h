@@ -38,3 +38,5 @@ BOOLEAN g_LogOpened = FALSE;
 ofstream g_LogOpenFile;
 
 BOOLEAN g_ExecutingScript = FALSE;
+
+BOOLEAN g_BreakPrintingOutput = FALSE;

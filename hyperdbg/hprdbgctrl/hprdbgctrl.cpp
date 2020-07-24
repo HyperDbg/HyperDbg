@@ -23,6 +23,7 @@ extern TCHAR g_DriverLocation[MAX_PATH];
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_LogOpened;
+extern BOOLEAN g_BreakPrintingOutput;
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -44,6 +45,14 @@ void ShowMessages(const char *Fmt, ...) {
   va_list ArgList;
   va_list Args;
   char TempMessage[PacketChunkSize];
+
+  if (g_BreakPrintingOutput) {
+    //
+    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+    // we shouldn't show or save anything in this case
+    //
+    return;
+  }
 
   if (g_MessageHandler == NULL) {
 
@@ -345,6 +354,15 @@ HPRDBGCTRL_API int HyperdbgLoad() {
     ShowMessages("Thread Created successfully !!!\n");
   }
 #endif
+
+  //
+  // Register the CTRL+C and CTRL+BREAK Signals handler
+  //
+  if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+    ShowMessages(
+        "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+    return 1;
+  }
 
   return 0;
 }

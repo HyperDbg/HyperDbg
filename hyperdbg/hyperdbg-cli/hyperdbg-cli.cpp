@@ -98,6 +98,11 @@ int main(int argc, char* argv[]) {
 
 		string command;
 		getline(cin, command);
+
+		if (cin.fail() || cin.eof()) {
+			cin.clear(); // reset cin state
+		}
+
 		int CommandExecutionResult = HyperdbgInterpreter(command.c_str());
 		printf("\n");
 

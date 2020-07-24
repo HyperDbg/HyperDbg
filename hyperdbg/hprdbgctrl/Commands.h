@@ -120,3 +120,5 @@ VOID CommandLogclose(vector<string> SplittedCommand);
 VOID CommandVa2pa(vector<string> SplittedCommand);
 
 VOID CommandPa2va(vector<string> SplittedCommand);
+
+VOID CommandEvents(vector<string> SplittedCommand);

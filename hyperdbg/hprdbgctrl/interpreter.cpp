@@ -22,7 +22,20 @@ extern BOOLEAN g_ExecutingScript;
  * @return int returns return zero if it was successful or non-zero if there was
  * error
  */
+BOOL A = FALSE;
 int _cdecl HyperdbgInterpreter(const char *Command) {
+
+  if (!A) {
+    //
+    // Register the CTRL+C and CTRL+BREAK Signals handler
+    //
+    if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+      ShowMessages(
+          "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+      return 1;
+    }
+    A = TRUE;
+  }
 
   string CommandString(Command);
 
@@ -58,6 +71,9 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
     CommandClearScreen();
   } else if (!FirstCommand.compare(".connect")) {
     CommandConnect(SplittedCommand);
+  } else if (!FirstCommand.compare("event") ||
+             !FirstCommand.compare("events")) {
+    CommandEvents(SplittedCommand);
   } else if (!FirstCommand.compare("connect")) {
     ShowMessages("Couldn't resolve error at '%s', did you mean '.connect'?",
                  FirstCommand.c_str());

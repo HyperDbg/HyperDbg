@@ -233,6 +233,12 @@
     <ClCompile Include="pa2va.cpp">
       <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
     </ClCompile>
+    <ClCompile Include="events.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="breakcontrol.cpp">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

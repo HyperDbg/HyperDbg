@@ -37,3 +37,5 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 UINT64 GetNewDebuggerEventTag();
 
 VOID LogopenSaveToFile(const char *Text);
+
+BOOL WINAPI BreakController(DWORD CtrlType);
