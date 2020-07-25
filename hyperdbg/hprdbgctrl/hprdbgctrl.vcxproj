@@ -130,6 +130,7 @@
     <ClCompile Include="exit.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="epthook2.cpp" />
+    <ClCompile Include="g.cpp" />
     <ClCompile Include="hide.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
@@ -142,11 +143,13 @@
     <ClCompile Include="msrwrite.cpp" />
     <ClCompile Include="namedpipe.cpp" />
     <ClCompile Include="pa2va.cpp" />
+    <ClCompile Include="pause.cpp" />
     <ClCompile Include="pmc.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
     <ClCompile Include="script.cpp" />
+    <ClCompile Include="sleep.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="eptcommands.cpp" />

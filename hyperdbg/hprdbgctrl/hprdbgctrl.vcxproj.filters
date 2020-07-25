@@ -239,6 +239,15 @@
     <ClCompile Include="breakcontrol.cpp">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="g.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="pause.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="sleep.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

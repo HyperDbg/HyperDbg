@@ -52,3 +52,6 @@ VOID CommandLogcloseHelp();
 VOID CommandVa2paHelp();
 VOID CommandPa2vaHelp();
 VOID CommandEventsHelp();
+VOID CommandGHelp();
+VOID CommandClearScreenHelp();
+VOID CommandSleepHelp();

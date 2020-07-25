@@ -122,3 +122,7 @@ VOID CommandVa2pa(vector<string> SplittedCommand);
 VOID CommandPa2va(vector<string> SplittedCommand);
 
 VOID CommandEvents(vector<string> SplittedCommand);
+
+VOID CommandG(vector<string> SplittedCommand);
+
+VOID CommandSleep(vector<string> SplittedCommand);

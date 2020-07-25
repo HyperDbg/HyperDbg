@@ -46,14 +46,6 @@ void ShowMessages(const char *Fmt, ...) {
   va_list Args;
   char TempMessage[PacketChunkSize];
 
-  if (g_BreakPrintingOutput) {
-    //
-    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-    // we shouldn't show or save anything in this case
-    //
-    return;
-  }
-
   if (g_MessageHandler == NULL) {
 
     va_start(Args, Fmt);
@@ -144,6 +136,10 @@ void ReadIrpBasedBuffer() {
 
     while (TRUE) {
       if (!g_IsVmxOffProcessStart) {
+
+          //
+          // Clear the buffer
+          //
         ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
         Sleep(200); // we're not trying to eat all of the CPU ;)
@@ -165,6 +161,15 @@ void ReadIrpBasedBuffer() {
           ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
           break;
         }
+
+        if (g_BreakPrintingOutput) {
+          //
+          // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+          // we shouldn't show or save anything in this case
+          //
+          continue;
+        }
+
         ShowMessages("========================= Kernel Mode (Buffer) "
                      "=========================\n");
 

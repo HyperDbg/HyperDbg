@@ -17,7 +17,11 @@ BOOL WINAPI BreakController(DWORD CtrlType) {
   switch (CtrlType) {
     // Handle the CTRL-C signal.
   case CTRL_C_EVENT:
-    ShowMessages("pause\npausing debugger...\n\nHyperDbg >");
+    //
+    // Sleep because the other thread that shows must be stopped
+    //
+    Sleep(500);
+    ShowMessages("\npause\npausing debugger...\n");
     g_BreakPrintingOutput = TRUE;
     return TRUE;
 
@@ -27,7 +31,11 @@ BOOL WINAPI BreakController(DWORD CtrlType) {
 
     // Pass other signals to the next handler.
   case CTRL_BREAK_EVENT:
-    ShowMessages("pause\npausing debugger...\n\nHyperDbg >");
+    //
+    // Sleep because the other thread that shows must be stopped
+    //
+    Sleep(500);
+    ShowMessages("\npause\npausing debugger...\n");
     g_BreakPrintingOutput = TRUE;
     return TRUE;
 
