@@ -20,9 +20,10 @@ BOOL WINAPI BreakController(DWORD CtrlType) {
     //
     // Sleep because the other thread that shows must be stopped
     //
+    g_BreakPrintingOutput = TRUE;
+
     Sleep(500);
     ShowMessages("\npause\npausing debugger...\n");
-    g_BreakPrintingOutput = TRUE;
     return TRUE;
 
     // CTRL-CLOSE: confirm that the user wants to exit.
@@ -34,9 +35,10 @@ BOOL WINAPI BreakController(DWORD CtrlType) {
     //
     // Sleep because the other thread that shows must be stopped
     //
+    g_BreakPrintingOutput = TRUE;
+
     Sleep(500);
     ShowMessages("\npause\npausing debugger...\n");
-    g_BreakPrintingOutput = TRUE;
     return TRUE;
 
   case CTRL_LOGOFF_EVENT:

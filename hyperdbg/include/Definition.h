@@ -290,6 +290,33 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_EDIT_MEMORY sizeof(DEBUGGER_EDIT_MEMORY)
+
+typedef enum _DEBUGGER_EDIT_MEMORY_TYPE {
+  EDIT_PHYSICAL_MEMORY,
+  EDIT_VIRTUAL_MEMORY
+} DEBUGGER_EDIT_MEMORY_TYPE;
+
+typedef enum _DEBUGGER_EDIT_MEMORY_BYTE_SIZE {
+  EDIT_BYTE,
+  EDIT_DWORD,
+  EDIT_QWORD
+} DEBUGGER_EDIT_MEMORY_BYTE_SIZE;
+
+typedef struct _DEBUGGER_EDIT_MEMORY {
+
+  UINT64 Address;                          // Target adddress to modify
+  UINT32 ProcessId;                        // specifies the process id
+  DEBUGGER_EDIT_MEMORY_TYPE MemoryType;    // Type of memory
+  DEBUGGER_EDIT_MEMORY_BYTE_SIZE ByteSize; // Modification size
+  UINT32 CountOf64Chunks;
+  UINT32 FinalStructureSize;
+
+} DEBUGGER_EDIT_MEMORY, *PDEBUGGER_EDIT_MEMORY;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE                     \
   sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)
 
@@ -526,3 +553,6 @@ typedef struct _DEBUGGER_EVENT {
 
 #define IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS                                \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x809, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_EDIT_MEMORY                                             \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80a, METHOD_BUFFERED, FILE_ANY_ACCESS)

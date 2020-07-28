@@ -55,3 +55,4 @@ VOID CommandEventsHelp();
 VOID CommandGHelp();
 VOID CommandClearScreenHelp();
 VOID CommandSleepHelp();
+VOID CommandEditMemoryHelp();

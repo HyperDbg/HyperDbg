@@ -147,6 +147,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
   } else if (!FirstCommand.compare("!epthook2") ||
              !FirstCommand.compare("bh")) {
     CommandEptHook2(SplittedCommand);
+  } else if (!FirstCommand.compare("eb") || !FirstCommand.compare("ed") ||
+             !FirstCommand.compare("eq") || !FirstCommand.compare("!eb") ||
+             !FirstCommand.compare("!ed") || !FirstCommand.compare("!eq")) {
+    CommandEditMemory(SplittedCommand);
   } else {
     ShowMessages("Couldn't resolve error at '%s'", FirstCommand.c_str());
     ShowMessages("\n");

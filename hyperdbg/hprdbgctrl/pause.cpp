@@ -30,14 +30,14 @@ VOID CommandPause(vector<string> SplittedCommand) {
   }
 
   //
-  // Set the g_BreakPrintingOutput to TRUE
-  //
-  g_BreakPrintingOutput = TRUE;
-
-  //
   // Sleep because the other thread that shows must be stopped
   //
   Sleep(500);
+
+  //
+  // Set the g_BreakPrintingOutput to TRUE
+  //
+  g_BreakPrintingOutput = TRUE;
 
   ShowMessages("\npause\npausing debugger...\n");
 }
