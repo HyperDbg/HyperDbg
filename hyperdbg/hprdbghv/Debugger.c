@@ -71,10 +71,6 @@ DebuggerInitialize()
     //
     g_TransparentMode = FALSE;
 
-    /////////////////////////////////////////////////// Should be removed
-    PVOID BUFFER = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, 0x85858585);
-    DbgBreakPoint();
-    ///////////////////////////////////////////////////
     return TRUE;
 }
 
