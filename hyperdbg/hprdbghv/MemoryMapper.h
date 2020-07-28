@@ -296,3 +296,9 @@ MemoryMapperUninitialize();
 
 UINT64
 MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId);
+
+BOOLEAN
+MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);
+
+BOOLEAN
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);

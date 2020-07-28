@@ -279,6 +279,78 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead, PVOID BufferTo
 }
 
 /**
+ * @brief Write memory safely by mapping the buffer using PTE
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeByPte(PVOID SourceVA, PHYSICAL_ADDRESS PaAddressToWrite, SIZE_T SizeToRead, UINT64 PteVaAddress, UINT64 MappingVa, BOOLEAN InvalidateVpids)
+{
+    PVOID       Va = MappingVa;
+    PVOID       NewAddress;
+    PAGE_ENTRY  PageEntry;
+    PPAGE_ENTRY Pte = PteVaAddress;
+
+    //
+    // Copy the previous entry into the new entry
+    //
+    PageEntry.Flags = Pte->Flags;
+
+    PageEntry.Present = 1;
+
+    //
+    // Generally we want each page to be writable
+    //
+    PageEntry.Write = 1;
+
+    //
+    // Do not flush this page from the TLB on CR3 switch, by setting the
+    // global bit in the PTE.
+    //
+    PageEntry.Global = 1;
+
+    //
+    // Set the PFN of this PTE to that of the provided physical address.
+    //
+    PageEntry.PageFrameNumber = PaAddressToWrite.QuadPart >> 12;
+
+    //
+    // Apply the page entry in a single instruction
+    //
+    Pte->Flags = PageEntry.Flags;
+
+    //
+    // Finally, invalidate the caches for the virtual address.
+    //
+    __invlpg(Va);
+
+    //
+    // Also invalidate it from vpids if we're in vmx root
+    //
+    if (InvalidateVpids)
+    {
+        // __invvpid_addr(VPID_TAG, Va);
+    }
+
+    //
+    // Compute the address
+    //
+    NewAddress = (PVOID)((UINT64)Va + (PAGE_4KB_OFFSET & (PaAddressToWrite.QuadPart)));
+
+    //
+    // Move the address into the buffer in a safe manner
+    //
+    memcpy(NewAddress, SourceVA, SizeToRead);
+
+    //
+    // Unmap Address
+    //
+    Pte->Flags = NULL;
+
+    return TRUE;
+}
+
+/**
  * @brief Read memory safely by mapping the buffer (It's a wrapper)
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
@@ -306,6 +378,81 @@ MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZ
     return MemoryMapperReadMemorySafeByPte(
         PhysicalAddress,
         BufferToSaveMemory,
+        SizeToRead,
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
+        g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
+        g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer (It's a wrapper)
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
+{
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    if (TargetProcessId == NULL)
+    {
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(Destination);
+    }
+    else
+    {
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId(Destination, TargetProcessId);
+    }
+
+    return MemoryMapperWriteMemorySafeByPte(
+        Source,
+        PhysicalAddress,
+        SizeToRead,
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
+        g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
+        g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer (It's a wrapper)
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
+{
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    PhysicalAddress.QuadPart = DestinationPa;
+
+    return MemoryMapperWriteMemorySafeByPte(
+        Source,
+        PhysicalAddress,
         SizeToRead,
         g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
         g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
