@@ -256,18 +256,38 @@ VOID CommandEditMemory(vector<string> SplittedCommand) {
   std::copy(ValuesToEdit.begin(), ValuesToEdit.end(),
             (UINT64 *)((UINT64)FinalBuffer + SIZEOF_DEBUGGER_EDIT_MEMORY));
 
-  Status = DeviceIoControl(g_DeviceHandle,             // Handle to device
-                           IOCTL_DEBUGGER_EDIT_MEMORY, // IO Control code
-                           FinalBuffer, // Input Buffer to driver.
-                           FinalSize,   // Input buffer length
-                           NULL,        // Output Buffer from driver.
-                           NULL,        // Length of output buffer in bytes.
-                           NULL,        // Bytes placed in buffer.
-                           NULL         // synchronous call
+  Status = DeviceIoControl(
+      g_DeviceHandle,              // Handle to device
+      IOCTL_DEBUGGER_EDIT_MEMORY,  // IO Control code
+      FinalBuffer,                 // Input Buffer to driver.
+      FinalSize,                   // Input buffer length
+      &EditMemoryRequest,          // Output Buffer from driver.
+      SIZEOF_DEBUGGER_EDIT_MEMORY, // Length of output buffer in bytes.
+      NULL,                        // Bytes placed in buffer.
+      NULL                         // synchronous call
   );
 
   if (!Status) {
     ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
     return;
+  }
+
+  if (EditMemoryRequest.Result == DEBUGGER_EDIT_MEMORY_STATUS_SUCCESS) {
+    //
+    // Was successful, nothing to do
+    //
+  } else if (
+      EditMemoryRequest.Result ==
+      DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS) {
+    ShowMessages("the address is invalid in current process id\n");
+  } else if (
+      EditMemoryRequest.Result ==
+      DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS) {
+    ShowMessages("the address is invalid based on your specific process id\n");
+  } else if (EditMemoryRequest.Result ==
+             DEBUGGER_EDIT_MEMORY_STATUS_INVALID_PARAMETER) {
+    ShowMessages("invalid parameter\n");
+  } else {
+    ShowMessages("unknown response from driver\n");
   }
 }

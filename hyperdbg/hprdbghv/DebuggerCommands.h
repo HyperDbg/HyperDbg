@@ -18,3 +18,6 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
 
 NTSTATUS
 DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UINT64 * UserBuffer, PSIZE_T ReturnSize);
+
+NTSTATUS
+DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest);

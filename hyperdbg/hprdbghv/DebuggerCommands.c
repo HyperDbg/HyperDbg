@@ -182,3 +182,104 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
 
     return STATUS_UNSUCCESSFUL;
 }
+
+NTSTATUS
+DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
+{
+    UINT32   LengthOfEachChunk  = 0;
+    PVOID    DestinationAddress = 0;
+    PVOID    SourceAddress      = 0;
+    CR3_TYPE CurrentProcessCr3;
+
+    //
+    // THIS FUNCTION IS NOT SAFE TO BE CALLED FROM VMX ROOT
+    //
+
+    //
+    // set chunk size in each modification
+    //
+    if (EditMemRequest->ByteSize == EDIT_BYTE)
+    {
+        LengthOfEachChunk = 1;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_DWORD)
+    {
+        LengthOfEachChunk = 4;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_QWORD)
+    {
+        LengthOfEachChunk = 8;
+    }
+    else
+    {
+        //
+        // Invalid parameter
+        //
+        EditMemRequest->Result = DEBUGGER_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
+        return;
+    }
+
+    //
+    // Check if address is valid or not valid (virtual address)
+    //
+    if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
+    {
+        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        {
+            //
+            // It's an invalid address in current process
+            //
+            EditMemRequest->Result = DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return;
+        }
+        else if (VirtualAddressToPhysicalAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
+        {
+            //
+            // It's an invalid address in another process
+            //
+            EditMemRequest->Result = DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS;
+            return;
+        }
+
+        //
+        // Edit the target memory by virtual address
+        //
+        if (EditMemRequest->ProcessId != PsGetCurrentProcessId())
+        {
+            //
+            // Another process
+            // Switch to new process's memory layout
+            //
+            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(EditMemRequest->ProcessId);
+        }
+
+        //
+        // Edit the memory
+        //
+        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        {
+            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
+            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+            RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
+        }
+
+        if (EditMemRequest->ProcessId != PsGetCurrentProcessId())
+        {
+            //
+            // Restore the original process
+            //
+            RestoreToPreviousProcess(CurrentProcessCr3);
+        }
+    }
+    else
+    {
+        //
+        // It's a physical address
+        //
+    }
+
+    //
+    // Set the resutls
+    //
+    EditMemRequest->Result = DEBUGGER_EDIT_MEMORY_STATUS_SUCCESS;
+}

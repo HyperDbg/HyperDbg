@@ -292,6 +292,15 @@ typedef struct _DEBUGGER_READ_AND_WRITE_ON_MSR {
 
 #define SIZEOF_DEBUGGER_EDIT_MEMORY sizeof(DEBUGGER_EDIT_MEMORY)
 
+#define DEBUGGER_EDIT_MEMORY_STATUS_SUCCESS 0x1
+
+#define DEBUGGER_EDIT_MEMORY_STATUS_INVALID_PARAMETER 0x80000000
+
+#define DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS   \
+  0x80000001
+#define DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS     \
+  0x80000002
+
 typedef enum _DEBUGGER_EDIT_MEMORY_TYPE {
   EDIT_PHYSICAL_MEMORY,
   EDIT_VIRTUAL_MEMORY
@@ -305,6 +314,7 @@ typedef enum _DEBUGGER_EDIT_MEMORY_BYTE_SIZE {
 
 typedef struct _DEBUGGER_EDIT_MEMORY {
 
+  UINT32 Result;                           // Result from kernel
   UINT64 Address;                          // Target adddress to modify
   UINT32 ProcessId;                        // specifies the process id
   DEBUGGER_EDIT_MEMORY_TYPE MemoryType;    // Type of memory
