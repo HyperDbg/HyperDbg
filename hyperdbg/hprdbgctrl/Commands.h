@@ -128,3 +128,5 @@ VOID CommandG(vector<string> SplittedCommand);
 VOID CommandSleep(vector<string> SplittedCommand);
 
 VOID CommandEditMemory(vector<string> SplittedCommand);
+
+VOID CommandSearchMemory(vector<string> SplittedCommand);

@@ -302,3 +302,8 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     EditMemRequest->Result = DEBUGGER_EDIT_MEMORY_STATUS_SUCCESS;
 }
+
+NTSTATUS
+DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
+{
+}

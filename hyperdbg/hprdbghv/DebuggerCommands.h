@@ -21,3 +21,6 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
 
 NTSTATUS
 DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest);
+
+NTSTATUS
+DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest);

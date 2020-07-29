@@ -30,6 +30,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS    DebuggerPteRequest;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS           DebuggerVa2paAndPa2vaRequest;
     PDEBUGGER_EDIT_MEMORY                        DebuggerEditMemoryRequest;
+    PDEBUGGER_SEARCH_MEMORY                      DebuggerSearchMemoryRequest;
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER        RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
@@ -480,6 +481,61 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Configure IRP status
             //
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_EDIT_MEMORY;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+        case IOCTL_DEBUGGER_SEARCH_MEMORY:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_SEARCH_MEMORY || Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Cast buffer to understandable buffer
+            //
+            DebuggerSearchMemoryRequest = (PDEBUGGER_SEARCH_MEMORY)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Here we should validate whether the input parameter is
+            // valid or in other words whether we recieved enough space or not
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
+                SIZEOF_DEBUGGER_SEARCH_MEMORY + DebuggerSearchMemoryRequest->CountOf64Chunks * sizeof(UINT64))
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerCommandSearchMemory(DebuggerSearchMemoryRequest);
+
+            //
+            // Configure IRP status
+            //
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_SEARCH_MEMORY;
             Status                    = STATUS_SUCCESS;
 
             //

@@ -151,6 +151,10 @@ int _cdecl HyperdbgInterpreter(const char *Command) {
              !FirstCommand.compare("eq") || !FirstCommand.compare("!eb") ||
              !FirstCommand.compare("!ed") || !FirstCommand.compare("!eq")) {
     CommandEditMemory(SplittedCommand);
+  } else if (!FirstCommand.compare("sb") || !FirstCommand.compare("sd") ||
+             !FirstCommand.compare("sq") || !FirstCommand.compare("!sb") ||
+             !FirstCommand.compare("!sd") || !FirstCommand.compare("!sq")) {
+    CommandSearchMemory(SplittedCommand);
   } else {
     ShowMessages("Couldn't resolve error at '%s'", FirstCommand.c_str());
     ShowMessages("\n");

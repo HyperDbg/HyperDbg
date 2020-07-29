@@ -149,6 +149,7 @@
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
+    <ClCompile Include="s.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="sleep.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />

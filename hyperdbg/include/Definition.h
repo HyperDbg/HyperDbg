@@ -327,6 +327,35 @@ typedef struct _DEBUGGER_EDIT_MEMORY {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_SEARCH_MEMORY sizeof(DEBUGGER_SEARCH_MEMORY)
+
+typedef enum _DEBUGGER_SEARCH_MEMORY_TYPE {
+  SEARCH_PHYSICAL_MEMORY,
+  SEARCH_VIRTUAL_MEMORY
+} DEBUGGER_SEARCH_MEMORY_TYPE;
+
+typedef enum _DEBUGGER_SEARCH_MEMORY_BYTE_SIZE {
+  SEARCH_BYTE,
+  SEARCH_DWORD,
+  SEARCH_QWORD
+} DEBUGGER_SEARCH_MEMORY_BYTE_SIZE;
+
+typedef struct _DEBUGGER_SEARCH_MEMORY {
+
+  UINT32 Result;                             // Result from kernel
+  UINT64 Address;                            // Target adddress to modify
+  UINT64 Length;                             // Length of bytes to search
+  UINT32 ProcessId;                          // specifies the process id
+  DEBUGGER_SEARCH_MEMORY_TYPE MemoryType;    // Type of memory
+  DEBUGGER_SEARCH_MEMORY_BYTE_SIZE ByteSize; // Modification size
+  UINT32 CountOf64Chunks;
+  UINT32 FinalStructureSize;
+
+} DEBUGGER_SEARCH_MEMORY, *PDEBUGGER_SEARCH_MEMORY;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE                     \
   sizeof(DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)
 
@@ -566,3 +595,6 @@ typedef struct _DEBUGGER_EVENT {
 
 #define IOCTL_DEBUGGER_EDIT_MEMORY                                             \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80a, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define IOCTL_DEBUGGER_SEARCH_MEMORY                                           \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80b, METHOD_BUFFERED, FILE_ANY_ACCESS)

@@ -251,6 +251,9 @@
     <ClCompile Include="e.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
+    <ClCompile Include="s.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">
