@@ -44,9 +44,9 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * MMIO Monitor 
 * Exception (IDT < 32) Monitor
 * External-Interrupt (IDT > 32) Monitor
-* Running automated scripts
+* Running Automated Scripts
 * Transparent-mode (Anti-debugging and Anti-hypervisor Resistance)
-* Running Custom Assembly In Both VMX-root, VMX non-root
+* Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User)
 * Checking For Custom Conditions
 * Log the States Engine
 * VMX-root Message Tracing Mechanism
