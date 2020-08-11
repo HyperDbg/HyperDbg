@@ -30,7 +30,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 ### First Release (v0.1.0.0)
 * Classic EPT Hook (Hidden Breakpoint)
 * Inline EPT Hook (Inline Hook)
-* Monitor Memory For R/W (Hardware Debug Registers Without Limitation)
+* Monitor Memory For R/W (Emulating Hardware Debug Registers Without Limitation)
 * SYSCALL Hook (Disable EFER & Handle #UD)
 * SYSRET Hook (Disable EFER & Handle #UD)
 * CPUID Hook & Monitor
