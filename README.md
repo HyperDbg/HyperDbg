@@ -26,6 +26,37 @@ Using TLB-splitting, and having features such as measuring code coverage and mon
 
 Although it has novel features, HyperDbg tries to be as stealth as possible. It doesn’t use any debugging APIs to debug Windows or any application, so classic anti-debugging methods won’t detect it. Also, it resists the exploitation of time delta methods (e.g., RDTSC/RDTSCP) to detect the presence of hypervisors, therefore making it much harder for applications, packers, protectors, malware, anti-cheat engines, etc. to discover the debugger.
 
+## Unique Features
+### First Release (v0.1.0.0)
+* Classic EPT Hook (Hidden Breakpoint)
+* Inline EPT Hook (Inline Hook)
+* Monitor Memory For R/W (Hardware Debug Registers Without Limitation)
+* SYSCALL Hook (Disable EFER & Handle #UD)
+* SYSRET Hook (Disable EFER & Handle #UD)
+* CPUID Hook & Monitor
+* RDMSR Hook & Monitor
+* WRMSR Hook & Monitor
+* RDTSC/RDTSCP Hook & Monitor
+* RDPMC Hook & Monitor
+* VMCALL Hook & Monitor
+* Debug Registers Hook & Monitor
+* I/O Port (In/Out) Hook & Monitor 
+* MMIO Monitor 
+* Exception (IDT < 32) Monitor
+* External-Interrupt (IDT > 32) Monitor
+* Running automated scripts
+* Transparent-mode (Anti-debugging and Anti-hypervisor Resistance)
+* Running Custom Assembly In Both VMX-root, VMX non-root
+* Checking For Custom Conditions
+* Log the States Engine
+* VMX-root Message Tracing Mechanism
+* Transparent Breakpoint Handler
+* Hidden Trap Flags
+* DFIR Scripts
+
+### Second Release (v0.2.0.0)
+(not released yet !)
+
 ## Installation
 
 ## How does it work?
