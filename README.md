@@ -101,4 +101,4 @@ If you want to create a pull request or contribute in **HyperDbg** please read [
 
 
 ## License
-**THyperDbg** is under **GPLv3** LICENSE.
+**HyperDbg** is under **GPLv3** LICENSE.
