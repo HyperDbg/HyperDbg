@@ -42,8 +42,8 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * RDPMC Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/pmc" target="_blank">link</a>]
 * VMCALL Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/vmcall" target="_blank">link</a>]
 * Debug Registers Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/dr" target="_blank">link</a>]
-* I/O Port (In) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioin" target="_blank">link</a>]
-* I/O Port (Out) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioout" target="_blank">link</a>]
+* I/O Port (In Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioin" target="_blank">link</a>]
+* I/O Port (Out Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioout" target="_blank">link</a>]
 * MMIO Monitor 
 * Exception (IDT < 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/exception" target="_blank">link</a>]
 * External-Interrupt (IDT > 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/interrupt" target="_blank">link</a>]
