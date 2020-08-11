@@ -49,10 +49,10 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User)
 * Checking For Custom Conditions
 * Log the States Engine
-* VMX-root Message Tracing Mechanism
+* VMX-root Compatible Message Tracing 
 * Transparent Breakpoint Handler
-* Hidden Trap Flags
-* DFIR Scripts
+* Hidden Trap Flags (MTF)
+* Various Custom Scripts (e.g DFIR Scripts)
 
 ### Second Release (v0.2.0.0)
 (not released yet !)
