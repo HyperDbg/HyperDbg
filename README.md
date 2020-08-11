@@ -60,6 +60,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 (not released yet !)
 
 ## Installation
+Please visit <a href="https://docs.hyperdbg.com/getting-started/build-and-install">Build & Install</a> and <a href="https://docs.hyperdbg.com/getting-started/quick-start">Quick Start</a> for a detailed explanation of how to start with **HyperDbg**.
 
 ## How does it work?
 
