@@ -30,11 +30,11 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 
 ## Unique Features
 ### First Release (v0.1.0.0)
-* Classic EPT Hook (Hidden Breakpoint) [<a href="https://docs.hyperdbg.com/commands/extension-commands/epthook" target="_blank">link</a>]
-* Inline EPT Hook (Inline Hook) [<a href="https://docs.hyperdbg.com/commands/extension-commands/epthook2" target="_blank">link</a>]
-* Monitor Memory For R/W (Emulating Hardware Debug Registers Without Limitation) [<a href="https://docs.hyperdbg.com/commands/extension-commands/monitor" target="_blank">link</a>]
-* SYSCALL Hook (Disable EFER & Handle #UD) [<a href="https://docs.hyperdbg.com/commands/extension-commands/syscall" target="_blank">link</a>]
-* SYSRET Hook (Disable EFER & Handle #UD) [<a href="https://docs.hyperdbg.com/commands/extension-commands/sysret" target="_blank">link</a>]
+* Classic EPT Hook (Hidden Breakpoint) [<a href="https://docs.hyperdbg.com/commands/extension-commands/epthook" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-epthook" target="_blank">link</a>]
+* Inline EPT Hook (Inline Hook) [<a href="https://docs.hyperdbg.com/commands/extension-commands/epthook2" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-epthook2" target="_blank">link</a>]
+* Monitor Memory For R/W (Emulating Hardware Debug Registers Without Limitation) [<a href="https://docs.hyperdbg.com/commands/extension-commands/monitor" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-monitor" target="_blank">link</a>]
+* SYSCALL Hook (Disable EFER & Handle #UD) [<a href="https://docs.hyperdbg.com/commands/extension-commands/syscall" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-syscall-and-sysret" target="_blank">link</a>]
+* SYSRET Hook (Disable EFER & Handle #UD) [<a href="https://docs.hyperdbg.com/commands/extension-commands/sysret" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-syscall-and-sysret" target="_blank">link</a>]
 * CPUID Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/cpuid" target="_blank">link</a>]
 * RDMSR Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/msrread" target="_blank">link</a>]
 * WRMSR Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/msrwrite" target="_blank">link</a>]
@@ -45,13 +45,13 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * I/O Port (In Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioin" target="_blank">link</a>]
 * I/O Port (Out Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioout" target="_blank">link</a>]
 * MMIO Monitor 
-* Exception (IDT < 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/exception" target="_blank">link</a>]
-* External-Interrupt (IDT > 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/interrupt" target="_blank">link</a>]
+* Exception (IDT < 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/exception" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-exception-and-interrupt" target="_blank">link</a>]
+* External-Interrupt (IDT > 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/interrupt" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/design-of-exception-and-interrupt" target="_blank">link</a>]
 * Running Automated Scripts [<a href="https://docs.hyperdbg.com/using-hyperdbg/examples/running-hyperdbg-script" target="_blank">link</a>]
 * Transparent-mode (Anti-debugging and Anti-hypervisor Resistance) [<a href="https://docs.hyperdbg.com/design/debugger-internals/transparent-mode" target="_blank">link</a>]
 * Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User) [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>]
-* Checking For Custom Conditions [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-a-condition" target="_blank">link</a>]
-* Log the States Engine [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>]
+* Checking For Custom Conditions [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-a-condition" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/conditions" target="_blank">link</a>]
+* Log the States Engine [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/actions" target="_blank">link</a>]
 * VMX-root Compatible Message Tracing  [<a href="https://docs.hyperdbg.com/design/debugger-internals/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
 * Transparent Breakpoint Handler
 * Hidden Trap Flags (MTF)
