@@ -6,7 +6,9 @@
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/HyperDbg-Cat.Circle.jpg" alt="HyperDbg Debugger"></a></br>
 
-# HyperDbg Debugger (is NOT in a WORKING STATE - YOU SHOULD NOT USE IT, but you can read codes, please wait for first release in late October)
+# HyperDbg Debugger 
+
+### (HyperDbg is NOT in a WORKING STATE - YOU SHOULD NOT USE IT, but you can read codes, please wait for first release in late October)
 #### We planned for first-release in late October 2020
 
 **HyperDbg** debugger is an open-source, hypervisor-assisted user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a a debugger designed for analyzing, fuzzing and reversing.
