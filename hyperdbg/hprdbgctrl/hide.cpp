@@ -26,8 +26,8 @@ extern BOOLEAN g_TransparentResultsMeasured;
 
 /**
  * @brief help of !hide command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandHideHelp() {
   ShowMessages("!hide : Tries to make HyperDbg transparent from anti-debugging "
@@ -42,10 +42,10 @@ VOID CommandHideHelp() {
 
 /**
  * @brief !hide command handler
- * 
- * @param SplittedCommand 
- * @param Command 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
 VOID CommandHide(vector<string> SplittedCommand, string Command) {
 
@@ -124,13 +124,12 @@ VOID CommandHide(vector<string> SplittedCommand, string Command) {
   //
   // Check if the user used !measure or not
   //
-  /* if (!g_TransparentResultsMeasured || !g_CpuidAverage ||
-       !g_CpuidStandardDeviation || !g_CpuidMedian) {
-     ShowMessages("The average, median and standard deviation is not measured. "
-                  "Did you use '!measure' command?\n");
-     return;
-   }
-   */
+  if (!g_TransparentResultsMeasured || !g_CpuidAverage ||
+      !g_CpuidStandardDeviation || !g_CpuidMedian) {
+    ShowMessages("The average, median and standard deviation is not measured. "
+                 "Did you use '!measure' command?\n");
+    return;
+  }
 
   //
   // Check if debugger is loaded or not
@@ -147,16 +146,24 @@ VOID CommandHide(vector<string> SplittedCommand, string Command) {
   HideRequest.IsHide = TRUE;
 
   //
-  // Set the measured times
+  // Set the measured times cpuid
   //
   HideRequest.CpuidAverage = g_CpuidAverage;
   HideRequest.CpuidMedian = g_CpuidMedian;
   HideRequest.CpuidStandardDeviation = g_CpuidStandardDeviation;
+
+  //
+  // Set the measured times rdtsc/p
+  //
+  HideRequest.RdtscAverage = g_RdtscAverage;
+  HideRequest.RdtscMedian = g_RdtscMedian;
+  HideRequest.RdtscStandardDeviation = g_RdtscStandardDeviation;
+
   HideRequest.TrueIfProcessIdAndFalseIfProcessName =
       TrueIfProcessIdAndFalseIfProcessName;
 
   if (TrueIfProcessIdAndFalseIfProcessName) {
-    
+
     //
     // It's a process id
     //
@@ -236,6 +243,7 @@ VOID CommandHide(vector<string> SplittedCommand, string Command) {
     return;
   }
 
+  /*
   UINT64 RealTime = 0;
   UINT64 RealCpuid = Randn(g_CpuidAverage, g_CpuidStandardDeviation);
   for (size_t i = 0; i < 10; i++) {
@@ -245,6 +253,7 @@ VOID CommandHide(vector<string> SplittedCommand, string Command) {
     printf("Time of VM-exit : %d\n", RealTime);
     _getch();
   }
+  */
 
   //
   // free the buffer

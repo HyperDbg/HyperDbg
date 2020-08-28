@@ -166,7 +166,12 @@ VOID GuassianGenerateRandom(vector<double> Data, UINT64 *AverageOfData,
   // Set the values to return
   //
   *AverageOfData = (UINT64)DataAverage;
-  *StandardDeviationOfData = (UINT64)StandardDeviation;
+
+  //
+  // We add 5 to the standard deviation because this value might be
+  // 0 or 1 so we need more variance
+  //
+  *StandardDeviationOfData = (UINT64)StandardDeviation + 5;
   *MedianOfData = (UINT64)DataMedian;
 
   //

@@ -26,8 +26,8 @@ extern BOOLEAN g_TransparentResultsMeasured;
 
 /**
  * @brief help of !measure command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandMeasureHelp() {
 
@@ -40,9 +40,9 @@ VOID CommandMeasureHelp() {
 
 /**
  * @brief !measure command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandMeasure(vector<string> SplittedCommand) {
 
@@ -75,31 +75,52 @@ VOID CommandMeasure(vector<string> SplittedCommand) {
     return;
   }
 
-  if (TransparentModeCheckHypervisorPresence(
-          &g_CpuidAverage, &g_CpuidStandardDeviation, &g_CpuidMedian)) {
-    ShowMessages(
-        "we detected that there is a hypervisor, on your system, it "
-        "leads to wrong measurement results for our transparent-mode, please "
-        "make sure that you're not in a hypervisor then measure the result "
-        "again; otherwise the transparent-mode will not work but you can use "
-        "'!measure default' to use the hardcoded measurements !\n\n");
+  if (!DefaultMode) {
 
-    return;
+    if (TransparentModeCheckHypervisorPresence(
+            &g_CpuidAverage, &g_CpuidStandardDeviation, &g_CpuidMedian)) {
+      ShowMessages(
+          "we detected that there is a hypervisor, on your system, it "
+          "leads to wrong measurement results for our transparent-mode, please "
+          "make sure that you're not in a hypervisor then measure the result "
+          "again; otherwise the transparent-mode will not work but you can use "
+          "'!measure default' to use the hardcoded measurements !\n\n");
+
+      return;
+    }
+
+    if (TransparentModeCheckRdtscpVmexit(
+            &g_RdtscAverage, &g_RdtscStandardDeviation, &g_RdtscMedian)) {
+      ShowMessages(
+          "we detected that there is a hypervisor, on your system, it "
+          "leads to wrong measurement results for our transparent-mode, please "
+          "make sure that you're not in a hypervisor then measure the result "
+          "again; otherwise the transparent-mode will not work but you can use "
+          "'!measure default' to use the hardcoded measurements !\n\n");
+
+      return;
+    }
+  } else {
+    //
+    // It's a default mode
+    //
+
+    //
+    // Default values for cpuid
+    //
+    g_CpuidAverage = 0x5f;
+    g_CpuidStandardDeviation = 0x10;
+    g_CpuidMedian = 0x5f;
+
+    //
+    // Default values for rdtsc/p
+    //
+    g_RdtscAverage = 0x16;
+    g_RdtscStandardDeviation = 0x5;
+    g_RdtscMedian = 0x16;
   }
 
-  if (TransparentModeCheckRdtscpVmexit(
-          &g_RdtscAverage, &g_RdtscStandardDeviation, &g_RdtscMedian)) {
-    ShowMessages(
-        "we detected that there is a hypervisor, on your system, it "
-        "leads to wrong measurement results for our transparent-mode, please "
-        "make sure that you're not in a hypervisor then measure the result "
-        "again; otherwise the transparent-mode will not work but you can use "
-        "'!measure default' to use the hardcoded measurements !\n\n");
-
-    return;
-  }
-
-  ShowMessages("\nThe measurements was successful, now you can use '!hide' "
+  ShowMessages("The measurements was successful, now you can use '!hide' "
                "command :)\n");
 
   //

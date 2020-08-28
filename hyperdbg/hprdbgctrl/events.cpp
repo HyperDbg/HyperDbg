@@ -18,11 +18,12 @@ extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoFlush;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 
 /**
  * @brief help of events command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandEventsHelp() {
   ShowMessages("events : show active and disabled events\n");
@@ -41,9 +42,9 @@ VOID CommandEventsHelp() {
 
 /**
  * @brief events command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandEvents(vector<string> SplittedCommand) {
 
@@ -117,7 +118,6 @@ VOID CommandEvents(vector<string> SplittedCommand) {
   CommandEventsModifyEvents(RequestedTag, RequestedAction);
 }
 
-
 /**
  * @brief print every active and disabled events
  * @details this function will not show cleared events
@@ -157,7 +157,7 @@ VOID CommandEventsShowEvents() {
 
 /**
  * @brief Disable a special event
- * 
+ *
  * @param Tag the tag of the target event
  * @return BOOLEAN if the operation was successful then it returns
  * true otherwise it returns false
@@ -206,10 +206,10 @@ BOOLEAN CommandEventDisableEvent(UINT64 Tag) {
 
 /**
  * @brief enables a special event
- * 
+ *
  * @param Tag the tag of the target event
  * @return BOOLEAN if the operation was successful then it returns
- * true otherwise it returns false 
+ * true otherwise it returns false
  */
 BOOLEAN CommandEventEnableEvent(UINT64 Tag) {
 
@@ -255,10 +255,10 @@ BOOLEAN CommandEventEnableEvent(UINT64 Tag) {
 
 /**
  * @brief disable and remove a special event
- * 
+ *
  * @param Tag the tag of the target event
  * @return BOOLEAN if the operation was successful then it returns
- * true otherwise it returns false 
+ * true otherwise it returns false
  */
 BOOLEAN CommandEventClearEvent(UINT64 Tag) {
 
@@ -318,10 +318,10 @@ BOOLEAN CommandEventClearEvent(UINT64 Tag) {
  * @details if you pass DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG as the
  * tag then it will be applied to all the active/disabled events in the
  * kernel
- * 
+ *
  * @param Tag the tag of the target event
  * @param TypeOfAction whether its a enable/disable/clear
- * @return VOID 
+ * @return VOID
  */
 VOID CommandEventsModifyEvents(UINT64 Tag,
                                DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
@@ -415,19 +415,26 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
         //
         if (g_BreakPrintingOutput) {
 
-          if (!g_AutoFlush) {
-            ShowMessages(
-                "auto-flush mode is disabled, if there is still "
-                "messages or buffers in the kernel, you continue to see "
-                "the messages when you run 'g' until the kernel "
-                "buffers are empty. you can run 'settings autoflush "
-                "on' and after disabling and clearing events, "
-                "kernel buffers will be flushed automatically.\n");
-          } else {
-            //
-            // We should flush buffers here
-            //
-            CommandFlushRequestFlush();
+          //
+          // It is because we didn't query the target debuggee auto-flush
+          // variable
+          //
+          if (!g_IsConnectedToRemoteDebuggee) {
+
+            if (!g_AutoFlush) {
+              ShowMessages(
+                  "auto-flush mode is disabled, if there is still "
+                  "messages or buffers in the kernel, you continue to see "
+                  "the messages when you run 'g' until the kernel "
+                  "buffers are empty. you can run 'settings autoflush "
+                  "on' and after disabling and clearing events, "
+                  "kernel buffers will be flushed automatically.\n");
+            } else {
+              //
+              // We should flush buffers here
+              //
+              CommandFlushRequestFlush();
+            }
           }
         }
       }
@@ -447,19 +454,26 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
         //
         if (g_BreakPrintingOutput) {
 
-          if (!g_AutoFlush) {
-            ShowMessages(
-                "auto-flush mode is disabled, if there is still "
-                "messages or buffers in the kernel, you continue to see "
-                "the messages when you run 'g' until the kernel "
-                "buffers are empty. you can run 'settings autoflush "
-                "on' and after disabling and clearing events, "
-                "kernel buffers will be flushed automatically.\n");
-          } else {
-            //
-            // We should flush buffers here
-            //
-            CommandFlushRequestFlush();
+          //
+          // It is because we didn't query the target debuggee auto-flush
+          // variable
+          //
+          if (!g_IsConnectedToRemoteDebuggee) {
+
+            if (!g_AutoFlush) {
+              ShowMessages(
+                  "auto-flush mode is disabled, if there is still "
+                  "messages or buffers in the kernel, you continue to see "
+                  "the messages when you run 'g' until the kernel "
+                  "buffers are empty. you can run 'settings autoflush "
+                  "on' and after disabling and clearing events, "
+                  "kernel buffers will be flushed automatically.\n");
+            } else {
+              //
+              // We should flush buffers here
+              //
+              CommandFlushRequestFlush();
+            }
           }
         }
       }

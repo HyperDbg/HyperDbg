@@ -15,8 +15,8 @@ using namespace std;
 
 /**
  * @brief get the difference clock cycles between two rdtsc(s)
- * 
- * @return unsigned long long 
+ *
+ * @return unsigned long long
  */
 unsigned long long TransparentModeRdtscDiffVmexit() {
   unsigned long long ret, ret2;
@@ -62,8 +62,8 @@ unsigned long long TransparentModeRdtscDiffVmexit() {
 
 /**
  * @brief get the difference clock cycles between rdtsc+cpuid+rdtsc
- * 
- * @return unsigned long long 
+ *
+ * @return unsigned long long
  */
 unsigned long long TransparentModeRdtscVmexitTracing() {
   unsigned long long ret, ret2;
@@ -97,11 +97,11 @@ unsigned long long TransparentModeRdtscVmexitTracing() {
 /**
  * @brief compute the average, standard deviation and median if
  * rdtsc+cpuid+rdtsc
- * 
+ *
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int 
+ * @return int
  */
 int TransparentModeCpuidTimeStampCounter(UINT64 *Average,
                                          UINT64 *StandardDeviation,
@@ -117,9 +117,9 @@ int TransparentModeCpuidTimeStampCounter(UINT64 *Average,
 
     Results.push_back(MeasuredTime);
 
-    //
-    // ShowMessages("(%d) Measured time : %d\n", i, MeasuredTime);
-    //
+    /*
+    ShowMessages("(%d) Measured time : %d\n", i, MeasuredTime);
+    */
   }
 
   if (Average != NULL && StandardDeviation != NULL && Median != NULL) {
@@ -136,11 +136,11 @@ int TransparentModeCpuidTimeStampCounter(UINT64 *Average,
 /**
  * @brief compute the average, standard deviation and median if
  * rdtsc+rdtsc
- * 
+ *
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int 
+ * @return int
  */
 int TransparentModeRdtscEmulationDetection(UINT64 *Average,
                                            UINT64 *StandardDeviation,
@@ -174,13 +174,13 @@ int TransparentModeRdtscEmulationDetection(UINT64 *Average,
 
 /**
  * @brief compute the average, standard deviation and median if
- * rdtsc+cpuid+rdtsc 
+ * rdtsc+cpuid+rdtsc
  * @details detects the presence of hypervisor
- * 
+ *
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int 
+ * @return int
  */
 BOOLEAN TransparentModeCheckHypervisorPresence(UINT64 *Average,
                                                UINT64 *StandardDeviation,
@@ -199,16 +199,15 @@ BOOLEAN TransparentModeCheckHypervisorPresence(UINT64 *Average,
   }
 }
 
-
 /**
  * @brief compute the average, standard deviation and median if
- * rdtsc+rdtsc 
+ * rdtsc+rdtsc
  * @details detects the presence of rdtsc/p vm-exits
- * 
+ *
  * @param Average a pointer to save average on it
  * @param StandardDeviation a pointer to standard deviation average on it
  * @param Median a pointer to save median on it
- * @return int 
+ * @return int
  */
 BOOLEAN TransparentModeCheckRdtscpVmexit(UINT64 *Average,
                                          UINT64 *StandardDeviation,

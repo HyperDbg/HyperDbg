@@ -14,8 +14,10 @@
 #define MY_RAND_MAX 32768
 
 int TransparentTableLog[] = {0, 69, 110, 139, 161, 179, 195, 208, 220, 230, 240, 248, 256, 264, 271, 277, 283, 289, 294, 300, 304, 309, 314, 318, 322, 326, 330, 333, 337, 340, 343, 347, 350, 353, 356, 358, 361, 364, 366, 369, 371, 374, 376, 378, 381, 383, 385, 387, 389, 391, 393, 395, 397, 399, 401, 403, 404, 406, 408, 409, 411, 413, 414, 416, 417, 419, 420, 422, 423, 425, 426, 428, 429, 430, 432, 433, 434, 436, 437, 438, 439, 441, 442, 443, 444, 445, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 460, 461};
+
 /**
- * @brief Generate a random number by utilizing RDTSC instruction. 
+ * @brief Generate a random number by utilizing RDTSC instruction.
+ *
  * Masking 16 LSB of the measured clock time.
  * @return UINT32 
  */
@@ -30,9 +32,12 @@ TransparentGetRand()
 
     return Rand;
 }
+
 /**
  * @brief Integer power function definition.
- * @params Integer Base Value and Integer Power Value 
+ *
+ * @params x Base Value 
+ * @params p Power Value 
  * @return int 
  */
 int
@@ -45,9 +50,11 @@ TransparentPow(int x, int p)
     }
     return Res;
 }
+
 /**
  * @brief Integer Natural Logarithm function estimation.
- * @params Integer input value 
+ *
+ * @params x input value 
  * @return int 
  */
 int
@@ -61,12 +68,16 @@ TransparentLog(int x)
         n = n / 10;
         Digit++;
     }
+
+    //
     //Use pre-defined values of logarithms and estimate the total value
+    //
     return TransparentTableLog[n] / 100 + (Digit * 23) / 10;
 }
 /**
  * @brief Integer root function estimation.
- * @params Integer input value 
+ *
+ * @params x input value 
  * @return int 
  */
 int
@@ -99,10 +110,13 @@ TransparentSqrt(int x)
     }
     return Res;
 }
+
 /**
  * @brief Integer Gaussian Random Number Generator(GRNG) based on Box-Muller method. A Float to Integer 
  * mapping is used in the function.
- * @params Mean and Standard Deviation of the targeted Gaussian Distribution
+ *
+ * @params Average Mean 
+ * @parans Sigma Standard Deviation of the targeted Gaussian Distribution
  * @return int 
  */
 int
@@ -157,7 +171,6 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
 {
     SIZE_T                SizeOfBuffer;
     PTRANSPARENCY_PROCESS PidAndNameBuffer;
-
 
     //
     // Check whether it's a process id or it's a process name
@@ -289,8 +302,6 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
         // add the new process name or Id to the list
         //
         TransparentAddNameOrProcessIdToTheList(Measurements);
-
-
 
         //
         // Enable RDTSC and RDTSCP exiting on all cores
@@ -526,7 +537,6 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
 
         GuestRegs->rdx = 0x00000000ffffffff &
                          (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
-
 
         //
         // Check if we need to adjust rcx as a result of rdtscp
