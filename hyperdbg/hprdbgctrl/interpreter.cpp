@@ -308,7 +308,8 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandVmcall(SplittedCommand);
 
-  } else if (!FirstCommand.compare("!epthook") || !FirstCommand.compare("bh")) {
+  } else if (!FirstCommand.compare("!epthook") || !FirstCommand.compare("bh") ||
+             !FirstCommand.compare("bp")) {
 
     if (HelpCommand)
       CommandEptHookHelp();
