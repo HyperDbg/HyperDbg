@@ -11,55 +11,139 @@
  */
 #include "pch.h"
 
-#if (NTDDI_VERSION >= NTDDI_WINXP)
-_IRQL_requires_max_(APC_LEVEL)
-_Ret_range_(<=, MAXLONG)
-    NTSYSAPI
-    ULONG
-    NTAPI
-    RtlRandomEx(
-        _Inout_ PULONG Seed);
-#endif // NTDDI_VERSION >= NTDDI_WINXP
+#define MY_RAND_MAX 32768
 
-/*
+int TransparentTableLog[] = {0, 69, 110, 139, 161, 179, 195, 208, 220, 230, 240, 248, 256, 264, 271, 277, 283, 289, 294, 300, 304, 309, 314, 318, 322, 326, 330, 333, 337, 340, 343, 347, 350, 353, 356, 358, 361, 364, 366, 369, 371, 374, 376, 378, 381, 383, 385, 387, 389, 391, 393, 395, 397, 399, 401, 403, 404, 406, 408, 409, 411, 413, 414, 416, 417, 419, 420, 422, 423, 425, 426, 428, 429, 430, 432, 433, 434, 436, 437, 438, 439, 441, 442, 443, 444, 445, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 460, 461};
+/**
+ * @brief Generate a random number by utilizing RDTSC instruction. 
+ * Masking 16 LSB of the measured clock time.
+ * @return UINT32 
+ */
 UINT32
-TransparentRandn(UINT32 mu, UINT32 sigma)
+TransparentGetRand()
 {
-    UINT32 U1, U2, W = 0, mult = 0;
-    UINT32 X1, X2 = 0;
-    UINT32 call = 0;
-    ULONG  Seed;
-    UINT32 R = 0;
+    ULONG64 Tsc;
+    UINT32  Rand;
 
-    if (call == 1)
+    Tsc  = __rdtsc();
+    Rand = Tsc & 0xffff;
+
+    return Rand;
+}
+/**
+ * @brief Integer power function definition.
+ * @params Integer Base Value and Integer Power Value 
+ * @return int 
+ */
+int
+TransparentPow(int x, int p)
+{
+    int Res = 1;
+    for (int i = 0; i < p; i++)
     {
-        call = !call;
-        return (mu + sigma * (UINT32)X2);
+        Res = Res * x;
+    }
+    return Res;
+}
+/**
+ * @brief Integer Natural Logarithm function estimation.
+ * @params Integer input value 
+ * @return int 
+ */
+int
+TransparentLog(int x)
+{
+    int n     = x;
+    int Digit = 0;
+
+    while (n >= 100)
+    {
+        n = n / 10;
+        Digit++;
+    }
+    //Use pre-defined values of logarithms and estimate the total value
+    return TransparentTableLog[n] / 100 + (Digit * 23) / 10;
+}
+/**
+ * @brief Integer root function estimation.
+ * @params Integer input value 
+ * @return int 
+ */
+int
+TransparentSqrt(int x)
+{
+    int Res = 0;
+    int Bit;
+
+    //
+    // The second-to-top bit is set.
+    //
+    Bit = 1 << 30;
+
+    //
+    // "Bit" starts at the highest power of four <= the argument.
+    //
+    while (Bit > x)
+        Bit >>= 2;
+
+    while (Bit != 0)
+    {
+        if (x >= Res + Bit)
+        {
+            x -= Res + Bit;
+            Res = (Res >> 1) + Bit;
+        }
+        else
+            Res >>= 1;
+        Bit >>= 2;
+    }
+    return Res;
+}
+/**
+ * @brief Integer Gaussian Random Number Generator(GRNG) based on Box-Muller method. A Float to Integer 
+ * mapping is used in the function.
+ * @params Mean and Standard Deviation of the targeted Gaussian Distribution
+ * @return int 
+ */
+int
+TransparentRandn(int Average, int Sigma)
+{
+    int U1, r1, U2, r2, W, Mult;
+    int X1, X2 = 0, XS1;
+    int State   = 0;
+    int LogTemp = 0;
+
+    if (State == 1)
+    {
+        State = !State;
+        return (Average + Sigma * X2);
     }
 
     do
     {
-        Seed = KeQueryTimeIncrement();
-        R    = RtlRandomEx(&Seed) % RAND_MAX;
+        r1 = TransparentGetRand();
+        r2 = TransparentGetRand();
 
-        U1 = -1 + ((UINT32)R / RAND_MAX) * 2;
+        U1 = (r1 % MY_RAND_MAX) - (MY_RAND_MAX / 2);
 
-        Seed = KeQueryTimeIncrement();
-        R    = RtlRandomEx(&Seed) % RAND_MAX;
+        U2 = (r2 % MY_RAND_MAX) - (MY_RAND_MAX / 2);
 
-        U2 = -1 + ((UINT32)R / RAND_MAX) * 2;
-        W  = pow(U1, 2) + pow(U2, 2);
-    } while (W >= 1 || W == 0);
+        W = U1 * U1 + U2 * U2;
+    } while (W >= MY_RAND_MAX * MY_RAND_MAX / 2 || W == 0);
 
-    mult = sqrt((-2 * log(W)) / W);
-    X1   = U1 * mult;
-    X2   = U2 * mult;
+    LogTemp = (TransparentLog(W) - TransparentLog(MY_RAND_MAX * MY_RAND_MAX));
 
-    call = !call;
+    Mult = TransparentSqrt((-2 * LogTemp) * (MY_RAND_MAX * MY_RAND_MAX / W));
 
-    return (mu + sigma * (UINT32)X1);
+    X1  = U1 * Mult / MY_RAND_MAX;
+    XS1 = U1 * Mult;
+
+    X2 = U2 * Mult / MY_RAND_MAX;
+
+    State = !State;
+
+    return (Average + (Sigma * XS1) / MY_RAND_MAX);
 }
-*/
 
 /**
  * @brief Add name or process id of the target process to the list
@@ -73,6 +157,7 @@ TransparentAddNameOrProcessIdToTheList(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_M
 {
     SIZE_T                SizeOfBuffer;
     PTRANSPARENCY_PROCESS PidAndNameBuffer;
+
 
     //
     // Check whether it's a process id or it's a process name
@@ -187,16 +272,25 @@ TransparentHideDebugger(PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE Measurement
         InitializeListHead(&g_TransparentModeMeasurements->ProcessList);
 
         //
-        // Fill the transparency details
+        // Fill the transparency details CPUID
         //
         g_TransparentModeMeasurements->CpuidAverage           = Measurements->CpuidAverage;
         g_TransparentModeMeasurements->CpuidMedian            = Measurements->CpuidMedian;
         g_TransparentModeMeasurements->CpuidStandardDeviation = Measurements->CpuidStandardDeviation;
 
         //
+        // Fill the transparency details RDTSC
+        //
+        g_TransparentModeMeasurements->RdtscAverage           = Measurements->RdtscAverage;
+        g_TransparentModeMeasurements->RdtscMedian            = Measurements->RdtscMedian;
+        g_TransparentModeMeasurements->RdtscStandardDeviation = Measurements->RdtscStandardDeviation;
+
+        //
         // add the new process name or Id to the list
         //
         TransparentAddNameOrProcessIdToTheList(Measurements);
+
+
 
         //
         // Enable RDTSC and RDTSCP exiting on all cores
@@ -418,7 +512,10 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
             //
             // It's a new rdtscp, let's save the new value
             //
-            g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc += 0;
+            g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc +=
+                TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
+                                 g_TransparentModeMeasurements->CpuidStandardDeviation);
+            ;
         }
 
         //
@@ -429,6 +526,7 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
 
         GuestRegs->rdx = 0x00000000ffffffff &
                          (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
+
 
         //
         // Check if we need to adjust rcx as a result of rdtscp
@@ -450,7 +548,10 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
         //  need to add new cpuid value to previous timer and also
         //  we need to store it somewhere to remeber this behavior
         //
-        g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc += 0;
+        g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc +=
+            TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
+                             g_TransparentModeMeasurements->CpuidStandardDeviation);
+
         g_GuestState[ProcessorIndex].TransparencyState.CpuidAfterRdtscDetected = TRUE;
     }
 
