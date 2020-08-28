@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief test !monitor command
+ * 
+ * @return BOOLEAN 
+ */
 BOOLEAN TestMonitorCommand() {
 
   printf("Test monitor command... \n");
@@ -22,6 +27,7 @@ BOOLEAN TestMonitorCommand() {
   for (size_t i = 0; i < LONG_MAX; i++) {
     Sleep(1000);
   }
+  free(Address);
 
   return FALSE;
 }

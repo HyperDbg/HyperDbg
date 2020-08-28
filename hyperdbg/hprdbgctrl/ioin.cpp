@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !ioin command
+ * 
+ * @return VOID 
+ */
 VOID CommandIoinHelp() {
   ShowMessages("!ioin : Detects the execution of IN (I/O instructions) "
                "instructions.\n\n");
@@ -26,6 +31,12 @@ VOID CommandIoinHelp() {
   ShowMessages("\t\te.g : !ioin core 2 pid 400\n");
 }
 
+/**
+ * @brief !ioin command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandIoin(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -37,7 +48,6 @@ VOID CommandIoin(vector<string> SplittedCommand) {
 
   //
   // Interpret and fill the general event and action fields
-  //
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, IN_INSTRUCTION_EXECUTION, &Event, &EventLength,
@@ -58,6 +68,7 @@ VOID CommandIoin(vector<string> SplittedCommand) {
       // It's probably an I/O port
       //
       if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
+
         //
         // Unkonwn parameter
         //
@@ -68,10 +79,11 @@ VOID CommandIoin(vector<string> SplittedCommand) {
         GetPort = TRUE;
       }
     } else {
+      
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandIoinHelp();
       return;
     }
@@ -85,10 +97,24 @@ VOID CommandIoin(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    //
+    // There was an error
+    //
+    return;
+  }
 }

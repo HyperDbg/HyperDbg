@@ -196,7 +196,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * 
  * @param EptPageTable The EPT Page Table
  * @param PhysicalAddress Physical Address that we want to get its PML2
- * @return PEPT_PML2_ENTRY 
+ * @return PEPT_PML2_ENTRY The PML2 Entry Structure
  */
 PEPT_PML2_ENTRY
 EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
@@ -408,7 +408,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 /**
  * @brief Allocates page maps and create identity page table
  * 
- * @return PVMM_EPT_PAGE_TABLE 
+ * @return PVMM_EPT_PAGE_TABLE identity map page-table
  */
 PVMM_EPT_PAGE_TABLE
 EptAllocateAndCreateIdentityPageTable()
@@ -500,10 +500,13 @@ EptAllocateAndCreateIdentityPageTable()
     //
     PML2EntryTemplate.LargePage = 1;
 
-    /* For each collection of 512 PML2 entries (512 collections * 512 entries per collection), mark it RWX using the same template above.
-	   This marks the entries as "Present" regardless of if the actual system has memory at this region or not. We will cause a fault in our
-	   EPT handler if the guest access a page outside a usable range, despite the EPT frame being present here.
-	 */
+    //
+    // For each collection of 512 PML2 entries (512 collections * 512 entries per collection),
+    // mark it RWX using the same template above.
+	// This marks the entries as "Present" regardless of if the actual system has memory at
+    // this region or not. We will cause a fault in our EPT handler if the guest access a page
+    // outside a usable range, despite the EPT frame being present here.
+	//
     __stosq((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.Flags, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
 
     //
@@ -652,9 +655,10 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
  * @brief Handle VM exits for EPT violations
  * @details Violations are thrown whenever an operation is performed on an EPT entry 
  * that does not provide permissions to access that page
- * 
- * @param ExitQualification 
- * @param GuestPhysicalAddr 
+ *
+ * @param Regs Guest registers
+ * @param ExitQualification Exit qualification of the vm-exit
+ * @param GuestPhysicalAddr Physical address that caused this EPT violation
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
@@ -718,9 +722,9 @@ EptHandleMisconfiguration(UINT64 GuestAddress)
  * @brief This function set the specific PML1 entry in a spinlock protected area then invalidate the TLB
  * @details This function should be called from vmx root-mode
  * 
- * @param EntryAddress 
- * @param EntryValue 
- * @param InvalidationType 
+ * @param EntryAddress PML1 entry information (the target address)
+ * @param EntryValue The value of pm1's entry (the value that should be replaced)
+ * @param InvalidationType type of invalidation
  * @return VOID 
  */
 VOID
@@ -730,10 +734,12 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     // acquire the lock
     //
     SpinlockLock(&Pml1ModificationAndInvalidationLock);
+
     //
     // set the value
     //
     EntryAddress->Flags = EntryValue.Flags;
+
     //
     // invalidate the cache
     //
@@ -745,6 +751,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     {
         InveptAllContexts();
     }
+
     //
     // release the lock
     //

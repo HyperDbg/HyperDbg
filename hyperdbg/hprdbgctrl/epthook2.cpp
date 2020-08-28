@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !epthook2 command
+ * 
+ * @return VOID 
+ */
 VOID CommandEptHook2Help() {
   ShowMessages("!epthook2 : Puts a hidden-hook EPT (detours) .\n\n");
   ShowMessages(
@@ -24,6 +29,12 @@ VOID CommandEptHook2Help() {
   ShowMessages("\t\te.g : !epthook2 fffff801deadb000 core 2 pid 400\n");
 }
 
+/**
+ * @brief !epthook2 command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandEptHook2(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -42,7 +53,6 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
   //
   // Interpret and fill the general event and action fields
   //
-
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, HIDDEN_HOOK_EXEC_DETOURS, &Event, &EventLength,
           &Action, &ActionLength)) {
@@ -57,10 +67,12 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
     if (!Section.compare("!epthook2")) {
       continue;
     } else if (!GetAddress) {
+
       //
       // It's probably address
       //
       if (!ConvertStringToUInt64(Section, &OptionalParam1)) {
+
         //
         // Unkonwn parameter
         //
@@ -71,10 +83,11 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
         GetAddress = TRUE;
       }
     } else {
+
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandEptHook2Help();
       return;
     }
@@ -92,10 +105,24 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    //
+    // There was an error
+    //
+    return;
+  }
 }

@@ -15,45 +15,106 @@
 //					Help commands               //
 //////////////////////////////////////////////////
 
-VOID CommandReadMemoryHelp();
+VOID CommandHelpHelp();
+
+VOID CommandReadMemoryAndDisassemblerHelp();
+
 VOID CommandConnectHelp();
+
 VOID CommandDisconnectHelp();
+
 VOID CommandExitHelp();
+
 VOID CommandCpuHelp();
+
 VOID CommandUnloadHelp();
+
 VOID CommandLoadHelp();
+
 VOID CommandConnectHelp();
+
 VOID CommandScriptHelp();
+
 VOID CommandFormatsHelp();
+
 VOID CommandRdmsrHelp();
+
 VOID CommandWrmsrHelp();
+
 VOID CommandPteHelp();
+
 VOID CommandMonitorHelp();
+
 VOID CommandSyscallHelp();
+
 VOID CommandSysretHelp();
+
 VOID CommandEptHookHelp();
+
 VOID CommandEptHook2Help();
+
 VOID CommandCpuidHelp();
+
 VOID CommandMsrreadHelp();
+
 VOID CommandMsrwriteHelp();
+
 VOID CommandTscHelp();
+
 VOID CommandPmcHelp();
+
 VOID CommandExceptionHelp();
+
 VOID CommandDrHelp();
+
 VOID CommandInterruptHelp();
+
 VOID CommandIooutHelp();
+
 VOID CommandIoinHelp();
+
 VOID CommandVmcallHelp();
+
 VOID CommandHideHelp();
+
 VOID CommandUnhideHelp();
+
 VOID CommandTestHelp();
+
 VOID CommandLogopenHelp();
+
 VOID CommandLogcloseHelp();
+
 VOID CommandVa2paHelp();
+
 VOID CommandPa2vaHelp();
+
 VOID CommandEventsHelp();
+
 VOID CommandGHelp();
+
 VOID CommandClearScreenHelp();
+
 VOID CommandSleepHelp();
+
 VOID CommandEditMemoryHelp();
+
 VOID CommandSearchMemoryHelp();
+
+VOID CommandMeasureHelp();
+
+VOID CommandLmHelp();
+
+VOID CommandSettingsHelp();
+
+VOID CommandFlushHelp();
+
+VOID CommandPauseHelp();
+
+VOID CommandListenHelp();
+
+VOID CommandStatusHelp();
+
+VOID CommandAttachHelp();
+
+VOID CommandDetachHelp();

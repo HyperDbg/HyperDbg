@@ -13,7 +13,15 @@
 
 /**
  * @brief Read memory and disassembler
- *
+ * @details currently, HyperDbg is not support reading memory
+ * from vmx-root 
+ * 
+ * @param Style style of show memory (as byte, dwrod, qword)
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param ReadingType read from kernel or vmx-root
+ * @param Pid The target process id
+ * @param Size size of memory to read
  */
 void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
@@ -28,7 +36,8 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   CHAR Character;
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -56,7 +65,8 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    free(OutputBuffer);
     return;
   }
 
@@ -66,6 +76,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
         ShowMessages("#\t");
       }
+
       //
       // Print address
       //
@@ -111,6 +122,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
         ShowMessages("#\t");
       }
+
       //
       // Print address
       //
@@ -130,6 +142,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
           ShowMessages("%08X ", OutputBufferVar);
         }
       }
+
       //
       // Print the character
       //
@@ -157,6 +170,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
         ShowMessages("#\t");
       }
+
       //
       // Print address
       //
@@ -166,6 +180,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       // Print the hex code
       //
       for (size_t j = 0; j < 16; j += 8) {
+        
         //
         // check to see if the address is valid or not
         //
@@ -185,9 +200,16 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       //
       ShowMessages("\n");
     }
-  } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE) {
-    HyperDbgDisassembler(OutputBuffer, Address, ReturnedLength);
+  } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
+    HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength);
+  } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32) {
+    HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength);
   }
+
+  //
+  // free the buffer 
+  //
+  free(OutputBuffer);
 
   ShowMessages("\n");
 }

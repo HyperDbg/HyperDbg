@@ -16,11 +16,22 @@
 //
 extern BOOLEAN g_BreakPrintingOutput;
 
+/**
+ * @brief help of pause command
+ * 
+ * @return VOID 
+ */
 VOID CommandPauseHelp() {
   ShowMessages("pause : pauses the kernel events.\n\n");
   ShowMessages("syntax : \tpause\n");
 }
 
+/**
+ * @brief pause command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandPause(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {

@@ -24,28 +24,19 @@ PoolManagerInitialize()
     //
     // Allocate global requesting variable
     //
-    RequestNewAllocation = ExAllocatePoolWithTag(NonPagedPool, sizeof(REQUEST_NEW_ALLOCATION), POOLTAG);
+    g_RequestNewAllocation = ExAllocatePoolWithTag(NonPagedPool, MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION), POOLTAG);
 
-    if (!RequestNewAllocation)
+    if (!g_RequestNewAllocation)
     {
         LogError("Insufficient memory");
         return FALSE;
     }
-    RtlZeroMemory(RequestNewAllocation, sizeof(REQUEST_NEW_ALLOCATION));
-
-    ListOfAllocatedPoolsHead = ExAllocatePoolWithTag(NonPagedPool, sizeof(LIST_ENTRY), POOLTAG);
-
-    if (!ListOfAllocatedPoolsHead)
-    {
-        LogError("Insufficient memory");
-        return FALSE;
-    }
-    RtlZeroMemory(ListOfAllocatedPoolsHead, sizeof(LIST_ENTRY));
+    RtlZeroMemory(g_RequestNewAllocation, MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION));
 
     //
     // Initialize list head
     //
-    InitializeListHead(ListOfAllocatedPoolsHead);
+    InitializeListHead(&g_ListOfAllocatedPoolsHead);
 
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
@@ -68,9 +59,14 @@ PoolManagerInitialize()
     PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 10, DETOUR_HOOK_DETAILS);
 
     //
+    // Nothing to deallocate
+    //
+    g_IsNewRequestForDeAllocation = FALSE;
+
+    //
     // Let's start the allocations
     //
-    return PoolManagerCheckAndPerformAllocation();
+    return PoolManagerCheckAndPerformAllocationAndDeallocation();
 }
 
 /**
@@ -83,9 +79,9 @@ PoolManagerUninitialize()
 {
     PLIST_ENTRY ListTemp = 0;
     UINT64      Address  = 0;
-    ListTemp             = ListOfAllocatedPoolsHead;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
 
-    while (ListOfAllocatedPoolsHead != ListTemp->Flink)
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
     {
         ListTemp = ListTemp->Flink;
 
@@ -95,9 +91,17 @@ PoolManagerUninitialize()
         PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
 
         //
-        // Free the alloocated buffer
+        // Free the alloocated buffer (if not already changed)
         //
-        ExFreePoolWithTag(PoolTable->Address, POOLTAG);
+        if (!PoolTable->AlreadyFreed)
+        {
+            ExFreePoolWithTag(PoolTable->Address, POOLTAG);
+        }
+
+        //
+        // Unlink the PoolTable
+        //
+        RemoveEntryList(&PoolTable->PoolsList);
 
         //
         // Free the record itself
@@ -105,8 +109,51 @@ PoolManagerUninitialize()
         ExFreePoolWithTag(PoolTable, POOLTAG);
     }
 
-    ExFreePoolWithTag(ListOfAllocatedPoolsHead, POOLTAG);
-    ExFreePoolWithTag(RequestNewAllocation, POOLTAG);
+    ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
+}
+
+/**
+ * @brief This function set a pool flag to be freed, and it will be freed
+ * on the next IOCTL when it's safe to remove
+ * 
+ * @param AddressToFree The pool address that was previously obtained from the pool manager
+ * @return BOOLEAN If the address was already in the list of allocated pools by pool 
+ * manager then it returns TRUE; otherwise, FALSE
+ */
+BOOLEAN
+PoolManagerFreePool(UINT64 AddressToFree)
+{
+    PLIST_ENTRY ListTemp = 0;
+    BOOLEAN     Result   = FALSE;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
+
+    SpinlockLock(&LockForReadingPool);
+
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+    {
+        ListTemp = ListTemp->Flink;
+
+        //
+        // Get the head of the record
+        //
+        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+
+        if (PoolTable->Address == AddressToFree)
+        {
+            //
+            // We found an entry that matched the detailed from
+            // previously allocated pools
+            //
+            PoolTable->ShouldBeFreed = TRUE;
+            Result                   = TRUE;
+
+            g_IsNewRequestForDeAllocation = TRUE;
+            break;
+        }
+    }
+
+    SpinlockUnlock(&LockForReadingPool);
+    return Result;
 }
 
 /**
@@ -125,11 +172,11 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 {
     PLIST_ENTRY ListTemp = 0;
     UINT64      Address  = 0;
-    ListTemp             = ListOfAllocatedPoolsHead;
+    ListTemp             = &g_ListOfAllocatedPoolsHead;
 
     SpinlockLock(&LockForReadingPool);
 
-    while (ListOfAllocatedPoolsHead != ListTemp->Flink)
+    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
     {
         ListTemp = ListTemp->Flink;
 
@@ -204,30 +251,33 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         SinglePool->Intention     = Intention;
         SinglePool->IsBusy        = FALSE;
         SinglePool->ShouldBeFreed = FALSE;
+        SinglePool->AlreadyFreed  = FALSE;
         SinglePool->Size          = Size;
 
         //
         // Add it to the list
         //
-        InsertHeadList(ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
+        InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
     }
 }
 
 /**
- * @brief This function performs allocations from VMX non-root based on RequestNewAllocation
+ * @brief This function performs allocations from VMX non-root based on g_RequestNewAllocation
  * 
  * @return BOOLEAN If the the pool manager allocates buffer or there was no buffer to allocate
  * then it returns true, if there was any error then it returns false
  */
 BOOLEAN
-PoolManagerCheckAndPerformAllocation()
+PoolManagerCheckAndPerformAllocationAndDeallocation()
 {
-    BOOLEAN Result = TRUE;
+    BOOLEAN     Result   = TRUE;
+    PLIST_ENTRY ListTemp = 0;
+    UINT64      Address  = 0;
 
     //
     // let's make sure we're on vmx non-root and also we have new allocation
     //
-    if (!IsNewRequestForAllocationRecieved || g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
+    if (g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
     {
         //
         // allocation's can't be done from vmx root
@@ -237,119 +287,82 @@ PoolManagerCheckAndPerformAllocation()
 
     PAGED_CODE();
 
-    if (RequestNewAllocation->Size0 != 0)
+    //
+    // Check for new allocation
+    //
+    if (g_IsNewRequestForAllocationRecieved)
     {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size0, RequestNewAllocation->Count0, RequestNewAllocation->Intention0);
+        for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)
+        {
+            if (g_RequestNewAllocation[i].Size != 0)
+            {
+                Result = PoolManagerAllocateAndAddToPoolTable(g_RequestNewAllocation[i].Size, g_RequestNewAllocation[i].Count, g_RequestNewAllocation[i].Intention);
 
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count0     = 0;
-        RequestNewAllocation->Intention0 = 0;
-        RequestNewAllocation->Size0      = 0;
-    }
-    if (RequestNewAllocation->Size1 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size1, RequestNewAllocation->Count1, RequestNewAllocation->Intention1);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count1     = 0;
-        RequestNewAllocation->Intention1 = 0;
-        RequestNewAllocation->Size1      = 0;
-    }
-    if (RequestNewAllocation->Size2 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size2, RequestNewAllocation->Count2, RequestNewAllocation->Intention2);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count2     = 0;
-        RequestNewAllocation->Intention2 = 0;
-        RequestNewAllocation->Size2      = 0;
+                //
+                // Free the data for future use
+                //
+                g_RequestNewAllocation[i].Count     = 0;
+                g_RequestNewAllocation[i].Intention = 0;
+                g_RequestNewAllocation[i].Size      = 0;
+            }
+        }
     }
 
-    if (RequestNewAllocation->Size3 != 0)
+    //
+    // Check for deallocation
+    //
+    if (g_IsNewRequestForDeAllocation)
     {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size3, RequestNewAllocation->Count3, RequestNewAllocation->Intention3);
+        ListTemp = &g_ListOfAllocatedPoolsHead;
 
-        //
-        // Free the data for future use
-        //
+        SpinlockLock(&LockForReadingPool);
 
-        RequestNewAllocation->Count3     = 0;
-        RequestNewAllocation->Intention3 = 0;
-        RequestNewAllocation->Size3      = 0;
+        while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
+        {
+            ListTemp = ListTemp->Flink;
+
+            //
+            // Get the head of the record
+            //
+            PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
+
+            //
+            // Check whther this pool should be freed or not and
+            // also check whether it's already freed or not
+            //
+            if (PoolTable->ShouldBeFreed && !PoolTable->AlreadyFreed)
+            {
+                //
+                // Set the flag to indicate that we freed
+                //
+                PoolTable->AlreadyFreed = TRUE;
+
+                //
+                // This item should be freed
+                //
+                ExFreePoolWithTag(PoolTable->Address, POOLTAG);
+
+                //
+                // Now we should remove the entry from the g_ListOfAllocatedPoolsHead
+                //
+                RemoveEntryList(&PoolTable->PoolsList);
+
+                //
+                // Free the structure pool
+                //
+                ExFreePoolWithTag(PoolTable, POOLTAG);
+            }
+        }
+
+        SpinlockUnlock(&LockForReadingPool);
     }
-    if (RequestNewAllocation->Size4 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size4, RequestNewAllocation->Count4, RequestNewAllocation->Intention4);
 
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count4     = 0;
-        RequestNewAllocation->Intention4 = 0;
-        RequestNewAllocation->Size4      = 0;
-    }
-    if (RequestNewAllocation->Size5 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size5, RequestNewAllocation->Count5, RequestNewAllocation->Intention5);
+    //
+    // All allocation and deallocation are preformed
+    //
+    g_IsNewRequestForDeAllocation       = FALSE;
+    g_IsNewRequestForAllocationRecieved = FALSE;
 
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count5     = 0;
-        RequestNewAllocation->Intention5 = 0;
-        RequestNewAllocation->Size5      = 0;
-    }
-    if (RequestNewAllocation->Size6 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size6, RequestNewAllocation->Count6, RequestNewAllocation->Intention6);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count6     = 0;
-        RequestNewAllocation->Intention6 = 0;
-        RequestNewAllocation->Size6      = 0;
-    }
-    if (RequestNewAllocation->Size7 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size7, RequestNewAllocation->Count7, RequestNewAllocation->Intention7);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count7     = 0;
-        RequestNewAllocation->Intention7 = 0;
-        RequestNewAllocation->Size7      = 0;
-    }
-    if (RequestNewAllocation->Size8 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size8, RequestNewAllocation->Count8, RequestNewAllocation->Intention8);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count8     = 0;
-        RequestNewAllocation->Intention8 = 0;
-        RequestNewAllocation->Size8      = 0;
-    }
-    if (RequestNewAllocation->Size9 != 0)
-    {
-        Result = PoolManagerAllocateAndAddToPoolTable(RequestNewAllocation->Size9, RequestNewAllocation->Count9, RequestNewAllocation->Intention9);
-
-        //
-        // Free the data for future use
-        //
-        RequestNewAllocation->Count9     = 0;
-        RequestNewAllocation->Intention9 = 0;
-        RequestNewAllocation->Size9      = 0;
-    }
-    IsNewRequestForAllocationRecieved = FALSE;
     return Result;
 }
 
@@ -364,74 +377,29 @@ PoolManagerCheckAndPerformAllocation()
 BOOLEAN
 PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTION Intention)
 {
+    BOOLEAN FoundAPlace = FALSE;
+
     //
     // ******** We check to find a free place to store ********
     //
-
+    
     SpinlockLock(&LockForRequestAllocation);
 
-    if (RequestNewAllocation->Size0 == 0)
+    for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)
     {
-        RequestNewAllocation->Count0     = Count;
-        RequestNewAllocation->Intention0 = Intention;
-        RequestNewAllocation->Size0      = Size;
-    }
-    else if (RequestNewAllocation->Size1 == 0)
-    {
-        RequestNewAllocation->Count1     = Count;
-        RequestNewAllocation->Intention1 = Intention;
-        RequestNewAllocation->Size1      = Size;
-    }
-    else if (RequestNewAllocation->Size2 == 0)
-    {
-        RequestNewAllocation->Count2     = Count;
-        RequestNewAllocation->Intention2 = Intention;
-        RequestNewAllocation->Size2      = Size;
-    }
-    else if (RequestNewAllocation->Size3 == 0)
-    {
-        RequestNewAllocation->Count3     = Count;
-        RequestNewAllocation->Intention3 = Intention;
-        RequestNewAllocation->Size3      = Size;
-    }
-    else if (RequestNewAllocation->Size4 == 0)
-    {
-        RequestNewAllocation->Count4     = Count;
-        RequestNewAllocation->Intention4 = Intention;
-        RequestNewAllocation->Size4      = Size;
-    }
-    else if (RequestNewAllocation->Size5 == 0)
-    {
-        RequestNewAllocation->Count5     = Count;
-        RequestNewAllocation->Intention5 = Intention;
-        RequestNewAllocation->Size5      = Size;
-    }
-    else if (RequestNewAllocation->Size6 == 0)
-    {
-        RequestNewAllocation->Count6     = Count;
-        RequestNewAllocation->Intention6 = Intention;
-        RequestNewAllocation->Size6      = Size;
-    }
-    else if (RequestNewAllocation->Size7 == 0)
-    {
-        RequestNewAllocation->Count7     = Count;
-        RequestNewAllocation->Intention7 = Intention;
-        RequestNewAllocation->Size7      = Size;
-    }
-    else if (RequestNewAllocation->Size8 == 0)
-    {
-        RequestNewAllocation->Count8     = Count;
-        RequestNewAllocation->Intention8 = Intention;
-        RequestNewAllocation->Size8      = Size;
-    }
-    else if (RequestNewAllocation->Size9 == 0)
-    {
-        RequestNewAllocation->Count9     = Count;
-        RequestNewAllocation->Intention9 = Intention;
-        RequestNewAllocation->Size9      = Size;
+        if (g_RequestNewAllocation[i].Size == 0)
+        {
+            g_RequestNewAllocation[i].Count     = Count;
+            g_RequestNewAllocation[i].Intention = Intention;
+            g_RequestNewAllocation[i].Size      = Size;
+
+            FoundAPlace = TRUE;
+
+            break;
+        }
     }
 
-    else
+    if (!FoundAPlace)
     {
         SpinlockUnlock(&LockForRequestAllocation);
         return FALSE;
@@ -440,7 +408,7 @@ PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTIO
     //
     // Signals to show that we have new allocations
     //
-    IsNewRequestForAllocationRecieved = TRUE;
+    g_IsNewRequestForAllocationRecieved = TRUE;
 
     SpinlockUnlock(&LockForRequestAllocation);
     return TRUE;

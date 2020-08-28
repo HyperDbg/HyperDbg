@@ -27,6 +27,10 @@
 //					   Enums  					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Different levels of paging
+ * 
+ */
 typedef enum _PML
 {
     PT = 0, // Page Table
@@ -39,15 +43,20 @@ typedef enum _PML
 //					Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Memory mapper PTE and reserved virtual address
+ * 
+ */
 typedef struct _MEMORY_MAPPER_ADDRESSES
 {
     UINT64 PteVirtualAddress; // The virtual address of PTE
     UINT64 VirualAddress;     // The actual kernel virtual address to read or write
 } MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
 
-//
-// Page Table Entry
-//
+/**
+ * @brief Page Table Entry Structure
+ * 
+ */
 typedef struct _PAGE_TABLE_ENTRY
 {
     union
@@ -75,9 +84,10 @@ typedef struct _PAGE_TABLE_ENTRY
     };
 } PAGE_TABLE_ENTRY, *PPAGE_TABLE_ENTRY;
 
-//
-// Page Directory Entry
-//
+/**
+ * @brief Page Directory Entry Structure
+ * 
+ */
 typedef struct _PAGE_DIRECTORY_ENTRY
 {
     union
@@ -103,9 +113,10 @@ typedef struct _PAGE_DIRECTORY_ENTRY
     };
 } PAGE_DIRECTORY_ENTRY, *PPAGE_DIRECTORY_ENTRY;
 
-//
-// Large Page Directory Entry
-//
+/**
+ * @brief Large Page Directory Entry Structure
+ * 
+ */
 typedef struct _LARGE_PAGE_DIRECTORY_ENTRY
 {
     union
@@ -135,9 +146,10 @@ typedef struct _LARGE_PAGE_DIRECTORY_ENTRY
     };
 } LARGE_PAGE_DIRECTORY_ENTRY, *PLARGE_PAGE_DIRECTORY_ENTRY;
 
-//
-// Page Directory Pointer Table Entry
-//
+/**
+ * @brief Page Directory Pointer Table Entry Structure
+ * 
+ */
 typedef struct _PAGE_DIRECTORY_POINTER_TABLE_ENTRY
 {
     union
@@ -163,9 +175,10 @@ typedef struct _PAGE_DIRECTORY_POINTER_TABLE_ENTRY
     };
 } PAGE_DIRECTORY_POINTER_TABLE_ENTRY, *PPAGE_DIRECTORY_POINTER_TABLE_ENTRY;
 
-//
-// Large Page Directory Pointer Table Entry
-//
+/**
+ * @brief Large Page Directory Pointer Table Entry Structure
+ * 
+ */
 typedef struct _LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY
 {
     union
@@ -195,9 +208,10 @@ typedef struct _LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY
     };
 } LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY, *PLARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY;
 
-//
-// Page Map Level 4 Entry
-//
+/**
+ * @brief Page Map Level 4 Entry Structure
+ * 
+ */
 typedef struct _PAGE_MAP_LEVEL_4_ENTRY
 {
     union
@@ -223,6 +237,10 @@ typedef struct _PAGE_MAP_LEVEL_4_ENTRY
     };
 } PAGE_MAP_LEVEL_4_ENTRY, *PPAGE_MAP_LEVEL_4_ENTRY;
 
+/**
+ * @brief Page Entries
+ * 
+ */
 typedef struct _PAGE_ENTRY
 {
     union
@@ -261,6 +279,10 @@ typedef struct _PAGE_ENTRY
     };
 } PAGE_ENTRY, *PPAGE_ENTRY;
 
+/**
+ * @brief CR3 Structure
+ * 
+ */
 typedef struct _CR3_TYPE
 {
     union
@@ -285,6 +307,9 @@ typedef struct _CR3_TYPE
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
 
+BOOLEAN
+MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, CR3_TYPE TargetProcessCr3);
+
 PPAGE_ENTRY
 MemoryMapperGetPteVa(PVOID Va, PML Level);
 
@@ -298,7 +323,7 @@ UINT64
 MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId);
 
 BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);
+MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);
 
 BOOLEAN
 MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);

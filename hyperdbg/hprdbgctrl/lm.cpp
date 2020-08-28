@@ -13,6 +13,11 @@
 
 using namespace std;
 
+/**
+ * @brief help of lm command
+ * 
+ * @return VOID 
+ */
 VOID CommandLmHelp() {
   ShowMessages(
       "lm : list kernel modules' base address, size, name and path.\n\n");
@@ -24,6 +29,12 @@ VOID CommandLmHelp() {
                "'nt' in their path or name\n");
 }
 
+/**
+ * @brief handle lm command
+ * 
+ * @param SplittedCommand 
+ * @return int 
+ */
 int CommandLm(vector<string> SplittedCommand) {
 
   PRTL_PROCESS_MODULES ModuleInfo;
@@ -37,9 +48,12 @@ int CommandLm(vector<string> SplittedCommand) {
     return -1;
   }
 
+  //
+  // Allocate memory for the module list
+  //
   ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
       NULL, 1024 * 1024, MEM_COMMIT | MEM_RESERVE,
-      PAGE_READWRITE); // Allocate memory for the module list
+      PAGE_READWRITE); 
 
   if (!ModuleInfo) {
     ShowMessages("\nUnable to allocate memory for module list (%d)\n",
@@ -47,9 +61,12 @@ int CommandLm(vector<string> SplittedCommand) {
     return -1;
   }
 
+  //
+  // 11 = SystemModuleInformation
+  //
   if (!NT_SUCCESS(status = NtQuerySystemInformation(
                       (SYSTEM_INFORMATION_CLASS)11, ModuleInfo, 1024 * 1024,
-                      NULL))) // 11 = SystemModuleInformation
+                      NULL)))
   {
     ShowMessages("\nError: Unable to query module list (%#x)\n", status);
 
@@ -60,6 +77,7 @@ int CommandLm(vector<string> SplittedCommand) {
   ShowMessages("start\t\t\tsize\tname\t\tpath\n\n");
 
   for (i = 0; i < ModuleInfo->NumberOfModules; i++) {
+
     //
     // Check if we need to search for the module or not
     //
@@ -67,6 +85,7 @@ int CommandLm(vector<string> SplittedCommand) {
       Search = strstr((char *)ModuleInfo->Modules[i].FullPathName,
                       SplittedCommand.at(1).c_str());
       if (Search == NULL) {
+        
         //
         // not found
         //

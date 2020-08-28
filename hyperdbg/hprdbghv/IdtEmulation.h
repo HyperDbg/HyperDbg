@@ -11,7 +11,10 @@
  */
 #pragma once
 
-
+/**
+ * @brief Guest interruptibility state
+ * 
+ */
 typedef struct _INTERRUPTIBILITY_STATE
 {
     union
@@ -30,6 +33,10 @@ typedef struct _INTERRUPTIBILITY_STATE
     };
 } INTERRUPTIBILITY_STATE, *PINTERRUPTIBILITY_STATE;
 
+/**
+ * @brief Vm-exit interrupt info
+ * 
+ */
 typedef union _VMEXIT_INTERRUPT_INFO
 {
     struct

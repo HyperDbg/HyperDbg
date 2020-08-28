@@ -11,6 +11,14 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Handle Nmi and expection vm-exits
+ * 
+ * @param InterruptExit vm-exit information for interrupt
+ * @param CurrentProcessorIndex index of processor
+ * @param GuestRegs guest registers
+ * @return VOID 
+ */
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
@@ -93,7 +101,6 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         //LogInfo("Breakpoint Hit (Process Id : 0x%x) at : %llx ", PsGetCurrentProcessId(), GuestRip);
         //
-
         g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
         //
@@ -132,6 +139,8 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
 
         //
         // Test
+        //
+
         //
         // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
         //
@@ -195,6 +204,13 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
     }
 }
 
+/**
+ * @brief external-interrupt vm-exit handler
+ * 
+ * @param InterruptExit interrupt info from vm-exit
+ * @param CurrentProcessorIndex processor index
+ * @return BOOLEAN 
+ */
 BOOLEAN
 IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex)
 {
@@ -297,6 +313,12 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     return Interruptible;
 }
 
+/**
+ * @brief Handle interrupt-window exitings
+ * 
+ * @param CurrentProcessorIndex processor index
+ * @return VOID 
+ */
 VOID
 IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex)
 {

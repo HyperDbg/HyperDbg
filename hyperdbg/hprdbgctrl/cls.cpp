@@ -11,8 +11,19 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of .cls command
+ * 
+ * @return VOID 
+ */
 VOID CommandClearScreenHelp() {
   ShowMessages(".cls : clears the screen.\n\n");
   ShowMessages("syntax : \t.cls\n");
 }
+
+/**
+ * @brief .cls command handler
+ * 
+ * @return VOID 
+ */
 VOID CommandClearScreen() { system("cls"); }

@@ -11,12 +11,15 @@
  */
 #pragma once
 
-//
-// Uncomment this if you plan to intercept I/O ports 0x5658/0x5659
-// in VMWare and you don't want the VMWare Tools to crash.
-//
-//#define ENABLE_VMWARE_WORKAROUND
 
+//////////////////////////////////////////////////
+//                 Structures	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief exit-qualification for I/O instructions vm-exits
+ * 
+ */
 typedef struct _IO_EXIT_QUALIFICATION
 {
     UINT64 SizeOfAccess : 3;
@@ -28,21 +31,33 @@ typedef struct _IO_EXIT_QUALIFICATION
     UINT64 PortNumber : 16;
 } IO_EXIT_QUALIFICATION, *PIO_EXIT_QUALIFICATION;
 
+//////////////////////////////////////////////////
+//                     Enums	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief IN Instruction or OUT Instruction
+ * 
+ */
 typedef enum
 {
     AccessOut = 0,
     AccessIn  = 1,
 };
 
+/**
+ * @brief Immediate value or in DX
+ * 
+ */
 typedef enum
 {
     OpEncodingDx  = 0,
     OpEncodingImm = 1,
 };
 
-//
-// I/O ports.
-//
+//////////////////////////////////////////////////
+//        I/O Instructions Functions            //
+//////////////////////////////////////////////////
 
 unsigned char
 __inbyte(unsigned short);
@@ -164,9 +179,10 @@ IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
     __outdwordstring(port, (unsigned long *)data, count);
 }
 
-//
-// Functions
-//
+
+//////////////////////////////////////////////////
+//                 Functions	    			//
+//////////////////////////////////////////////////
 
 VOID
 IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags);

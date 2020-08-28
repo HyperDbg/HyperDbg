@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of wrmsr command 
+ * 
+ * @return VOID 
+ */
 VOID CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
   ShowMessages("syntax : \twrmsr [ecx (hex value)] [value to write - EDX:EAX "
@@ -19,6 +24,12 @@ VOID CommandWrmsrHelp() {
   ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010 core 2\n");
 }
 
+/**
+ * @brief wrmsr command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandWrmsr(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -63,6 +74,7 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
         CommandWrmsrHelp();
         return;
       } else {
+
         //
         // Means that the MSR is set, next we should read value
         //
@@ -84,6 +96,7 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
       }
     }
   }
+  
   //
   // Check if msr is set or not
   //
@@ -104,7 +117,8 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -125,7 +139,7 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 

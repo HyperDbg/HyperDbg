@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !tsc command
+ * 
+ * @return VOID 
+ */
 VOID CommandTscHelp() {
   ShowMessages("!tsc : Monitors execution of rdtsc/rdtscp instructions.\n\n");
   ShowMessages("syntax : \t!tsc core [core index "
@@ -23,6 +28,12 @@ VOID CommandTscHelp() {
   ShowMessages("\t\te.g : !tsc core 2 pid 400\n");
 }
 
+/**
+ * @brief handler of !tsc command
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandTsc(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -42,12 +53,36 @@ VOID CommandTsc(vector<string> SplittedCommand) {
   }
 
   //
+  // Check for size
+  //
+  if (SplittedCommand.size() > 1) {
+    ShowMessages("incorrect use of '!tsc'\n");
+    CommandTscHelp();
+    return;
+  }
+
+  //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

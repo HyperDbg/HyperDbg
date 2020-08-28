@@ -27,23 +27,26 @@ using namespace std;
 //
 extern "C"
 {
-	__declspec (dllimport) int __cdecl  HyperdbgLoad();
-	__declspec (dllimport) int __cdecl  HyperdbgUnload();
-	__declspec (dllimport) int __cdecl  HyperdbgInstallDriver();
-	__declspec (dllimport) int __cdecl  HyperdbgUninstallDriver();
-	__declspec (dllimport) int __cdecl  HyperdbgInterpreter(const char* Command);
-	__declspec (dllimport) void __stdcall HyperdbgSetTextMessageCallback(Callback handler);
+	__declspec (dllimport) int HyperdbgLoadVmm();
+	__declspec (dllimport) int HyperdbgUnload();
+	__declspec (dllimport) int HyperdbgInstallVmmDriver();
+	__declspec (dllimport) int HyperdbgUninstallDriver();
+	__declspec (dllimport) int HyperdbgInterpreter(const char* Command);
+	__declspec(dllexport) void HyperdbgShowSignature();
+	__declspec (dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
 
 }
 
-
 /**
  * @brief CLI main function
- *
- * @return int
+ * 
+ * @param argc 
+ * @param argv 
+ * @return int 
  */
 int main(int argc, char* argv[]) {
 
+	bool ExitFromDebugger = false;
 
 	if (argc != 1) {
 
@@ -53,6 +56,7 @@ int main(int argc, char* argv[]) {
 		if (!strcmp(argv[1], "--script")) {
 
 			char ScriptBuffer[MAX_PATH + 10] = { 0 };
+
 			//
 			// Executing the script
 			//
@@ -70,23 +74,22 @@ int main(int argc, char* argv[]) {
 	//
 	// Put to ease the test, it will be removed
 	//
-
-	/* if (HyperdbgInstallDriver()) {
+	/* 
+	if (HyperdbgInstallVmmDriver()) {
 		return 1;
 	}
 
-	if (HyperdbgLoad()) {
+	if (HyperdbgLoadVmm()) {
 		return 1;
 	}
 	_getch();
 	_getch();
-	return 0; */
+	return 0;
+	*/
 
-
+	//
 	// ---------------------------------------------------------
-
-
-	bool ExitFromDebugger = false;
+	//
 
 	printf("HyperDbg Debugger [core version: v%s]\n", Version);
 	printf("Please visit https://docs.hyperdbg.com for more information...\n");
@@ -94,7 +97,7 @@ int main(int argc, char* argv[]) {
 
 	while (!ExitFromDebugger)
 	{
-		printf("HyperDbg >");
+		HyperdbgShowSignature();
 
 		string command;
 		getline(cin, command);
@@ -104,10 +107,9 @@ int main(int argc, char* argv[]) {
 		}
 
 		int CommandExecutionResult = HyperdbgInterpreter(command.c_str());
-		printf("\n");
 
 		//
-		//if the debugger encounters an exit state then the return will be 1
+		// if the debugger encounters an exit state then the return will be 1
 		//
 		if (CommandExecutionResult == 1)
 		{
@@ -116,9 +118,12 @@ int main(int argc, char* argv[]) {
 			//
 			ExitFromDebugger = true;
 		}
-
-
+		if (CommandExecutionResult != 2)
+		{
+			printf("\n");
+		}
 	}
+
 	return 0;
 }
 

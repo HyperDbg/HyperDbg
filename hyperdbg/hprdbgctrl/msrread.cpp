@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !msrread command
+ * 
+ * @return VOID 
+ */
 VOID CommandMsrreadHelp() {
   ShowMessages("!msrread : Detects the execution of rdmsr instructions.\n\n");
   ShowMessages("syntax : \t!msrread [msr (hex value) - if not specific means "
@@ -25,6 +30,12 @@ VOID CommandMsrreadHelp() {
   ShowMessages("\t\te.g : !msrread core 2 pid 400\n");
 }
 
+/**
+ * @brief !msrread command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandMsrread(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -71,7 +82,7 @@ VOID CommandMsrread(vector<string> SplittedCommand) {
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandMsrreadHelp();
       return;
     }
@@ -85,10 +96,25 @@ VOID CommandMsrread(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

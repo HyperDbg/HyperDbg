@@ -14,15 +14,25 @@
 //
 // Global Variables
 //
-
 extern BOOLEAN g_LogOpened;
 extern ofstream g_LogOpenFile;
 
+/**
+ * @brief help .logclose command
+ * 
+ * @return VOID 
+ */
 VOID CommandLogcloseHelp() {
   ShowMessages(".logclose : close the previously opened log.\n\n");
   ShowMessages("syntax : \.logclose\n");
 }
 
+/**
+ * @brief .logclose command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandLogclose(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {

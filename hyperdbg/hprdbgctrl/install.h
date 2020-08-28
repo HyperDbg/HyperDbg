@@ -11,6 +11,7 @@
  */
 #pragma once
 
+//
 // The following ifdef block is the standard way of creating macros which make
 // exporting from a DLL simpler. All files within this DLL are compiled with the
 // HPRDBGCTRL_EXPORTS symbol defined on the command line. This symbol should not
@@ -18,6 +19,7 @@
 // whose source files include this file see HPRDBGCTRL_API functions as being
 // imported from a DLL, whereas this DLL sees symbols defined with this macro as
 // being exported.
+//
 
 #ifdef HPRDBGCTRL_EXPORTS
 #define HPRDBGCTRL_API __declspec(dllexport)

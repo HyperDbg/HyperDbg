@@ -21,7 +21,10 @@
 //					Constants					//
 //////////////////////////////////////////////////
 
-/* MTRR Physical Base MSRs */
+/**
+ * @brief MTRR Physical Base MSRs
+ * 
+ */
 #define MSR_IA32_MTRR_PHYSBASE0 0x00000200
 #define MSR_IA32_MTRR_PHYSBASE1 0x00000202
 #define MSR_IA32_MTRR_PHYSBASE2 0x00000204
@@ -33,7 +36,10 @@
 #define MSR_IA32_MTRR_PHYSBASE8 0x00000210
 #define MSR_IA32_MTRR_PHYSBASE9 0x00000212
 
-/* MTRR Physical Mask MSRs */
+/**
+ * @brief MTRR Physical Mask MSRs
+ * 
+ */
 #define MSR_IA32_MTRR_PHYSMASK0 0x00000201
 #define MSR_IA32_MTRR_PHYSMASK1 0x00000203
 #define MSR_IA32_MTRR_PHYSMASK2 0x00000205
@@ -45,7 +51,10 @@
 #define MSR_IA32_MTRR_PHYSMASK8 0x00000211
 #define MSR_IA32_MTRR_PHYSMASK9 0x00000213
 
-/* Memory Types */
+/**
+ * @brief Memory Types
+ * 
+ */
 #define MEMORY_TYPE_UNCACHEABLE     0x00000000
 #define MEMORY_TYPE_WRITE_COMBINING 0x00000001
 #define MEMORY_TYPE_WRITE_THROUGH   0x00000004
@@ -53,48 +62,92 @@
 #define MEMORY_TYPE_WRITE_BACK      0x00000006
 #define MEMORY_TYPE_INVALID         0x000000FF
 
-// Page attributes for internal use */
+/**
+ * @brief Page attributes for internal use
+ * 
+ */
 #define PAGE_ATTRIB_READ  0x2
 #define PAGE_ATTRIB_WRITE 0x4
 #define PAGE_ATTRIB_EXEC  0x8
 
-// VMX EPT & VPID Capabilities MSR */
+/**
+ * @brief VMX EPT & VPID Capabilities MSR
+ * 
+ */
 #define MSR_IA32_VMX_EPT_VPID_CAP 0x0000048C
 
-// MTRR Def MSR */
+/**
+ * @brief MTRR Def MSR
+ * 
+ */
 #define MSR_IA32_MTRR_DEF_TYPE 0x000002FF
 
-// MTRR Capabilities MSR */
+/**
+ * @brief MTRR Capabilities MSR
+ * 
+ */
 #define MSR_IA32_MTRR_CAPABILITIES 0x000000FE
 
-// The number of 512GB PML4 entries in the page table  */
+/**
+ * @brief The number of 512GB PML4 entries in the page table
+ * 
+ */
 #define VMM_EPT_PML4E_COUNT 512
 
-// The number of 1GB PDPT entries in the page table per 512GB PML4 entry */
+/**
+ * @brief The number of 1GB PDPT entries in the page table per 512GB PML4 entry
+ * 
+ */
 #define VMM_EPT_PML3E_COUNT 512
 
-// Then number of 2MB Page Directory entries in the page table per 1GB PML3 entry */
+/**
+ * @brief Then number of 2MB Page Directory entries in the page table per 1GB
+ *  PML3 entry
+ * 
+ */
 #define VMM_EPT_PML2E_COUNT 512
 
-// Then number of 4096 byte Page Table entries in the page table per 2MB PML2 entry when dynamically split */
+/**
+ * @brief Then number of 4096 byte Page Table entries in the page table per 2MB PML2
+ * entry when dynamically split
+ * 
+ */
 #define VMM_EPT_PML1E_COUNT 512
 
-/* Integer 2MB */
+/**
+ * @brief Integer 2MB
+ * 
+ */
 #define SIZE_2_MB ((SIZE_T)(512 * PAGE_SIZE))
 
-/* Offset into the 1st paging structure (4096 byte) */
+/**
+ * @brief Offset into the 1st paging structure (4096 byte)
+ * 
+ */
 #define ADDRMASK_EPT_PML1_OFFSET(_VAR_) (_VAR_ & 0xFFFULL)
 
-/* Index of the 1st paging structure (4096 byte) */
+/**
+ * @brief Index of the 1st paging structure (4096 byte)
+ * 
+ */
 #define ADDRMASK_EPT_PML1_INDEX(_VAR_) ((_VAR_ & 0x1FF000ULL) >> 12)
 
-/* Index of the 2nd paging structure (2MB) */
+/**
+ * @brief Index of the 2nd paging structure (2MB) 
+ * 
+ */
 #define ADDRMASK_EPT_PML2_INDEX(_VAR_) ((_VAR_ & 0x3FE00000ULL) >> 21)
 
-/* Index of the 3rd paging structure (1GB) */
+/**
+ * @brief Index of the 3rd paging structure (1GB)
+ * 
+ */
 #define ADDRMASK_EPT_PML3_INDEX(_VAR_) ((_VAR_ & 0x7FC0000000ULL) >> 30)
 
-/* Index of the 4th paging structure (512GB) */
+/**
+ * @brief Index of the 4th paging structure (512GB)
+ * 
+ */
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
 /**
@@ -122,8 +175,7 @@
         P##_TARGET_TYPE_ _TARGET_NAME_ = CONTAINING_RECORD(Entry, _TARGET_TYPE_, _LISTHEAD_NAME_);
 
 /**
- * @details 
- * The braces for the block are messy due to the need to define a local variable in the for loop scope.
+ * @details The braces for the block are messy due to the need to define a local variable in the for loop scope.
  * Therefore, this macro just ends the for each block without messing up code editors trying to detect
  * the block indent level.
  */
@@ -872,7 +924,10 @@ typedef union _IA32_MTRR_PHYSBASE_REGISTER
     UINT64 Flags;
 } IA32_MTRR_PHYSBASE_REGISTER, *PIA32_MTRR_PHYSBASE_REGISTER;
 
-// MSR_IA32_MTRR_PHYSMASK(0-9).
+/**
+ * @brief MSR_IA32_MTRR_PHYSMASK(0-9) structure
+ * 
+ */
 typedef union _IA32_MTRR_PHYSMASK_REGISTER
 {
     struct
@@ -942,6 +997,10 @@ typedef struct _EPT_STATE
 
 } EPT_STATE, *PEPT_STATE;
 
+/**
+ * @brief Split 2MB granularity to 4 KB granularity
+ * 
+ */
 typedef struct _VMM_EPT_DYNAMIC_SPLIT
 {
     /**
@@ -1094,6 +1153,12 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     UINT64 VirtualAddress;
 
     /**
+	* @brief The virtual address of it's enty on g_EptHook2sDetourListHead 
+	* this way we can de-allocate the list whenever the hook is finished
+	*/
+    UINT64 AddressOfEptHook2sDetourListEntry;
+
+    /**
 	 * @brief The base address of the page. Used to find this structure in the list of page hooks
 	 * when a hook is hit.
 	 */
@@ -1199,30 +1264,89 @@ typedef struct _GUEST_REGS
     ULONG64 r15; // 0x78
 } GUEST_REGS, *PGUEST_REGS;
 
-/* Check for EPT Features */
+/**
+ * @brief Check for EPT Features
+ * 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptCheckFeatures();
-/* Build MTRR Map */
+
+/**
+ * @brief Build MTRR Map
+ * 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptBuildMtrrMap();
-/* Convert 2MB pages to 4KB pages */
+
+/**
+ * @brief Convert 2MB pages to 4KB pages
+ * 
+ * @param EptPageTable 
+ * @param PreAllocatedBuffer 
+ * @param PhysicalAddress 
+ * @param CoreIndex 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SIZE_T PhysicalAddress, ULONG CoreIndex);
-/* Initialize EPT Table based on Processor Index */
+
+/**
+ * @brief Initialize EPT Table based on Processor Index
+ * 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptLogicalProcessorInitialize();
-/* Handle EPT Violation */
+
+/**
+ * @brief Handle EPT Violation
+ * 
+ * @param Regs 
+ * @param ExitQualification 
+ * @param GuestPhysicalAddr 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr);
-/* Get the PML1 Entry of a special address */
+
+/**
+ * @brief Get the PML1 Entry of a special address
+ * 
+ * @param EptPageTable 
+ * @param PhysicalAddress 
+ * @return PEPT_PML1_ENTRY 
+ */
 PEPT_PML1_ENTRY
 EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
-/* Handle vm-exits for Monitor Trap Flag to restore previous state */
+
+/**
+ * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
+ * 
+ * @param HookedEntry 
+ * @return VOID 
+ */
 VOID
 EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
-/* Handle Ept Misconfigurations */
+
+/**
+ * @brief Handle Ept Misconfigurations
+ * 
+ * @param GuestAddress 
+ * @return VOID 
+ */
 VOID
 EptHandleMisconfiguration(UINT64 GuestAddress);
-/* This function set the specific PML1 entry in a spinlock protected area then	invalidate the TLB , this function should be called from vmx root-mode */
+
+/**
+ * @brief This function set the specific PML1 entry in a spinlock protected area then
+ * invalidate the TLB , this function should be called from vmx root-mode
+ * 
+ * @param EntryAddress 
+ * @param EntryValue 
+ * @param InvalidationType 
+ * @return VOID 
+ */
 VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType);

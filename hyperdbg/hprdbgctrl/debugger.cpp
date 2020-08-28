@@ -17,14 +17,144 @@
 extern UINT64 g_EventTag;
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
+extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_AutoUnpause;
+
+/**
+ * @brief shows the error message
+ * 
+ * @param Error 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ShowErrorMessage(UINT32 Error) {
+  switch (Error) {
+  case DEBUGEER_ERROR_TAG_NOT_EXISTS:
+    ShowMessages("err, tag not found (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_INVALID_ACTION_TYPE:
+    ShowMessages("err, invalid action type (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO:
+    ShowMessages("err, action buffer size is zero (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID:
+    ShowMessages("err, event type is invalid (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT:
+    ShowMessages("err, unable to create event (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_INVALID_ADDRESS:
+    ShowMessages("err, invalid address (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_INVALID_CORE_ID:
+    ShowMessages("err, invalid core id (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES:
+    ShowMessages("err, exception index exceed first 32 entries (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID:
+    ShowMessages("err, interrupt index is not valid (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
+    ShowMessages("err, unable to hide or unhide debugger (%x)\n", Error);
+    break;
+
+  case DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE:
+    ShowMessages("err, debugger already unhide (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER:
+    ShowMessages("err, edit memeory request has invalid parameters (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS:
+    ShowMessages("err, edit memory request has invalid address based on "
+                 "current process layout (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS:
+    ShowMessages("err, edit memory request has invalid address based on other "
+                 "process layout (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TAG:
+    ShowMessages("err, modify event with invalid tag (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION:
+    ShowMessages("err, modify event with invalid type of action (%x)\n", Error);
+    break;
+  default:
+    ShowMessages("err, error not found (%x)\n", Error);
+    return FALSE;
+    break;
+  }
+
+  return TRUE;
+}
+
+/**
+ * @brief Check whether the tag exists or not, if the tag is
+ * DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG then if we find just one event, it
+ * also means that the tag is found
+ * 
+ * @param Tag 
+ * @return BOOLEAN 
+ */
+BOOLEAN IsTagExist(UINT64 Tag) {
+
+  PLIST_ENTRY TempList = 0;
+  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+
+  if (!g_EventTraceInitialized) {
+    return FALSE;
+  }
+
+  TempList = &g_EventTrace;
+  while (&g_EventTrace != TempList->Blink) {
+    TempList = TempList->Blink;
+
+    CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL,
+                                      CommandsEventList);
+
+    if (CommandDetail->Tag == Tag ||
+        Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+      return TRUE;
+    }
+  }
+
+  //
+  // Not found
+  //
+  return FALSE;
+}
 
 /**
  * @brief Interpret conditions (if an event has condition) and custom code
  * @details If this function returns true then it means that there is a condtion
  * or code buffer in this command split and the details are returned in the
  * input structure
- *
- * @param SplittedCommand All the commands
+ * 
+ * @param SplittedCommand the initialized command that are splitted by space
+ * @param IsConditionBuffer is it a condition buffer or a custom code buffer
+ * @param BufferAddrss the address that the allocated buffer will be saved on it
+ * @param BufferLength the length of the buffer
+ * @return BOOLEAN shows whether the interpret was successful (true) or not 
+ * successful (false)
  */
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
@@ -93,6 +223,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
     }
 
     if (IsTextVisited && !Section.compare("{")) {
+
       //
       // Save to remove this string from the command
       //
@@ -103,6 +234,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
     }
 
     if (IsTextVisited && Section.rfind("{", 0) == 0) {
+
       //
       // Section starts with {
       //
@@ -123,6 +255,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         IsEnded = TRUE;
         break;
       }
+
       //
       // Save to remove this string from the command
       //
@@ -146,6 +279,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         continue;
       }
     } else {
+
       //
       // It's code
       //
@@ -174,6 +308,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         continue;
       }
     } else {
+
       //
       // It's code
       //
@@ -202,12 +337,14 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         IsInState = TRUE;
 
         if (!HasEnding(Section, "}")) {
+
           //
           // Section starts with condition{
           //
           SaveBuffer.push_back(Section.erase(0, 10));
           continue;
         } else {
+
           //
           // remove the last character and first character append it to the
           // ConditionBuffer
@@ -235,12 +372,14 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         IsInState = TRUE;
 
         if (!HasEnding(Section, "}")) {
+
           //
           // Section starts with condition{
           //
           SaveBuffer.push_back(Section.erase(0, 5));
           continue;
         } else {
+
           //
           // remove the last character and first character append it to the
           // ConditionBuffer
@@ -348,11 +487,17 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
     SplittedCommand->erase(SplittedCommand->begin() +
                            (IndexToRemove - NewIndexToRemove));
   }
+
   return TRUE;
 }
 
 /**
  * @brief Register the event to the kernel
+ * 
+ * @param Event the event structure to send
+ * @param EventBufferLength the buffer length of event
+ * @return BOOLEAN if the request was successful then true
+ * if the request was not successful then false
  */
 BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
@@ -380,7 +525,8 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   */
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return FALSE;
   }
 
@@ -405,8 +551,45 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
       );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return FALSE;
+  }
+
+  if (ReturnedBuffer.IsSuccessful && ReturnedBuffer.Error == 0) {
+
+    //
+    // The returned buffer shows that this event was
+    // successful and now we can add it to the list of
+    // events
+    //
+    InsertHeadList(&g_EventTrace, &(Event->CommandsEventList));
+
+    //
+    // Check for auto-unpause mode
+    //
+    if (g_BreakPrintingOutput && g_AutoUnpause) {
+
+      //
+      // Allow debugger to show its contents
+      //
+      ShowMessages("\n");
+      g_BreakPrintingOutput = FALSE;
+    }
+
+  } else {
+    //
+    // It was not successful, we have to free the buffers for command
+    // string and buffer for the event itself
+    //
+    free(Event->CommandStringBuffer);
+    free(Event);
+
+    //
+    // Show the error
+    //
+    if (ReturnedBuffer.Error != 0) {
+      ShowErrorMessage(ReturnedBuffer.Error);
+    }
   }
 
   return TRUE;
@@ -414,8 +597,12 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
 /**
  * @brief Register the action to the event
+ * 
+ * @param Action the action buffer structure
+ * @param ActionsBufferLength length of action buffer
+ * @return BOOLEAN BOOLEAN if the request was successful then true
+ * if the request was not successful then false
  */
-
 BOOLEAN
 RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
                       UINT32 ActionsBufferLength) {
@@ -435,7 +622,8 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   */
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return FALSE;
   }
 
@@ -459,21 +647,42 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
       );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return FALSE;
   }
+
+  //
+  // The action buffer is allocated once using malloc and
+  // is not used anymore, we have to free it
+  //
+  free(Action);
 
   return TRUE;
 }
 
+/**
+ * @brief Get the New Debugger Event Tag object and increase the 
+ * global variable for tag
+ * 
+ * @return UINT64 
+ */
 UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
 
 /**
  * @brief Interpret general event fields
- * @details If this function returns true then it means that there
+ * 
+ * @param SplittedCommand the commands that was splitted by space
+ * @param EventType type of event
+ * @param EventDetailsToFill a pointer address that will be filled 
+ * by event detail buffer
+ * @param EventBufferLength a pointer the receives the buffer length
+ * of the event
+ * @param ActionDetailsToFill a pointer address that will be filled 
+ * by action detail buffer
+ * @param ActionBufferLength a pointer the receives the buffer length
+ * of the action
+ * @return BOOLEAN  If this function returns true then it means that there
  * was no error in parsing the general event details
- *
- * @param SplittedCommand All the commands
  */
 BOOLEAN InterpretGeneralEventAndActionsFields(
     vector<string> *SplittedCommand, DEBUGGER_EVENT_TYPE_ENUM EventType,
@@ -548,6 +757,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
     HasConditionBuffer = TRUE;
 
+    /*
     ShowMessages(
         "\n========================= Condition =========================\n");
 
@@ -558,13 +768,14 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
     // Disassemble the buffer
     //
-    HyperDbgDisassembler((unsigned char *)ConditionBufferAddress, 0x0,
-                         ConditionBufferLength);
+    HyperDbgDisassembler64((unsigned char *)ConditionBufferAddress, 0x0,
+                           ConditionBufferLength);
 
     ShowMessages("}\n\n");
 
     ShowMessages(
         "=============================================================\n");
+      */
   }
 
   //
@@ -587,6 +798,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
     HasCodeBuffer = TRUE;
 
+    /*
     ShowMessages(
         "\n=========================    Code    =========================\n");
     ShowMessages("\nPVOID DebuggerRunCustomCodeFunc(PVOID "
@@ -596,13 +808,14 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
     // Disassemble the buffer
     //
-    HyperDbgDisassembler((unsigned char *)CodeBufferAddress, 0x0,
-                         CodeBufferLength);
+    HyperDbgDisassembler64((unsigned char *)CodeBufferAddress, 0x0,
+                           CodeBufferLength);
 
     ShowMessages("}\n\n");
 
     ShowMessages(
         "=============================================================\n");
+        */
   }
 
   //
@@ -649,6 +862,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
     // The heap is not available
     //
+    free(BufferOfCommandString);
     return FALSE;
   }
 
@@ -700,7 +914,8 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   //
-  // Allocate the Action
+  // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
+  // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
   //
   UINT32 LengthOfActionBuffer =
       sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
@@ -739,7 +954,6 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   // Interpret rest of the command
   //
-
   for (auto Section : *SplittedCommand) {
     Index++;
     if (IsNextCommandBufferSize) {
@@ -747,6 +961,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       if (!ConvertStringToUInt32(Section, &RequestBuffer)) {
         return FALSE;
       } else {
+
         //
         // Set the specific requested buffer size
         //
@@ -764,8 +979,12 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     if (IsNextCommandPid) {
 
       if (!ConvertStringToUInt32(Section, &ProcessId)) {
+        free(BufferOfCommandString);
+        free(TempEvent);
+        free(TempAction);
         return FALSE;
       } else {
+
         //
         // Set the specific process id
         //
@@ -782,8 +1001,12 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     }
     if (IsNextCommandCoreId) {
       if (!ConvertStringToUInt32(Section, &CoreId)) {
+        free(BufferOfCommandString);
+        free(TempEvent);
+        free(TempAction);
         return FALSE;
       } else {
+
         //
         // Set the specific core id
         //
@@ -836,14 +1059,23 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   if (IsNextCommandCoreId) {
     ShowMessages("error : please specify a value for 'core'\n\n");
+    free(BufferOfCommandString);
+    free(TempEvent);
+    free(TempAction);
     return FALSE;
   }
   if (IsNextCommandPid) {
     ShowMessages("error : please specify a value for 'pid'\n\n");
+    free(BufferOfCommandString);
+    free(TempEvent);
+    free(TempAction);
     return FALSE;
   }
   if (IsNextCommandBufferSize) {
     ShowMessages("errlr : please specify a value for 'buffer'\n\n");
+    free(BufferOfCommandString);
+    free(TempEvent);
+    free(TempAction);
     return FALSE;
   }
 
@@ -878,8 +1110,11 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
   //
   // Add the event to the trace list
+  // UPDATE : if we add it here, then if the event was not
+  // successful then still the event shows this event, so
+  // we have to add it lated
   //
-  InsertHeadList(&g_EventTrace, &(TempEvent->CommandsEventList));
+  // InsertHeadList(&g_EventTrace, &(TempEvent->CommandsEventList));
 
   //
   // Everything is ok, let's return TRUE

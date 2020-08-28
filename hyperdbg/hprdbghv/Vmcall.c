@@ -26,7 +26,10 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
     // As the context to event trigger, we send NULL
     // Registers are the best source to know the purpose
     //
-    DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+    if (g_TriggerEventForVmcalls)
+    {
+        DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+    }
 
     //
     // Check if it's our routines that request the VMCALL our it relates to Hyper-V
@@ -117,9 +120,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         UnsetWrite = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
         UnsetExec  = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
 
+        CR3_TYPE ProcCr3 = {0};
+        ProcCr3.Flags    = OptionalParam3;
+
         HookResult = EptHookPerformPageHook2(OptionalParam1 /* TargetAddress */,
                                              OptionalParam2 /* Hook Function*/,
-                                             OptionalParam3 /* Process Id */,
+                                             ProcCr3 /* Process cr3 */,
                                              UnsetRead,
                                              UnsetWrite,
                                              UnsetExec);
@@ -214,11 +220,20 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_SET_HIDDEN_CC_BREAKPOINT:
     {
-        HookResult = EptHookPerformPageHook(OptionalParam1,  /* TargetAddress */
-                                            OptionalParam2); /* process id */
+        CR3_TYPE ProcCr3 = {0};
+        ProcCr3.Flags    = OptionalParam2;
+
+        HookResult = EptHookPerformPageHook(OptionalParam1, /* TargetAddress */
+                                            ProcCr3);       /* process cr3 */
 
         VmcallStatus = (HookResult == TRUE) ? STATUS_SUCCESS : STATUS_UNSUCCESSFUL;
 
+        break;
+    }
+    case VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING:
+    {
+        HvSetExternalInterruptExiting(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP:
@@ -241,6 +256,50 @@ VmxVmcallHandler(UINT64 VmcallNumber,
 
         VmcallStatus = STATUS_SUCCESS;
 
+        break;
+    }
+    case VMCALL_UNSET_RDTSC_EXITING:
+    {
+        HvSetTscVmexit(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+
+        break;
+    }
+    case VMCALL_UNSET_RDPMC_EXITING:
+    {
+        HvSetPmcVmexit(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING:
+    {
+        HvSetMovDebugRegsExiting(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_RESET_MSR_BITMAP_READ:
+    {
+        HvPerformMsrBitmapReadReset();
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_RESET_MSR_BITMAP_WRITE:
+    {
+        HvPerformMsrBitmapWriteReset();
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_RESET_EXCEPTION_BITMAP:
+    {
+        HvResetExceptionBitmap();
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_RESET_IO_BITMAP:
+    {
+        HvPerformIoBitmapReset();
+        VmcallStatus = STATUS_SUCCESS;
         break;
     }
     default:

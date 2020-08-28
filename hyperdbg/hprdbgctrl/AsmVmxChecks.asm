@@ -1,10 +1,10 @@
-
 PUBLIC AsmVmxSupportDetection
 
 .code _text
 
 ;------------------------------------------------------------------------
-; Note : Right-click the .asm file, Properties, change Item Type to "Microsoft Macro Assembler" if it didn't compile
+; Note : Right-click the .asm file, Properties, change Item Type to
+; "Microsoft Macro Assembler" if it didn't compile
 ;------------------------------------------------------------------------
 
 AsmVmxSupportDetection PROC

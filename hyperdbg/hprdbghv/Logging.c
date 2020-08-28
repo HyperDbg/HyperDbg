@@ -243,6 +243,140 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
 }
 
 /**
+ * @brief Mark all buffers as read 
+ * 
+ * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
+ * @return UINT32 return count of messages that set to invalid 
+ */
+UINT32
+LogMarkAllAsRead(BOOLEAN IsVmxRoot)
+{
+    KIRQL  OldIRQL;
+    UINT32 Index;
+    UINT32 ResultsOfBuffersSetToRead = 0;
+
+    //
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+    // if not we use the windows spinlock
+    //
+    if (IsVmxRoot)
+    {
+        //
+        // Set the index
+        //
+        Index = 1;
+
+        //
+        // Acquire the lock
+        //
+        SpinlockLock(&VmxRootLoggingLock);
+    }
+    else
+    {
+        //
+        // Set the index
+        //
+        Index = 0;
+
+        //
+        // Acquire the lock
+        //
+        KeAcquireSpinLock(&MessageBufferInformation[Index].BufferLock, &OldIRQL);
+    }
+
+    //
+    // We have iterate through the all indexes
+    //
+    for (size_t i = 0; i < MaximumPacketsCapacity; i++)
+    {
+        //
+        // Compute the current buffer to read
+        //
+        BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+
+        if (!Header->Valid)
+        {
+            //
+            // there is nothing to send
+            //
+
+            //
+            // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+            // if not we use the windows spinlock
+            //
+            if (IsVmxRoot)
+            {
+                SpinlockUnlock(&VmxRootLoggingLock);
+            }
+            else
+            {
+                //
+                // Release the lock
+                //
+                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+            }
+
+            return ResultsOfBuffersSetToRead;
+        }
+
+        //
+        // If we reached here, means that there is sth to send
+        //
+        ResultsOfBuffersSetToRead++;
+
+        //
+        // Second, save the buffer contents
+        //
+        PVOID SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+
+        //
+        // Finally, set the current index to invalid as we sent it
+        //
+        Header->Valid = FALSE;
+
+        //
+        // Last step is to clear the current buffer (we can't do it once when CurrentIndexToSend is zero because
+        // there might be multiple messages on the start of the queue that didn't read yet)
+        // we don't free the header
+        //
+        RtlZeroMemory(SendingBuffer, Header->BufferLength);
+
+        //
+        // Check to see whether we passed the index or not
+        //
+        if (MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
+        {
+            MessageBufferInformation[Index].CurrentIndexToSend = 0;
+        }
+        else
+        {
+            //
+            // Increment the next index to read
+            //
+            MessageBufferInformation[Index].CurrentIndexToSend = MessageBufferInformation[Index].CurrentIndexToSend + 1;
+        }
+    }
+
+    //
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+    // if not we use the windows spinlock
+    //
+    if (IsVmxRoot)
+    {
+        SpinlockUnlock(&VmxRootLoggingLock);
+    }
+    else
+    {
+        //
+        // Release the lock
+        //
+        KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+    }
+
+    return ResultsOfBuffersSetToRead;
+}
+
+/**
  * @brief Attempt to read the buffer 
  * 
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
@@ -296,6 +430,23 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         // there is nothing to send
         //
+
+        //
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+        // if not we use the windows spinlock
+        //
+        if (IsVmxRoot)
+        {
+            SpinlockUnlock(&VmxRootLoggingLock);
+        }
+        else
+        {
+            //
+            // Release the lock
+            //
+            KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+        }
+
         return FALSE;
     }
 
@@ -394,6 +545,8 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
         //
         KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
     }
+
+    return TRUE;
 }
 
 /**
@@ -437,9 +590,16 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot)
     return TRUE;
 }
 
-//
-// Send string messages and tracing for logging and monitoring
-//
+/**
+ * @brief Send string messages and tracing for logging and monitoring
+ * 
+ * @param OperationCode Optional operation code
+ * @param IsImmediateMessage Should be sent immediately
+ * @param ShowCurrentSystemTime Show system-time
+ * @param Fmt Message format-string
+ * @param ... 
+ * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
+ */
 BOOLEAN
 LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...)
 {

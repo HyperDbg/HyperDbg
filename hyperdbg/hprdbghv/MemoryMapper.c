@@ -14,6 +14,13 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Get Index of VA on PMLx
+ * 
+ * @param Level PMLx
+ * @param Va Virtual Address
+ * @return UINT64 
+ */
 UINT64
 MemoryMapperGetIndex(PML Level, UINT64 Va)
 {
@@ -23,6 +30,13 @@ MemoryMapperGetIndex(PML Level, UINT64 Va)
     return Result;
 }
 
+/**
+ * @brief Get page offset
+ * 
+ * @param Level PMLx
+ * @param Va Virtual Address
+ * @return int 
+ */
 int
 MemoryMapperGetOffset(PML Level, UINT64 Va)
 {
@@ -35,6 +49,8 @@ MemoryMapperGetOffset(PML Level, UINT64 Va)
 /**
  * @brief This function gets virtual address and returns its PTE of the virtual address
  * 
+ * @param Va Virtual Address
+ * @param Level PMLx
  * @return PPAGE_ENTRY virtual address of PTE
  */
 PPAGE_ENTRY
@@ -100,7 +116,8 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
 /**
  * @brief This function reserve memory from system range (without physically allocating them)
  * 
- * @return PVOID Return the VA of the page
+ * @param Size Size of reserving buffers
+ * @return PVOID Return the VA of the page 
  */
 PVOID
 MemoryMapperMapReservedPageRange(SIZE_T Size)
@@ -114,7 +131,10 @@ MemoryMapperMapReservedPageRange(SIZE_T Size)
 
 /**
  * @brief This function frees the memory that was previously allocated
-*  from system range (without physically allocating them)
+ *  from system range (without physically allocating them)
+ * 
+ * @param VirtualAddress Virtual Address
+ * @return VOID 
  */
 VOID
 MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
@@ -125,6 +145,7 @@ MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
 /**
  * @brief This function gets virtual address and returns its PTE (Pml4e) virtual address
  * 
+ * @param VirtualAddress Virtual Address
  * @return virtual address of PTE (Pml4e)
  */
 PVOID
@@ -137,6 +158,7 @@ MemoryMapperGetPte(PVOID VirtualAddress)
  * @brief This function MAPs one resreved page (4096) and returns
  * its virtual adrresss and also PTE virtual address in PteAddress
  * 
+ * @param PteAddress Address of Page Table Entry
  * @return virtual address of mapped (not physically) address
  */
 PVOID
@@ -281,6 +303,12 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead, PVOID BufferTo
 /**
  * @brief Write memory safely by mapping the buffer using PTE
  * 
+ * @param SourceVA Source virtual address
+ * @param PaAddressToWrite Destinaton physical address 
+ * @param SizeToRead Size
+ * @param PteVaAddress PTE of target virtual address
+ * @param MappingVa Mapping Virtual Address
+ * @param InvalidateVpids Invalidate VPIDs or not
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
@@ -353,7 +381,11 @@ MemoryMapperWriteMemorySafeByPte(PVOID SourceVA, PHYSICAL_ADDRESS PaAddressToWri
 /**
  * @brief Read memory safely by mapping the buffer (It's a wrapper)
  * 
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @param VaAddressToRead Virtual Address to read
+ * @param BufferToSaveMemory Destination to save 
+ * @param SizeToRead Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
  */
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
@@ -385,12 +417,67 @@ MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZ
 }
 
 /**
- * @brief Write memory safely by mapping the buffer (It's a wrapper)
+ * @brief Write memory by mapping the buffer (It's a wrapper)
+ *
+ * @details this function CAN be called from vmx-root mode
+ * 
+ * @param Destination Destination Virtual Address
+ * @param Source Source Virtual Address
+ * @param SizeToRead Size
+ * @param TargetProcessCr3 CR3 of target process
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
+MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, CR3_TYPE TargetProcessCr3)
+{
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    if (TargetProcessCr3.Flags == NULL)
+    {
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(Destination);
+    }
+    else
+    {
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessCr3(Destination, TargetProcessCr3);
+    }
+
+    return MemoryMapperWriteMemorySafeByPte(
+        Source,
+        PhysicalAddress,
+        SizeToRead,
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
+        g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
+        g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer (It's a wrapper)
+ *
+ * @details this function should not be called from vmx-root mode
+ * 
+ * @param Destination Destination Virtual Address
+ * @param Source Source Virtual Address
+ * @param SizeToRead Size
+ * @param TargetProcessId Target Process Id
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
     PHYSICAL_ADDRESS PhysicalAddress;
@@ -428,7 +515,12 @@ MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead,
 /**
  * @brief Write memory safely by mapping the buffer (It's a wrapper)
  * 
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @param DestinationPa Destination Physical Address
+ * @param Source Source Address
+ * @param SizeToRead Size
+ * @param TargetProcessId Target process id
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
 MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
@@ -461,7 +553,9 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source,
 
 /**
  * @brief Reserve user mode address (not allocated) in the target user mode application
- * 
+ * @details this function should be called from vmx non-root mode
+ *
+ * @param ProcessId Target Process Id
  * @return Reserved address in the target user mode application
  */
 UINT64

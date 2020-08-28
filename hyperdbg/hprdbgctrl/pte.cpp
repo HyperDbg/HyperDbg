@@ -11,12 +11,23 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !pte command
+ * 
+ * @return VOID 
+ */
 VOID CommandPteHelp() {
   ShowMessages("!pte : Find virtual address of different paging-levels.\n\n");
   ShowMessages("syntax : \t!pte [Virtual Address (hex value)]\n");
   ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
 }
 
+/**
+ * @brief !pte command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandPte(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -36,9 +47,11 @@ VOID CommandPte(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
+  
   //
   // Prepare the buffer
   // We use same buffer for input and output
@@ -61,7 +74,7 @@ VOID CommandPte(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 

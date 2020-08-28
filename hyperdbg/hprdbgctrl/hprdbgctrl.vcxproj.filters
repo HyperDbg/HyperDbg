@@ -49,6 +49,9 @@
     <Filter Include="Source Files\Debugger\Tests">
       <UniqueIdentifier>{c444d625-bb46-481a-a5ac-04db9c52d0f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Transparency">
+      <UniqueIdentifier>{4fbff165-6d2b-4ea2-ae47-7ec44cf79f2f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -85,6 +88,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="namedpipe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transparency.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -253,6 +262,45 @@
     </ClCompile>
     <ClCompile Include="s.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="transparency.cpp">
+      <Filter>Source Files\Debugger\Transparency</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussian-rng.cpp">
+      <Filter>Source Files\Debugger\Transparency</Filter>
+    </ClCompile>
+    <ClCompile Include="measure.cpp">
+      <Filter>Source Files\Debugger\Commands\Extension Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="help.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="settings.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="flush.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="tcpserver.cpp">
+      <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="tcpclient.cpp">
+      <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="listen.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="remoteconnection.cpp">
+      <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="status.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="attach.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="detach.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

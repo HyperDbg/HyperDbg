@@ -67,18 +67,37 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
     return TRUE;
 }
 
+/**
+ * @brief Check whether the bit is set or not
+ * 
+ * @param nth 
+ * @param addr 
+ * @return int 
+ */
 int
 TestBit(int nth, unsigned long * addr)
 {
     return (BITMAP_ENTRY(nth, addr) >> BITMAP_SHIFT(nth)) & 1;
 }
 
+/**
+ * @brief unset the bit
+ * 
+ * @param nth 
+ * @param addr 
+ */
 void
 ClearBit(int nth, unsigned long * addr)
 {
     BITMAP_ENTRY(nth, addr) &= ~(1UL << BITMAP_SHIFT(nth));
 }
 
+/**
+ * @brief set the bit
+ * 
+ * @param nth 
+ * @param addr 
+ */
 void
 SetBit(int nth, unsigned long * addr)
 {
@@ -98,8 +117,42 @@ VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
 }
 
 /**
+ * @brief Converts pid to kernel cr3
+ * 
+ * @details this function should NOT be called from vmx-root mode
+ *
+ * @param ProcessId ProcessId to switch
+ * @return CR3_TYPE The cr3 of the target process 
+ */
+CR3_TYPE
+GetCr3FromProcessId(UINT32 ProcessId)
+{
+    PEPROCESS TargetEprocess;
+    CR3_TYPE  ProcessCr3 = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &TargetEprocess) != STATUS_SUCCESS)
+    {
+        //
+        // There was an error, probably the process id was not found
+        //
+        return ProcessCr3;
+    }
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
+    ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
+
+    return ProcessCr3;
+}
+
+/**
  * @brief Switch to another process's cr3
  * 
+ * @details this function should NOT be called from vmx-root mode
+ *
  * @param ProcessId ProcessId to switch
  * @return CR3_TYPE The cr3 of current process which can be
  * used by RestoreToPreviousProcess function
@@ -135,6 +188,32 @@ SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
     // Change to a new cr3 (of target process)
     //
     __writecr3(GuestCr3);
+
+    return CurrentProcessCr3;
+}
+
+/**
+ * @brief Switch to another process's cr3
+ * 
+ * @param TargetCr3 cr3 to switch
+ * @return CR3_TYPE The cr3 of current process which can be
+ * used by RestoreToPreviousProcess function
+ */
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
+{
+    PEPROCESS TargetEprocess;
+    CR3_TYPE  CurrentProcessCr3 = {0};
+
+    //
+    // Read the current cr3
+    //
+    CurrentProcessCr3.Flags = __readcr3();
+
+    //
+    // Change to a new cr3 (of target process)
+    //
+    __writecr3(TargetCr3.Flags);
 
     return CurrentProcessCr3;
 }
@@ -210,8 +289,10 @@ RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 
 /**
  * @brief Converts Physical Address to Virtual Address based
- * on a specific process id's kernel cr3
- * 
+ * on a specific process id
+ *   
+ * @details this function should NOT be called from vmx-root mode
+ *
  * @param PhysicalAddress The target physical address
  * @param ProcessId The target's process id
  * @return UINT64 Returns the virtual address
@@ -254,8 +335,57 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
 }
 
 /**
+ * @brief Converts Physical Address to Virtual Address based
+ * on a specific process's kernel cr3
+ *   
+ * @details this function should NOT be called from vmx-root mode
+ *
+ * @param PhysicalAddress The target physical address
+ * @param TargetCr3 The target's process cr3
+ * @return UINT64 Returns the virtual address
+ */
+UINT64
+PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
+{
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
+    PHYSICAL_ADDRESS PhysicalAddr;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentProcessCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Read the virtual address based on new cr3
+    //
+    PhysicalAddr.QuadPart = PhysicalAddress;
+    VirtualAddress        = MmGetVirtualForPhysical(PhysicalAddr);
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return VirtualAddress;
+}
+
+/**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process id's kernel cr3
+ *
+ * @details this function should NOT be called from vmx-root mode
  * 
  * @param VirtualAddress The target virtual address
  * @param ProcessId The target's process id
@@ -271,6 +401,51 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
     // Switch to new process's memory layout
     //
     CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentProcessCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Read the physical address based on new cr3
+    //
+    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return PhysicalAddress;
+}
+
+/**
+ * @brief Converts Virtual Address to Physical Address based
+ * on a specific process's kernel cr3
+ *
+ * @details this function should NOT be called from vmx-root mode
+ * 
+ * @param VirtualAddress The target virtual address
+ * @param TargetCr3 The target's process cr3
+ * @return UINT64 Returns the physical address
+ */
+UINT64
+VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
+{
+    CR3_TYPE CurrentProcessCr3;
+    UINT64   PhysicalAddress;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
 
     //
     // Validate if process id is valid
@@ -324,4 +499,67 @@ FindSystemDirectoryTableBase()
     //
     NT_KPROCESS * SystemProcess = (NT_KPROCESS *)(PsInitialSystemProcess);
     return SystemProcess->DirectoryTableBase;
+}
+
+/**
+ * @brief Get process name by eprocess 
+ * 
+ * @param Eprocess Process eprocess
+ * @return PCHAR Returns a pointer to the process name
+ */
+PCHAR
+GetProcessNameFromEprocess(PEPROCESS Eprocess)
+{
+    PCHAR Result = 0;
+
+    //
+    // We can't use PsLookupProcessByProcessId as in pageable and not
+    // work on vmx-root
+    //
+    Result = (CHAR *)PsGetProcessImageFileName(Eprocess);
+
+    return Result;
+}
+
+/**
+ * @brief Detects whether the string starts with another string
+ * 
+ * @param const char * pre
+ * @param const char * str
+ * @return BOOLEAN Returns true if it starts with and false if not strats with
+ */
+BOOLEAN
+StartsWith(const char * pre, const char * str)
+{
+    size_t lenpre = strlen(pre),
+           lenstr = strlen(str);
+    return lenstr < lenpre ? FALSE : memcmp(pre, str, lenpre) == 0;
+}
+
+/**
+ * @brief Checks whether the process with ProcId exists or not
+ * 
+ * @details this function should NOT be called from vmx-root mode
+ *
+ * @param UINT32 ProcId
+ * @return BOOLEAN Returns true if the process 
+ * exists and false if it the process doesn't exist
+ */
+BOOLEAN
+IsProcessExist(UINT32 ProcId)
+{
+    PEPROCESS TargetEprocess;
+    CR3_TYPE  CurrentProcessCr3 = {0};
+
+    if (PsLookupProcessByProcessId(ProcId, &TargetEprocess) != STATUS_SUCCESS)
+    {
+        //
+        // There was an error, probably the process id was not found
+        //
+        return FALSE;
+    }
+    else
+    {
+        return TRUE;
+    }
 }

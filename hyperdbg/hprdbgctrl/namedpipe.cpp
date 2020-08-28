@@ -17,6 +17,14 @@
 //                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Create a named pipe server
+ * 
+ * @param PipeName 
+ * @param OutputBufferSize 
+ * @param InputBufferSize 
+ * @return HANDLE 
+ */
 HANDLE NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize,
                                  UINT32 InputBufferSize) {
 
@@ -42,6 +50,12 @@ HANDLE NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize,
   return hPipe;
 }
 
+/**
+ * @brief wait for client conncetion
+ * 
+ * @param PipeHandle 
+ * @return BOOLEAN 
+ */
 BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
 
   //
@@ -63,6 +77,14 @@ BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
   return TRUE;
 }
 
+/**
+ * @brief read client message from the named pipe
+ * 
+ * @param PipeHandle 
+ * @param BufferToSave 
+ * @param MaximumReadBufferLength 
+ * @return UINT32 
+ */
 UINT32 NamedPipeServerReadClientMessage(HANDLE PipeHandle, char *BufferToSave,
                                         int MaximumReadBufferLength) {
 
@@ -91,6 +113,7 @@ UINT32 NamedPipeServerReadClientMessage(HANDLE PipeHandle, char *BufferToSave,
     CloseHandle(PipeHandle);
     return 0;
   }
+
   //
   // Number of bytes that the client sends to us
   //
@@ -121,6 +144,12 @@ BOOLEAN NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
   return TRUE;
 }
 
+/**
+ * @brief Close handle of server's named pipe
+ * 
+ * @param PipeHandle 
+ * @return VOID 
+ */
 VOID NamedPipeServerCloseHandle(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 
 //**************************************************************************
@@ -131,12 +160,15 @@ VOID NamedPipeServerCloseHandle(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 //                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
-//
-// Pipe name format - \\servername\pipe\pipename
-// This pipe is for server on the same computer,
-// however, pipes can be used to connect to a remote server
-//
-
+/**
+ * @brief Create a client named pipe
+ * @details Pipe name format - \\servername\pipe\pipename
+ * This pipe is for server on the same computer,
+ * however, pipes can be used to connect to a remote server
+ * 
+ * @param PipeName 
+ * @return HANDLE 
+ */
 HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
   HANDLE hPipe;
 
@@ -171,6 +203,14 @@ HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
   }
 }
 
+/**
+ * @brief send client message over named pipe
+ * 
+ * @param PipeHandle 
+ * @param BufferToSend 
+ * @param BufferSize 
+ * @return BOOLEAN 
+ */
 BOOLEAN NamedPipeClientSendMessage(HANDLE PipeHandle, char *BufferToSend,
                                    int BufferSize) {
 
@@ -239,6 +279,12 @@ UINT32 NamedPipeClientReadMessage(HANDLE PipeHandle, char *BufferToRead,
   return cbBytes;
 }
 
+/**
+ * @brief close named pipe handle of client
+ * 
+ * @param PipeHandle 
+ * @return VOID 
+ */
 VOID NamedPipeClientClosePipe(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -247,6 +293,11 @@ VOID NamedPipeClientClosePipe(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 //                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief and example of how to use named pipe as a server
+ * 
+ * @return int 
+ */
 int NamedPipeServerExample() {
 
   HANDLE PipeHandle;
@@ -259,6 +310,7 @@ int NamedPipeServerExample() {
   PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
                                          BufferSize, BufferSize);
   if (!PipeHandle) {
+
     //
     // Error in creating handle
     //
@@ -266,6 +318,7 @@ int NamedPipeServerExample() {
   }
 
   if (!NamedPipeServerWaitForClientConntection(PipeHandle)) {
+
     //
     // Error in connection
     //
@@ -276,6 +329,7 @@ int NamedPipeServerExample() {
       NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
 
   if (!ReadBytes) {
+
     //
     // Nothing to read
     //
@@ -288,6 +342,7 @@ int NamedPipeServerExample() {
       PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
 
   if (!SentMessageResult) {
+
     //
     // error in sending
     //
@@ -305,6 +360,11 @@ int NamedPipeServerExample() {
 //                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief and example of how to use named pipe as a client
+ * 
+ * @return int 
+ */
 int NamedPipeClientExample() {
 
   HANDLE PipeHandle;
@@ -316,6 +376,7 @@ int NamedPipeClientExample() {
   PipeHandle = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
 
   if (!PipeHandle) {
+
     //
     // Unable to create handle
     //
@@ -326,6 +387,7 @@ int NamedPipeClientExample() {
       NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
 
   if (!SentMessageResult) {
+
     //
     // Sending error
     //
@@ -335,6 +397,7 @@ int NamedPipeClientExample() {
   ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, BufferSize);
 
   if (!ReadBytes) {
+    
     //
     // Nothing to read
     //

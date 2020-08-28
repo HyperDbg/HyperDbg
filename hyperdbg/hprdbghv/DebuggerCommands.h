@@ -24,3 +24,6 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest);
 
 NTSTATUS
 DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest);
+
+NTSTATUS
+DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest);

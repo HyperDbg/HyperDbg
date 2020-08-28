@@ -18,7 +18,6 @@
  * @return BOOLEAN Return True if VMXOFF executed (not in vmx anymore),
  *  or return false if we are still in vmx (so we should use vm resume)
  */
-
 BOOLEAN
 VmxVmexitHandler(PGUEST_REGS GuestRegs)
 {
@@ -33,6 +32,8 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     ULONG                 EcxReg                = 0;
     ULONG                 ExitInstructionLength = 0;
     ULONG                 CurrentProcessorIndex = 0;
+    BOOLEAN               Result                = FALSE;
+    BOOLEAN               ShouldEmulateRdtscp   = TRUE;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
@@ -43,13 +44,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     // Indicates we are in Vmx root mode in this logical core
     //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
-    g_GuestState[CurrentProcessorIndex].IncrementRip    = TRUE;
-
-    //
-    // Set the rsp in general purpose registers structure
-    //
-    __vmx_vmread(GUEST_RSP, &GuestRsp);
-    GuestRegs->rsp = GuestRsp;
 
     //
     // read the exit reason and exit qualification
@@ -58,13 +52,37 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
 
+    //
+    // Check if we're operating in transparent-mode or not
+    // If yes then we start operating in transparent-mode
+    //
+    if (g_TransparentMode)
+    {
+        ShouldEmulateRdtscp = TransparentModeStart(GuestRegs, CurrentProcessorIndex, ExitReason);
+    }
+
+    //
+    // Increase the RIP by default
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+
+    //
+    // Set the rsp in general purpose registers structure
+    //
+    __vmx_vmread(GUEST_RSP, &GuestRsp);
+    GuestRegs->rsp = GuestRsp;
+
+    //
+    // Read the exit qualification
+    //
+
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
     //
     // Debugging purpose
     //
-    //LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
-    //LogInfo("EXIT_QUALIFICATION : 0x%llx", ExitQualification);
+    // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
+    // LogInfo("EXIT_QUALIFICATION : 0x%llx", ExitQualification);
     //
 
     switch (ExitReason)
@@ -320,30 +338,44 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_RDTSC:
     {
         //
-        // handle rdtsc (emulate rdtsc)
+        // Check whether we are allowed to change
+        // the registers and emulate rdtsc or not
         //
-        CounterEmulateRdtsc(GuestRegs);
+        if (ShouldEmulateRdtscp)
+        {
+            //
+            // handle rdtsc (emulate rdtsc)
+            //
+            CounterEmulateRdtsc(GuestRegs);
 
-        //
-        // As the context to event trigger, we send the false which means
-        // it's an rdtsc (for rdtscp we set Context to true)
-        //
-        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, FALSE);
-
+            //
+            // As the context to event trigger, we send the false which means
+            // it's an rdtsc (for rdtscp we set Context to true)
+            // Note : Using !tsc command in transparent-mode is not allowed
+            //
+            DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, FALSE);
+        }
         break;
     }
     case EXIT_REASON_RDTSCP:
     {
         //
-        // handle rdtscp (emulate rdtscp)
+        // Check whether we are allowed to change
+        // the registers and emulate rdtscp or not
         //
-        CounterEmulateRdtscp(GuestRegs);
-
-        //
-        // As the context to event trigger, we send the false which means
-        // it's an rdtsc (for rdtscp we set Context to true)
-        //
-        DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, TRUE);
+        if (ShouldEmulateRdtscp)
+        {
+            //
+            // handle rdtscp (emulate rdtscp)
+            //
+            CounterEmulateRdtscp(GuestRegs);
+            //
+            // As the context to event trigger, we send the false which means
+            // it's an rdtsc (for rdtscp we set Context to true)
+            // Note : Using !tsc command in transparent-mode is not allowed
+            //
+            DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, TRUE);
+        }
 
         break;
     }
@@ -408,8 +440,26 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
 
-    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
-        return TRUE;
+    //
+    // Restore the previous time
+    //
+    if (g_TransparentMode)
+    {
+        if (ExitReason != EXIT_REASON_RDTSC && ExitReason != EXIT_REASON_RDTSCP && ExitReason != EXIT_REASON_CPUID)
+        {
+            //
+            // We not wanna change the global timer while RDTSC and RDTSCP
+            // was the reason of vm-exit
+            //
+            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, g_GuestState[CurrentProcessorIndex].TransparencyState.PreviousTimeStampCounter);
+        }
+    }
 
-    return FALSE;
+    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
+        Result = TRUE;
+
+    //
+    // By default it's FALSE, if we want to exit vmx then it's TRUE
+    //
+    return Result;
 }

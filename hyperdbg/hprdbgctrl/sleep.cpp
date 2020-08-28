@@ -11,13 +11,24 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of sleep command
+ * 
+ * @return VOID 
+ */
 VOID CommandSleepHelp() {
   ShowMessages("sleep : sleep command is used in scripts, it doesn't breaks "
                "the debugger but the debugger still shows the buffers received "
                "from kernel.\n\n");
-  ShowMessages("syntax : \sleep [time - milliseconds (hex value)]\n");
+  ShowMessages("syntax : \tsleep [time - milliseconds (hex value)]\n");
 }
 
+/**
+ * @brief sleep command help
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandSleep(vector<string> SplittedCommand) {
   UINT32 MillisecondsTime = 0;
 

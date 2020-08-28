@@ -80,7 +80,8 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -113,15 +114,19 @@
     <ClInclude Include="list.h" />
     <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="communication.h" />
     <ClInclude Include="tests.h" />
+    <ClInclude Include="transparency.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="attach.cpp" />
     <ClCompile Include="breakcontrol.cpp" />
     <ClCompile Include="cls.cpp" />
     <ClCompile Include="connect.cpp" />
     <ClCompile Include="cpuid.cpp" />
     <ClCompile Include="d-u.cpp" />
     <ClCompile Include="debugger.cpp" />
+    <ClCompile Include="detach.cpp" />
     <ClCompile Include="disconnect.cpp" />
     <ClCompile Include="dr.cpp" />
     <ClCompile Include="e.cpp" />
@@ -129,16 +134,21 @@
     <ClCompile Include="events.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />
+    <ClCompile Include="flush.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="epthook2.cpp" />
     <ClCompile Include="g.cpp" />
+    <ClCompile Include="gaussian-rng.cpp" />
+    <ClCompile Include="help.cpp" />
     <ClCompile Include="hide.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
+    <ClCompile Include="listen.cpp" />
     <ClCompile Include="load.cpp" />
     <ClCompile Include="logclose.cpp" />
     <ClCompile Include="logopen.cpp" />
+    <ClCompile Include="measure.cpp" />
     <ClCompile Include="monitor.cpp" />
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />
@@ -149,12 +159,18 @@
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
+    <ClCompile Include="remoteconnection.cpp" />
     <ClCompile Include="s.cpp" />
     <ClCompile Include="script.cpp" />
+    <ClCompile Include="settings.cpp" />
     <ClCompile Include="sleep.cpp" />
+    <ClCompile Include="status.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
+    <ClCompile Include="tcpclient.cpp" />
+    <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="eptcommands.cpp" />
+    <ClCompile Include="transparency.cpp" />
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unhide.cpp" />
     <ClCompile Include="unload.cpp" />

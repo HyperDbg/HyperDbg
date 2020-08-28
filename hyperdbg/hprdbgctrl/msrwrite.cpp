@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !msrwrite command
+ * 
+ * @return VOID 
+ */
 VOID CommandMsrwriteHelp() {
   ShowMessages("!msrwrite : Detects the execution of wrmsr instructions.\n\n");
   ShowMessages("syntax : \t!msrwrite [msr (hex value) - if not specific means "
@@ -25,6 +30,12 @@ VOID CommandMsrwriteHelp() {
   ShowMessages("\t\te.g : !msrwrite core 2 pid 400\n");
 }
 
+/**
+ * @brief !msrwrite command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandMsrwrite(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -58,6 +69,7 @@ VOID CommandMsrwrite(vector<string> SplittedCommand) {
       // It's probably an msr
       //
       if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
+
         //
         // Unkonwn parameter
         //
@@ -68,10 +80,11 @@ VOID CommandMsrwrite(vector<string> SplittedCommand) {
         GetAddress = TRUE;
       }
     } else {
+
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandMsrwriteHelp();
       return;
     }
@@ -85,10 +98,25 @@ VOID CommandMsrwrite(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

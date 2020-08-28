@@ -33,6 +33,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_SEARCH_MEMORY                      DebuggerSearchMemoryRequest;
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER        RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
+    PDEBUGGER_MODIFY_EVENTS                      DebuggerModifyEventRequest;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS              DebuggerFlushBuffersRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
     NTSTATUS                                     Status;
     ULONG                                        InBuffLength;  // Input buffer length
@@ -44,7 +46,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // Here's the best place to see if there is any allocation pending
     // to be allcated as we're in PASSIVE_LEVEL
     //
-    PoolManagerCheckAndPerformAllocation();
+    PoolManagerCheckAndPerformAllocationAndDeallocation();
 
     if (g_AllowIOCTLFromUsermode)
     {
@@ -53,6 +55,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         switch (IrpStack->Parameters.DeviceIoControl.IoControlCode)
         {
         case IOCTL_REGISTER_EVENT:
+
             //
             // First validate the parameters.
             //
@@ -68,7 +71,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // This buffer represents both the input buffer and the output buffer that
             // are specified in calls to DeviceIoControl
             //
-
             RegisterEventRequest = (PREGISTER_NOTIFY_BUFFER)Irp->AssociatedIrp.SystemBuffer;
 
             switch (RegisterEventRequest->Type)
@@ -86,6 +88,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
             break;
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
+
             //
             // Dis-allow new IOCTL
             //
@@ -182,6 +185,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                     break;
                 }
             }
+
             //
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
@@ -204,6 +208,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
 
         case IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS:
+
             //
             // First validate the parameters.
             //
@@ -279,8 +284,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // at the same place
             //
             DebuggerParseEventFromUsermode(DebuggerNewEventRequest, InBuffLength, (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+
             Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
             Status                    = STATUS_SUCCESS;
+
             //
             // Avoid zeroing it
             //
@@ -320,13 +327,16 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
             Status                    = STATUS_SUCCESS;
+
             //
             // Avoid zeroing it
             //
             DoNotChangeInformation = TRUE;
 
             break;
+
         case IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER:
+        
             //
             // First validate the parameters.
             //
@@ -349,6 +359,18 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerHideAndUnhideRequest = (PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE)Irp->AssociatedIrp.SystemBuffer;
 
             //
+            // Here we should validate whether the input parameter is
+            // valid or in other words whether we recieved enough space or not
+            //
+            if (DebuggerHideAndUnhideRequest->TrueIfProcessIdAndFalseIfProcessName == FALSE &&
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
+                    SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE + DebuggerHideAndUnhideRequest->LengthOfProcessName)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
             // check if it's a !hide or !unhide command
             //
             if (DebuggerHideAndUnhideRequest->IsHide == TRUE)
@@ -356,7 +378,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // It's a hide request
                 //
-                Status = TransparentHideDebugger();
+                Status = TransparentHideDebugger(DebuggerHideAndUnhideRequest);
             }
             else
             {
@@ -378,7 +400,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // Set the status
                 //
-                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+                if (DebuggerHideAndUnhideRequest->IsHide)
+                {
+                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+                }
+                else
+                {
+                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE;
+                }
             }
 
             //
@@ -504,7 +533,11 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
             OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
-            if (!InBuffLength || !OutBuffLength)
+            //
+            // The OutBuffLength should have at least MaximumSearchResults * sizeof(UINT64)
+            // free space to store the results
+            //
+            if (!InBuffLength || OutBuffLength < MaximumSearchResults * sizeof(UINT64))
             {
                 Status = STATUS_INVALID_PARAMETER;
                 break;
@@ -530,12 +563,21 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerCommandSearchMemory(DebuggerSearchMemoryRequest);
+            if (DebuggerCommandSearchMemory(DebuggerSearchMemoryRequest) != STATUS_SUCCESS)
+            {
+                //
+                // It is because it was not valid in any of the ways to the function
+                // then we're sure that the usermode code won't interpret it's previous
+                // buffer as a valid buffer and will not show it to the user
+                //
+                RtlZeroMemory(DebuggerSearchMemoryRequest, MaximumSearchResults * sizeof(UINT64));
+            }
 
             //
-            // Configure IRP status
+            // Configure IRP status, and also we send the results
+            // buffer, with it's null values (if any)
             //
-            Irp->IoStatus.Information = SIZEOF_DEBUGGER_SEARCH_MEMORY;
+            Irp->IoStatus.Information = MaximumSearchResults * sizeof(UINT64);
             Status                    = STATUS_SUCCESS;
 
             //
@@ -545,6 +587,88 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
+        case IOCTL_DEBUGGER_MODIFY_EVENTS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < sizeof(DEBUGGER_MODIFY_EVENTS) ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            DebuggerModifyEventRequest = (PDEBUGGER_MODIFY_EVENTS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerParseEventsModificationFromUsermode(DebuggerModifyEventRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_MODIFY_EVENTS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_DEBUGGER_FLUSH_LOGGING_BUFFERS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerFlushBuffersRequest = (PDEBUGGER_FLUSH_LOGGING_BUFFERS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the flush
+            //
+            DebuggerCommandFlush(DebuggerFlushBuffersRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
         default:
             LogError("Unknow IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;

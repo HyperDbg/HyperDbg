@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !pmc command
+ * 
+ * @return VOID 
+ */
 VOID CommandPmcHelp() {
   ShowMessages("!pmc : Monitors execution of rdpmc instructions.\n\n");
   ShowMessages("syntax : \t!tsc core [core index "
@@ -23,6 +28,12 @@ VOID CommandPmcHelp() {
   ShowMessages("\t\te.g : !pmc core 2 pid 400\n");
 }
 
+/**
+ * @brief !pmc command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandPmc(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -42,12 +53,36 @@ VOID CommandPmc(vector<string> SplittedCommand) {
   }
 
   //
+  // Check for size
+  //
+  if (SplittedCommand.size() > 1) {
+    ShowMessages("incorrect use of '!pmc'\n");
+    CommandPmcHelp();
+    return;
+  }
+
+  //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

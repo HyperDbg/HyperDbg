@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !pa2va command
+ * 
+ * @return VOID 
+ */
 VOID CommandPa2vaHelp() {
   ShowMessages("!pa2va : Converts virtual address to physical address.\n\n");
   ShowMessages("syntax : \t!pa2va [Virtual Address (hex value)] pid [Process "
@@ -19,6 +24,12 @@ VOID CommandPa2vaHelp() {
   ShowMessages("\t\te.g : !pa2va fffff801deadbeef pid 0xc8\n");
 }
 
+/**
+ * @brief !pa2va command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandPa2va(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -35,6 +46,7 @@ VOID CommandPa2va(vector<string> SplittedCommand) {
   }
 
   if (SplittedCommand.size() == 2) {
+    
     //
     // It's just a address for current process
     //
@@ -79,7 +91,8 @@ VOID CommandPa2va(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -107,7 +120,7 @@ VOID CommandPa2va(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 

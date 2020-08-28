@@ -13,13 +13,28 @@
 
 using namespace std;
 
+//
+// Global Variables
+//
 extern BOOLEAN g_ExecutingScript;
 
+/**
+ * @brief help of .script command
+ * 
+ * @return VOID 
+ */
 VOID CommandScriptHelp() {
   ShowMessages(".script : run a HyperDbg script.\n\n");
   ShowMessages("syntax : \.script [FilePath]\n");
 }
 
+/**
+ * @brief .script command handler
+ * 
+ * @param SplittedCommand 
+ * @param Command 
+ * @return VOID 
+ */
 VOID CommandScript(vector<string> SplittedCommand, string Command) {
 
   std::string Line;

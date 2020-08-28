@@ -76,6 +76,9 @@
     <Filter Include="Source Files\Debugger\Transparency">
       <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Debugger\Transparency">
+      <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -182,6 +185,9 @@
     <ClCompile Include="EptHook.c">
       <Filter>Source Files\Debugger\Features\Hooks</Filter>
     </ClCompile>
+    <ClCompile Include="Termination.c">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -265,14 +271,17 @@
     <ClInclude Include="Counters.h">
       <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
-    <ClInclude Include="Transparency.h">
-      <Filter>Header Files\Debugger\Features</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ntifs2.h">
       <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Transparency.h">
+      <Filter>Header Files\Debugger\Transparency</Filter>
+    </ClInclude>
+    <ClInclude Include="Termination.h">
+      <Filter>Header Files\Debugger\Essentials</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

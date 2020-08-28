@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of rdmsr command
+ * 
+ * @return VOID 
+ */
 VOID CommandRdmsrHelp() {
   ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
   ShowMessages("syntax : \trdmsr [rcx (hex value)] core [core index (hex value "
@@ -19,6 +24,12 @@ VOID CommandRdmsrHelp() {
   ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
 
+/**
+ * @brief rdmsr command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandRdmsr(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -65,6 +76,7 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
     }
     SetMsr = TRUE;
   }
+
   //
   // Check if msr is set or not
   //
@@ -80,7 +92,8 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -113,7 +126,8 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    free(OutputBuffer);
     return;
   }
 
@@ -121,6 +135,7 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
   // btw, %x is enough, no need to %llx
   //
   if (CoreNumer == DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES) {
+
     //
     // Show all cores
     //
@@ -130,10 +145,16 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
                    SeparateTo64BitValue((OutputBuffer[i])).c_str());
     }
   } else {
+    
     //
     // Show for a single-core
     //
     ShowMessages("core : 0x%x - msr[%llx] = %s\n", CoreNumer, Msr,
                  SeparateTo64BitValue((OutputBuffer[0])).c_str());
   }
+
+  //
+  // Free the buffer
+  //
+  free(OutputBuffer);
 }

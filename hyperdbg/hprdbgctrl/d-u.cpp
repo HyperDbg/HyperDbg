@@ -1,7 +1,7 @@
 /**
  * @file d-u.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief !u u , !d* d* commands
+ * @brief !u* u* , !d* d* commands
  * @details
  * @version 0.1
  * @date 2020-05-27
@@ -11,14 +11,20 @@
  */
 #include "pch.h"
 
-VOID CommandReadMemoryHelp() {
-  ShowMessages("u !u & db dc dd dq !db !dc !dd !dq : read the memory different "
-               "shapes (hex) and disassembler\n");
+/**
+ * @brief help of u* d* !u* !d* commands
+ * 
+ * @return VOID 
+ */
+VOID CommandReadMemoryAndDisassemblerHelp() {
+  ShowMessages("u !u u2 !u2 & db dc dd dq !db !dc !dd !dq : read the  "
+               "memory different shapes (hex) and disassembler\n");
   ShowMessages("d[b]  Byte and ASCII characters\n");
   ShowMessages("d[c]  Double-word values (4 bytes) and ASCII characters\n");
   ShowMessages("d[d]  Double-word values (4 bytes)\n");
   ShowMessages("d[q]  Quad-word values (8 bytes). \n");
-  ShowMessages("u  Disassembler at the target address \n");
+  ShowMessages("u  Disassembler at the target address (x64) \n");
+  ShowMessages("u2  Disassembler at the target address (x86) \n");
   ShowMessages("\n If you want to read physical memory then add '!' at the "
                "start of the command\n");
   ShowMessages("You can also disassemble physical memory using '!u'\n");
@@ -30,6 +36,12 @@ VOID CommandReadMemoryHelp() {
   ShowMessages("\t\te.g : u fffff8077356f010\n");
 }
 
+/**
+ * @brief u* d* !u* !d* commands handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
 
   UINT32 Pid = 0;
@@ -42,12 +54,13 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
   string FirstCommand = SplittedCommand.front();
 
   if (SplittedCommand.size() == 1) {
+    
     //
     // Means that user entered just a connect so we have to
     // ask to connect to what ?
     //
     ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
-    CommandReadMemoryHelp();
+    CommandReadMemoryAndDisassemblerHelp();
     return;
   }
 
@@ -104,7 +117,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
       //
       ShowMessages("Err, incorrect use of '%s' command\n\n",
                    FirstCommand.c_str());
-      CommandReadMemoryHelp();
+      CommandReadMemoryAndDisassemblerHelp();
 
       return;
     }
@@ -129,7 +142,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
   }
   if (IsNextLength || IsNextProcessId) {
     ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
-    CommandReadMemoryHelp();
+    CommandReadMemoryAndDisassemblerHelp();
     return;
   }
   if (Pid == 0) {
@@ -176,15 +189,23 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
   }
 
   //
-  // Disassembler (!u or u)
+  // Disassembler (!u or u or u2 !u2)
   //
   else if (!FirstCommand.compare("u")) {
     HyperDbgReadMemoryAndDisassemble(
-        DEBUGGER_SHOW_COMMAND_DISASSEMBLE, TargetAddress,
+        DEBUGGER_SHOW_COMMAND_DISASSEMBLE64, TargetAddress,
         DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
   } else if (!FirstCommand.compare("!u")) {
     HyperDbgReadMemoryAndDisassemble(
-        DEBUGGER_SHOW_COMMAND_DISASSEMBLE, TargetAddress,
+        DEBUGGER_SHOW_COMMAND_DISASSEMBLE64, TargetAddress,
+        DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+  } else if (!FirstCommand.compare("u2")) {
+    HyperDbgReadMemoryAndDisassemble(
+        DEBUGGER_SHOW_COMMAND_DISASSEMBLE32, TargetAddress,
+        DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+  } else if (!FirstCommand.compare("!u2")) {
+    HyperDbgReadMemoryAndDisassemble(
+        DEBUGGER_SHOW_COMMAND_DISASSEMBLE32, TargetAddress,
         DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
   }
 }

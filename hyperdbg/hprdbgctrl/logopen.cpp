@@ -13,14 +13,29 @@
 
 using namespace std;
 
+//
+// Global Variables
+//
 extern BOOLEAN g_LogOpened;
 extern ofstream g_LogOpenFile;
 
+/**
+ * @brief help of .logopen command
+ * 
+ * @return VOID 
+ */
 VOID CommandLogopenHelp() {
   ShowMessages(".logopen : save commands and results in a file.\n\n");
   ShowMessages("syntax : \.logopen [FilePath]\n");
 }
 
+/**
+ * @brief .logopen command handler
+ * 
+ * @param SplittedCommand 
+ * @param Command 
+ * @return VOID 
+ */
 VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() == 1) {
@@ -59,6 +74,7 @@ VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
   // Check if it's okay
   //
   if (g_LogOpenFile.is_open()) {
+
     //
     // Start intercepting logs
     //
@@ -81,4 +97,10 @@ VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
   }
 }
 
+/**
+ * @brief Append text to the file object
+ * 
+ * @param Text 
+ * @return VOID 
+ */
 VOID LogopenSaveToFile(const char *Text) { g_LogOpenFile << Text; }

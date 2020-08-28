@@ -12,6 +12,12 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Initialize Debugger Structures and Routines
+ * 
+ * @return BOOLEAN Shows whether the initialization process was successful 
+ * or not
+ */
 BOOLEAN
 DebuggerInitialize()
 {
@@ -36,7 +42,6 @@ DebuggerInitialize()
     //
     // Initialize lists relating to the debugger events store
     //
-
     InitializeListHead(&g_Events->EptHookExecCcEventsHead);
     InitializeListHead(&g_Events->HiddenHookReadAndWriteEventsHead);
     InitializeListHead(&g_Events->HiddenHookReadEventsHead);
@@ -71,10 +76,40 @@ DebuggerInitialize()
     //
     g_TransparentMode = FALSE;
 
+    //
+    // Set initial state of triggering events for VMCALLs
+    //
+    g_TriggerEventForVmcalls = FALSE;
+
+    //
+    // Set initial state of triggering events for VMCALLs
+    //
+    g_TriggerEventForCpuids = FALSE;
+
     return TRUE;
 }
 
-// should not be called in vmx root
+// 
+
+/**
+ * @brief Create an Event Object
+ * 
+ * @details should NOT be called in vmx-root
+ * 
+ * @param Enabled Is the event enabled or disabled
+ * @param CoreId The core id that this event is allowed to run
+ * @param ProcessId The process id that this event is allowed to run
+ * @param EventType The type of event
+ * @param Tag User-mode generated unique tag (id) of the event
+ * @param OptionalParam1 Optional parameter 1 for event 
+ * @param OptionalParam2 Optional parameter 2 for event
+ * @param OptionalParam3 Optional parameter 3 for event
+ * @param OptionalParam4 Optional parameter 4 for event
+ * @param ConditionsBufferSize Size of condition code buffer (if any)
+ * @param ConditionBuffer Address of condition code buffer (if any)
+ * @return PDEBUGGER_EVENT Returns null in the case of error and event
+ * object address when it's successful
+ */
 PDEBUGGER_EVENT
 DebuggerCreateEvent(BOOLEAN                  Enabled,
                     UINT32                   CoreId,
@@ -156,11 +191,24 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
     return Event;
 }
 
-// should not be called in vmx root
+/**
+ * @brief Create an action and add the action to an event
+ * 
+ * @details should NOT be called in vmx-root
+ * 
+ * @param Event Target event object
+ * @param ActionType Type of action
+ * @param SendTheResultsImmediately whether the results should be received
+ * by the user-mode immediately
+ * @param InTheCaseOfCustomCode Custom code structure (if any)
+ * @param InTheCaseOfLogTheStates Log the state structure (if any)
+ * @return PDEBUGGER_EVENT_ACTION 
+ */
 PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION InTheCaseOfLogTheStates)
 {
     PDEBUGGER_EVENT_ACTION Action;
+    SIZE_T                 Size;
 
     //
     // As this function uses ExAllocatePoolWithTag,
@@ -180,35 +228,27 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         //
         // We shouldn't allocate extra buffer as there is no custom code
         //
-        Action = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT_ACTION), POOLTAG);
-
-        if (!Action)
-        {
-            //
-            // There was an error in allocation
-            //
-            return NULL;
-        }
-
-        RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION));
+        Size = sizeof(DEBUGGER_EVENT_ACTION);
     }
     else
     {
         //
         // We should allocate extra buffer for custom code
         //
-        Action = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize, POOLTAG);
-
-        if (!Action)
-        {
-            //
-            // There was an error in allocation
-            //
-            return NULL;
-        }
-
-        RtlZeroMemory(Action, sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize);
+        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
     }
+
+    Action = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
+
+    if (Action == NULL)
+    {
+        //
+        // There was an error in allocation
+        //
+        return NULL;
+    }
+
+    RtlZeroMemory(Action, Size);
 
     //
     // If the user needs a buffer to be passed to the debugger then
@@ -301,6 +341,12 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     return Action;
 }
 
+/**
+ * @brief Register an event to a list of active events
+ * 
+ * @param Event Event structure
+ * @return BOOLEAN TRUE if it successfully registered and FALSE if not registered
+ */
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 {
@@ -311,7 +357,6 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     //
     // Register the event
     //
-
     switch (Event->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
@@ -369,14 +414,26 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
         InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
     default:
+
         //
         // Wrong event type
         //
         return FALSE;
         break;
     }
+
+    return TRUE;
 }
 
+/**
+ * @brief Trigger events of a special type to be managed by debugger
+ * 
+ * @param EventType Type of events
+ * @param Regs Guest registers
+ * @param Context An optional parameter (different in each event)
+ * @return BOOLEAN return FALSE if there was an error in triggering
+ * and TRUE if it triggered successfully (even if there was nothing to trigger)
+ */
 BOOLEAN
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
@@ -720,6 +777,14 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     return TRUE;
 }
 
+/**
+ * @brief Run a special event's action(s)
+ * 
+ * @param Event Event Object
+ * @param Regs Guest registers
+ * @param Context Optional parameter
+ * @return VOID 
+ */
 VOID
 DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 {
@@ -728,7 +793,6 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
     //
     // Find and run all the actions in this Event
     //
-
     TempList = &Event->ActionsListHead;
     while (&Event->ActionsListHead != TempList->Flink)
     {
@@ -758,12 +822,31 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
     }
 }
 
+/**
+ * @brief Manage breaking to the debugger action
+ * 
+ * @param Tag Tag of event
+ * @param Action Action object
+ * @param Regs Guest registers
+ * @param Context Optional parameter
+ * @return VOID 
+ */
 VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
     DbgBreakPoint();
 }
 
+
+/**
+ * @brief Managing log the state action
+ * 
+ * @param Tag Tag of event
+ * @param Action Action object
+ * @param Regs Guest registers
+ * @param Context Optional parameter
+ * @return VOID 
+ */
 VOID
 DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
@@ -780,6 +863,15 @@ DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_RE
     //   Action->ActionOrderCode
 }
 
+/**
+ * @brief Manage running the custom code action
+ * 
+ * @param Tag Tag of event
+ * @param Action Action object
+ * @param Regs Guest registers
+ * @param Context Optional parameter
+ * @return VOID 
+ */
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
@@ -856,6 +948,12 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     }
 }
 
+/**
+ * @brief Find event object by tag
+ * 
+ * @param Tag Tag of event
+ * @return PDEBUGGER_EVENT Returns null if not found and event object if found
+ */
 PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag)
 {
@@ -891,6 +989,184 @@ DebuggerGetEventByTag(UINT64 Tag)
     return NULL;
 }
 
+/**
+ * @brief Enable or disable all events from all the types
+ * 
+ * @param IsEnable If you want to enable then true and if 
+ * you want to disable then false
+ * @return BOOLEAN if at least one event enabled/disabled then
+ * it returns true, and otherwise false
+ */
+BOOLEAN
+DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
+{
+    BOOLEAN     FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList            = 0;
+    PLIST_ENTRY TempList2           = 0;
+
+    //
+    // We have to iterate through all events
+    //
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+        TempList2 = TempList;
+
+        while (TempList2 != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            //
+            // Check if we find at least one event or not
+            //
+            if (!FindAtLeastOneEvent)
+            {
+                FindAtLeastOneEvent = TRUE;
+            }
+
+            //
+            // Enable or disable event
+            //
+            CurrentEvent->Enabled = IsEnable;
+        }
+    }
+
+    return FindAtLeastOneEvent;
+}
+
+/**
+ * @brief Terminate effect and configuration to vmx-root
+ * and non-root for all the events
+ * 
+ * @return BOOLEAN if at least one event terminated then
+ * it returns true, and otherwise false
+ */
+BOOLEAN
+DebuggerTerminateAllEvents()
+{
+    BOOLEAN     FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList            = 0;
+    PLIST_ENTRY TempList2           = 0;
+
+    //
+    // We have to iterate through all events
+    //
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+        TempList2 = TempList;
+
+        while (TempList2 != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            //
+            // Check if we find at least one event or not
+            //
+            if (!FindAtLeastOneEvent)
+            {
+                FindAtLeastOneEvent = TRUE;
+            }
+
+            //
+            // Terminate the current event
+            //
+            DebuggerTerminateEvent(CurrentEvent->Tag);
+        }
+    }
+
+    return FindAtLeastOneEvent;
+}
+
+/**
+ * @brief Remove all the events from all the lists
+ * and also de-allocate their structures and actions
+ * 
+ * @details should not be called from vmx-root mode, also
+ * it won't terminate their effects, so the events should 
+ * be terminated first then we can remove them
+ * 
+ * @return BOOLEAN if at least one event removed then
+ * it returns true, and otherwise false
+ */
+BOOLEAN
+DebuggerRemoveAllEvents()
+{
+    BOOLEAN     FindAtLeastOneEvent = FALSE;
+    PLIST_ENTRY TempList            = 0;
+    PLIST_ENTRY TempList2           = 0;
+
+    //
+    // We have to iterate through all events
+    //
+    for (size_t i = 0; i < sizeof(DEBUGGER_CORE_EVENTS) / sizeof(LIST_ENTRY); i++)
+    {
+        TempList  = (PLIST_ENTRY)((UINT64)(g_Events) + (i * sizeof(LIST_ENTRY)));
+        TempList2 = TempList;
+
+        while (TempList2 != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            //
+            // Check if we find at least one event or not
+            //
+            if (!FindAtLeastOneEvent)
+            {
+                FindAtLeastOneEvent = TRUE;
+            }
+
+            //
+            // Remove the current event
+            //
+            DebuggerRemoveEvent(CurrentEvent->Tag);
+        }
+    }
+
+    return FindAtLeastOneEvent;
+}
+
+/**
+ * @brief Count the list of events in a special list
+ * 
+ * @param TargetEventList target event list
+ * @return UINT32 count of events on the list
+ */
+UINT32
+DebuggerEventListCount(PLIST_ENTRY TargetEventList)
+{
+    PLIST_ENTRY TempList = 0;
+    UINT32      Counter  = 0;
+
+    //
+    // We have to iterate through all events of this list
+    //
+    TempList = TargetEventList;
+
+    while (TargetEventList != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+        //
+        // Increase the counter
+        //
+        Counter++;
+    }
+
+    return Counter;
+}
+
+/**
+ * @brief Enable an event by tag
+ * 
+ * @param Tag Tag of target event
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * found
+ */
 BOOLEAN
 DebuggerEnableEvent(UINT64 Tag)
 {
@@ -916,10 +1192,18 @@ DebuggerEnableEvent(UINT64 Tag)
     return TRUE;
 }
 
+/**
+ * @brief Disable an event by tag
+ * 
+ * @param Tag Tag of target event
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * found
+ */
 BOOLEAN
 DebuggerDisableEvent(UINT64 Tag)
 {
     PDEBUGGER_EVENT Event;
+
     //
     // Search all the cores for enable this event
     //
@@ -941,6 +1225,44 @@ DebuggerDisableEvent(UINT64 Tag)
     return TRUE;
 }
 
+/**
+ * @brief Detect whether the tag exists or not
+ * 
+ * @param Tag Tag of target event
+ * @return BOOLEAN TRUE if event found and FALSE if event not found
+ */
+BOOLEAN
+DebuggerIsTagValid(UINT64 Tag)
+{
+    PDEBUGGER_EVENT Event;
+
+    //
+    // Search this event
+    //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Check if tag is valid or not
+    //
+    if (Event == NULL)
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Remove the event from event list by its tag
+ * 
+ * @details should not be called from vmx-root mode, also
+ * it won't terminate their effects, so the events should 
+ * be terminated first then we can remove them
+ * 
+ * @param Tag Target events tag
+ * @return BOOLEAN If the event was removed then TRUE and FALSE
+ * if not found
+ */
 BOOLEAN
 DebuggerRemoveEventFromEventList(UINT64 Tag)
 {
@@ -980,6 +1302,16 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
     return FALSE;
 }
 
+/**
+ * @brief Remove the actions and de-allocate its buffer 
+ * 
+ * @details should not be called from vmx-root mode, also
+ * it won't terminate their effects, so the events should 
+ * be terminated first then we can remove them * 
+ * 
+ * @param Event Event Object
+ * @return BOOLEAN TRUE if it was successful and FALSE if not successful
+ */
 BOOLEAN
 DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
 {
@@ -1022,6 +1354,17 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
     return TRUE;
 }
 
+/**
+ * @brief Remove the event by its tags and also remove its actions
+ * and de-allocate their buffers
+ * 
+ * @details should not be called from vmx-root mode, also
+ * it won't terminate their effects, so the events should 
+ * be terminated first then we can remove them
+ * 
+ * @param Tag Target event tag
+ * @return BOOLEAN TRUE if it was successful and FALSE if not successful
+ */
 BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag)
 {
@@ -1077,9 +1420,16 @@ DebuggerRemoveEvent(UINT64 Tag)
 }
 
 /**
- * @brief routines for parsing events
+ * @brief Routine for validating and parsing events
+ * that came from user-mode
  * 
- * @return VOID 
+ * @param EventDetails The structure that describes event that came
+ * from the user-mode
+ * @param BufferLength Length of the buffer
+ * @param ResultsToReturnUsermode Result buffer that should be returned to
+ * the user-mode
+ * @return BOOLEAN TRUE if the event was valid an regisered without error,
+ * otherwise returns FALSE
  */
 BOOLEAN
 DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
@@ -1261,7 +1611,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
     //
     // ----------------------------------------------------------------------------------
-    // Enable Event
+    // Apply & Enable Event
     // ----------------------------------------------------------------------------------
     //
 
@@ -1283,8 +1633,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // vm-exit occurs and we have the physical address to compare in the case of
         // hidden hook rw events.
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_READ)
     {
@@ -1301,8 +1651,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // vm-exit occurs and we have the physical address to compare in the case of
         // hidden hook rw events.
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
     {
@@ -1322,12 +1672,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // vm-exit occurs and we have the physical address to compare in the case of
         // hidden hook rw events.
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2);
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
+        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
-        EptHook(EventDetails->OptionalParam1, NULL, EventDetails->ProcessId);
+        //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr32 of current process
+        //
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
+            EventDetails->ProcessId == 0)
+        {
+            EventDetails->ProcessId = PsGetCurrentProcessId();
+        }
+
+        //
+        // Invoke the hooker
+        //
+        EptHook(EventDetails->OptionalParam1, EventDetails->ProcessId);
 
         //
         // We set events OptionalParam1 here to make sure that our event is
@@ -1337,6 +1700,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
     {
+        //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr32 of current process
+        //
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
+            EventDetails->ProcessId == 0)
+        {
+            EventDetails->ProcessId = PsGetCurrentProcessId();
+        }
+
+        //
+        // Invoke the hooker
+        //
         EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
         TempPid = EventDetails->ProcessId;
@@ -1354,6 +1730,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
     {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
         //
         // Let's see if it is for all cores or just one core
         //
@@ -1379,6 +1761,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == WRMSR_INSTRUCTION_EXECUTION)
     {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
         //
         // Let's see if it is for all cores or just one core
         //
@@ -1430,6 +1818,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == TSC_INSTRUCTION_EXECUTION)
     {
         //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
+        //
         // Let's see if it is for all cores or just one core
         //
         if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -1449,6 +1843,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == PMC_INSTRUCTION_EXECUTION)
     {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
         //
         // Let's see if it is for all cores or just one core
         //
@@ -1470,6 +1870,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == DEBUG_REGISTERS_ACCESSED)
     {
         //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
+        //
         // Let's see if it is for all cores or just one core
         //
         if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
@@ -1477,7 +1883,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             // All cores
             //
-            ExtensionCommandEnableMovDebugRegistersExiyingAllCores();
+            ExtensionCommandEnableMovDebugRegistersExitingAllCores();
         }
         else
         {
@@ -1489,6 +1895,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == EXCEPTION_OCCURRED)
     {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
         //
         // Let's see if it is for all cores or just one core
         //
@@ -1516,9 +1928,14 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
     {
         //
-        // Let's see if it is for all cores or just one core
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
         //
 
+        //
+        // Let's see if it is for all cores or just one core
+        //
         if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
         {
             //
@@ -1541,7 +1958,29 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
     {
-        DebuggerEventEnableEferOnAllProcessors();
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            DebuggerEventEnableEferOnAllProcessors();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+        }
 
         //
         // Set the event's target syscall number
@@ -1550,12 +1989,55 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSRET)
     {
-        DebuggerEventEnableEferOnAllProcessors();
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
 
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            DebuggerEventEnableEferOnAllProcessors();
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableEferSyscallHookOnSingleCore, NULL);
+        }
         //
         // Set the event's target syscall number
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+    }
+    else if (EventDetails->EventType == VMCALL_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Enable triggering events for vmcalls
+        // This event doesn't support custom optional
+        // parameter(s) because it's unconditional
+        // users can use condition(s) to check for
+        // their custom optional parameters
+        //
+        g_TriggerEventForVmcalls = TRUE;
+    }
+    else if (EventDetails->EventType == CPUID_INSTRUCTION_EXECUTION)
+    {
+        //
+        // Enable triggering events for vmcalls
+        // This event doesn't support custom optional
+        // parameter(s) because it's unconditional
+        // users can use condition(s) to check for
+        // their custom optional parameters
+        //
+        g_TriggerEventForCpuids = TRUE;
     }
     else
     {
@@ -1577,9 +2059,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 }
 
 /**
- * @brief routines for parsing actions
+ * @brief Routine for validating and parsing actions that are comming from
+ * the user-mode 
  * 
- * @return VOID 
+ * @param Action Structure that describes the action that comes from the
+ * user-mode
+ * @param BufferLength Length of the buffer that comes from user-mode
+ * @param ResultsToReturnUsermode The buffer address that should be returned
+ * to the user-mode as the result
+ * @return BOOLEAN if action was parsed and added successfully, return TRUE
+ * otherwise, returns FALSE
  */
 BOOLEAN
 DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLength, PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER ResultsToReturnUsermode)
@@ -1665,6 +2154,359 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
     ResultsToReturnUsermode->IsSuccessful = TRUE;
     ResultsToReturnUsermode->Error        = 0;
 
+    return TRUE;
+}
+
+/**
+ * @brief Terminate one event's effect by its tag
+ * 
+ * @details This function won't remove the event from
+ * the lists of event or de-allocated them, this should
+ * be called BEFORE the removing function
+ * 
+ * @param Tag Target event's tag
+ * @return BOOLEAN if it was found and terminated without error
+ * then it returns TRUE, otherwise FALSE
+ */
+BOOLEAN
+DebuggerTerminateEvent(UINT64 Tag)
+{
+    PDEBUGGER_EVENT Event;
+
+    //
+    // Find the event by its tag
+    //
+    Event = DebuggerGetEventByTag(Tag);
+
+    if (Event == NULL)
+    {
+        //
+        // event, not found
+        //
+        return FALSE;
+    }
+
+    //
+    // Check the event type of our specific tag
+    //
+    switch (Event->EventType)
+    {
+    case EXTERNAL_INTERRUPT_OCCURRED:
+    {
+        //
+        // Call external interrupt terminator
+        //
+        TerminateExternalInterruptEvent(Event);
+
+        break;
+    }
+    case HIDDEN_HOOK_READ_AND_WRITE:
+    {
+        //
+        // Call read and write ept hook terminator
+        //
+        TerminateHiddenHookReadAndWriteEvent(Event);
+
+        break;
+    }
+    case HIDDEN_HOOK_READ:
+    {
+        //
+        // Call read ept hook terminator
+        //
+        TerminateHiddenHookReadEvent(Event);
+
+        break;
+    }
+    case HIDDEN_HOOK_WRITE:
+    {
+        //
+        // Call write ept hook terminator
+        //
+        TerminateHiddenHookWriteEvent(Event);
+
+        break;
+    }
+    case HIDDEN_HOOK_EXEC_CC:
+    {
+        //
+        // Call ept hook (hidden breakpoint) terminator
+        //
+        TerminateHiddenHookExecCcEvent(Event);
+
+        break;
+    }
+    case HIDDEN_HOOK_EXEC_DETOURS:
+    {
+        //
+        // Call ept hook (hidden inline hook) terminator
+        //
+        TerminateHiddenHookExecDetoursEvent(Event);
+
+        break;
+    }
+    case RDMSR_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call rdmsr execution event terminator
+        //
+        TerminateRdmsrExecutionEvent(Event);
+
+        break;
+    }
+    case WRMSR_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call wrmsr execution event terminator
+        //
+        TerminateWrmsrExecutionEvent(Event);
+
+        break;
+    }
+    case EXCEPTION_OCCURRED:
+    {
+        //
+        // Call exception events terminator
+        //
+        TerminateExceptionEvent(Event);
+
+        break;
+    }
+    case IN_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call IN instruction execution event terminator
+        //
+        TerminateInInstructionExecutionEvent(Event);
+
+        break;
+    }
+    case OUT_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call OUT instruction execution event terminator
+        //
+        TerminateOutInstructionExecutionEvent(Event);
+
+        break;
+    }
+    case SYSCALL_HOOK_EFER_SYSCALL:
+    {
+        //
+        // Call syscall hook event terminator
+        //
+        TerminateSyscallHookEferEvent(Event);
+
+        break;
+    }
+    case SYSCALL_HOOK_EFER_SYSRET:
+    {
+        //
+        // Call sysret hook event terminator
+        //
+        TerminateSysretHookEferEvent(Event);
+
+        break;
+    }
+    case VMCALL_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call vmcall instruction execution event terminator
+        //
+        TerminateVmcallExecutionEvent(Event);
+
+        break;
+    }
+    case TSC_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call rdtsc/rdtscp instruction execution event terminator
+        //
+        TerminateTscEvent(Event);
+
+        break;
+    }
+    case PMC_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call rdtsc/rdtscp instructions execution event terminator
+        //
+        TerminatePmcEvent(Event);
+
+        break;
+    }
+    case DEBUG_REGISTERS_ACCESSED:
+    {
+        //
+        // Call mov to debugger register event terminator
+        //
+        TerminateDebugRegistersEvent(Event);
+
+        break;
+    }
+    case CPUID_INSTRUCTION_EXECUTION:
+    {
+        //
+        // Call cpuid instruction execution event terminator
+        //
+        TerminateCpuidExecutionEvent(Event);
+
+        break;
+    }
+    default:
+        LogError("Uknown event for termination.");
+        break;
+    }
+}
+
+/**
+ * @brief Parse and validate requests to enable/disable/clear
+ * from the user-mode
+ * 
+ * @param DebuggerEventModificationRequest event modification request details
+ * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
+ * an error
+ */
+BOOLEAN
+DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEventModificationRequest)
+{
+    BOOLEAN IsForAllEvents = FALSE;
+
+    //
+    // Check if the tag is valid or not
+    //
+    if (DebuggerEventModificationRequest->Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
+    {
+        IsForAllEvents = TRUE;
+    }
+    else if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
+    {
+        //
+        // Tag is invalid
+        //
+        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TAG;
+
+        return FALSE;
+    }
+
+    //
+    // ***************************************************************************
+    //
+
+    //
+    // Check if it's a ENABLE, DISABLE or CLEAR
+    //
+    if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
+    {
+        if (IsForAllEvents)
+        {
+            //
+            // Enable all events
+            //
+            DebuggerEnableOrDisableAllEvents(TRUE);
+        }
+        else
+        {
+            //
+            // Enable just one event
+            //
+            DebuggerEnableEvent(DebuggerEventModificationRequest->Tag);
+        }
+    }
+    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
+    {
+        if (IsForAllEvents)
+        {
+            //
+            // Disable all events
+            //
+            DebuggerEnableOrDisableAllEvents(FALSE);
+        }
+        else
+        {
+            //
+            // Disable just one event
+            //
+            DebuggerDisableEvent(DebuggerEventModificationRequest->Tag);
+        }
+    }
+    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
+    {
+        if (IsForAllEvents)
+        {
+            //
+            // Clear all events
+            //
+
+            //
+            // Because we want to delete all the objects and buffers (pools)
+            // after we finished termination, the debugger might still use
+            // the buffers for events and action, for solving this problem
+            // we first disable the tag(s) and this way the debugger no longer
+            // use that event and this way we can safely remove and deallocate
+            // the buffers later after termination
+            //
+
+            //
+            // First, disable all events
+            //
+            DebuggerEnableOrDisableAllEvents(FALSE);
+
+            //
+            // Second, terminate all events
+            //
+            DebuggerTerminateAllEvents();
+
+            //
+            // Third, remove all events
+            //
+            DebuggerRemoveAllEvents();
+        }
+        else
+        {
+            //
+            // Clear just one event
+            //
+
+            //
+            // Because we want to delete all the objects and buffers (pools)
+            // after we finished termination, the debugger might still use
+            // the buffers for events and action, for solving this problem
+            // we first disable the tag(s) and this way the debugger no longer
+            // use that event and this way we can safely remove and deallocate
+            // the buffers later after termination
+            //
+
+            //
+            // First, disable just one event
+            //
+            DebuggerDisableEvent(DebuggerEventModificationRequest->Tag);
+
+            //
+            // Second, terminate it
+            //
+            DebuggerTerminateEvent(DebuggerEventModificationRequest->Tag);
+
+            //
+            // Third, remove it from the list
+            //
+            DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag);
+        }
+    }
+    else
+    {
+        //
+        // Invalid parameter specifed in TypeOfAction
+        //
+        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
+
+        return FALSE;
+    }
+
+    //
+    // The function was successful
+    //
+    DebuggerEventModificationRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
     return TRUE;
 }
 

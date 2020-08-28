@@ -38,6 +38,11 @@ all
 #pragma comment(lib, "Zydis.lib")
 #pragma comment(lib, "Zycore.lib")
 
+//
+// Global Variables
+//
+extern UINT32 g_DisassemblerSyntax;
+
 /* ==============================================================================================
  */
 /* Enums and Types */
@@ -80,6 +85,14 @@ static const ZydisSymbol SYMBOL_TABLE[3] = {
 
 ZydisFormatterFunc default_print_address_absolute;
 
+/**
+ * @brief Print addresses
+ * 
+ * @param formatter 
+ * @param buffer 
+ * @param context 
+ * @return ZyanStatus 
+ */
 static ZyanStatus
 ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *formatter,
                                    ZydisFormatterBuffer *buffer,
@@ -106,17 +119,38 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *formatter,
 /* ==============================================================================================
  */
 
+/**
+ * @brief Disassemble a user-mode buffer
+ * 
+ * @param decoder 
+ * @param runtime_address 
+ * @param data 
+ * @param length 
+ */
 void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
                        ZyanU8 *data, ZyanUSize length) {
   ZydisFormatter formatter;
-  ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+
+  if (g_DisassemblerSyntax == 1) {
+    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+  } else if (g_DisassemblerSyntax == 2) {
+    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_ATT);
+  } else if (g_DisassemblerSyntax == 3) {
+    ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL_MASM);
+  } else {
+    ShowMessages("err, in selecting disassembler syntax\n");
+    return;
+  }
+
   ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SEGMENT,
                             ZYAN_TRUE);
   ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SIZE,
                             ZYAN_TRUE);
 
+  //
   // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that formats
   // the absolute addresses
+  //
   default_print_address_absolute =
       (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
   ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS,
@@ -129,8 +163,10 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
 
     // ZYAN_PRINTF("%016" PRIX64 "  ", runtime_address);
     ShowMessages("%s", SeparateTo64BitValue(runtime_address).c_str());
+    //
     // We have to pass a `runtime_address` different to
     // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+    //
     ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0],
                                     sizeof(buffer), runtime_address);
 
@@ -164,6 +200,11 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
 /* ==============================================================================================
  */
 
+/**
+ * @brief Zydis test
+ * 
+ * @return int 
+ */
 int ZydisTest() {
   if (ZydisGetVersion() != ZYDIS_VERSION) {
     fputs("Invalid zydis version\n", ZYAN_STDERR);
@@ -200,8 +241,16 @@ int ZydisTest() {
 /* ==============================================================================================
  */
 
-int HyperDbgDisassembler(unsigned char *BufferToDisassemble, UINT64 BaseAddress,
-                         UINT64 Size) {
+/**
+ * @brief Disassemble x64 assemblies
+ * 
+ * @param BufferToDisassemble buffer to disassemble
+ * @param BaseAddress the base address of assembly
+ * @param Size size of byffer
+ * @return int 
+ */
+int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
+                           UINT64 BaseAddress, UINT64 Size) {
   if (ZydisGetVersion() != ZYDIS_VERSION) {
     fputs("Invalid zydis version\n", ZYAN_STDERR);
     return EXIT_FAILURE;
@@ -212,6 +261,31 @@ int HyperDbgDisassembler(unsigned char *BufferToDisassemble, UINT64 BaseAddress,
                    ZYDIS_ADDRESS_WIDTH_64);
 
   DisassembleBuffer(&decoder, BaseAddress, &BufferToDisassemble[0], Size);
+
+  return 0;
+}
+
+/**
+ * @brief Disassemble 32 bit assemblies
+ * 
+ * @param BufferToDisassemble buffer to disassemble
+ * @param BaseAddress the base address of assembly
+ * @param Size size of byffer
+ * @return int 
+ */
+int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
+                           UINT64 BaseAddress, UINT64 Size) {
+  if (ZydisGetVersion() != ZYDIS_VERSION) {
+    fputs("Invalid zydis version\n", ZYAN_STDERR);
+    return EXIT_FAILURE;
+  }
+
+  ZydisDecoder decoder;
+  ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+                   ZYDIS_ADDRESS_WIDTH_32);
+
+  DisassembleBuffer(&decoder, (UINT32)BaseAddress, &BufferToDisassemble[0],
+                    Size);
 
   return 0;
 }

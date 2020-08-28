@@ -11,11 +11,22 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of help command :)
+ * 
+ * @return VOID 
+ */
 VOID CommandFormatsHelp() {
   ShowMessages(".formats : Show a value or register in different formats.\n\n");
   ShowMessages("syntax : \t.formats [hex value | register]\n");
 }
 
+/**
+ * @brief handler of help command
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandFormats(vector<string> SplittedCommand) {
 
   UINT64 u64Value;
@@ -59,6 +70,7 @@ VOID CommandFormats(vector<string> SplittedCommand) {
   PrintBits(sizeof(UINT64), &u64Value);
 
   ShowMessages("\nChar :       ");
+  
   //
   // iterate through 8, 8 bits (8*6)
   //

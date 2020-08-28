@@ -13,6 +13,12 @@
 
 using namespace std;
 
+/**
+ * @brief add ` between 64 bit values and convert them to string
+ * 
+ * @param Value 
+ * @return string 
+ */
 string SeparateTo64BitValue(UINT64 Value) {
 
   ostringstream OstringStream;
@@ -25,6 +31,13 @@ string SeparateTo64BitValue(UINT64 Value) {
   return Temp;
 }
 
+/**
+ * @brief print bits and bytes for d* commands 
+ * 
+ * @param size 
+ * @param ptr 
+ * @return VOID 
+ */
 VOID PrintBits(size_t const size, void const *const ptr) {
   unsigned char *b = (unsigned char *)ptr;
   unsigned char byte;
@@ -39,6 +52,14 @@ VOID PrintBits(size_t const size, void const *const ptr) {
   }
 }
 
+/**
+ * @brief general replace all function
+ * 
+ * @param str 
+ * @param from 
+ * @param to 
+ * @return VOID 
+ */
 VOID ReplaceAll(string &str, const string &from, const string &to) {
 
   size_t SartPos = 0;
@@ -55,6 +76,14 @@ VOID ReplaceAll(string &str, const string &from, const string &to) {
     SartPos += to.length();
   }
 }
+
+/**
+ * @brief general split command
+ * 
+ * @param s target string
+ * @param c splitter (delimiter)
+ * @return const vector<string> 
+ */
 const vector<string> Split(const string &s, const char &c) {
 
   string buff{""};
@@ -74,9 +103,12 @@ const vector<string> Split(const string &s, const char &c) {
   return v;
 }
 
-//
-// check if given string is a numeric string or not
-//
+/**
+ * @brief check if given string is a numeric string or not
+ * 
+ * @param str 
+ * @return BOOLEAN 
+ */
 BOOLEAN IsNumber(const string &str) {
 
   //
@@ -87,9 +119,13 @@ BOOLEAN IsNumber(const string &str) {
          (str.find_first_not_of("[0123456789]") == std::string::npos);
 }
 
-//
-// Function to split string str using given delimiter
-//
+/**
+ * @brief Function to split string str using given delimiter
+ * 
+ * @param str 
+ * @param delim 
+ * @return vector<string> 
+ */
 vector<string> SplitIp(const string &str, char delim) {
 
   int i = 0;
@@ -109,6 +145,12 @@ vector<string> SplitIp(const string &str, char delim) {
   return list;
 }
 
+/**
+ * @brief check whether the string is hex or not
+ * 
+ * @param s 
+ * @return BOOLEAN 
+ */
 BOOLEAN IsHexNotation(string s) {
 
   BOOLEAN IsAnyThing = FALSE;
@@ -128,6 +170,12 @@ BOOLEAN IsHexNotation(string s) {
   return FALSE;
 }
 
+/**
+ * @brief converts hex to bytes
+ * 
+ * @param hex 
+ * @return vector<char> 
+ */
 vector<char> HexToBytes(const string &hex) {
 
   vector<char> Bytes;
@@ -141,6 +189,13 @@ vector<char> HexToBytes(const string &hex) {
   return Bytes;
 }
 
+/**
+ * @brief check and convert string to a 64 bit unsigned it and also
+ *  check for special notations like 0x etc.
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
 BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
 
   if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
@@ -170,6 +225,13 @@ BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result) {
   }
 }
 
+/**
+ * @brief check and convert string to a 32 bit unsigned it and also
+ *  check for special notations like 0x etc.
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
 BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
 
   if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
@@ -196,6 +258,14 @@ BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
   *Result = TempResult;
 }
 
+/**
+ * @brief checks whether the string ends with a special string or not
+ * 
+ * @param fullString 
+ * @param ending 
+ * @return BOOLEAN if true then it shows that string ends with another string
+ * and if false then it shows that this string is not ended with the target string
+ */
 BOOLEAN HasEnding(string const &fullString, string const &ending) {
 
   if (fullString.length() >= ending.length()) {
@@ -206,9 +276,12 @@ BOOLEAN HasEnding(string const &fullString, string const &ending) {
   }
 }
 
-//
-// Function to validate an IP address
-//
+/**
+ * @brief Function to validate an IP address
+ * 
+ * @param ip 
+ * @return BOOLEAN 
+ */
 BOOLEAN ValidateIP(string ip) {
 
   //
@@ -238,7 +311,7 @@ BOOLEAN ValidateIP(string ip) {
 }
 
 /**
- * @brief Detect VMX support
+ * @brief Detect whether the VMX is supported or not
  *
  * @return true if vmx is supported
  * @return false if vmx is not supported
@@ -258,48 +331,73 @@ BOOLEAN VmxSupportDetection() {
  * @param bEnablePrivilege
  * @return BOOL
  */
-BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege,
-                     BOOL bEnablePrivilege) {
+BOOL SetPrivilege(HANDLE hToken,         // access token handle
+                  LPCTSTR lpszPrivilege, // name of privilege to enable/disable
+                  BOOL bEnablePrivilege  // to enable or disable privilege
+) {
+  TOKEN_PRIVILEGES tp;
   LUID luid;
-  BOOLEAN bRet = FALSE;
 
-  if (LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
-    TOKEN_PRIVILEGES tp;
-
-    tp.PrivilegeCount = 1;
-    tp.Privileges[0].Luid = luid;
-    tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
-    //
-    //  Enable the privilege or disable all privileges.
-    //
-    if (AdjustTokenPrivileges(hToken, FALSE, &tp, NULL, (PTOKEN_PRIVILEGES)NULL,
-                              (PDWORD)NULL)) {
-      //
-      //  Check to see if you have proper access.
-      //  You may get "ERROR_NOT_ALL_ASSIGNED".
-      //
-      bRet = (GetLastError() == ERROR_SUCCESS);
-    }
+  if (!LookupPrivilegeValue(NULL,          // lookup privilege on local system
+                            lpszPrivilege, // privilege to lookup
+                            &luid))        // receives LUID of privilege
+  {
+    ShowMessages("LookupPrivilegeValue error: %u\n", GetLastError());
+    return FALSE;
   }
-  return bRet;
+
+  tp.PrivilegeCount = 1;
+  tp.Privileges[0].Luid = luid;
+  if (bEnablePrivilege)
+    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+  else
+    tp.Privileges[0].Attributes = 0;
+
+  //
+  // Enable the privilege or disable all privileges.
+  //
+  if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
+                             (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
+    ShowMessages("AdjustTokenPrivileges error: %u\n", GetLastError());
+    return FALSE;
+  }
+
+  if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
+    ShowMessages("The token does not have the specified privilege. \n");
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
-// trim from start (in place)
-static inline void ltrim(std::string& s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-        return !std::isspace(ch);
-        }));
+/**
+ * @brief trim from start of string (in place)
+ * 
+ * @param s 
+ */
+static inline void ltrim(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(),
+                                  [](int ch) { return !std::isspace(ch); }));
 }
 
-// trim from end (in place)
-static inline void rtrim(std::string& s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-        return !std::isspace(ch);
-        }).base(), s.end());
+/**
+ * @brief trim from the end of string (in place)
+ * 
+ * @param s 
+ */
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](int ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
 }
 
-// trim from both ends (in place)
-void Trim(std::string& s) {
-    ltrim(s);
-    rtrim(s);
+/**
+ * @brief trim from both ends and start of a string (in place)
+ * 
+ * @param s 
+ */
+void Trim(std::string &s) {
+  ltrim(s);
+  rtrim(s);
 }

@@ -18,11 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hyperdbg-gui", "hyperdbg-gui\hyperdbg-gui.csproj", "{84380C1B-3AFD-4557-B187-2E2DEC806CAD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbgctrl", "hprdbgctrl\hprdbgctrl.vcxproj", "{809C3AD5-3211-4992-A472-9D81D124C5FA}"
 EndProject
 Global
@@ -39,10 +34,6 @@ Global
 		{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}.Debug|x64.Build.0 = Debug|x64
 		{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}.Release|x64.ActiveCfg = Release|x64
 		{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}.Release|x64.Build.0 = Release|x64
-		{84380C1B-3AFD-4557-B187-2E2DEC806CAD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{84380C1B-3AFD-4557-B187-2E2DEC806CAD}.Debug|x64.Build.0 = Debug|Any CPU
-		{84380C1B-3AFD-4557-B187-2E2DEC806CAD}.Release|x64.ActiveCfg = Release|x64
-		{84380C1B-3AFD-4557-B187-2E2DEC806CAD}.Release|x64.Build.0 = Release|x64
 		{809C3AD5-3211-4992-A472-9D81D124C5FA}.Debug|x64.ActiveCfg = Debug|x64
 		{809C3AD5-3211-4992-A472-9D81D124C5FA}.Debug|x64.Build.0 = Debug|x64
 		{809C3AD5-3211-4992-A472-9D81D124C5FA}.Release|x64.ActiveCfg = Release|x64

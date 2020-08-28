@@ -47,7 +47,6 @@ typedef struct _BUFFER_HEADER
  * @brief Core-specific buffers
  * 
  */
-
 typedef struct _LOG_BUFFER_INFORMATION
 {
     UINT64 BufferStartAddress; // Start address of the buffer
@@ -68,13 +67,22 @@ typedef struct _LOG_BUFFER_INFORMATION
 //				Global Variables				//
 //////////////////////////////////////////////////
 
-/* Global Variable for buffer on all cores */
+/**
+ * @brief Global Variable for buffer on all cores
+ * 
+ */
 LOG_BUFFER_INFORMATION * MessageBufferInformation;
 
-/* Vmx-root lock for logging */
+/**
+ * @brief Vmx-root lock for logging
+ * 
+ */
 volatile LONG VmxRootLoggingLock;
 
-/* Vmx-root lock for logging */
+/**
+ * @brief Vmx-root lock for logging
+ * 
+ */
 volatile LONG VmxRootLoggingLockForNonImmBuffers;
 
 //////////////////////////////////////////////////
@@ -82,6 +90,7 @@ volatile LONG VmxRootLoggingLockForNonImmBuffers;
 //////////////////////////////////////////////////
 
 /*
+
 A core buffer is like this , it's divided into MaximumPacketsCapacity chucks,
 each chunk has PacketChunkSize + sizeof(BUFFER_HEADER) size
 
@@ -131,19 +140,30 @@ each chunk has PacketChunkSize + sizeof(BUFFER_HEADER) size
 
 BOOLEAN
 LogInitialize();
+
 VOID
 LogUnInitialize();
+
 BOOLEAN
 LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength);
+
+UINT32
+LogMarkAllAsRead(BOOLEAN IsVmxRoot);
+
 BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength);
+
 BOOLEAN
 LogCheckForNewMessage(BOOLEAN IsVmxRoot);
+
 BOOLEAN
 LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...);
+
 VOID
 LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
 NTSTATUS
 LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp);

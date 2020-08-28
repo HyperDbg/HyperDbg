@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of test command
+ * 
+ * @return VOID 
+ */
 VOID CommandTestHelp() {
   ShowMessages(
       "test : Test essential features of HyperDbg in current machine.\n");
@@ -20,6 +25,12 @@ VOID CommandTestHelp() {
   ShowMessages("\t\te.g : test 0x3\n");
 }
 
+/**
+ * @brief test command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandTest(vector<string> SplittedCommand) {
 
   BOOLEAN GetTestCase = FALSE;
@@ -46,6 +57,7 @@ VOID CommandTest(vector<string> SplittedCommand) {
       // It's probably a test case number
       //
       if (!ConvertStringToUInt64(Section, &SpecialTestCase)) {
+
         //
         // Unkonwn parameter
         //
@@ -56,10 +68,11 @@ VOID CommandTest(vector<string> SplittedCommand) {
         GetTestCase = TRUE;
       }
     } else {
+
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandTestHelp();
       return;
     }
@@ -69,11 +82,13 @@ VOID CommandTest(vector<string> SplittedCommand) {
   // Perform the test case
   //
   if (SpecialTestCase == DEBUGGER_TEST_ALL_COMMANDS) {
+
     //
     // Means to check everything
     //
     TestEverything = TRUE;
   }
+
   //
   // Means to check just one command
   //
@@ -107,6 +122,7 @@ VOID CommandTest(vector<string> SplittedCommand) {
     // Check if it was just one check
     //
     if (!TestEverything || AllChecksPerformed) {
+      
       //
       // Break from loop
       //

@@ -112,6 +112,7 @@
     <ClCompile Include="EferHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
+    <ClCompile Include="Termination.c" />
     <ClCompile Include="Transparency.c" />
     <ClCompile Include="Vmexit.c" />
     <ClCompile Include="IdtEmulation.c" />
@@ -166,6 +167,7 @@
     <ClInclude Include="Logging.h" />
     <ClInclude Include="MemoryMapper.h" />
     <ClInclude Include="PoolManager.h" />
+    <ClInclude Include="Termination.h" />
     <ClInclude Include="Trace.h" />
     <ClInclude Include="Transparency.h" />
     <ClInclude Include="Vmcall.h" />

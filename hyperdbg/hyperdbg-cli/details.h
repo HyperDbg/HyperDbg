@@ -11,5 +11,8 @@
  */
 #pragma once
 
-
+/**
+ * @brief the global variable used to indicate the version of HyperDbg
+ * 
+ */
 char Version[] = "0.1.0.0";

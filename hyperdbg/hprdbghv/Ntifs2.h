@@ -11,6 +11,10 @@
  */
 #pragma once
 
+/**
+ * @brief KAPC State Struct
+ * 
+ */
 typedef struct _KAPC_STATE
 {
     LIST_ENTRY         ApcListHead[MaximumMode];
@@ -37,6 +41,28 @@ typedef struct _KAPC_STATE
     };
 } KAPC_STATE, *PKAPC_STATE, *PRKAPC_STATE;
 
+/**
+ * @brief Memory Basic Information Structure
+ * 
+ */
+typedef struct _MEMORY_BASIC_INFORMATION
+{
+    PVOID  BaseAddress;
+    PVOID  AllocationBase;
+    ULONG  AllocationProtect;
+    SIZE_T RegionSize;
+    ULONG  State;
+    ULONG  Protect;
+    ULONG  Type;
+} MEMORY_BASIC_INFORMATION, *PMEMORY_BASIC_INFORMATION;
+
+#if (NTDDI_VERSION >= NTDDI_WIN2K)
+typedef enum _MEMORY_INFORMATION_CLASS
+{
+    MemoryBasicInformation
+} MEMORY_INFORMATION_CLASS;
+#endif
+
 _Must_inspect_result_
 _IRQL_requires_max_(APC_LEVEL)
 NTKERNELAPI
@@ -44,6 +70,9 @@ NTSTATUS
 PsLookupProcessByProcessId(
     _In_ HANDLE ProcessId,
     _Outptr_ PEPROCESS * Process);
+
+UCHAR *
+PsGetProcessImageFileName(IN PEPROCESS Process);
 
 _IRQL_requires_max_(APC_LEVEL)
 NTKERNELAPI
@@ -71,3 +100,19 @@ ZwAllocateVirtualMemory(
     _Inout_ PSIZE_T RegionSize,
     _In_ ULONG      AllocationType,
     _In_ ULONG      Protect);
+
+#if (NTDDI_VERSION >= NTDDI_WIN2K)
+//@[comment("MVI_tracked")]
+_IRQL_requires_max_(PASSIVE_LEVEL)
+_Must_inspect_result_
+NTSYSAPI
+NTSTATUS
+NTAPI
+ZwQueryVirtualMemory(
+    _In_ HANDLE                                       ProcessHandle,
+    _In_opt_ PVOID                                    BaseAddress,
+    _In_ MEMORY_INFORMATION_CLASS                     MemoryInformationClass,
+    _Out_writes_bytes_(MemoryInformationLength) PVOID MemoryInformation,
+    _In_ SIZE_T                                       MemoryInformationLength,
+    _Out_opt_ PSIZE_T                                 ReturnLength);
+#endif

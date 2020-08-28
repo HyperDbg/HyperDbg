@@ -34,10 +34,13 @@ typedef enum _SEGMENT_REGISTERS
 //////////////////////////////////////////////////
 //				 Spinlock Funtions				//
 //////////////////////////////////////////////////
+
 BOOLEAN
 SpinlockTryLock(volatile LONG * Lock);
+
 void
 SpinlockLock(volatile LONG * Lock);
+
 void
 SpinlockUnlock(volatile LONG * Lock);
 
@@ -45,7 +48,9 @@ SpinlockUnlock(volatile LONG * Lock);
 //					Constants					//
 //////////////////////////////////////////////////
 
-/* @brief Intel CPU flags in CR0 */
+/** 
+ * @brief Intel CPU flags in CR0 
+ */
 #define X86_CR0_PE 0x00000001 /* Enable Protected Mode    (RW) */
 #define X86_CR0_MP 0x00000002 /* Monitor Coprocessor      (RW) */
 #define X86_CR0_EM 0x00000004 /* Require FPU Emulation    (RO) */
@@ -58,7 +63,10 @@ SpinlockUnlock(volatile LONG * Lock);
 #define X86_CR0_CD 0x40000000 /* Cache Disable            (RW) */
 #define X86_CR0_PG 0x80000000 /* Paging                         */
 
-/* Intel CPU features in CR4 */
+/**
+ * @brief Intel CPU features in CR4
+ * 
+ */
 #define X86_CR4_VME        0x0001 /* enable vm86 extensions */
 #define X86_CR4_PVI        0x0002 /* virtual interrupts flag enable */
 #define X86_CR4_TSD        0x0004 /* disable time stamp at ipl 3 */
@@ -72,7 +80,10 @@ SpinlockUnlock(volatile LONG * Lock);
 #define X86_CR4_OSXMMEXCPT 0x0400 /* enable unmasked SSE exceptions */
 #define X86_CR4_VMXE       0x2000 /* enable VMX */
 
-/* EFLAGS/RFLAGS */
+/**
+ * @brief EFLAGS/RFLAGS
+ * 
+ */
 #define X86_FLAGS_CF            (1 << 0)
 #define X86_FLAGS_PF            (1 << 2)
 #define X86_FLAGS_AF            (1 << 4)
@@ -98,38 +109,68 @@ SpinlockUnlock(volatile LONG * Lock);
 #define X86_FLAGS_RESERVED_BITS 0xffc38028
 #define X86_FLAGS_FIXED         0x00000002
 
-/* PCID Flags */
+/**
+ * @brief PCID Flags
+ * 
+ */
 #define PCID_NONE 0x000
 #define PCID_MASK 0x003
 
-/* The Microsoft Hypervisor interface defined constants. */
+/**
+ * @brief The Microsoft Hypervisor interface defined constants
+ * 
+ */
 #define CPUID_HV_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define CPUID_HV_INTERFACE                0x40000001
 
-/* CPUID Features */
+/**
+ * @brief CPUID Features
+ * 
+ */
 #define CPUID_PROCESSOR_AND_PROCESSOR_FEATURE_IDENTIFIERS 0x00000001
 
-/* Hypervisor reserved range for RDMSR and WRMSR */
+/**
+ * @brief Hypervisor reserved range for RDMSR and WRMSR
+ * 
+ */
 #define RESERVED_MSR_RANGE_LOW 0x40000000
 #define RESERVED_MSR_RANGE_HI  0x400000F0
 
-/* Alignment Size */
+/**
+ * @brief Core Id
+ * 
+ */
 #define __CPU_INDEX__ KeGetCurrentProcessorNumberEx(NULL)
 
-/* Alignment Size */
+/**
+ * @brief Alignment Size
+ * 
+ */
 #define ALIGNMENT_PAGE_SIZE 4096
 
-/* Maximum x64 Address */
+/**
+ * @brief Maximum x64 Address
+ * 
+ */
 #define MAXIMUM_ADDRESS 0xffffffffffffffff
 
-/* Pool tag */
+/**
+ * @brief Pool tag
+ * 
+ */
 #define POOLTAG 0x48444247 // [H]yper[DBG] (HDBG)
 
-/* System and User ring definitions */
+/**
+ * @brief System and User ring definitions
+ * 
+ */
 #define DPL_USER   3
 #define DPL_SYSTEM 0
 
-/* RPL Mask */
+/**
+ * @brief RPL Mask
+ * 
+ */
 #define RPL_MASK 3
 
 #define BITS_PER_LONG (sizeof(unsigned long) * 8)
@@ -138,6 +179,10 @@ SpinlockUnlock(volatile LONG * Lock);
 #define BITMAP_ENTRY(_nr, _bmap) ((_bmap))[(_nr) / BITS_PER_LONG]
 #define BITMAP_SHIFT(_nr)        ((_nr) % BITS_PER_LONG)
 
+/**
+ * @brief Offset from a page's 4096 bytes
+ * 
+ */
 #define PAGE_OFFSET(Va) ((PVOID)((ULONG_PTR)(Va) & (PAGE_SIZE - 1)))
 
 //////////////////////////////////////////////////
@@ -218,7 +263,7 @@ typedef struct _NT_KPROCESS
 } NT_KPROCESS, *PNT_KPROCESS;
 
 /**
- * @brief See: Page-Fault Error Code
+ * @brief Page-Fault Error Code
  * 
  */
 typedef union _PAGE_FAULT_ERROR_CODE
@@ -234,6 +279,10 @@ typedef union _PAGE_FAULT_ERROR_CODE
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
+/**
+ * @brief Control Register 4 Structure
+ * 
+ */
 typedef struct _CONTROL_REGISTER_4
 {
     union
@@ -269,6 +318,10 @@ typedef struct _CONTROL_REGISTER_4
     };
 } CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
 
+/**
+ * @brief Debug Register 7 Structure
+ * 
+ */
 typedef union _DEBUG_REGISTER_7
 {
     UINT64 Flags;
@@ -301,6 +354,10 @@ typedef union _DEBUG_REGISTER_7
     };
 } DEBUG_REGISTER_7, *PDEBUG_REGISTER_7;
 
+/**
+ * @brief Debug Register 6 Structure
+ * 
+ */
 typedef union DEBUG_REGISTER_6
 {
     UINT64 Flags;
@@ -318,6 +375,10 @@ typedef union DEBUG_REGISTER_6
     };
 } DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
 
+/**
+ * @brief RFLAGS in structure format
+ * 
+ */
 typedef union _RFLAGS
 {
     struct
@@ -352,6 +413,10 @@ typedef union _RFLAGS
 //				 Function Types					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Prototype to run a function on a logical core
+ * 
+ */
 typedef void (*RunOnLogicalCoreFunc)(ULONG ProcessorID);
 
 //////////////////////////////////////////////////
@@ -370,8 +435,10 @@ typedef enum _LOG_TYPE
 
 } LOG_TYPE;
 
-/* Define log variables */
-
+/**
+ * @brief Define log variables
+ * 
+ */
 #if UseDbgPrintInsteadOfUsermodeMessageTracking
 /* Use DbgPrint */
 #    define LogInfo(format, ...)                           \
@@ -393,12 +460,19 @@ typedef enum _LOG_TYPE
                  __VA_ARGS__);                       \
         DbgBreakPoint()
 
-/* Log without any prefix */
+/**
+ * @brief Log without any prefix
+ * 
+ */
 #    define Log(format, ...) \
         DbgPrint(format "\n", __VA_ARGS__)
 
 #else
 
+/**
+ * @brief Log, general
+ * 
+ */
 #    define LogInfo(format, ...)                                        \
         LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
                               UseImmediateMessaging,                    \
@@ -408,6 +482,10 @@ typedef enum _LOG_TYPE
                               __LINE__,                                 \
                               __VA_ARGS__)
 
+/**
+ * @brief Log in the case of immediate message
+ * 
+ */
 #    define LogInfoImmediate(format, ...)                               \
         LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
                               TRUE,                                     \
@@ -417,6 +495,10 @@ typedef enum _LOG_TYPE
                               __LINE__,                                 \
                               __VA_ARGS__)
 
+/**
+ * @brief Log in the case of warning
+ * 
+ */
 #    define LogWarning(format, ...)                                 \
         LogSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
                               UseImmediateMessaging,                \
@@ -426,6 +508,10 @@ typedef enum _LOG_TYPE
                               __LINE__,                             \
                               __VA_ARGS__)
 
+/**
+ * @brief Log in the case of error
+ * 
+ */
 #    define LogError(format, ...)                                 \
         LogSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
                               UseImmediateMessaging,              \
@@ -436,7 +522,10 @@ typedef enum _LOG_TYPE
                               __VA_ARGS__);                       \
         DbgBreakPoint()
 
-/* Log without any prefix */
+/**
+ * @brief Log without any prefix
+ * 
+ */
 #    define Log(format, ...)                                 \
         LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,    \
                               UseImmediateMessaging,         \
@@ -472,6 +561,9 @@ ClearBit(int nth, unsigned long * addr);
 void
 SetBit(int nth, unsigned long * addr);
 
+CR3_TYPE
+GetCr3FromProcessId(UINT32 ProcessId);
+
 BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
 
@@ -485,7 +577,13 @@ UINT64
 VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId);
 
 UINT64
+VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3);
+
+UINT64
 PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId);
+
+UINT64
+PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3);
 
 int
 MathPower(int Base, int Exp);
@@ -496,30 +594,52 @@ FindSystemDirectoryTableBase();
 CR3_TYPE
 SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId);
 
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3);
+
 VOID
 RestoreToPreviousProcess(CR3_TYPE PreviousProcess);
+
+PCHAR
+GetProcessNameFromEprocess(PEPROCESS eprocess);
+
+BOOLEAN
+StartsWith(const char * pre, const char * str);
+
+BOOLEAN
+IsProcessExist(UINT32 ProcId);
 
 //////////////////////////////////////////////////
 //			 WDK Major Functions				//
 //////////////////////////////////////////////////
 
-/* Load & Unload */
+/**
+ * @brief Load & Unload
+ */
 NTSTATUS
 DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
+
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject);
 
-/* IRP Major Functions */
+/**
+ * @brief IRP Major Functions
+ */
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp);
+
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
@@ -529,21 +649,45 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp);
 
 #define MAX_EXEC_TRAMPOLINE_SIZE 100
 
-/* A test function for Syscall hook */
+/**
+ * @brief A test function for Syscall hook
+ * 
+ * @return VOID 
+ */
 VOID
 SyscallHookTest();
-/* Enable or Disable Syscall Hook for EFER MSR */
+
+/**
+ * @brief Enable or Disable Syscall Hook for EFER MSR
+ * 
+ */
 VOID
 SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
-/* Manage #UD Exceptions for EFER Syscall */
+
+/**
+ * @brief Manage #UD Exceptions for EFER Syscall
+ * 
+ */
 BOOLEAN
 SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex);
-/* SYSRET instruction emulation routine */
+
+/**
+ * @brief SYSRET instruction emulation routine
+ * 
+ */
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
-/* SYSCALL instruction emulation routine */
+
+/**
+ * @brief SYSCALL instruction emulation routine
+ * 
+ */
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
-/* Get Segment Descriptor */
+
+/**
+ * @brief Get Segment Descriptor
+ * 
+ */
 BOOLEAN
 GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);

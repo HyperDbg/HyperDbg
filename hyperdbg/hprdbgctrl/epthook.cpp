@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !epthook command
+ * 
+ * @return VOID 
+ */
 VOID CommandEptHookHelp() {
   ShowMessages("!epthook : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
   ShowMessages(
@@ -24,6 +29,12 @@ VOID CommandEptHookHelp() {
   ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");
 }
 
+/**
+ * @brief !epthook command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandEptHook(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -73,7 +84,7 @@ VOID CommandEptHook(vector<string> SplittedCommand) {
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandEptHookHelp();
       return;
     }
@@ -92,10 +103,24 @@ VOID CommandEptHook(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    //
+    // There was an error
+    //
+    return;
+  }
 }

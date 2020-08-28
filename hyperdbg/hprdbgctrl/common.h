@@ -13,7 +13,7 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				    Functions                   //
+//			    	       Functions                  //
 //////////////////////////////////////////////////
 
 VOID PrintBits(size_t const size, void const *const ptr);
@@ -40,17 +40,21 @@ BOOLEAN ValidateIP(string ip);
 
 BOOLEAN VmxSupportDetection();
 
-BOOLEAN SetPrivilege(HANDLE hToken, LPCTSTR lpszPrivilege, BOOL bEnablePrivilege);
+BOOL SetPrivilege(HANDLE hToken,         // access token handle
+                  LPCTSTR lpszPrivilege, // name of privilege to enable/disable
+                  BOOL bEnablePrivilege  // to enable or disable privilege
+);
 
-void Trim(std::string& s);
+void Trim(std::string &s);
 
 //////////////////////////////////////////////////
-//				    Structures                  //
+//            	    Structures                  //
 //////////////////////////////////////////////////
 
-//
-// These structures are copied from Process Hacker source code (ntldr.h)
-//
+/**
+ * @brief this structure is copied from Process Hacker source code (ntldr.h)
+ * 
+ */
 typedef struct _RTL_PROCESS_MODULE_INFORMATION {
   HANDLE Section;
   PVOID MappedBase;
@@ -64,6 +68,11 @@ typedef struct _RTL_PROCESS_MODULE_INFORMATION {
   UCHAR FullPathName[256];
 } RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 
+
+/**
+ * @brief this structure is copied from Process Hacker source code (ntldr.h)
+ * 
+ */
 typedef struct _RTL_PROCESS_MODULES {
   ULONG NumberOfModules;
   RTL_PROCESS_MODULE_INFORMATION Modules[1];

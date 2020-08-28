@@ -11,12 +11,23 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !unhide command
+ * 
+ * @return VOID 
+ */
 VOID CommandUnhideHelp() {
   ShowMessages("!unhide : Reveals the debugger to the applications.\n\n");
   ShowMessages("syntax : \t!unhide\n");
   ShowMessages("\t\te.g : !unhide\n");
 }
 
+/**
+ * @brief !unhide command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandUnhide(vector<string> SplittedCommand) {
 
   BOOLEAN Status;
@@ -33,7 +44,8 @@ VOID CommandUnhide(vector<string> SplittedCommand) {
   // Check if debugger is loaded or not
   //
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -45,7 +57,6 @@ VOID CommandUnhide(vector<string> SplittedCommand) {
   //
   // Send the request to the kernel
   //
-
   Status = DeviceIoControl(
       g_DeviceHandle, // Handle to device
       IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER, // IO Control
@@ -60,7 +71,7 @@ VOID CommandUnhide(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 
@@ -68,8 +79,8 @@ VOID CommandUnhide(vector<string> SplittedCommand) {
     ShowMessages("transparent debugging successfully disabled :)\n");
 
   } else if (UnhideRequest.KernelStatus ==
-             DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER) {
-    ShowMessages("unable to unhide the debugger (transparent-debugging) :(\n");
+             DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE) {
+    ShowMessages("debugger is not in transparent-mode.\n");
 
   } else {
     ShowMessages("unknown error occured :(\n");

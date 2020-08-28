@@ -92,6 +92,10 @@ typedef union _IA32_FEATURE_CONTROL_MSR
     } Fields;
 } IA32_FEATURE_CONTROL_MSR, *PIA32_FEATURE_CONTROL_MSR;
 
+/**
+ * @brief VMX Basic Information MSR Structure
+ * 
+ */
 typedef union _IA32_VMX_BASIC_MSR
 {
     ULONG64 All;

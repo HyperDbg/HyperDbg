@@ -11,6 +11,19 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Read process memory
+ * 
+ * @details This function, should be called from vmx-root mode
+ * 
+ * @param PID Target Process Id
+ * @param Address Target Address
+ * @param MemType Type of memory
+ * @param UserBuffer Buffer to save to the user
+ * @param Size Size of read
+ * @param ReturnSize Return Size
+ * @return NTSTATUS 
+ */
 NTSTATUS
 MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize)
 {

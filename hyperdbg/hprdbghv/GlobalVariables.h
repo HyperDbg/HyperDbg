@@ -34,7 +34,7 @@ EPT_STATE * g_EptState;
  * @brief events list (for debugger)
  * 
  */
-PDEBUGGER_CORE_EVENTS g_Events;
+DEBUGGER_CORE_EVENTS * g_Events;
 
 /**
  * @brief Save the state of the thread that waits for messages to deliver to user-mode
@@ -80,3 +80,9 @@ LIST_ENTRY g_EptHook2sDetourListHead;
  * 
  */
 BOOLEAN g_TransparentMode;
+
+/**
+ * @brief holds the measurements from the user-mode and kernel-mode
+ * 
+ */
+TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;

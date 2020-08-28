@@ -91,6 +91,10 @@ typedef enum _INTERRUPT_TYPE
 //					Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Interrupt injection and event format
+ * 
+ */
 typedef union _INTERRUPT_INFO
 {
     struct
@@ -106,6 +110,10 @@ typedef union _INTERRUPT_INFO
     UINT32 Flags;
 } INTERRUPT_INFO, *PINTERRUPT_INFO;
 
+/**
+ * @brief Event information
+ * 
+ */
 typedef struct _EVENT_INFORMATION
 {
     INTERRUPT_INFO InterruptInfo;
@@ -119,13 +127,18 @@ typedef struct _EVENT_INFORMATION
 
 VOID
 EventInjectBreakpoint();
+
 VOID
 EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode);
+
 VOID
 EventInjectGeneralProtection();
+
 VOID
 EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex);
+
 VOID
 EventInjectPageFault(ULONG32 ErrorCode);
+
 VOID
 EventInjectDebugBreakpoint();

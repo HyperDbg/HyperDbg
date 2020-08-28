@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !e* and e* commands
+ * 
+ * @return VOID 
+ */
 VOID CommandEditMemoryHelp() {
   ShowMessages("eb !eb ed !ed eq !eq : edit the memory at specific address \n");
   ShowMessages("e[b]  Byte and ASCII characters\n");
@@ -28,6 +33,12 @@ VOID CommandEditMemoryHelp() {
                "9090909090909090 9090909090909090 9090909090909090\n");
 }
 
+/**
+ * @brief !e* and e* commands handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandEditMemory(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -216,7 +227,8 @@ VOID CommandEditMemory(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -268,26 +280,34 @@ VOID CommandEditMemory(vector<string> SplittedCommand) {
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    free(FinalBuffer);
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 
-  if (EditMemoryRequest.Result == DEBUGGER_EDIT_MEMORY_STATUS_SUCCESS) {
+  if (EditMemoryRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
     //
     // Was successful, nothing to do
     //
+    
   } else if (
       EditMemoryRequest.Result ==
-      DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS) {
+      DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS) {
     ShowMessages("the address is invalid in current process id\n");
   } else if (
       EditMemoryRequest.Result ==
-      DEBUGGER_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS) {
+      DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS) {
     ShowMessages("the address is invalid based on your specific process id\n");
   } else if (EditMemoryRequest.Result ==
-             DEBUGGER_EDIT_MEMORY_STATUS_INVALID_PARAMETER) {
+             DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER) {
     ShowMessages("invalid parameter\n");
   } else {
     ShowMessages("unknown response from driver\n");
   }
+
+  //
+  // Free the malloc buffer
+  //
+  free(FinalBuffer);
 }

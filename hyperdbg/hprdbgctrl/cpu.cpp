@@ -11,10 +11,22 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of cpu command
+ * 
+ * @return VOID 
+ */
 VOID CommandCpuHelp() {
   ShowMessages("cpu : collects a report from cpu features.\n\n");
   ShowMessages("syntax : \tcpu\n");
 }
+
+/**
+ * @brief cpu command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandCpu(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
@@ -26,11 +38,17 @@ VOID CommandCpu(vector<string> SplittedCommand) {
 }
 
 class InstructionSet {
+
+  //
   // forward declarations
+  //
   class InstructionSet_Internal;
 
 public:
+
+  //
   // getters
+  //
   static std::string Vendor(void) { return CPU_Rep.vendor_; }
   static std::string Brand(void) { return CPU_Rep.brand_; }
 
@@ -108,8 +126,10 @@ private:
       // int cpuInfo[4] = {-1};
       std::array<int, 4> cpui;
 
+      //
       // Calling __cpuid with 0x0 as the function_id argument
       // gets the number of the highest valid function ID.
+      //
       __cpuid(cpui.data(), 0);
       nIds_ = cpui[0];
 
@@ -118,7 +138,9 @@ private:
         data_.push_back(cpui);
       }
 
+      //
       // Capture vendor string
+      //
       char vendor[0x20];
       memset(vendor, 0, sizeof(vendor));
       *reinterpret_cast<int *>(vendor) = data_[0][1];
@@ -131,20 +153,26 @@ private:
         isAMD_ = true;
       }
 
+      //
       // load bitset with flags for function 0x00000001
+      //
       if (nIds_ >= 1) {
         f_1_ECX_ = data_[1][2];
         f_1_EDX_ = data_[1][3];
       }
 
+      //
       // load bitset with flags for function 0x00000007
+      //
       if (nIds_ >= 7) {
         f_7_EBX_ = data_[7][1];
         f_7_ECX_ = data_[7][2];
       }
 
+      //
       // Calling __cpuid with 0x80000000 as the function_id argument
       // gets the number of the highest valid extended ID.
+      //
       __cpuid(cpui.data(), 0x80000000);
       nExIds_ = cpui[0];
 
@@ -156,13 +184,16 @@ private:
         extdata_.push_back(cpui);
       }
 
+      //
       // load bitset with flags for function 0x80000001
+      //
       if (nExIds_ >= 0x80000001) {
         f_81_ECX_ = extdata_[1][2];
         f_81_EDX_ = extdata_[1][3];
       }
-
+      //
       // Interpret CPU brand string if reported
+      //
       if (nExIds_ >= 0x80000004) {
         memcpy(brand, extdata_[2].data(), sizeof(cpui));
         memcpy(brand + 16, extdata_[3].data(), sizeof(cpui));
@@ -188,12 +219,16 @@ private:
   };
 };
 
+//
 // Initialize static member data
+//
 const InstructionSet::InstructionSet_Internal InstructionSet::CPU_Rep;
 
 string ReadVendorString() { return InstructionSet::Vendor(); }
 
+//
 // Print out supported instruction set extensions
+//
 int ReadCpuDetails() {
   auto &outstream = std::cout;
 

@@ -16,27 +16,123 @@
 //
 extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
+extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_AutoFlush;
 
+/**
+ * @brief help of events command
+ * 
+ * @return VOID 
+ */
 VOID CommandEventsHelp() {
   ShowMessages("events : show active and disabled events\n");
-  ShowMessages("syntax : \tevents [e|d|c] [event number (hex value)]\n");
+  ShowMessages("syntax : \tevents [e|d|c] [event number (hex value) | all]\n");
+  ShowMessages("e : enable\n");
+  ShowMessages("d : disable\n");
+  ShowMessages("c : clear\n");
+  ShowMessages("Note : If you specify 'all' then [e|d|c] will be applied to "
+               "all of the events.\n\n");
 
-  ShowMessages("\t\te.g : events \n");
-  ShowMessages("\t\te.g : events e 12\n");
-  ShowMessages("\t\te.g : events d 10\n");
-  ShowMessages("\t\te.g : events c 10\n");
+  ShowMessages("\te.g : events \n");
+  ShowMessages("\te.g : events e 12\n");
+  ShowMessages("\te.g : events d 10\n");
+  ShowMessages("\te.g : events c 10\n");
 }
 
+/**
+ * @brief events command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandEvents(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail;
+  DEBUGGER_MODIFY_EVENTS_TYPE RequestedAction;
+  UINT64 RequestedTag;
 
-  if (!g_EventTraceInitialized) {
-    ShowMessages("no active/disabled events \n");
+  //
+  // Validate the parameters (size)
+  //
+  if (SplittedCommand.size() != 1 && SplittedCommand.size() != 3) {
+    ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0));
+    CommandEventsHelp();
     return;
   }
 
+  if (SplittedCommand.size() == 1) {
+
+    if (!g_EventTraceInitialized) {
+      ShowMessages("no active/disabled events \n");
+      return;
+    }
+
+    CommandEventsShowEvents();
+
+    //
+    // No need to continue any further
+    //
+    return;
+  }
+
+  //
+  // Validate second argument as it's not just a simple
+  // events without any parameter
+  //
+  if (!SplittedCommand.at(1).compare("e")) {
+    RequestedAction = DEBUGGER_MODIFY_EVENTS_ENABLE;
+  } else if (!SplittedCommand.at(1).compare("d")) {
+    RequestedAction = DEBUGGER_MODIFY_EVENTS_DISABLE;
+  } else if (!SplittedCommand.at(1).compare("c")) {
+    RequestedAction = DEBUGGER_MODIFY_EVENTS_CLEAR;
+  } else {
+
+    //
+    // unknown second command
+    //
+    ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0));
+    CommandEventsHelp();
+    return;
+  }
+
+  //
+  // Validate third argument as it's not just a simple
+  // events without any parameter
+  //
+  if (!SplittedCommand.at(2).compare("all")) {
+    RequestedTag = DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG;
+  } else if (!ConvertStringToUInt64(SplittedCommand.at(2), &RequestedTag)) {
+    ShowMessages(
+        "please specify a correct hex value for tag id (event number)\n\n");
+    CommandEventsHelp();
+    return;
+  }
+
+  //
+  // Send the request to the kernel, we add it to a constant
+  // that's because we want start tags from that constant
+  //
+  if (RequestedTag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+    RequestedTag = RequestedTag + DebuggerEventTagStartSeed;
+  }
+  CommandEventsModifyEvents(RequestedTag, RequestedAction);
+}
+
+
+/**
+ * @brief print every active and disabled events
+ * @details this function will not show cleared events
+ * @return VOID
+ */
+VOID CommandEventsShowEvents() {
+
+  //
+  // It's an events without any argument so we have to show
+  // all the currently active events
+  //
   PLIST_ENTRY TempList = 0;
+  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+  BOOLEAN IsThereAnyEvents = FALSE;
+
   TempList = &g_EventTrace;
   while (&g_EventTrace != TempList->Blink) {
     TempList = TempList->Blink;
@@ -44,56 +140,342 @@ VOID CommandEvents(vector<string> SplittedCommand) {
     CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL,
                                       CommandsEventList);
 
-    ShowMessages("%x\t(%s)\t    %s\n", CommandDetail->Tag - 0x1000000,
+    ShowMessages("%x\t(%s)\t    %s\n",
+                 CommandDetail->Tag - DebuggerEventTagStartSeed,
                  CommandDetail->IsEnabled ? "enabled" : "disabled",
                  CommandDetail->CommandStringBuffer);
+
+    if (!IsThereAnyEvents) {
+      IsThereAnyEvents = TRUE;
+    }
+  }
+
+  if (!IsThereAnyEvents) {
+    ShowMessages("no active/disabled events \n");
   }
 }
 
-VOID CommandEventsModifyEvents(UINT64 Tag) {
+/**
+ * @brief Disable a special event
+ * 
+ * @param Tag the tag of the target event
+ * @return BOOLEAN if the operation was successful then it returns
+ * true otherwise it returns false
+ */
+BOOLEAN CommandEventDisableEvent(UINT64 Tag) {
+
+  PLIST_ENTRY TempList = 0;
+  BOOLEAN Result = FALSE;
+  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+
+  TempList = &g_EventTrace;
+  while (&g_EventTrace != TempList->Blink) {
+    TempList = TempList->Blink;
+
+    CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL,
+                                      CommandsEventList);
+
+    if (CommandDetail->Tag == Tag ||
+        Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+      //
+      // Put it to FALSE, to indicate that it's not active
+      //
+      CommandDetail->IsEnabled = FALSE;
+
+      if (!Result) {
+        Result = TRUE;
+      }
+
+      if (Tag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+        //
+        // Only, one command exist with a tag, so we need to return as we
+        // find it
+        //
+        return TRUE;
+      }
+    }
+  }
+
+  //
+  // Not found
+  //
+  return Result;
+}
+
+/**
+ * @brief enables a special event
+ * 
+ * @param Tag the tag of the target event
+ * @return BOOLEAN if the operation was successful then it returns
+ * true otherwise it returns false 
+ */
+BOOLEAN CommandEventEnableEvent(UINT64 Tag) {
+
+  PLIST_ENTRY TempList = 0;
+  BOOLEAN Result = FALSE;
+  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+
+  TempList = &g_EventTrace;
+  while (&g_EventTrace != TempList->Blink) {
+    TempList = TempList->Blink;
+
+    CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL,
+                                      CommandsEventList);
+
+    if (CommandDetail->Tag == Tag ||
+        Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+      //
+      // Put it to TRUE, to indicate that it's active
+      //
+      CommandDetail->IsEnabled = TRUE;
+
+      if (!Result) {
+        Result = TRUE;
+      }
+
+      if (Tag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+        //
+        // Only, one command exist with a tag, so we need to return as we
+        // find it
+        //
+        return TRUE;
+      }
+    }
+  }
+
+  //
+  // Not found
+  //
+  return Result;
+}
+
+/**
+ * @brief disable and remove a special event
+ * 
+ * @param Tag the tag of the target event
+ * @return BOOLEAN if the operation was successful then it returns
+ * true otherwise it returns false 
+ */
+BOOLEAN CommandEventClearEvent(UINT64 Tag) {
+
+  PLIST_ENTRY TempList = 0;
+  BOOLEAN Result = FALSE;
+  PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+
+  TempList = &g_EventTrace;
+  while (&g_EventTrace != TempList->Blink) {
+    TempList = TempList->Blink;
+
+    CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL,
+                                      CommandsEventList);
+
+    if (CommandDetail->Tag == Tag ||
+        Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+      //
+      // Remove it from the list
+      //
+      RemoveEntryList(&CommandDetail->CommandsEventList);
+
+      //
+      // Free the buffer for string of command
+      //
+      free(CommandDetail->CommandStringBuffer);
+
+      //
+      // Free the event it self
+      //
+      free(CommandDetail);
+
+      if (!Result) {
+        Result = TRUE;
+      }
+
+      if (Tag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+
+        //
+        // Only, one command exist with a tag, so we need to return as we
+        // find it
+        //
+        return TRUE;
+      }
+    }
+  }
+
+  //
+  // Not found
+  //
+  return Result;
+}
+
+/**
+ * @brief modify a special event (enable/disable/clear) and send the
+ * request directly to the kernel
+ * @details if you pass DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG as the
+ * tag then it will be applied to all the active/disabled events in the
+ * kernel
+ * 
+ * @param Tag the tag of the target event
+ * @param TypeOfAction whether its a enable/disable/clear
+ * @return VOID 
+ */
+VOID CommandEventsModifyEvents(UINT64 Tag,
+                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
 
   BOOLEAN Status;
   ULONG ReturnedLength;
-  /*
+  DEBUGGER_MODIFY_EVENTS ModifyEventRequest = {0};
+
+  //
+  // Check if there is no event, then we shouldn't apply the
+  // enable, disable, or clear commands, this command also
+  // checks for DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG to
+  // see if at least one tag exists or not; however, it's not
+  // necessary as the kernel will check for the validity of
+  // tag too, but let's not send it to kernel as we can prevent
+  // invalid requests from user-mode too
+  //
+  if (!IsTagExist(Tag)) {
+    if (Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+      ShowMessages("err, there is no event\n");
+
+    } else {
+      ShowMessages("err, tag id is invalid\n");
+    }
+    return;
+  }
+
   //
   // Check if debugger is loaded or not
   //
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
+
+  //
+  // Fill the structure to send it to the kernel
+  //
+  ModifyEventRequest.Tag = Tag;
+  ModifyEventRequest.TypeOfAction = TypeOfAction;
 
   //
   // Send the request to the kernel
   //
 
-  Status = DeviceIoControl(
-      g_DeviceHandle, // Handle to device
-      IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER, // IO Control
-                                                                  // code
-      &HideRequest, // Input Buffer to driver.
-      SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE, // Input buffer length
-      &HideRequest, // Output Buffer from driver.
-      SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE, // Length of output
+  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
+                           IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
+                           &ModifyEventRequest, // Input Buffer to driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
+                           &ModifyEventRequest, // Output Buffer from driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
                                                           // buffer in bytes.
-      &ReturnedLength, // Bytes placed in buffer.
-      NULL             // synchronous call
+                           &ReturnedLength, // Bytes placed in buffer.
+                           NULL             // synchronous call
   );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
     return;
   }
 
-  if (HideRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-    ShowMessages("transparent debugging successfully enabled :)\n");
+  if (ModifyEventRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
 
-  } else if (HideRequest.KernelStatus ==
-             DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER) {
-    ShowMessages("unable to hide the debugger (transparent-debugging) :(\n");
+    //
+    // Successfull, nothing to show but we should also
+    // do the same (change) the user-mode structures
+    // that hold the event data
+    //
+    if (ModifyEventRequest.TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
+
+      if (!CommandEventEnableEvent(Tag)) {
+
+        ShowMessages(
+            "error, the event was successfully, (enabled|disabled|cleared) but "
+            "can't apply it to the user-mode structures.\n");
+      }
+
+    } else if (ModifyEventRequest.TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_DISABLE) {
+
+      if (!CommandEventDisableEvent(Tag)) {
+
+        ShowMessages(
+            "error, the event was successfully, (enabled|disabled|cleared) but "
+            "can't apply it to the user-mode structures.\n");
+      } else {
+
+        //
+        // The action was applied successfully
+        //
+        if (g_BreakPrintingOutput) {
+
+          if (!g_AutoFlush) {
+            ShowMessages(
+                "auto-flush mode is disabled, if there is still "
+                "messages or buffers in the kernel, you continue to see "
+                "the messages when you run 'g' until the kernel "
+                "buffers are empty. you can run 'settings autoflush "
+                "on' and after disabling and clearing events, "
+                "kernel buffers will be flushed automatically.\n");
+          } else {
+            //
+            // We should flush buffers here
+            //
+            CommandFlushRequestFlush();
+          }
+        }
+      }
+
+    } else if (ModifyEventRequest.TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_CLEAR) {
+
+      if (!CommandEventClearEvent(Tag)) {
+
+        ShowMessages(
+            "error, the event was successfully, (enabled|disabled|cleared) but "
+            "can't apply it to the user-mode structures.\n");
+      } else {
+
+        //
+        // The action was applied successfully
+        //
+        if (g_BreakPrintingOutput) {
+
+          if (!g_AutoFlush) {
+            ShowMessages(
+                "auto-flush mode is disabled, if there is still "
+                "messages or buffers in the kernel, you continue to see "
+                "the messages when you run 'g' until the kernel "
+                "buffers are empty. you can run 'settings autoflush "
+                "on' and after disabling and clearing events, "
+                "kernel buffers will be flushed automatically.\n");
+          } else {
+            //
+            // We should flush buffers here
+            //
+            CommandFlushRequestFlush();
+          }
+        }
+      }
+
+    } else {
+
+      ShowMessages(
+          "error, the event was successfully, (enabled|disabled|cleared) but "
+          "can't apply it to the user-mode structures.\n");
+    }
 
   } else {
-    ShowMessages("unknown error occured :(\n");
+    //
+    // Interpret error
+    //
+    ShowErrorMessage(ModifyEventRequest.KernelStatus);
+    return;
   }
-  */
 }

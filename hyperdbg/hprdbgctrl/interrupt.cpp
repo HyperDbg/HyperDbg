@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !interrupt command
+ * 
+ * @return VOID 
+ */
 VOID CommandInterruptHelp() {
   ShowMessages("!interrupt : Monitors the external interrupt (IDT >= 32).\n\n");
   ShowMessages("syntax : \t!interrupt [entry index (hex value) - should be "
@@ -24,6 +29,12 @@ VOID CommandInterruptHelp() {
   ShowMessages("\t\te.g : !interrupt 0x2f core 2 pid 400\n");
 }
 
+/**
+ * @brief !interrupt command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandInterrupt(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -64,10 +75,12 @@ VOID CommandInterrupt(vector<string> SplittedCommand) {
         CommandInterruptHelp();
         return;
       } else {
+
         //
         // Check if entry is valid or not
         //
         if (!(SpecialTarget >= 32 && SpecialTarget <= 0xff)) {
+
           //
           // Entry is invalid (this command is designed for just entries
           // between 32 to 255)
@@ -80,16 +93,18 @@ VOID CommandInterrupt(vector<string> SplittedCommand) {
         GetEntry = TRUE;
       }
     } else {
+
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandInterruptHelp();
       return;
     }
   }
 
   if (SpecialTarget == 0) {
+    
     //
     // The user didn't set the target interrupt, even though it's possible to
     // get all interrupts but it makes the system not resposive so it's wrong
@@ -110,10 +125,24 @@ VOID CommandInterrupt(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    //
+    // There was an error
+    //
+    return;
+  }
 }

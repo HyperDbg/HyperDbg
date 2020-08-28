@@ -12,7 +12,7 @@
 #include "pch.h"
 
 /**
- * @brief routines for !syscallhook command (enable syscall hook)
+ * @brief routines for !syscall command (enable syscall hook)
  * 
  * @return VOID 
  */
@@ -23,7 +23,7 @@ DebuggerEventEnableEferOnAllProcessors()
 }
 
 /**
- * @brief routines for !syscallhook command (disable syscall hook)
+ * @brief routines for !syscall command (disable syscall hook)
  * 
  * @return VOID 
  */
@@ -113,6 +113,15 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     if (EnableForWrite)
     {
         EnableForRead = TRUE;
+    }
+
+    //
+    // Check if its DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES then
+    // we have to convert it to current process id
+    //
+    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+    {
+        ProcessId = PsGetCurrentProcessId();
     }
 
     //

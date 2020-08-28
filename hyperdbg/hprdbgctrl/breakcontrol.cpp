@@ -11,34 +11,73 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_AutoUnpause;
 
-BOOL WINAPI BreakController(DWORD CtrlType) {
+/**
+ * @brief handle CTRL+C and CTRL+Break events
+ * 
+ * @param CtrlType 
+ * @return BOOL 
+ */
+BOOL BreakController(DWORD CtrlType) {
   switch (CtrlType) {
+
+    //
     // Handle the CTRL-C signal.
+    //
   case CTRL_C_EVENT:
+
     //
     // Sleep because the other thread that shows must be stopped
     //
     g_BreakPrintingOutput = TRUE;
 
     Sleep(500);
-    ShowMessages("\npause\npausing debugger...\n");
+    if (g_AutoUnpause) {
+      ShowMessages("pause\npausing debugger...\nauto-unpause mode is enabled, "
+                   "debugger will automatically continue when you run a new "
+                   "event command, if you want to change this behaviour then "
+                   "run run 'settings autounpause off'\n\nHyperDbg >");
+    } else {
+      ShowMessages(
+          "pause\npausing debugger...\nauto-unpause mode is disabled, you "
+          "should run 'g' when you want to continue, otherwise run 'settings "
+          "autounpause on'\n\nHyperDbg >");
+    }
     return TRUE;
 
+    //
     // CTRL-CLOSE: confirm that the user wants to exit.
+    //
   case CTRL_CLOSE_EVENT:
     return TRUE;
 
+    //
     // Pass other signals to the next handler.
+    //
   case CTRL_BREAK_EVENT:
+
     //
     // Sleep because the other thread that shows must be stopped
     //
     g_BreakPrintingOutput = TRUE;
 
     Sleep(500);
-    ShowMessages("\npause\npausing debugger...\n");
+    if (g_AutoUnpause) {
+      ShowMessages("pause\npausing debugger...\nauto-unpause mode is enabled, "
+                   "debugger will automatically continue when you run a new "
+                   "event command, if you want to change this behaviour then "
+                   "run run 'settings autounpause off'\n\nHyperDbg >");
+    } else {
+      ShowMessages(
+          "pause\npausing debugger...\nauto-unpause mode is disabled, you "
+          "should run 'g' when you want to continue, otherwise run 'settings "
+          "autounpause on'\n\nHyperDbg >");
+    }
     return TRUE;
 
   case CTRL_LOGOFF_EVENT:
@@ -48,14 +87,13 @@ BOOL WINAPI BreakController(DWORD CtrlType) {
     return FALSE;
 
   default:
+
     //
     // Return TRUE if handled this message, further handler functions won't be
     // called.
     // Return FALSE to pass this message to further handlers until default
     // handler calls ExitProcess().
     //
-
-    return FALSE;
     return FALSE;
   }
 }

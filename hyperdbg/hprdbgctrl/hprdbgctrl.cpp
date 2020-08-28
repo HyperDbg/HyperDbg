@@ -24,6 +24,7 @@ extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_IsConnectedToRemoteDebugger;
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -31,22 +32,22 @@ extern BOOLEAN g_BreakPrintingOutput;
  *
  * @param handler Function that handles the messages
  */
-void __stdcall HyperdbgSetTextMessageCallback(Callback handler) {
+void HyperdbgSetTextMessageCallback(Callback handler) {
   g_MessageHandler = handler;
 }
 
 /**
  * @brief Show messages received from kernel driver
  *
- * @param Fmt
+ * @param Fmt format string message
  */
 void ShowMessages(const char *Fmt, ...) {
 
   va_list ArgList;
   va_list Args;
-  char TempMessage[PacketChunkSize];
+  char TempMessage[PacketChunkSize] = {0};
 
-  if (g_MessageHandler == NULL) {
+  if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger) {
 
     va_start(Args, Fmt);
     vprintf(Fmt, Args);
@@ -57,18 +58,30 @@ void ShowMessages(const char *Fmt, ...) {
   }
 
   va_start(ArgList, Fmt);
-  int sprintfresult =
-      vsprintf_s(TempMessage, PacketChunkSize - 1, Fmt, ArgList);
+  int sprintfresult = vsprintf(TempMessage, Fmt, ArgList);
   va_end(ArgList);
 
   if (sprintfresult != -1) {
+
+    if (g_IsConnectedToRemoteDebugger) {
+
+      //
+      // vsprintf_s and vswprintf_s return the number of characters written,
+      // not including the terminating null character, or a negative value
+      // if an output error occurs.
+      //
+      RemoteConnectionSendResultsToHost(TempMessage, sprintfresult);
+    }
+
     if (g_LogOpened) {
+
       //
       // .logopen command executed
       //
       LogopenSaveToFile(TempMessage);
     }
     if (g_MessageHandler != NULL) {
+      
       //
       // There is another handler
       //
@@ -137,9 +150,9 @@ void ReadIrpBasedBuffer() {
     while (TRUE) {
       if (!g_IsVmxOffProcessStart) {
 
-          //
-          // Clear the buffer
-          //
+        //
+        // Clear the buffer
+        //
         ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
         Sleep(200); // we're not trying to eat all of the CPU ;)
@@ -158,7 +171,7 @@ void ReadIrpBasedBuffer() {
         );
 
         if (!Status) {
-          ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+          ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
           break;
         }
 
@@ -205,15 +218,18 @@ void ReadIrpBasedBuffer() {
           break;
         }
       } else {
+
         //
         // the thread should not work anymore
         //
+        free(OutputBuffer);
         return;
       }
     }
   } catch (const std::exception &) {
     ShowMessages(" Exception !\n");
   }
+  free(OutputBuffer);
 }
 
 /**
@@ -223,6 +239,7 @@ void ReadIrpBasedBuffer() {
  * @return DWORD Device Handle
  */
 DWORD WINAPI ThreadFunc(void *data) {
+
   //
   // Do stuff.  This will be the first function called on the new thread.
   // When this function returns, the thread goes away.  See MSDN for more
@@ -239,7 +256,7 @@ DWORD WINAPI ThreadFunc(void *data) {
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgInstallDriver() {
+HPRDBGCTRL_API int HyperdbgInstallVmmDriver() {
 
   //
   // The driver is not started yet so let us the install driver.
@@ -258,7 +275,6 @@ HPRDBGCTRL_API int HyperdbgInstallDriver() {
     //
     // Error - remove driver.
     //
-
     ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
     return 1;
@@ -272,6 +288,7 @@ HPRDBGCTRL_API int HyperdbgInstallDriver() {
  * @return int return zero if it was successful or non-zero if there was error
  */
 HPRDBGCTRL_API int HyperdbgUninstallDriver() {
+
   //
   // Unload the driver if loaded.  Ignore any errors.
   //
@@ -286,13 +303,12 @@ HPRDBGCTRL_API int HyperdbgUninstallDriver() {
  *
  * @return int return zero if it was successful or non-zero if there was error
  */
-HPRDBGCTRL_API int HyperdbgLoad() {
+HPRDBGCTRL_API int HyperdbgLoadVmm() {
 
   string CpuID;
   DWORD ErrorNum;
-  BOOL Status;
   HANDLE hProcess;
-  HANDLE hToken;
+  DWORD ThreadId;
 
   if (g_DeviceHandle) {
     ShowMessages("Handle of driver found, if you use 'load' before, please "
@@ -317,15 +333,6 @@ HPRDBGCTRL_API int HyperdbgLoad() {
   } else {
     ShowMessages("VMX Operation is not supported by your processor .\n");
     return 1;
-  }
-  //
-  // Enable Debug privilege
-  //
-  hProcess = GetCurrentProcess();
-
-  if (OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, &hToken)) {
-    SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
-    CloseHandle(hToken);
   }
 
   g_DeviceHandle = CreateFileA(
@@ -353,8 +360,7 @@ HPRDBGCTRL_API int HyperdbgLoad() {
   InitializeListHead(&g_EventTrace);
 
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
-
-  HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, NULL);
+  HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
   if (Thread) {
     ShowMessages("Thread Created successfully !!!\n");
   }
@@ -405,7 +411,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   // wait to make sure we don't use an invalid handle in another Ioctl
   //
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
   }
 
   //
@@ -427,7 +433,7 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   // wait to make sure we don't use an invalid handle in another Ioctl
   //
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
   }
 
   //

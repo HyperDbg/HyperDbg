@@ -15,6 +15,10 @@
 //                   Structures		   			//
 //////////////////////////////////////////////////
 
+/**
+ * @brief INVEPT Instruction Descriptor
+ * 
+ */
 typedef struct _INVEPT_DESC
 {
     UINT64 EptPointer;
@@ -25,10 +29,11 @@ typedef struct _INVEPT_DESC
 //                 Functions	    			//
 //////////////////////////////////////////////////
 
-// Invept Functions
 unsigned char
 Invept(UINT32 Type, INVEPT_DESC * Descriptor);
+
 unsigned char
 InveptAllContexts();
+
 unsigned char
 InveptSingleContext(UINT64 EptPonter);

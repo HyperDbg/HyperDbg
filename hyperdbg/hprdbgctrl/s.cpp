@@ -11,9 +11,14 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !s* s* commands
+ * 
+ * @return VOID 
+ */
 VOID CommandSearchMemoryHelp() {
-  ShowMessages("sb !sb sd !sd sq !sq : searches the memory for a special byte "
-               "pattern\n");
+  ShowMessages("sb !sb sd !sd sq !sq : searches a contiguous memory for a "
+               "special byte pattern\n");
   ShowMessages("s[b]  Byte and ASCII characters\n");
   ShowMessages("s[d]  Double-word values (4 bytes)\n");
   ShowMessages("s[q]  Quad-word values (8 bytes). \n");
@@ -31,6 +36,12 @@ VOID CommandSearchMemoryHelp() {
                "9090909090909090 l ffffff\n");
 }
 
+/**
+ * @brief !s* s* commands handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandSearchMemory(vector<string> SplittedCommand) {
 
   BOOL Status;
@@ -41,6 +52,8 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
   BOOL SetLength = FALSE;
   BOOL NextIsLength = FALSE;
   DEBUGGER_SEARCH_MEMORY SearchMemoryRequest = {0};
+  PUINT64 ResultsBuffer;
+  UINT64 CurrentValue;
   UINT64 Address;
   UINT64 Value = 0;
   UINT64 Length = 0;
@@ -79,6 +92,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         SearchMemoryRequest.MemoryType = SEARCH_VIRTUAL_MEMORY;
         SearchMemoryRequest.ByteSize = SEARCH_QWORD;
       } else {
+
         //
         // What's this? :(
         //
@@ -102,6 +116,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         CommandSearchMemoryHelp();
         return;
       } else {
+
         //
         // Means that the proc id is set, next we should read value
         //
@@ -121,6 +136,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         CommandSearchMemoryHelp();
         return;
       } else {
+
         //
         // Means that the proc id is set, next we should read value
         //
@@ -151,6 +167,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         CommandSearchMemoryHelp();
         return;
       } else {
+
         //
         // Means that the address is set, next we should read value
         //
@@ -195,7 +212,6 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
       // Qword is checked by the following function, no need to double
       // check it above.
       //
-
       if (!ConvertStringToUInt64(Section, &Value)) {
         ShowMessages("please specify a correct hex value to search in the "
                      "memory content\n\n");
@@ -206,7 +222,6 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         //
         // Add it to the list
         //
-
         ValuesToEdit.push_back(Value);
 
         //
@@ -215,6 +230,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         CountOfValues++;
 
         if (!SetValue) {
+          
           //
           // At least on walue is there
           //
@@ -263,7 +279,8 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
   }
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded.\n");
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
     return;
   }
 
@@ -308,19 +325,60 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
   std::copy(ValuesToEdit.begin(), ValuesToEdit.end(),
             (UINT64 *)((UINT64)FinalBuffer + SIZEOF_DEBUGGER_SEARCH_MEMORY));
 
-  Status = DeviceIoControl(
-      g_DeviceHandle,                // Handle to device
-      IOCTL_DEBUGGER_SEARCH_MEMORY,  // IO Control code
-      FinalBuffer,                   // Input Buffer to driver.
-      FinalSize,                     // Input buffer length
-      &SearchMemoryRequest,          // Output Buffer from driver.
-      SIZEOF_DEBUGGER_SEARCH_MEMORY, // Length of output buffer in bytes.
-      NULL,                          // Bytes placed in buffer.
-      NULL                           // synchronous call
-  );
+  //
+  // Allocate a buffer to store the results
+  //
+  ResultsBuffer = (PUINT64)malloc(MaximumSearchResults * sizeof(UINT64));
+
+  //
+  // Also it's better to Zero the memory; however it's not necessary
+  // as we zero the buffer in the search routines
+  //
+  ZeroMemory(ResultsBuffer, MaximumSearchResults * sizeof(UINT64));
+
+  //
+  // Fire the IOCTL
+  //
+  Status =
+      DeviceIoControl(g_DeviceHandle,               // Handle to device
+                      IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control code
+                      FinalBuffer,                  // Input Buffer to driver.
+                      FinalSize,                    // Input buffer length
+                      ResultsBuffer, // Output Buffer from driver.
+                      MaximumSearchResults *
+                          sizeof(UINT64), // Length of output buffer in bytes.
+                      NULL,               // Bytes placed in buffer.
+                      NULL                // synchronous call
+      );
 
   if (!Status) {
-    ShowMessages("Ioctl failed with code 0x%x\n", GetLastError());
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    free(FinalBuffer);
     return;
   }
+
+  //
+  // Show the results (if any)
+  //
+  for (size_t i = 0; i < MaximumSearchResults; i++) {
+    CurrentValue = ResultsBuffer[i];
+
+    if (CurrentValue == NULL) {
+      //
+      // We ended up the buffer, nothing else to show,
+      // just check whether we found anything or not
+      //
+      if (i == 0) {
+        ShowMessages("Not found.\n");
+      }
+      break;
+    }
+    ShowMessages("%llx\n", CurrentValue);
+  }
+
+  //
+  // Free the buffers
+  //
+  free(FinalBuffer);
+  free(ResultsBuffer);
 }

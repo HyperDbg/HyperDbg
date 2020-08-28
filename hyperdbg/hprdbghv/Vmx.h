@@ -15,20 +15,32 @@
 //					Constants					//
 //////////////////////////////////////////////////
 
-/* VMCS Region Size */
+/**
+ * @brief VMCS Region Size
+ * 
+ */
 #define VMCS_SIZE 4096
 
-/* VMXON Region Size */
+/**
+ * @brief VMXON Region Size
+ * 
+ */
 #define VMXON_SIZE 4096
 
-/* PIN-Based Execution */
+/**
+ * @brief PIN-Based Execution
+ * 
+ */
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000004
 #define PIN_BASED_VM_EXECUTION_CONTROLS_VIRTUAL_NMI               0x00000010
 #define PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER          0x00000020
 #define PIN_BASED_VM_EXECUTION_CONTROLS_PROCESS_POSTED_INTERRUPTS 0x00000040
 
-/* CPU-Based Controls */
+/**
+ * @brief CPU-Based Controls
+ * 
+ */
 #define CPU_BASED_VIRTUAL_INTR_PENDING        0x00000004
 #define CPU_BASED_USE_TSC_OFFSETING           0x00000008
 #define CPU_BASED_HLT_EXITING                 0x00000080
@@ -51,7 +63,10 @@
 #define CPU_BASED_PAUSE_EXITING               0x40000000
 #define CPU_BASED_ACTIVATE_SECONDARY_CONTROLS 0x80000000
 
-/* Secondary CPU-Based Controls */
+/**
+ * @brief Secondary CPU-Based Controls
+ * 
+ */
 #define CPU_BASED_CTL2_ENABLE_EPT                 0x2
 #define CPU_BASED_CTL2_RDTSCP                     0x8
 #define CPU_BASED_CTL2_ENABLE_VPID                0x20
@@ -61,7 +76,10 @@
 #define CPU_BASED_CTL2_ENABLE_VMFUNC              0x2000
 #define CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS       0x100000
 
-/* VM-exit Control Bits */
+/**
+ * @brief VM-exit Control Bits
+ * 
+ */
 #define VM_EXIT_SAVE_DEBUG_CONTROLS        0x00000004
 #define VM_EXIT_HOST_ADDR_SPACE_SIZE       0x00000200
 #define VM_EXIT_LOAD_IA32_PERF_GLOBAL_CTRL 0x00001000
@@ -72,7 +90,10 @@
 #define VM_EXIT_LOAD_IA32_EFER             0x00200000
 #define VM_EXIT_SAVE_VMX_PREEMPTION_TIMER  0x00400000
 
-/* VM-entry Control Bits */
+/**
+ * @brief VM-entry Control Bits
+ * 
+ */
 #define VM_ENTRY_LOAD_DEBUG_CONTROLS        0x00000004
 #define VM_ENTRY_IA32E_MODE                 0x00000200
 #define VM_ENTRY_SMM                        0x00000400
@@ -81,7 +102,10 @@
 #define VM_ENTRY_LOAD_IA32_PAT              0x00004000
 #define VM_ENTRY_LOAD_IA32_EFER             0x00008000
 
-/* VM-exit Reasons */
+/**
+ * @brief VM-exit Reasons
+ * 
+ */
 #define EXIT_REASON_EXCEPTION_NMI                0
 #define EXIT_REASON_EXTERNAL_INTERRUPT           1
 #define EXIT_REASON_TRIPLE_FAULT                 2
@@ -143,7 +167,10 @@
 #define EXIT_REASON_XRSTORS                      64
 #define EXIT_REASON_PCOMMIT                      65
 
-/* CPUID RCX(s) - Based on Hyper-V */
+/**
+ * @brief CPUID RCX(s) - Based on Hyper-V
+ * 
+ */
 #define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define HYPERV_CPUID_INTERFACE                0x40000001
 #define HYPERV_CPUID_VERSION                  0x40000002
@@ -154,18 +181,31 @@
 #define HYPERV_CPUID_MIN                      0x40000005
 #define HYPERV_CPUID_MAX                      0x4000ffff
 
-/* Exit Qualifications for MOV for Control Register Access */
+/**
+ * @brief Exit Qualifications for MOV for Control Register Access
+ * 
+ */
 #define TYPE_MOV_TO_CR   0
 #define TYPE_MOV_FROM_CR 1
 #define TYPE_CLTS        2
 #define TYPE_LMSW        3
 
-/* Stack size */
+/**
+ * @brief Stack Size
+ * 
+ */
 #define VMM_STACK_SIZE 0x8000
 
-/* Pending External Interrups Buffer Capacity */
+/**
+ * @brief Pending External Interrups Buffer Capacity
+ * 
+ */
 #define PENDING_INTERRUPTS_BUFFER_CAPACITY 64
 
+/**
+ * @brief Hypercalls for Hyper-V
+ * 
+ */
 typedef union _HYPERCALL_INPUT_VALUE
 {
     UINT64 Value;
@@ -183,6 +223,10 @@ typedef union _HYPERCALL_INPUT_VALUE
     } Bitmap;
 } HYPERCALL_INPUT_VALUE, *PHYPERCALL_INPUT_VALUE;
 
+/**
+ * @brief Hyper-V Hypercalls
+ * 
+ */
 enum HYPERCALL_CODE
 {
     HvSwitchVirtualAddressSpace  = 0x0001,
@@ -457,6 +501,10 @@ typedef enum _VMCS_FIELDS
     HOST_RIP                     = 0x00006c16,
 };
 
+/**
+ * @brief MOV to debug registers states
+ * 
+ */
 typedef enum MOV_TO_DEBUG_REG
 {
     AccessToDebugRegister   = 0,
@@ -508,6 +556,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
 
     PROCESSOR_DEBUGGING_STATE DebuggingState;         // Holds the debugging state of the processor (used by HyperDbg to execute commands)
     VMX_VMXOFF_STATE          VmxoffState;            // Shows the vmxoff state of the guest
+    VM_EXIT_TRANSPARENCY      TransparencyState;      // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL   MtfEptHookRestorePoint; // It shows the detail of the hooked paged that should be restore in MTF vm-exit
     MEMORY_MAPPER_ADDRESSES   MemoryMapper;           // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
@@ -555,6 +604,10 @@ typedef union _MOV_CR_QUALIFICATION
     } Fields;
 } MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
 
+/**
+ * @brief Exit-Qualification Structure for MOV to Debug Registers
+ * 
+ */
 typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
 {
     UINT64 Flags;
@@ -573,45 +626,47 @@ typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
 //					Functions					//
 //////////////////////////////////////////////////
 
-/* Initialize VMX Operation */
 BOOLEAN
 VmxInitializer();
 
-/* Terminate VMX Operation */
 BOOLEAN
 VmxTerminate();
 
-/* Allocate VMX Regions */
 BOOLEAN
 VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState);
+
 BOOLEAN
 VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState);
+
 BOOLEAN
 VmxAllocateVmmStack(INT ProcessorID);
+
 BOOLEAN
 VmxAllocateMsrBitmap(INT ProcessorID);
+
 BOOLEAN
 VmxAllocateIoBitmaps(INT ProcessorID);
+
 VOID
 VmxHandleXsetbv(UINT32 Reg, UINT64 Value);
 
-/* VMX Instructions */
 VOID
 VmxVmptrst();
+
 VOID
 VmxVmresume();
+
 VOID
 VmxVmxoff();
 
 BOOLEAN
 VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState);
+
 BOOLEAN
 VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
-/* Virtualize an already running machine */
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
-/* Configure VMCS */
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack);

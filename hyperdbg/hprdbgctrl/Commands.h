@@ -14,15 +14,13 @@
 using namespace std;
 
 //////////////////////////////////////////////////
-//					Externs
-////
+//                    Externs                   //
 //////////////////////////////////////////////////
 
 extern HANDLE g_DeviceHandle;
 
 //////////////////////////////////////////////////
-//					Functions
-////
+//                  Functions                   //
 //////////////////////////////////////////////////
 
 int ReadCpuDetails();
@@ -40,8 +38,11 @@ VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT32 Pid, UINT Size);
 string SeparateTo64BitValue(UINT64 Value);
 
-int HyperDbgDisassembler(unsigned char *BufferToDisassemble, UINT64 BaseAddress,
-                         UINT64 Size);
+int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
+                           UINT64 BaseAddress, UINT64 Size);
+
+int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
+                           UINT64 BaseAddress, UINT64 Size);
 
 VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
@@ -109,7 +110,7 @@ VOID CommandIoout(vector<string> SplittedCommand);
 
 VOID CommandVmcall(vector<string> SplittedCommand);
 
-VOID CommandHide(vector<string> SplittedCommand);
+VOID CommandHide(vector<string> SplittedCommand, string Command);
 
 VOID CommandUnhide(vector<string> SplittedCommand);
 
@@ -130,3 +131,19 @@ VOID CommandSleep(vector<string> SplittedCommand);
 VOID CommandEditMemory(vector<string> SplittedCommand);
 
 VOID CommandSearchMemory(vector<string> SplittedCommand);
+
+VOID CommandMeasure(vector<string> SplittedCommand);
+
+VOID CommandSettings(vector<string> SplittedCommand);
+
+VOID CommandFlush(vector<string> SplittedCommand);
+
+VOID CommandPause(vector<string> SplittedCommand);
+
+VOID CommandListen(vector<string> SplittedCommand);
+
+VOID CommandStatus(vector<string> SplittedCommand);
+
+VOID CommandAttach(vector<string> SplittedCommand);
+
+VOID CommandDetach(vector<string> SplittedCommand);

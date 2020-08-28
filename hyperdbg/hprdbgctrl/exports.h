@@ -11,7 +11,6 @@
  */
 #pragma once
 
-
 //////////////////////////////////////////////////
 //					  Exports                   //
 //////////////////////////////////////////////////
@@ -21,11 +20,11 @@
 //
 extern "C" {
 extern bool inline AsmVmxSupportDetection();
-__declspec(dllexport) int __cdecl HyperdbgLoad();
-__declspec(dllexport) int __cdecl HyperdbgUnload();
-__declspec(dllexport) int __cdecl HyperdbgInstallDriver();
-__declspec(dllexport) int __cdecl HyperdbgUninstallDriver();
-__declspec(dllexport) void __stdcall HyperdbgSetTextMessageCallback(
-    Callback handler);
-__declspec(dllexport) int __cdecl HyperdbgInterpreter(const char *Command);
+__declspec(dllexport) int HyperdbgLoadVmm();
+__declspec(dllexport) int HyperdbgUnload();
+__declspec(dllexport) int HyperdbgInstallVmmDriver();
+__declspec(dllexport) int HyperdbgUninstallDriver();
+__declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
+__declspec(dllexport) int HyperdbgInterpreter(const char *Command);
+__declspec(dllexport) void HyperdbgShowSignature();
 }

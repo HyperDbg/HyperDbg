@@ -14,7 +14,6 @@
 //
 // Test cases
 //
-
 #define DEBUGGER_TEST_ALL_COMMANDS 0x0
 #define DEBUGGER_TEST_VMM_MONITOR_COMMAND 0x1
 

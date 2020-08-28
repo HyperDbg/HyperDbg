@@ -48,7 +48,10 @@ typedef struct _INVVPID_DESCRIPTOR
 //					Definitions					//
 //////////////////////////////////////////////////
 
-/* VPID Tag */
+/**
+ * @brief VPID Tag
+ * 
+ */
 #define VPID_TAG 0x1
 
 //////////////////////////////////////////////////
@@ -57,11 +60,15 @@ typedef struct _INVVPID_DESCRIPTOR
 
 void
 Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor);
+
 void
 InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress);
+
 void
 InvvpidSingleContext(UINT16 Vpid);
+
 void
 InvvpidAllContexts();
+
 void
 InvvpidSingleContextRetainingGlobals(UINT16 Vpid);

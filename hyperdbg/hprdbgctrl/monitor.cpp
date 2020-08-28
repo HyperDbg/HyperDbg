@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !monitor command
+ * 
+ * @return VOID 
+ */
 VOID CommandMonitorHelp() {
   ShowMessages("!monitor : Monitor address range for read and writes.\n\n");
   ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
@@ -26,6 +31,12 @@ VOID CommandMonitorHelp() {
                "pid 400\n");
 }
 
+/**
+ * @brief !monitor command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandMonitor(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -72,11 +83,13 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
       Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
 
     } else {
+
       //
       // It's probably address
       //
       if (!SetFrom) {
         if (!ConvertStringToUInt64(Section, &OptionalParam1)) {
+
           //
           // Unkonwn parameter
           //
@@ -87,6 +100,7 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
         SetFrom = TRUE;
       } else if (!SetTo) {
         if (!ConvertStringToUInt64(Section, &OptionalParam2)) {
+
           //
           // Unkonwn parameter
           //
@@ -96,16 +110,18 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
         }
         SetTo = TRUE;
       } else {
+
         //
         // Unkonwn parameter
         //
-        ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+        ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
         CommandMonitorHelp();
         return;
       }
     }
   }
   if (OptionalParam1 > OptionalParam2) {
+
     //
     // 'from' is greater than 'to'
     //
@@ -123,10 +139,25 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+
+    //
+    // There was an error
+    //
+    return;
+  }
 }

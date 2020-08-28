@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Emulate RDTSC
+ * 
+ * @param GuestRegs guest registers
+ * @return VOID 
+ */
 VOID
 CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
 {
@@ -25,6 +31,12 @@ CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
 }
 
+/**
+ * @brief Emulate RDTSCP
+ * 
+ * @param GuestRegs Guest Registers
+ * @return VOID 
+ */
 VOID
 CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
 {
@@ -32,8 +44,16 @@ CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
     ULONG64 Tsc    = __rdtscp(&Aux);
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
+
+    GuestRegs->rcx = 0x00000000ffffffff & Aux;
 }
 
+/**
+ * @brief Emulate RDPMC
+ * 
+ * @param GuestRegs Guest Register
+ * @return VOID 
+ */
 VOID
 CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
 {

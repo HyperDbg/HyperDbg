@@ -37,12 +37,11 @@ ExAllocatePoolWithTagHook(
  * This function have to be called through a VMCALL in VMX Root Mode
  * 
  * @param TargetAddress The address of function or memory address to be hooked
- * @param HookFunction The function that will be called when hook triggered
- * @param ProcessId The process id to translate based on that process's cr3
+ * @param ProcessCr3 The process cr3 to translate based on that process's cr3
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
+EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -84,18 +83,9 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
     //
 
     //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr32 of current process
-    //
-    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
-    {
-        ProcessId = PsGetCurrentProcessId();
-    }
-
-    //
     // Find cr3 of target core
     //
-    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(VirtualTarget, ProcessCr3);
 
     if (!PhysicalBaseAddress)
     {
@@ -106,7 +96,6 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
     //
     // try to see if we can find the address
     //
-
     TempList = &g_EptState->HookedPagesList;
 
     while (&g_EptState->HookedPagesList != TempList->Flink)
@@ -145,6 +134,7 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
         // Apply the hook 0xcc
         //
 
+        //
         // Compute new offset of target offset into a safe bufferr
         // It will be used to compute the length of the detours
         // address because we might have a user mode code
@@ -300,7 +290,7 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         // Switch to target process
         //
-        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
 
         //
         // Copy the content to the fake page
@@ -363,7 +353,6 @@ EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId)
  * the above mentioned method, so we won't have any problem with this :)
  * 
  * @param TargetAddress The address of function or memory address to be hooked
- * @param HookFunction The function that will be called when hook triggered
  * @param ProcessId The process id to translate based on that process's cr3
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
@@ -385,7 +374,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         HvEnableBreakpointExitingOnExceptionBitmapAllCores();
 
-        if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, ProcessId, NULL) == STATUS_SUCCESS)
+        if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, GetCr3FromProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
         {
             LogInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
@@ -448,6 +437,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
             // Undo the hook on the EPT table
             //
             EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+
             return TRUE;
         }
     }
@@ -477,6 +467,7 @@ EptHookRestoreAllHooksToOrginalEntry()
     }
 
     TempList = &g_EptState->HookedPagesList;
+
     while (&g_EptState->HookedPagesList != TempList->Flink)
     {
         TempList                            = TempList->Flink;
@@ -568,14 +559,14 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
  * @brief Hook ins
  * 
  * @param Hook The details of hooked pages
- * @param ProcessId The target Process Id
+ * @param ProcessCr3 The target Process CR3
  * @param TargetFunction Target function that needs to be hooked
  * @param TargetFunctionInSafeMemory Target content in the safe memory (used in Length Disassembler Engine)
  * @param HookFunction The function that will be called when hook triggered
  * @return BOOLEAN Returns true if the hook was successfull or returns false if it was not successfull
  */
 BOOLEAN
-EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID TargetFunction, PVOID TargetFunctionInSafeMemory, PVOID HookFunction)
+EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOID TargetFunction, PVOID TargetFunctionInSafeMemory, PVOID HookFunction)
 {
     PHIDDEN_HOOKS_DETOUR_DETAILS DetourHookDetails;
     SIZE_T                       SizeOfHookedInstructions;
@@ -625,7 +616,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID T
 
     // Switch to target process
     //
-    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+    Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
 
     //
     // The following line can't be used in user mode addresses
@@ -650,6 +641,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID T
     // Let the hook function call the original function
     //
     // *OrigFunction = Hook->Trampoline;
+    //
 
     //
     // Create the structure to return for the debugger, we do it here because it's the first
@@ -659,6 +651,12 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID T
     DetourHookDetails                        = PoolManagerRequestPool(DETOUR_HOOK_DETAILS, TRUE, sizeof(HIDDEN_HOOKS_DETOUR_DETAILS));
     DetourHookDetails->HookedFunctionAddress = TargetFunction;
     DetourHookDetails->ReturnAddress         = Hook->Trampoline;
+
+    //
+    // Save the address of DetourHookDetails because we want to
+    // deallocate it when the hook is finished
+    //
+    Hook->AddressOfEptHook2sDetourListEntry = DetourHookDetails;
 
     //
     // Insert it to the list of hooked pages
@@ -680,14 +678,14 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, UINT32 ProcessId, PVOID T
  * 
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
- * @param ProcessId The process id to translate based on that process's cr3
+ * @param ProcessCr3 The process cr3 to translate based on that process's cr3
  * @param UnsetRead Hook READ Access
  * @param UnsetWrite Hook WRITE Access
  * @param UnsetExecute Hook EXECUTE Access
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
  */
 BOOLEAN
-EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
+EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE ProcessCr3, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute)
 {
     EPT_PML1_ENTRY          ChangedEntry;
     INVEPT_DESCRIPTOR       Descriptor;
@@ -727,18 +725,9 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
     //
 
     //
-    // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    // or if process id is 0 then we use the cr32 of current process
-    //
-    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
-    {
-        ProcessId = PsGetCurrentProcessId();
-    }
-
-    //
     // Find cr3 of target core
     //
-    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessId(VirtualTarget, ProcessId);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(VirtualTarget, ProcessCr3);
 
     if (!PhysicalBaseAddress)
     {
@@ -749,7 +738,6 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
     //
     // try to see if we can find the address
     //
-
     TempList = &g_EptState->HookedPagesList;
 
     while (&g_EptState->HookedPagesList != TempList->Flink)
@@ -879,7 +867,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
         //
         // Switch to target process
         //
-        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayout(ProcessId);
+        Cr3OfCurrentProcess = SwitchOnAnotherProcessMemoryLayoutByCr3(ProcessCr3);
 
         //
         // Copy the content to the fake page
@@ -906,7 +894,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
         //
         // Create Hook
         //
-        if (!EptHookInstructionMemory(HookedPage, ProcessId, TargetAddress, TargetAddressInSafeMemory, HookFunction))
+        if (!EptHookInstructionMemory(HookedPage, ProcessCr3, TargetAddress, TargetAddressInSafeMemory, HookFunction))
         {
             LogError("Could not build the hook.");
             return FALSE;
@@ -946,7 +934,8 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessI
 
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
- * @details this command uses hidden detours
+ * @details this command uses hidden detours, this NOT be called from vmx-root mode
+ *
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
@@ -1015,7 +1004,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
         //
         UINT64 VmcallNumber = ((UINT64)PageHookMask) << 32 | VMCALL_CHANGE_PAGE_ATTRIB;
 
-        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, ProcessId) == STATUS_SUCCESS)
+        if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId).Flags) == STATUS_SUCCESS)
         {
             LogInfo("Hook applied from VMX Root Mode");
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
@@ -1035,7 +1024,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     }
     else
     {
-        if (EptHookPerformPageHook2(TargetAddress, HookFunction, ProcessId, SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
+        if (EptHookPerformPageHook2(TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId), SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
         {
             LogInfo("[*] Hook applied (VM has not launched)");
             return TRUE;
@@ -1049,6 +1038,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
 /**
  * @brief Handles page hooks
  * 
+ * @param Regs Guest registers
  * @param HookedEntryDetails The entry that describes the hooked page
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
@@ -1146,10 +1136,57 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
 }
 
 /**
+ * @brief Remove the enrty from g_EptHook2sDetourListHead in the case
+ * of !epthook2 details
+ * @param Address Address to remove
+ * @return BOOLEAN TRUE if successfully removed and false if not found 
+ */
+BOOLEAN
+EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
+{
+    PLIST_ENTRY TempList = 0;
+
+    //
+    // Iterate through the list of hooked pages details to find
+    // the entry in the list
+    //
+    TempList = &g_EptHook2sDetourListHead;
+
+    while (&g_EptHook2sDetourListHead != TempList->Flink)
+    {
+        TempList                                          = TempList->Flink;
+        PHIDDEN_HOOKS_DETOUR_DETAILS CurrentHookedDetails = CONTAINING_RECORD(TempList, HIDDEN_HOOKS_DETOUR_DETAILS, OtherHooksList);
+
+        if (CurrentHookedDetails->HookedFunctionAddress == Address)
+        {
+            //
+            // We found the address, we should remove it and add it for
+            // future deallocation
+            //
+            RemoveEntryList(&CurrentHookedDetails->OtherHooksList);
+
+            //
+            // Free the pool in next ioctl
+            //
+            if (!PoolManagerFreePool(CurrentHookedDetails))
+            {
+                LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+            }
+            return TRUE;
+        }
+    }
+    //
+    // No entry found !
+    //
+    return FALSE;
+}
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx non-root
  * 
  * @param VirtualAddress Virtual address to unhook
+ * @param ProcessId The process id of target process
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
@@ -1212,6 +1249,15 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                         // remove the entry from the list
                         //
                         RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                        //
+                        // we add the hooked entry to the list
+                        // of pools that will be deallocated on next IOCTL
+                        //
+                        if (!PoolManagerFreePool(HookedEntry))
+                        {
+                            LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+                        }
 
                         //
                         // Check if there is any other breakpoints, if no then we have to disalbe
@@ -1296,9 +1342,24 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                 KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
 
                 //
+                // Now that we removed this hidden detours hook, it is
+                // time to remove it from g_EptHook2sDetourListHead
+                //
+                EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
+
+                //
                 // remove the entry from the list
                 //
                 RemoveEntryList(HookedEntry->PageHookList.Flink);
+
+                //
+                // we add the hooked entry to the list
+                // of pools that will be deallocated on next IOCTL
+                //
+                if (!PoolManagerFreePool(HookedEntry))
+                {
+                    LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+                }
 
                 return TRUE;
             }
@@ -1319,6 +1380,8 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
 VOID
 EptHookUnHookAll()
 {
+    PLIST_ENTRY TempList = 0;
+
     //
     // Should be called from vmx non-root
     //
@@ -1333,6 +1396,35 @@ EptHookUnHookAll()
     KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateAllEntries, 0x0);
 
     //
-    // No need to remove the list as it will automatically remove by the pool uninitializer
+    // In the case of unhooking all pages, we remove the hooked
+    // from EPT table in vmx-root and at last, we need to deallocate
+    // it from the buffers
     //
+
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        //
+        // Now that we removed this hidden detours hook, it is
+        // time to remove it from g_EptHook2sDetourListHead
+        // if the hook is detours
+        //
+        if (!HookedEntry->IsHiddenBreakpoint)
+        {
+            EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
+        }
+
+        //
+        // As we are in vmx-root here, we add the hooked entry to the list
+        // of pools that will be deallocated on next IOCTL
+        //
+        if (!PoolManagerFreePool(HookedEntry))
+        {
+            LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+        }
+    }
 }

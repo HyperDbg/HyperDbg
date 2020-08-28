@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !exception command
+ * 
+ * @return VOID 
+ */
 VOID CommandExceptionHelp() {
   ShowMessages("!exception : Monitors the first 32 entry of IDT (starting from "
                "zero).\n\n");
@@ -29,6 +34,12 @@ VOID CommandExceptionHelp() {
   ShowMessages("\t\te.g : !exception core 2 pid 400\n");
 }
 
+/**
+ * @brief !exception command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandException(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -61,6 +72,7 @@ VOID CommandException(vector<string> SplittedCommand) {
       // It's probably an index
       //
       if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
+
         //
         // Unkonwn parameter
         //
@@ -68,10 +80,12 @@ VOID CommandException(vector<string> SplittedCommand) {
         CommandExceptionHelp();
         return;
       } else {
+
         //
         // Check if entry is valid or not (start from zero)
         //
         if (SpecialTarget >= 31) {
+
           //
           // Entry is invalid (this command is designed for just first 32
           // entries)
@@ -84,10 +98,11 @@ VOID CommandException(vector<string> SplittedCommand) {
         GetEntry = TRUE;
       }
     } else {
+
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandExceptionHelp();
       return;
     }
@@ -101,10 +116,25 @@ VOID CommandException(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

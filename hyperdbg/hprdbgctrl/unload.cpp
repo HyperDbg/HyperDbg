@@ -14,15 +14,26 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 
+/**
+ * @brief help of unload command
+ * 
+ * @return VOID 
+ */
 VOID CommandUnloadHelp() {
   ShowMessages(
       "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
   ShowMessages("syntax : \tunload\n");
 }
 
+/**
+ * @brief unload command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandUnload(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
@@ -30,7 +41,7 @@ VOID CommandUnload(vector<string> SplittedCommand) {
     CommandLoadHelp();
     return;
   }
-  if (!g_IsConnectedToDebugger) {
+  if (!g_IsConnectedToHyperDbgLocally) {
     ShowMessages("You're not connected to any instance of HyperDbg, did you "
                  "use '.connect'? \n");
     return;

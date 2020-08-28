@@ -11,6 +11,13 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Handling XSETBV Instruction vm-exits
+ * 
+ * @param Reg 
+ * @param Value 
+ * @return VOID 
+ */
 VOID
 VmxHandleXsetbv(UINT32 Reg, UINT64 Value)
 {

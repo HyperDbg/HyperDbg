@@ -16,12 +16,23 @@
 //
 extern BOOLEAN g_BreakPrintingOutput;
 
+/**
+ * @brief help of g command
+ * 
+ * @return VOID 
+ */
 VOID CommandGHelp() {
   ShowMessages("g : continue a breaked debugger (by pause) or a remote breaked "
                "debugger.\n\n");
   ShowMessages("syntax : \tg\n");
 }
 
+/**
+ * @brief handler of g command
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandG(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {
@@ -31,7 +42,7 @@ VOID CommandG(vector<string> SplittedCommand) {
   }
 
   //
-  // Set the g_BreakPrintingOutput to TRUE
+  // Set the g_BreakPrintingOutput to FALSE
   //
   g_BreakPrintingOutput = FALSE;
 }

@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Halt the system
+ * 
+ * @return VOID 
+ */
 VOID
 BreakControlPrepareToHaltTheSystem()
 {
@@ -19,8 +24,15 @@ BreakControlPrepareToHaltTheSystem()
     //
 }
 
+/**
+ * @brief This is the callback in the case of KeRegisterNmiCallback 
+ * 
+ * @param Context 
+ * @param Handled 
+ * @return BOOLEAN 
+ */
 BOOLEAN
-BreakControlNmiCallbackHandler(IN PVOID   Context, IN BOOLEAN Handled)
+BreakControlNmiCallbackHandler(IN PVOID Context, IN BOOLEAN Handled)
 {
 
 }

@@ -14,15 +14,26 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 
+/**
+ * @brief help of exit command
+ * 
+ * @return VOID 
+ */
 VOID CommandExitHelp() {
   ShowMessages(
       "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
   ShowMessages("syntax : \texit\n");
 }
 
+/**
+ * @brief exit command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandExit(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 1) {

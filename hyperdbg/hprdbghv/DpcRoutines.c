@@ -12,7 +12,10 @@
  */
 #include "pch.h"
 
-/* lock for one core execution */
+/**
+ * @brief lock for one core execution
+ * 
+ */
 volatile LONG OneCoreLock;
 
 /**
@@ -21,9 +24,12 @@ volatile LONG OneCoreLock;
  * The function that needs to use this featue (Routine parameter function) should 
  * have the when it ends :
  *  
- *              SpinlockUnlock(&OneCoreLock);
- *
- * @return VOID 
+ *              SpinlockUnlock(&OneCoreLock); 
+ * 
+ * @param CoreNumber core number that the target function should run on it
+ * @param Routine the target function that should be runned
+ * @param DeferredContext an optional parameter to Routine
+ * @return NTSTATUS 
  */
 NTSTATUS
 DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredContext)
@@ -111,6 +117,10 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 /**
  * @brief Broadcast msr write
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -135,6 +145,10 @@ DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgumen
 /**
  * @brief Broadcast msr read
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -159,6 +173,10 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
 /**
  * @brief change msr bitmap read on a single core
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -179,6 +197,10 @@ DpcRoutinePerformChangeMsrBitmapReadOnSingleCore(KDPC * Dpc, PVOID DeferredConte
 /**
  * @brief change msr bitmap write on a single core
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -199,6 +221,10 @@ DpcRoutinePerformChangeMsrBitmapWriteOnSingleCore(KDPC * Dpc, PVOID DeferredCont
 /**
  * @brief set rdtsc/rdtscp exiting
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -219,6 +245,10 @@ DpcRoutinePerformEnableRdtscExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 /**
  * @brief set rdpmc exiting
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -239,6 +269,10 @@ DpcRoutinePerformEnableRdpmcExitingOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 /**
  * @brief change exception bitmap on a single core
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -259,6 +293,10 @@ DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContex
 /**
  * @brief Set the Mov to Debug Registers Exitings
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -279,6 +317,10 @@ DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC * Dpc, PVOID DeferredCont
 /**
  * @brief Enable external interrupt exiting on a single core
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -297,8 +339,36 @@ DpcRoutinePerformSetExternalInterruptExitingOnSingleCore(KDPC * Dpc, PVOID Defer
 }
 
 /**
+ * @brief Enable syscall hook EFER on a single core
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutinePerformEnableEferSyscallHookOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Enable syscall hook EFER
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_SYSCALL_HOOK_EFER, NULL, 0, 0);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}
+
+/**
  * @brief change I/O bitmap on a single core
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID

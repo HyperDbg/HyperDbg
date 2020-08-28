@@ -25,7 +25,10 @@
  * 
  */
 
-/* Check for instruction sysret and syscall */
+/**
+ * @brief Check for instruction sysret and syscall
+ * 
+ */
 #define IS_SYSRET_INSTRUCTION(Code)   \
     (*((PUINT8)(Code) + 0) == 0x48 && \
      *((PUINT8)(Code) + 1) == 0x0F && \
@@ -115,7 +118,7 @@ NTSTATUS(*NtCreateFileOrig)
     ULONG              EaLength);
 
 //////////////////////////////////////////////////
-//				   Hidden Hooks					//
+//		    	 Hidden Hooks Test				//
 //////////////////////////////////////////////////
 
 PVOID(*ExAllocatePoolWithTagOrig)
@@ -126,30 +129,107 @@ PVOID(*ExAllocatePoolWithTagOrig)
 
 // ----------------------------------------------------------------------
 
-/* Hook in VMX Root Mode with hidden breakpoints (A pre-allocated buffer should be available) */
+/**
+ * @brief Hook in VMX Root Mode with hidden breakpoints (A pre-allocated buffer should be available)
+ * 
+ * @param TargetAddress 
+ * @param ProcessCr3 
+ * @return BOOLEAN 
+ */
 BOOLEAN
-EptHookPerformPageHook(PVOID TargetAddress, UINT32 ProcessId);
-/* Hook in VMX Root Mode with hidden detours and monitor (A pre-allocated buffer should be available) */
+EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3);
+
+/**
+ * @brief Hook in VMX Root Mode with hidden detours and monitor
+ * (A pre-allocated buffer should be available)
+ * 
+ * @param TargetAddress 
+ * @param HookFunction 
+ * @param ProcessCr3 
+ * @param UnsetRead 
+ * @param UnsetWrite 
+ * @param UnsetExecute 
+ * @return BOOLEAN 
+ */
 BOOLEAN
-EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
-/* Hook in VMX Non Root Mode (hidden breakpoint) */
+EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE ProcessCr3, BOOLEAN UnsetRead, BOOLEAN UnsetWrite, BOOLEAN UnsetExecute);
+
+/**
+ * @brief Hook in VMX Non Root Mode (hidden breakpoint) 
+ * 
+ * @param TargetAddress 
+ * @param ProcessId 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHook(PVOID TargetAddress, UINT32 ProcessId);
-/* Hook in VMX Non Root Mode (hidden detours) */
+
+/**
+ * @brief Hook in VMX Non Root Mode (hidden detours)
+ * 
+ * @param TargetAddress 
+ * @param HookFunction 
+ * @param ProcessId 
+ * @param SetHookForRead 
+ * @param SetHookForWrite 
+ * @param SetHookForExec 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec);
-/* Handle hooked pages in Vmx-root mode */
+
+/**
+ * @brief Handle hooked pages in Vmx-root mode
+ * 
+ * @param Regs 
+ * @param HookedEntryDetails 
+ * @param ViolationQualification 
+ * @param PhysicalAddress 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress);
-/* Remove a special hook from the hooked pages lists */
+
+/**
+ * @brief Remove a special hook from the hooked pages lists
+ * 
+ * @param PhysicalAddress 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress);
-/* Remove all hooks from the hooked pages lists (Should be called in vmx-root)*/
+
+/**
+ * @brief Remove all hooks from the hooked pages lists (Should be called in vmx-root)
+ * 
+ * @return VOID 
+ */
 VOID
 EptHookRestoreAllHooksToOrginalEntry();
-/* Remove all hooks from the hooked pages lists */
+
+/**
+ * @brief Remove all hooks from the hooked pages lists
+ * 
+ * @return VOID 
+ */
 VOID
 EptHookUnHookAll();
-/* Remove single hook from the hooked pages list and invalidate TLB */
+
+/**
+ * @brief Remove single hook from the hooked pages list and invalidate TLB
+ * 
+ * @param VirtualAddress 
+ * @param ProcessId 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId);
+
+/**
+ * @brief Remove an entry from g_EptHook2sDetourListHead
+ * 
+ * @param Address 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address);

@@ -14,6 +14,10 @@
 /**
  * @brief Broadcast syscall hook to all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -38,6 +42,10 @@ BroadcastDpcEnableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
 /**
  * @brief Broadcast syscall unhook to all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -60,8 +68,12 @@ BroadcastDpcDisableEferSyscallEvents(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 }
 
 /**
- * @brief Broadcast msr write
+ * @brief Broadcast Msr Write
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -88,8 +100,12 @@ BroadcastDpcWriteMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemAr
 }
 
 /**
- * @brief Broadcast msr read
+ * @brief Broadcast Msr read
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -100,7 +116,7 @@ BroadcastDpcReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
     //
-    // read on MSR
+    // read msr
     //
     g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Value = __readmsr(g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Msr);
 
@@ -118,6 +134,10 @@ BroadcastDpcReadMsrToAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
 /**
  * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -140,8 +160,40 @@ BroadcastDpcChangeMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVO
 }
 
 /**
+ * @brief Reset Msr Bitmaps on all cores (vm-exit on all msrs)
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcResetMsrBitmapReadOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Reset msr bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_READ, NULL, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Disable Msr Bitmaps on all cores (vm-exit on all msrs)
  * 
+ * @param Dpc 
+ * @param DeferredContext Msr index to be masked on msr bitmap
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -164,8 +216,40 @@ BroadcastDpcChangeMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PV
 }
 
 /**
+ * @brief Reset Msr Bitmaps on all cores (vm-exit on all msrs)
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcResetMsrBitmapWriteOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Reset msr bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_RESET_MSR_BITMAP_WRITE, NULL, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables rdtsc/rdtscp exiting in primary cpu-based controls
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -188,8 +272,40 @@ BroadcastDpcEnableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 }
 
 /**
+ * @brief Disables rdtsc/rdtscp exiting in primary cpu-based controls
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disables rdtsc/rdtscp exiting in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_UNSET_RDTSC_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables rdpmc exiting in primary cpu-based controls
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -212,8 +328,40 @@ BroadcastDpcEnableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 }
 
 /**
+ * @brief Disable rdpmc exiting in primary cpu-based controls
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcDisableRdpmcExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable rdpmc exiting in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_UNSET_RDPMC_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enable Exception Bitmaps on all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext Exception index on IDT
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -236,8 +384,40 @@ BroadcastDpcSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOI
 }
 
 /**
+ * @brief Reset Exception Bitmaps on all cores
+ * 
+ * @param Dpc 
+ * @param DeferredContext Exception index on IDT
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcResetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Reset Exception Bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables mov debug registers exitings
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -260,8 +440,40 @@ BroadcastDpcEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredCont
 }
 
 /**
+ * @brief Disables mov debug registers exitings
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcDisableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable mov debug registers exitings in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enable vm-exit on all cores for external interrupts
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -284,8 +496,40 @@ BroadcastDpcSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferr
 }
 
 /**
+ * @brief Disable vm-exit on all cores for external interrupts
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcSetDisableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable External Interrupts vm-exit from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Change I/O Bitmaps on all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext I/O Port index
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -308,8 +552,40 @@ BroadcastDpcChangeIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID Sy
 }
 
 /**
+ * @brief Reset I/O Bitmaps on all cores
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcResetIoBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Reset I/O Bitmaps on all cores
+    //
+    AsmVmxVmcall(VMCALL_RESET_IO_BITMAP, NULL, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enable breakpoint exiting on exception bitmaps on all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID
@@ -334,6 +610,10 @@ BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferr
 /**
  * @brief Disable breakpoint exiting on exception bitmaps on all cores
  * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
  * @return VOID 
  */
 VOID

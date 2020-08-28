@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !ioout command
+ * 
+ * @return VOID 
+ */
 VOID CommandIooutHelp() {
   ShowMessages("!ioout : Detects the execution of OUT (I/O instructions) "
                "instructions.\n\n");
@@ -26,6 +31,12 @@ VOID CommandIooutHelp() {
   ShowMessages("\t\te.g : !ioout core 2 pid 400\n");
 }
 
+/**
+ * @brief !ioout command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandIoout(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -48,7 +59,7 @@ VOID CommandIoout(vector<string> SplittedCommand) {
 
   //
   // Interpret command specific details (if any)
-  // 
+  //
   //
   for (auto Section : SplittedCommand) {
     if (!Section.compare("!ioout")) {
@@ -59,6 +70,7 @@ VOID CommandIoout(vector<string> SplittedCommand) {
       // It's probably an I/O port
       //
       if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
+
         //
         // Unkonwn parameter
         //
@@ -69,10 +81,11 @@ VOID CommandIoout(vector<string> SplittedCommand) {
         GetPort = TRUE;
       }
     } else {
+      
       //
       // Unkonwn parameter
       //
-      ShowMessages("Unknown parameter '%s'\n", Section.c_str());
+      ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
       CommandIooutHelp();
       return;
     }
@@ -86,10 +99,24 @@ VOID CommandIoout(vector<string> SplittedCommand) {
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    //
+    // There was an error
+    //
+    return;
+  }
 }

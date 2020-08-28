@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+/**
+ * @brief help of !syscall command
+ * 
+ * @return VOID 
+ */
 VOID CommandSyscallHelp() {
   ShowMessages("!syscall : Monitors and hooks all execution of syscall "
                "instructions.\n\n");
@@ -25,6 +30,11 @@ VOID CommandSyscallHelp() {
   ShowMessages("\t\te.g : !syscall 0x55 core 2 pid 400\n");
 }
 
+/**
+ * @brief help of !sysret command
+ * 
+ * @return VOID 
+ */
 VOID CommandSysretHelp() {
   ShowMessages("!sysret : Monitors and hooks all execution of sysret "
                "instructions.\n\n");
@@ -38,6 +48,11 @@ VOID CommandSysretHelp() {
   ShowMessages("\t\te.g : !sysret core 2 pid 400\n");
 }
 
+/**
+ * @brief !syscall and !sysret commands handler
+ * 
+ * @param SplittedCommand 
+ */
 void CommandSyscallAndSysret(vector<string> SplittedCommand) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event;
@@ -46,7 +61,6 @@ void CommandSyscallAndSysret(vector<string> SplittedCommand) {
   UINT32 ActionLength;
   UINT64 SpecialTarget = DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS;
   BOOLEAN GetSyscallNumber = FALSE;
-  ;
 
   //
   // Interpret and fill the general event and action fields
@@ -80,63 +94,74 @@ void CommandSyscallAndSysret(vector<string> SplittedCommand) {
   //
   if (!SplittedCommand.at(0).compare("!syscall")) {
 
-      for (auto Section : SplittedCommand) {
-          if (!Section.compare("!syscall") || !Section.compare("!sysret")) {
-              continue;
+    for (auto Section : SplittedCommand) {
+      if (!Section.compare("!syscall") || !Section.compare("!sysret")) {
+        continue;
+      } else if (!GetSyscallNumber) {
+
+        //
+        // It's probably a syscall address
+        //
+        if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
+
+          //
+          // Unkonwn parameter
+          //
+          ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+          if (!SplittedCommand.at(0).compare("!syscall")) {
+            CommandSyscallHelp();
+
+          } else {
+            CommandSysretHelp();
           }
-          else if (!GetSyscallNumber) {
+          return;
+        } else {
+          GetSyscallNumber = TRUE;
+        }
+      } else {
 
-              //
-              // It's probably a syscall address
-              //
-              if (!ConvertStringToUInt64(Section, &SpecialTarget)) {
-                  //
-                  // Unkonwn parameter
-                  //
-                  ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-                  if (!SplittedCommand.at(0).compare("!syscall")) {
-                      CommandSyscallHelp();
+        //
+        // Unkonwn parameter
+        //
+        ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+        if (!SplittedCommand.at(0).compare("!syscall")) {
+          CommandSyscallHelp();
 
-                  }
-                  else {
-                      CommandSysretHelp();
-                  }
-                  return;
-              }
-              else {
-                  GetSyscallNumber = TRUE;
-              }
-          }
-          else {
-
-              //
-              // Unkonwn parameter
-              //
-              ShowMessages("Unknown parameter '%s'\n", Section.c_str());
-              if (!SplittedCommand.at(0).compare("!syscall")) {
-                  CommandSyscallHelp();
-
-              }
-              else {
-                  CommandSysretHelp();
-              }
-              return;
-          }
+        } else {
+          CommandSysretHelp();
+        }
+        return;
       }
+    }
 
-      //
-      // Set the target syscall
-      //
-      Event->OptionalParam1 = SpecialTarget;
+    //
+    // Set the target syscall
+    //
+    Event->OptionalParam1 = SpecialTarget;
   }
 
   //
   // Send the ioctl to the kernel for event registeration
   //
-  SendEventToKernel(Event, EventLength);
+  if (!SendEventToKernel(Event, EventLength)) {
+
+    //
+    // There was an error, probably the handle was not initialized
+    // we have to free the Action before exit, it is because, we
+    // already freed the Event and string buffers
+    //
+    free(Action);
+    return;
+  }
 
   //
   // Add the event to the kernel
   //
-  RegisterActionToEvent(Action, ActionLength);
+  if (!RegisterActionToEvent(Action, ActionLength)) {
+    
+    //
+    // There was an error
+    //
+    return;
+  }
 }

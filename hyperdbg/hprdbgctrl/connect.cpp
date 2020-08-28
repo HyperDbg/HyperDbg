@@ -17,11 +17,20 @@
 #include "globals.h"
 
 //
-// Global Variables
+// Extern global Variables
 //
-extern BOOLEAN g_IsConnectedToDebugger;
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern string g_ServerPort;
+extern string g_ServerIp;
 
+/**
+ * @brief help of .connect command
+ * 
+ * @return VOID 
+ */
 VOID CommandConnectHelp() {
   ShowMessages(".connect : connects to a remote or local machine to start "
                "debugging.\n\n");
@@ -30,10 +39,23 @@ VOID CommandConnectHelp() {
   ShowMessages("\t\te.g : .connect local\n");
 }
 
+/**
+ * @brief .connect command handler
+ * 
+ * @param SplittedCommand 
+ * @return VOID 
+ */
 VOID CommandConnect(vector<string> SplittedCommand) {
 
   string ip;
   string port;
+
+  if (g_IsConnectedToHyperDbgLocally || g_IsConnectedToRemoteDebuggee ||
+      g_IsConnectedToRemoteDebugger) {
+    ShowMessages("you're connected to a debugger, please use '.disconnect' "
+                 "command.\n");
+    return;
+  }
 
   if (SplittedCommand.size() == 1) {
 
@@ -50,14 +72,17 @@ VOID CommandConnect(vector<string> SplittedCommand) {
     //
     // connect to local debugger
     //
-    ShowMessages("local debug current system\n");
-    g_IsConnectedToDebugger = TRUE;
+    ShowMessages("local debuging current system...\n");
+    g_IsConnectedToHyperDbgLocally = TRUE;
     return;
 
-  } else if (SplittedCommand.size() == 3) {
+  } else if (SplittedCommand.size() == 3 || SplittedCommand.size() == 2) {
 
     ip = SplittedCommand.at(1);
-    port = SplittedCommand.at(2);
+
+    if (SplittedCommand.size() == 3) {
+      port = SplittedCommand.at(2);
+    }
 
     //
     // means that probably wants to connect to a remote
@@ -68,18 +93,30 @@ VOID CommandConnect(vector<string> SplittedCommand) {
       ShowMessages("incorrect ip address\n");
       return;
     }
-    if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0) {
-      ShowMessages("incorrect port\n");
-      return;
+
+    if (SplittedCommand.size() == 3) {
+
+      if (!IsNumber(port) || stoi(port) > 65535 || stoi(port) < 0) {
+        ShowMessages("incorrect port\n");
+        return;
+      }
+
+      //
+      // connect to remote debugger
+      //
+      g_ServerIp = ip;
+      g_ServerPort = port;
+      RemoteConnectionConnect(ip.c_str(), port.c_str());
+    } else {
+      
+      //
+      // connect to remote debugger (default port)
+      //
+      g_ServerIp = ip;
+      g_ServerPort = DEFAULT_PORT;
+      RemoteConnectionConnect(ip.c_str(), DEFAULT_PORT);
     }
 
-    //
-    // connect to remote debugger
-    //
-    ShowMessages("local debug remote system\n");
-    g_IsConnectedToDebugger = TRUE;
-
-    return;
   } else {
     ShowMessages("incorrect use of '.connect'\n\n");
     CommandConnectHelp();

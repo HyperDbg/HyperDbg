@@ -16,6 +16,11 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
+ShowErrorMessage(UINT32 Error);
+
+BOOLEAN IsTagExist(UINT64 Tag);
+
+BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
                             BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
                             PUINT32 BufferLength);
@@ -38,4 +43,13 @@ UINT64 GetNewDebuggerEventTag();
 
 VOID LogopenSaveToFile(const char *Text);
 
-BOOL WINAPI BreakController(DWORD CtrlType);
+BOOL BreakController(DWORD CtrlType);
+
+VOID CommandEventsShowEvents();
+
+VOID CommandEventsModifyEvents(UINT64 Tag,
+                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction);
+
+VOID CommandFlushRequestFlush();
+
+BOOLEAN IsItALocalCommand(string Command);

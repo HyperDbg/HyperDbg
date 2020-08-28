@@ -261,7 +261,10 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     // so that the debugger can both read the eax as it's now changed by
     // the cpuid instruction and also can modify the results
     //
-    DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION, RegistersState, Context);
+    if (g_TriggerEventForCpuids)
+    {
+        DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION, RegistersState, Context);
+    }
 }
 
 /**
@@ -648,9 +651,15 @@ HvReturnInstructionPointerForVmxoff()
     return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRip;
 }
 
-//
-// The broadcast function which initialize the guest
-//
+/**
+ * @brief The broadcast function which initialize the guest
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
 VOID
 HvDpcBroadcastInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
@@ -682,6 +691,11 @@ HvTerminateVmx()
     //
     // ******* Terminating Vmx *******
     //
+
+    //
+    // Unhide (disable and de-allocate) transparent-mode
+    //
+    TransparentUnhideDebugger();
 
     //
     // Remve All the hooks if any
@@ -935,6 +949,21 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask)
 }
 
 /**
+ * @brief Reset MSR Bitmap for read
+ * @details should be called in vmx-root mode
+ * @return VOID 
+ */
+VOID
+HvPerformMsrBitmapReadReset()
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // Means all the bitmaps should be put to 0
+    //
+    memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0x0, 2048);
+}
+/**
  * @brief Change MSR Bitmap for write
  * @details should be called in vmx-root mode
  * @param MsrMask MSR
@@ -959,6 +988,22 @@ HvPerformMsrBitmapWriteChange(UINT64 MsrMask)
         //
         HvSetMsrBitmap(MsrMask, CoreIndex, FALSE, TRUE);
     }
+}
+
+/**
+ * @brief Reset MSR Bitmap for write
+ * @details should be called in vmx-root mode
+ * @return VOID 
+ */
+VOID
+HvPerformMsrBitmapWriteReset()
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // Means all the bitmaps should be put to 0
+    //
+    memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0x0, 2048);
 }
 
 /**
@@ -1048,6 +1093,23 @@ HvSetExceptionBitmap(UINT32 IdtIndex)
     {
         ExceptionBitmap |= 1 << IdtIndex;
     }
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
+}
+
+/**
+ * @brief Reset exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @return VOID 
+ */
+VOID
+HvResetExceptionBitmap()
+{
+    UINT32 ExceptionBitmap = 0;
+
     //
     // Set the new value
     //
@@ -1285,7 +1347,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     // In 64-bit mode, the upper 32 bits of DR6 and DR7 are reserved
     // and must be written with zeros.  Writing 1 to any of the upper
     // 32 bits results in a #GP(0) exception.
-    // (ref: Vol3B[17.2.6(Debug Registers and Intel® 64 Processors)])
+    // (ref: Vol3B[17.2.6(Debug Registers and Intelï¿½ 64 Processors)])
     //
     if (ExitQualification.AccessType == AccessToDebugRegister &&
         (ExitQualification.DrNumber == 6 || ExitQualification.DrNumber == 7) &&
@@ -1360,7 +1422,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 }
 
 /**
- * @brief Set the Mov to Debug Registers Exiting
+ * @brief Set or unset the Mov to Debug Registers Exiting
  * 
  * @param Set Set or unset the Mov to Debug Registers Exiting
  * @return VOID 
@@ -1489,6 +1551,23 @@ HvPerformIoBitmapChange(UINT64 Port)
         //
         HvSetIoBitmap(Port, CoreIndex);
     }
+}
+
+/**
+ * @brief Reset I/O Bitmap 
+ * @details should be called in vmx-root mode
+ * @return VOID 
+ */
+VOID
+HvPerformIoBitmapReset()
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // Means all the bitmaps should be put to 0
+    //
+    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }
 
 /**

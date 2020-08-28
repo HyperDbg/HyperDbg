@@ -47,7 +47,6 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
   //
   // Create a new a service object.
   //
-
   schService =
       CreateService(SchSCManager, // handle of service control manager database
                     DriverName,   // address of name of service to start
@@ -73,7 +72,6 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
       //
       // Ignore this error.
       //
-
       return TRUE;
 
     } else if (err == ERROR_SERVICE_MARKED_FOR_DELETE) {
@@ -91,7 +89,6 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
       //
       // Indicate an error.
       //
-
       return FALSE;
     }
   }
@@ -99,7 +96,6 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
   //
   // Close the service object.
   //
-
   if (schService) {
 
     CloseServiceHandle(schService);
@@ -108,7 +104,6 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe) {
   //
   // Indicate success.
   //
-
   return TRUE;
 }
 
@@ -129,7 +124,6 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
   //
   // Insure (somewhat) that the driver and service names are valid.
   //
-
   if (!DriverName || !ServiceName) {
 
     ShowMessages("Invalid Driver or Service provided to ManageDriver() \n");
@@ -140,7 +134,6 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
   //
   // Connect to the Service Control Manager and open the Services database.
   //
-
   schSCManager = OpenSCManager(NULL,                 // local machine
                                NULL,                 // local database
                                SC_MANAGER_ALL_ACCESS // access required
@@ -156,7 +149,6 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
   //
   // Do the requested function.
   //
-
   switch (Function) {
 
   case DRIVER_FUNC_INSTALL:
@@ -164,13 +156,11 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
     //
     // Install the driver service.
     //
-
     if (InstallDriver(schSCManager, DriverName, ServiceName)) {
 
       //
       // Start the driver service (i.e. start the driver).
       //
-
       rCode = StartDriver(schSCManager, DriverName);
 
     } else {
@@ -178,7 +168,6 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
       //
       // Indicate an error.
       //
-
       rCode = FALSE;
     }
 
@@ -189,19 +178,16 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
     //
     // Stop the driver.
     //
-
     StopDriver(schSCManager, DriverName);
 
     //
     // Remove the driver service.
     //
-
     RemoveDriver(schSCManager, DriverName);
 
     //
     // Ignore all errors.
     //
-
     rCode = TRUE;
 
     break;
@@ -218,7 +204,6 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function) {
   //
   // Close handle to service control manager.
   //
-
   if (schSCManager) {
 
     CloseServiceHandle(schSCManager);
@@ -242,7 +227,6 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   //
   // Open the handle to the existing service.
   //
-
   schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
   if (schService == NULL) {
@@ -252,20 +236,17 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
     //
     // Indicate error.
     //
-
     return FALSE;
   }
 
   //
   // Mark the service for deletion from the service control manager database.
   //
-
   if (DeleteService(schService)) {
 
     //
     // Indicate success.
     //
-
     rCode = TRUE;
 
   } else {
@@ -275,14 +256,12 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
     //
     // Indicate failure.  Fall through to properly close the service handle.
     //
-
     rCode = FALSE;
   }
 
   //
   // Close the service object.
   //
-
   if (schService) {
 
     CloseServiceHandle(schService);
@@ -306,7 +285,6 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   //
   // Open the handle to the existing service.
   //
-
   schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
   if (schService == NULL) {
@@ -316,14 +294,12 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
     //
     // Indicate failure.
     //
-
     return FALSE;
   }
 
   //
   // Start the execution of the service (i.e. start the driver).
   //
-
   if (!StartService(schService, // service identifier
                     0,          // number of arguments
                     NULL        // pointer to arguments
@@ -336,8 +312,18 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
       //
       // Ignore this error.
       //
-
       return TRUE;
+
+    } else if (err == 577) {
+      ShowMessages(
+          "Err 577, it's because you driver signature enforcement is enabled. "
+          "You should disable driver signature enforcement by attaching Windbg "
+          "or from the boot menu.");
+
+      //
+      // Indicate failure.  Fall through to properly close the service handle.
+      //
+      return FALSE;
 
     } else {
 
@@ -346,7 +332,6 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
       //
       // Indicate failure.  Fall through to properly close the service handle.
       //
-
       return FALSE;
     }
   }
@@ -354,7 +339,6 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   //
   // Close the service object.
   //
-
   if (schService) {
 
     CloseServiceHandle(schService);
@@ -379,7 +363,6 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   //
   // Open the handle to the existing service.
   //
-
   schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
   if (schService == NULL) {
@@ -392,13 +375,11 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
   //
   // Request that the service stop.
   //
-
   if (ControlService(schService, SERVICE_CONTROL_STOP, &serviceStatus)) {
 
     //
     // Indicate success.
     //
-
     rCode = TRUE;
 
   } else {
@@ -408,14 +389,12 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName) {
     //
     // Indicate failure.  Fall through to properly close the service handle.
     //
-
     rCode = FALSE;
   }
 
   //
   // Close the service object.
   //
-
   if (schService) {
 
     CloseServiceHandle(schService);
@@ -435,11 +414,18 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
                 ULONG BufferLength) {
   HANDLE fileHandle;
   DWORD driverLocLen = 0;
+  HMODULE ProcHandle = GetModuleHandle(NULL);
+  char *Pos;
 
   //
   // Get the current directory.
   //
 
+  /*
+  //
+  // We use the location of running exe instead of
+  // finding driver based on current directory
+  //
   driverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
 
   if (driverLocLen == 0) {
@@ -447,6 +433,18 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     ShowMessages("GetCurrentDirectory failed!  Error = %d \n", GetLastError());
 
     return FALSE;
+  }
+  */
+
+  GetModuleFileName(ProcHandle, DriverLocation, BufferLength);
+
+  Pos = strrchr(DriverLocation, '\\');
+  if (Pos != NULL) {
+    //
+    // this will put the null terminator here. you can also copy to
+    // another string if you want, we can also use PathCchRemoveFileSpec
+    //
+    *Pos = '\0';
   }
 
   //
@@ -460,7 +458,6 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
   //
   // Insure driver file is in the specified directory.
   //
-
   if ((fileHandle = CreateFile(DriverLocation, GENERIC_READ, 0, NULL,
                                OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
       INVALID_HANDLE_VALUE) {
@@ -470,14 +467,12 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     //
     // Indicate failure.
     //
-
     return FALSE;
   }
 
   //
   // Close open file handle.
   //
-
   if (fileHandle) {
 
     CloseHandle(fileHandle);
@@ -486,6 +481,5 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
   //
   // Indicate success.
   //
-
   return TRUE;
 }
