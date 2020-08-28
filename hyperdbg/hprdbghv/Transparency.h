@@ -64,9 +64,14 @@ typedef struct _VM_EXIT_TRANSPARENCY
  */
 typedef struct _TRANSPARENCY_MEASUREMENTS
 {
-    UINT64     CpuidAverage;
-    UINT64     CpuidStandardDeviation;
-    UINT64     CpuidMedian;
+    UINT64 CpuidAverage;
+    UINT64 CpuidStandardDeviation;
+    UINT64 CpuidMedian;
+
+    UINT64 RdtscAverage;
+    UINT64 RdtscStandardDeviation;
+    UINT64 RdtscMedian;
+
     LIST_ENTRY ProcessList;
 
 } TRANSPARENCY_MEASUREMENTS, *PTRANSPARENCY_MEASUREMENTS;
