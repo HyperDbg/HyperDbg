@@ -18,17 +18,21 @@ extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsRemoteDebuggerMessageReceived;
+
+extern BOOLEAN g_BreakPrintingOutput;
+
 extern SOCKET g_SeverSocket;
 extern SOCKET g_ServerListenSocket;
 extern SOCKET g_ClientConnectSocket;
+
 extern HANDLE g_RemoteDebuggeeListeningThread;
 
 /**
  * @brief Listen of a port and wait for a client connection
  * @details this routine is supposed to be called by .listen command
- * 
- * @param Port 
- * @return VOID 
+ *
+ * @param Port
+ * @return VOID
  */
 VOID RemoteConnectionListen(PCSTR Port) {
 
@@ -112,9 +116,9 @@ VOID RemoteConnectionListen(PCSTR Port) {
 /**
  * @brief A thread that listens for server (debuggee) messages
  * and show it by using ShowMessages wrapper
- * 
- * @param lpParam 
- * @return DWORD 
+ *
+ * @param lpParam
+ * @return DWORD
  */
 DWORD WINAPI RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam) {
 
@@ -133,20 +137,22 @@ DWORD WINAPI RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam) {
       break;
     };
 
-    //
-    // Show messages
-    //
-    ShowMessages("%s\n", recvbuf);
+    if (!g_BreakPrintingOutput) {
+      //
+      // Show messages
+      //
+      ShowMessages("%s\n", recvbuf);
 
-    //
-    // Indicate that a message received
-    //
-    g_IsRemoteDebuggerMessageReceived = TRUE;
+      //
+      // Indicate that a message received
+      //
+      g_IsRemoteDebuggerMessageReceived = TRUE;
 
-    //
-    // Show the signature
-    //
-    HyperdbgShowSignature();
+      //
+      // Show the signature
+      //
+      HyperdbgShowSignature();
+    }
 
     //
     // Clear the buffer
@@ -180,10 +186,10 @@ DWORD WINAPI RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam) {
 /**
  * @brief Connect to a remote debuggee (guest) as a client (host)
  * @details this routine is supposed to be called by .connect command
- * 
- * @param Ip 
- * @param Port 
- * @return VOID 
+ *
+ * @param Ip
+ * @param Port
+ * @return VOID
  */
 VOID RemoteConnectionConnect(PCSTR Ip, PCSTR Port) {
 
@@ -236,6 +242,15 @@ VOID RemoteConnectionConnect(PCSTR Ip, PCSTR Port) {
     g_RemoteDebuggeeListeningThread = CreateThread(
         NULL, 0, RemoteConnectionThreadListeningToDebuggee, NULL, 0, &ThreadId);
 
+    //
+    // Register the CTRL+C and CTRL+BREAK Signals handler
+    //
+    if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+      ShowMessages(
+          "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+      return;
+    }
+
     ShowMessages("connected to %s:%s\n", Ip, Port);
   }
 }
@@ -243,10 +258,10 @@ VOID RemoteConnectionConnect(PCSTR Ip, PCSTR Port) {
 /**
  * @brief send the command as a client (debugger, host) to the
  * server (debuggee, guest)
- * 
+ *
  * @param sendbuf address of message buffer
  * @param len length of buffer
- * @return int returning 0 means that there was no error in 
+ * @return int returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
 int RemoteConnectionSendCommand(const char *sendbuf, int len) {
@@ -276,10 +291,10 @@ int RemoteConnectionSendCommand(const char *sendbuf, int len) {
 /**
  * @brief Send the results of executing a command from deubggee (server, guest)
  * to the debugger (client, host)
- * 
+ *
  * @param sendbuf buffer address
  * @param len length of buffer
- * @return int returning 0 means that there was no error in 
+ * @return int returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
 int RemoteConnectionSendResultsToHost(const char *sendbuf, int len) {
@@ -300,8 +315,8 @@ int RemoteConnectionSendResultsToHost(const char *sendbuf, int len) {
 
 /**
  * @brief Close the connect from client side to the debuggee
- * 
- * @return int returning 0 means that there was no error in 
+ *
+ * @return int returning 0 means that there was no error in
  * executing the function and 1 shows there was an error
  */
 int RemoteConnectionCloseTheConnectionWithDebuggee() {

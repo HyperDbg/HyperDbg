@@ -16,12 +16,13 @@
 //
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
- * 
- * @param CtrlType 
- * @return BOOL 
+ *
+ * @param CtrlType
+ * @return BOOL
  */
 BOOL BreakController(DWORD CtrlType) {
   switch (CtrlType) {
@@ -36,18 +37,33 @@ BOOL BreakController(DWORD CtrlType) {
     //
     g_BreakPrintingOutput = TRUE;
 
-    Sleep(500);
-    if (g_AutoUnpause) {
-      ShowMessages("pause\npausing debugger...\nauto-unpause mode is enabled, "
-                   "debugger will automatically continue when you run a new "
-                   "event command, if you want to change this behaviour then "
-                   "run run 'settings autounpause off'\n\nHyperDbg >");
-    } else {
-      ShowMessages(
-          "pause\npausing debugger...\nauto-unpause mode is disabled, you "
-          "should run 'g' when you want to continue, otherwise run 'settings "
-          "autounpause on'\n\nHyperDbg >");
+    //
+    // Check if its a remote debuggee then we should send the 'pause' command
+    //
+    if (g_IsConnectedToRemoteDebuggee) {
+      RemoteConnectionSendCommand("pause", strlen("pause") + 1);
     }
+
+    Sleep(500);
+
+    //
+    // It is because we didn't query the target debuggee auto-unpause variable
+    //
+    if (!g_IsConnectedToRemoteDebuggee) {
+      if (g_AutoUnpause) {
+        ShowMessages(
+            "pause\npausing debugger...\nauto-unpause mode is enabled, "
+            "debugger will automatically continue when you run a new "
+            "event command, if you want to change this behaviour then "
+            "run run 'settings autounpause off'\n\nHyperDbg >");
+      } else {
+        ShowMessages(
+            "pause\npausing debugger...\nauto-unpause mode is disabled, you "
+            "should run 'g' when you want to continue, otherwise run 'settings "
+            "autounpause on'\n\nHyperDbg >");
+      }
+    }
+
     return TRUE;
 
     //
@@ -66,18 +82,33 @@ BOOL BreakController(DWORD CtrlType) {
     //
     g_BreakPrintingOutput = TRUE;
 
-    Sleep(500);
-    if (g_AutoUnpause) {
-      ShowMessages("pause\npausing debugger...\nauto-unpause mode is enabled, "
-                   "debugger will automatically continue when you run a new "
-                   "event command, if you want to change this behaviour then "
-                   "run run 'settings autounpause off'\n\nHyperDbg >");
-    } else {
-      ShowMessages(
-          "pause\npausing debugger...\nauto-unpause mode is disabled, you "
-          "should run 'g' when you want to continue, otherwise run 'settings "
-          "autounpause on'\n\nHyperDbg >");
+    //
+    // Check if its a remote debuggee then we should send the 'pause' command
+    //
+    if (g_IsConnectedToRemoteDebuggee) {
+      RemoteConnectionSendCommand("pause", strlen("pause") + 1);
     }
+
+    Sleep(500);
+
+    //
+    // It is because we didn't query the target debuggee auto-unpause variable
+    //
+    if (!g_IsConnectedToRemoteDebuggee) {
+      if (g_AutoUnpause) {
+        ShowMessages(
+            "pause\npausing debugger...\nauto-unpause mode is enabled, "
+            "debugger will automatically continue when you run a new "
+            "event command, if you want to change this behaviour then "
+            "run run 'settings autounpause off'\n\nHyperDbg >");
+      } else {
+        ShowMessages(
+            "pause\npausing debugger...\nauto-unpause mode is disabled, you "
+            "should run 'g' when you want to continue, otherwise run 'settings "
+            "autounpause on'\n\nHyperDbg >");
+      }
+    }
+
     return TRUE;
 
   case CTRL_LOGOFF_EVENT:

@@ -520,7 +520,8 @@ BOOLEAN IsItALocalCommand(string Command) {
       !Command.compare(".connect") || !Command.compare("disconnect") ||
       !Command.compare(".disconnect") || !Command.compare(".listen") ||
       !Command.compare("listen") || !Command.compare(".logopen") ||
-      !Command.compare(".logclose") || !Command.compare(".script")) {
+      !Command.compare(".logclose") || !Command.compare(".script") ||
+      !Command.compare("g") || !Command.compare("go")) {
 
     return TRUE;
   }
