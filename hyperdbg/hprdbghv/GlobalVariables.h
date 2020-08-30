@@ -86,3 +86,9 @@ BOOLEAN g_TransparentMode;
  * 
  */
 TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
+
+/**
+ * @brief holds the thread states for debugger on steppings
+ * 
+ */
+LIST_ENTRY g_ThreadDebuggingStates;

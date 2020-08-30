@@ -34,6 +34,28 @@ DebuggerEventDisableEferOnAllProcessors()
 }
 
 /**
+ * @brief routines for debugging threads (enable mov-to-cr3 exiting)
+ * 
+ * @return VOID 
+ */
+VOID
+DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
+{
+    KeGenericCallDpc(BroadcastDpcEnableMovToCr3Exiting, 0x0);
+}
+
+/**
+ * @brief routines for debugging threads (disable mov-to-cr3 exiting)
+ * 
+ * @return VOID 
+ */
+VOID
+DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
+{
+    KeGenericCallDpc(BroadcastDpcDisableMovToCr3Exiting, 0x0);
+}
+
+/**
  * @brief routines to generally handle breakpoint hit for detour 
  * 
  * @return VOID 

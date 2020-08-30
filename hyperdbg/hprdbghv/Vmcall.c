@@ -302,6 +302,18 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_ENABLE_MOV_TO_CR3_EXITING:
+    {
+        HvSetMovToCr3Vmexit(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_DISABLE_MOV_TO_CR3_EXITING:
+    {
+        HvSetMovToCr3Vmexit(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

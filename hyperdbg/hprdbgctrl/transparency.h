@@ -18,6 +18,10 @@
  */
 #define TestCount 1000
 
+//////////////////////////////////////////////////
+//				    Functions                   //
+//////////////////////////////////////////////////
+
 void GuassianGenerateRandom(vector<double> Data, UINT64 *AverageOfData,
                             UINT64 *StandardDeviationOfData,
                             UINT64 *MedianOfData);

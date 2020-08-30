@@ -291,6 +291,15 @@ VOID
 HvSetPmcVmexit(BOOLEAN Set);
 
 /**
+ * @brief Set vm-exit for mov-to-cr3
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetMovToCr3Vmexit(BOOLEAN Set);
+
+/**
  * @brief Set exception bitmap in VMCS
  * 
  * @param IdtIndex 

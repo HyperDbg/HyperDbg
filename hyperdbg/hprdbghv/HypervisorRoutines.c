@@ -1062,6 +1062,39 @@ HvSetPmcVmexit(BOOLEAN Set)
     {
         CpuBasedVmExecControls &= ~CPU_BASED_RDPMC_EXITING;
     }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set vm-exit for mov-to-cr3 
+ * @details Should be called in vmx-root
+ * 
+ * @param Set Set or unset the vm-exits
+ * @return VOID 
+ */
+VOID
+HvSetMovToCr3Vmexit(BOOLEAN Set)
+{
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
+    }
+
     //
     // Set the new value
     //

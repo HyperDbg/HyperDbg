@@ -86,6 +86,11 @@ DebuggerInitialize()
     //
     g_TriggerEventForCpuids = FALSE;
 
+    //
+    // Initialize the stepping mechanism
+    //
+    SteppingsInitialize();
+
     return TRUE;
 }
 

@@ -188,6 +188,9 @@
     <ClCompile Include="Termination.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="Steppings.c">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -281,6 +284,9 @@
       <Filter>Header Files\Debugger\Transparency</Filter>
     </ClInclude>
     <ClInclude Include="Termination.h">
+      <Filter>Header Files\Debugger\Essentials</Filter>
+    </ClInclude>
+    <ClInclude Include="Steppings.h">
       <Filter>Header Files\Debugger\Essentials</Filter>
     </ClInclude>
   </ItemGroup>
