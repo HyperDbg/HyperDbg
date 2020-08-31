@@ -13,6 +13,10 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//					Structures					//
+//////////////////////////////////////////////////
+
+//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
@@ -23,4 +27,7 @@ VOID
 SteppingsUninitialize();
 
 VOID
-SteppingsHandleMovToCr3Exiting(PGUEST_REGS GuestRegs, UINT64 GuestRip);
+SteppingsHandleMovToCr3Exiting(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT64 NewCr3);
+
+VOID
+SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex);

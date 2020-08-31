@@ -126,7 +126,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
  * @return VOID 
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS GuestState);
+HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex);
 
 /**
  * @brief Handle Guest's Msr read

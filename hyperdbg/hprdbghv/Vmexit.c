@@ -137,7 +137,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     case EXIT_REASON_CR_ACCESS:
     {
-        HvHandleControlRegisterAccess(GuestRegs);
+        HvHandleControlRegisterAccess(GuestRegs, CurrentProcessorIndex);
         break;
     }
     case EXIT_REASON_MSR_READ:
@@ -264,6 +264,20 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         //
+        // Check whether we should handle the interrupt differently
+        // because of debugger steppings mechanism or not
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt &&
+            ((InterruptExit.Vector == CLOCK_INTERRUPT && CurrentProcessorIndex == 0) ||
+             (InterruptExit.Vector == IPI_INTERRUPT && CurrentProcessorIndex != 0)))
+        {
+            //
+            // Call the thread finder as a part of stepping handler
+            //
+            SteppingsHandleClockInterruptOnTargetProcess(GuestRegs, CurrentProcessorIndex);
+        }
+
+        //
         // Call External Interrupt Handler
         //
         IdtEmulationHandleExternalInterrupt(InterruptExit, CurrentProcessorIndex);
@@ -318,7 +332,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
         //
-        // We don't need MTF anymore
+        // We don't need MTF anymore if it set to disable MTF
         //
         HvSetMonitorTrapFlag(FALSE);
 

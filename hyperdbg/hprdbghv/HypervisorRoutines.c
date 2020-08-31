@@ -271,10 +271,11 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
  * @brief Handles Guest Access to control registers
  * 
  * @param GuestState Guest's gp registers
+ * @param ProcessorIndex Index of processor
  * @return VOID 
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
+HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 {
     ULONG                 ExitQualification = 0;
     PMOV_CR_QUALIFICATION CrExitQualification;
@@ -292,11 +293,18 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
     // so we have make it points to the GUEST_RSP
     //
+
+    //
+    // We handled it in vm-exit handler, commented
+    //
+
+    /*    
     if (CrExitQualification->Fields.Register == 4)
     {
         __vmx_vmread(GUEST_RSP, &GuestRsp);
         *RegPtr = GuestRsp;
     }
+    */
 
     switch (CrExitQualification->Fields.AccessType)
     {
@@ -310,9 +318,27 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState)
             break;
         case 3:
             NewCr3 = (*RegPtr & ~(1ULL << 63));
-            LogInfo("New process cr3 : 0x%llx , Proc id = : 0x%x", NewCr3, PsGetCurrentProcessId());
-            __vmx_vmwrite(GUEST_CR3, (*RegPtr & ~(1ULL << 63)));
+
+            //
+            // Handle it in debugger stepping engine
+            //
+            if (g_EnableDebuggerSteppings)
+            {
+                SteppingsHandleMovToCr3Exiting(GuestState, ProcessorIndex, NewCr3);
+            }
+
+            //
+            // Apply the new cr3
+            //
+            __vmx_vmwrite(GUEST_CR3, NewCr3);
+
+            //
+            // Invalidate as we used VPID tags so the vm-exit won't
+            // normally (automatically) flush the tlb, we have to do
+            // it manually
+            //
             InvvpidSingleContext(VPID_TAG);
+
             break;
         case 4:
             __vmx_vmwrite(GUEST_CR4, *RegPtr);

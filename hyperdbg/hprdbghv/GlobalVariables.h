@@ -88,6 +88,12 @@ BOOLEAN g_TransparentMode;
 TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 
 /**
+ * @brief shows whether the stepping mechanism is enabled or disabled
+ * 
+ */
+BOOLEAN g_EnableDebuggerSteppings;
+
+/**
  * @brief holds the thread states for debugger on steppings
  * 
  */
