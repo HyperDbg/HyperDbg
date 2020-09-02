@@ -320,14 +320,6 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             NewCr3 = (*RegPtr & ~(1ULL << 63));
 
             //
-            // Handle it in debugger stepping engine
-            //
-            if (g_EnableDebuggerSteppings)
-            {
-                SteppingsHandleMovToCr3Exiting(GuestState, ProcessorIndex, NewCr3);
-            }
-
-            //
             // Apply the new cr3
             //
             __vmx_vmwrite(GUEST_CR3, NewCr3);

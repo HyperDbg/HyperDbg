@@ -1,4 +1,5 @@
 PUBLIC AsmGeneralDetourHook
+PUBLIC AsmDebuggerSpinOnThread
 EXTERN ExAllocatePoolWithTagOrig:QWORD
 EXTERN DebuggerEventEptHook2GeneralDetourEventHandler:PROC
 
@@ -126,6 +127,38 @@ RestoreTheRegisters:
     
 AsmDebuggerConditionCodeHandler ENDP 
 
+;------------------------------------------------------------------------
+AsmDebuggerSpinOnThread PROC PUBLIC
+    
+    swapgs
+NopLoop:
+    nop
+    nop
+    nop
+    nop
+    nop   
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop   
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    jmp NopLoop
+
+    int 3 ; we should never reach here
+    ret 
+    
+AsmDebuggerSpinOnThread ENDP 
 ;------------------------------------------------------------------------
 
 END                     

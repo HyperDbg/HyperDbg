@@ -293,3 +293,10 @@ AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param
  */
 extern unsigned long long
 AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
+
+/**
+ * @brief Nop loop spin to halt the thread and wait
+ * 
+ */
+extern void
+AsmDebuggerSpinOnThread();

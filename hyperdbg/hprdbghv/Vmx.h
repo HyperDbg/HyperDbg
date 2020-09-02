@@ -522,10 +522,11 @@ typedef enum MOV_TO_DEBUG_REG
  */
 typedef struct _DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS
 {
-    BOOLEAN IsWaitingForClockInterrupt;
-    BOOLEAN DisableExternalInterrupts;
-    UINT32  TargetProcessId;
-    UINT32  TargetThreadId;
+    BOOLEAN  IsWaitingForClockInterrupt;
+    BOOLEAN  DisableExternalInterrupts;
+    UINT32   TargetProcessId;
+    UINT32   TargetThreadId;
+    CR3_TYPE TargetThreadKernelCr3;
 
 } DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS, *PDEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS;
 

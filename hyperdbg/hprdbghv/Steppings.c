@@ -11,6 +11,7 @@
  */
 #include "pch.h"
 
+UINT64 TempStack;
 VOID
 SteppingsInitialize()
 {
@@ -25,10 +26,11 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
+    TempStack = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
     //
     // Test on grabbing a thread-state
     //
-    //SteppingsStartDebuggingThread(568, 3216);
+    // SteppingsStartDebuggingThread(1908, 7120);
 }
 
 VOID
@@ -67,6 +69,11 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
         g_GuestState[i].DebuggerSteppingDetails.TargetThreadId = ThreadId;
 
         //
+        // Set the kernel cr3 (save cr3 of kernel for future use)
+        //
+        g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3 = GetCr3FromProcessId(ProcessId);
+
+        //
         // We should not disable external-interrupts until we find the process
         //
         g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = FALSE;
@@ -91,31 +98,13 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 
 // should be called in vmx root
 VOID
-SteppingsHandleMovToCr3Exiting(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT64 NewCr3)
-{
-    UINT64 GuestRip = 0;
-
-    //
-    // read the guest's rip
-    //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
-
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-
-    // LogInfo("cr3 change to %llx = %llx and process id is %llx", NewCr3, CurrentProcess->DirectoryTableBase, PsGetCurrentProcessId());
-    if (NewCr3 == CurrentProcess->DirectoryTableBase && PsGetCurrentProcessId() == 4)
-    {
-    }
-}
-
-// should be called in vmx root
-VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
-    UINT64 GuestRip = 0;
-    UINT32 CurrentProcessId;
-    UINT32 CurrentThreadId;
-    UINT32 ProcessorCount;
+    BOOLEAN  IsOnTheTargetProcess = FALSE;
+    UINT32   CurrentProcessId;
+    UINT32   CurrentThreadId;
+    UINT32   ProcessorCount;
+    CR3_TYPE ProcessKernelCr3;
 
     //
     //  Lock the spinlock
@@ -140,11 +129,6 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
               (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0)))
     {
         //
-        // read the guest's rip
-        //
-        __vmx_vmread(GUEST_RIP, &GuestRip);
-
-        //
         // Read other details of process and thread
         //
         CurrentProcessId = PsGetCurrentProcessId();
@@ -156,7 +140,11 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             //
             // *** The target process is found and we are in middle of the process ***
             //
-            DbgBreakPoint();
+
+            //
+            // Set the kernel cr3 for future use
+            //
+            ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
 
             //
             // Disable external-interrupt exitings as we are not intersted on
@@ -174,9 +162,10 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             //
             for (size_t i = 0; i < ProcessorCount; i++)
             {
-                g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt = FALSE;
-                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId             = NULL;
-                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId             = NULL;
+                g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
+                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
+                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
+                g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
 
                 //
                 // Because we disabled external-interrupts here in this function, no need
@@ -187,6 +176,18 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
                     g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = TRUE;
                 }
             }
+
+            //
+            // We set the handler here because we want to handle the process
+            // later after releasing the lock, it is because we don't need
+            // to make all the processor to wait for us, however this idea
+            // won't work on first core as if we wait on first core then
+            // all the other cores are waiting for an IPI but if we get the
+            // thread on any other processor, other than 0th, then it's better
+            // to set the following value to TRUE and handle it later as
+            // we released the lock and no other core is waiting for us
+            //
+            IsOnTheTargetProcess = TRUE;
         }
     }
 
@@ -194,4 +195,76 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
     //  Unlock the spinlock
     //
     SpinlockUnlock(&ExternalInterruptFindProcessAndThreadId);
+
+    //
+    // Check if we find the thread or not
+    //
+    if (IsOnTheTargetProcess)
+    {
+        //
+        // Handle the thread
+        //
+        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, &ProcessKernelCr3);
+    }
+}
+
+// should be called in vmx root
+VOID
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PCR3_TYPE KernelCr3)
+{
+    UINT64           GuestRip = 0;
+    SEGMENT_SELECTOR Cs, Ss;
+    UINT64           MsrValue;
+    ULONG64          GuestRflags;
+
+    DbgBreakPoint();
+
+    //
+    // read the guest's rip
+    //
+    __vmx_vmread(GUEST_RIP, &GuestRip);
+
+    //
+    // Set the target thread to spinner
+    //
+    __vmx_vmwrite(GUEST_RIP, AsmDebuggerSpinOnThread);
+
+    //
+    // Change the RSP
+    //
+    __vmx_vmwrite(GUEST_RSP, TempStack);
+
+    //
+    // Change the cr3 to the kernel cr3
+    //
+    __vmx_vmwrite(GUEST_CR3, KernelCr3->Flags);
+
+    //
+    // Reading guest's Rflags
+    //
+    __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
+
+    //
+    // Save RFLAGS into R11 and then mask RFLAGS using MSR_FMASK
+    //
+    MsrValue = __readmsr(MSR_FMASK);
+    GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
+
+    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+
+    //
+    // Load the CS and SS selectors with values derived from bits 47:32 of MSR_STAR
+    //
+    MsrValue             = __readmsr(MSR_STAR);
+    Cs.SEL               = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
+    Cs.BASE              = 0;                               // flat segment
+    Cs.LIMIT             = (UINT32)~0;                      // 4GB limit
+    Cs.ATTRIBUTES.UCHARs = 0xA09B;                          // L+DB+P+S+DPL0+Code
+    SetGuestCs(&Cs);
+
+    Ss.SEL               = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
+    Ss.BASE              = 0;                                     // flat segment
+    Ss.LIMIT             = (UINT32)~0;                            // 4GB limit
+    Ss.ATTRIBUTES.UCHARs = 0xC093;                                // G+DB+P+S+DPL0+Data
+    SetGuestSs(&Ss);
 }
