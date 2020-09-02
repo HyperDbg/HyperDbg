@@ -264,17 +264,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         //
-        // Check whether we should handle the interrupt differently
-        // because of debugger steppings mechanism or not
+        // Check whether stepping is enabled or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt &&
-            ((InterruptExit.Vector == CLOCK_INTERRUPT && CurrentProcessorIndex == 0) ||
-             (InterruptExit.Vector == IPI_INTERRUPT && CurrentProcessorIndex != 0)))
+        if (g_EnableDebuggerSteppings)
         {
             //
             // Call the thread finder as a part of stepping handler
             //
-            SteppingsHandleClockInterruptOnTargetProcess(GuestRegs, CurrentProcessorIndex);
+            SteppingsHandleClockInterruptOnTargetProcess(GuestRegs, CurrentProcessorIndex, &InterruptExit);
         }
 
         //

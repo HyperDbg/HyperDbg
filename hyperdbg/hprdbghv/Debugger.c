@@ -94,8 +94,6 @@ DebuggerInitialize()
     return TRUE;
 }
 
-// 
-
 /**
  * @brief Create an Event Object
  * 
@@ -841,7 +839,6 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 {
     DbgBreakPoint();
 }
-
 
 /**
  * @brief Managing log the state action

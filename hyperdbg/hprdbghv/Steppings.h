@@ -17,6 +17,17 @@
 //////////////////////////////////////////////////
 
 //////////////////////////////////////////////////
+//					Variables					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Lock for finding process and thread on
+ * external-interrupt exiting
+ * 
+ */
+volatile LONG ExternalInterruptFindProcessAndThreadId;
+
+//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
@@ -30,4 +41,7 @@ VOID
 SteppingsHandleMovToCr3Exiting(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT64 NewCr3);
 
 VOID
-SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex);
+SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit);
+
+VOID
+SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId);
