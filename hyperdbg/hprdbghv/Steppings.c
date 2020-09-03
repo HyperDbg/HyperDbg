@@ -11,7 +11,6 @@
  */
 #include "pch.h"
 
-UINT64 TempStack;
 VOID
 SteppingsInitialize()
 {
@@ -26,11 +25,10 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
-    TempStack = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
     //
     // Test on grabbing a thread-state
     //
-    // SteppingsStartDebuggingThread(1908, 7120);
+    // SteppingsStartDebuggingThread(3852, 4412);
 }
 
 VOID
@@ -100,11 +98,10 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
-    BOOLEAN  IsOnTheTargetProcess = FALSE;
-    UINT32   CurrentProcessId;
-    UINT32   CurrentThreadId;
-    UINT32   ProcessorCount;
-    CR3_TYPE ProcessKernelCr3;
+    BOOLEAN IsOnTheTargetProcess = FALSE;
+    UINT32  CurrentProcessId;
+    UINT32  CurrentThreadId;
+    UINT32  ProcessorCount;
 
     //
     //  Lock the spinlock
@@ -140,11 +137,6 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             //
             // *** The target process is found and we are in middle of the process ***
             //
-
-            //
-            // Set the kernel cr3 for future use
-            //
-            ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
 
             //
             // Disable external-interrupt exitings as we are not intersted on
@@ -204,18 +196,19 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         // Handle the thread
         //
-        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, &ProcessKernelCr3);
+        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex);
     }
 }
 
 // should be called in vmx root
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PCR3_TYPE KernelCr3)
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
 {
     UINT64           GuestRip = 0;
     SEGMENT_SELECTOR Cs, Ss;
     UINT64           MsrValue;
     ULONG64          GuestRflags;
+    CR3_TYPE         GuestCr3;
 
     DbgBreakPoint();
 
@@ -225,46 +218,117 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
     __vmx_vmread(GUEST_RIP, &GuestRip);
 
     //
-    // Set the target thread to spinner
+    // read the guest's cr3
     //
-    __vmx_vmwrite(GUEST_RIP, AsmDebuggerSpinOnThread);
+    __vmx_vmread(GUEST_CR3, &GuestCr3);
 
     //
-    // Change the RSP
+    // Swap the page with a nop-sled
     //
-    __vmx_vmwrite(GUEST_RSP, TempStack);
+    SteppingsSwapPageWithInfiniteLoop(GuestRip, GuestCr3, ProcessorIndex);
+}
+
+/**
+ * @brief Swap the target page with an infinite loop
+ * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
+ * 
+ * @param TargetAddress The address of function or memory address to be swapped
+ * @param ProcessCr3 The process cr3 to translate based on that process's cr3
+ * @param LogicalCoreIndex The logical core index 
+ * @return BOOLEAN Returns true if the swap was successfull or false if there was an error
+ */
+BOOLEAN
+SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT32 LogicalCoreIndex)
+{
+    EPT_PML1_ENTRY    ChangedEntry;
+    INVEPT_DESCRIPTOR Descriptor;
+    SIZE_T            PhysicalBaseAddress;
+    PVOID             VirtualTarget;
+    PVOID             TargetBuffer;
+    PEPT_PML1_ENTRY   TargetPage;
 
     //
-    // Change the cr3 to the kernel cr3
+    // Check whether we are in VMX Root Mode or Not
     //
-    __vmx_vmwrite(GUEST_CR3, KernelCr3->Flags);
+    if (g_GuestState[LogicalCoreIndex].IsOnVmxRootMode && !g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        return FALSE;
+    }
 
     //
-    // Reading guest's Rflags
+    // Translate the page from a physical address to virtual so we can read its memory.
+    // This function will return NULL if the physical address was not already mapped in
+    // virtual memory.
     //
-    __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
+    VirtualTarget = PAGE_ALIGN(TargetAddress);
 
     //
-    // Save RFLAGS into R11 and then mask RFLAGS using MSR_FMASK
+    // Here we have to change the CR3, it is because we are in SYSTEM process
+    // and if the target address is not mapped in SYSTEM address space (e.g
+    // user mode address of another process) then the translation is invalid
     //
-    MsrValue = __readmsr(MSR_FMASK);
-    GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
+    PhysicalBaseAddress = (SIZE_T)VirtualAddressToPhysicalAddressByProcessCr3(VirtualTarget, ProcessCr3);
 
-    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+    if (!PhysicalBaseAddress)
+    {
+        LogError("Target address could not be mapped to physical memory");
+        return FALSE;
+    }
 
     //
-    // Load the CS and SS selectors with values derived from bits 47:32 of MSR_STAR
+    // Set target buffer, request buffer from pool manager,
+    // we also need to allocate new page to replace the current page ASAP
     //
-    MsrValue             = __readmsr(MSR_STAR);
-    Cs.SEL               = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
-    Cs.BASE              = 0;                               // flat segment
-    Cs.LIMIT             = (UINT32)~0;                      // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA09B;                          // L+DB+P+S+DPL0+Code
-    SetGuestCs(&Cs);
+    TargetBuffer = PoolManagerRequestPool(SPLIT_2MB_PAGING_TO_4KB_PAGE, TRUE, sizeof(VMM_EPT_DYNAMIC_SPLIT));
 
-    Ss.SEL               = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
-    Ss.BASE              = 0;                                     // flat segment
-    Ss.LIMIT             = (UINT32)~0;                            // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC093;                                // G+DB+P+S+DPL0+Data
-    SetGuestSs(&Ss);
+    if (!TargetBuffer)
+    {
+        LogError("There is no pre-allocated buffer available");
+        return FALSE;
+    }
+
+    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
+    {
+        LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
+        return FALSE;
+    }
+
+    //
+    // Pointer to the page entry in the page table
+    //
+    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalBaseAddress);
+
+    //
+    // Ensure the target is valid
+    //
+    if (!TargetPage)
+    {
+        LogError("Failed to get PML1 entry of the target address");
+        return FALSE;
+    }
+
+    //
+    // Save the original permissions of the page
+    //
+    ChangedEntry = *TargetPage;
+
+    //
+    // if not launched, there is no need to modify it on a safe environment
+    //
+    if (!g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        //
+        // Apply the hook to EPT
+        //
+        TargetPage->Flags = ChangedEntry.Flags;
+    }
+    else
+    {
+        //
+        // Apply the hook to EPT
+        //
+        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+    }
+
+    return TRUE;
 }

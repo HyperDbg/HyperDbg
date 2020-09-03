@@ -44,4 +44,7 @@ VOID
 SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId);
 
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PCR3_TYPE KernelCr3);
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex);
+
+BOOLEAN
+SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT32 LogicalCoreIndex);
