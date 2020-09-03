@@ -114,6 +114,94 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
 }
 
 /**
+ * @brief This function gets virtual address and returns its PTE of the virtual address
+ * based on the specific cr3
+ * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
+ * addresses so the kernel functions to translate addresses should be mapped; thus,
+ * don't pass a KPTI meltdown user cr3 to this function
+ * 
+ * @param Va Virtual Address
+ * @param Level PMLx
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+PPAGE_ENTRY
+MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
+{
+    CR3_TYPE Cr3;
+    CR3_TYPE CurrentProcessCr3 = {0};
+    UINT64   TempCr3;
+    PUINT64  Cr3Va;
+    PUINT64  PdptVa;
+    PUINT64  PdVa;
+    PUINT64  PtVa;
+    UINT32   Offset;
+
+    //
+    // Switch to new process's memory layout
+    // It is because, we're not trying to change the cr3 multiple times
+    // so instead of using PhysicalAddressToVirtualAddressByCr3 we use
+    // PhysicalAddressToVirtualAddress, but keep in mind that cr3 should
+    // be a kernel cr3 (not KPTI user cr3) as the functions to translate
+    // physical address to virtual address is not mapped on the user cr3
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+
+    Cr3.Flags = TargetCr3.Flags;
+
+    //
+    // Cr3 should be shifted 12 to the left because it's PFN
+    //
+    TempCr3 = Cr3.PageFrameNumber << 12;
+
+    //
+    // we need VA of Cr3, not PA
+    //
+    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3, TargetCr3);
+
+    Offset = MemoryMapperGetOffset(PML4, Va);
+
+    PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
+
+    if (!Pml4e->Present || Level == PML4)
+    {
+        return Pml4e;
+    }
+
+    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12, TargetCr3);
+    Offset = MemoryMapperGetOffset(PDPT, Va);
+
+    PPAGE_ENTRY Pdpte = &PdptVa[Offset];
+
+    if (!Pdpte->Present || Pdpte->LargePage || Level == PDPT)
+    {
+        return Pdpte;
+    }
+
+    PdVa   = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12, TargetCr3);
+    Offset = MemoryMapperGetOffset(PD, Va);
+
+    PPAGE_ENTRY Pde = &PdVa[Offset];
+
+    if (!Pde->Present || Pde->LargePage || Level == PD)
+    {
+        return Pde;
+    }
+
+    PtVa   = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12, TargetCr3);
+    Offset = MemoryMapperGetOffset(PT, Va);
+
+    PPAGE_ENTRY Pt = &PtVa[Offset];
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return Pt;
+}
+
+/**
  * @brief This function reserve memory from system range (without physically allocating them)
  * 
  * @param Size Size of reserving buffers
@@ -152,6 +240,20 @@ PVOID
 MemoryMapperGetPte(PVOID VirtualAddress)
 {
     return MemoryMapperGetPteVa(VirtualAddress, PT);
+}
+
+/**
+ * @brief This function gets virtual address and returns its PTE (Pml4e) virtual address
+ * based on a specific Cr3
+ * 
+ * @param VirtualAddress Virtual Address
+ * @param TargetCr3 Target process cr3
+ * @return virtual address of PTE (Pml4e)
+ */
+PVOID
+MemoryMapperGetPteByCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
+{
+    return MemoryMapperGetPteVaByCr3(VirtualAddress, PT, TargetCr3);
 }
 
 /**
@@ -556,10 +658,11 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source,
  * @details this function should be called from vmx non-root mode
  *
  * @param ProcessId Target Process Id
+ * @param Commit Whether pass the MEM_COMMIT flag to allocator or not
  * @return Reserved address in the target user mode application
  */
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId)
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit)
 {
     NTSTATUS   Status;
     PVOID      AllocPtr  = NULL;
@@ -585,14 +688,14 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId)
             KeStackAttachProcess(SourceProcess, &State);
 
             //
-            // Allocate (not allocate, just reserve) in memory in target process
+            // Allocate (not allocate, just reserve or reserve and allocate) in memory in target process
             //
             Status = ZwAllocateVirtualMemory(
                 NtCurrentProcess(),
                 &AllocPtr,
                 NULL,
                 &AllocSize,
-                MEM_RESERVE,
+                Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
                 PAGE_EXECUTE_READWRITE);
 
             KeUnstackDetachProcess(&State);
@@ -613,7 +716,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId)
             &AllocPtr,
             NULL,
             &AllocSize,
-            MEM_RESERVE,
+            Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
             PAGE_EXECUTE_READWRITE);
     }
 
@@ -623,4 +726,77 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId)
     }
 
     return AllocPtr;
+}
+
+/**
+ * @brief Maps a physical address to a PTE
+ * @details Find the PTE from MemoryMapperGetPteVaByCr3
+ * 
+ * @param PhysicalAddress Physical Address
+ * @param VirtualAddressPte Virtual Address of PTE
+ * @param TargetKernelCr3 Target process cr3
+ */
+VOID
+MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress, PPAGE_ENTRY VirtualAddressPte, CR3_TYPE TargetKernelCr3)
+{
+    PAGE_ENTRY PageEntry;
+    PAGE_ENTRY PreviousPteEntry;
+    CR3_TYPE   CurrentProcessCr3;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetKernelCr3);
+
+    //
+    // Save the previous entry
+    //
+    PreviousPteEntry.Flags = VirtualAddressPte->Flags;
+
+    //
+    // Read the previous entry in order to modify it
+    //
+    PageEntry.Flags = VirtualAddressPte->Flags;
+
+    //
+    // Make sure that the target PTE is readable, writable, executable
+    // present, global, etc.
+    //
+    PageEntry.Present = 1;
+
+    //
+    // It's not a supervisor page
+    //
+    PageEntry.Supervisor = 1;
+
+    //
+    // Generally we want each page to be writable
+    //
+    PageEntry.Write = 1;
+
+    //
+    // Do not flush this page from the TLB on CR3 switch, by setting the
+    // global bit in the PTE.
+    //
+    PageEntry.Global = 1;
+
+    //
+    // Set the PFN of this PTE to that of the provided physical address.
+    //
+    PageEntry.PageFrameNumber = PhysicalAddress.QuadPart >> 12;
+
+    //
+    // Apply the page entry in a single instruction
+    //
+    VirtualAddressPte->Flags = PageEntry.Flags;
+
+    //
+    // Finally, invalidate the caches for the virtual address.
+    //
+    __invlpg(PhysicalAddressToVirtualAddress(PhysicalAddress.QuadPart));
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
 }

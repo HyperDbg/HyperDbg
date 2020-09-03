@@ -313,6 +313,9 @@ MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead,
 PPAGE_ENTRY
 MemoryMapperGetPteVa(PVOID Va, PML Level);
 
+PPAGE_ENTRY
+MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+
 VOID
 MemoryMapperInitialize();
 
@@ -320,7 +323,7 @@ VOID
 MemoryMapperUninitialize();
 
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId);
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit);
 
 BOOLEAN
 MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);

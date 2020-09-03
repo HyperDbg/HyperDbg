@@ -25,10 +25,21 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
+    UINT32      ProcessId       = 0x1c60;
+    UINT32      ThreadId        = 3852;
+    CR3_TYPE    TargetKernelCr3 = GetCr3FromProcessId(ProcessId);
+    PPAGE_ENTRY TargetPte;
+
+    //UINT64 ReservedAddress = MemoryMapperReserveUsermodeAddressInTargetProcess(ProcessId, TRUE);
+
+    //
+    // Find the PTE of target address
+    //
+
     //
     // Test on grabbing a thread-state
     //
-    // SteppingsStartDebuggingThread(3852, 4412);
+    // SteppingsStartDebuggingThread(ProcessId, ThreadId);
 }
 
 VOID
