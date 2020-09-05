@@ -11,7 +11,7 @@
  */
 #include "pch.h"
 
-VOID
+BOOLEAN
 SteppingsInitialize()
 {
     //
@@ -25,21 +25,32 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
-    UINT32      ProcessId       = 0x1c60;
-    UINT32      ThreadId        = 3852;
+    /*  
+    UINT32      ProcessId       = 2764;
+    UINT32      ThreadId        = 2748;
     CR3_TYPE    TargetKernelCr3 = GetCr3FromProcessId(ProcessId);
+    CR3_TYPE    CurrentProcessCr3;
     PPAGE_ENTRY TargetPte;
 
-    //UINT64 ReservedAddress = MemoryMapperReserveUsermodeAddressInTargetProcess(ProcessId, TRUE);
-
     //
-    // Find the PTE of target address
+    // Check if we have a secondary EPT Identity Table or not
     //
+    if (!g_EptState->SecondaryInitialized)
+    {
+        if (!EptInitializeSeconadaryEpt())
+        {
+            //
+            // There was an error in making the secondary EPT identity map
+            //
+            return FALSE;
+        }
+    }
 
     //
     // Test on grabbing a thread-state
     //
-    // SteppingsStartDebuggingThread(ProcessId, ThreadId);
+    SteppingsStartDebuggingThread(ProcessId, ThreadId);
+    */
 }
 
 VOID
@@ -207,13 +218,13 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         // Handle the thread
         //
-        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex);
+        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, CurrentProcessId, CurrentThreadId);
     }
 }
 
 // should be called in vmx root
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT32 ProcessId, UINT32 ThreadId)
 {
     UINT64           GuestRip = 0;
     SEGMENT_SELECTOR Cs, Ss;
@@ -244,7 +255,7 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
  * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
  * 
  * @param TargetAddress The address of function or memory address to be swapped
- * @param ProcessCr3 The process cr3 to translate based on that process's cr3
+ * @param ProcessCr3 The process cr3 to translate based on that process's kernel cr3
  * @param LogicalCoreIndex The logical core index 
  * @return BOOLEAN Returns true if the swap was successfull or false if there was an error
  */
@@ -298,6 +309,9 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
         return FALSE;
     }
 
+    //
+    // Split 2 MB granularity to 4 KB granularity
+    //
     if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
         LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
@@ -322,6 +336,8 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     // Save the original permissions of the page
     //
     ChangedEntry = *TargetPage;
+
+    // ChangedEntry.PageFrameNumber =
 
     //
     // if not launched, there is no need to modify it on a safe environment

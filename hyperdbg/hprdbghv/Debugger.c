@@ -95,6 +95,47 @@ DebuggerInitialize()
 }
 
 /**
+ * @brief Uninitialize Debugger Structures and Routines
+ * 
+ */
+VOID
+DebuggerUninitialize()
+{
+    //
+    // Unitialize the stepping mechanism
+    //
+    SteppingsUninitialize();
+
+    //
+    //  *** Disable, terminate and clear all the events ***
+    //
+
+    //
+    // Because we want to delete all the objects and buffers (pools)
+    // after we finished termination, the debugger might still use
+    // the buffers for events and action, for solving this problem
+    // we first disable the tag(s) and this way the debugger no longer
+    // use that event and this way we can safely remove and deallocate
+    // the buffers later after termination
+    //
+
+    //
+    // First, disable all events
+    //
+    DebuggerEnableOrDisableAllEvents(FALSE);
+
+    //
+    // Second, terminate all events
+    //
+    DebuggerTerminateAllEvents();
+
+    //
+    // Third, remove all events
+    //
+    DebuggerRemoveAllEvents();
+}
+
+/**
  * @brief Create an Event Object
  * 
  * @details should NOT be called in vmx-root

@@ -130,24 +130,8 @@ AsmDebuggerConditionCodeHandler ENDP
 ;------------------------------------------------------------------------
 AsmDebuggerSpinOnThread PROC PUBLIC
     
-    swapgs
+    ;;;;; DO NOT CHANGE THE NOPS, THIS FUNCTION'S SIZE IS 7 BYTES (WITHOUT INT 3 AND RET)
 NopLoop:
-    nop
-    nop
-    nop
-    nop
-    nop   
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop   
-    nop
-    nop
-    nop
     nop
     nop
     nop

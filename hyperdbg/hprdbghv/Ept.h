@@ -995,6 +995,10 @@ typedef struct _EPT_STATE
     EPTP                  EptPointer;                  // Extended-Page-Table Pointer
     PVMM_EPT_PAGE_TABLE   EptPageTable;                // Page table entries for EPT operation
 
+    PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
+    BOOLEAN             SecondaryInitialized;  // Is Secondary Page table entries initialized or not (Used in debugger mechanisms)
+    EPTP                SecondaryEptPointer;   // Secondary Extended-Page-Table Pointer
+
 } EPT_STATE, *PEPT_STATE;
 
 /**
@@ -1299,6 +1303,14 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
  */
 BOOLEAN
 EptLogicalProcessorInitialize();
+
+/**
+ * @brief Initialize the secondary EPT Table based on Processor Index
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+EptInitializeSeconadaryEpt();
 
 /**
  * @brief Handle EPT Violation

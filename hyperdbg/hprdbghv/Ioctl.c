@@ -103,6 +103,11 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         case IOCTL_TERMINATE_VMX:
 
             //
+            // Uninitialize the debugger and its sub-mechansims
+            //
+            DebuggerUninitialize();
+
+            //
             // terminate vmx
             //
             HvTerminateVmx();
@@ -336,7 +341,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
 
         case IOCTL_DEBUGGER_HIDE_AND_UNHIDE_TO_TRANSPARENT_THE_DEBUGGER:
-        
+
             //
             // First validate the parameters.
             //

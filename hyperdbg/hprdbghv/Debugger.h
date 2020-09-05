@@ -140,6 +140,9 @@ DebuggerRunCustomCodeFunc(PVOID PreAllocatedBufferAddress, PGUEST_REGS Regs, PVO
 BOOLEAN
 DebuggerInitialize();
 
+VOID
+DebuggerUninitialize();
+
 PDEBUGGER_EVENT
 DebuggerCreateEvent(BOOLEAN Enabled, UINT32 CoreId, UINT32 ProcessId, DEBUGGER_EVENT_TYPE_ENUM EventType, UINT64 Tag, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3, UINT64 OptionalParam4, UINT32 ConditionsBufferSize, PVOID ConditionBuffer);
 
@@ -169,6 +172,15 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
 
 BOOLEAN
 DebuggerTerminateEvent(UINT64 Tag);
+
+BOOLEAN
+DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable);
+
+BOOLEAN
+DebuggerRemoveAllEvents();
+
+BOOLEAN
+DebuggerTerminateAllEvents();
 
 UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
