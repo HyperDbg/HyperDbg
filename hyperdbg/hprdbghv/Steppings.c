@@ -25,8 +25,8 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
-    UINT32      ProcessId       = 4328;
-    UINT32      ThreadId        = 1512;
+    UINT32      ProcessId       = 5664;
+    UINT32      ThreadId        = 7416;
     CR3_TYPE    TargetKernelCr3 = GetCr3FromProcessId(ProcessId);
     CR3_TYPE    CurrentProcessCr3;
     PPAGE_ENTRY TargetPte;
@@ -330,7 +330,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
 
 // should be called in vmx root
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, CR3_TYPE KerenlCr3, UINT32 ProcessId, UINT32 ThreadId)
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, CR3_TYPE KernelCr3, UINT32 ProcessId, UINT32 ThreadId)
 {
     UINT64           GuestRip = 0;
     SEGMENT_SELECTOR Cs, Ss;
@@ -360,9 +360,7 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
     //
     // Swap the page with a nop-sled
     //
-    DbgBreakPoint();
-    SteppingsSwapPageWithInfiniteLoop(GuestRip, KerenlCr3, ProcessorIndex);
-    DbgBreakPoint();
+    SteppingsSwapPageWithInfiniteLoop(GuestRip, KernelCr3, ProcessorIndex);
 }
 
 /**
