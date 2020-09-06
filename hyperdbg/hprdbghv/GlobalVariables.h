@@ -88,6 +88,12 @@ BOOLEAN g_TransparentMode;
 TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 
 /**
+ * @brief details relating to nop-sled page
+ * 
+ */
+DEBUGGER_STEPPINGS_NOP_SLED  g_SteppingsNopSledState;
+
+/**
  * @brief shows whether the stepping mechanism is enabled or disabled
  * 
  */

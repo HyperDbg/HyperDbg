@@ -25,9 +25,8 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
-    /*  
-    UINT32      ProcessId       = 2764;
-    UINT32      ThreadId        = 2748;
+    UINT32      ProcessId       = 4328;
+    UINT32      ThreadId        = 1512;
     CR3_TYPE    TargetKernelCr3 = GetCr3FromProcessId(ProcessId);
     CR3_TYPE    CurrentProcessCr3;
     PPAGE_ENTRY TargetPte;
@@ -47,10 +46,68 @@ SteppingsInitialize()
     }
 
     //
+    // Initilize nop-sled page (if not already intialized)
+    //
+    if (!g_SteppingsNopSledState.IsNopSledInitialized)
+    {
+        //
+        // Allocate memory for nop-slep
+        //
+        g_SteppingsNopSledState.NopSledVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+
+        if (g_SteppingsNopSledState.NopSledVirtualAddress == NULL)
+        {
+            //
+            // There was a problem in allocation
+            //
+            return FALSE;
+        }
+
+        RtlZeroMemory(g_SteppingsNopSledState.NopSledVirtualAddress, PAGE_SIZE);
+
+        //
+        // Fill the memory with nops
+        //
+        memset(g_SteppingsNopSledState.NopSledVirtualAddress, 0x90, PAGE_SIZE);
+
+        //
+        // Set jmps to form a loop (little endians)
+        //
+        // 9272894.o:     file format elf64-x86-64
+        // Disassembly of section .text:
+        // 0000000000000000 <NopLoop>:
+        // 0:  90                      nop
+        // 1:  90                      nop
+        // 2:  90                      nop
+        // 3:  90                      nop
+        // 4:  90                      nop
+        // 5:  90                      nop
+        // 6:  90                      nop
+        // 7:  90                      nop
+        // 8:  90                      nop
+        // 9:  90                      nop
+        // a:  eb f4                   jmp    0 <NopLoop>
+        //
+        *(UINT16 *)(g_SteppingsNopSledState.NopSledVirtualAddress + PAGE_SIZE - 2) = 0xf4eb;
+
+        //
+        // Convert the address to virtual address
+        //
+        g_SteppingsNopSledState.NopSledPhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(
+            g_SteppingsNopSledState.NopSledVirtualAddress);
+
+        //
+        // Indicate that it is initialized
+        //
+        g_SteppingsNopSledState.IsNopSledInitialized = TRUE;
+    }
+
+    //
     // Test on grabbing a thread-state
     //
-    SteppingsStartDebuggingThread(ProcessId, ThreadId);
-    */
+    //SteppingsStartDebuggingThread(ProcessId, ThreadId);
+
+    return TRUE;
 }
 
 VOID
@@ -60,6 +117,49 @@ SteppingsUninitialize()
     // Disable debugger stepping mechanism
     //
     g_EnableDebuggerSteppings = FALSE;
+
+    //
+    // If the debugger used a secondary EPT Table then we
+    // have to free it too
+    //
+    if (g_EptState->SecondaryInitialized)
+    {
+        //
+        // Unset the initialized flag of secondary ept page table
+        //
+        g_EptState->SecondaryInitialized = FALSE;
+
+        //
+        // Null the EPTP of secondary page table
+        //
+        g_EptState->SecondaryEptPointer.Flags = NULL;
+
+        //
+        // Free the buffer
+        //
+        MmFreeContiguousMemory(g_EptState->SecondaryEptPageTable);
+    }
+
+    //
+    // If the nop-sled is initialized then we have to de-allocate it
+    //
+    if (g_SteppingsNopSledState.IsNopSledInitialized)
+    {
+        //
+        // Set it to a uninitialized state
+        //
+        g_SteppingsNopSledState.IsNopSledInitialized = FALSE;
+
+        //
+        // De-allocate the buffer
+        //
+        ExFreePoolWithTag(g_SteppingsNopSledState.NopSledVirtualAddress, POOLTAG);
+
+        //
+        // Zero out the structure
+        //
+        RtlZeroMemory(&g_SteppingsNopSledState, sizeof(DEBUGGER_STEPPINGS_NOP_SLED));
+    }
 }
 
 // should be called from vmx non-root
@@ -120,10 +220,11 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
-    BOOLEAN IsOnTheTargetProcess = FALSE;
-    UINT32  CurrentProcessId;
-    UINT32  CurrentThreadId;
-    UINT32  ProcessorCount;
+    BOOLEAN  IsOnTheTargetProcess = FALSE;
+    CR3_TYPE ProcessKernelCr3;
+    UINT32   CurrentProcessId;
+    UINT32   CurrentThreadId;
+    UINT32   ProcessorCount;
 
     //
     //  Lock the spinlock
@@ -159,6 +260,11 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             //
             // *** The target process is found and we are in middle of the process ***
             //
+
+            //
+            // Save the kernel cr3 of target process
+            //
+            ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
 
             //
             // Disable external-interrupt exitings as we are not intersted on
@@ -218,21 +324,18 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         // Handle the thread
         //
-        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, CurrentProcessId, CurrentThreadId);
+        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, ProcessKernelCr3, CurrentProcessId, CurrentThreadId);
     }
 }
 
 // should be called in vmx root
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT32 ProcessId, UINT32 ThreadId)
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, CR3_TYPE KerenlCr3, UINT32 ProcessId, UINT32 ThreadId)
 {
     UINT64           GuestRip = 0;
     SEGMENT_SELECTOR Cs, Ss;
     UINT64           MsrValue;
     ULONG64          GuestRflags;
-    CR3_TYPE         GuestCr3;
-
-    DbgBreakPoint();
 
     //
     // read the guest's rip
@@ -240,14 +343,26 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
     __vmx_vmread(GUEST_RIP, &GuestRip);
 
     //
-    // read the guest's cr3
+    // Chnage the core's eptp to the new eptp
     //
-    __vmx_vmread(GUEST_CR3, &GuestCr3);
+    if (g_EptState->SecondaryInitialized)
+    {
+        __vmx_vmwrite(EPT_POINTER, g_EptState->SecondaryEptPointer.Flags);
+    }
+    else
+    {
+        //
+        // Secondary page table is not initialized, what else to do !!!
+        //
+        return;
+    }
 
     //
     // Swap the page with a nop-sled
     //
-    SteppingsSwapPageWithInfiniteLoop(GuestRip, GuestCr3, ProcessorIndex);
+    DbgBreakPoint();
+    SteppingsSwapPageWithInfiniteLoop(GuestRip, KerenlCr3, ProcessorIndex);
+    DbgBreakPoint();
 }
 
 /**
@@ -273,6 +388,15 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     // Check whether we are in VMX Root Mode or Not
     //
     if (g_GuestState[LogicalCoreIndex].IsOnVmxRootMode && !g_GuestState[LogicalCoreIndex].HasLaunched)
+    {
+        return FALSE;
+    }
+
+    //
+    // Change the pfn to a nop-sled page if the nop-sled
+    // is already initialized
+    //
+    if (!g_SteppingsNopSledState.IsNopSledInitialized)
     {
         return FALSE;
     }
@@ -312,7 +436,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     //
     // Split 2 MB granularity to 4 KB granularity
     //
-    if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
+    if (!EptSplitLargePage(g_EptState->SecondaryEptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
         LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
         return FALSE;
@@ -321,7 +445,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     //
     // Pointer to the page entry in the page table
     //
-    TargetPage = EptGetPml1Entry(g_EptState->EptPageTable, PhysicalBaseAddress);
+    TargetPage = EptGetPml1Entry(g_EptState->SecondaryEptPageTable, PhysicalBaseAddress);
 
     //
     // Ensure the target is valid
@@ -337,7 +461,10 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     //
     ChangedEntry = *TargetPage;
 
-    // ChangedEntry.PageFrameNumber =
+    //
+    // Change the pfn to a nop-sled page
+    //
+    ChangedEntry.PageFrameNumber = g_SteppingsNopSledState.NopSledPhysicalAddress.QuadPart >> 12;
 
     //
     // if not launched, there is no need to modify it on a safe environment
@@ -354,8 +481,13 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
         //
         // Apply the hook to EPT
         //
-        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_ALL_CONTEXTS);
     }
+
+    //
+    // Invalidate the page
+    //
+    __invlpg(TargetAddress);
 
     return TRUE;
 }

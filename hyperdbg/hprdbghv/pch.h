@@ -54,6 +54,10 @@
 #include "HypervisorRoutines.h"
 #include "Ntifs2.h"
 #include "IoHandler.h"
-#include "GlobalVariables.h"
-#include "Termination.h"
 #include "Steppings.h"
+#include "Termination.h"
+
+//
+// Global Variables should be the last header to include
+//
+#include "GlobalVariables.h"

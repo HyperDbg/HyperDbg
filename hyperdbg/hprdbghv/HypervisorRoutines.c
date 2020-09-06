@@ -735,15 +735,6 @@ HvTerminateVmx()
     MmFreeContiguousMemory(g_EptState->EptPageTable);
 
     //
-    // If the debugger used a secondary EPT Table then we
-    // have to free it too
-    //
-    if (g_EptState->SecondaryEptPageTable)
-    {
-        MmFreeContiguousMemory(g_EptState->SecondaryEptPageTable);
-    }
-
-    //
     // Free EptState
     //
     ExFreePoolWithTag(g_EptState, POOLTAG);

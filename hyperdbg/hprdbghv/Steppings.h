@@ -16,6 +16,18 @@
 //					Structures					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Pointer to buffers containing the stepping's nop sled
+ * 
+ */
+typedef struct _DEBUGGER_STEPPINGS_NOP_SLED
+{
+    BOOLEAN          IsNopSledInitialized;
+    UINT64           NopSledVirtualAddress;
+    PHYSICAL_ADDRESS NopSledPhysicalAddress;
+
+} DEBUGGER_STEPPINGS_NOP_SLED, *PDEBUGGER_STEPPINGS_NOP_SLED;
+
 //////////////////////////////////////////////////
 //					Variables					//
 //////////////////////////////////////////////////
@@ -44,7 +56,7 @@ VOID
 SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId);
 
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, UINT32 ProcessId, UINT32 ThreadId);
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, CR3_TYPE KerenlCr3, UINT32 ProcessId, UINT32 ThreadId);
 
 BOOLEAN
 SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT32 LogicalCoreIndex);

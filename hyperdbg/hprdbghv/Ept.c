@@ -807,9 +807,13 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     {
         InveptSingleContext(g_EptState->EptPointer.Flags);
     }
-    else
+    else if (InvalidationType == INVEPT_ALL_CONTEXTS)
     {
         InveptAllContexts();
+    }
+    else
+    {
+        LogError("Invald invalidation parameter.");
     }
 
     //
