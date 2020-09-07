@@ -53,20 +53,20 @@ VOID CommandStatus(vector<string> SplittedCommand) {
     //
     // Connected to a remote debuggee
     //
-    ShowMessages("remote debugging ('survey mode'), ip : %s:%s \n",
+    ShowMessages("remote debugging ('vmi mode'), ip : %s:%s \n",
                  g_ServerIp.c_str(), g_ServerPort.c_str());
   } else if (g_IsConnectedToHyperDbgLocally) {
 
     //
     // Connected to a local system
     //
-    ShowMessages("local debugging ('survey mode')\n");
+    ShowMessages("local debugging ('vmi mode')\n");
   } else if (g_IsConnectedToRemoteDebugger) {
 
     //
     // It's computer connect to a remote machine
     //
-    ShowMessages("a remote debugger connected to this system in ('survey "
+    ShowMessages("a remote debugger connected to this system in ('vmi "
                  "mode'), ip : %s:%s \n",
                  g_ServerIp.c_str(), g_ServerPort.c_str());
   } else {
