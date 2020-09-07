@@ -280,8 +280,8 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
     ULONG                 ExitQualification = 0;
     PMOV_CR_QUALIFICATION CrExitQualification;
     PULONG64              RegPtr;
-    INT64                 GuestRsp = 0;
     UINT64                NewCr3;
+    CR3_TYPE              NewCr3Reg;
 
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
@@ -318,6 +318,15 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             break;
         case 3:
             NewCr3 = (*RegPtr & ~(1ULL << 63));
+
+            //
+            // Check if we are in debugging thread's steppings or not
+            //
+            if (g_EnableDebuggerSteppings)
+            {
+                NewCr3Reg.Flags = NewCr3;
+                SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
+            }
 
             //
             // Apply the new cr3

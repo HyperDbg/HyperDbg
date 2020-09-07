@@ -516,14 +516,16 @@ typedef enum MOV_TO_DEBUG_REG
 //////////////////////////////////////////////////
 
 /**
- * @brief Structure to save the state of MTF for steppings
- * and other core specific details
+ * @brief Structure to save the state of grabbing and finding a 
+ * thread guest registers
  * 
  */
 typedef struct _DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS
 {
     BOOLEAN  IsWaitingForClockInterrupt;
     BOOLEAN  DisableExternalInterrupts;
+    BOOLEAN  ChangeToPrimaryEptp;
+    UINT64   BufferToSaveThreadDetails;
     UINT32   TargetProcessId;
     UINT32   TargetThreadId;
     CR3_TYPE TargetThreadKernelCr3;

@@ -25,12 +25,6 @@ SteppingsInitialize()
     //
     g_EnableDebuggerSteppings = TRUE;
 
-    UINT32      ProcessId       = 5664;
-    UINT32      ThreadId        = 7416;
-    CR3_TYPE    TargetKernelCr3 = GetCr3FromProcessId(ProcessId);
-    CR3_TYPE    CurrentProcessCr3;
-    PPAGE_ENTRY TargetPte;
-
     //
     // Check if we have a secondary EPT Identity Table or not
     //
@@ -105,7 +99,9 @@ SteppingsInitialize()
     //
     // Test on grabbing a thread-state
     //
-    //SteppingsStartDebuggingThread(ProcessId, ThreadId);
+    UINT32 ProcessId = 532;
+    UINT32 ThreadId  = 2700;
+    // SteppingsStartDebuggingThread(ProcessId, ThreadId);
 
     return TRUE;
 }
@@ -113,6 +109,8 @@ SteppingsInitialize()
 VOID
 SteppingsUninitialize()
 {
+    PLIST_ENTRY TempList;
+
     //
     // Disable debugger stepping mechanism
     //
@@ -160,18 +158,55 @@ SteppingsUninitialize()
         //
         RtlZeroMemory(&g_SteppingsNopSledState, sizeof(DEBUGGER_STEPPINGS_NOP_SLED));
     }
+
+    //
+    // De-allocate the buffers relating to stepping mechanisms
+    //
+    TempList = &g_ThreadDebuggingStates;
+    while (&g_ThreadDebuggingStates != TempList->Flink)
+    {
+        TempList                                                       = TempList->Flink;
+        PDEBUGGER_STEPPING_THREAD_DETAILS CurrentThreadDebuggingDetail = CONTAINING_RECORD(TempList,
+                                                                                           DEBUGGER_STEPPING_THREAD_DETAILS,
+                                                                                           DebuggingThreadsList);
+
+        //
+        // Disable before de-allocation
+        //
+        CurrentThreadDebuggingDetail->Enabled = FALSE;
+
+        //
+        // De-allocate it
+        //
+        ExFreePoolWithTag(CurrentThreadDebuggingDetail->BufferAddressToFree, POOLTAG);
+    }
 }
 
 // should be called from vmx non-root
 VOID
 SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 {
-    UINT32 ProcessorCount;
+    UINT32                            ProcessorCount;
+    PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer;
 
     //
     // Find count of all the processors
     //
     ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Allocate a buffer to hold the data relating to debugging thread
+    //
+    ThreadDetailsBuffer = (PDEBUGGER_STEPPING_THREAD_DETAILS)ExAllocatePoolWithTag(NonPagedPool,
+                                                                                   sizeof(DEBUGGER_STEPPING_THREAD_DETAILS),
+                                                                                   POOLTAG);
+
+    if (ThreadDetailsBuffer == NULL)
+    {
+        return;
+    }
+
+    RtlZeroMemory(ThreadDetailsBuffer, sizeof(DEBUGGER_STEPPING_THREAD_DETAILS));
 
     //
     // Set to all cores that we are trying to find a special thread
@@ -204,6 +239,11 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
         g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt = TRUE;
 
         //
+        // Set the buffer for saving the details about a debugging thread
+        //
+        g_GuestState[i].DebuggerSteppingDetails.BufferToSaveThreadDetails = ThreadDetailsBuffer;
+
+        //
         // Enable external-interrupt exiting, because we are waiting for
         // either Clock-Interrupt (if we are in core 0) or IPI Interrupt if
         // we are not in core 0, it is because Windows only applies the clock
@@ -220,127 +260,170 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
-    BOOLEAN  IsOnTheTargetProcess = FALSE;
-    CR3_TYPE ProcessKernelCr3;
-    UINT32   CurrentProcessId;
-    UINT32   CurrentThreadId;
-    UINT32   ProcessorCount;
+    BOOLEAN                           IsOnTheTargetProcess = FALSE;
+    CR3_TYPE                          ProcessKernelCr3     = {0};
+    PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer  = 0;
+    UINT32                            CurrentProcessId     = 0;
+    UINT32                            CurrentThreadId      = 0;
+    UINT32                            ProcessorCount       = 0;
 
     //
-    //  Lock the spinlock
+    // We only handle interrupts that are related to the clock-timer interrupt
     //
-    SpinlockLock(&ExternalInterruptFindProcessAndThreadId);
-
-    //
-    // Check whether we should handle the interrupt differently
-    // because of debugger steppings mechanism or not and also check
-    // whether the target process already found or not
-    //
-    if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.DisableExternalInterrupts)
+    if ((InterruptExit->Vector == CLOCK_INTERRUPT && ProcessorIndex == 0) ||
+        (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0))
     {
         //
-        // The target process and thread already found, not need to
-        // further external-interrupt exiting
+        //  Lock the spinlock
         //
-        HvSetExternalInterruptExiting(FALSE);
-    }
-    else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt &&
-             ((InterruptExit->Vector == CLOCK_INTERRUPT && ProcessorIndex == 0) ||
-              (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0)))
-    {
-        //
-        // Read other details of process and thread
-        //
-        CurrentProcessId = PsGetCurrentProcessId();
-        CurrentThreadId  = PsGetCurrentThreadId();
+        SpinlockLock(&ExternalInterruptFindProcessAndThreadId);
 
-        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetProcessId == CurrentProcessId &&
-            g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadId == CurrentThreadId)
+        //
+        // Check whether we should handle the interrupt differently
+        // because of debugger steppings mechanism or not and also check
+        // whether the target process already found or not
+        //
+        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp)
         {
             //
-            // *** The target process is found and we are in middle of the process ***
+            // Disable the flag of change eptp
             //
+            g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = FALSE;
 
             //
-            // Save the kernel cr3 of target process
+            // Change EPTP to primary entry
             //
-            ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
+            __vmx_vmwrite(EPT_POINTER, g_EptState->EptPointer.Flags);
 
             //
-            // Disable external-interrupt exitings as we are not intersted on
-            // receiving external-interrupts (clock and ipi) anymore
+            // The target process and thread is now changing
+            // to a new process, no longer need to cause vm-exit
+            // on external interrupts
+            //
+            HvSetExternalInterruptExiting(FALSE);
+        }
+        else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.DisableExternalInterrupts)
+        {
+            //
+            // The target process and thread already found, not need to
+            // further external-interrupt exiting
             //
             HvSetExternalInterruptExiting(FALSE);
 
             //
-            // Find count of all the processors
+            // When we reached here, other logical processor swapped
+            // the thread page and we saved all the page entry details
+            // (original & noped) into the thread buffer detail, as the
+            // causing vm-exit for each external-interrupt is slow, so
+            // we set vm-exit on cr3 changes to keep noping the target
+            // page only if we are in the target process and thread and
+            // after that we will configure to cause vm-exits again to
+            // revert ept to its initial state when we finished with proocess
             //
-            ProcessorCount = KeQueryActiveProcessorCount(0);
-
-            //
-            // Indicate that we are not waiting for anything on all cores
-            //
-            for (size_t i = 0; i < ProcessorCount; i++)
-            {
-                g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
-                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
-                g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
-                g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
-
-                //
-                // Because we disabled external-interrupts here in this function, no need
-                // to set this bit for current logical processor
-                //
-                if (i != ProcessorIndex)
-                {
-                    g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = TRUE;
-                }
-            }
-
-            //
-            // We set the handler here because we want to handle the process
-            // later after releasing the lock, it is because we don't need
-            // to make all the processor to wait for us, however this idea
-            // won't work on first core as if we wait on first core then
-            // all the other cores are waiting for an IPI but if we get the
-            // thread on any other processor, other than 0th, then it's better
-            // to set the following value to TRUE and handle it later as
-            // we released the lock and no other core is waiting for us
-            //
-            IsOnTheTargetProcess = TRUE;
+            HvSetMovToCr3Vmexit(TRUE);
         }
-    }
+        else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt)
+        {
+            //
+            // Read other details of process and thread
+            //
+            CurrentProcessId = PsGetCurrentProcessId();
+            CurrentThreadId  = PsGetCurrentThreadId();
 
-    //
-    //  Unlock the spinlock
-    //
-    SpinlockUnlock(&ExternalInterruptFindProcessAndThreadId);
+            if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetProcessId == CurrentProcessId &&
+                g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadId == CurrentThreadId)
+            {
+                //
+                // *** The target process is found and we are in middle of the process ***
+                //
 
-    //
-    // Check if we find the thread or not
-    //
-    if (IsOnTheTargetProcess)
-    {
+                //
+                // Save the kernel cr3 of target process
+                //
+                ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
+
+                //
+                // Save the buffer for saving thread details
+                //
+                ThreadDetailsBuffer = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.BufferToSaveThreadDetails;
+
+                //
+                // Find count of all the processors
+                //
+                ProcessorCount = KeQueryActiveProcessorCount(0);
+
+                //
+                // Indicate that we are not waiting for anything on all cores
+                //
+                for (size_t i = 0; i < ProcessorCount; i++)
+                {
+                    g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
+                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
+                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
+                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
+                    g_GuestState[i].DebuggerSteppingDetails.BufferToSaveThreadDetails   = NULL;
+
+                    //
+                    // Because we disabled external-interrupts here in this function, no need
+                    // to set this bit for current logical processor
+                    //
+                    if (i != ProcessorIndex)
+                    {
+                        g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = TRUE;
+                    }
+                }
+
+                //
+                // We set the handler here because we want to handle the process
+                // later after releasing the lock, it is because we don't need
+                // to make all the processor to wait for us, however this idea
+                // won't work on first core as if we wait on first core then
+                // all the other cores are waiting for an IPI but if we get the
+                // thread on any other processor, other than 0th, then it's better
+                // to set the following value to TRUE and handle it later as
+                // we released the lock and no other core is waiting for us
+                //
+                IsOnTheTargetProcess = TRUE;
+            }
+        }
+
         //
-        // Handle the thread
+        //  Unlock the spinlock
         //
-        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ProcessorIndex, ProcessKernelCr3, CurrentProcessId, CurrentThreadId);
+        SpinlockUnlock(&ExternalInterruptFindProcessAndThreadId);
+
+        //
+        // Check if we find the thread or not
+        //
+        if (IsOnTheTargetProcess)
+        {
+            //
+            // Handle the thread
+            //
+            SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ThreadDetailsBuffer, ProcessorIndex, ProcessKernelCr3, CurrentProcessId, CurrentThreadId);
+        }
     }
 }
 
 // should be called in vmx root
 VOID
-SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, CR3_TYPE KernelCr3, UINT32 ProcessId, UINT32 ThreadId)
+SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer, UINT32 ProcessorIndex, CR3_TYPE KernelCr3, UINT32 ProcessId, UINT32 ThreadId)
 {
     UINT64           GuestRip = 0;
     SEGMENT_SELECTOR Cs, Ss;
     UINT64           MsrValue;
+    CR3_TYPE         GuestCr3;
     ULONG64          GuestRflags;
 
     //
     // read the guest's rip
     //
     __vmx_vmread(GUEST_RIP, &GuestRip);
+
+    //
+    // read the guest's cr3
+    //
+    __vmx_vmread(GUEST_CR3, &GuestCr3);
 
     //
     // Chnage the core's eptp to the new eptp
@@ -358,9 +441,57 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
     }
 
     //
-    // Swap the page with a nop-sled
+    // We should make the vmm to restore to the primary eptp whenever a
+    // timing clock interrupt is received (external-interrupt exiting is
+    // enabled at this moment)
     //
-    SteppingsSwapPageWithInfiniteLoop(GuestRip, KernelCr3, ProcessorIndex);
+    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
+
+    //
+    // Fill the details for target buffer, as long as available
+    // not all details are filled here
+    //
+    ThreadDetailsBuffer->BufferAddressToFree = ThreadDetailsBuffer;
+    ThreadDetailsBuffer->ProcessId           = ProcessId;
+    ThreadDetailsBuffer->ThreadId            = ThreadId;
+    ThreadDetailsBuffer->ThreadKernelCr3     = KernelCr3;
+    ThreadDetailsBuffer->ThreadUserCr3       = GuestCr3;
+    ThreadDetailsBuffer->ThreadRip           = GuestRip;
+
+    //
+    // Save the general purpose registers
+    //
+    RtlCopyMemory(&ThreadDetailsBuffer->ThreadRegisters, GuestRegs, sizeof(GUEST_REGS));
+
+    //
+    // Set it as active
+    //
+    ThreadDetailsBuffer->Enabled = TRUE;
+
+    //
+    // Swap the page with a nop-sled
+    // this function will fill some of the fields relating
+    // to ept entry and pfn on the ThreadDetailsBuffer
+    //
+    SteppingsSwapPageWithInfiniteLoop(GuestRip, KernelCr3, ProcessorIndex, ThreadDetailsBuffer);
+
+    //
+    // When we reached here, we're done swapping the target
+    // GUEST_RIP to a swapped nop page and we saved all the
+    // page entry details (original & noped) into the thread
+    // buffer detail, as the causing vm-exit for each external-
+    // interrupt is slow, so we set vm-exit on cr3 changes to
+    // keep noping the target page only if we are in the target
+    // process and thread and after that we will configure to
+    // cause vm-exits again to revert ept to its initial state
+    // when we finished with proocess
+    //
+    HvSetMovToCr3Vmexit(TRUE);
+
+    //
+    // Add the thread debugging details into the list
+    //
+    InsertHeadList(&g_ThreadDebuggingStates, &(ThreadDetailsBuffer->DebuggingThreadsList));
 }
 
 /**
@@ -370,10 +501,11 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, UINT32 Process
  * @param TargetAddress The address of function or memory address to be swapped
  * @param ProcessCr3 The process cr3 to translate based on that process's kernel cr3
  * @param LogicalCoreIndex The logical core index 
+ * @param ThreadDetailsBuffer The structure to fill details about ept entry and pfn 
  * @return BOOLEAN Returns true if the swap was successfull or false if there was an error
  */
 BOOLEAN
-SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT32 LogicalCoreIndex)
+SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT32 LogicalCoreIndex, PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer)
 {
     EPT_PML1_ENTRY    ChangedEntry;
     INVEPT_DESCRIPTOR Descriptor;
@@ -455,6 +587,12 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     }
 
     //
+    // Fill the thread details about page entry
+    //
+    ThreadDetailsBuffer->TargetEntryOnSecondaryPageTable = TargetPage;
+    ThreadDetailsBuffer->OriginalEntryContent            = *TargetPage;
+
+    //
     // Save the original permissions of the page
     //
     ChangedEntry = *TargetPage;
@@ -483,9 +621,87 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     }
 
     //
+    // Fill the noped entry to the details relating to save thread state
+    //
+    ThreadDetailsBuffer->NopedEntryContent = ChangedEntry;
+
+    //
     // Invalidate the page
     //
     __invlpg(TargetAddress);
 
     return TRUE;
+}
+
+VOID
+SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex)
+{
+    PLIST_ENTRY TempList  = 0;
+    UINT32      ProcessId = 0;
+    UINT32      ThreadId  = 0;
+
+    ProcessId = PsGetCurrentProcessId();
+    ThreadId  = PsGetCurrentThreadId();
+
+    //
+    // We have to iterate through the list of active debugging thread details
+    //
+    TempList = &g_ThreadDebuggingStates;
+    while (&g_ThreadDebuggingStates != TempList->Flink)
+    {
+        TempList                                                       = TempList->Flink;
+        PDEBUGGER_STEPPING_THREAD_DETAILS CurrentThreadDebuggingDetail = CONTAINING_RECORD(TempList,
+                                                                                           DEBUGGER_STEPPING_THREAD_DETAILS,
+                                                                                           DebuggingThreadsList);
+        //
+        // If its not enabled, we don't have to do anything
+        //
+        if (!CurrentThreadDebuggingDetail->Enabled)
+        {
+            continue;
+        }
+
+        //
+        // Now, we should check whether the following thread is in the list of
+        // threads that currently debugging or not (by it's GUEST_CR3 and process
+        // id and thread id)
+        //
+        if (CurrentThreadDebuggingDetail->ThreadUserCr3.Flags == NewCr3.Flags &&
+            CurrentThreadDebuggingDetail->ProcessId == ProcessId &&
+            CurrentThreadDebuggingDetail->ThreadId == ThreadId)
+        {
+            //
+            // This thread is on the debugging list
+            //
+            SteppingsHandlesDebuggedThread(CurrentThreadDebuggingDetail, ProcessorIndex);
+        }
+    }
+}
+
+VOID
+SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex)
+{
+    DbgBreakPoint();
+
+    //
+    // We should swap the page table into secondary ept page table again
+    //
+    ThreadSteppingDetail->TargetEntryOnSecondaryPageTable->Flags = ThreadSteppingDetail->NopedEntryContent.Flags;
+
+    //
+    // Change to the new eptp
+    //
+    __vmx_vmwrite(EPT_POINTER, g_EptState->SecondaryEptPointer.Flags);
+
+    //
+    // We should make the vmm to restore to the primary eptp whenever a
+    // timing clock interrupt is received
+    //
+    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
+
+    //
+    // At this moment, external interrupt exiting in the current core must be
+    // disabled, we have to enable it
+    //
+    HvSetExternalInterruptExiting(TRUE);
 }
