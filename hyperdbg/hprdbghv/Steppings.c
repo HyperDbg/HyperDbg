@@ -11,6 +11,9 @@
  */
 #include "pch.h"
 
+UINT32 ProcessId = 4488;
+UINT32 ThreadId  = 7632;
+
 BOOLEAN
 SteppingsInitialize()
 {
@@ -99,8 +102,6 @@ SteppingsInitialize()
     //
     // Test on grabbing a thread-state
     //
-    UINT32 ProcessId = 532;
-    UINT32 ThreadId  = 2700;
     // SteppingsStartDebuggingThread(ProcessId, ThreadId);
 
     return TRUE;
@@ -476,6 +477,28 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     SteppingsSwapPageWithInfiniteLoop(GuestRip, KernelCr3, ProcessorIndex, ThreadDetailsBuffer);
 
     //
+    // We swapped the page but the GuestRip might be at the two
+    // ending bits of a page (4096 Byte ==> 4095th and 4096the byte)
+    // and if this happens the HyperDbg ends on a two ending byte (jmp)
+    // instruction bytes of the page so we should change the guest rip
+    // to another but we saved the correct value before we reached here
+    //
+    if (GuestRip & 0xfff || GuestRip & 0xffe)
+    {
+        //
+        // The guest rip is at the end of the page in jmp instruction
+        // byte, we can decrease it's rip by 3, 4, 5, ..., whatever, to
+        // point to the nop loop
+        //
+        GuestRip = GuestRip - 4;
+
+        //
+        // Apply it to the guest
+        //
+        __vmx_vmwrite(GUEST_RIP, GuestRip);
+    }
+
+    //
     // When we reached here, we're done swapping the target
     // GUEST_RIP to a swapped nop page and we saved all the
     // page entry details (original & noped) into the thread
@@ -678,11 +701,94 @@ SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex)
     }
 }
 
+/**
+ * @brief Perform tasks relating to stepping (step-in & step-out) requests
+ * 
+ * @param DebuggerSteppingRequest Request to steppings
+ * @return NTSTATUS 
+ */
+NTSTATUS
+SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest)
+{
+    PLIST_ENTRY TempList            = 0;
+    BOOLEAN     FoundAWorkingThread = FALSE;
+    BOOLEAN     InvalidParameter    = FALSE;
+
+    //
+    // We have to iterate through the list of active debugging thread details
+    // to find the thread's structures about steppings
+    //
+    TempList = &g_ThreadDebuggingStates;
+    while (&g_ThreadDebuggingStates != TempList->Flink)
+    {
+        TempList                                                       = TempList->Flink;
+        PDEBUGGER_STEPPING_THREAD_DETAILS CurrentThreadDebuggingDetail = CONTAINING_RECORD(TempList,
+                                                                                           DEBUGGER_STEPPING_THREAD_DETAILS,
+                                                                                           DebuggingThreadsList);
+        //
+        // If its not enabled, we don't have to do anything
+        //
+        if (!CurrentThreadDebuggingDetail->Enabled)
+        {
+            continue;
+        }
+
+        //
+        // Check if the current thread matches the details or not
+        //
+        if (DebuggerSteppingRequest->ProcessId == CurrentThreadDebuggingDetail->ProcessId &&
+            DebuggerSteppingRequest->ThreadId == CurrentThreadDebuggingDetail->ThreadId)
+        {
+            //
+            // Add (and validate) the request to be handled by the debugger
+            //
+            if (DebuggerSteppingRequest->SteppingAction == STEPPINGS_ACTION_STEP_INTO)
+            {
+                CurrentThreadDebuggingDetail->SteppingAction.ACTION = STEPPINGS_ACTION_STEP_INTO;
+            }
+            else if (DebuggerSteppingRequest->SteppingAction == STEPPINGS_ACTION_STEP_OUT)
+            {
+                CurrentThreadDebuggingDetail->SteppingAction.ACTION = STEPPINGS_ACTION_STEP_OUT;
+            }
+            else
+            {
+                InvalidParameter = TRUE;
+            }
+
+            //
+            // We found the thread a applied the steppings request
+            //
+            FoundAWorkingThread = TRUE;
+
+            //
+            // We just apply it to one thread
+            //
+            break;
+        }
+    }
+
+    //
+    // Set status
+    //
+    if (InvalidParameter)
+    {
+        DebuggerSteppingRequest->KernelStatus = DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER;
+    }
+    else if (FoundAWorkingThread)
+    {
+        DebuggerSteppingRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    }
+    else
+    {
+        DebuggerSteppingRequest->KernelStatus = DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED;
+    }
+
+    return STATUS_SUCCESS;
+}
+
 VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex)
 {
-    DbgBreakPoint();
-
     //
     // We should swap the page table into secondary ept page table again
     //

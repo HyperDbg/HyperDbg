@@ -388,6 +388,34 @@ typedef struct _DEBUGGER_READ_MEMORY {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_STEPPINGS sizeof(DEBUGGER_STEPPINGS)
+
+/**
+ * @brief Actions to debugging thread's
+ *
+ */
+typedef enum _DEBUGGER_STEPPINGS_ACTIONS_ENUM {
+  STEPPINGS_ACTION_STEP_INTO,
+  STEPPINGS_ACTION_STEP_OUT
+
+} DEBUGGER_STEPPINGS_ACTIONS_ENUM;
+
+/**
+ * @brief request for step-in and step-out
+ *
+ */
+typedef struct _DEBUGGER_STEPPINGS {
+
+  UINT32 KernelStatus;
+  UINT32 ProcessId;
+  UINT32 ThreadId;
+  DEBUGGER_STEPPINGS_ACTIONS_ENUM SteppingAction;
+
+} DEBUGGER_STEPPINGS, *PDEBUGGER_STEPPINGS;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS                                  \
   sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS)
 
@@ -916,13 +944,26 @@ typedef struct _DEBUGGER_EVENT {
  * @brief error, invalid tag for 'events' command (tag id is unknown for kernel)
  *
  */
-#define DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TAG 0xc000000e
+#define DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG 0xc000000e
 
 /**
  * @brief error, type of action (enable/disable/clear) is wrong
  *
  */
-#define DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION 0xc000000f
+#define DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION 0xc000000f
+
+/**
+ * @brief error, invalid parameters steppings actions
+ *
+ */
+#define DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER 0xc0000010
+
+/**
+ * @brief error, thread is invalid (not found) or disabled in
+ * stepping (step-in & step-out) requests
+ *
+ */
+#define DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED 0xc0000011
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
@@ -1038,3 +1079,10 @@ typedef struct _DEBUGGER_EVENT {
  */
 #define IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS                         \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80e, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, steppings (step-in & step-out)
+ *
+ */
+#define IOCTL_DEBUGGER_STEPPINGS                                               \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80f, METHOD_BUFFERED, FILE_ANY_ACCESS)

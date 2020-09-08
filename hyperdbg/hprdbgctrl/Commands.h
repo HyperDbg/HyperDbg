@@ -147,3 +147,5 @@ VOID CommandStatus(vector<string> SplittedCommand);
 VOID CommandAttach(vector<string> SplittedCommand);
 
 VOID CommandDetach(vector<string> SplittedCommand);
+
+VOID CommandT(vector<string> SplittedCommand);

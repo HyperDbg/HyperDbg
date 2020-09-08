@@ -2427,7 +2427,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
         //
         // Tag is invalid
         //
-        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TAG;
+        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
 
         return FALSE;
     }
@@ -2541,7 +2541,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
         //
         // Invalid parameter specifed in TypeOfAction
         //
-        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
+        DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
 
         return FALSE;
     }

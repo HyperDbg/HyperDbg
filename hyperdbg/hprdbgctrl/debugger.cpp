@@ -22,9 +22,9 @@ extern BOOLEAN g_AutoUnpause;
 
 /**
  * @brief shows the error message
- * 
- * @param Error 
- * @return BOOLEAN 
+ *
+ * @param Error
+ * @return BOOLEAN
  */
 BOOLEAN
 ShowErrorMessage(UINT32 Error) {
@@ -90,13 +90,24 @@ ShowErrorMessage(UINT32 Error) {
                  Error);
     break;
 
-  case DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TAG:
+  case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG:
     ShowMessages("err, modify event with invalid tag (%x)\n", Error);
     break;
 
-  case DEBUGGER_ERROR_DEBUGGER_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION:
+  case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION:
     ShowMessages("err, modify event with invalid type of action (%x)\n", Error);
     break;
+
+  case DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER:
+    ShowMessages("err, invalid parameter passsed to stepping core. (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED:
+    ShowMessages(
+        "err, target thread not found or the thread is disabled (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;
@@ -110,9 +121,9 @@ ShowErrorMessage(UINT32 Error) {
  * @brief Check whether the tag exists or not, if the tag is
  * DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG then if we find just one event, it
  * also means that the tag is found
- * 
- * @param Tag 
- * @return BOOLEAN 
+ *
+ * @param Tag
+ * @return BOOLEAN
  */
 BOOLEAN IsTagExist(UINT64 Tag) {
 
@@ -148,12 +159,12 @@ BOOLEAN IsTagExist(UINT64 Tag) {
  * @details If this function returns true then it means that there is a condtion
  * or code buffer in this command split and the details are returned in the
  * input structure
- * 
+ *
  * @param SplittedCommand the initialized command that are splitted by space
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
  * @param BufferAddrss the address that the allocated buffer will be saved on it
  * @param BufferLength the length of the buffer
- * @return BOOLEAN shows whether the interpret was successful (true) or not 
+ * @return BOOLEAN shows whether the interpret was successful (true) or not
  * successful (false)
  */
 BOOLEAN
@@ -493,7 +504,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
 
 /**
  * @brief Register the event to the kernel
- * 
+ *
  * @param Event the event structure to send
  * @param EventBufferLength the buffer length of event
  * @return BOOLEAN if the request was successful then true
@@ -597,7 +608,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 
 /**
  * @brief Register the action to the event
- * 
+ *
  * @param Action the action buffer structure
  * @param ActionsBufferLength length of action buffer
  * @return BOOLEAN BOOLEAN if the request was successful then true
@@ -661,23 +672,23 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
 }
 
 /**
- * @brief Get the New Debugger Event Tag object and increase the 
+ * @brief Get the New Debugger Event Tag object and increase the
  * global variable for tag
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
 
 /**
  * @brief Interpret general event fields
- * 
+ *
  * @param SplittedCommand the commands that was splitted by space
  * @param EventType type of event
- * @param EventDetailsToFill a pointer address that will be filled 
+ * @param EventDetailsToFill a pointer address that will be filled
  * by event detail buffer
  * @param EventBufferLength a pointer the receives the buffer length
  * of the event
- * @param ActionDetailsToFill a pointer address that will be filled 
+ * @param ActionDetailsToFill a pointer address that will be filled
  * by action detail buffer
  * @param ActionBufferLength a pointer the receives the buffer length
  * of the action

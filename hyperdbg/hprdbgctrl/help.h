@@ -118,3 +118,5 @@ VOID CommandStatusHelp();
 VOID CommandAttachHelp();
 
 VOID CommandDetachHelp();
+
+VOID CommandTHelp();

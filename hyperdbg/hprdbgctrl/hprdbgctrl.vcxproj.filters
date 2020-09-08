@@ -302,6 +302,9 @@
     <ClCompile Include="detach.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
+    <ClCompile Include="t.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

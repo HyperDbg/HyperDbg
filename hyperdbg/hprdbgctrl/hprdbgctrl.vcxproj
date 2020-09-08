@@ -166,6 +166,7 @@
     <ClCompile Include="sleep.cpp" />
     <ClCompile Include="status.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
+    <ClCompile Include="t.cpp" />
     <ClCompile Include="tcpclient.cpp" />
     <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="test.cpp" />

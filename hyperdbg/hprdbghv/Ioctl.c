@@ -35,6 +35,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                      DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS              DebuggerFlushBuffersRequest;
+    PDEBUGGER_STEPPINGS                          DebuggerSteppingsRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
     NTSTATUS                                     Status;
     ULONG                                        InBuffLength;  // Input buffer length
@@ -666,6 +667,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandFlush(DebuggerFlushBuffersRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_DEBUGGER_STEPPINGS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_STEPPINGS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerSteppingsRequest = (PDEBUGGER_STEPPINGS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the steppings action
+            //
+            SteppingsPerformAction(DebuggerSteppingsRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_STEPPINGS;
             Status                    = STATUS_SUCCESS;
 
             //

@@ -29,24 +29,35 @@ typedef struct _DEBUGGER_STEPPINGS_NOP_SLED
 } DEBUGGER_STEPPINGS_NOP_SLED, *PDEBUGGER_STEPPINGS_NOP_SLED;
 
 /**
+ * @brief Requests pool for performing action on debugging threads 
+ * 
+ */
+typedef struct _DEBUGGER_STEPPINGS_POOL_REQUESTS
+{
+    DEBUGGER_STEPPINGS_ACTIONS_ENUM ACTION;
+
+} DEBUGGER_STEPPINGS_POOL_REQUESTS, *PDEBUGGER_STEPPINGS_POOL_REQUESTS;
+
+/**
  * @brief Structure to save the states of the thread that are 
  * a currently debugging and stepping
  * 
  */
 typedef struct _DEBUGGER_STEPPING_THREAD_DETAILS
 {
-    BOOLEAN         Enabled;
-    LIST_ENTRY      DebuggingThreadsList;
-    UINT64          BufferAddressToFree;
-    UINT32          ProcessId;
-    UINT32          ThreadId;
-    CR3_TYPE        ThreadKernelCr3;
-    CR3_TYPE        ThreadUserCr3;
-    UINT64          ThreadRip;
-    GUEST_REGS      ThreadRegisters;
-    PEPT_PML1_ENTRY TargetEntryOnSecondaryPageTable;
-    EPT_PML1_ENTRY  OriginalEntryContent;
-    EPT_PML1_ENTRY  NopedEntryContent;
+    BOOLEAN                          Enabled;
+    LIST_ENTRY                       DebuggingThreadsList;
+    UINT64                           BufferAddressToFree;
+    UINT32                           ProcessId;
+    UINT32                           ThreadId;
+    CR3_TYPE                         ThreadKernelCr3;
+    CR3_TYPE                         ThreadUserCr3;
+    UINT64                           ThreadRip;
+    GUEST_REGS                       ThreadRegisters;
+    PEPT_PML1_ENTRY                  TargetEntryOnSecondaryPageTable;
+    EPT_PML1_ENTRY                   OriginalEntryContent;
+    EPT_PML1_ENTRY                   NopedEntryContent;
+    DEBUGGER_STEPPINGS_POOL_REQUESTS SteppingAction;
 
 } DEBUGGER_STEPPING_THREAD_DETAILS, *PDEBUGGER_STEPPING_THREAD_DETAILS;
 
@@ -88,3 +99,6 @@ SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex);
 
 VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex);
+
+NTSTATUS
+SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest);
