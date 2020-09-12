@@ -11,8 +11,8 @@
  */
 #include "pch.h"
 
-UINT32 ProcessId = 4488;
-UINT32 ThreadId  = 7632;
+UINT32 ProcessId = 6400;
+UINT32 ThreadId  = 5588;
 
 BOOLEAN
 SteppingsInitialize()
@@ -261,6 +261,7 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
+    PDEBUGGER_STEPPING_THREAD_DETAILS RestorationThreadDetails;
     BOOLEAN                           IsOnTheTargetProcess = FALSE;
     CR3_TYPE                          ProcessKernelCr3     = {0};
     PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer  = 0;
@@ -269,10 +270,77 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
     UINT32                            ProcessorCount       = 0;
 
     //
-    // We only handle interrupts that are related to the clock-timer interrupt
+    // Check whether we should handle the interrupt differently
+    // because of debugger steppings mechanism or not and also check
+    // whether the target process already found or not
     //
-    if ((InterruptExit->Vector == CLOCK_INTERRUPT && ProcessorIndex == 0) ||
-        (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0))
+    if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp)
+    {
+        //
+        // Disable the flag of change eptp
+        //
+        g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = FALSE;
+
+        //
+        // Check if the buffer for changing details is null, if null it's an
+        // indicator of an error
+        //
+        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail == NULL)
+        {
+            LogError("Forgot to set the restoration part of the thread !!!");
+        }
+        else
+        {
+            //
+            // Also, restore the state of the entry on the secondary entry
+            // Because we might use this page later
+            //
+            RestorationThreadDetails = (PDEBUGGER_STEPPING_THREAD_DETAILS)g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail;
+
+            EptSetPML1AndInvalidateTLB(RestorationThreadDetails->TargetEntryOnSecondaryPageTable,
+                                       RestorationThreadDetails->OriginalEntryContent,
+                                       INVEPT_ALL_CONTEXTS);
+
+            //
+            // Make restoration point to null
+            //
+            g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = NULL;
+        }
+
+        //
+        // Change EPTP to primary entry
+        //
+        __vmx_vmwrite(EPT_POINTER, g_EptState->EptPointer.Flags);
+        InveptSingleContext(g_EptState->EptPointer.Flags);
+
+        //
+        // The target process and thread is now changing
+        // to a new process, no longer need to cause vm-exit
+        // on external interrupts
+        //
+        HvSetExternalInterruptExiting(FALSE);
+    }
+    else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.DisableExternalInterrupts)
+    {
+        //
+        // The target process and thread already found, not need to
+        // further external-interrupt exiting
+        //
+        HvSetExternalInterruptExiting(FALSE);
+
+        //
+        // When we reached here, other logical processor swapped
+        // the thread page and we saved all the page entry details
+        // (original & noped) into the thread buffer detail, as the
+        // causing vm-exit for each external-interrupt is slow, so
+        // we set vm-exit on cr3 changes to keep noping the target
+        // page only if we are in the target process and thread and
+        // after that we will configure to cause vm-exits again to
+        // revert ept to its initial state when we finished with proocess
+        //
+        HvSetMovToCr3Vmexit(TRUE);
+    }
+    else
     {
         //
         //  Lock the spinlock
@@ -280,50 +348,11 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         SpinlockLock(&ExternalInterruptFindProcessAndThreadId);
 
         //
-        // Check whether we should handle the interrupt differently
-        // because of debugger steppings mechanism or not and also check
-        // whether the target process already found or not
+        // We only handle interrupts that are related to the clock-timer interrupt
         //
-        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp)
-        {
-            //
-            // Disable the flag of change eptp
-            //
-            g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = FALSE;
-
-            //
-            // Change EPTP to primary entry
-            //
-            __vmx_vmwrite(EPT_POINTER, g_EptState->EptPointer.Flags);
-
-            //
-            // The target process and thread is now changing
-            // to a new process, no longer need to cause vm-exit
-            // on external interrupts
-            //
-            HvSetExternalInterruptExiting(FALSE);
-        }
-        else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.DisableExternalInterrupts)
-        {
-            //
-            // The target process and thread already found, not need to
-            // further external-interrupt exiting
-            //
-            HvSetExternalInterruptExiting(FALSE);
-
-            //
-            // When we reached here, other logical processor swapped
-            // the thread page and we saved all the page entry details
-            // (original & noped) into the thread buffer detail, as the
-            // causing vm-exit for each external-interrupt is slow, so
-            // we set vm-exit on cr3 changes to keep noping the target
-            // page only if we are in the target process and thread and
-            // after that we will configure to cause vm-exits again to
-            // revert ept to its initial state when we finished with proocess
-            //
-            HvSetMovToCr3Vmexit(TRUE);
-        }
-        else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt)
+        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt &&
+                (InterruptExit->Vector == CLOCK_INTERRUPT && ProcessorIndex == 0) ||
+            (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0))
         {
             //
             // Read other details of process and thread
@@ -360,7 +389,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
                 {
                     g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
                     g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
-                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
+                    g_GuestState[i].DebuggerSteppingDetails.TargetProcessId             = NULL;
                     g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
                     g_GuestState[i].DebuggerSteppingDetails.BufferToSaveThreadDetails   = NULL;
 
@@ -392,17 +421,17 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //  Unlock the spinlock
         //
         SpinlockUnlock(&ExternalInterruptFindProcessAndThreadId);
+    }
 
+    //
+    // Check if we find the thread or not
+    //
+    if (IsOnTheTargetProcess)
+    {
         //
-        // Check if we find the thread or not
+        // Handle the thread
         //
-        if (IsOnTheTargetProcess)
-        {
-            //
-            // Handle the thread
-            //
-            SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ThreadDetailsBuffer, ProcessorIndex, ProcessKernelCr3, CurrentProcessId, CurrentThreadId);
-        }
+        SteppingsHandleTargetThreadForTheFirstTime(GuestRegs, ThreadDetailsBuffer, ProcessorIndex, ProcessKernelCr3, CurrentProcessId, CurrentThreadId);
     }
 }
 
@@ -432,6 +461,7 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     if (g_EptState->SecondaryInitialized)
     {
         __vmx_vmwrite(EPT_POINTER, g_EptState->SecondaryEptPointer.Flags);
+        InveptSingleContext(g_EptState->SecondaryEptPointer.Flags);
     }
     else
     {
@@ -440,13 +470,6 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
         //
         return;
     }
-
-    //
-    // We should make the vmm to restore to the primary eptp whenever a
-    // timing clock interrupt is received (external-interrupt exiting is
-    // enabled at this moment)
-    //
-    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
 
     //
     // Fill the details for target buffer, as long as available
@@ -515,6 +538,18 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     // Add the thread debugging details into the list
     //
     InsertHeadList(&g_ThreadDebuggingStates, &(ThreadDetailsBuffer->DebuggingThreadsList));
+
+    //
+    // We should make the vmm to restore to the primary eptp whenever a
+    // timing clock interrupt is received (external-interrupt exiting is
+    // enabled at this moment)
+    //
+    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
+
+    //
+    // Set the details about the current thread
+    //
+    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadDetailsBuffer;
 }
 
 /**
@@ -790,14 +825,14 @@ VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex)
 {
     //
-    // We should swap the page table into secondary ept page table again
-    //
-    ThreadSteppingDetail->TargetEntryOnSecondaryPageTable->Flags = ThreadSteppingDetail->NopedEntryContent.Flags;
-
-    //
-    // Change to the new eptp
+    // Change to the new eptp (we don't invalidate, because later we will invalidate everything)
     //
     __vmx_vmwrite(EPT_POINTER, g_EptState->SecondaryEptPointer.Flags);
+
+    //
+    // We should swap the page table into secondary ept page table again
+    //
+    EptSetPML1AndInvalidateTLB(ThreadSteppingDetail->TargetEntryOnSecondaryPageTable, ThreadSteppingDetail->NopedEntryContent, INVEPT_ALL_CONTEXTS);
 
     //
     // We should make the vmm to restore to the primary eptp whenever a
@@ -806,8 +841,92 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
     g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
 
     //
+    // Set the details about the current thread
+    //
+    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadSteppingDetail;
+
+    //
     // At this moment, external interrupt exiting in the current core must be
     // disabled, we have to enable it
     //
     HvSetExternalInterruptExiting(TRUE);
+}
+
+// if apply to vmcs is true then should be called at vmx-root mode
+BOOLEAN
+SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
+{
+    DEBUG_REGISTER_7 Dr7 = {0};
+
+    //
+    // Debug registers can be dr0, dr1, dr2, dr3
+    //
+    if (DebugRegNum >= 4)
+    {
+        return FALSE;
+    }
+
+    //
+    // Configure the dr7 (dr6 is only to show the status)
+    // the configuration derived from https://stackoverflow.com/questions/40818920/
+    //
+    // Check-list:
+    //     - Set the reserved bits to their right values
+    //     - Set DR7.LE and DR7.GE to 1
+    //     - Set DR7.L0(L1, L2, L3) to 1 [local breakpoint]
+    //     - Make sure DR7.RW/0 (RW/1, RW/2, RW/3) is 0 [break on instruction exec]
+    //     - Make sure DR7.LEN0 (LEN1, LEN2, LEN3) is 0 [1 byte length]
+    //     - Set DR0 (1, 2, 3) to the instruction linear address
+    //     - Make sure linear address [DR0 to DR3] falls on the first byte of the instruction
+    //
+
+    //
+    // Must be 1
+    //
+    Dr7.Reserved1 = 1;
+
+    //
+    // Based on Intel Manual:
+    // we recommend that the LE and GE flags be set to 1 if exact breakpoints are required
+    //
+    Dr7.LocalExactBreakpoint  = 1;
+    Dr7.GlobalExactBreakpoint = 1;
+
+    //
+    // Set the target address and enable it on dr7
+    //
+    if (DebugRegNum == 0)
+    {
+        __writedr(0, TargetAddress);
+        Dr7.LocalBreakpoint1 = 1;
+    }
+    else if (DebugRegNum == 1)
+    {
+        __writedr(1, TargetAddress);
+        Dr7.LocalBreakpoint1 = 1;
+    }
+    else if (DebugRegNum == 2)
+    {
+        __writedr(2, TargetAddress);
+        Dr7.LocalBreakpoint2 = 1;
+    }
+    else if (DebugRegNum == 3)
+    {
+        __writedr(3, TargetAddress);
+        Dr7.LocalBreakpoint3 = 1;
+    }
+
+    //
+    // apply debug register 7
+    //
+    if (ApplyToVmcs)
+    {
+        __vmx_vmwrite(GUEST_DR7, Dr7.Flags);
+    }
+    else
+    {
+        __writedr(7, Dr7.Flags);
+    }
+
+    return TRUE;
 }

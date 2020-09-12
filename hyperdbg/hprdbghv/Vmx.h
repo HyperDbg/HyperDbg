@@ -525,6 +525,7 @@ typedef struct _DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS
     BOOLEAN  IsWaitingForClockInterrupt;
     BOOLEAN  DisableExternalInterrupts;
     BOOLEAN  ChangeToPrimaryEptp;
+    UINT64   ChangeToPrimaryEptpCurrentThreadDetail; // Original type PDEBUGGER_STEPPING_THREAD_DETAILS
     UINT64   BufferToSaveThreadDetails;
     UINT32   TargetProcessId;
     UINT32   TargetThreadId;
