@@ -35,6 +35,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL               DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                      DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS              DebuggerFlushBuffersRequest;
+    PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS    DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_STEPPINGS                          DebuggerSteppingsRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
     NTSTATUS                                     Status;
@@ -667,6 +668,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandFlush(DebuggerFlushBuffersRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerAttachOrDetachToThreadRequest = (PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the flush
+            //
+            SteppingsAttachOrDetachToThread(DebuggerAttachOrDetachToThreadRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
             Status                    = STATUS_SUCCESS;
 
             //

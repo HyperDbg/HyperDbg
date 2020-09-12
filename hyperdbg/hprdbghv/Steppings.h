@@ -100,5 +100,11 @@ SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex);
 VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex);
 
+BOOLEAN
+SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 TargetAddress);
+
+VOID
+SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachOrDetachRequest);
+
 NTSTATUS
 SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest);

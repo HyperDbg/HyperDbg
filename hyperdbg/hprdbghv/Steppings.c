@@ -11,9 +11,6 @@
  */
 #include "pch.h"
 
-UINT32 ProcessId = 6400;
-UINT32 ThreadId  = 5588;
-
 BOOLEAN
 SteppingsInitialize()
 {
@@ -98,11 +95,6 @@ SteppingsInitialize()
         //
         g_SteppingsNopSledState.IsNopSledInitialized = TRUE;
     }
-
-    //
-    // Test on grabbing a thread-state
-    //
-    // SteppingsStartDebuggingThread(ProcessId, ThreadId);
 
     return TRUE;
 }
@@ -785,6 +777,10 @@ SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest)
             {
                 CurrentThreadDebuggingDetail->SteppingAction.ACTION = STEPPINGS_ACTION_STEP_OUT;
             }
+            else if (DebuggerSteppingRequest->SteppingAction == STEPPINGS_ACTION_CONTINUE)
+            {
+                CurrentThreadDebuggingDetail->SteppingAction.ACTION = STEPPINGS_ACTION_CONTINUE;
+            }
             else
             {
                 InvalidParameter = TRUE;
@@ -929,4 +925,38 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 Target
     }
 
     return TRUE;
+}
+
+// should be called from vmx non-root
+VOID
+SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachOrDetachRequest)
+{
+    //
+    // Warnings : I don't know a way to check whether the thread is really
+    // belonging to the target process or even the process or thread exists
+    // or not, we checked it on user-mode and in this stage we won't check
+    // if you specify a wrong process id or a wrong thread id or even a
+    // thead that doesn't belong to a process then we can't find the thread
+    // and process and nothing happens, just the computer becomes slow because
+    // of intercepting external-interrupts
+    //
+
+    if (AttachOrDetachRequest->IsAttach)
+    {
+        //
+        // It is an attaching to a thread
+        //
+        SteppingsStartDebuggingThread(AttachOrDetachRequest->ProcessId, AttachOrDetachRequest->ThreadId);
+    }
+    else
+    {
+        //
+        // It is a detaching to a thread
+        //
+    }
+
+    //
+    // Indicate that we received the request
+    //
+    AttachOrDetachRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 }

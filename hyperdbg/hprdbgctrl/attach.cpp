@@ -17,14 +17,165 @@
 extern BOOLEAN g_IsAttachedToUsermodeProcess;
 
 /**
+ * @brief print error messages relating to the finding thread id
+ * @details this function is used only in the scope of Thread32First
+ *
+ * @param msg
+ */
+void PrintError() {
+  DWORD eNum;
+  TCHAR sysMsg[256];
+  TCHAR *p;
+
+  eNum = GetLastError();
+  FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                NULL, eNum,
+                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+                sysMsg, 256, NULL);
+
+  //
+  // Trim the end of the line and terminate it with a null
+  //
+  p = sysMsg;
+  while ((*p > 31) || (*p == 9))
+    ++p;
+  do {
+    *p-- = 0;
+  } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
+
+  //
+  // Display the message
+  //
+  ShowMessages("\n  WARNING: Thread32First failed with error %d (%s)", eNum,
+               sysMsg);
+}
+
+/**
+ * @brief List of threads by owner process id
+ *
+ * @param dwOwnerPID
+ * @return BOOL if there was an error then returns false, otherwise return true
+ */
+BOOL ListProcessThreads(DWORD dwOwnerPID) {
+
+  HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
+  THREADENTRY32 te32;
+
+  //
+  // Take a snapshot of all running threads
+  //
+  hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+  if (hThreadSnap == INVALID_HANDLE_VALUE)
+    return FALSE;
+
+  //
+  // Fill in the size of the structure before using it
+  //
+  te32.dwSize = sizeof(THREADENTRY32);
+
+  //
+  // Retrieve information about the first thread and exit if unsuccessful
+  //
+  if (!Thread32First(hThreadSnap, &te32)) {
+    PrintError();             // Show cause of failure
+    CloseHandle(hThreadSnap); // Must clean up the snapshot object!
+    return FALSE;
+  }
+  ShowMessages("\nThread's of pid\t= 0x%08X\n", dwOwnerPID);
+
+  //
+  // Now walk the thread list of the system, and display information
+  // about each thread associated with the specified process
+  //
+  do {
+    if (te32.th32OwnerProcessID == dwOwnerPID) {
+      ShowMessages("\n     Thread Id\t= 0x%08X", te32.th32ThreadID);
+      // ShowMessages("\n     base priority  = %d", te32.tpBasePri);
+      // ShowMessages("\n     delta priority = %d", te32.tpDeltaPri);
+    }
+  } while (Thread32Next(hThreadSnap, &te32));
+
+  ShowMessages("\n");
+
+  //
+  // Don't forget to clean up the snapshot object
+  //
+  CloseHandle(hThreadSnap);
+  return TRUE;
+}
+
+/**
+ * @brief Check if a thread belongs to special process
+ *
+ * @param Pid Process id
+ * @param Tid Thread id
+ * @return BOOLEAN if the thread belongs to process then return true; otherwise
+ * returns false
+ */
+BOOLEAN CheckThreadByProcessId(DWORD Pid, DWORD Tid) {
+
+  HANDLE hThreadSnap = INVALID_HANDLE_VALUE;
+  THREADENTRY32 te32;
+  BOOLEAN Result = FALSE;
+
+  //
+  // Take a snapshot of all running threads
+  //
+  hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+  if (hThreadSnap == INVALID_HANDLE_VALUE)
+    return FALSE;
+
+  //
+  // Fill in the size of the structure before using it
+  //
+  te32.dwSize = sizeof(THREADENTRY32);
+
+  //
+  // Retrieve information about the first thread and exit if unsuccessful
+  //
+  if (!Thread32First(hThreadSnap, &te32)) {
+    PrintError();             // Show cause of failure
+    CloseHandle(hThreadSnap); // Must clean up the snapshot object!
+    return FALSE;
+  }
+
+  //
+  // Now walk the thread list of the system, and display information
+  // about each thread associated with the specified process
+  //
+  do {
+    if (te32.th32OwnerProcessID == Pid) {
+      if (te32.th32ThreadID == Tid) {
+        //
+        // The thread found in target process
+        //
+        Result = TRUE;
+        break;
+      }
+    }
+  } while (Thread32Next(hThreadSnap, &te32));
+
+  //
+  // Don't forget to clean up the snapshot object
+  //
+  CloseHandle(hThreadSnap);
+  return Result;
+}
+
+/**
  * @brief help of .attach command
  *
  * @return VOID
  */
 VOID CommandAttachHelp() {
   ShowMessages(".attach : attach to debug a user-mode process.\n\n");
-  ShowMessages("syntax : \t.attach pid [process id (hex)]\n");
+  ShowMessages(
+      "syntax : \t.attach pid [process id (hex)] tid [thread id (hex)]\n");
+  ShowMessages("Note : if you don't specify the thread id (id), then it shows "
+               "the list of active threads on the target process (it won't "
+               "attach to the target thread).\n");
   ShowMessages("\t\te.g : .attach pid b60 \n");
+  ShowMessages("\t\te.g : .attach pid b60 tid 220 \n");
 }
 
 /**
@@ -38,45 +189,85 @@ VOID CommandAttach(vector<string> SplittedCommand) {
 
   BOOLEAN Status;
   ULONG ReturnedLength;
-  UINT64 TargetPid;
+  UINT64 TargetPid = 0;
+  UINT64 TargetTid = 0;
+  BOOLEAN NextIsPid = FALSE;
+  BOOLEAN NextIsTid = FALSE;
   DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
 
-  if (SplittedCommand.size() <= 2) {
+  if (SplittedCommand.size() >= 6) {
     ShowMessages("incorrect use of '.attach'\n\n");
     CommandAttachHelp();
     return;
   }
 
-  //
-  // Find out whether the user enters pid or not
-  //
-  if (!SplittedCommand.at(1).compare("pid")) {
+  for (auto item : SplittedCommand) {
 
     //
-    // Check for the user to not add extra arguments
+    // Find out whether the user enters pid or not
     //
-    if (SplittedCommand.size() != 3) {
-      ShowMessages("incorrect use of '.attach'\n\n");
-      CommandAttachHelp();
-      return;
+    if (NextIsPid) {
+
+      NextIsPid = FALSE;
+
+      if (!ConvertStringToUInt64(item, &TargetPid)) {
+        ShowMessages("please specify a correct hex value for process id\n\n");
+        CommandAttachHelp();
+        return;
+      }
+
+    } else if (NextIsTid) {
+
+      NextIsTid = FALSE;
+
+      if (!ConvertStringToUInt64(item, &TargetTid)) {
+        ShowMessages("please specify a correct hex value for thread id\n\n");
+        CommandAttachHelp();
+        return;
+      }
+
+    } else if (!item.compare("pid")) {
+
+      //
+      // next item is a pid for the process
+      //
+      NextIsPid = TRUE;
+
+    } else if (!item.compare("tid")) {
+
+      //
+      // next item is a tid for the thread
+      //
+      NextIsTid = TRUE;
     }
+  }
 
-    //
-    // It's just a pid for the process
-    //
-    if (!ConvertStringToUInt64(SplittedCommand.at(2), &TargetPid)) {
-      ShowMessages("incorrect process id\n\n");
-      return;
-    }
-
-  } else {
-
-    //
-    // Invalid argument for the second parameter to the command
-    //
-    ShowMessages("incorrect use of '.attach'\n\n");
+  //
+  // Check if the process id is empty or not
+  //
+  if (TargetPid == 0) {
+    ShowMessages("please specify a hex value for process id\n\n");
     CommandAttachHelp();
     return;
+  }
+
+  //
+  // Check if the thread id is specified or not, if not then
+  // we should just show the thread of the target process
+  //
+  if (TargetTid == 0) {
+    ListProcessThreads(TargetPid);
+    return;
+  } else {
+    //
+    // Check if the process id and thread id is correct or not
+    //
+    if (!CheckThreadByProcessId(TargetPid, TargetTid)) {
+
+      ShowMessages("err, the thread or the process not found or the thread not "
+                   "belongs to the process.\n");
+      return;
+    }
   }
 
   //
@@ -94,9 +285,10 @@ VOID CommandAttach(vector<string> SplittedCommand) {
   AttachRequest.IsAttach = TRUE;
 
   //
-  // Set the process id
+  // Set the process id and thread id
   //
   AttachRequest.ProcessId = TargetPid;
+  AttachRequest.ThreadId = TargetTid;
 
   //
   // Send the request to the kernel
