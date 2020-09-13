@@ -100,11 +100,10 @@ HANDLE g_RemoteDebuggeeListeningThread = NULL;
 BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
 
 /**
- * @brief this variable is used to indicate that HyperDbg
- * is currently debugging a user-mode process (attached)
+ * @brief State of debugging threads
  *
  */
-BOOLEAN g_IsAttachedToUsermodeProcess = FALSE;
+DEBUGGING_STATE g_DebuggingState = { 0 };
 
 /**
  * @brief This variable holds the trace and generate numbers

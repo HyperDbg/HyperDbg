@@ -818,37 +818,6 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
 }
 
 /**
- * @brief Set the vm-exit on cr3 for finding a process
- * 
- * @param Set Set or Unset the controls relationg to cr3 load exit
- * @return VOID 
- */
-VOID
-HvSetExitOnCr3Change(BOOLEAN Set)
-{
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flag
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (Set)
-    {
-        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
-    }
-    else
-    {
-        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
-    }
-
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
-}
-
-/**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified
  * 
  * @return VOID 

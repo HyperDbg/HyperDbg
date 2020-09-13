@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsAttachedToUsermodeProcess;
+extern DEBUGGING_STATE g_DebuggingState;
 
 /**
  * @brief print error messages relating to the finding thread id
@@ -316,6 +316,9 @@ VOID CommandAttach(vector<string> SplittedCommand) {
   // Check if attaching was successful then we can set the attached to true
   //
   if (AttachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-    g_IsAttachedToUsermodeProcess = TRUE;
+
+    g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
+    g_DebuggingState.ConnectedProcessId = TargetPid;
+    g_DebuggingState.ConnectedThreadId = TargetTid;
   }
 }

@@ -12,6 +12,20 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//            	    Structures                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief structures related to debugging
+ *
+ */
+typedef struct _DEBUGGING_STATE {
+  BOOLEAN IsAttachedToUsermodeProcess;
+  UINT64 ConnectedProcessId;
+  UINT64 ConnectedThreadId;
+} DEBUGGING_STATE, *PDEBUGGING_STATE;
+
+//////////////////////////////////////////////////
 //				    Functions                   //
 //////////////////////////////////////////////////
 

@@ -41,22 +41,27 @@ PoolManagerInitialize()
     //
     // Request pages to be allocated for converting 2MB to 4KB pages
     //
-    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 10, SPLIT_2MB_PAGING_TO_4KB_PAGE);
+    PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT), 5, SPLIT_2MB_PAGING_TO_4KB_PAGE);
 
     //
     // Request pages to be allocated for paged hook details
     //
-    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), 10, TRACKING_HOOKED_PAGES);
+    PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL), 5, TRACKING_HOOKED_PAGES);
 
     //
     // Request pages to be allocated for Trampoline of Executable hooked pages
     //
-    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 10, EXEC_TRAMPOLINE);
+    PoolManagerRequestAllocation(MAX_EXEC_TRAMPOLINE_SIZE, 5, EXEC_TRAMPOLINE);
 
     //
     // Request pages to be allocated for detour hooked pages details
     //
-    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 10, DETOUR_HOOK_DETAILS);
+    PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
+
+    //
+    // Request pages for thread steppings detail
+    //
+    PoolManagerRequestAllocation(sizeof(DEBUGGER_STEPPING_THREAD_DETAILS), 2, THREAD_STEPPINGS_DETAIIL);
 
     //
     // Nothing to deallocate
@@ -382,7 +387,7 @@ PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTIO
     //
     // ******** We check to find a free place to store ********
     //
-    
+
     SpinlockLock(&LockForRequestAllocation);
 
     for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)

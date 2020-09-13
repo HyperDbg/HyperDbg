@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsAttachedToUsermodeProcess;
+extern DEBUGGING_STATE g_DebuggingState;
 
 /**
  * @brief help of .detach command
@@ -46,6 +46,14 @@ VOID CommandDetach(vector<string> SplittedCommand) {
   }
 
   //
+  // Check if we attached to a process or not
+  //
+  if (!g_DebuggingState.IsAttachedToUsermodeProcess) {
+    ShowMessages("you're not attached to any thread.\n");
+    return;
+  }
+
+  //
   // Check if debugger is loaded or not
   //
   if (!g_DeviceHandle) {
@@ -55,9 +63,11 @@ VOID CommandDetach(vector<string> SplittedCommand) {
   }
 
   //
-  // We wanna attach to a remote process
+  // We wanna detach from a process
   //
   DetachRequest.IsAttach = FALSE;
+  DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
+  DetachRequest.ThreadId = g_DebuggingState.ConnectedThreadId;
 
   //
   // Send the request to the kernel
@@ -85,6 +95,9 @@ VOID CommandDetach(vector<string> SplittedCommand) {
   // Check if attaching was successful then we can set the attached to true
   //
   if (DetachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-    g_IsAttachedToUsermodeProcess = FALSE;
+
+    g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
+    g_DebuggingState.ConnectedProcessId = NULL;
+    g_DebuggingState.ConnectedThreadId = NULL;
   }
 }

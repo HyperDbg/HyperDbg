@@ -16,6 +16,7 @@ using namespace std;
 //
 // Global Variables
 //
+extern DEBUGGING_STATE g_DebuggingState;
 extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_ExecutingScript;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
@@ -497,10 +498,12 @@ VOID HyperdbgShowSignature() {
 
   if (g_IsConnectedToRemoteDebuggee) {
     if (g_IsRemoteDebuggerMessageReceived) {
-      ShowMessages("HyperDbg (%s:%s) >", g_ServerIp.c_str(),
+      ShowMessages("HyperDbg [%s:%s] >", g_ServerIp.c_str(),
                    g_ServerPort.c_str());
     }
 
+  } else if (g_DebuggingState.IsAttachedToUsermodeProcess) {
+    ShowMessages("HyperDbg (%x:%x) >", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
   } else {
     ShowMessages("HyperDbg >");
   }

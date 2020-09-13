@@ -190,9 +190,8 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
     //
     // Allocate a buffer to hold the data relating to debugging thread
     //
-    ThreadDetailsBuffer = (PDEBUGGER_STEPPING_THREAD_DETAILS)ExAllocatePoolWithTag(NonPagedPool,
-                                                                                   sizeof(DEBUGGER_STEPPING_THREAD_DETAILS),
-                                                                                   POOLTAG);
+    ThreadDetailsBuffer = (PDEBUGGER_STEPPING_THREAD_DETAILS)
+        PoolManagerRequestPool(THREAD_STEPPINGS_DETAIIL, TRUE, sizeof(DEBUGGER_STEPPING_THREAD_DETAILS));
 
     if (ThreadDetailsBuffer == NULL)
     {
@@ -931,6 +930,9 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 Target
 VOID
 SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachOrDetachRequest)
 {
+    PLIST_ENTRY TempList              = 0;
+    BOOLEAN     MultipleThreadsInList = FALSE;
+
     //
     // Warnings : I don't know a way to check whether the thread is really
     // belonging to the target process or even the process or thread exists
@@ -953,6 +955,61 @@ SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // It is a detaching to a thread
         //
+
+        //
+        // We have to iterate through the list of active debugging thread details
+        // to find the thread's structures about steppings
+        //
+        TempList = &g_ThreadDebuggingStates;
+        while (&g_ThreadDebuggingStates != TempList->Flink)
+        {
+            TempList                                                       = TempList->Flink;
+            PDEBUGGER_STEPPING_THREAD_DETAILS CurrentThreadDebuggingDetail = CONTAINING_RECORD(TempList,
+                                                                                               DEBUGGER_STEPPING_THREAD_DETAILS,
+                                                                                               DebuggingThreadsList);
+
+            //
+            // Check if the current thread matches the details or not
+            //
+            if (AttachOrDetachRequest->ProcessId == CurrentThreadDebuggingDetail->ProcessId &&
+                AttachOrDetachRequest->ThreadId == CurrentThreadDebuggingDetail->ThreadId)
+            {
+                //
+                // First, disable to avid further use
+                //
+                CurrentThreadDebuggingDetail->Enabled = FALSE;
+
+                //
+                // unlink the list
+                //
+                RemoveEntryList(&CurrentThreadDebuggingDetail->DebuggingThreadsList);
+
+                //
+                // De-allocate the pool at next ioctl, because some thread might
+                // be still running this thread
+                //
+                PoolManagerFreePool(CurrentThreadDebuggingDetail->BufferAddressToFree);
+            }
+            else
+            {
+                //
+                // At least one thread is in the list
+                //
+                MultipleThreadsInList = TRUE;
+            }
+        }
+    }
+
+    //
+    // Check if there was only one thread in the debugging list then we have
+    // to disable cr3 exitings on all cores
+    //
+    if (!MultipleThreadsInList)
+    {
+        //
+        // Disable cr3-exitings on all cores
+        //
+        DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
     }
 
     //

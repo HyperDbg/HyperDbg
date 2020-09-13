@@ -205,15 +205,6 @@ VOID
 HvSetMonitorTrapFlag(BOOLEAN Set);
 
 /**
- * @brief Set the vm-exit on cr3 for finding a process
- * 
- * @param Set 
- * @return VOID 
- */
-VOID
-HvSetExitOnCr3Change(BOOLEAN Set);
-
-/**
  * @brief Returns the stack pointer, to change in the case of Vmxoff
  * 
  * @return UINT64 
