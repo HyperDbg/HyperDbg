@@ -15,6 +15,7 @@
 //
 // Windows defined functions
 //
+#include <ntifs.h>
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
@@ -52,7 +53,6 @@
 #include "DebuggerCommands.h"
 #include "ExtensionCommands.h"
 #include "HypervisorRoutines.h"
-#include "Ntifs2.h"
 #include "IoHandler.h"
 #include "Steppings.h"
 #include "Termination.h"

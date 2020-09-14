@@ -277,9 +277,6 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Ntifs2.h">
-      <Filter>Header Files\Common</Filter>
-    </ClInclude>
     <ClInclude Include="Transparency.h">
       <Filter>Header Files\Debugger\Transparency</Filter>
     </ClInclude>

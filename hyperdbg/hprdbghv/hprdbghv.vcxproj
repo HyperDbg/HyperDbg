@@ -156,7 +156,6 @@
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
     <ClInclude Include="GlobalVariables.h" />
-    <ClInclude Include="Ntifs2.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Hooks.h" />
     <ClInclude Include="HypervisorRoutines.h" />
