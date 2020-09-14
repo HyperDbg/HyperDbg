@@ -170,7 +170,7 @@
     <ClCompile Include="tcpclient.cpp" />
     <ClCompile Include="tcpserver.cpp" />
     <ClCompile Include="test.cpp" />
-    <ClCompile Include="eptcommands.cpp" />
+    <ClCompile Include="tests.cpp" />
     <ClCompile Include="transparency.cpp" />
     <ClCompile Include="tsc.cpp" />
     <ClCompile Include="unhide.cpp" />

@@ -13,8 +13,8 @@
 
 /**
  * @brief help of test command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandTestHelp() {
   ShowMessages(
@@ -26,17 +26,47 @@ VOID CommandTestHelp() {
 }
 
 /**
+ * @brief perform test on the remote process
+ *
+ * @param TestCaseNum Number of test case
+ * @param InvalidTestCase if true then command is invalid, if false then test
+ * case is valid
+ *
+ * @return BOOLEAN returns true if the results was true and false if the results
+ * was not ok
+ */
+BOOLEAN CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase) {
+
+  BOOLEAN ResultOfTest = FALSE;
+  *InvalidTestCase = FALSE;
+
+  switch (TestCaseNum) {
+  case DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD: {
+    ShowMessages("[*] Test attaching to threads, stepping, detaching...\n");
+    ResultOfTest = TestInfiniteLoop();
+    break;
+  }
+  default:
+    *InvalidTestCase = TRUE;
+    ResultOfTest = FALSE;
+    break;
+  }
+
+  return ResultOfTest;
+}
+
+/**
  * @brief test command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandTest(vector<string> SplittedCommand) {
 
   BOOLEAN GetTestCase = FALSE;
   BOOLEAN TestEverything = FALSE;
-  BOOLEAN AllChecksPerformed = FALSE;
-  BOOLEAN WrongTestCaseSpecified = FALSE;
+  BOOLEAN WrongTestCase = FALSE;
+  BOOLEAN Result = FALSE;
   UINT64 SpecialTestCase = 0;
 
   if (SplittedCommand.size() > 2) {
@@ -62,7 +92,7 @@ VOID CommandTest(vector<string> SplittedCommand) {
         // Unkonwn parameter
         //
         ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-        CommandIoinHelp();
+        CommandTestHelp();
         return;
       } else {
         GetTestCase = TRUE;
@@ -89,61 +119,41 @@ VOID CommandTest(vector<string> SplittedCommand) {
     TestEverything = TRUE;
   }
 
+  ShowMessages("---------------------------------------------------------\n");
+
   //
   // Means to check just one command
   //
   for (size_t i = 1; i < MAXLONG; i++) {
-    if (TestEverything) {
+
+    if (TestEverything)
       SpecialTestCase = i;
-    }
-    ShowMessages("---------------------------------------------------------\n");
 
-    switch (SpecialTestCase) {
-    case DEBUGGER_TEST_VMM_MONITOR_COMMAND: {
-      ShowMessages("[*] Test '!monitor' command...\n");
-      if (TestMonitorCommand()) {
-        ShowMessages("\t[+] Successful :)\n");
-      } else {
-        ShowMessages("\t[-] Unsuccessful :(\n");
-      }
-      break;
-    }
-    default: {
+    Result = CommandTestPerformTest(SpecialTestCase, &WrongTestCase);
+
+    if (WrongTestCase) {
+      //
+      // Wrong test case
+      //
       if (TestEverything) {
-        AllChecksPerformed = TRUE;
+        break;
       } else {
-        WrongTestCaseSpecified = TRUE;
+        ShowMessages("Wrong test-case.\n");
       }
+    } else {
+      //
+      // Check if this is wrong command or not
+      //
+      if (Result) {
+        ShowMessages("\t[+] Successful\n");
+      } else {
+        ShowMessages("\t[-] Unsuccessful\n");
+      }
+    }
+    if (!TestEverything) {
       break;
     }
-    }
-
-    //
-    // Check if it was just one check
-    //
-    if (!TestEverything || AllChecksPerformed) {
-      
-      //
-      // Break from loop
-      //
-      break;
-    }
   }
 
-  //
-  // Close the line
-  //
-  if (!TestEverything && !WrongTestCaseSpecified)
-  {
-      ShowMessages(
-          "---------------------------------------------------------\n");
-  }
-
-  //
-  // Check if command's test-case number was wrong or not
-  //
-  if (WrongTestCaseSpecified) {
-    ShowMessages("The specific test-case doesn't exist.\n");
-    ShowMessages("---------------------------------------------------------\n");
-  }
+  ShowMessages("---------------------------------------------------------\n");
 }

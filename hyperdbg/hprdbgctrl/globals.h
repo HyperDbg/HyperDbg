@@ -103,7 +103,7 @@ BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
  * @brief State of debugging threads
  *
  */
-DEBUGGING_STATE g_DebuggingState = { 0 };
+DEBUGGING_STATE g_DebuggingState = {0};
 
 /**
  * @brief This variable holds the trace and generate numbers
@@ -135,6 +135,12 @@ LIST_ENTRY g_EventTrace = {0};
  *
  */
 TCHAR g_DriverLocation[MAX_PATH] = {0};
+
+/**
+ * @brief Holds the location test-hyperdbg.exe
+ *
+ */
+TCHAR g_TestLocation[MAX_PATH] = {0};
 
 /**
  * @brief The handler for ShowMessages function

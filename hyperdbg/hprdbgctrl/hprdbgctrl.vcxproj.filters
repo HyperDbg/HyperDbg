@@ -46,11 +46,11 @@
     <Filter Include="Source Files\Debugger\Communication">
       <UniqueIdentifier>{7522bb67-3e10-4cdc-8d80-13d45ea74661}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Tests">
-      <UniqueIdentifier>{c444d625-bb46-481a-a5ac-04db9c52d0f5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\Transparency">
       <UniqueIdentifier>{4fbff165-6d2b-4ea2-ae47-7ec44cf79f2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Tests">
+      <UniqueIdentifier>{75cfa57c-a5af-4b8b-ae07-e4b9f9c56f6a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -224,9 +224,6 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
-    <ClCompile Include="eptcommands.cpp">
-      <Filter>Source Files\Debugger\Tests</Filter>
-    </ClCompile>
     <ClCompile Include="namedpipe.cpp">
       <Filter>Source Files\Debugger\Communication</Filter>
     </ClCompile>
@@ -304,6 +301,9 @@
     </ClCompile>
     <ClCompile Include="t.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="tests.cpp">
+      <Filter>Source Files\Debugger\Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

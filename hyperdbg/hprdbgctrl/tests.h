@@ -11,13 +11,20 @@
  */
 #pragma once
 
-//
-// Test cases
-//
-#define DEBUGGER_TEST_ALL_COMMANDS 0x0
-#define DEBUGGER_TEST_VMM_MONITOR_COMMAND 0x1
+//////////////////////////////////////////////////
+//					Constants                   //
+//////////////////////////////////////////////////
+#define TEST_PROCESS_NAME "hyperdbg-test.exe"
 
-//
-// Test commands
-//
-BOOLEAN TestMonitorCommand();
+//////////////////////////////////////////////////
+//				   Test Cases                   //
+//////////////////////////////////////////////////
+
+#define DEBUGGER_TEST_ALL_COMMANDS 0x0
+#define DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD 0x1
+
+//////////////////////////////////////////////////
+//					Functions                   //
+//////////////////////////////////////////////////
+
+BOOLEAN TestInfiniteLoop();
