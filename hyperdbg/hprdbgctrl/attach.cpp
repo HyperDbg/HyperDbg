@@ -19,8 +19,6 @@ extern DEBUGGING_STATE g_DebuggingState;
 /**
  * @brief print error messages relating to the finding thread id
  * @details this function is used only in the scope of Thread32First
- *
- * @param msg
  */
 void PrintError() {
   DWORD eNum;
