@@ -10,6 +10,7 @@
  *
  */
 
+#include "NamedPipe.h"
 #include <Windows.h>
 #include <iostream>
 #include <string.h>
@@ -17,6 +18,12 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
+
+  HANDLE PipeHandle;
+  BOOLEAN SentMessageResult;
+  UINT32 ReadBytes;
+  const int BufferSize = 1024;
+  char Buffer[BufferSize] = "test message to send from client !!!";
 
   if (argc != 2) {
     printf("you should not test functionalities directly, instead use 'test' "
@@ -26,10 +33,50 @@ int main(int argc, char *argv[]) {
 
   if (!strcmp(argv[1], "im-hyperdbg")) {
 
+    ////////////////////////////////////////////////////
+
     //
     // It's not called directly, it's probably from HyperDbg
     //
-    printf("hello");
+    Sleep(1000);
+
+
+    PipeHandle = NamedPipeClientCreatePipe("\\\\.\\Pipe\\HyperDbgTests");
+
+    if (!PipeHandle) {
+
+      //
+      // Unable to create handle
+      //
+      return 1;
+    }
+
+    SentMessageResult =
+        NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
+
+    if (!SentMessageResult) {
+
+      //
+      // Sending error
+      //
+      return 1;
+    }
+
+    ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, BufferSize);
+
+    if (!ReadBytes) {
+
+      //
+      // Nothing to read
+      //
+      return 1;
+    }
+
+    printf("Server sent the following message: %s\n", Buffer);
+
+    NamedPipeClientClosePipe(PipeHandle);
+
+    ////////////////////////////////////////////////////
 
   } else {
     printf("you should not test functionalities directly, instead use 'test' "

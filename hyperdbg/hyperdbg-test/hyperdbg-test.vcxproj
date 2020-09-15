@@ -144,6 +144,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="hyperdbg-test.cpp" />
+    <ClCompile Include="namedpipe.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NamedPipe.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

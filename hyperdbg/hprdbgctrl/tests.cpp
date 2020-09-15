@@ -112,6 +112,7 @@ BOOLEAN CreateProcessAndOpenPipeConnection() {
   PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
                                          BufferSize, BufferSize);
   if (!PipeHandle) {
+
     //
     // Error in creating handle
     //
@@ -142,44 +143,53 @@ BOOLEAN CreateProcessAndOpenPipeConnection() {
 
   if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE, 0, NULL, NULL,
                     &StartupInfo, &ProcessInfo)) {
-    WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+
+    //WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
+
+    ////////////////////////////////////////////////////////
+
+    //
+    // Wait for message from the target processs
+    //
+    if (!NamedPipeServerWaitForClientConntection(PipeHandle)) {
+      //
+      // Error in connection
+      //
+      return FALSE;
+    }
+
+    ReadBytes =
+        NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
+
+    if (!ReadBytes) {
+      //
+      // Nothing to read
+      //
+      return FALSE;
+    }
+
+    printf("Message from client : %s\n", BufferToRead);
+
+    SentMessageResult = NamedPipeServerSendMessageToClient(
+        PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
+
+    if (!SentMessageResult) {
+      //
+      // error in sending
+      //
+      return FALSE;
+    }
+
+    NamedPipeServerCloseHandle(PipeHandle);
+
+    ////////////////////////////////////////////////////////
+
     CloseHandle(ProcessInfo.hThread);
     CloseHandle(ProcessInfo.hProcess);
 
   } else {
     ShowMessages("The process could not be started...\n");
   }
-
-  if (!NamedPipeServerWaitForClientConntection(PipeHandle)) {
-    //
-    // Error in connection
-    //
-    return FALSE;
-  }
-
-  ReadBytes =
-      NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
-
-  if (!ReadBytes) {
-    //
-    // Nothing to read
-    //
-    return FALSE;
-  }
-
-  printf("Message from client : %s\n", BufferToRead);
-
-  SentMessageResult = NamedPipeServerSendMessageToClient(
-      PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
-
-  if (!SentMessageResult) {
-    //
-    // error in sending
-    //
-    return FALSE;
-  }
-
-  NamedPipeServerCloseHandle(PipeHandle);
 }
 
 /**
