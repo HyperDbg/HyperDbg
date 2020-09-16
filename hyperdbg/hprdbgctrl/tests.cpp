@@ -16,12 +16,12 @@
 //
 extern TCHAR g_TestLocation[MAX_PATH];
 
-/**
- * @brief Setup test process name
- *
- * @param ULONG
- * @return BOOLEAN
- */
+ /**
+  * @brief 
+  * 
+  * @param BufferLength Setup test process name
+  * @return BOOLEAN 
+  */
 BOOLEAN
 SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
               ULONG BufferLength) {
@@ -96,7 +96,19 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
   return TRUE;
 }
 
-BOOLEAN CreateProcessAndOpenPipeConnection() {
+/**
+ * @brief Create a Process And Open Pipe Connection object
+ * 
+ * @param TestCase Test Case Number
+ * @param ConnectionPipeHandle Pointer to receive Pipe Handle
+ * @param ThreadHandle Pointer to receive Thread Handle
+ * @param ProcessHandle Pointer to receive Process Handle
+ * @return BOOLEAN 
+ */
+BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
+                                           PHANDLE ConnectionPipeHandle,
+                                           PHANDLE ThreadHandle,
+                                           PHANDLE ProcessHandle) {
 
   HANDLE PipeHandle;
   BOOLEAN SentMessageResult;
@@ -104,7 +116,7 @@ BOOLEAN CreateProcessAndOpenPipeConnection() {
   const int BufferSize = 1024;
   char BufferToRead[BufferSize] = {0};
   char BufferToSend[BufferSize] =
-      "hello, dear test process, I'm HyperDbg debugger :) !!!";
+      "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
   PROCESS_INFORMATION ProcessInfo;
   STARTUPINFO StartupInfo;
   char CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
@@ -144,10 +156,6 @@ BOOLEAN CreateProcessAndOpenPipeConnection() {
   if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE, 0, NULL, NULL,
                     &StartupInfo, &ProcessInfo)) {
 
-    //WaitForSingleObject(ProcessInfo.hProcess, INFINITE);
-
-    ////////////////////////////////////////////////////////
-
     //
     // Wait for message from the target processs
     //
@@ -162,51 +170,136 @@ BOOLEAN CreateProcessAndOpenPipeConnection() {
         NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
 
     if (!ReadBytes) {
+
       //
       // Nothing to read
       //
       return FALSE;
     }
 
-    printf("Message from client : %s\n", BufferToRead);
+    if (strcmp(BufferToRead, "Hey there, Are you HyperDbg?") == 0) {
 
-    SentMessageResult = NamedPipeServerSendMessageToClient(
-        PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
+      //
+      // *** Connected to the remote process ***
+      //
 
-    if (!SentMessageResult) {
       //
-      // error in sending
+      // Send the hand shake message
       //
+      SentMessageResult = NamedPipeServerSendMessageToClient(
+          PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
+
+      if (!SentMessageResult) {
+
+        //
+        // error in sending
+        //
+        return FALSE;
+      }
+
+      //
+      // Receive the request for the test case number
+      //
+      RtlZeroMemory(BufferToRead, BufferSize);
+
+      ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead,
+                                                   BufferSize);
+
+      if (!ReadBytes) {
+
+        //
+        // Nothing to read
+        //
+        return FALSE;
+      }
+
+      if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send me the "
+                               "test case number?") == 0) {
+        {
+          //
+          // Send the test case number
+          //
+          RtlZeroMemory(BufferToSend, BufferSize);
+          *(UINT32 *)BufferToSend = TestCase;
+          SentMessageResult = NamedPipeServerSendMessageToClient(
+              PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
+
+          if (!SentMessageResult) {
+
+            //
+            // error in sending
+            //
+            return FALSE;
+          }
+        }
+      }
+
+      //
+      // Set the output handles
+      //
+      *ConnectionPipeHandle = PipeHandle;
+      *ThreadHandle = ProcessInfo.hThread;
+      *ProcessHandle = ProcessInfo.hProcess;
+
+      return TRUE;
+    } else {
+      ShowMessages("The process could not be started...\n");
       return FALSE;
     }
-
-    NamedPipeServerCloseHandle(PipeHandle);
-
-    ////////////////////////////////////////////////////////
-
-    CloseHandle(ProcessInfo.hThread);
-    CloseHandle(ProcessInfo.hProcess);
-
-  } else {
-    ShowMessages("The process could not be started...\n");
   }
+  return FALSE;
+}
+
+/**
+ * @brief Close the pipe connection and the remote process
+ * 
+ * @param ConnectionPipeHandle Handle of remote pipe connection
+ * @param ThreadHandle Handle of test thread
+ * @param ProcessHandle Handle of test process
+ * @return VOID 
+ */
+VOID CloseProcessAndOpenPipeConnection(HANDLE ConnectionPipeHandle,
+                                       HANDLE ThreadHandle,
+                                       HANDLE ProcessHandle) {
+
+  //
+  // Close the connection and handles
+  //
+  NamedPipeServerCloseHandle(ConnectionPipeHandle);
+  CloseHandle(ThreadHandle);
+  CloseHandle(ProcessHandle);
 }
 
 /**
  * @brief perform test on attaching, stepping and detaching threads
  *
- * @return BOOLEAN returns true if the results was true and false if the results
- * was not ok
+ * @return BOOLEAN returns true if the results was true and false if the
+ * results was not ok
  */
 BOOLEAN TestInfiniteLoop() {
+
+  HANDLE PipeHandle;
+  HANDLE ThreadHandle;
+  HANDLE ProcessHandle;
 
   //
   // Create tests process to create a thread for us
   //
-  if (!CreateProcessAndOpenPipeConnection()) {
+  if (!CreateProcessAndOpenPipeConnection(
+          DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD, &PipeHandle,
+          &ThreadHandle, &ProcessHandle)) {
     ShowMessages("err, enable to connect to the test process\n");
     return FALSE;
   }
+
+  //
+  // ***** Perform test specific routines *****
+  //
+
+  //
+  // Close connection and remote process
+  //
+  CloseProcessAndOpenPipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
 
   return FALSE;
 }

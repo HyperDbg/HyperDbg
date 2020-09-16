@@ -1,10 +1,10 @@
 /**
- * @file tests.h
+ * @file routines.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief headers for test functions
+ * @brief header for testing routines
  * @details
  * @version 0.1
- * @date 2020-05-27
+ * @date 2020-09-16
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -12,17 +12,13 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//					Constants                   //
+//					 Functions                  //
 //////////////////////////////////////////////////
 
-/**
- * @brief exe name of test process
- * 
- */
-#define TEST_PROCESS_NAME "hyperdbg-test.exe"
+VOID TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
 
 //////////////////////////////////////////////////
-//					Functions                   //
+//				Test Case Routines              //
 //////////////////////////////////////////////////
 
-BOOLEAN TestInfiniteLoop();
+VOID AttachDetachTest(HANDLE PipeHandle);

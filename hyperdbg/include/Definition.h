@@ -113,6 +113,20 @@
 #define OPERATION_LOG_WITH_TAG 0x5
 
 //////////////////////////////////////////////////
+//				   Test Cases                   //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Test case number, perform all the tests
+ */
+#define DEBUGGER_TEST_ALL_COMMANDS 0x0
+
+/**
+ * @brief Test case number, test attaching and detaching to processes
+ */
+#define DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD 0x1
+
+//////////////////////////////////////////////////
 //            Callback Definitions              //
 //////////////////////////////////////////////////
 

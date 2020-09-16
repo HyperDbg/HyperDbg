@@ -10,12 +10,9 @@
  *
  */
 #pragma once
-#include <Windows.h>
 
 ////////////////////////////////////////////////////////////////////////////
-//                                                                        //
 //                            Server Side                                 //
-//                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
 HANDLE NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize,
@@ -32,9 +29,7 @@ BOOLEAN NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
 VOID NamedPipeServerCloseHandle(HANDLE PipeHandle);
 
 ////////////////////////////////////////////////////////////////////////////
-//                                                                        //
 //                            Client Side                                 //
-//                                                                        //
 ////////////////////////////////////////////////////////////////////////////
 
 HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName);
