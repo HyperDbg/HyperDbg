@@ -22,5 +22,5 @@
 // Program Defined Headers
 //
 #include "Definition.h"
-#include "namedpipe2.h"
+#include "namedpipe.h"
 #include "routines.h"

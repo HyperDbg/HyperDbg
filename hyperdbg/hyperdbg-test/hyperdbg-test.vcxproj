@@ -56,6 +56,8 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\marmasm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -154,11 +156,18 @@
     <ClCompile Include="namedpipe.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="namedpipe2.h" />
+    <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="routines.h" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="infinitethreads.asm">
+      <FileType>Document</FileType>
+    </MASM>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\marmasm.targets" />
   </ImportGroup>
 </Project>

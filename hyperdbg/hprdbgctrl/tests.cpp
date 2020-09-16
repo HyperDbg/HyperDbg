@@ -16,12 +16,12 @@
 //
 extern TCHAR g_TestLocation[MAX_PATH];
 
- /**
-  * @brief 
-  * 
-  * @param BufferLength Setup test process name
-  * @return BOOLEAN 
-  */
+/**
+ * @brief
+ *
+ * @param BufferLength Setup test process name
+ * @return BOOLEAN
+ */
 BOOLEAN
 SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
               ULONG BufferLength) {
@@ -98,12 +98,12 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
 
 /**
  * @brief Create a Process And Open Pipe Connection object
- * 
+ *
  * @param TestCase Test Case Number
  * @param ConnectionPipeHandle Pointer to receive Pipe Handle
  * @param ThreadHandle Pointer to receive Thread Handle
  * @param ProcessHandle Pointer to receive Process Handle
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
                                            PHANDLE ConnectionPipeHandle,
@@ -153,8 +153,9 @@ BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
     return FALSE;
   }
 
-  if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE, 0, NULL, NULL,
-                    &StartupInfo, &ProcessInfo)) {
+  if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE,
+                    CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo,
+                    &ProcessInfo)) {
 
     //
     // Wait for message from the target processs
@@ -252,11 +253,11 @@ BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
 
 /**
  * @brief Close the pipe connection and the remote process
- * 
+ *
  * @param ConnectionPipeHandle Handle of remote pipe connection
  * @param ThreadHandle Handle of test thread
  * @param ProcessHandle Handle of test process
- * @return VOID 
+ * @return VOID
  */
 VOID CloseProcessAndOpenPipeConnection(HANDLE ConnectionPipeHandle,
                                        HANDLE ThreadHandle,
@@ -281,6 +282,11 @@ BOOLEAN TestInfiniteLoop() {
   HANDLE PipeHandle;
   HANDLE ThreadHandle;
   HANDLE ProcessHandle;
+  UINT32 ReadBytes;
+  UINT32 TestProcessId;
+  UINT32 TestThreadId;
+  const int BufferSize = 1024;
+  char Buffer[BufferSize] = {0};
 
   //
   // Create tests process to create a thread for us
@@ -295,6 +301,28 @@ BOOLEAN TestInfiniteLoop() {
   //
   // ***** Perform test specific routines *****
   //
+
+  //
+  // Wait for process id and thread id
+  //
+  ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, Buffer, BufferSize);
+
+  if (!ReadBytes) {
+
+    //
+    // Nothing to read
+    //
+    return FALSE;
+  }
+
+  //
+  // Read the received buffer into process id and thread id
+  //
+  TestProcessId = *(UINT32 *)Buffer;
+  TestThreadId = *(UINT32 *)(Buffer + sizeof(UINT32));
+
+  ShowMessages("Received Process Id : 0x%x  |  Thread Id : 0x%x \n",
+               TestProcessId, TestThreadId);
 
   //
   // Close connection and remote process
