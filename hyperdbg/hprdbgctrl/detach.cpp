@@ -27,23 +27,15 @@ VOID CommandDetachHelp() {
 }
 
 /**
- * @brief .detach command handler
+ * @brief perform detach from process
  *
- * @param SplittedCommand
- * @param Command
  * @return VOID
  */
-VOID CommandDetach(vector<string> SplittedCommand) {
+VOID DetachFromProcess() {
 
   BOOLEAN Status;
   ULONG ReturnedLength;
   DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
-
-  if (SplittedCommand.size() >= 2) {
-    ShowMessages("incorrect use of '.detach'\n\n");
-    CommandDetachHelp();
-    return;
-  }
 
   //
   // Check if we attached to a process or not
@@ -100,4 +92,25 @@ VOID CommandDetach(vector<string> SplittedCommand) {
     g_DebuggingState.ConnectedProcessId = NULL;
     g_DebuggingState.ConnectedThreadId = NULL;
   }
+}
+
+/**
+ * @brief .detach command handler
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID CommandDetach(vector<string> SplittedCommand) {
+
+  if (SplittedCommand.size() >= 2) {
+    ShowMessages("incorrect use of '.detach'\n\n");
+    CommandDetachHelp();
+    return;
+  }
+
+  //
+  // Perform detach from the process
+  //
+  DetachFromProcess();
 }

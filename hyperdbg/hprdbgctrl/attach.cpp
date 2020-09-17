@@ -177,6 +177,74 @@ VOID CommandAttachHelp() {
 }
 
 /**
+ * @brief Attach to target process
+ * @details this function will not check whether the process id and
+ * thread id is valid or not
+ *
+ * @param TargetPid
+ * @param TargetTid
+ * @return VOID
+ */
+VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid) {
+
+  BOOLEAN Status;
+  ULONG ReturnedLength;
+  DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
+
+  //
+  // Check if debugger is loaded or not
+  //
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return;
+  }
+
+  //
+  // We wanna attach to a remote process
+  //
+  AttachRequest.IsAttach = TRUE;
+
+  //
+  // Set the process id and thread id
+  //
+  AttachRequest.ProcessId = TargetPid;
+  AttachRequest.ThreadId = TargetTid;
+
+  //
+  // Send the request to the kernel
+  //
+
+  Status = DeviceIoControl(
+      g_DeviceHandle,                                 // Handle to device
+      IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
+                                                      // code
+      &AttachRequest,                                 // Input Buffer to driver.
+      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+      &AttachRequest, // Output Buffer from driver.
+      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                       // buffer in bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return;
+  }
+
+  //
+  // Check if attaching was successful then we can set the attached to true
+  //
+  if (AttachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
+    g_DebuggingState.ConnectedProcessId = TargetPid;
+    g_DebuggingState.ConnectedThreadId = TargetTid;
+  }
+}
+
+/**
  * @brief .attach command handler
  *
  * @param SplittedCommand
@@ -185,13 +253,10 @@ VOID CommandAttachHelp() {
  */
 VOID CommandAttach(vector<string> SplittedCommand) {
 
-  BOOLEAN Status;
-  ULONG ReturnedLength;
   UINT64 TargetPid = 0;
   UINT64 TargetTid = 0;
   BOOLEAN NextIsPid = FALSE;
   BOOLEAN NextIsTid = FALSE;
-  DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
 
   if (SplittedCommand.size() >= 6) {
     ShowMessages("incorrect use of '.attach'\n\n");
@@ -269,54 +334,7 @@ VOID CommandAttach(vector<string> SplittedCommand) {
   }
 
   //
-  // Check if debugger is loaded or not
+  // Perform attach to target process
   //
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
-
-  //
-  // We wanna attach to a remote process
-  //
-  AttachRequest.IsAttach = TRUE;
-
-  //
-  // Set the process id and thread id
-  //
-  AttachRequest.ProcessId = TargetPid;
-  AttachRequest.ThreadId = TargetTid;
-
-  //
-  // Send the request to the kernel
-  //
-
-  Status = DeviceIoControl(
-      g_DeviceHandle,                                 // Handle to device
-      IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                      // code
-      &AttachRequest,                                 // Input Buffer to driver.
-      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-      &AttachRequest, // Output Buffer from driver.
-      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
-                                                       // buffer in bytes.
-      &ReturnedLength, // Bytes placed in buffer.
-      NULL             // synchronous call
-  );
-
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return;
-  }
-
-  //
-  // Check if attaching was successful then we can set the attached to true
-  //
-  if (AttachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-
-    g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
-    g_DebuggingState.ConnectedProcessId = TargetPid;
-    g_DebuggingState.ConnectedThreadId = TargetTid;
-  }
+  AttachToProcess(TargetPid, TargetTid);
 }

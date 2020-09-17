@@ -285,8 +285,8 @@ BOOLEAN TestInfiniteLoop() {
   UINT32 ReadBytes;
   UINT32 TestProcessId;
   UINT32 TestThreadId;
-  const int BufferSize = 1024;
-  char Buffer[BufferSize] = {0};
+  const int BufferSize = 1024 / sizeof(UINT64);
+  UINT64 Buffer[BufferSize] = {0};
 
   //
   // Create tests process to create a thread for us
@@ -305,7 +305,8 @@ BOOLEAN TestInfiniteLoop() {
   //
   // Wait for process id and thread id
   //
-  ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, Buffer, BufferSize);
+  ReadBytes =
+      NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, BufferSize);
 
   if (!ReadBytes) {
 
@@ -318,11 +319,19 @@ BOOLEAN TestInfiniteLoop() {
   //
   // Read the received buffer into process id and thread id
   //
-  TestProcessId = *(UINT32 *)Buffer;
-  TestThreadId = *(UINT32 *)(Buffer + sizeof(UINT32));
+  TestProcessId = Buffer[0];
+  TestThreadId = Buffer[1];
 
   ShowMessages("Received Process Id : 0x%x  |  Thread Id : 0x%x \n",
                TestProcessId, TestThreadId);
+
+  //
+  // Attach to the target process (thread)
+  //
+  Sleep(5000);
+  AttachToProcess(TestProcessId, TestThreadId);
+  Sleep(10000);
+  DetachFromProcess();
 
   //
   // Close connection and remote process

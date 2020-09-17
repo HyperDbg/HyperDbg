@@ -50,8 +50,8 @@ VOID AttachDetachTest(HANDLE PipeHandle) {
   DWORD ThreadID;
   HANDLE ThreadHandle;
   BOOLEAN SentMessageResult;
-  const int BufferSize = 1024 / sizeof(UINT32);
-  UINT32 Buffer[BufferSize] = {0};
+  const int BufferSize = 1024 / sizeof(UINT64);
+  UINT64 Buffer[BufferSize] = {0};
   UINT32 ProcessId;
 
   printf("Testing thread attach and detach process...\n");
@@ -60,7 +60,8 @@ VOID AttachDetachTest(HANDLE PipeHandle) {
 
   ProcessId = GetCurrentProcessId();
 
-  printf("Process id : 0x%x  |  Thread id : 0x%x\n\n", ProcessId, ThreadID);
+  printf("Sent Process id : 0x%x  |  Thread id : 0x%x\n\n", ProcessId,
+         ThreadID);
 
   //
   // Send the process id and thread id to the HyperDbg
@@ -69,7 +70,7 @@ VOID AttachDetachTest(HANDLE PipeHandle) {
   Buffer[1] = ThreadID;
 
   SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)Buffer,
-                                                 sizeof(UINT32) * 2);
+                                                 sizeof(UINT64) * 2);
 
   if (!SentMessageResult) {
 
