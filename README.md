@@ -53,7 +53,6 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Log the States Engine [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/actions" target="_blank">link</a>]
 * VMX-root Compatible Message Tracing  [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
 * Transparent Breakpoint Handler
-* Hidden Trap Flags (MTF)
 * Various Custom Scripts (e.g DFIR Scripts) [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
 
 ### Second Release (v0.2.0.0)
