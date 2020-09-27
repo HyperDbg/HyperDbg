@@ -1,6 +1,6 @@
 <p align="center">
-<a href="https://hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg" alt="Website"></a>
-<a href="https://docs.hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Website-orange.svg" alt="Documentation"></a>
+<a href="https://hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Website-orange.svg" alt="Website"></a>
+<a href="https://docs.hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg" alt="Documentation"></a>
 <a href="https://doxygen.hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg" alt="Doxygen"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/License-GPLv3-blue.svg" alt="License"></a>
 <a href="https://https://twitter.com/HyperDbg"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-HyperDbg-Twitter-skyblue.svg" alt="Twitter"></a>
