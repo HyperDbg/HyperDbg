@@ -314,6 +314,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_UNSET_EXCEPTION_BITMAP:
+    {
+        HvUnsetExceptionBitmap(OptionalParam1);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

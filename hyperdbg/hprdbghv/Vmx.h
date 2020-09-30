@@ -530,6 +530,8 @@ typedef struct _DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS
     UINT32   TargetProcessId;
     UINT32   TargetThreadId;
     CR3_TYPE TargetThreadKernelCr3;
+    UINT64   CurrentThreadLocationOnGs;
+    BOOLEAN  DebugRegisterInterceptionState;
 
 } DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS, *PDEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS;
 

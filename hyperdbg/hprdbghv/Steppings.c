@@ -96,6 +96,11 @@ SteppingsInitialize()
         g_SteppingsNopSledState.IsNopSledInitialized = TRUE;
     }
 
+    //
+    // Test
+    //
+    // SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
+
     return TRUE;
 }
 
@@ -848,8 +853,9 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
 }
 
 // if apply to vmcs is true then should be called at vmx-root mode
+// Applies to only one core
 BOOLEAN
-SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
+SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
     DEBUG_REGISTER_7 Dr7 = {0};
 
@@ -893,22 +899,167 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, BOOLEAN ApplyToVmcs, UINT64 Target
     if (DebugRegNum == 0)
     {
         __writedr(0, TargetAddress);
-        Dr7.LocalBreakpoint1 = 1;
+
+        Dr7.LocalBreakpoint0 = 1;
+
+        //
+        // Based on SDM :
+        //   00 — Break on instruction execution only.
+        //   01 — Break on data writes only.
+        //   10 — Break on I/O reads or writes.
+        //   11 — Break on data reads or writes but not instruction fetches
+        // Also 10, is based on another bit so it is configured based on
+        // other bits, read the SDM for more.
+        //
+
+        switch (ActionType)
+        {
+        case BREAK_ON_INSTRUCTION_FETCH:
+            Dr7.ReadWrite0 = 0; // 0b00 => 0
+            break;
+        case BREAK_ON_WRITE_ONLY:
+            Dr7.ReadWrite0 = 1; // 0b01 => 1
+            break;
+        case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
+            Dr7.ReadWrite0 = 2; // 0b10 => 2
+            LogError("I/O access breakpoint by debug regs are not supported.");
+            return FALSE;
+            break;
+        case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
+            Dr7.ReadWrite0 = 3; // 0x11 => 3
+            break;
+
+        default:
+            //
+            // what?
+            //
+            LogError("Unknown parameter as debug reg action type.");
+            return FALSE;
+            break;
+        }
     }
     else if (DebugRegNum == 1)
     {
         __writedr(1, TargetAddress);
         Dr7.LocalBreakpoint1 = 1;
+
+        //
+        // Based on SDM :
+        //   00 — Break on instruction execution only.
+        //   01 — Break on data writes only.
+        //   10 — Break on I/O reads or writes.
+        //   11 — Break on data reads or writes but not instruction fetches
+        // Also 10, is based on another bit so it is configured based on
+        // other bits, read the SDM for more.
+        //
+
+        switch (ActionType)
+        {
+        case BREAK_ON_INSTRUCTION_FETCH:
+            Dr7.ReadWrite1 = 0; // 0b00 => 0
+            break;
+        case BREAK_ON_WRITE_ONLY:
+            Dr7.ReadWrite1 = 1; // 0b01 => 1
+            break;
+        case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
+            Dr7.ReadWrite1 = 2; // 0b10 => 2
+            LogError("I/O access breakpoint by debug regs are not supported.");
+            return FALSE;
+            break;
+        case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
+            Dr7.ReadWrite1 = 3; // 0x11 => 3
+            break;
+
+        default:
+            //
+            // what?
+            //
+            LogError("Unknown parameter as debug reg action type.");
+            return FALSE;
+            break;
+        }
     }
     else if (DebugRegNum == 2)
     {
         __writedr(2, TargetAddress);
         Dr7.LocalBreakpoint2 = 1;
+
+        //
+        // Based on SDM :
+        //   00 — Break on instruction execution only.
+        //   01 — Break on data writes only.
+        //   10 — Break on I/O reads or writes.
+        //   11 — Break on data reads or writes but not instruction fetches
+        // Also 10, is based on another bit so it is configured based on
+        // other bits, read the SDM for more.
+        //
+
+        switch (ActionType)
+        {
+        case BREAK_ON_INSTRUCTION_FETCH:
+            Dr7.ReadWrite2 = 0; // 0b00 => 0
+            break;
+        case BREAK_ON_WRITE_ONLY:
+            Dr7.ReadWrite2 = 1; // 0b01 => 1
+            break;
+        case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
+            Dr7.ReadWrite2 = 2; // 0b10 => 2
+            LogError("I/O access breakpoint by debug regs are not supported.");
+            return FALSE;
+            break;
+        case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
+            Dr7.ReadWrite2 = 3; // 0x11 => 3
+            break;
+
+        default:
+            //
+            // what?
+            //
+            LogError("Unknown parameter as debug reg action type.");
+            return FALSE;
+            break;
+        }
     }
     else if (DebugRegNum == 3)
     {
         __writedr(3, TargetAddress);
         Dr7.LocalBreakpoint3 = 1;
+
+        //
+        // Based on SDM :
+        //   00 — Break on instruction execution only.
+        //   01 — Break on data writes only.
+        //   10 — Break on I/O reads or writes.
+        //   11 — Break on data reads or writes but not instruction fetches
+        // Also 10, is based on another bit so it is configured based on
+        // other bits, read the SDM for more.
+        //
+
+        switch (ActionType)
+        {
+        case BREAK_ON_INSTRUCTION_FETCH:
+            Dr7.ReadWrite3 = 0; // 0b00 => 0
+            break;
+        case BREAK_ON_WRITE_ONLY:
+            Dr7.ReadWrite3 = 1; // 0b01 => 1
+            break;
+        case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
+            Dr7.ReadWrite3 = 2; // 0b10 => 2
+            LogError("I/O access breakpoint by debug regs are not supported.");
+            return FALSE;
+            break;
+        case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
+            Dr7.ReadWrite3 = 3; // 0x11 => 3
+            break;
+
+        default:
+            //
+            // what?
+            //
+            LogError("Unknown parameter as debug reg action type.");
+            return FALSE;
+            break;
+        }
     }
 
     //
@@ -1016,4 +1167,154 @@ SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     // Indicate that we received the request
     //
     AttachOrDetachRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+}
+
+// Should be executed from vmx non-root
+VOID
+SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+
+{
+    UINT64 MsrGsBase;
+    ULONG  CurrentProcessorIndex;
+
+    //
+    // Each logical core has a different context, that's why we
+    // set it per each core
+    //
+    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    if (DeferredContext != NULL)
+    {
+        //
+        // Enable Thread Change Detection
+        // *** Read the address of GS:188 to g_CurrentThreadLocation ***
+        // Note, set on on each core seprately
+        //
+
+        //
+        // We are in kernel, so we should read MSR GS_BASE
+        // IA32_GS_BASE             0xC0000101
+        // IA32_KERNEL_GS_BASE      0xC0000102
+        // IA32_KERNEL_GS_BASE is currently user's gs as
+        // we are in the kernel-mode, if we need to intercept
+        // from user-mode then IA32_KERNEL_GS_BASE should be used
+        // but it's not for our case
+        //
+        MsrGsBase = __readmsr(MSR_GS_BASE);
+
+        //
+        // Now, we have the gs base on MSR
+        // while in Windows gs:188 has the address
+        // of where the store current _ETHREAD, so
+        // we have to 188 to the gs base
+        //
+        MsrGsBase += 0x188;
+
+        //
+        // Set the global value for current thread of this processor
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs = MsrGsBase;
+
+        //
+        // Set interception state
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState = TRUE;
+
+        //
+        // Intercept #DBs by changing exception bitmap (one core)
+        //
+        AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+        //
+        // Enables mov to debug registers exitings in primary cpu-based controls
+        // it is because I realized that some other routines in Windows like
+        // KiSaveProcessorControlState and KiRestoreProcessorControlState and
+        // other functions directly change the debug registers, probably
+        // because we should not modify debug registers directly, by the way, we
+        // are hypervisor and we can easily ignore mov to debug register (0 in
+        // this case), however we should somehow hide this process in the future
+        //
+        AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+        //
+        // Set debug register to fire an exception in the case of
+        // read/write on the gs:188 as we intercept it on
+        // hypervisor side by exception bitmap on #DBs
+        // However, this call is somehow useless because I also set it
+        // on Mov 2 Debug regs handler (vm-exit), but we set from here
+        // to make sure that the vm-exit handler set this break on access
+        //
+        SteppingsSetDebugRegister(
+            0,
+            BREAK_ON_WRITE_ONLY,
+            FALSE,
+            g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
+    }
+    else
+    {
+        //
+        // Disable Thread Change Detection
+        // *** Remove side changes ***
+        //
+
+        //
+        // We should not ignore debug registers change anymore
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState = FALSE;
+
+        //
+        // Disable mov to debug regs vm-exit
+        //
+        AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+        //
+        // Not intercept #DBs by changing exception bitmap (one core)
+        //
+        AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+        //
+        // No longer need to store such gs:188 value
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs = NULL;
+    }
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+// Should be executed from vmx non-root
+VOID
+SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(BOOLEAN Enable)
+{
+    if (Enable)
+    {
+        KeGenericCallDpc(SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore, 0x1);
+    }
+    else
+    {
+        KeGenericCallDpc(SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore, NULL);
+    }
+}
+
+// will be called in vmx root
+VOID
+SteppingsHandleThreadChanges(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
+{
+    LogInfo("Current Thread Id : 0x%x", PsGetCurrentThreadId());
+
+    //
+    // Set the debug reg again
+    //
+    SteppingsSetDebugRegister(
+        0,
+        BREAK_ON_WRITE_ONLY,
+        FALSE,
+        g_GuestState[ProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
 }

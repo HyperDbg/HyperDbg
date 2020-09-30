@@ -143,6 +143,5 @@ NopLoop:
     ret 
     
 AsmDebuggerSpinOnThread ENDP 
-;------------------------------------------------------------------------
 
 END                     

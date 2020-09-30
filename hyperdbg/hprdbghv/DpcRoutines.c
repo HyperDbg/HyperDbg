@@ -279,7 +279,7 @@ VOID
 DpcRoutinePerformSetExceptionBitmapOnSingleCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
-    // change msr exception bitmap
+    // change exception bitmap
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
 

@@ -173,6 +173,39 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
         }
     }
+    else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
+    {
+        //
+        // Check whether it is because of thread change detection or not
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState)
+        {
+            SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
+        }
+        else
+        {
+            //
+            // It's not because of thread change detection, so re-inject it
+            //
+            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+
+            //
+            // re-write error code (if any)
+            //
+            if (InterruptExit.ErrorCodeValid)
+            {
+                //
+                // Read the error code
+                //
+                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+
+                //
+                // Write the error code
+                //
+                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+            }
+        }
+    }
     else
     {
         //

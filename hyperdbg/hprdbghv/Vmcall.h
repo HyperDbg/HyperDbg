@@ -195,6 +195,12 @@
  */
 #define VMCALL_DISABLE_MOV_TO_CR3_EXITING 0x1e
 
+/**
+ * @brief VMCALL to unset exception bitmap on VMCS
+ * 
+ */
+#define VMCALL_UNSET_EXCEPTION_BITMAP 0x1f
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
