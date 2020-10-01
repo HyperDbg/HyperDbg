@@ -320,6 +320,30 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS:
+    {
+        HvSetLoadDebugControls(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS:
+    {
+        HvSetLoadDebugControls(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS:
+    {
+        HvSetSaveDebugControls(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS:
+    {
+        HvSetSaveDebugControls(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

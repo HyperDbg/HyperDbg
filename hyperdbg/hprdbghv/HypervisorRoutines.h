@@ -205,6 +205,24 @@ VOID
 HvSetMonitorTrapFlag(BOOLEAN Set);
 
 /**
+ * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
+ * 
+ * @param Set Set or unset 
+ * @return VOID 
+ */
+VOID
+HvSetLoadDebugControls(BOOLEAN Set);
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
+ * 
+ * @param Set Set or unset 
+ * @return VOID 
+ */
+VOID
+HvSetSaveDebugControls(BOOLEAN Set);
+
+/**
  * @brief Returns the stack pointer, to change in the case of Vmxoff
  * 
  * @return UINT64 

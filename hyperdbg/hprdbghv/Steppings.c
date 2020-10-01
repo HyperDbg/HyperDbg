@@ -99,7 +99,7 @@ SteppingsInitialize()
     //
     // Test
     //
-    // SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
+    SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
 
     return TRUE;
 }
@@ -854,6 +854,10 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
 
 // if apply to vmcs is true then should be called at vmx-root mode
 // Applies to only one core
+// the caller must be sure that Load Debug Controls and Save Debug
+// Controls on VM-entry and VM-exit controls on the VMCS of the
+// target core, vmcalls VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS and
+// VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designd for this purpose
 BOOLEAN
 SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
@@ -900,7 +904,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     {
         __writedr(0, TargetAddress);
 
-        Dr7.LocalBreakpoint0 = 1;
+        Dr7.GlobalBreakpoint0 = 1;
 
         //
         // Based on SDM :
@@ -915,18 +919,18 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
         switch (ActionType)
         {
         case BREAK_ON_INSTRUCTION_FETCH:
-            Dr7.ReadWrite0 = 0; // 0b00 => 0
+            Dr7.ReadWrite0 = 0b00; // 0b00 => 0
             break;
         case BREAK_ON_WRITE_ONLY:
-            Dr7.ReadWrite0 = 1; // 0b01 => 1
+            Dr7.ReadWrite0 = 0b01; // 0b01 => 1
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
-            Dr7.ReadWrite0 = 2; // 0b10 => 2
+            Dr7.ReadWrite0 = 0b10; // 0b10 => 2
             LogError("I/O access breakpoint by debug regs are not supported.");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
-            Dr7.ReadWrite0 = 3; // 0x11 => 3
+            Dr7.ReadWrite0 = 0b11; // 0b11 => 3
             break;
 
         default:
@@ -941,7 +945,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     else if (DebugRegNum == 1)
     {
         __writedr(1, TargetAddress);
-        Dr7.LocalBreakpoint1 = 1;
+        Dr7.GlobalBreakpoint1 = 1;
 
         //
         // Based on SDM :
@@ -956,18 +960,18 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
         switch (ActionType)
         {
         case BREAK_ON_INSTRUCTION_FETCH:
-            Dr7.ReadWrite1 = 0; // 0b00 => 0
+            Dr7.ReadWrite1 = 0b00; // 0b00 => 0
             break;
         case BREAK_ON_WRITE_ONLY:
-            Dr7.ReadWrite1 = 1; // 0b01 => 1
+            Dr7.ReadWrite1 = 0b01; // 0b01 => 1
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
-            Dr7.ReadWrite1 = 2; // 0b10 => 2
+            Dr7.ReadWrite1 = 0b10; // 0b10 => 2
             LogError("I/O access breakpoint by debug regs are not supported.");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
-            Dr7.ReadWrite1 = 3; // 0x11 => 3
+            Dr7.ReadWrite1 = 0b11; // 0b11 => 3
             break;
 
         default:
@@ -982,7 +986,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     else if (DebugRegNum == 2)
     {
         __writedr(2, TargetAddress);
-        Dr7.LocalBreakpoint2 = 1;
+        Dr7.GlobalBreakpoint2 = 1;
 
         //
         // Based on SDM :
@@ -997,18 +1001,18 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
         switch (ActionType)
         {
         case BREAK_ON_INSTRUCTION_FETCH:
-            Dr7.ReadWrite2 = 0; // 0b00 => 0
+            Dr7.ReadWrite2 = 0b00; // 0b00 => 0
             break;
         case BREAK_ON_WRITE_ONLY:
-            Dr7.ReadWrite2 = 1; // 0b01 => 1
+            Dr7.ReadWrite2 = 0b01; // 0b01 => 1
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
-            Dr7.ReadWrite2 = 2; // 0b10 => 2
+            Dr7.ReadWrite2 = 0b10; // 0b10 => 2
             LogError("I/O access breakpoint by debug regs are not supported.");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
-            Dr7.ReadWrite2 = 3; // 0x11 => 3
+            Dr7.ReadWrite2 = 0b11; // 0b11 => 3
             break;
 
         default:
@@ -1023,7 +1027,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     else if (DebugRegNum == 3)
     {
         __writedr(3, TargetAddress);
-        Dr7.LocalBreakpoint3 = 1;
+        Dr7.GlobalBreakpoint3 = 1;
 
         //
         // Based on SDM :
@@ -1038,18 +1042,18 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
         switch (ActionType)
         {
         case BREAK_ON_INSTRUCTION_FETCH:
-            Dr7.ReadWrite3 = 0; // 0b00 => 0
+            Dr7.ReadWrite3 = 0b00; // 0b00 => 0
             break;
         case BREAK_ON_WRITE_ONLY:
-            Dr7.ReadWrite3 = 1; // 0b01 => 1
+            Dr7.ReadWrite3 = 0b01; // 0b01 => 1
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
-            Dr7.ReadWrite3 = 2; // 0b10 => 2
+            Dr7.ReadWrite3 = 0b10; // 0b10 => 2
             LogError("I/O access breakpoint by debug regs are not supported.");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
-            Dr7.ReadWrite3 = 3; // 0x11 => 3
+            Dr7.ReadWrite3 = 0b11; // 0b11 => 3
             break;
 
         default:
@@ -1063,7 +1067,9 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     }
 
     //
-    // apply debug register 7
+    // Applies to debug register 7, the caller must be sure that Load Debug
+    // Controls and Save Debug Controls on VM-entry and VM-exit controls
+    // on the VMCS of the target core
     //
     if (ApplyToVmcs)
     {
@@ -1188,7 +1194,6 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         //
         // Enable Thread Change Detection
         // *** Read the address of GS:188 to g_CurrentThreadLocation ***
-        // Note, set on on each core seprately
         //
 
         //
@@ -1221,20 +1226,24 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState = TRUE;
 
         //
+        // Enable load debug controls and save debug controls because we don't
+        // want dr7 and dr0 remove their configuration on vm-exits and also
+        // we'll be able to change the dr7 of the guest on VMCS
+        //
+        AsmVmxVmcall(VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS, 0, 0, 0);
+        AsmVmxVmcall(VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS, 0, 0, 0);
+
+        //
         // Intercept #DBs by changing exception bitmap (one core)
         //
         AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
 
         //
-        // Enables mov to debug registers exitings in primary cpu-based controls
-        // it is because I realized that some other routines in Windows like
-        // KiSaveProcessorControlState and KiRestoreProcessorControlState and
-        // other functions directly change the debug registers, probably
-        // because we should not modify debug registers directly, by the way, we
-        // are hypervisor and we can easily ignore mov to debug register (0 in
-        // this case), however we should somehow hide this process in the future
+        // Note, this function is running as a DPC routines, means that
+        // we're currently on DISPATCH_LEVEL so after modifying debug
+        // registers and after disabling mov to dr (using vmcall),
+        // nothing is able to change debug registers so it's safe
         //
-        AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
 
         //
         // Set debug register to fire an exception in the case of
@@ -1249,6 +1258,17 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
             BREAK_ON_WRITE_ONLY,
             FALSE,
             g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
+
+        //
+        // Enables mov to debug registers exitings in primary cpu-based controls
+        // it is because I realized that some other routines in Windows like
+        // KiSaveProcessorControlState and KiRestoreProcessorControlState and
+        // other functions directly change the debug registers, probably
+        // because we should not modify debug registers directly, by the way, we
+        // are hypervisor and we can easily ignore mov to debug register (0 in
+        // this case), however we should somehow hide this process in the future
+        //
+        AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
     }
     else
     {
@@ -1271,6 +1291,13 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         // Not intercept #DBs by changing exception bitmap (one core)
         //
         AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+        //
+        // Disable load debug controls and save debug controls because
+        // no longer needed
+        //
+        AsmVmxVmcall(VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS, 0, 0, 0);
+        AsmVmxVmcall(VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS, 0, 0, 0);
 
         //
         // No longer need to store such gs:188 value
@@ -1308,13 +1335,4 @@ VOID
 SteppingsHandleThreadChanges(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
 {
     LogInfo("Current Thread Id : 0x%x", PsGetCurrentThreadId());
-
-    //
-    // Set the debug reg again
-    //
-    SteppingsSetDebugRegister(
-        0,
-        BREAK_ON_WRITE_ONLY,
-        FALSE,
-        g_GuestState[ProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
 }

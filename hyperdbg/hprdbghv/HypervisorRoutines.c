@@ -811,10 +811,73 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     {
         CpuBasedVmExecControls &= ~CPU_BASED_MONITOR_TRAP_FLAG;
     }
+
     //
     // Set the new value
     //
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
+ * 
+ * @param Set Set or unset 
+ * @return VOID 
+ */
+VOID
+HvSetLoadDebugControls(BOOLEAN Set)
+{
+    ULONG VmentryControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VM_ENTRY_CONTROLS, &VmentryControls);
+
+    if (Set)
+    {
+        VmentryControls |= VM_ENTRY_LOAD_DEBUG_CONTROLS;
+    }
+    else
+    {
+        VmentryControls &= ~VM_ENTRY_LOAD_DEBUG_CONTROLS;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VM_ENTRY_CONTROLS, VmentryControls);
+}
+
+/**
+ * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
+ * 
+ * @param Set Set or unset 
+ * @return VOID 
+ */
+VOID
+HvSetSaveDebugControls(BOOLEAN Set)
+{
+    ULONG VmexitControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(VM_EXIT_CONTROLS, &VmexitControls);
+
+    if (Set)
+    {
+        VmexitControls |= VM_EXIT_SAVE_DEBUG_CONTROLS;
+    }
+    else
+    {
+        VmexitControls &= ~VM_EXIT_SAVE_DEBUG_CONTROLS;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(VM_EXIT_CONTROLS, VmexitControls);
 }
 
 /**

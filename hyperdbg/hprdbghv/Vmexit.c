@@ -407,7 +407,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_DR_ACCESS:
     {
         //
-        // Handle access to debug registers, if we should not ignore it
+        // Handle access to debug registers, if we should not ignore it, it is
+        // because on detecting thread scheduling we ignore the hardware debug
+        // registers modifications
         //
         if (!g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState)
         {
@@ -415,20 +417,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
             //
             // Trigger the event
-            //
             // As the context to event trigger, we send NULL
             //
             DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED, GuestRegs, NULL);
-        }
-        else
-        {
-            //
-            // Make sure nobody change the drs at the middle of detection
-            //
-            SteppingsSetDebugRegister(0,
-                                      BREAK_ON_WRITE_ONLY,
-                                      FALSE,
-                                      g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
         }
 
         break;

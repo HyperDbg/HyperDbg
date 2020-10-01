@@ -201,6 +201,38 @@
  */
 #define VMCALL_UNSET_EXCEPTION_BITMAP 0x1f
 
+/**
+ * @brief VMCALL to set VM-entry LOAD DEBUG CONTROLS
+ * @details This control determines whether DR7 and the
+ * IA32_DEBUGCTL MSR are loaded on VM entry.
+ * 
+ */
+#define VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x20
+
+/**
+ * @brief VMCALL to unset VM-entry LOAD DEBUG CONTROLS
+ * @details This control determines whether DR7 and the
+ * IA32_DEBUGCTL MSR are loaded on VM entry.
+ * 
+ */
+#define VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x21
+
+/**
+ * @brief VMCALL to set VM-exit SAVE DEBUG CONTROLS
+ * @details This control determines whether DR7 and the
+ * IA32_DEBUGCTL MSR are saved on VM exit.
+ * 
+ */
+#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x22
+
+/**
+ * @brief VMCALL to unset VM-exit SAVE DEBUG CONTROLS
+ * @details This control determines whether DR7 and the
+ * IA32_DEBUGCTL MSR are saved on VM exit.
+ * 
+ */
+#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x23
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
