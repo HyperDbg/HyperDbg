@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Initialize the stepping (step in/step out) mechanism
+ * 
+ * @return BOOLEAN if TRUE means the initialization was succesfful
+ * other it was failed
+ */
 BOOLEAN
 SteppingsInitialize()
 {
@@ -99,11 +105,16 @@ SteppingsInitialize()
     //
     // Test
     //
-    SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
+    // SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
 
     return TRUE;
 }
 
+/**
+ * @brief Uninitialize the stepping (step in/step out) mechanism
+ * 
+ * @return VOID 
+ */
 VOID
 SteppingsUninitialize()
 {
@@ -180,7 +191,15 @@ SteppingsUninitialize()
     }
 }
 
-// should be called from vmx non-root
+/**
+ * @brief Intercept thread and start the process of debugging
+ * a special thread
+ * @details Should be called from vmx non-root
+ * 
+ * @param ProcessId Target process id
+ * @param ThreadId Target thread id
+ * @return VOID 
+ */
 VOID
 SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 {
@@ -254,6 +273,18 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
 }
 
 // should be called in vmx root
+/**
+ * @brief Check and handle Clock Interrupt (timer interrupt) 
+ * if it was related to the Clock or IPI to intercept the 
+ * inital state of the target thread (among with gp registers)
+ * 
+ * @param GuestRegs Guest State (general-purpose register) collected
+ * on vm-exit handler
+ * @param ProcessorIndex The index of current processor that calls this
+ * function
+ * @param InterruptExit Interrupt exit reason
+ * @return VOID 
+ */
 VOID
 SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex, PVMEXIT_INTERRUPT_INFO InterruptExit)
 {
@@ -431,7 +462,22 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
     }
 }
 
-// should be called in vmx root
+/**
+ * @brief Handle target thread after interception to allocated and
+ * change its paging details and save the state to have a trace from
+ * the current thread
+ * @details should be called in vmx-root
+ * 
+ * @param GuestRegs General purpose register intercepted from vm-exit
+ * @param ThreadDetailsBuffer Allocated detail buffer of thread
+ * @param ProcessorIndex Index of current process
+ * @param KernelCr3 KPTI kernel cr3 of target process containing the
+ * the thread
+ * @param ProcessId process id of target process containing the the 
+ * thread
+ * @param ThreadId thread id of target thread
+ * @return VOID 
+ */
 VOID
 SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEPPING_THREAD_DETAILS ThreadDetailsBuffer, UINT32 ProcessorIndex, CR3_TYPE KernelCr3, UINT32 ProcessId, UINT32 ThreadId)
 {
@@ -687,6 +733,13 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     return TRUE;
 }
 
+/**
+ * @brief Handle cr3 vm-exits to detect process changes
+ * 
+ * @param NewCr3 The new value that will be put to cr3
+ * @param ProcessorIndex Index of processors
+ * @return VOID 
+ */
 VOID
 SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex)
 {
@@ -821,6 +874,13 @@ SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest)
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Handle debugging state of the thread (changing the paging structures)
+ * 
+ * @param ThreadSteppingDetail Stepping detail of the target thread
+ * @param ProcessorIndex Index of processor
+ * @return VOID 
+ */
 VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex)
 {
@@ -852,12 +912,27 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
     HvSetExternalInterruptExiting(TRUE);
 }
 
-// if apply to vmcs is true then should be called at vmx-root mode
-// Applies to only one core
-// the caller must be sure that Load Debug Controls and Save Debug
-// Controls on VM-entry and VM-exit controls on the VMCS of the
-// target core, vmcalls VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS and
-// VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designd for this purpose
+/**
+ * @brief Configure hardware debug register for access, write and 
+ * fetch breakpoints
+ * @details if apply to vmcs is true then should be called at vmx-root mode
+ * keep in mind that it applies only on one core
+ * Also, the caller must be sure that Load Debug Controls and Save Debug
+ * Controls on VM-entry and VM-exit controls on the VMCS of the
+ * target core, vmcalls VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS and
+ * VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS are designd for this purpose
+ * should be called on vmx-root mode if the ApplyToVmcs is TRUE
+ * 
+ * @param DebugRegNum Debug register that want to apply to it (can be between
+ * 0 to 3 as current processors support only 4 locations on hardware debug
+ * register)
+ * @param ActionType Type of breakpoint (Access, write, fetch)
+ * @param ApplyToVmcs Apply on GUEST_RIP register of VMCS, see details above
+ * for more information
+ * @param TargetAddress Target breakpoint virtual address
+ * @return BOOLEAN If TRUE, shows the request configuration is correct, otherwise
+ * it's either not supported or not correct configuration
+ */
 BOOLEAN
 SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
@@ -908,10 +983,10 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
 
         //
         // Based on SDM :
-        //   00 — Break on instruction execution only.
-        //   01 — Break on data writes only.
-        //   10 — Break on I/O reads or writes.
-        //   11 — Break on data reads or writes but not instruction fetches
+        //   00 - Break on instruction execution only.
+        //   01 - Break on data writes only.
+        //   10 - Break on I/O reads or writes.
+        //   11 - Break on data reads or writes but not instruction fetches
         // Also 10, is based on another bit so it is configured based on
         // other bits, read the SDM for more.
         //
@@ -949,10 +1024,10 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
 
         //
         // Based on SDM :
-        //   00 — Break on instruction execution only.
-        //   01 — Break on data writes only.
-        //   10 — Break on I/O reads or writes.
-        //   11 — Break on data reads or writes but not instruction fetches
+        //   00 - Break on instruction execution only.
+        //   01 - Break on data writes only.
+        //   10 - Break on I/O reads or writes.
+        //   11 - Break on data reads or writes but not instruction fetches
         // Also 10, is based on another bit so it is configured based on
         // other bits, read the SDM for more.
         //
@@ -990,10 +1065,10 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
 
         //
         // Based on SDM :
-        //   00 — Break on instruction execution only.
-        //   01 — Break on data writes only.
-        //   10 — Break on I/O reads or writes.
-        //   11 — Break on data reads or writes but not instruction fetches
+        //   00 - Break on instruction execution only.
+        //   01 - Break on data writes only.
+        //   10 - Break on I/O reads or writes.
+        //   11 - Break on data reads or writes but not instruction fetches
         // Also 10, is based on another bit so it is configured based on
         // other bits, read the SDM for more.
         //
@@ -1031,10 +1106,10 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
 
         //
         // Based on SDM :
-        //   00 — Break on instruction execution only.
-        //   01 — Break on data writes only.
-        //   10 — Break on I/O reads or writes.
-        //   11 — Break on data reads or writes but not instruction fetches
+        //   00 - Break on instruction execution only.
+        //   01 - Break on data writes only.
+        //   10 - Break on I/O reads or writes.
+        //   11 - Break on data reads or writes but not instruction fetches
         // Also 10, is based on another bit so it is configured based on
         // other bits, read the SDM for more.
         //
@@ -1083,7 +1158,14 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
     return TRUE;
 }
 
-// should be called from vmx non-root
+/**
+ * @brief Attach or detach to the target thread (interpret user-mode)
+ * request
+ * @details should be called from vmx non-root
+ * 
+ * @param AttachOrDetachRequest Information needed for attach or detach
+ * @return VOID 
+ */
 VOID
 SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachOrDetachRequest)
 {
@@ -1175,7 +1257,18 @@ SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     AttachOrDetachRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 }
 
-// Should be executed from vmx non-root
+/**
+ * @brief Enable or disable the thread change monitoring detection 
+ * on the running core
+ * @details should be called on DISPATCH_LEVEL and should be
+ * called on vmx non-root
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
 VOID
 SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 
@@ -1316,7 +1409,14 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
     KeSignalCallDpcDone(SystemArgument1);
 }
 
-// Should be executed from vmx non-root
+/**
+ * @brief Enable or disable the thread change monitoring detection 
+ * on all the running core by firing DPC
+ * @details Should be executed from vmx non-root
+ * 
+ * @param Enable 
+ * @return VOID 
+ */
 VOID
 SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(BOOLEAN Enable)
 {
@@ -1330,7 +1430,15 @@ SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(BOOLEAN Enable)
     }
 }
 
-// will be called in vmx root
+/**
+ * @brief Callback function that will be called in the case of 
+ *  changing threads   
+ * @details will be called in vmx root
+ * 
+ * @param GuestRegs gp-registers collected on vm-exit handler
+ * @param ProcessorIndex Index of the current processor
+ * @return VOID 
+ */
 VOID
 SteppingsHandleThreadChanges(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
 {
