@@ -86,7 +86,7 @@ AsmVmexitHandler PROC
     pop r14
     pop r15
 
-    ; ------------ Restor XMM Registers ------------
+    ; ------------ Restore XMM Registers ------------
     ;
     ;   movaps xmm0, xmmword ptr [rsp+000h]
     ;   movaps xmm1, xmmword ptr [rsp+010h]

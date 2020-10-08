@@ -183,7 +183,7 @@ typedef enum _DEBUGGER_EVENT_TYPE_ENUM {
  */
 typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM {
   BREAK_TO_DEBUGGER,
-  LOG_THE_STATES,
+  RUN_SCRIPT,
   RUN_CUSTOM_CODE
 
 } DEBUGGER_EVENT_ACTION_TYPE_ENUM;
@@ -650,125 +650,18 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS {
  */
 #define DEBUGGER_EVENT_ALL_IO_PORTS 0xffffffff
 
-//
-// Pseudo Regs Mask (It's a mask not a value)
-//
+ /* ==============================================================================================
+  */
 
 /**
- * @brief equals to @$proc in windbg that shows the current eprocess
- */
-#define GUEST_PSEUDO_REG_PROC 0x1
-
-/**
- * @brief equals to @$ra in windbg that shows the return address that is
- * currently on the stack
- */
-#define GUEST_PSEUDO_REG_PROC 0x2
-
-/**
- * @brief equals to @$ip in windbg that shows the instruction pointer register
- */
-#define GUEST_PSEUDO_REG_PROC 0x4
-
-/**
- * @brief equals to @$thread in windbg that shows the address of the current
- * thread's ethread
- */
-#define GUEST_PSEUDO_REG_PROC 0x8
-
-/**
- * @brief equals to @$thread in windbg that shows the address of the current
- * thread's ethread
- */
-#define GUEST_PSEUDO_REG_PROC 0x10
-
-/**
- * @brief equals to @$peb in windbg that shows the address of the process
- * environment block(PEB) of the current process
- */
-#define GUEST_PSEUDO_REG_PROC 0x20
-
-/**
- * @brief equals to @$teb in windbg that shows the address of the thread
- * environment block(TEB) of the current thread
- */
-#define GUEST_PSEUDO_REG_PROC 0x40
-
-/**
- * @brief equals to @$tpid in windbg that shows the process ID(PID) for the
- * process that owns the current thread
- */
-#define GUEST_PSEUDO_REG_PROC 0x80
-
-/**
- * @brief equals to @$tid in windbg that shows the thread ID for the current
- * thread
- */
-#define GUEST_PSEUDO_REG_PROC 0x100
-
-//
-// GP Regs Mask (It's a mask not a value)
-//
-#define GUEST_GP_REG_RAX 0x1
-#define GUEST_GP_REG_RCX 0x2
-#define GUEST_GP_REG_RDX 0x4
-#define GUEST_GP_REG_RBX 0x8
-#define GUEST_GP_REG_RSP 0x10
-#define GUEST_GP_REG_RBP 0x20
-#define GUEST_GP_REG_RSI 0x40
-#define GUEST_GP_REG_RDI 0x80
-#define GUEST_GP_REG_R8 0x100
-#define GUEST_GP_REG_R9 0x200
-#define GUEST_GP_REG_R10 0x400
-#define GUEST_GP_REG_R11 0x800
-#define GUEST_GP_REG_R12 0x1000
-#define GUEST_GP_REG_R13 0x2000
-#define GUEST_GP_REG_R14 0x4000
-#define GUEST_GP_REG_R15 0x8000
-#define GUEST_GP_REG_RFLAGS 0x10000
-
-/**
- * @brief different types of log the states
+ * @brief Used for run the script
  *
  */
-typedef enum _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE {
+typedef struct _DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION {
+  UINT64 Test; 
 
-  //
-  // Read the results
-  //
-  GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS, // r rax
-  GUEST_LOG_READ_STATIC_MEMORY_ADDRESS,     // dc fffff80126551180
-  GUEST_LOG_READ_REGISTER_MEMORY_ADDRESS,   // dc poi(rax)
-
-  GUEST_LOG_READ_POI_REGISTER_ADD_VALUE,      // dc poi(rax) + xx
-  GUEST_LOG_READ_POI_REGISTER_SUBTRACT_VALUE, // dc poi(rax) - xx
-
-  GUEST_LOG_READ_POI_REGISTER_PLUS_VALUE,  // dc poi(rax + xx)
-  GUEST_LOG_READ_POI_REGISTER_MINUS_VALUE, // dc poi(rax- xx)
-
-  GUEST_LOG_READ_PSEUDO_REGISTER, // r @$proc
-
-  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_ADD_VALUE,      // dc @$proc + xx
-  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_SUBTRACT_VALUE, // dc @$proc - xx
-
-  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_PLUS_VALUE,  // dc poi(@$proc - xx)
-  GUEST_LOG_READ_MEMORY_PSEUDO_REGISTER_MINUS_VALUE, // dc poi(@$proc - xx)
-
-} DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE;
-
-/**
- * @brief Used for log the states
- *
- */
-typedef struct _DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION {
-  DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION_TYPE
-  LogType;          // Type of log (how to log)
-  UINT64 LogMask;   // Mask (e.g register)
-  UINT64 LogValue;  // additions or subtraction value
-  UINT32 LogLength; // Length of Bytes
-
-} DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION,
-    *PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION;
+} DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION,
+    *PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION;
 
 /**
  * @brief used in the case of requesting a "request buffer"
@@ -807,8 +700,8 @@ typedef struct _DEBUGGER_EVENT_ACTION {
                                      // or store them in another structure and
                                      // send multiple of them each time
 
-  DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION
-  LogConfiguration; // If it's Log the Statess
+  DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION
+  LogConfiguration; // If it's run script
 
   DEBUGGER_EVENT_REQUEST_BUFFER
   RequestedBuffer; // if it's a custom code and needs a buffer then we use

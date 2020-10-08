@@ -105,7 +105,7 @@ SteppingsInitialize()
     //
     // Test
     //
-    // SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
+    SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
 
     return TRUE;
 }
@@ -360,12 +360,12 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         // the thread page and we saved all the page entry details
         // (original & noped) into the thread buffer detail, as the
         // causing vm-exit for each external-interrupt is slow, so
-        // we set vm-exit on cr3 changes to keep noping the target
+        // we set vm-exit on thread changes to keep noping the target
         // page only if we are in the target process and thread and
         // after that we will configure to cause vm-exits again to
         // revert ept to its initial state when we finished with proocess
         //
-        HvSetMovToCr3Vmexit(TRUE);
+        SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
     }
     else
     {
@@ -523,6 +523,7 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     ThreadDetailsBuffer->ThreadKernelCr3     = KernelCr3;
     ThreadDetailsBuffer->ThreadUserCr3       = GuestCr3;
     ThreadDetailsBuffer->ThreadRip           = GuestRip;
+    ThreadDetailsBuffer->ThreadStructure     = PsGetCurrentThread();
 
     //
     // Save the general purpose registers
@@ -568,13 +569,13 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     // GUEST_RIP to a swapped nop page and we saved all the
     // page entry details (original & noped) into the thread
     // buffer detail, as the causing vm-exit for each external-
-    // interrupt is slow, so we set vm-exit on cr3 changes to
+    // interrupt is slow, so we set vm-exit on threads changes to
     // keep noping the target page only if we are in the target
     // process and thread and after that we will configure to
     // cause vm-exits again to revert ept to its initial state
     // when we finished with proocess
     //
-    HvSetMovToCr3Vmexit(TRUE);
+    SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
 
     //
     // Add the thread debugging details into the list
@@ -1241,14 +1242,14 @@ SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 
     //
     // Check if there was only one thread in the debugging list then we have
-    // to disable cr3 exitings on all cores
+    // to disable thread change exitings on all cores
     //
     if (!MultipleThreadsInList)
     {
         //
-        // Disable cr3-exitings on all cores
+        // Disable thread change exitings on all cores
         //
-        DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
+        SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(FALSE);
     }
 
     //
@@ -1443,4 +1444,40 @@ VOID
 SteppingsHandleThreadChanges(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex)
 {
     LogInfo("Current Thread Id : 0x%x", PsGetCurrentThreadId());
+    return;
+    PLIST_ENTRY TempList = 0;
+
+    //
+    // We have to iterate through the list of active debugging thread details
+    //
+    TempList = &g_ThreadDebuggingStates;
+    while (&g_ThreadDebuggingStates != TempList->Flink)
+    {
+        TempList                                                       = TempList->Flink;
+        PDEBUGGER_STEPPING_THREAD_DETAILS CurrentThreadDebuggingDetail = CONTAINING_RECORD(TempList,
+                                                                                           DEBUGGER_STEPPING_THREAD_DETAILS,
+                                                                                           DebuggingThreadsList);
+        //
+        // If its not enabled, we don't have to do anything
+        //
+        if (!CurrentThreadDebuggingDetail->Enabled)
+        {
+            continue;
+        }
+
+        //
+        // Now, we should check whether the following thread is in the list of
+        // threads that currently debugging or not (by it's GUEST_CR3 and process
+        // id and thread id)
+        //
+        if (/*CurrentThreadDebuggingDetail->ThreadUserCr3.Flags == NewCr3.Flags &&*/
+            CurrentThreadDebuggingDetail->ThreadStructure == PsGetCurrentThread())
+        {
+            DbgBreakPoint();
+            //
+            // This thread is on the debugging list
+            //
+            SteppingsHandlesDebuggedThread(CurrentThreadDebuggingDetail, ProcessorIndex);
+        }
+    }
 }

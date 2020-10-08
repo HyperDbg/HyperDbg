@@ -319,6 +319,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             //
             g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
         }
+        else if (g_GuestState[CurrentProcessorIndex].MtfTest)
+        {
+            SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
+            g_GuestState[CurrentProcessorIndex].MtfTest = FALSE;
+        }
         else
         {
             LogError("Why MTF occured ?!");

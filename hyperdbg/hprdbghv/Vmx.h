@@ -578,6 +578,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VMX_VMXOFF_STATE                        VmxoffState;             // Shows the vmxoff state of the guest
     VM_EXIT_TRANSPARENCY                    TransparencyState;       // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL                 MtfEptHookRestorePoint;  // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    BOOLEAN                                 MtfTest;                 // It shows the detail of the hooked paged that should be restore in MTF vm-exit
     DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS DebuggerSteppingDetails; // It shows the detail of stepping for debugger
     MEMORY_MAPPER_ADDRESSES                 MemoryMapper;            // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;

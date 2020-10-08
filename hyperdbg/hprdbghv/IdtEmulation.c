@@ -181,6 +181,8 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         if (g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState)
         {
             SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
+            // HvSetMonitorTrapFlag(TRUE);
+            //g_GuestState[CurrentProcessorIndex].MtfTest = TRUE;
         }
         else
         {

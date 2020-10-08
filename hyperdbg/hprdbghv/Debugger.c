@@ -245,11 +245,11 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
  * @param SendTheResultsImmediately whether the results should be received
  * by the user-mode immediately
  * @param InTheCaseOfCustomCode Custom code structure (if any)
- * @param InTheCaseOfLogTheStates Log the state structure (if any)
+ * @param InTheCaseOfRunScript Run script structure (if any)
  * @return PDEBUGGER_EVENT_ACTION 
  */
 PDEBUGGER_EVENT_ACTION
-DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_LOG_CONFIGURATION InTheCaseOfLogTheStates)
+DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
 {
     PDEBUGGER_EVENT_ACTION Action;
     SIZE_T                 Size;
@@ -354,14 +354,14 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     }
 
     //
-    // If it's log the states action type
+    // If it's run script action type
     //
-    if (ActionType == LOG_THE_STATES)
+    if (ActionType == RUN_SCRIPT)
     {
-        Action->LogConfiguration.LogLength = InTheCaseOfLogTheStates->LogLength;
+        /* Action->LogConfiguration.LogLength = InTheCaseOfLogTheStates->LogLength;
         Action->LogConfiguration.LogMask   = InTheCaseOfLogTheStates->LogMask;
         Action->LogConfiguration.LogType   = InTheCaseOfLogTheStates->LogType;
-        Action->LogConfiguration.LogValue  = InTheCaseOfLogTheStates->LogValue;
+        Action->LogConfiguration.LogValue  = InTheCaseOfLogTheStates->LogValue;*/
     }
 
     //
@@ -851,8 +851,8 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
         case BREAK_TO_DEBUGGER:
             DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
             break;
-        case LOG_THE_STATES:
-            DebuggerPerformLogTheStates(Event->Tag, CurrentAction, Regs, Context);
+        case RUN_SCRIPT:
+            DebuggerPerformRunScript(Event->Tag, CurrentAction, Regs, Context);
             break;
         case RUN_CUSTOM_CODE:
             DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
@@ -882,7 +882,7 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 }
 
 /**
- * @brief Managing log the state action
+ * @brief Managing run script action
  * 
  * @param Tag Tag of event
  * @param Action Action object
@@ -891,19 +891,12 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
  * @return VOID 
  */
 VOID
-DebuggerPerformLogTheStates(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
     //
     // Context point to the registers
     //
     DbgBreakPoint();
-
-    //   Action->LogConfiguration.LogValue
-    //   Action->LogConfiguration.LogType
-    //   Action->LogConfiguration.LogMask
-    //   Action->LogConfiguration.LogLength
-    //   Action->ImmediatelySendTheResults
-    //   Action->ActionOrderCode
 }
 
 /**
@@ -2172,7 +2165,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         DebuggerEnableEvent(Event->Tag);
     }
-    else if (Action->ActionType == LOG_THE_STATES)
+    else if (Action->ActionType == RUN_SCRIPT)
     {
         DbgBreakPoint();
     }
@@ -2587,15 +2580,15 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
 //   //
 //
 //   //
-//   // Add action for LOG_THE_STATES
+//   // Add action for RUN_SCRIPT
 //   //
-//   DEBUGGER_EVENT_ACTION_LOG_CONFIGURATION LogConfiguration = {0};
+//   DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION LogConfiguration = {0};
 //   LogConfiguration.LogType                                 = GUEST_LOG_READ_GENERAL_PURPOSE_REGISTERS;
 //   LogConfiguration.LogLength                               = 0x10;
 //   LogConfiguration.LogMask                                 = 0x1;
 //   LogConfiguration.LogValue                                = 0x4;
 //
-//   DebuggerAddActionToEvent(Event1, LOG_THE_STATES, TRUE, NULL, &LogConfiguration);
+//   DebuggerAddActionToEvent(Event1, RUN_SCRIPT, TRUE, NULL, &LogConfiguration);
 //
 //   //
 //   // Add action for RUN_CUSTOM_CODE

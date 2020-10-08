@@ -50,6 +50,7 @@ typedef struct _DEBUGGER_STEPPING_THREAD_DETAILS
     UINT64                           BufferAddressToFree;
     UINT32                           ProcessId;
     UINT32                           ThreadId;
+    PETHREAD                         ThreadStructure;
     CR3_TYPE                         ThreadKernelCr3;
     CR3_TYPE                         ThreadUserCr3;
     UINT64                           ThreadRip;
