@@ -52,7 +52,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Transparent-mode (Anti-debugging and Anti-hypervisor Resistance) [<a href="https://docs.hyperdbg.com/design/debugger-internals/transparent-mode" target="_blank">link</a>]
 * Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User) [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>]
 * Checking For Custom Conditions [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-a-condition" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/conditions" target="_blank">link</a>]
-* Log the States Engine [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/actions" target="_blank">link</a>]
+* Script Engine [<a href="https://docs.hyperdbg.com/design/script-engine" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/actions" target="_blank">link</a>]
 * VMX-root Compatible Message Tracing  [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
 * Transparent Breakpoint Handler
 * Various Custom Scripts (e.g DFIR Scripts) [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
