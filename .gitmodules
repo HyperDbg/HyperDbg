@@ -4,3 +4,6 @@
 [submodule "hyperdbg/dependencies/zydis"]
 	path = hyperdbg/dependencies/zydis
 	url = https://github.com/zyantific/zydis
+[submodule "hyperdbg/dependencies/evaluation"]
+	path = hyperdbg/dependencies/evaluation
+	url = https://github.com/HyperDbg/evaluation.git

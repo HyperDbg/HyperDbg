@@ -11,6 +11,10 @@
  */
 #include "pch.h"
 
+extern "C" {
+__declspec(dllimport) void Parse(char *str);
+}
+
 /**
  * @brief help of print command
  *
@@ -40,12 +44,6 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
     return;
   }
 
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
-
   //
   // Trim the command
   //
@@ -62,6 +60,14 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   Trim(Expr);
 
   printf("Expression : %s \n", Expr.c_str());
+
+  Parse((char *)"x=2*2;");
+
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return;
+  }
 
   //
   // Send the request to the kernel
