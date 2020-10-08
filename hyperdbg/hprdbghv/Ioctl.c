@@ -37,12 +37,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS              DebuggerFlushBuffersRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS    DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_STEPPINGS                          DebuggerSteppingsRequest;
+    PDEBUGGER_PRINT                              DebuggerPrintRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
     NTSTATUS                                     Status;
     ULONG                                        InBuffLength;  // Input buffer length
     ULONG                                        OutBuffLength; // Output buffer length
     SIZE_T                                       ReturnSize;
     BOOLEAN                                      DoNotChangeInformation = FALSE;
+    UINT32                                       SizeOfPrintRequestToBeDeliveredToUsermode;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -428,6 +430,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+
         case IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS:
 
             //
@@ -754,6 +757,60 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             SteppingsPerformAction(DebuggerSteppingsRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_STEPPINGS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_DEBUGGER_PRINT:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PRINT ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerPrintRequest = (PDEBUGGER_PRINT)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Here we should validate whether the input parameter is
+            // valid or in other words whether we recieved enough space or not
+            //
+            if (DebuggerPrintRequest->SizeOfEvaluationBuffer != 0 && IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
+                                                                         SIZEOF_DEBUGGER_EDIT_MEMORY + DebuggerPrintRequest->SizeOfEvaluationBuffer)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Perform the steppings action
+            //
+            EvaluationInterpretPrintRequest(DebuggerPrintRequest, (PVOID)DebuggerPrintRequest, &SizeOfPrintRequestToBeDeliveredToUsermode);
+
+            Irp->IoStatus.Information = SizeOfPrintRequestToBeDeliveredToUsermode;
             Status                    = STATUS_SUCCESS;
 
             //

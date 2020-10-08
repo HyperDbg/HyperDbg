@@ -305,6 +305,9 @@
     <ClCompile Include="tests.cpp">
       <Filter>Source Files\Debugger\Tests</Filter>
     </ClCompile>
+    <ClCompile Include="print.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

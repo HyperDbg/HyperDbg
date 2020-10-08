@@ -120,3 +120,5 @@ VOID CommandAttachHelp();
 VOID CommandDetachHelp();
 
 VOID CommandTHelp();
+
+VOID CommandPrintHelp();

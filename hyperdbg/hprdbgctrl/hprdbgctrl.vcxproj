@@ -156,6 +156,7 @@
     <ClCompile Include="pa2va.cpp" />
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="pmc.cpp" />
+    <ClCompile Include="print.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />

@@ -431,6 +431,25 @@ typedef struct _DEBUGGER_STEPPINGS {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_PRINT sizeof(DEBUGGER_PRINT)
+
+/**
+ * @brief request for print
+ *
+ */
+typedef struct _DEBUGGER_PRINT {
+
+  UINT32 SizeOfEvaluationBuffer;
+
+  //
+  // Here is the buffer relating to the
+  //
+
+} DEBUGGER_PRINT, *PDEBUGGER_PRINT;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS                                  \
   sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS)
 
@@ -650,15 +669,15 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS {
  */
 #define DEBUGGER_EVENT_ALL_IO_PORTS 0xffffffff
 
- /* ==============================================================================================
-  */
+/* ==============================================================================================
+ */
 
 /**
  * @brief Used for run the script
  *
  */
 typedef struct _DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION {
-  UINT64 Test; 
+  UINT64 Test;
 
 } DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION,
     *PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION;
@@ -994,3 +1013,10 @@ typedef struct _DEBUGGER_EVENT {
  */
 #define IOCTL_DEBUGGER_STEPPINGS                                               \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80f, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, print states
+ *
+ */
+#define IOCTL_DEBUGGER_PRINT                                                   \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x810, METHOD_BUFFERED, FILE_ANY_ACCESS)

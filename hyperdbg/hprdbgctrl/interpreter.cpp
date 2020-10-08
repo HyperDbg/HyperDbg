@@ -232,6 +232,13 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandScript(SplittedCommand, CommandString);
 
+  } else if (!FirstCommand.compare("print")) {
+
+    if (HelpCommand)
+      CommandPrintHelp();
+    else
+      CommandPrint(SplittedCommand, CommandString);
+
   } else if (!FirstCommand.compare(".logopen")) {
 
     if (HelpCommand)
@@ -503,7 +510,8 @@ VOID HyperdbgShowSignature() {
     }
 
   } else if (g_DebuggingState.IsAttachedToUsermodeProcess) {
-    ShowMessages("HyperDbg (%x:%x) >", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
+    ShowMessages("HyperDbg (%x:%x) >", g_DebuggingState.ConnectedProcessId,
+                 g_DebuggingState.ConnectedThreadId);
   } else {
     ShowMessages("HyperDbg >");
   }
