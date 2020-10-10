@@ -37,6 +37,9 @@ VOID DetachFromProcess() {
   ULONG ReturnedLength;
   DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
+  ShowMessages("This command is not supported on this version.\n");
+  return;
+
   //
   // Check if we attached to a process or not
   //

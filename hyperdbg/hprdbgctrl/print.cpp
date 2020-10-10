@@ -12,7 +12,7 @@
 #include "pch.h"
 
 extern "C" {
-__declspec(dllimport) void Parse(char *str);
+__declspec(dllimport) void Parse(const char *str);
 }
 
 VOID TestParser(string Expr);
@@ -182,7 +182,7 @@ VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
   //
   // Test Parst
   //
-  Parse((char *)Expr.c_str());
+  Parse("X=1*2;");
 }
 
 VOID TestParser(string Expr) {

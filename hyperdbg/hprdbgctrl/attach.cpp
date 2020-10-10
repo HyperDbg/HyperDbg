@@ -191,6 +191,9 @@ VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid) {
   ULONG ReturnedLength;
   DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
 
+  ShowMessages("This command is not supported on this version.\n");
+  return;
+
   //
   // Check if debugger is loaded or not
   //
