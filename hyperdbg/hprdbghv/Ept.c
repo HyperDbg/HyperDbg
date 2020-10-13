@@ -254,6 +254,12 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
     //
     if (!TargetEntry->LargePage)
     {
+        //
+        // As it's a large page and we request a pool for it, we need to
+        // free the pool because it's not used anymore
+        //
+        PoolManagerFreePool(PreAllocatedBuffer);
+
         return TRUE;
     }
 
