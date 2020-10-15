@@ -182,6 +182,8 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   int Index = 0;
   int NewIndexToRemove = 0;
   int OpenBracket = 0;
+  size_t CountOfOpenBrackets;
+  size_t CountOfCloseBrackets;
 
   for (auto Section : *SplittedCommand) {
 
@@ -189,7 +191,7 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
 
     if (IsInState) {
 
-      if (OpenBracket == 0) {
+      if (OpenBracket == 0 && Section.find("{") == string::npos) {
 
         //
         // Check if the buffer is ended or not
@@ -267,6 +269,13 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
         // Add it to the open brackets
         //
         OpenBracket -= CountOfBrackets;
+
+        if (OpenBracket < 0) {
+          OpenBracket = 0;
+          IsEnded = TRUE;
+          SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+          break;
+        }
       }
 
       //
@@ -298,9 +307,30 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
       //
 
       //
+      // Check if script contains bracket "{"
+      //
+      if (Section.find("{") != string::npos) {
+
+        //
+        // We find a { between the script
+        //
+
+        //
+        // Check the count of brackets in the string and add it to OpenBracket
+        //
+        size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+
+        //
+        // Add it to the open brackets (-1 because script starts with { which
+        // is not related to our interpretation of script)
+        //
+        OpenBracket += CountOfBrackets - 1;
+      }
+
+      //
       // Check if it ends with }
       //
-      if (HasEnding(Section, "}")) {
+      if (OpenBracket == 0 && HasEnding(Section, "}")) {
 
         //
         // Save to remove this string from the command
@@ -312,6 +342,33 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
 
         IsEnded = TRUE;
         break;
+      }
+
+      //
+      // Check if script contains bracket "}"
+      //
+      if (Section.find("}") != string::npos) {
+
+        //
+        // We find a } between the script
+        //
+
+        //
+        // Check the count of brackets in the string and add it to OpenBracket
+        //
+        size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+
+        //
+        // Add it to the open brackets
+        //
+        OpenBracket -= CountOfBrackets;
+
+        if (OpenBracket < 0) {
+          OpenBracket = 0;
+          IsEnded = TRUE;
+          SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+          break;
+        }
       }
 
       //
@@ -366,16 +423,27 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
 
       IsTextVisited = TRUE;
       IsInState = TRUE;
+      CountOfOpenBrackets = count(Section.begin(), Section.end(), '{');
+      CountOfCloseBrackets = count(Section.begin(), Section.end(), '}');
 
-      if (!HasEnding(Section, "}")) {
+      //
+      // Check if script contains bracket "{"
+      //
+      if (Section.find("{") != string::npos) {
 
         //
-        // Section starts with script{
+        // We find a { between the script
         //
-        SaveBuffer.push_back(Section.erase(0, 7));
-        continue;
-      } else {
 
+        //
+        // Add it to the open brackets (-1 because script starts with { which
+        // is not related to our interpretation of script)
+        //
+        OpenBracket += CountOfOpenBrackets - 1;
+      }
+
+      if (CountOfOpenBrackets == CountOfCloseBrackets ||
+          (OpenBracket == 0 && HasEnding(Section, "}"))) {
         //
         // remove the last character and first character append it to the
         // ConditionBuffer
@@ -384,7 +452,42 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
         SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
         IsEnded = TRUE;
+        OpenBracket = 0;
         break;
+
+      } else {
+
+        //
+        // Section starts with script{
+        //
+        SaveBuffer.push_back(Section.erase(0, 7));
+
+        //
+        // Check if script contains bracket "}"
+        //
+        if (Section.find("}") != string::npos) {
+
+          //
+          // We find a } between the script
+          //
+
+          //
+          // Check the count of brackets in the string and add it to OpenBracket
+          //
+          size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+
+          //
+          // Add it to the open brackets
+          //
+          OpenBracket -= CountOfBrackets;
+
+          if (OpenBracket < 0) {
+            OpenBracket = 0;
+            IsEnded = TRUE;
+          }
+        }
+
+        continue;
       }
     }
   }
