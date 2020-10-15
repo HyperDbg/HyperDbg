@@ -155,6 +155,304 @@ BOOLEAN IsTagExist(UINT64 Tag) {
 }
 
 /**
+ * @brief Interpret script (if an event has script)
+ * @details If this function returns true then it means that there is a
+ * script in this command split and the details are returned in the
+ * input structure
+ *
+ * @param SplittedCommand the initialized command that are splitted by space
+ * @param BufferAddress the address that the allocated buffer will be saved on
+ * it
+ * @param BufferLength the length of the buffer
+ * @return BOOLEAN shows whether the interpret was successful (true) or not
+ * successful (false)
+ */
+BOOLEAN
+InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
+                PUINT32 BufferLength) {
+
+  BOOLEAN IsTextVisited = FALSE;
+  BOOLEAN IsInState = FALSE;
+  BOOLEAN IsEnded = FALSE;
+  string Temp;
+  string AppendedFinalBuffer;
+  vector<string> SaveBuffer;
+  vector<int> IndexesToRemove;
+  UCHAR *FinalBuffer;
+  int Index = 0;
+  int NewIndexToRemove = 0;
+  int OpenBracket = 0;
+
+  for (auto Section : *SplittedCommand) {
+
+    Index++;
+
+    if (IsInState) {
+
+      if (OpenBracket == 0) {
+
+        //
+        // Check if the buffer is ended or not
+        //
+        if (!Section.compare("}")) {
+
+          //
+          // Save to remove this string from the command
+          //
+          IndexesToRemove.push_back(Index);
+          IsEnded = TRUE;
+          break;
+        }
+
+        //
+        // Check if the script is end or not
+        //
+        if (HasEnding(Section, "}")) {
+
+          //
+          // Save to remove this string from the command
+          //
+          IndexesToRemove.push_back(Index);
+
+          //
+          // remove the last character and append it to the ConditionBuffer
+          //
+          SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+
+          IsEnded = TRUE;
+          break;
+        }
+      }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      //
+      // Check if script contains bracket "{"
+      //
+      if (Section.find("{") != string::npos) {
+
+        //
+        // We find a { between the script
+        //
+
+        //
+        // Check the count of brackets in the string and add it to OpenBracket
+        //
+        size_t CountOfBrackets = count(Section.begin(), Section.end(), '{');
+
+        //
+        // Add it to the open brackets
+        //
+        OpenBracket += CountOfBrackets;
+      }
+
+      //
+      // Check if script contains bracket "}"
+      //
+      if (Section.find("}") != string::npos) {
+
+        //
+        // We find a } between the script
+        //
+
+        //
+        // Check the count of brackets in the string and add it to OpenBracket
+        //
+        size_t CountOfBrackets = count(Section.begin(), Section.end(), '}');
+
+        //
+        // Add it to the open brackets
+        //
+        OpenBracket -= CountOfBrackets;
+      }
+
+      //
+      // Add the text as the script screen
+      //
+      SaveBuffer.push_back(Section);
+
+      //
+      // We want to stay in this condition
+      //
+      continue;
+    }
+
+    if (IsTextVisited && !Section.compare("{")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (IsTextVisited && Section.rfind("{", 0) == 0) {
+
+      //
+      // Section starts with {
+      //
+
+      //
+      // Check if it ends with }
+      //
+      if (HasEnding(Section, "}")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        Temp = Section.erase(0, 1);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      SaveBuffer.push_back(Section.erase(0, 1));
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    //
+    // Check if it's a script
+    //
+    if (!Section.compare("script")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      continue;
+    }
+
+    //
+    // Check if it's a script with script{
+    //
+    if (!Section.compare("script{")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      IsInState = TRUE;
+      continue;
+    }
+
+    //
+    // It's a script
+    //
+    if (Section.rfind("script{", 0) == 0) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      IsInState = TRUE;
+
+      if (!HasEnding(Section, "}")) {
+
+        //
+        // Section starts with script{
+        //
+        SaveBuffer.push_back(Section.erase(0, 7));
+        continue;
+      } else {
+
+        //
+        // remove the last character and first character append it to the
+        // ConditionBuffer
+        //
+        Temp = Section.erase(0, 7);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+    }
+  }
+
+  //
+  // Now we have everything in script buffer
+  // Check to see if it is empty or not
+  //
+  if (SaveBuffer.size() == 0) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // Check if we see that all the '{' ended with '}' or not
+  //
+  if (OpenBracket != 0) {
+    //
+    // Not all open brackets close with a }
+    //
+    return FALSE;
+  }
+
+  //
+  // Check if we see '}' at the end
+  //
+  if (!IsEnded) {
+    //
+    // Nothing in condition buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // If we reach here then there is sth in script buffer
+  //
+  for (auto Section : SaveBuffer) {
+
+    AppendedFinalBuffer.append(Section);
+    AppendedFinalBuffer.append(" ");
+  }
+
+  printf("script : %s\n", AppendedFinalBuffer.c_str());
+
+  //
+  // Set the buffer and length
+  //
+  //*BufferAddress = (UINT64)FinalBuffer;
+  //*BufferLength = ParsedBytes.size();
+
+  //
+  // Removing the script indexes from the command
+  //
+  NewIndexToRemove = 0;
+
+  for (auto IndexToRemove : IndexesToRemove) {
+    NewIndexToRemove++;
+
+    SplittedCommand->erase(SplittedCommand->begin() +
+                           (IndexToRemove - NewIndexToRemove));
+  }
+
+  return TRUE;
+}
+
+/**
  * @brief Interpret conditions (if an event has condition) and custom code
  * @details If this function returns true then it means that there is a condtion
  * or code buffer in this command split and the details are returned in the
@@ -162,14 +460,15 @@ BOOLEAN IsTagExist(UINT64 Tag) {
  *
  * @param SplittedCommand the initialized command that are splitted by space
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
- * @param BufferAddrss the address that the allocated buffer will be saved on it
+ * @param BufferAddress the address that the allocated buffer will be saved on
+ * it
  * @param BufferLength the length of the buffer
  * @return BOOLEAN shows whether the interpret was successful (true) or not
  * successful (false)
  */
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
-                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
+                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddress,
                             PUINT32 BufferLength) {
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -180,6 +479,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
   vector<CHAR> ParsedBytes;
   vector<int> IndexesToRemove;
   UCHAR *FinalBuffer;
+  int NewIndexToRemove = 0;
   int Index = 0;
 
   for (auto Section : *SplittedCommand) {
@@ -385,7 +685,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
         if (!HasEnding(Section, "}")) {
 
           //
-          // Section starts with condition{
+          // Section starts with code{
           //
           SaveBuffer.push_back(Section.erase(0, 5));
           continue;
@@ -485,13 +785,13 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
   //
   // Set the buffer and length
   //
-  *BufferAddrss = (UINT64)FinalBuffer;
+  *BufferAddress = (UINT64)FinalBuffer;
   *BufferLength = ParsedBytes.size();
 
   //
   // Removing the code or condition indexes from the command
   //
-  int NewIndexToRemove = 0;
+  NewIndexToRemove = 0;
   for (auto IndexToRemove : IndexesToRemove) {
     NewIndexToRemove++;
 
@@ -706,10 +1006,13 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT32 ConditionBufferLength = 0;
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
+  UINT64 ScriptBufferAddress;
+  UINT32 ScriptBufferLength = 0;
   UINT32 LengthOfEventBuffer = 0;
   string CommandString;
   BOOLEAN HasConditionBuffer = FALSE;
   BOOLEAN HasCodeBuffer = FALSE;
+  BOOLEAN HasScript = FALSE;
   BOOLEAN IsNextCommandPid = FALSE;
   BOOLEAN IsNextCommandCoreId = FALSE;
   BOOLEAN IsNextCommandBufferSize = FALSE;
@@ -827,6 +1130,27 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     ShowMessages(
         "=============================================================\n");
         */
+  }
+
+  //
+  // Check if there is a Script block in the command
+  //
+  if (!InterpretScript(SplittedCommand, &ScriptBufferAddress,
+                       &ScriptBufferLength)) {
+
+    //
+    // Indicate code is not available
+    //
+    HasScript = FALSE;
+    //
+    // ShowMessages("\nNo script!\n");
+    //
+  } else {
+
+    //
+    // Indicate code is available
+    //
+    HasScript = TRUE;
   }
 
   //

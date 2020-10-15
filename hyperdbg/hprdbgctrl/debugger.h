@@ -36,7 +36,7 @@ BOOLEAN IsTagExist(UINT64 Tag);
 
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
-                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddrss,
+                            BOOLEAN IsConditionBuffer, PUINT64 BufferAddress,
                             PUINT32 BufferLength);
 
 BOOLEAN

@@ -105,7 +105,7 @@ SteppingsInitialize()
     //
     // Test
     //
-    SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
+    // SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(TRUE);
 
     return TRUE;
 }
