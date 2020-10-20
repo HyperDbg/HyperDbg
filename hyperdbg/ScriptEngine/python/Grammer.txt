@@ -1,0 +1,75 @@
+S->C ; S'
+S'->C ; S'
+S'->eps
+C->@PUSH _id = E0 @MOV C'
+C'->eps
+#
+E0->E1 E0'
+E0'->| E1 @OR E0'
+E0'->eps
+
+E1->E2 E1'
+E1'->^ E2 @XOR E1' 
+E1'->eps
+
+E2->E3 E2'
+E2'->& E3 @AND E2' 
+E2'->eps  
+
+E3->E4 E3'
+E3'->>> E4 @ASR E3'
+E3'->eps
+
+E4->E5 E4'
+E4'-><< E5 @ASL E4' 
+E4'->eps
+
+E5->E6 E5'
+E5'->+ E6 @ADD E5'
+E5'->eps
+
+E6->E7 E6'
+E6'->- E7 @SUB E6' 
+E6'->eps
+
+E7->E8 E7'
+E7'->* E8 @MUL E7' 
+E7'->eps
+
+E8->E9 E8'
+E8'->/ E9 @DIV E8'
+E8'->eps 
+
+
+E9->E10 E9' 
+E9'->% E10 @MOD E9'
+E9'->eps 
+
+E10->poi ( E0 @POI ) 
+E10->db ( E0 @DB ) 
+E10->dd ( E0 @DD ) 
+E10->dw ( E0 @DW ) 
+E10->dq ( E0 @DQ ) 
+E10->str ( E0 @STR ) 
+E10->wstr ( E0 @WSTR ) 
+E10->sizeof ( E0 @SIZEOF ) 
+E10->not ( E0 @NOT ) 
+E10->neg ( E0 @NEG ) 
+E10->hi ( E0 @HI )
+E10->low ( E0 @LOW )
+
+
+E10->( E0 )
+
+E10->@PUSH _register
+
+# numbers 
+E10->@PUSH _hex
+E10->@PUSH _decimal
+E10->@PUSH _octal
+E10->@PUSH _binary
+
+
+E10->@PUSH func
+E10->@PUSH _pseudo_register
+

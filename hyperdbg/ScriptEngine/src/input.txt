@@ -1,0 +1,29 @@
+
+
+x1 = poi(poi((poi(($proc&neg(1000`0000))+10)^poi(poi(poi(poi(poi(poi(poi(poi($prcb+18)+220)+648)+8)-240)+2a0)))^neg(0n6708588087252463955)^($proc&neg(100000)))-8)-1080);
+//test= poi(2);
+//a2= poi((01)+ 2 * 3) * poi(2); //  Binary
+//test=dw(@rcx+($proc|3+poi(poi(@rax))));
+/*
+    //test=dq(@rcx)
+    //test=$proc+@rdx
+    //ad1= b2;A
+    //a3 = $rsc34;
+    //a2= 0y0101`1010`1; //  Binary
+    //a10 = 0n34331; // 
+    Decimal
+    //a10 = 0o770; // Octal
+    //test=poi(@rax+a0);
+    //test1=str(poi($proc+10));mytest=str(poi($proc+10));test3=str(poi($proc+10));
+    //test=dw(NtCreateFile+10)
+    //test=dw(NtCreateFile+@rcx+($proc|3+poi(poi(@rax))))
+    //
+    //
+    //$proc =  0xfffff801`42600000
+    //
+    //
+    //csc=0y101010`010101*934;
+    //tsc = 10.032;
+    //
+    //test = 343
+*/
