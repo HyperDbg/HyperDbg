@@ -11,9 +11,9 @@
  */
 #include "pch.h"
 
-extern "C" {
+/*extern "C" {
 __declspec(dllimport) void Parse(const char *str);
-}
+}*/
 
 VOID TestParser(string Expr);
 
@@ -182,7 +182,7 @@ VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
   //
   // Test Parst
   //
-  Parse("X=1*2;");
+  // Parse("X=1*2;");
 }
 
 VOID TestParser(string Expr) {
