@@ -81,6 +81,13 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   //
   Trim(Expr);
 
+  // 
+  // TODO: end of string must have a whitspace. fix it.
+  //
+  Expr.append(" ");
+  //Expr = " x = 4 >> 1; ";
+
+   
   printf("Expression : %s \n", Expr.c_str());
   TestParser(Expr);
   return;
@@ -322,17 +329,77 @@ VOID ScriptEngineExecute(PGUEST_REGS GuestRegs, PSYMBOL_BUFFER CodeBuffer, int& 
             Indx++;
             
             
-            DesVal = SrcVal0 | SrcVal1;
+            DesVal = SrcVal1 | SrcVal0;
             SetValue(GuestRegs, Des, DesVal);
             printf("DesVal = %d\n", DesVal);
                 
             return;
             
         case FUNC_XOR:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+            DesVal = SrcVal1 ^ SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
 
         case FUNC_AND:
-        // ... 
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+            DesVal = SrcVal1 & SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
             return;
+
+        case FUNC_ASR:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+            DesVal = SrcVal1 >> SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
+        case FUNC_ASL:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+            DesVal = SrcVal1 << SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
         case FUNC_ADD:
             Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
             Indx++;
@@ -343,14 +410,157 @@ VOID ScriptEngineExecute(PGUEST_REGS GuestRegs, PSYMBOL_BUFFER CodeBuffer, int& 
 
             
 
-            DesVal = SrcVal0 + SrcVal1;
+            DesVal = SrcVal1 + SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+        case FUNC_SUB:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+
+            DesVal = SrcVal1 - SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+        case FUNC_MUL:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+
+            DesVal = SrcVal1 * SrcVal0;
             SetValue(GuestRegs, Des, DesVal);
             printf("DesVal = %d\n", DesVal);
 
             return;
 
+        case FUNC_DIV:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+
+            DesVal = SrcVal1 / SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+        case FUNC_MOD:
+            Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+            SrcVal1 = GetValue(GuestRegs, Src1);
+
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+
+
+            DesVal = SrcVal1 % SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
+        case FUNC_POI:
+            // TODO: Hanlde poi function 
+            printf("Error: Poi functions is not handled yet.\n");
+
+            return;
+
+        case FUNC_DB:
+            // TODO: Hanlde db function 
+            printf("Error: DB functions is not handled yet.\n");
+
+            return;
+        case FUNC_DW:
+            // TODO: Hanlde dw function 
+            printf("Error: DW functions is not handled yet.\n");
+
+            return;
+        case FUNC_DQ:
+            // TODO: Hanlde dq function 
+            printf("Error: Dq functions is not handled yet.\n");
+
+            return;
+
+        case FUNC_STR:
+            // TODO: Hanlde str function 
+            printf("Error: STR functions is not handled yet.\n");
+
+            return;
+
+        case FUNC_WSTR:
+            // TODO: Hanlde wstr function 
+            printf("Error: WSTR functions is not handled yet.\n");
+
+            return;
+
+
+        case FUNC_SIZEOF:
+            // TODO: Hanlde sizeof function 
+            printf("Error: DB functions is not handled yet.\n");
+
+            return;
+
+        case FUNC_NOT:
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            DesVal = ~SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
+        case FUNC_NEG:
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            DesVal = -(INT64)SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
+            return;
+
+        case FUNC_HI:
+            // TODO: Hanlde hi function 
+            printf("Error: HI functions is not handled yet.\n");
+
+            return;
+
+        case FUNC_LOW:
+            // TODO: Hanlde low function 
+            printf("Error: LOW functions is not handled yet.\n");
+
+            return;
+
+
+        
+
         case FUNC_MOV:
-            printf("This Operator is not handled yet!\n");
+            Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head + (unsigned long long)(Indx * sizeof(SYMBOL)));
+            Indx++;
+
+            DesVal = SrcVal0;
+            SetValue(GuestRegs, Des, DesVal);
+            printf("DesVal = %d\n", DesVal);
+
             return;
 
     }
@@ -368,7 +578,7 @@ VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
     PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char*)Expr.c_str());
     
     
-    //PrintSymbolBuffer(CodeBuffer);
+    PrintSymbolBuffer(CodeBuffer);
 
     for (int i = 0; i < CodeBuffer->Pointer;)
     {

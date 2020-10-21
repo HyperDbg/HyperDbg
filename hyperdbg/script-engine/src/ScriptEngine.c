@@ -121,9 +121,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
             else
             {
                 CurrentIn = Scan(str, &c);
-              /*  printf("\nCurrent Input :\n");
+                printf("\nCurrent Input :\n");
                 PrintToken(CurrentIn);
-                printf("\n");*/
+                printf("\n");
 
 #ifdef _SCRIPT_ENGINE_DBG_EN
                 printf("matched...\n");
@@ -136,7 +136,6 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 #endif
 
     } while (TopToken->Type != END_OF_STACK);
-
     return CodeBuffer;
 }
 
@@ -604,7 +603,7 @@ unsigned long long int SemanticRuleToInt(char *str)
     }
     else if (!strcmp(str, "@ASL"))
     {
-        return (unsigned long long int)FUNC_ASR;
+        return (unsigned long long int)FUNC_ASL;
     }
     else if (!strcmp(str, "@ADD"))
     {
