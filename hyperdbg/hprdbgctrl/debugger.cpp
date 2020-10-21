@@ -906,6 +906,237 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
 }
 
 /**
+ * @brief Interpret output (if an event has special output)
+ * @details If this function returns true then it means that there is a special
+ * input that needs to be considered for this event (other than just printing)
+ * like sending over network, save to file, and send over a namedpipe
+ *
+ * @param SplittedCommand the initialized command that are splitted by space
+ * @param BufferAddress the address that the allocated buffer will be saved on
+ * it
+ * @param BufferLength the length of the buffer
+ * @return BOOLEAN shows whether the interpret was successful (true) or not
+ * successful (false)
+ */
+BOOLEAN
+InterpretOutput(vector<string> *SplittedCommand, PUINT64 BufferAddress,
+                PUINT32 BufferLength) {
+
+  BOOLEAN IsTextVisited = FALSE;
+  BOOLEAN IsInState = FALSE;
+  BOOLEAN IsEnded = FALSE;
+  string Temp;
+  string AppendedFinalBuffer;
+  vector<string> SaveBuffer;
+  vector<int> IndexesToRemove;
+  int NewIndexToRemove = 0;
+  int Index = 0;
+
+  for (auto Section : *SplittedCommand) {
+
+    Index++;
+
+    if (IsInState) {
+
+      //
+      // Check if the buffer is ended or not
+      //
+      if (!Section.compare("}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Check if the output is end or not
+      //
+      if (HasEnding(Section, "}")) {
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        //
+        // remove the last character and append it to the output buffer
+        //
+        SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      //
+      // Add the codes into buffer buffer
+      //
+      SaveBuffer.push_back(Section);
+
+      //
+      // We want to stay in this condition
+      //
+      continue;
+    }
+
+    if (IsTextVisited && !Section.compare("{")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (IsTextVisited && Section.rfind("{", 0) == 0) {
+
+      //
+      // Section starts with {
+      //
+
+      //
+      // Check if it ends with }
+      //
+      if (HasEnding(Section, "}")) {
+
+        //
+        // Save to remove this string from the command
+        //
+        IndexesToRemove.push_back(Index);
+
+        Temp = Section.erase(0, 1);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      SaveBuffer.push_back(Section.erase(0, 1));
+
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (!Section.compare("output")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      continue;
+    }
+
+    if (!Section.compare("output{")) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      IsInState = TRUE;
+      continue;
+    }
+
+    if (Section.rfind("output{", 0) == 0) {
+
+      //
+      // Save to remove this string from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      IsTextVisited = TRUE;
+      IsInState = TRUE;
+
+      if (!HasEnding(Section, "}")) {
+
+        //
+        // Section starts with output{
+        //
+        SaveBuffer.push_back(Section.erase(0, 7));
+        continue;
+      } else {
+
+        //
+        // remove the last character and first character append it to the
+        // Output
+        //
+        Temp = Section.erase(0, 7);
+        SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+
+        IsEnded = TRUE;
+        break;
+      }
+    }
+  }
+
+  //
+  // Now we have everything in buffer buffer
+  // Check to see if it is empty or not
+  //
+  if (SaveBuffer.size() == 0) {
+    //
+    // Nothing in output buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // Check if we see '}' at the end
+  //
+  if (!IsEnded) {
+    //
+    // Nothing in output buffer, return zero
+    //
+    return FALSE;
+  }
+
+  //
+  // If we reach here then there is sth in condition buffer
+  //
+  for (auto Section : SaveBuffer) {
+
+    AppendedFinalBuffer.append(Section);
+    AppendedFinalBuffer.append(" ");
+  }
+
+  printf("Output : %s\n", AppendedFinalBuffer.c_str());
+
+  //
+  // Set the buffer and length
+  //
+  //*BufferAddress = (UINT64)FinalBuffer;
+  //*BufferLength = ParsedBytes.size();
+
+  //
+  // Removing the code or condition indexes from the command
+  //
+  NewIndexToRemove = 0;
+  for (auto IndexToRemove : IndexesToRemove) {
+    NewIndexToRemove++;
+
+    SplittedCommand->erase(SplittedCommand->begin() +
+                           (IndexToRemove - NewIndexToRemove));
+  }
+
+  return TRUE;
+}
+
+/**
  * @brief Register the event to the kernel
  *
  * @param Event the event structure to send
@@ -1107,6 +1338,8 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
   UINT64 ConditionBufferAddress;
   UINT32 ConditionBufferLength = 0;
+  UINT64 OutputBufferAddress;
+  UINT32 OutputBufferLength = 0;
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
   UINT64 ScriptBufferAddress;
@@ -1114,6 +1347,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT32 LengthOfEventBuffer = 0;
   string CommandString;
   BOOLEAN HasConditionBuffer = FALSE;
+  BOOLEAN HasOutputPath = FALSE;
   BOOLEAN HasCodeBuffer = FALSE;
   BOOLEAN HasScript = FALSE;
   BOOLEAN IsNextCommandPid = FALSE;
@@ -1254,6 +1488,28 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     // Indicate code is available
     //
     HasScript = TRUE;
+  }
+
+  //
+  // Check if there is a output path in the command
+  //
+  if (!InterpretOutput(SplittedCommand, &OutputBufferAddress,
+                       &OutputBufferLength)) {
+
+    //
+    // Indicate output is not available
+    //
+    HasOutputPath = FALSE;
+
+    //
+    // ShowMessages("\nNo condition!\n");
+    //
+
+  } else {
+    //
+    // Indicate output is available
+    //
+    HasOutputPath = TRUE;
   }
 
   //

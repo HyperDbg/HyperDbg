@@ -10,3 +10,6 @@ To remove a submodule you need to:
 
 To add a submodule :
 - git submodule add https://github.com/HyperDbg/evaluation
+
+Discard Changes on a special file :
+- git checkout hyperdbg/hprdbgctrl/print.cpp
