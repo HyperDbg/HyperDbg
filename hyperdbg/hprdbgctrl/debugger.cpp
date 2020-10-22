@@ -1249,22 +1249,15 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  * if the request was not successful then false
  */
 BOOLEAN
-RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
-                      UINT32 ActionsBufferLength) {
+RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
+                      UINT32 ActionBreakToDebuggerLength,
+                      PDEBUGGER_GENERAL_ACTION ActionCustomCode,
+                      UINT32 ActionCustomCodeLength,
+                      PDEBUGGER_GENERAL_ACTION ActionScript,
+                      UINT32 ActionScriptLength) {
   BOOL Status;
   ULONG ReturnedLength;
   DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
-
-  //
-  // Test
-  //
-  /*
-  ShowMessages("Tag : %llx\n", Action->EventTag);
-  ShowMessages("Action Type : %d\n", Action->ActionType);
-  ShowMessages("Custom Code Buffer Size : 0x%x\n",
-               Action->CustomCodeBufferSize);
-  return TRUE;
-  */
 
   if (!g_DeviceHandle) {
     ShowMessages("Handle not found, probably the driver is not loaded. Did you "
@@ -1273,34 +1266,104 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
   }
 
   //
-  // Send IOCTL
+  // Send IOCTLs
   //
-  Status =
-      DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-                      Action,              // Input Buffer to driver.
-                      ActionsBufferLength, // Input buffer length
-                      &ReturnedBuffer,     // Output Buffer from driver.
-                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                    // of
-                                                                    // output
-                                                                    // buffer
-                                                                    // in
-                                                                    // bytes.
-                      &ReturnedLength, // Bytes placed in buffer.
-                      NULL             // synchronous call
-      );
 
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return FALSE;
+  //
+  // Send Break to debugger ioctl
+  //
+  if (ActionBreakToDebugger != NULL) {
+    Status =
+        DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                        ActionBreakToDebugger,       // Input Buffer to driver.
+                        ActionBreakToDebuggerLength, // Input buffer length
+                        &ReturnedBuffer, // Output Buffer from driver.
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                      // of
+                                                                      // output
+                                                                      // buffer
+                                                                      // in
+                                                                      // bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    //
+    // The action buffer is allocated once using malloc and
+    // is not used anymore, we have to free it
+    //
+    free(ActionBreakToDebugger);
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
   }
 
   //
-  // The action buffer is allocated once using malloc and
-  // is not used anymore, we have to free it
+  // Send custom code ioctl
   //
-  free(Action);
+  if (ActionCustomCode != NULL) {
+    Status =
+        DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                        ActionCustomCode,       // Input Buffer to driver.
+                        ActionCustomCodeLength, // Input buffer length
+                        &ReturnedBuffer,        // Output Buffer from driver.
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                      // of
+                                                                      // output
+                                                                      // buffer
+                                                                      // in
+                                                                      // bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    //
+    // The action buffer is allocated once using malloc and
+    // is not used anymore, we have to free it
+    //
+    free(ActionCustomCode);
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
+  }
+
+  //
+  // Send custom code ioctl
+  //
+  if (ActionScript != NULL) {
+    Status =
+        DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                        ActionScript,       // Input Buffer to driver.
+                        ActionScriptLength, // Input buffer length
+                        &ReturnedBuffer,    // Output Buffer from driver.
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                      // of
+                                                                      // output
+                                                                      // buffer
+                                                                      // in
+                                                                      // bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    //
+    // The action buffer is allocated once using malloc and
+    // is not used anymore, we have to free it
+    //
+    free(ActionScript);
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
+  }
 
   return TRUE;
 }
@@ -1332,10 +1395,21 @@ UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
 BOOLEAN InterpretGeneralEventAndActionsFields(
     vector<string> *SplittedCommand, DEBUGGER_EVENT_TYPE_ENUM EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *EventDetailsToFill,
-    PUINT32 EventBufferLength, PDEBUGGER_GENERAL_ACTION *ActionDetailsToFill,
-    PUINT32 ActionBufferLength) {
+    PUINT32 EventBufferLength,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillBreakToDebugger,
+    PUINT32 ActionBufferLengthBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillCustomCode,
+    PUINT32 ActionBufferLengthCustomCode,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillScript,
+    PUINT32 ActionBufferLengthScript) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
+  PDEBUGGER_GENERAL_ACTION TempActionBreak = NULL;
+  PDEBUGGER_GENERAL_ACTION TempActionScript = NULL;
+  PDEBUGGER_GENERAL_ACTION TempActionCustomCode = NULL;
+  UINT32 LengthOfCustomCodeActionBuffer = 0;
+  UINT32 LengthOfScriptActionBuffer = 0;
+  UINT32 LengthOfBreakActionBuffer = 0;
   UINT64 ConditionBufferAddress;
   UINT32 ConditionBufferLength = 0;
   UINT64 OutputBufferAddress;
@@ -1521,7 +1595,8 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
   /*
 
-  Layout of Buffer
+  Layout of Buffer :
+
    ________________________________
   |                                |
   |  DEBUGGER_GENERAL_EVENT_DETAIL |
@@ -1531,15 +1606,19 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   |       Condition Buffer         |
   |                                |
   |________________________________|
+
+   */
+
+  /*
+   ________________________________
   |                                |
   |     DEBUGGER_GENERAL_ACTION    |
   |                                |
   |________________________________|
   |                                |
   |     Condition Custom Code      |
-  |                                |
+  |       or Script Buffer         |
   |________________________________|
-
 
   */
 
@@ -1608,36 +1687,111 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   //
-  // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
-  // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
-  //
-  UINT32 LengthOfActionBuffer =
-      sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
-  PDEBUGGER_GENERAL_ACTION TempAction =
-      (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfActionBuffer);
-
-  RtlZeroMemory(TempAction, LengthOfActionBuffer);
-  //
   // Fill the buffer of custom code for action
   //
   if (HasCodeBuffer) {
 
-    memcpy((PVOID)((UINT64)TempAction + sizeof(DEBUGGER_GENERAL_ACTION)),
-           (PVOID)CodeBufferAddress, CodeBufferLength);
+    //
+    // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
+    // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
+    //
+    LengthOfCustomCodeActionBuffer =
+        sizeof(DEBUGGER_GENERAL_ACTION) + CodeBufferLength;
+
+    TempActionCustomCode =
+        (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfCustomCodeActionBuffer);
+
+    RtlZeroMemory(TempActionCustomCode, LengthOfCustomCodeActionBuffer);
+
+    memcpy(
+        (PVOID)((UINT64)TempActionCustomCode + sizeof(DEBUGGER_GENERAL_ACTION)),
+        (PVOID)CodeBufferAddress, CodeBufferLength);
     //
     // Set the action Tag
     //
-    TempAction->EventTag = TempEvent->Tag;
+    TempActionCustomCode->EventTag = TempEvent->Tag;
 
     //
     // Set the action type
     //
-    TempAction->ActionType = RUN_CUSTOM_CODE;
+    TempActionCustomCode->ActionType = RUN_CUSTOM_CODE;
 
     //
     // Set the action buffer size
     //
-    TempAction->CustomCodeBufferSize = CodeBufferLength;
+    TempActionCustomCode->CustomCodeBufferSize = CodeBufferLength;
+
+    //
+    // Increase the count of actions
+    //
+    TempEvent->CountOfActions = TempEvent->CountOfActions + 1;
+  }
+
+  //
+  // Fill the buffer of script for action
+  //
+  if (HasScript) {
+
+    //
+    // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
+    // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
+    //
+    LengthOfScriptActionBuffer =
+        sizeof(DEBUGGER_GENERAL_ACTION) + ScriptBufferLength;
+    TempActionScript =
+        (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfScriptActionBuffer);
+
+    RtlZeroMemory(TempActionScript, LengthOfScriptActionBuffer);
+
+    memcpy((PVOID)((UINT64)TempActionScript + sizeof(DEBUGGER_GENERAL_ACTION)),
+           (PVOID)ScriptBufferAddress, ScriptBufferLength);
+    //
+    // Set the action Tag
+    //
+    TempActionScript->EventTag = TempEvent->Tag;
+
+    //
+    // Set the action type
+    //
+    TempActionScript->ActionType = RUN_SCRIPT;
+
+    //
+    // Set the action buffer size
+    //
+    TempActionScript->ScriptBufferSize = ScriptBufferLength;
+
+    //
+    // Increase the count of actions
+    //
+    TempEvent->CountOfActions = TempEvent->CountOfActions + 1;
+  }
+
+  //
+  // If this action didn't contain a buffer for custom code and
+  // a buffer for script then it's a break to debugger
+  //
+  if (!HasCodeBuffer && !HasScript) {
+
+    //
+    // Allocate the Action (THIS ACTION BUFFER WILL BE FREED WHEN WE SENT IT TO
+    // THE KERNEL AND RETURNED FROM THE KERNEL AS WE DON'T NEED IT ANYMORE)
+    //
+    LengthOfBreakActionBuffer = sizeof(DEBUGGER_GENERAL_ACTION);
+
+    TempActionBreak =
+        (PDEBUGGER_GENERAL_ACTION)malloc(LengthOfBreakActionBuffer);
+
+    RtlZeroMemory(TempActionBreak, LengthOfBreakActionBuffer);
+
+    //
+    // Set the action Tag
+    //
+    TempActionBreak->EventTag = TempEvent->Tag;
+
+    //
+    // Set the action type
+    //
+    TempActionBreak->ActionType = BREAK_TO_DEBUGGER;
 
     //
     // Increase the count of actions
@@ -1659,7 +1813,15 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
         //
         // Set the specific requested buffer size
         //
-        TempAction->PreAllocatedBuffer = RequestBuffer;
+        if (TempActionBreak != NULL) {
+          TempActionBreak->PreAllocatedBuffer = RequestBuffer;
+        }
+        if (TempActionScript != NULL) {
+          TempActionScript->PreAllocatedBuffer = RequestBuffer;
+        }
+        if (TempActionCustomCode != NULL) {
+          TempActionCustomCode->PreAllocatedBuffer = RequestBuffer;
+        }
       }
       IsNextCommandBufferSize = FALSE;
 
@@ -1675,7 +1837,17 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       if (!ConvertStringToUInt32(Section, &ProcessId)) {
         free(BufferOfCommandString);
         free(TempEvent);
-        free(TempAction);
+
+        if (TempActionBreak != NULL) {
+          free(TempActionBreak);
+        }
+        if (TempActionScript != NULL) {
+          free(TempActionScript);
+        }
+        if (TempActionCustomCode != NULL) {
+          free(TempActionCustomCode);
+        }
+
         return FALSE;
       } else {
 
@@ -1694,10 +1866,20 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       continue;
     }
     if (IsNextCommandCoreId) {
+
       if (!ConvertStringToUInt32(Section, &CoreId)) {
         free(BufferOfCommandString);
         free(TempEvent);
-        free(TempAction);
+
+        if (TempActionBreak != NULL) {
+          free(TempActionBreak);
+        }
+        if (TempActionScript != NULL) {
+          free(TempActionScript);
+        }
+        if (TempActionCustomCode != NULL) {
+          free(TempActionCustomCode);
+        }
         return FALSE;
       } else {
 
@@ -1748,6 +1930,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       continue;
     }
   }
+
   //
   // Additional validation
   //
@@ -1755,21 +1938,48 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     ShowMessages("error : please specify a value for 'core'\n\n");
     free(BufferOfCommandString);
     free(TempEvent);
-    free(TempAction);
+
+    if (TempActionBreak != NULL) {
+      free(TempActionBreak);
+    }
+    if (TempActionScript != NULL) {
+      free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL) {
+      free(TempActionCustomCode);
+    }
     return FALSE;
   }
   if (IsNextCommandPid) {
     ShowMessages("error : please specify a value for 'pid'\n\n");
     free(BufferOfCommandString);
     free(TempEvent);
-    free(TempAction);
+
+    if (TempActionBreak != NULL) {
+      free(TempActionBreak);
+    }
+    if (TempActionScript != NULL) {
+      free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL) {
+      free(TempActionCustomCode);
+    }
     return FALSE;
   }
   if (IsNextCommandBufferSize) {
     ShowMessages("errlr : please specify a value for 'buffer'\n\n");
     free(BufferOfCommandString);
     free(TempEvent);
-    free(TempAction);
+
+    if (TempActionBreak != NULL) {
+      free(TempActionBreak);
+    }
+    if (TempActionScript != NULL) {
+      free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL) {
+      free(TempActionCustomCode);
+    }
     return FALSE;
   }
 
@@ -1782,8 +1992,18 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   // Fill the address and length of action before release
   //
-  *ActionDetailsToFill = TempAction;
-  *ActionBufferLength = LengthOfActionBuffer;
+  if (TempActionBreak != NULL) {
+    *ActionDetailsToFillBreakToDebugger = TempActionBreak;
+    *ActionBufferLengthBreakToDebugger = LengthOfBreakActionBuffer;
+  }
+  if (TempActionScript != NULL) {
+    *ActionDetailsToFillScript = TempActionScript;
+    *ActionBufferLengthScript = LengthOfScriptActionBuffer;
+  }
+  if (TempActionCustomCode != NULL) {
+    *ActionDetailsToFillCustomCode = TempActionCustomCode;
+    *ActionBufferLengthCustomCode = LengthOfCustomCodeActionBuffer;
+  }
 
   //
   // Remove the command that we interpreted above from the command

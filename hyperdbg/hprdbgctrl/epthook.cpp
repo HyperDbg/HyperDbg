@@ -13,11 +13,12 @@
 
 /**
  * @brief help of !epthook command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandEptHookHelp() {
-  ShowMessages("!epthook (bp) : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
+  ShowMessages(
+      "!epthook (bp) : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
   ShowMessages(
       "syntax : \t!epthook [Virtual Address (hex value)] core [core index "
       "(hex value)] pid [process id (hex value)] condition {[assembly "
@@ -33,16 +34,20 @@ VOID CommandEptHookHelp() {
 
 /**
  * @brief !epthook command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandEptHook(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   BOOLEAN GetAddress = FALSE;
   UINT64 OptionalParam1 = 0; // Set the target address
 
@@ -56,8 +61,10 @@ VOID CommandEptHook(vector<string> SplittedCommand) {
   // Interpret and fill the general event and action fields
   //
   if (!InterpretGeneralEventAndActionsFields(
-          &SplittedCommand, HIDDEN_HOOK_EXEC_CC, &Event, &EventLength, &Action,
-          &ActionLength)) {
+          &SplittedCommand, HIDDEN_HOOK_EXEC_CC, &Event, &EventLength,
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandEptHookHelp();
     return;
   }
@@ -112,14 +119,24 @@ VOID CommandEptHook(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

@@ -44,14 +44,23 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32 EventBufferLength);
 
 BOOLEAN
-RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION Action,
-                      UINT32 ActionsBufferLength);
+RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
+                      UINT32 ActionBreakToDebuggerLength,
+                      PDEBUGGER_GENERAL_ACTION ActionCustomCode,
+                      UINT32 ActionCustomCodeLength,
+                      PDEBUGGER_GENERAL_ACTION ActionScript,
+                      UINT32 ActionScriptLength);
 
 BOOLEAN InterpretGeneralEventAndActionsFields(
     vector<string> *SplittedCommand, DEBUGGER_EVENT_TYPE_ENUM EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL *EventDetailsToFill,
-    PUINT32 EventBufferLength, PDEBUGGER_GENERAL_ACTION *ActionDetailsToFill,
-    PUINT32 ActionBufferLength);
+    PUINT32 EventBufferLength,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillBreakToDebugger,
+    PUINT32 ActionBufferLengthBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillCustomCode,
+    PUINT32 ActionBufferLengthCustomCode,
+    PDEBUGGER_GENERAL_ACTION *ActionDetailsToFillScript,
+    PUINT32 ActionBufferLengthScript);
 
 UINT64 GetNewDebuggerEventTag();
 

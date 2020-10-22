@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !epthook2 command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandEptHook2Help() {
   ShowMessages("!epthook2 : Puts a hidden-hook EPT (detours) .\n\n");
@@ -31,16 +31,20 @@ VOID CommandEptHook2Help() {
 
 /**
  * @brief !epthook2 command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandEptHook2(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   BOOLEAN GetAddress = FALSE;
   UINT64 OptionalParam1 = 0; // Set the target address
 
@@ -55,7 +59,9 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, HIDDEN_HOOK_EXEC_DETOURS, &Event, &EventLength,
-          &Action, &ActionLength)) {
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandEptHook2Help();
     return;
   }
@@ -112,14 +118,24 @@ VOID CommandEptHook2(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !msrwrite command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandMsrwriteHelp() {
   ShowMessages("!msrwrite : Detects the execution of wrmsr instructions.\n\n");
@@ -32,16 +32,20 @@ VOID CommandMsrwriteHelp() {
 
 /**
  * @brief !msrwrite command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandMsrwrite(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   UINT64 SpecialTarget = DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS;
   BOOLEAN GetAddress = FALSE;
 
@@ -51,7 +55,9 @@ VOID CommandMsrwrite(vector<string> SplittedCommand) {
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, WRMSR_INSTRUCTION_EXECUTION, &Event, &EventLength,
-          &Action, &ActionLength)) {
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandMsrwriteHelp();
     return;
   }
@@ -105,15 +111,24 @@ VOID CommandMsrwrite(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
-    
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

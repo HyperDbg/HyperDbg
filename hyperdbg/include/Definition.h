@@ -238,6 +238,7 @@ typedef struct _DEBUGGER_GENERAL_ACTION {
   UINT32 PreAllocatedBuffer;
 
   UINT32 CustomCodeBufferSize;
+  UINT32 ScriptBufferSize;
 
 } DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
 

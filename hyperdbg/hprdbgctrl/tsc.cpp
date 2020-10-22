@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !tsc command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandTscHelp() {
   ShowMessages("!tsc : Monitors execution of rdtsc/rdtscp instructions.\n\n");
@@ -30,16 +30,20 @@ VOID CommandTscHelp() {
 
 /**
  * @brief handler of !tsc command
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandTsc(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
 
   //
   // Interpret and fill the general event and action fields
@@ -47,7 +51,9 @@ VOID CommandTsc(vector<string> SplittedCommand) {
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, TSC_INSTRUCTION_EXECUTION, &Event, &EventLength,
-          &Action, &ActionLength)) {
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandTscHelp();
     return;
   }
@@ -71,15 +77,24 @@ VOID CommandTsc(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
-    
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

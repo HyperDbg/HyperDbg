@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !monitor command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandMonitorHelp() {
   ShowMessages("!monitor : Monitor address range for read and writes.\n\n");
@@ -33,16 +33,20 @@ VOID CommandMonitorHelp() {
 
 /**
  * @brief !monitor command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandMonitor(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   UINT64 TargetAddress;
   UINT64 OptionalParam1 = 0; // Set the 'from' target address
   UINT64 OptionalParam2 = 0; // Set the 'to' target address
@@ -64,7 +68,9 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, HIDDEN_HOOK_READ_AND_WRITE, &Event, &EventLength,
-          &Action, &ActionLength)) {
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandMonitorHelp();
     return;
   }
@@ -146,15 +152,24 @@ VOID CommandMonitor(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
-
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

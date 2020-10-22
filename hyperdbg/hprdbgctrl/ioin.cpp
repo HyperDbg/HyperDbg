@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !ioin command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandIoinHelp() {
   ShowMessages("!ioin : Detects the execution of IN (I/O instructions) "
@@ -33,16 +33,20 @@ VOID CommandIoinHelp() {
 
 /**
  * @brief !ioin command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandIoin(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   UINT64 SpecialTarget = DEBUGGER_EVENT_ALL_IO_PORTS;
   BOOLEAN GetPort = FALSE;
 
@@ -51,7 +55,9 @@ VOID CommandIoin(vector<string> SplittedCommand) {
   //
   if (!InterpretGeneralEventAndActionsFields(
           &SplittedCommand, IN_INSTRUCTION_EXECUTION, &Event, &EventLength,
-          &Action, &ActionLength)) {
+          &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+          &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+          &ActionScriptLength)) {
     CommandIoinHelp();
     return;
   }
@@ -79,7 +85,7 @@ VOID CommandIoin(vector<string> SplittedCommand) {
         GetPort = TRUE;
       }
     } else {
-      
+
       //
       // Unkonwn parameter
       //
@@ -104,14 +110,24 @@ VOID CommandIoin(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //

@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !syscall command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandSyscallHelp() {
   ShowMessages("!syscall : Monitors and hooks all execution of syscall "
@@ -32,8 +32,8 @@ VOID CommandSyscallHelp() {
 
 /**
  * @brief help of !sysret command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandSysretHelp() {
   ShowMessages("!sysret : Monitors and hooks all execution of sysret "
@@ -50,15 +50,19 @@ VOID CommandSysretHelp() {
 
 /**
  * @brief !syscall and !sysret commands handler
- * 
- * @param SplittedCommand 
+ *
+ * @param SplittedCommand
  */
 void CommandSyscallAndSysret(vector<string> SplittedCommand) {
 
-  PDEBUGGER_GENERAL_EVENT_DETAIL Event;
-  PDEBUGGER_GENERAL_ACTION Action;
+  PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionCustomCode = NULL;
+  PDEBUGGER_GENERAL_ACTION ActionScript = NULL;
   UINT32 EventLength;
-  UINT32 ActionLength;
+  UINT32 ActionBreakToDebuggerLength = 0;
+  UINT32 ActionCustomCodeLength = 0;
+  UINT32 ActionScriptLength = 0;
   UINT64 SpecialTarget = DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS;
   BOOLEAN GetSyscallNumber = FALSE;
 
@@ -69,14 +73,18 @@ void CommandSyscallAndSysret(vector<string> SplittedCommand) {
   if (!SplittedCommand.at(0).compare("!syscall")) {
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand, SYSCALL_HOOK_EFER_SYSCALL, &Event, &EventLength,
-            &Action, &ActionLength)) {
+            &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+            &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+            &ActionScriptLength)) {
       CommandSyscallHelp();
       return;
     }
   } else {
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand, SYSCALL_HOOK_EFER_SYSRET, &Event, &EventLength,
-            &Action, &ActionLength)) {
+            &ActionBreakToDebugger, &ActionBreakToDebuggerLength,
+            &ActionCustomCode, &ActionCustomCodeLength, &ActionScript,
+            &ActionScriptLength)) {
       CommandSysretHelp();
       return;
     }
@@ -150,15 +158,24 @@ void CommandSyscallAndSysret(vector<string> SplittedCommand) {
     // we have to free the Action before exit, it is because, we
     // already freed the Event and string buffers
     //
-    free(Action);
+    if (ActionBreakToDebugger != NULL) {
+      free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL) {
+      free(ActionCustomCode);
+    }
+    if (ActionScript != NULL) {
+      free(ActionScript);
+    }
     return;
   }
 
   //
   // Add the event to the kernel
   //
-  if (!RegisterActionToEvent(Action, ActionLength)) {
-    
+  if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength,
+                             ActionCustomCode, ActionCustomCodeLength,
+                             ActionScript, ActionScriptLength)) {
     //
     // There was an error
     //
