@@ -45,7 +45,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     Push(Stack, EndToken);
     Push(Stack, StartToken);
 
+    InputIdx = 0;
     c = sgetc(str);
+
     CurrentIn = Scan(str, &c);
 
     do
@@ -136,6 +138,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 #endif
 
     } while (TopToken->Type != END_OF_STACK);
+  
     return CodeBuffer;
 }
 

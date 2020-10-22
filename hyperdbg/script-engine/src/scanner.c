@@ -665,11 +665,12 @@ char IsOctal(char c)
 
 char sgetc(char* str)
 {
-    static int idx = 0;
-    char c = str[idx];
+    
+
+    char c = str[InputIdx];
     if (c)
     {
-        idx++;
+        InputIdx++;
         return c;
     }
     else

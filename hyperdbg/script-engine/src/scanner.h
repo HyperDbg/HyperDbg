@@ -27,7 +27,6 @@ typedef enum TOKEN_TYPE
 } TOKEN_TYPE;
 
 
-
 struct _TOKEN
 {
     TOKEN_TYPE Type;
@@ -42,6 +41,8 @@ typedef struct _TOKEN_LIST
     unsigned int Pointer;
     unsigned int Size;
 } * TOKEN_LIST;
+
+unsigned int InputIdx;
 
 TOKEN NewToken(void);
 TOKEN_LIST NewTokenList(void);
