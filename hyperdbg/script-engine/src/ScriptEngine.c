@@ -565,22 +565,79 @@ unsigned long long int BinaryToInt(char *str)
 unsigned long long int RegisterToInt(char *str)
 {
 
-    if (!strcmp(str, "rcx"))
+    if (!strcmp(str, "rax"))
+    {
+        return RAX_MNEMONIC;
+    }
+    else if (!strcmp(str, "rcx"))
     {
         return RCX_MNEMONIC;
+    }
+    else if (!strcmp(str, "rdx"))
+    {
+        return RDX_MNEMONIC;
+    }
+    else if (!strcmp(str, "rbx"))
+    {
+        return RBX_MNEMONIC;
+    }
+    else if (!strcmp(str, "rsp"))
+    {
+        return RSP_MNEMONIC;
+    }
+    else if (!strcmp(str, "rsi"))
+    {
+        return RSI_MNEMONIC;
+    }
+    else if (!strcmp(str, "rdi"))
+    {
+        return RDI_MNEMONIC;
+    }
+    else if (!strcmp(str, "r8"))
+    {
+        return R8_MNEMONIC;
+    }
+    else if (!strcmp(str, "r9"))
+    {
+        return R9_MNEMONIC;
     }
     else if (!strcmp(str, "r10"))
     {
         return R10_MNEMONIC;
     }
-    // ...
-    // TODO: Handle all Registers
+    else if (!strcmp(str, "r11"))
+    {
+        return R11_MNEMONIC;
+    }
+    else if (!strcmp(str, "r12"))
+    {
+        return R12_MNEMONIC;
+    }
+    else if (!strcmp(str, "r13"))
+    {
+        return R13_MNEMONIC;
+    }
+    else if (!strcmp(str, "r14"))
+    {
+        return R14_MNEMONIC;
+    }
+    else if (!strcmp(str, "r15"))
+    {
+        return R15_MNEMONIC;
+    }
+
     return INVALID;
 }
 unsigned long long int PseudoRegToInt(char *str)
 {
-    // ...
-    // TODO: Handle all Pseudo Registers
+    if (!strcmp(str, "tid"))
+    {
+        return TID_MNEMONIC;
+    }
+    if (!strcmp(str, "pid"))
+    {
+        return PID_MNEMONIC;
+    }
     return INVALID;
 }
 unsigned long long int SemanticRuleToInt(char *str)

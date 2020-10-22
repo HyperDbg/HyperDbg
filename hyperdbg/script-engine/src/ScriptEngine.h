@@ -15,10 +15,28 @@
 #define SYMBOL_TEMP 5
 
 
-#define R10_MNEMONIC 0
-#define RCX_MNEMONIC 16
+#define RAX_MNEMONIC 0
+#define RCX_MNEMONIC 1
+#define RDX_MNEMONIC 2
+#define RBX_MNEMONIC 3
+#define RSP_MNEMONIC 4
+#define RBP_MNEMONIC 5
+#define RSI_MNEMONIC 6
+#define RDI_MNEMONIC 7
+#define R8_MNEMONIC 8
+#define R9_MNEMONIC 9
+#define R10_MNEMONIC 10
+#define R11_MNEMONIC 11
+#define R12_MNEMONIC 12
+#define R13_MNEMONIC 13
+#define R14_MNEMONIC 14
+#define R15_MNEMONIC 15
 
 #define INVALID -1
+
+#define TID_MNEMONIC 0
+#define PID_MNEMONIC 1
+
 
 
 #define FUNC_OR 0

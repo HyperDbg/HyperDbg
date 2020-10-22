@@ -162,8 +162,27 @@ typedef unsigned long long QWORD;
 #define SYMBOL_TEMP_TYPE 5
 
 
-#define R10_MNEMONIC 0
-#define RCX_MNEMONIC 16
+#define RAX_MNEMONIC 0
+#define RCX_MNEMONIC 1
+#define RDX_MNEMONIC 2
+#define RBX_MNEMONIC 3
+#define RSP_MNEMONIC 4
+#define RBP_MNEMONIC 5
+#define RSI_MNEMONIC 6
+#define RDI_MNEMONIC 7
+#define R8_MNEMONIC 8
+#define R9_MNEMONIC 9
+#define R10_MNEMONIC 10
+#define R11_MNEMONIC 11
+#define R12_MNEMONIC 12
+#define R13_MNEMONIC 13
+#define R14_MNEMONIC 14
+#define R15_MNEMONIC 15
+
+#define INVALID -1 
+
+#define TID_MNEMONIC 0
+#define PID_MNEMONIC 1
 
 #define MAX_TEMP_COUNT 32
 
@@ -252,17 +271,58 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol)
 {
     switch (Symbol->Value)
     {
-        case R10_MNEMONIC: 
-            return GuestRegs->r10;
+        case RAX_MNEMONIC: 
+            return GuestRegs->rax;
         case RCX_MNEMONIC:
             return GuestRegs->rcx;
+        case RDX_MNEMONIC:
+            return GuestRegs->rdx;
+        case RBX_MNEMONIC:
+            return GuestRegs->rbx;
+        case RSP_MNEMONIC:
+            return GuestRegs->rsp;
+        case RBP_MNEMONIC:
+            return GuestRegs->rbp;
+        case RSI_MNEMONIC:
+            return GuestRegs->rsi;
+        case RDI_MNEMONIC:
+            return GuestRegs->rdi;
+        case R8_MNEMONIC:
+            return GuestRegs->r8;
+        case R9_MNEMONIC:
+            return GuestRegs->r9;
+        case R10_MNEMONIC:
+            return GuestRegs->r10;
+        case R11_MNEMONIC:
+            return GuestRegs->r11;
+        case R12_MNEMONIC:
+            return GuestRegs->r12;
+        case R13_MNEMONIC:
+            return GuestRegs->r13;
+        case R14_MNEMONIC:
+            return GuestRegs->r14;
+        case R15_MNEMONIC:
+            return GuestRegs->r15;
+        case INVALID: 
+            printf("Error in reading regesiter");
+            return INVALID;
         // TODO: Add all the register
     }
 }
 UINT64 GetPseudoRegValue(PSYMBOL Symbol)
 {
-    // TODO: Implement for pseudoregs 
-    return (UINT64)0;
+    switch (Symbol->Value)
+    {
+    case TID_MNEMONIC:
+        return ScriptEnginePseudoRegGetTid();
+    case PID_MNEMONIC:
+        return ScriptEnginePseudoRegGetPid();
+    case INVALID:
+        printf("Error in reading regesiter");
+        return INVALID;
+        // TODO: Add all the register
+    }
+
 }
 UINT64 GetValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol)
 {
