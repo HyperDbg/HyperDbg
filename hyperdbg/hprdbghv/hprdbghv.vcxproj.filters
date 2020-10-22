@@ -85,6 +85,9 @@
     <Filter Include="Header Files\Debugger\Evaluation">
       <UniqueIdentifier>{a1b25bcb-223a-4488-b37d-08898c62869a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\ScriptEngine">
+      <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -199,6 +202,9 @@
     </ClCompile>
     <ClCompile Include="Evaluation.c">
       <Filter>Source Files\Debugger\Evaluation</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptEngine.c">
+      <Filter>Source Files\Debugger\ScriptEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

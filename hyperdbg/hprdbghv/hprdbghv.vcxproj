@@ -114,6 +114,7 @@
     <ClCompile Include="EferHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
+    <ClCompile Include="ScriptEngine.c" />
     <ClCompile Include="Steppings.c" />
     <ClCompile Include="Termination.c" />
     <ClCompile Include="Transparency.c" />

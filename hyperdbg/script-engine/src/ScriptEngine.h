@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include "scanner.h"
+#include "ScriptEngineCommon.h"
 
  //#define _SCRIPT_ENGINE_DBG_EN
 
@@ -95,22 +96,6 @@ const char* OneOperandSemanticRules[] =
 	"@HI",
 	"@LOW"
 };
-
-typedef struct SYMBOL
-{
-	long long unsigned Type;
-	long long unsigned Value;
-}SYMBOL, * PSYMBOL;
-
-typedef struct SYMBOL_BUFFER
-{
-	PSYMBOL Head;
-	unsigned int Pointer;
-	unsigned int Size;
-	unsigned int IdsCount;
-
-}SYMBOL_BUFFER, * PSYMBOL_BUFFER;
-
 
 char TempMap[MAX_TEMP_COUNT] = { 0 };
 unsigned int IdCounter = 0;

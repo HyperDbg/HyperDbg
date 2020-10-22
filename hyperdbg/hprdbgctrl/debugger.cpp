@@ -535,12 +535,21 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   printf("script : %s\n", AppendedFinalBuffer.c_str());
 
   //
+  // Run script engine handler
+  //
+  PSYMBOL_BUFFER CodeBuffer =
+      ScriptEngineParse((char *)AppendedFinalBuffer.c_str());
+
+  //
+  // Print symbols (test)
+  //
+  PrintSymbolBuffer(CodeBuffer);
+
+  //
   // Set the buffer and length
   //
-  PVOID Test = malloc(0x85);
-  memset(Test, 0x85, 8);
-  *BufferAddress = (UINT64)Test;
-  *BufferLength = 0x85;
+  *BufferAddress = (UINT64)CodeBuffer->Head;
+  *BufferLength = CodeBuffer->Size;
 
   //
   // Removing the script indexes from the command
