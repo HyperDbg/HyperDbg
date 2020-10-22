@@ -32,6 +32,8 @@ extern "C" {
     __declspec(dllimport) PSYMBOL_BUFFER ScriptEngineParse(char* str);
     __declspec(dllimport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
     __declspec(dllimport) void PrintSymbol(PSYMBOL Symbol);
+    __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+
 
 }
 
@@ -648,8 +650,9 @@ VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
         ScriptEngineExecute(GuestRegs, CodeBuffer, i);
     }
     
+    
 
-        
+    RemoveSymbolBuffer(CodeBuffer);
     
 }
 

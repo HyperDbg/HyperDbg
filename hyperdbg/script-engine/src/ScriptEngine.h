@@ -117,7 +117,7 @@ void RemoveSymbol(PSYMBOL Symbol);
 __declspec(dllexport) void PrintSymbol(PSYMBOL Symbol);
 
 PSYMBOL_BUFFER NewSymbolBuffer(void);
-void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+__declspec(dllexport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 PSYMBOL PopSymbol(PSYMBOL_BUFFER SymbolBuffer);
 
