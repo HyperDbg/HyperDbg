@@ -1,3 +1,14 @@
+/**
+ * @file scanner.h
+ * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @brief Script Engine Scanner
+ * @details
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #ifndef SCANNER_H
 #define SCANNER_H
 #include <stdio.h>
