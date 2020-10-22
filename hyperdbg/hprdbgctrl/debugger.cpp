@@ -537,8 +537,10 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   //
   // Set the buffer and length
   //
-  //*BufferAddress = (UINT64)FinalBuffer;
-  //*BufferLength = ParsedBytes.size();
+  PVOID Test = malloc(0x85);
+  memset(Test, 0x85, 8);
+  *BufferAddress = (UINT64)Test;
+  *BufferLength = 0x85;
 
   //
   // Removing the script indexes from the command

@@ -267,19 +267,26 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     // Allocate action + allocate code for custom code
     //
 
-    if (InTheCaseOfCustomCode == NULL)
-    {
-        //
-        // We shouldn't allocate extra buffer as there is no custom code
-        //
-        Size = sizeof(DEBUGGER_EVENT_ACTION);
-    }
-    else
+    if (InTheCaseOfCustomCode != NULL)
     {
         //
         // We should allocate extra buffer for custom code
         //
         Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfCustomCode->CustomCodeBufferSize;
+    }
+    else if (InTheCaseOfRunScript != NULL)
+    {
+        //
+        // We should allocate extra buffer for script
+        //
+        Size = sizeof(DEBUGGER_EVENT_ACTION) + InTheCaseOfRunScript->ScriptLength;
+    }
+    else
+    {
+        //
+        // We shouldn't allocate extra buffer as there is no custom code
+        //
+        Size = sizeof(DEBUGGER_EVENT_ACTION);
     }
 
     Action = ExAllocatePoolWithTag(NonPagedPool, Size, POOLTAG);
@@ -306,6 +313,10 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         //
         if (InTheCaseOfCustomCode->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
         {
+            //
+            // There was an error
+            //
+            ExFreePoolWithTag(Action, POOLTAG);
             return NULL;
         }
 
@@ -332,13 +343,61 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
     }
 
+    //
+    // If the user needs a buffer to be passed to the debugger script then
+    // we should allocate it here (Requested buffer is only available for custom code types)
+    //
+    if (ActionType == RUN_SCRIPT && InTheCaseOfRunScript->OptionalRequestedBufferSize != 0)
+    {
+        //
+        // Check if the optional buffer is not more that the size
+        // we can send to usermode
+        //
+        if (InTheCaseOfRunScript->OptionalRequestedBufferSize >= MaximumPacketsCapacity)
+        {
+            //
+            // There was an error
+            //
+            ExFreePoolWithTag(Action, POOLTAG);
+            return NULL;
+        }
+
+        //
+        // User needs a buffer to play with
+        //
+        PVOID RequestedBuffer = ExAllocatePoolWithTag(NonPagedPool, InTheCaseOfRunScript->OptionalRequestedBufferSize, POOLTAG);
+
+        if (!RequestedBuffer)
+        {
+            //
+            // There was an error in allocation
+            //
+            ExFreePoolWithTag(Action, POOLTAG);
+            return NULL;
+        }
+        RtlZeroMemory(RequestedBuffer, InTheCaseOfRunScript->OptionalRequestedBufferSize);
+
+        //
+        // Add it to the action
+        //
+        Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
+        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
+        Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
+    }
+
     if (ActionType == RUN_CUSTOM_CODE)
     {
         //
         // Check if it's a Custom code without custom code buffer which is invalid
         //
         if (InTheCaseOfCustomCode->CustomCodeBufferSize == 0)
+        {
+            //
+            // There was an error
+            //
+            ExFreePoolWithTag(Action, POOLTAG);
             return NULL;
+        }
 
         //
         // Move the custom code buffer to the end of the action
@@ -356,12 +415,35 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     //
     // If it's run script action type
     //
-    if (ActionType == RUN_SCRIPT)
+    else if (ActionType == RUN_SCRIPT)
     {
-        /* Action->LogConfiguration.LogLength = InTheCaseOfLogTheStates->LogLength;
-        Action->LogConfiguration.LogMask   = InTheCaseOfLogTheStates->LogMask;
-        Action->LogConfiguration.LogType   = InTheCaseOfLogTheStates->LogType;
-        Action->LogConfiguration.LogValue  = InTheCaseOfLogTheStates->LogValue;*/
+        //
+        // Check the buffers of run script
+        //
+        if (InTheCaseOfRunScript->ScriptBuffer == NULL || InTheCaseOfRunScript->ScriptLength == NULL)
+        {
+            //
+            // Invalid configuration
+            //
+            ExFreePoolWithTag(Action, POOLTAG);
+            return NULL;
+        }
+
+        //
+        // Allocate the buffer from a non-page pool on the script
+        //
+        Action->ScriptConfiguration.ScriptBuffer = (BYTE *)Action + sizeof(DEBUGGER_EVENT_ACTION);
+
+        //
+        // Copy the memory of script to our non-paged pool
+        //
+        RtlCopyMemory(Action->ScriptConfiguration.ScriptBuffer, InTheCaseOfRunScript->ScriptBuffer, InTheCaseOfRunScript->ScriptLength);
+
+        //
+        // Set other fields
+        //
+        Action->ScriptConfiguration.ScriptLength                = InTheCaseOfRunScript->ScriptLength;
+        Action->ScriptConfiguration.OptionalRequestedBufferSize = InTheCaseOfRunScript->OptionalRequestedBufferSize;
     }
 
     //
@@ -2097,6 +2179,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 /**
  * @brief Routine for validating and parsing actions that are comming from
  * the user-mode 
+ * @details should be called in vmx root-mode
  * 
  * @param Action Structure that describes the action that comes from the
  * user-mode
@@ -2146,6 +2229,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
             //
             return FALSE;
         }
+
         //
         // Add action for RUN_CUSTOM_CODE
         //
@@ -2167,11 +2251,49 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
     }
     else if (Action->ActionType == RUN_SCRIPT)
     {
-        DbgBreakPoint();
+        //
+        // Check if buffer is not invalid
+        //
+        if (Action->ScriptBufferSize == 0)
+        {
+            //
+            // Set the appropriate error
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+
+            //
+            // Show that the
+            //
+            return FALSE;
+        }
+
+        //
+        // Add action for RUN_SCRIPT
+        //
+        DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = {0};
+        UserScriptConfig.ScriptBuffer                                   = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
+        UserScriptConfig.ScriptLength                                   = Action->ScriptBufferSize;
+        UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
+
+        DebuggerAddActionToEvent(Event, RUN_SCRIPT, TRUE, NULL, &UserScriptConfig);
+
+        //
+        // Enable the event
+        //
+        DebuggerEnableEvent(Event->Tag);
     }
     else if (Action->ActionType == BREAK_TO_DEBUGGER)
     {
-        DbgBreakPoint();
+        //
+        // Add action BREAK_TO_DEBUGGER to event
+        //
+        DebuggerAddActionToEvent(Event, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
+
+        //
+        // Enable the event
+        //
+        DebuggerEnableEvent(Event->Tag);
     }
     else
     {
@@ -2620,8 +2742,6 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
 //   // Call to register
 //   //
 //   DebuggerRegisterEvent(Event1);
-//
-//   DbgBreakPoint();
 //
 //   //
 //   //---------------------------------------------------------------------------
