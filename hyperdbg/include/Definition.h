@@ -678,7 +678,10 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS {
  *
  */
 typedef struct _DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION {
-  UINT64 Test;
+
+  UINT64 ScriptBuffer;
+  UINT32 ScriptLength;
+  UINT32 OptionalRequestedBufferSize;
 
 } DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION,
     *PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION;
@@ -721,7 +724,7 @@ typedef struct _DEBUGGER_EVENT_ACTION {
                                      // send multiple of them each time
 
   DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION
-  LogConfiguration; // If it's run script
+  ScriptConfiguration; // If it's run script
 
   DEBUGGER_EVENT_REQUEST_BUFFER
   RequestedBuffer; // if it's a custom code and needs a buffer then we use
