@@ -288,6 +288,8 @@ VOID ScriptEngineExecute(PGUEST_REGS GuestRegs, PSYMBOL_BUFFER CodeBuffer,
 		(unsigned long long)(Indx * sizeof(SYMBOL)));
 	Indx++;
 	SrcVal0 = GetValue(GuestRegs, Src0);
+
+
 	switch (Operator->Value) {
 	case FUNC_OR:
 		Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -568,10 +570,10 @@ VOID ScriptEngineExecute(PGUEST_REGS GuestRegs, PSYMBOL_BUFFER CodeBuffer,
 		return;
 	}
 }
+
 //
 // test function
 //
-
 VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
 
 	//

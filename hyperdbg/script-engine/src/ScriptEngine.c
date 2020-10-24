@@ -135,8 +135,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
             else
             {
 
-                free(CurrentIn->Value);
-                free(CurrentIn);
+ 
+                RemoveToken(CurrentIn);
 
                 CurrentIn = Scan(str, &c);
                 printf("\nCurrent Input :\n");
@@ -154,7 +154,10 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 #endif
 
     } while (TopToken->Type != END_OF_STACK);
-    
+
+
+    RemoveTokenList(Stack);
+    RemoveTokenList(MatchedStack);
     return CodeBuffer;
 }
 
@@ -778,7 +781,14 @@ PSYMBOL_BUFFER NewSymbolBuffer(void)
 */
 void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-    // TODO: When size of SymbolBuffer is more than 0, it must be freed
+  // TODO : Exeption thrown here. Fix it. 
+  /*  PSYMBOL Symbol;
+    for (int i = 0; i < SymbolBuffer->Pointer; i++)
+    {
+        Symbol = SymbolBuffer->Head + i;
+        RemoveSymbol(Symbol);
+    }*/
+    free(SymbolBuffer->Head);
     free(SymbolBuffer);
     return;
 }

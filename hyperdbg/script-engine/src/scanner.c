@@ -46,6 +46,19 @@ TOKEN NewToken()
 	return Token;
 }
 
+
+/**
+ *
+ */
+void RemoveToken(TOKEN Token)
+{
+	free(Token->Value);
+	free(Token);
+	return;
+}
+
+
+
 /**
  *
  */
@@ -57,6 +70,12 @@ TOKEN_LIST NewTokenList(void)
 	TokenList->Size = TOKEN_LIST_INIT_SIZE;
 	TokenList->Head = (TOKEN*)malloc(TokenList->Size * sizeof(TOKEN));
 	return TokenList;
+}
+void RemoveTokenList(TOKEN_LIST TokenList)
+{
+	free(TokenList->Head);
+	free(TokenList);
+	return;
 }
 
 /**
