@@ -163,7 +163,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
         {
             if (!IsEqual(TopToken, CurrentIn))
             {
-                strcpy(CodeBuffer->Message, "Invalid Syntax!");
+                char* Message = "Invalid Syntax!";
+                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+                strcpy(CodeBuffer->Message, Message);
                 RemoveTokenList(Stack);
                 RemoveTokenList(MatchedStack);
                 return CodeBuffer;

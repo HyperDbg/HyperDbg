@@ -1,410 +1,432 @@
-import re
+"""
+ * @file parse_table_generator.py
+ * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @brief Script engine Parse table generator 
+ * @details This program reads grammer from Greammer.txt file 
+ *          placed in the same directory of the program and 
+ *          and creates ParseTable.h which is used by the 
+ *          parser of script engine. 
+ * @version 0.1
+ * @date 2020-10-24
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ 
+ """
 
-# Util functions 
-def get_top(l):
-    return l[len(l)-1]
 
-def read(tokens):
-    x = tokens[0]
-    tokens = tokens[1:]
-    return tokens, x 
+# Returns Top of the list L 
+def GetTop(L):
+    return L[len(L)-1]
 
-
-
-
-
+# Remove first element of list and return it 
+def Read(Tokens):
+    X = Tokens[0]
+    Tokens = Tokens[1:]
+    return Tokens, X 
 
 class Parser:
     def __init__(self):
-        self.grammer_file = open("Grammer.txt", "r")
-        self.output_file = open("..\src\parse_table.h", "w")
-        self.rhs_list = []
-        self.lhs_list = []
-        self.terminal_set = set()
-        self.nonterminal_set = set()
-        self.start = ""
-        self.maximum_rhs_len = 0
+        # The file which contains the grammer of the language 
+        self.GrammerFile = open("Grammer.txt", "r")
+
+        # The file which is used by parser for parsing the input 
+        self.OutputFile = open("..\src\ParseTable.h", "w")
+
+        # Lists which used for storing the rules:
+        # Right Hand Side(Rhs)
+        self.RhsList = []
+        # Left Hand Side(Lhs)
+        self.LhsList = []
+
+        # Set of all termials and noneterminals
+        self.TerminalSet = set()
+        self.NonTerminalSet = set()
+
+        # Start variable 
+        self.Start = ""
+
+
+        # maximum of "Right Hand Side(Rhs)" length
+        self.MAXIMUM_RHS_LEN = 0
 
 
         self.SPECIAL_TOKENS = ['%', '++', '+=', '+', '--', '-=', '-', '*=', "*", "/=", "/", "=", ",", ";", "(", ")", "{", "}", "|", ">>", "<<", "&", "^"]
 
-        self.first_dict = dict()
-        self.follow_dict = dict()
-
+        # INVALID rule indicator
         self.INVALID = -1 
 
-    def run(self):
-        self.read_grammer()
+        # Dictionaries used for storing first and follow sets 
+        self.FirstDict = dict()
+        self.FollowDict = dict()
 
-        self.find_all_firsts()
+
+
+    def Run(self):
+        # Read grammer from input file and intialize grammer related variables 
+        self.ReadGrammer()
+
+        # Calculate "First Set" for all nonterminals and print it
+        self.FindAllFirsts()
         print("Firsts:")
-        self.print_firsts()
+        self.PrintFirsts()
         print("________________________________________________________________________________")
 
-        self.find_all_follows()
+        # Calculate "Follow Set" for all nonterminals and print it
+        self.FindAllFollows()
         print("Follows:")
-        self.print_follows()
+        self.PrintFollows()
         print("________________________________________________________________________________")
         
-
-        self.find_all_perdicts()
+        # Calculate "Prdicted Set" for each rule and print it
+        self.FindAllPredicts()
         print("Predicts:")
         self.print_predicts()
         print("________________________________________________________________________________")
 
-
-        self.fill_parse_table()
+        # Fills "Parse Table" according to calculted "Predicted Set" and print "Parse Table"
+        self.FillParseTable()
         print("Parse Table:")
-        self.print_parse_table()
+        self.PrintParseTable()
         print()
         
-
-        self.output_file.write("#ifndef PARSE_TABLE_H\n")
-        self.output_file.write("#define PARSE_TABLE_H\n")
-        self.output_file.write("#include \"scanner.h\"\n")
-        self.output_file.write("#define RULES_COUNT " + str(len(self.lhs_list)) + "\n")
-        self.output_file.write("#define TERMINAL_COUNT " + str(len(list(self.terminal_set))) + "\n")
-        self.output_file.write("#define NONETERMINAL_COUNT " + str(len(list(self.nonterminal_list))) + "\n")
-        self.output_file.write("#define START_VARIABLE " + "\"" + self.start +"\"\n")
-        self.output_file.write("#define MAX_RHS_LEN "  + str(self.maximum_rhs_len) +"\n")
-
-
-        self.write_lhs_list()
-        self.write_rhs_list()
-        self.write_rhs_size()
-        self.write_noneterminal_list()
-        self.write_terminal_list()
-        self.write_parse_table()
+        # Prints variables that is needed for parser for parsing into the output file 
+        self.OutputFile.write("#ifndef PARSE_TABLE_H\n")
+        self.OutputFile.write("#define PARSE_TABLE_H\n")
+        self.OutputFile.write("#include \"scanner.h\"\n")
+        self.OutputFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
+        self.OutputFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
+        self.OutputFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
+        self.OutputFile.write("#define START_VARIABLE " + "\"" + self.Start +"\"\n")
+        self.OutputFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
 
 
-        self.output_file.write("#endif\n")
-
-        self.grammer_file.close()
-        self.output_file.close()
-
-
-    def parse(self, tokens):
-        stack = []
-        matched_stack = []
-        stack.append("$")
-        stack.append(self.start)
-        top = ""
-        tokens, current_in = read(tokens)
-        t_counter = 0 
+        # Prints Rules into output file 
+        self.WriteLhsList()
+        self.WriteRhsList()
         
-        while top != "$":
-            top = get_top(stack)
+        # Prints size of each Rhs into output file 
+        self.WriteRhsSize()
 
-            # print(stack)
+        # Prints noneterminals and Terminal into output file 
+        self.WriteNoneTermianlList()
+        self.WriteTerminalList()
+
+        # Prints "Parse Table" into output file
+        self.WriteParseTable()
+
+
+        self.OutputFile.write("#endif\n")
+
+        # Closes Grammer Input File 
+        self.GrammerFile.close()
+
+        # Closes Output File 
+        self.OutputFile.close()
+
+
+    # This function simulates of script engine parser in ScriptEngine.C in
+    # order to test the generated "Parse Table"
+    def Parse(self, Tokens):
+        # Initialize Parse Stack 
+        Stack = []
+
+        # Initialize Match Stack 
+        MatchedStack = []
+
+        # Push the end of stack indicator into stack
+        Stack.append("$")
+
+        # Push start variable into stack
+        Stack.append(self.Start)
+
+        # Assign top variale an invalid vlaue 
+        Top = ""
+
+        # Read input
+        Tokens, CurrentIn = Read(Tokens)
+
+        # Temporary vlaues counter initialized with 0 value 
+        TempCounter = 0 
+        
+        # While Stack is not empty repeat 
+        while Top != "$":
+
+            # Read top of stack 
+            Top = GetTop(Stack)
+
             
-            if self.isNoneTerminal(top):
-                id = self.parse_table[self.get_noneterminal_id(top)][self.get_terminal_id(current_in)]
+            if self.IsNoneTerminal(Top):
+                Id = self.ParseTable[self.GetNoneTerminalId(Top)][self.GetTerminalId(CurrentIn)]
 
                 # Error Handling 
-                if id == -1: 
+                if Id == -1: 
                     print("1)Error in input!")
                     exit()
 
-                stack.pop()
+                Stack.pop()
                 
 
-                rhs = self.rhs_list[id]
-                if rhs != ["eps"]:
-                    for symbol in reversed(rhs):
-                        stack.append(symbol)
+                Rhs = self.RhsList[Id]
+                if Rhs != ["eps"]:
+                    for Symbol in reversed(Rhs):
+                        Stack.append(Symbol)
 
                 
-            elif self.isSemanticRule(top):
-                # TODO: Handle Semantic rules
-                if top == "@PUSH":
-                    stack.pop()
-                    top = get_top(stack)
-                    if top == current_in:
-                        matched_stack.append(top)
-                        current_in = tokens[0]
-                        tokens = tokens[1:]
+            elif self.IsSemanticRule(Top):
+                if Top == "@PUSH":
+                    Stack.pop()
+                    Top = GetTop(Stack)
+                    if Top == CurrentIn:
+                        MatchedStack.append(Top)
+                        Tokens, CurrentIn = Read(Tokens)
                     else: 
                         print("2)Error in input!")
-                        exit()
-                        
+                        exit()   
                 else:
                     
-                    
-                    
-                    op0 = matched_stack.pop()
-  
-                    op1 = matched_stack.pop()
+                    Op0 = MatchedStack.pop()
+                    Op1 = MatchedStack.pop()
 
-                    if top == "@MOV":
-                        print(top,"\t", op1, ", ", op0 )
+                    if Top == "@MOV":
+                        print(Top,"\t", Op1, ", ", Op0 )
                     else:
-                        matched_stack.append("t" + str(t_counter))
-                        print(top, "\t", "t"+ str(t_counter), ", ", op1, ",", op0 )
-                        t_counter += 1
-                    
-                # print("matched stack :", end ="")
-                # print(matched_stack)
+                        MatchedStack.append("t" + str(TempCounter))
+                        print(Top, "\t", "t"+ str(TempCounter), ", ", Op1, ",", Op0 )
+                        TempCounter += 1
 
-                stack.pop()
+                Stack.pop()
 
             else: # Terminal 
-                # TODO: Handle Error 
-                current_in = tokens[0]
-                if (len(tokens) > 1):
-                    tokens = tokens[1:]
-                stack.pop()
-            # print(top)
+                CurrentIn = Tokens[0]
+                if (len(Tokens) > 1):
+                    Tokens = Tokens[1:]
+                Stack.pop()
 
-        return matched_stack
+        return MatchedStack
 
-    # def code_gen(self, input_stack):
-    #     print("input stack:", input_stack)
-    #     if len(input_stack) < 3:
-    #         return input_stack
-    #     top_idx = len(input_stack) - 1
-    #     first_op_idx = len(input_stack) - 2
-    #     second_op_idx = len(input_stack) - 3
-
-    #     output_stack = []
-
-    #     if not self.isSemanticRule(input_stack[top_idx]):
-    #         print("Error!")
-    #         exit()
-    #     else:
-    #         output_stack.append(input_stack.pop())
-    #         if not self.isSemanticRule(input_stack[first_op_idx]): # Operand
-    #             output_stack.append(input_stack.pop())
-    #         else: # Operator
-    #             output_stack.extend(self.code_gen(input_stack))
-
-    #     if not self.isSemanticRule(input_stack[second_op_idx]): # Operand 
-    #         output_stack.append(input_stack.pop())
-    #     else: #Operator  
-    #         output_stack.extend(self.code_gen(input_stack))
-    #     print("output stack:", output_stack)
-    #     return output_stack
+    
                  
 
             
-    def read_grammer(self):
-        flag = 1
-        counter = 0
-        for line in self.grammer_file:
-            line = line.strip()
-            if line == "" or line[0] == "#":
+    def ReadGrammer(self):
+        Flag = 1
+        Counter = 0
+        for Line in self.GrammerFile:
+            Line = Line.strip()
+            if Line == "" or Line[0] == "#":
                 continue
-            l = line.split("->")
-            lhs = l[0]
-            self.nonterminal_set.add(lhs)
-            self.lhs_list.append(lhs)
+            L = Line.split("->")
+            Lhs = L[0]
+            self.NonTerminalSet.add(Lhs)
+            self.LhsList.append(Lhs)
 
 
-            rhs = l[1].split(" ")
-            self.rhs_list.append(rhs)
-            for x in rhs:
-                if not self.isNoneTerminal(x) and not self.isSemanticRule(x) and not x=="eps":
-                    self.terminal_set.add(x)
+            Rhs = L[1].split(" ")
+            self.RhsList.append(Rhs)
+            for X in Rhs:
+                if not self.IsNoneTerminal(X) and not self.IsSemanticRule(X) and not X=="eps":
+                    self.TerminalSet.add(X)
             
         
 
 
-            if flag:
-                flag = 0
-                self.start = lhs
-            self.maximum_rhs_len = max(self.maximum_rhs_len, len(rhs))
+            if Flag:
+                Flag = 0
+                self.Start = Lhs
+            self.MAXIMUM_RHS_LEN = max(self.MAXIMUM_RHS_LEN, len(Rhs))
 
-            counter += 1
+            Counter += 1
 
-        self.terminal_set.add("$")
+        self.TerminalSet.add("$")
         
-        self.nonterminal_list = list(self.nonterminal_set)
-        self.terminal_list = list(self.terminal_set)
+        self.NonTerminalList = list(self.NonTerminalSet)
+        self.TerminalList = list(self.TerminalSet)
 
 
 
 
 
 
-    def write_lhs_list(self):
+    def WriteLhsList(self):
 
-        self.output_file.write("const struct _TOKEN Lhs[RULES_COUNT]= \n{\n")
-        counter = 0
-        for lhs in self.lhs_list:
-            if counter == len(self.lhs_list)-1:
-                self.output_file.write("\t{NON_TERMINAL, " + "\"" + lhs + "\"}" + "\n")
+        self.OutputFile.write("const struct _TOKEN Lhs[RULES_COUNT]= \n{\n")
+        Counter = 0
+        for Lhs in self.LhsList:
+            if Counter == len(self.LhsList)-1:
+                self.OutputFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + "\n")
             else:
-                self.output_file.write("\t{NON_TERMINAL, " + "\"" + lhs + "\"}" + ",\n")
-            counter +=1
-        self.output_file.write("};\n")
+                self.OutputFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + ",\n")
+            Counter +=1
+        self.OutputFile.write("};\n")
 
-    def get_type(self,var):
-        if self.isNoneTerminal(var):
+    def GetType(self,Var):
+        if self.IsNoneTerminal(Var):
             return "NON_TERMINAL"
-        elif self.isSemanticRule(var):
+        elif self.IsSemanticRule(Var):
             return "SEMANTIC_RULE"
 
-        elif var == "eps":
+        elif Var == "eps":
             return "EPSILON"
 
-        elif var in self.SPECIAL_TOKENS:
+        elif Var in self.SPECIAL_TOKENS:
             return "SPECIAL_TOKEN"
-        elif var[0] == "_":
-            return var[1:].upper()
+        elif Var[0] == "_":
+            return Var[1:].upper()
         else:
             return "KEYWORD"
 
 
-    def write_rhs_list(self):
-        self.output_file.write("const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
-        counter =0
-        for rhs in self.rhs_list:
-            self.output_file.write("\t{")
+    def WriteRhsList(self):
+        self.OutputFile.write("const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
+        Counter =0
+        for Rhs in self.RhsList:
+            self.OutputFile.write("\t{")
 
-            c = 0
-            for var in rhs:
-                if c == len(rhs) -1:
-                    self.output_file.write("{"+self.get_type(var) +", "+"\"" + var + "\"}" )
+            C = 0
+            for Var in Rhs:
+                if C == len(Rhs) -1:
+                    self.OutputFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}" )
                 else:
-                    self.output_file.write("{"+self.get_type(var) +", "+"\"" + var + "\"}," )
-                c += 1
+                    self.OutputFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}," )
+                C += 1
 
-            if counter == len(self.rhs_list)-1:
-                self.output_file.write("}\n")
+            if Counter == len(self.RhsList)-1:
+                self.OutputFile.write("}\n")
             else:
-                self.output_file.write("},\n")
-            counter+= 1
+                self.OutputFile.write("},\n")
+            Counter+= 1
 
-        self.output_file.write("};\n")
+        self.OutputFile.write("};\n")
 
-    def write_rhs_size(self):
-        self.output_file.write("const unsigned int RhsSize[RULES_COUNT]= \n{\n")
-        counter =0
-        for rhs in self.rhs_list:            
-            if counter == len(self.rhs_list)-1:
-               self.output_file.write( str(len(rhs)) + "\n" )
+    def WriteRhsSize(self):
+        self.OutputFile.write("const unsigned int RhsSize[RULES_COUNT]= \n{\n")
+        Counter =0
+        for Rhs in self.RhsList:            
+            if Counter == len(self.RhsList)-1:
+               self.OutputFile.write( str(len(Rhs)) + "\n" )
             else:
-                self.output_file.write( str(len(rhs)) + ",\n" )
-            counter+= 1
+                self.OutputFile.write( str(len(Rhs)) + ",\n" )
+            Counter+= 1
 
-        self.output_file.write("};\n")
+        self.OutputFile.write("};\n")
 
-    def write_terminal_list(self):
-        self.output_file.write("const char* TerminalMap[TERMINAL_COUNT]= \n{\n")
-        counter = 0
-        for x in self.terminal_list:
-            if counter == len(self.terminal_list)-1:
-                self.output_file.write("\"" + x + "\"" + "\n")
+    def WriteTerminalList(self):
+        self.OutputFile.write("const char* TerminalMap[TERMINAL_COUNT]= \n{\n")
+        Counter = 0
+        for X in self.TerminalList:
+            if Counter == len(self.TerminalList)-1:
+                self.OutputFile.write("\"" + X + "\"" + "\n")
             else:
-                self.output_file.write("\"" + x + "\"" + ",\n")
-            counter +=1
-        self.output_file.write("};\n")
+                self.OutputFile.write("\"" + X + "\"" + ",\n")
+            Counter +=1
+        self.OutputFile.write("};\n")
 
-    def write_noneterminal_list(self):
-        self.output_file.write("const char* NoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
-        counter = 0
-        for x in self.nonterminal_list:
-            if counter == len(self.nonterminal_list)-1:
-                self.output_file.write("\"" + x + "\"" + "\n")
+    def WriteNoneTermianlList(self):
+        self.OutputFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
+        Counter = 0
+        for X in self.NonTerminalList:
+            if Counter == len(self.NonTerminalList)-1:
+                self.OutputFile.write("\"" + X + "\"" + "\n")
             else:
-                self.output_file.write("\"" + x + "\"" + ",\n")
-            counter +=1
-        self.output_file.write("};\n")
+                self.OutputFile.write("\"" + X + "\"" + ",\n")
+            Counter +=1
+        self.OutputFile.write("};\n")
 
-    def write_parse_table(self):
-        self.output_file.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]= \n{\n")
+    def WriteParseTable(self):
+        self.OutputFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]= \n{\n")
         i = 0
-        for x in self.nonterminal_list:
+        for X in self.NonTerminalList:
             j = 0
-            self.output_file.write("\t{")
-            for y in self.terminal_list:
-                self.output_file.write(str(self.parse_table[i][j]))
-                if j != len(self.terminal_list)-1:
-                    self.output_file.write("\t\t,")
+            self.OutputFile.write("\t{")
+            for y in self.TerminalList:
+                self.OutputFile.write(str(self.ParseTable[i][j]))
+                if j != len(self.TerminalList)-1:
+                    self.OutputFile.write("\t\t,")
                 j += 1
 
-            if i == len(self.nonterminal_list)-1:
-                self.output_file.write("\t}\n")
+            if i == len(self.NonTerminalList)-1:
+                self.OutputFile.write("\t}\n")
 
             else:
-                self.output_file.write("\t},\n")
+                self.OutputFile.write("\t},\n")
             i +=1
-        self.output_file.write("};\n")
+        self.OutputFile.write("};\n")
         
 
 
-    def find_all_firsts(self):
+    def FindAllFirsts(self):
         
-        self.first_dict = {}
-        for symbol in self.nonterminal_list:
-            self.first_dict[symbol] = set()
+        self.FirstDict = {}
+        for Symbol in self.NonTerminalList:
+            self.FirstDict[Symbol] = set()
 
         t = 0 
         while True:
-            updated = False 
+            Updated = False 
             i = 0 
-            for lhs in self.lhs_list:
-                rhs = self.rhs_list[i]
-                temp = set(self.first_dict[lhs])
+            for Lhs in self.LhsList:
+                Rhs = self.RhsList[i]
+                Temp = set(self.FirstDict[Lhs])
 
                 
-                if rhs[0] == "eps":
+                if Rhs[0] == "eps":
                     pass
-                elif self.isNoneTerminal(rhs[0]):
-                    self.first_dict[lhs] = self.first_dict[lhs].union(self.first_dict[rhs[0]])
+                elif self.IsNoneTerminal(Rhs[0]):
+                    self.FirstDict[Lhs] = self.FirstDict[Lhs].union(self.FirstDict[Rhs[0]])
                     p = 0
-                    while self.isnullable(rhs[p]):
-                        self.first_dict[lhs] = self.first_dict[lhs].union(self.first_dict[rhs[p+1]])
+                    while self.IsNullable(Rhs[p]):
+                        self.FirstDict[Lhs] = self.FirstDict[Lhs].union(self.FirstDict[Rhs[p+1]])
                         p += 1
-                elif self.isSemanticRule(rhs[0]):
-                    if self.isNoneTerminal(rhs[0]):
-                        self.first_dict[lhs] = self.first_dict[lhs].union(self.first_dict[rhs[1]])
+                elif self.IsSemanticRule(Rhs[0]):
+                    if self.IsNoneTerminal(Rhs[0]):
+                        self.FirstDict[Lhs] = self.FirstDict[Lhs].union(self.FirstDict[Rhs[1]])
                     else: 
-                        self.first_dict[lhs].add(rhs[1])
+                        self.FirstDict[Lhs].add(Rhs[1])
                 else:
-                    self.first_dict[lhs].add(rhs[0])
+                    self.FirstDict[Lhs].add(Rhs[0])
                 i += 1
                
-                if temp != self.first_dict[lhs]:
-                    updated = True
+                if Temp != self.FirstDict[Lhs]:
+                    Updated = True
             p += 1  
-            if not updated:
+            if not Updated:
                 break;    
             
 
 
-    def print_firsts(self):
-        for id in self.first_dict:
-            print(id, end=": ")
-            for x in self.first_dict[id]:
-                print(x,end = " ")
+    def PrintFirsts(self):
+        for Id in self.FirstDict:
+            print(Id, end=": ")
+            for X in self.FirstDict[Id]:
+                print(X,end = " ")
             print()
 
-    def get_noneterminal_id(self, nonterminal):
-        for i in range(len(self.nonterminal_list)):
-            if nonterminal == self.nonterminal_list[i]:
+    def GetNoneTerminalId(self, nonterminal):
+        for i in range(len(self.NonTerminalList)):
+            if nonterminal == self.NonTerminalList[i]:
                 return i
 
         return -1
-    def get_terminal_id(self, terminal):
-        for i in range(len(self.terminal_list)):
-            if terminal == self.terminal_list[i]:
+    def GetTerminalId(self, Terminal):
+        for i in range(len(self.TerminalList)):
+            if Terminal == self.TerminalList[i]:
                 return i
 
         return -1
 
 
-    def fill_parse_table(self):
-        self.parse_table = [[self.INVALID for y in range(len(self.terminal_list))] for x in range(len(self.nonterminal_list))]
+    def FillParseTable(self):
+        self.ParseTable = [[self.INVALID for y in range(len(self.TerminalList))] for X in range(len(self.NonTerminalList))]
 
-        rule_id = 0 
-        for lhs in self.lhs_list:
-            i = self.get_noneterminal_id(lhs)
+        RuleId = 0 
+        for Lhs in self.LhsList:
+            i = self.GetNoneTerminalId(Lhs)
 
             j = 0
-            for terminal in self.terminal_list:
-                if terminal in self.predict_dict[rule_id]:
-                    if self.parse_table[i][j] == self.INVALID:
-                        self.parse_table[i][j] = rule_id
+            for Terminal in self.TerminalList:
+                if Terminal in self.PredictDict[RuleId]:
+                    if self.ParseTable[i][j] == self.INVALID:
+                        self.ParseTable[i][j] = RuleId
 
                     else:
                         print("Error! Input grammer is not LL1.")
@@ -412,167 +434,162 @@ class Parser:
 
                 j += 1
 
-            rule_id += 1
+            RuleId += 1
 
-    def print_parse_table(self):
+    def PrintParseTable(self):
         print("\t", end = "")
-        for j in range(len(self.terminal_list)):
-            print(self.terminal_list[j], end= "\t ")
+        for j in range(len(self.TerminalList)):
+            print(self.TerminalList[j], end= "\t ")
         print()
-        for i in range(len(self.nonterminal_list)):
-            print(self.nonterminal_list[i], end= "\t")
-            for j in range(len(self.terminal_list)):
-                if self.parse_table[i][j] == self.INVALID:
+        for i in range(len(self.NonTerminalList)):
+            print(self.NonTerminalList[i], end= "\t")
+            for j in range(len(self.TerminalList)):
+                if self.ParseTable[i][j] == self.INVALID:
                     print(".", end= "\t ")
                 else:
-                    print(self.parse_table[i][j], end= "\t ")
+                    print(self.ParseTable[i][j], end= "\t ")
             print()
                 
 
-    def find_all_perdicts(self):
-        self.predict_dict = {}
-        for i in range(len(self.lhs_list)):
-            self.predict_dict[i] = set()
+    def FindAllPredicts(self):
+        self.PredictDict = {}
+        for i in range(len(self.LhsList)):
+            self.PredictDict[i] = set()
 
         i = 0
-        for lhs in self.lhs_list:
-            rhs = self.rhs_list[i]
-            is_right_nullable = True
-            # print(lhs, end= ": ")
-            # print(rhs)
-
-            # if rhs[0] == "eps":
-            #     pass
-            for symbol in rhs:
-                if self.isSemanticRule(symbol):
+        for Lhs in self.LhsList:
+            Rhs = self.RhsList[i]
+            IsRightNullable = True
+            for Symbol in Rhs:
+                if self.IsSemanticRule(Symbol):
                     pass
                 
-                elif symbol == "eps":
-                    is_right_nullable = True
+                elif Symbol == "eps":
+                    IsRightNullable = True
                     break
-                elif self.isNoneTerminal(symbol):
-                    self.predict_dict[i] |= self.first_dict[symbol]
-                    if not self.isnullable(symbol):
-                        is_right_nullable = False
+                elif self.IsNoneTerminal(Symbol):
+                    self.PredictDict[i] |= self.FirstDict[Symbol]
+                    if not self.IsNullable(Symbol):
+                        IsRightNullable = False
                         break
                 else:
-                    self.predict_dict[i].add(symbol)
-                    is_right_nullable = False
+                    self.PredictDict[i].add(Symbol)
+                    IsRightNullable = False
                     break
             
-            if is_right_nullable:
-                self.predict_dict[i] |= self.follow_dict[lhs]
+            if IsRightNullable:
+                self.PredictDict[i] |= self.FollowDict[Lhs]
             i += 1
                
 
     def print_predicts(self):
-        for key in self.predict_dict:
-            print(key, end=": ")
-            for x in self.predict_dict[key]:
-                print(x,end = " ")
+        for Key in self.PredictDict:
+            print(Key, end=": ")
+            for X in self.PredictDict[Key]:
+                print(X,end = " ")
             print()
 
 
     
-    def find_all_follows(self):
-        self.follow_dict = {}
-        for symbol in self.nonterminal_list:
-            self.follow_dict[symbol] = set()
-            if symbol == self.start:
-                self.follow_dict[symbol].add('$')
+    def FindAllFollows(self):
+        self.FollowDict = {}
+        for Symbol in self.NonTerminalList:
+            self.FollowDict[Symbol] = set()
+            if Symbol == self.Start:
+                self.FollowDict[Symbol].add('$')
 
         t = 0
         while True: 
-            updated = False 
+            Updated = False 
 
             i = 0
-            for lhs in self.lhs_list:
-                rhs = self.rhs_list[i]
+            for Lhs in self.LhsList:
+                Rhs = self.RhsList[i]
 
                 p = 0
-                for symbol in rhs:
+                for Symbol in Rhs:
                     
-                    if self.isNoneTerminal(symbol):
+                    if self.IsNoneTerminal(Symbol):
                         
-                        temp = set(self.follow_dict[symbol])
-                        if p == len(rhs)-1:
-                            self.follow_dict[symbol] = self.follow_dict[symbol].union(self.follow_dict[lhs])
+                        Temp = set(self.FollowDict[Symbol])
+                        if p == len(Rhs)-1:
+                            self.FollowDict[Symbol] = self.FollowDict[Symbol].union(self.FollowDict[Lhs])
                         
                         
                         
                         else:
 
-                            next_var = self.get_next_var(rhs, p)
-                            if self.isNoneTerminal(next_var):
-                                self.follow_dict[symbol] = self.follow_dict[symbol].union(self.first_dict[next_var])
-                                if self.isnullable(next_var):    
-                                    self.follow_dict[symbol] = self.follow_dict[symbol].union(self.follow_dict[next_var])                                    
-                            elif self.isSemanticRule(next_var):
+                            NextVar = self.GetNextVar(Rhs, p)
+                            if self.IsNoneTerminal(NextVar):
+                                self.FollowDict[Symbol] = self.FollowDict[Symbol].union(self.FirstDict[NextVar])
+                                if self.IsNullable(NextVar):    
+                                    self.FollowDict[Symbol] = self.FollowDict[Symbol].union(self.FollowDict[NextVar])                                    
+                            elif self.IsSemanticRule(NextVar):
                                 pass      
                             else:
-                                self.follow_dict[symbol].add(next_var)
+                                self.FollowDict[Symbol].add(NextVar)
                         
-                        if p == len(rhs)-2:
-                            next_var = self.get_next_var(rhs, p)
+                        if p == len(Rhs)-2:
+                            NextVar = self.GetNextVar(Rhs, p)
                             
-                            if self.isnullable(next_var):
-                                self.follow_dict[symbol] = self.follow_dict[symbol].union(self.follow_dict[lhs])
-                                self.follow_dict[lhs] = self.follow_dict[lhs].union(self.follow_dict[next_var])
+                            if self.IsNullable(NextVar):
+                                self.FollowDict[Symbol] = self.FollowDict[Symbol].union(self.FollowDict[Lhs])
+                                self.FollowDict[Lhs] = self.FollowDict[Lhs].union(self.FollowDict[NextVar])
                         
                    
 
-                        if temp != self.follow_dict[symbol]:
-                            updated = True
+                        if Temp != self.FollowDict[Symbol]:
+                            Updated = True
                     p += 1  
                 i += 1
             t += 1
 
-            if not updated: 
+            if not Updated: 
                 break
-    def get_next_var(self, rhs, p):
-        if p == len(rhs)-1:
+    def GetNextVar(self, Rhs, p):
+        if p == len(Rhs)-1:
             return None
         
-        x = p +1
-        while self.isSemanticRule(rhs[x]):
-            x+=1
-        return rhs[x]
+        X = p +1
+        while self.IsSemanticRule(Rhs[X]):
+            X+=1
+        return Rhs[X]
         
-    def print_follows(self):
-        for key in self.follow_dict:
-            print(key, end=": ")
-            for x in self.follow_dict[key]:
-                print(x,end = " ")
+    def PrintFollows(self):
+        for Key in self.FollowDict:
+            print(Key, end=": ")
+            for X in self.FollowDict[Key]:
+                print(X,end = " ")
             print()
 
-    def isNoneTerminal(self,x):     
-        if x[0].isupper():
+    def IsNoneTerminal(self,X):     
+        if X[0].isupper():
             return True
         else:
             return False
 
-    def isSemanticRule(self, x):
-        if x[0] == '@':
+    def IsSemanticRule(self, X):
+        if X[0] == '@':
             return True
         else: 
             return False
 
-    def isnullable(self, s):
+    def IsNullable(self, s):
 
         if not s[0].isupper():
             return False
         i = 0 
-        for lhs in self.lhs_list:
-            rhs = self.rhs_list[i]
+        for Lhs in self.LhsList:
+            Rhs = self.RhsList[i]
             
-            if lhs == s:
+            if Lhs == s:
 
-                if rhs[0] == "eps":
+                if Rhs[0] == "eps":
                     return True
 
                 p = 0 
                 while True:
-                    if self.isnullable(rhs[p]):
+                    if self.IsNullable(Rhs[p]):
                         return True
                     else:
                         break
@@ -582,12 +599,7 @@ class Parser:
         return False
 
 parser = Parser()
-parser.run()
-tokens = ['_id', '=', '(', '_hex', '*', '_hex', ')', '*', '_hex', '*', '_decimal', '*', '_octal', ';', '$']
-stack = parser.parse(tokens)
-print(stack)
-# parser.code_gen(stack)
-
-
-
-
+parser.Run()
+Tokens = ['_id', '=', '(', '_hex', '*', '_hex', ')', '*', '_hex', '*', '_decimal', '*', '_octal', ';', '$']
+Stack = parser.Parse(Tokens)
+print(Stack)
