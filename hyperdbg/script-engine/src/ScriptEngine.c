@@ -134,6 +134,10 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
             }
             else
             {
+
+                free(CurrentIn->Value);
+                free(CurrentIn);
+
                 CurrentIn = Scan(str, &c);
                 printf("\nCurrent Input :\n");
                 PrintToken(CurrentIn);
@@ -150,7 +154,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 #endif
 
     } while (TopToken->Type != END_OF_STACK);
-  
+    
     return CodeBuffer;
 }
 
