@@ -19,7 +19,8 @@ typedef struct SYMBOL_BUFFER {
   PSYMBOL Head;
   unsigned int Pointer;
   unsigned int Size;
-
+  char* Message; 
+  
 } SYMBOL_BUFFER, *PSYMBOL_BUFFER;
 
 #define FUNC_OR 0

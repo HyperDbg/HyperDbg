@@ -17,6 +17,7 @@
 #include "ScriptEngine.h"
 #include "scanner.h"
 #include "parse_table.h"
+#include "string.h"
 
 /**
 *
@@ -36,7 +37,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     int TerminalId;
     int RuleId;
     char c;
-    char t;
+
+
 
 
 
@@ -58,9 +60,20 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     Push(Stack, StartToken);
 
     InputIdx = 0;
+    WaitForID = 1; 
+
     c = sgetc(str);
 
     CurrentIn = Scan(str, &c);
+    if (CurrentIn->Type == UNKNOWN)
+    {
+        char* Message = "Invalid Syntax!";
+        CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+        strcpy(CodeBuffer->Message, Message);
+        RemoveTokenList(Stack);
+        RemoveTokenList(MatchedStack);
+        return CodeBuffer;
+    }
 
     do
     {
@@ -81,25 +94,37 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
             NonTerminalId = GetNonTerminalId(TopToken);
             if (NonTerminalId == -1)
             {
-                printf("Error in Nonterminal ID\n");
-                return;
+                char* Message = "Invalid Syntax!";
+                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+                strcpy(CodeBuffer->Message, Message);
+                RemoveTokenList(Stack);
+                RemoveTokenList(MatchedStack);
+                return CodeBuffer;
             }
             TerminalId = GetTerminalId(CurrentIn);
             if (TerminalId == -1)
             {
-                printf("Error in Terminal ID\n");
-                return;
+                char* Message = "Invalid Syntax!";
+                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+                strcpy(CodeBuffer->Message, Message);
+                RemoveTokenList(Stack);
+                RemoveTokenList(MatchedStack);
+                return CodeBuffer;
             }
             RuleId = ParseTable[NonTerminalId][TerminalId];
             if (RuleId == -1)
             {
-                printf("Error in Parse Table\n");
-                return;
+                char* Message = "Invalid Syntax!";
+                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+                strcpy(CodeBuffer->Message, Message);
+                RemoveTokenList(Stack);
+                RemoveTokenList(MatchedStack);
+                return CodeBuffer;
             }
 
-            // printf("Rule ID = %d\n", RuleId);
-
+            //
             // Push RHS Reversely into stack
+            //
             for (int i = RhsSize[RuleId] - 1; i >= 0; i--)
             {
                 TOKEN Token = &Rhs[RuleId][i];
@@ -116,6 +141,15 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 TopToken = Pop(Stack);
                 Push(MatchedStack, CurrentIn);
                 CurrentIn = Scan(str, &c);
+                if (CurrentIn->Type == UNKNOWN)
+                {
+                    char* Message = "Invalid Syntax!";
+                    CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
+                    strcpy(CodeBuffer->Message, Message);
+                    RemoveTokenList(Stack);
+                    RemoveTokenList(MatchedStack);
+                    return CodeBuffer;
+                }
 
                 // char t = getchar();
             }
@@ -129,8 +163,10 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
         {
             if (!IsEqual(TopToken, CurrentIn))
             {
-                printf("Error: Not Matched\n");
-                return;
+                strcpy(CodeBuffer->Message, "Invalid Syntax!");
+                RemoveTokenList(Stack);
+                RemoveTokenList(MatchedStack);
+                return CodeBuffer;
             }
             else
             {
@@ -231,7 +267,9 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PrintSymbol(Op0Symbol);
         printf("_____________\n");
 
+        //
         // Free the operand if it is a temp value
+        //
         FreeTemp(Op0);
         FreeTemp(Op1);
     }
@@ -771,6 +809,7 @@ PSYMBOL_BUFFER NewSymbolBuffer(void)
     SymbolBuffer->Pointer = 0;
     SymbolBuffer->Size = SYMBOL_BUFFER_INIT_SIZE;
     SymbolBuffer->Head = (PSYMBOL)malloc(SymbolBuffer->Size * sizeof(SYMBOL));
+    SymbolBuffer->Message = NULL;
     return SymbolBuffer;
 }
 

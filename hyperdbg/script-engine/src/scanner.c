@@ -252,7 +252,7 @@ void Append(TOKEN Token, char c)
  */
 TOKEN GetToken(char* c, char* str)
 {
-	static unsigned char WaitForID = 1;
+	 
 	TOKEN Token = NewToken();
 
 	switch (*c)

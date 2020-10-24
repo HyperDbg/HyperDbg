@@ -54,6 +54,7 @@ typedef struct _TOKEN_LIST
 } *TOKEN_LIST;
 
 unsigned int InputIdx;
+unsigned char WaitForID;
 
 TOKEN NewToken(void);
 void RemoveToken(TOKEN Token);

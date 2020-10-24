@@ -34,9 +34,6 @@
     <Filter Include="Source Files\Debugger\Commands\Debugging Commands">
       <UniqueIdentifier>{b19aa95a-347c-4c7a-b96c-ad4d05bdc05c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Commands\Extension Commands">
-      <UniqueIdentifier>{6d1d6434-d27d-4f59-83be-301399c3fef8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\Commands\Meta Commands">
       <UniqueIdentifier>{87fb4212-f9a2-4dba-b943-b1d3a7807c28}</UniqueIdentifier>
     </Filter>
@@ -51,6 +48,9 @@
     </Filter>
     <Filter Include="Source Files\Debugger\Tests">
       <UniqueIdentifier>{75cfa57c-a5af-4b8b-ae07-e4b9f9c56f6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Debugger\Commands\Extension Commands">
+      <UniqueIdentifier>{6d1d6434-d27d-4f59-83be-301399c3fef8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

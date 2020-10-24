@@ -580,16 +580,26 @@ VOID PerformAction(PGUEST_REGS GuestRegs, string Expr) {
 	// Test Parser
 	//
 	PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char*)Expr.c_str());
+	if (CodeBuffer->Message == NULL)
+	{
+		PrintSymbolBuffer(CodeBuffer);
 
-	PrintSymbolBuffer(CodeBuffer);
+		for (int i = 0; i < CodeBuffer->Pointer;) {
+			printf("%d\n", i);
 
-	for (int i = 0; i < CodeBuffer->Pointer;) {
-		printf("%d\n", i);
-
-		ScriptEngineExecute(GuestRegs, CodeBuffer, i);
+			ScriptEngineExecute(GuestRegs, CodeBuffer, i);
+		}
+		RemoveSymbolBuffer(CodeBuffer);
 	}
+	else
+	{
+		printf("%s\n", CodeBuffer->Message);
+	}
+	
 
-	RemoveSymbolBuffer(CodeBuffer);
+	
+
+
 }
 
 VOID TestParser(string Expr) {
