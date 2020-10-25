@@ -150,17 +150,35 @@ __declspec(dllimport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 __declspec(dllimport) void PrintSymbol(PSYMBOL Symbol);
 __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 }
-#endif
+#endif // SCRIPT_ENGINE_USER_MODE
 
 //
 // Pseudo registers
 //
 
 // $tid
-UINT64 ScriptEnginePseudoRegGetTid() { return GetCurrentThreadId(); }
+UINT64 ScriptEnginePseudoRegGetTid() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return GetCurrentThreadId();
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return PsGetCurrentThreadId();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
 
 // $pid
-UINT64 ScriptEnginePseudoRegGetPid() { return GetCurrentProcessId(); }
+UINT64 ScriptEnginePseudoRegGetPid() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return GetCurrentProcessId();
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return PsGetCurrentProcessId();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
 
 //
 // Keywords
@@ -291,6 +309,7 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 //
 VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                          PSYMBOL_BUFFER CodeBuffer, int *Indx) {
+
   PSYMBOL Operator;
   PSYMBOL Src0;
   PSYMBOL Src1;
@@ -645,12 +664,18 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-   
+
     DesVal = SrcVal0;
     SetValue(GuestRegs, Des, DesVal);
-    if (Des->Type == SYMBOL_ID_TYPE)
-    {
-        printf("Result is %llx\n", DesVal);
+    if (Des->Type == SYMBOL_ID_TYPE) {
+#ifdef SCRIPT_ENGINE_USER_MODE
+      printf("Result is %llx\n", DesVal);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+      DbgBreakPoint();
+      LogInfo("Result is %llx\n", DesVal);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
     }
 
 #ifdef SCRIPT_ENGINE_USER_MODE

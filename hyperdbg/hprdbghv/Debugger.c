@@ -12,6 +12,12 @@
  */
 #include "pch.h"
 
+//
+// Include parser
+//
+#define SCRIPT_ENGINE_KERNEL_MODE
+#include "ScriptEngineCommon.h"
+
 /**
  * @brief Initialize Debugger Structures and Routines
  * 
@@ -978,7 +984,14 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
     //
     // Context point to the registers
     //
-    DbgBreakPoint();
+
+    PSYMBOL_BUFFER CodeBuffer = Action->ScriptConfiguration.ScriptBuffer;
+
+    for (int i = 0; i < CodeBuffer->Pointer;)
+    {
+        DbgBreakPoint();
+        ScriptEngineExecute(Regs, CodeBuffer, &i);
+    }
 }
 
 /**

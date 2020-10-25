@@ -308,6 +308,9 @@
     <ClCompile Include="print.cpp">
       <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
+    <ClCompile Include="sewrapper.cpp">
+      <Filter>Source Files\Debugger\Implementations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

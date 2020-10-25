@@ -12,6 +12,20 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//          Script Engine Wrapper               //
+//////////////////////////////////////////////////
+
+VOID ScriptEngineWrapperTestParser(string Expr);
+
+PVOID ScriptEngineParseWrapper(char *str);
+
+void PrintSymbolBufferWrapper(PVOID SymbolBuffer);
+
+UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer);
+
+UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer);
+
+//////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////
 

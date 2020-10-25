@@ -532,24 +532,24 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
     AppendedFinalBuffer.append(" ");
   }
 
-  printf("script : %s\n", AppendedFinalBuffer.c_str());
+  ShowMessages("script : %s\n", AppendedFinalBuffer.c_str());
 
   //
   // Run script engine handler
   //
-  /* PSYMBOL_BUFFER CodeBuffer =
-       ScriptEngineParse((char *)AppendedFinalBuffer.c_str());
+  PVOID CodeBuffer =
+      ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str());
 
-   //
-   // Print symbols (test)
-   //
-   PrintSymbolBuffer(CodeBuffer);
+  //
+  // Print symbols (test)
+  //
+  PrintSymbolBufferWrapper(CodeBuffer);
 
   //
   // Set the buffer and length
   //
-  *BufferAddress = (UINT64)CodeBuffer->Head;
-  *BufferLength = CodeBuffer->Size;*/
+  *BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+  *BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
 
   //
   // Removing the script indexes from the command
