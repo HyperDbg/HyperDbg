@@ -645,9 +645,13 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-
+   
     DesVal = SrcVal0;
     SetValue(GuestRegs, Des, DesVal);
+    if (Des->Type == SYMBOL_ID_TYPE)
+    {
+        printf("Result is %llx\n", DesVal);
+    }
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
