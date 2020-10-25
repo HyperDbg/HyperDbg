@@ -537,19 +537,19 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   //
   // Run script engine handler
   //
-  PSYMBOL_BUFFER CodeBuffer =
-      ScriptEngineParse((char *)AppendedFinalBuffer.c_str());
+  /* PSYMBOL_BUFFER CodeBuffer =
+       ScriptEngineParse((char *)AppendedFinalBuffer.c_str());
 
-  //
-  // Print symbols (test)
-  //
-  PrintSymbolBuffer(CodeBuffer);
+   //
+   // Print symbols (test)
+   //
+   PrintSymbolBuffer(CodeBuffer);
 
   //
   // Set the buffer and length
   //
   *BufferAddress = (UINT64)CodeBuffer->Head;
-  *BufferLength = CodeBuffer->Size;
+  *BufferLength = CodeBuffer->Size;*/
 
   //
   // Removing the script indexes from the command
