@@ -532,7 +532,22 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
     AppendedFinalBuffer.append(" ");
   }
 
-  ShowMessages("script : %s\n", AppendedFinalBuffer.c_str());
+  if (AppendedFinalBuffer.rfind("file:", 0) == 0) {
+
+    //
+    // It's a file script
+    //
+    std::ifstream t(AppendedFinalBuffer.erase(0, 5).c_str());
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    AppendedFinalBuffer = buffer.str();
+    if (AppendedFinalBuffer.empty()) {
+      ShowMessages("err, either script file is not found or it's empty.\n\n");
+      return FALSE;
+    }
+  }
+
+  // ShowMessages("script : %s\n", AppendedFinalBuffer.c_str());
 
   //
   // Run script engine handler

@@ -10,6 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
+#pragma once
 
 typedef unsigned long long QWORD;
 typedef unsigned __int64 UINT64, *PUINT64;
@@ -317,6 +318,10 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
   UINT64 SrcVal0;
   UINT64 SrcVal1;
   UINT64 DesVal;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  DbgBreakPoint();
+#endif
 
   Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
