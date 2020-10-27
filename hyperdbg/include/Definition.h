@@ -239,6 +239,7 @@ typedef struct _DEBUGGER_GENERAL_ACTION {
 
   UINT32 CustomCodeBufferSize;
   UINT32 ScriptBufferSize;
+  UINT32 ScriptBufferPointer;
 
 } DEBUGGER_GENERAL_ACTION, *PDEBUGGER_GENERAL_ACTION;
 
@@ -681,6 +682,7 @@ typedef struct _DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION {
 
   UINT64 ScriptBuffer;
   UINT32 ScriptLength;
+  UINT32 ScriptPointer;
   UINT32 OptionalRequestedBufferSize;
 
 } DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION,

@@ -25,6 +25,8 @@ UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer);
 
 UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer);
 
+UINT32 ScriptEngineWrapperGetPointer(PVOID SymbolBuffer);
+
 //////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////

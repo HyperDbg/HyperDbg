@@ -169,7 +169,7 @@ BOOLEAN IsTagExist(UINT64 Tag) {
  */
 BOOLEAN
 InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
-                PUINT32 BufferLength) {
+                PUINT32 BufferLength, PUINT32 Pointer) {
 
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -565,6 +565,7 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   //
   *BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
   *BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
+  *Pointer = ScriptEngineWrapperGetSize(CodeBuffer);
 
   //
   // Removing the script indexes from the command
@@ -1444,6 +1445,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT32 CodeBufferLength = 0;
   UINT64 ScriptBufferAddress;
   UINT32 ScriptBufferLength = 0;
+  UINT32 ScriptBufferPointer = 0;
   UINT32 LengthOfEventBuffer = 0;
   string CommandString;
   BOOLEAN HasConditionBuffer = FALSE;
@@ -1573,7 +1575,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   // Check if there is a Script block in the command
   //
   if (!InterpretScript(SplittedCommand, &ScriptBufferAddress,
-                       &ScriptBufferLength)) {
+                       &ScriptBufferLength, &ScriptBufferPointer)) {
 
     //
     // Indicate code is not available
@@ -1782,9 +1784,10 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     TempActionScript->ActionType = RUN_SCRIPT;
 
     //
-    // Set the action buffer size
+    // Set the action buffer size and pointer
     //
     TempActionScript->ScriptBufferSize = ScriptBufferLength;
+    TempActionScript->ScriptBufferPointer = ScriptBufferPointer;
 
     //
     // Increase the count of actions

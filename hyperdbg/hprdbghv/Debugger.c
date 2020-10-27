@@ -449,6 +449,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         // Set other fields
         //
         Action->ScriptConfiguration.ScriptLength                = InTheCaseOfRunScript->ScriptLength;
+        Action->ScriptConfiguration.ScriptPointer               = InTheCaseOfRunScript->ScriptPointer;
         Action->ScriptConfiguration.OptionalRequestedBufferSize = InTheCaseOfRunScript->OptionalRequestedBufferSize;
     }
 
@@ -981,15 +982,17 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 VOID
 DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
+    PSYMBOL_BUFFER CodeBuffer = {0};
+    DbgBreakPoint();
     //
     // Context point to the registers
     //
-
-    PSYMBOL_BUFFER CodeBuffer = Action->ScriptConfiguration.ScriptBuffer;
+    CodeBuffer->Head    = Action->ScriptConfiguration.ScriptBuffer;
+    CodeBuffer->Size    = Action->ScriptConfiguration.ScriptLength;
+    CodeBuffer->Pointer = Action->ScriptConfiguration.ScriptPointer;
 
     for (int i = 0; i < CodeBuffer->Pointer;)
     {
-        DbgBreakPoint();
         ScriptEngineExecute(Regs, CodeBuffer, &i);
     }
 }
@@ -2287,6 +2290,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION UserScriptConfig = {0};
         UserScriptConfig.ScriptBuffer                                   = (UINT64)Action + sizeof(DEBUGGER_GENERAL_ACTION);
         UserScriptConfig.ScriptLength                                   = Action->ScriptBufferSize;
+        UserScriptConfig.ScriptPointer                                  = Action->ScriptBufferPointer;
         UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
 
         DebuggerAddActionToEvent(Event, RUN_SCRIPT, TRUE, NULL, &UserScriptConfig);
