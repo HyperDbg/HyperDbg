@@ -89,6 +89,7 @@ typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
 #define FUNC_HI 20
 #define FUNC_LOW 21
 #define FUNC_MOV 22
+#define FUNC_PRINT 23
 
 #define SYMBOL_ID_TYPE 0
 #define SYMBOL_NUM_TYPE 1
@@ -687,5 +688,28 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     printf("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
+  
+  case FUNC_PRINT:
+      Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+      *Indx = *Indx + 1;
+
+      DesVal = SrcVal0;
+      SetValue(GuestRegs, Des, DesVal);
+      if (Des->Type == SYMBOL_ID_TYPE) {
+#ifdef SCRIPT_ENGINE_USER_MODE
+          printf("Result is %llx\n", DesVal);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+          DbgBreakPoint();
+          LogInfo("Result is %llx\n", DesVal);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+      }
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+      printf("DesVal = %d\n", DesVal);
+#endif // SCRIPT_ENGINE_USER_MODE
+      return;
   }
 }

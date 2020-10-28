@@ -2,6 +2,7 @@ S->C ; S'
 S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
+C->print ( E0 @PRINT )
 C'->eps
 #
 E0->E1 E0'

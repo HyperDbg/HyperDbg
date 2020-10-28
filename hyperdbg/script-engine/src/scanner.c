@@ -568,7 +568,7 @@ TOKEN GetToken(char* c, char* str)
 	case ';':
 		strcpy(Token->Value, ";");
 		Token->Type = SPECIAL_TOKEN;
-		WaitForID = 1;
+		WaitForID = 0;
 		*c = sgetc(str);
 		return Token;
 
@@ -658,7 +658,7 @@ TOKEN GetToken(char* c, char* str)
 		strcpy(Token->Value, "");
 		Token->Type = WHITE_SPACE;
 		*c = sgetc(str);
-		WaitForID = 1;
+		WaitForID = 0;
 		return Token;
 
 	case '0':

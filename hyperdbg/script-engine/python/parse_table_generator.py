@@ -30,7 +30,7 @@ class Parser:
         self.GrammerFile = open("Grammer.txt", "r")
 
         # The file which is used by parser for parsing the input 
-        self.OutputFile = open("..\src\ParseTable.h", "w")
+        self.OutputFile = open("..\src\parse_table.h", "w")
 
         # Lists which used for storing the rules:
         # Right Hand Side(Rhs)
@@ -183,13 +183,14 @@ class Parser:
                         print("2)Error in input!")
                         exit()   
                 else:
-                    
                     Op0 = MatchedStack.pop()
-                    Op1 = MatchedStack.pop()
-
-                    if Top == "@MOV":
+                    if Top == "@PRINT":
+                        print(Top,"\t", Op0 )
+                    elif Top == "@MOV":
+                        Op1 = MatchedStack.pop()
                         print(Top,"\t", Op1, ", ", Op0 )
                     else:
+                        Op1 = MatchedStack.pop()
                         MatchedStack.append("t" + str(TempCounter))
                         print(Top, "\t", "t"+ str(TempCounter), ", ", Op1, ",", Op0 )
                         TempCounter += 1
@@ -600,6 +601,6 @@ class Parser:
 
 parser = Parser()
 parser.Run()
-Tokens = ['_id', '=', '(', '_hex', '*', '_hex', ')', '*', '_hex', '*', '_decimal', '*', '_octal', ';', '$']
+Tokens = ['print', '(', '_hex',  ')', ';', '$']
 Stack = parser.Parse(Tokens)
 print(Stack)

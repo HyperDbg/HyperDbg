@@ -39,7 +39,8 @@ const char* OneOperandSemanticRules[] =
 	"@NOT",
 	"@NEG",
 	"@HI",
-	"@LOW"
+	"@LOW",
+	"@PRINT"
 };
 
 char TempMap[MAX_TEMP_COUNT] = { 0 };

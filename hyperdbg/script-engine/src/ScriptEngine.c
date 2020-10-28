@@ -60,7 +60,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     Push(Stack, StartToken);
 
     InputIdx = 0;
-    WaitForID = 1; 
+    WaitForID = 0; 
 
     c = sgetc(str);
 
@@ -795,6 +795,10 @@ unsigned long long int SemanticRuleToInt(char *str)
     else if (!strcmp(str, "@MOV"))
     {
         return (unsigned long long int)FUNC_MOV;
+    }
+    else if (!strcmp(str, "@PRINT"))
+    {
+        return (unsigned long long int)FUNC_PRINT;
     }
     return -1;
 }
