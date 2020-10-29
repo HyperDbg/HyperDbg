@@ -168,8 +168,8 @@ BOOLEAN IsTagExist(UINT64 Tag) {
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
-                PUINT32 BufferLength, PUINT32 Pointer) {
+InterpretScript(vector<string> *SplittedCommand, PBOOLEAN ScriptSyntaxErrors,
+                PUINT64 BufferAddress, PUINT32 BufferLength, PUINT32 Pointer) {
 
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -184,6 +184,11 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   int OpenBracket = 0;
   size_t CountOfOpenBrackets;
   size_t CountOfCloseBrackets;
+
+  //
+  // Indicate that there is an error at first
+  //
+  *ScriptSyntaxErrors = TRUE;
 
   for (auto Section : *SplittedCommand) {
 
@@ -555,10 +560,28 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   PVOID CodeBuffer =
       ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str());
 
+  if (CodeBuffer == NULL) {
+
+    //
+    // There was an error
+    //
+    *ScriptSyntaxErrors = TRUE;
+
+    //
+    // return TRUE to show that this item contains an script
+    //
+    return TRUE;
+  } else {
+    //
+    // There is no syntax error
+    //
+    *ScriptSyntaxErrors = FALSE;
+  }
+
   //
   // Print symbols (test)
   //
-  PrintSymbolBufferWrapper(CodeBuffer);
+  // PrintSymbolBufferWrapper(CodeBuffer);
 
   //
   // Set the buffer and length
@@ -1416,7 +1439,7 @@ UINT64 GetNewDebuggerEventTag() { return g_EventTag++; }
  * by action detail buffer
  * @param ActionBufferLength a pointer the receives the buffer length
  * of the action
- * @return BOOLEAN  If this function returns true then it means that there
+ * @return BOOLEAN If this function returns true then it means that there
  * was no error in parsing the general event details
  */
 BOOLEAN InterpretGeneralEventAndActionsFields(
@@ -1444,6 +1467,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
   UINT64 ScriptBufferAddress;
+  BOOLEAN HasScriptSyntaxError = 0;
   UINT32 ScriptBufferLength = 0;
   UINT32 ScriptBufferPointer = 0;
   UINT32 LengthOfEventBuffer = 0;
@@ -1574,8 +1598,9 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   // Check if there is a Script block in the command
   //
-  if (!InterpretScript(SplittedCommand, &ScriptBufferAddress,
-                       &ScriptBufferLength, &ScriptBufferPointer)) {
+  if (!InterpretScript(SplittedCommand, &HasScriptSyntaxError,
+                       &ScriptBufferAddress, &ScriptBufferLength,
+                       &ScriptBufferPointer)) {
 
     //
     // Indicate code is not available
@@ -1585,6 +1610,14 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     // ShowMessages("\nNo script!\n");
     //
   } else {
+
+    //
+    // Check if there is a syntax error
+    //
+    if (HasScriptSyntaxError) {
+      ShowMessages("Syntax error in parsing script.\n\n");
+      return FALSE;
+    }
 
     //
     // Indicate code is available

@@ -56,7 +56,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * VMX-root Compatible Message Tracing [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
 * Powerful Kernel Side Scripting Engine [<a href="https://docs.hyperdbg.com/design/script-engine" target="_blank">link</a>]
 * Transparent Breakpoint Handler
-* Various Custom Scripts (e.g DFIR Scripts) [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
+* Various Custom Scripts (e.g DFIR Scripts) [<a href="https://docs.hyperdbg.com/design/script-engine" target="_blank">link</a>]
 
 ### Second Release (v0.2.0.0)
 (not released yet !)

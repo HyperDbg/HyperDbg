@@ -12,6 +12,19 @@
  */
 #pragma once
 
+//
+// Wrapper headers
+//
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+UINT64
+ScriptEngineWrapperGetInstructionPointer();
+
+UINT64
+ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
 typedef unsigned long long QWORD;
 typedef unsigned __int64 UINT64, *PUINT64;
 typedef unsigned long DWORD;
@@ -179,6 +192,72 @@ UINT64 ScriptEnginePseudoRegGetPid() {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
   return PsGetCurrentProcessId();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+// $proc
+UINT64 ScriptEnginePseudoRegGetProc() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return PsGetCurrentProcess();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+// $thread
+UINT64 ScriptEnginePseudoRegGetThread() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return PsGetCurrentThread();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+// $teb
+UINT64 ScriptEnginePseudoRegGetTeb() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return PsGetCurrentThreadTeb();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+// $ip
+UINT64 ScriptEnginePseudoRegGetIp() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  //
+  // $ip doesn't have meaning in user-moderds
+  //
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return ScriptEngineWrapperGetInstructionPointer();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+// $buffer
+UINT64 ScriptEnginePseudoRegGetBuffer(UINT64 *CorrespondingAction) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  //
+  // $buffer doesn't mean anything in user-mode
+  //
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return ScriptEngineWrapperGetAddressOfReservedBuffer(CorrespondingAction);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -688,28 +767,28 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     printf("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
-  
-  case FUNC_PRINT:
-      Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-          (unsigned long long)(*Indx * sizeof(SYMBOL)));
-      *Indx = *Indx + 1;
 
-      DesVal = SrcVal0;
-      SetValue(GuestRegs, Des, DesVal);
-      if (Des->Type == SYMBOL_ID_TYPE) {
+  case FUNC_PRINT:
+    Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                    (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+
+    DesVal = SrcVal0;
+    SetValue(GuestRegs, Des, DesVal);
+    if (Des->Type == SYMBOL_ID_TYPE) {
 #ifdef SCRIPT_ENGINE_USER_MODE
-          printf("Result is %llx\n", DesVal);
+      printf("Result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-          DbgBreakPoint();
-          LogInfo("Result is %llx\n", DesVal);
+      DbgBreakPoint();
+      LogInfo("Result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-      }
+    }
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-      printf("DesVal = %d\n", DesVal);
+    printf("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-      return;
+    return;
   }
 }

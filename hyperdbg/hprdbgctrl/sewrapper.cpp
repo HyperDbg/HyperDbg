@@ -22,7 +22,19 @@
 // Function links (wrapper)
 //
 
-PVOID ScriptEngineParseWrapper(char *str) { return ScriptEngineParse(str); }
+PVOID ScriptEngineParseWrapper(char *str) {
+  PSYMBOL_BUFFER SymbolBuffer;
+  SymbolBuffer = ScriptEngineParse(str);
+
+  //
+  // Check if there is an error or not
+  //
+  if (SymbolBuffer->Message == NULL) {
+    return SymbolBuffer;
+  } else {
+    return NULL;
+  }
+}
 
 void PrintSymbolBufferWrapper(PVOID SymbolBuffer) {
 
