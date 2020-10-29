@@ -10,8 +10,8 @@
 
 # HyperDbg Debugger 
 
-### (HyperDbg is NOT in a WORKING STATE - YOU SHOULD NOT USE IT, but you can observe codes, please wait for first release in late October)
-#### We planned for first-release in late October 2020
+### (HyperDbg is NOT in a WORKING STATE - YOU SHOULD NOT USE IT, but you can observe codes, please wait for first release in late January 2021)
+#### We planned for first-release in late January 2021
 
 **HyperDbg** debugger is an open-source, hypervisor-assisted user-mode, and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a a debugger designed for analyzing, fuzzing and reversing.
 
@@ -53,7 +53,8 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User) [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>]
 * Checking For Custom Conditions [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-a-condition" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/conditions" target="_blank">link</a>]
 * Script Engine [<a href="https://docs.hyperdbg.com/design/script-engine" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/actions" target="_blank">link</a>]
-* VMX-root Compatible Message Tracing  [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
+* VMX-root Compatible Message Tracing [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
+* Powerful Kernel Side Scripting Engine [<a href="https://docs.hyperdbg.com/design/script-engine" target="_blank">link</a>]
 * Transparent Breakpoint Handler
 * Various Custom Scripts (e.g DFIR Scripts) [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
 

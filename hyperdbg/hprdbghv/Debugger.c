@@ -982,18 +982,18 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 VOID
 DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    PSYMBOL_BUFFER CodeBuffer = {0};
+    SYMBOL_BUFFER CodeBuffer = {0};
     DbgBreakPoint();
     //
     // Context point to the registers
     //
-    CodeBuffer->Head    = Action->ScriptConfiguration.ScriptBuffer;
-    CodeBuffer->Size    = Action->ScriptConfiguration.ScriptLength;
-    CodeBuffer->Pointer = Action->ScriptConfiguration.ScriptPointer;
+    CodeBuffer.Head    = Action->ScriptConfiguration.ScriptBuffer;
+    CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
+    CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
 
-    for (int i = 0; i < CodeBuffer->Pointer;)
+    for (int i = 0; i < CodeBuffer.Pointer;)
     {
-        ScriptEngineExecute(Regs, CodeBuffer, &i);
+        ScriptEngineExecute(Regs, &CodeBuffer, &i);
     }
 }
 

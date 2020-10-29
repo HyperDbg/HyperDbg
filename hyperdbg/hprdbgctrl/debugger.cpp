@@ -565,7 +565,7 @@ InterpretScript(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   //
   *BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
   *BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
-  *Pointer = ScriptEngineWrapperGetSize(CodeBuffer);
+  *Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
 
   //
   // Removing the script indexes from the command
