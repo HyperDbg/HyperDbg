@@ -92,4 +92,5 @@ If you want to create a pull request or contribute in HyperDbg please read [Cont
 
 ## License
 Dependencies are licensed by their own licenses.
+
 **HyperDbg** is under **GPLv3** LICENSE.
