@@ -983,7 +983,7 @@ VOID
 DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
     SYMBOL_BUFFER CodeBuffer = {0};
-    DbgBreakPoint();
+
     //
     // Context point to the registers
     //
@@ -991,13 +991,12 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
     CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
     CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
 
-    UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
+    UINT64 g_TempList[MAX_TEMP_COUNT]    = {0};
     UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
-
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
-        ScriptEngineExecute(Regs, (UINT64*) g_TempList, (UINT64*) g_VariableList,&CodeBuffer, &i);
+        ScriptEngineExecute(Regs, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
     }
 }
 
