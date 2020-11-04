@@ -309,21 +309,28 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
     else
     {
+        if (strcmp(Operator->Value, "@PRINT"))
+        {
+            Temp = NewTemp();
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp);
+            PushSymbol(CodeBuffer, TempSymbol);
+            printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
+            PrintSymbol(OperatorSymbol);
+            PrintSymbol(TempSymbol);
+            PrintSymbol(Op0Symbol);
+            printf("_____________\n");
+        }
 
-        Temp = NewTemp();
-        Push(MatchedStack, Temp);
-        TempSymbol = ToSymbol(Temp);
-        PushSymbol(CodeBuffer, TempSymbol);
-
-
+        else
+        {
+           
+            printf("%s\t%s\n", Operator->Value, Op0->Value);
+            PrintSymbol(OperatorSymbol);
+            PrintSymbol(Op0Symbol);
+            printf("_____________\n");
+        }
         
-
-
-        printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
-        PrintSymbol(OperatorSymbol);
-        PrintSymbol(TempSymbol);
-        PrintSymbol(Op0Symbol);
-        printf("_____________\n");
 
         // Free the operand if it is a temp value
         FreeTemp(Op0);

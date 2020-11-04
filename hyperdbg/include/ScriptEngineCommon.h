@@ -767,26 +767,19 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,UINT64* g_TempList, UIN
     return;
 
   case FUNC_PRINT:
-    Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                    (unsigned long long)(*Indx * sizeof(SYMBOL)));
-    *Indx = *Indx + 1;
+    
 
-    DesVal = SrcVal0;
-    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-    if (Des->Type == SYMBOL_ID_TYPE) {
+      
 #ifdef SCRIPT_ENGINE_USER_MODE
-      printf("Result is %llx\n", DesVal);
+      printf("prints: %llu\n", SrcVal0);
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
       DbgBreakPoint();
-      LogInfo("Result is %llx\n", DesVal);
+      LogInfo("prints: %llu\n", SrcVal0);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
-    }
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+    
     return;
   }
 }
