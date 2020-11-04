@@ -27,7 +27,7 @@
     <ClInclude Include="src\ScriptEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="scanner.h">
+    <ClInclude Include="src\scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

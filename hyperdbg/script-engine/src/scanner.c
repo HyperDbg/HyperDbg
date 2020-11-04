@@ -17,6 +17,7 @@
 #include <string.h>
 #include "scanner.h"
 
+
 // TODO: automate generation of KeyWordList
 
 /**
@@ -36,7 +37,8 @@ const char* KeywordList[] =
 	"wstr",
 	"sizeof",
 	"neg",
-	"hi"
+	"hi",
+	"print"
 };
 
 /**
@@ -831,15 +833,12 @@ char sgetc(char* str)
 
 char IsKeyword(char* str)
 {
-	for (int i = 0; i < TERMINAL_COUNT; i++)
+	int n = sizeof(KeywordList) / sizeof(KeywordList[0]);
+	for (int i = 0; i < n; i++)
 	{
-		if (IsLetter(TerminalMap[i][0]))
+		if (!strcmp(str, KeywordList[i]))
 		{
-			return 1;
-		}
-		else if (TerminalMap[i][0] == '_')
-		{
-			return 1;
+			return 1; 
 		}
 	}
 	return 0;

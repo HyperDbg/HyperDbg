@@ -14,7 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "parse_table.h"
+#include "scanner.h"
 #include "ScriptEngine.h"
+
+
 #include "string.h"
 
 /**

@@ -101,7 +101,7 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="scanner.h" />
+    <ClInclude Include="src\scanner.h" />
     <ClInclude Include="src\ScriptEngine.h" />
     <ClInclude Include="src\parse_table.h" />
   </ItemGroup>

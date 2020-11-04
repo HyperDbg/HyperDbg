@@ -1,4 +1,5 @@
 #pragma once
+#include "scanner.h"
 #define RULES_COUNT 56
 #define TERMINAL_COUNT 36
 #define NONETERMINAL_COUNT 25

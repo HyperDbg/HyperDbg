@@ -1,4 +1,5 @@
 #pragma once
+#include <string.h>
 
 
 #define SYMBOL_BUFFER_INIT_SIZE 128
