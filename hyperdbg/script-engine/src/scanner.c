@@ -10,11 +10,12 @@
  *
  */
 
-#include "scanner.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "scanner.h"
 
 // TODO: automate generation of KeyWordList
 
@@ -568,7 +569,6 @@ TOKEN GetToken(char* c, char* str)
 	case ';':
 		strcpy(Token->Value, ";");
 		Token->Type = SPECIAL_TOKEN;
-		WaitForID = 0;
 		*c = sgetc(str);
 		return Token;
 
@@ -658,7 +658,6 @@ TOKEN GetToken(char* c, char* str)
 		strcpy(Token->Value, "");
 		Token->Type = WHITE_SPACE;
 		*c = sgetc(str);
-		WaitForID = 0;
 		return Token;
 
 	case '0':
@@ -739,16 +738,15 @@ TOKEN GetToken(char* c, char* str)
 					Append(Token, *c);
 				*c = sgetc(str);
 			} while (IsHex(*c) || *c == '`');
-			int n = sizeof(KeywordList) / sizeof(char*);
-			for (int i = 0; i < n; i++)
+			if (IsKeyword(Token->Value))
 			{
-				if (!strcmp(Token->Value, KeywordList[i]))
-				{
-					Token->Type = KEYWORD;
-					return Token;
-				}
+				Token->Type = KEYWORD;
 			}
-			Token->Type = HEX;
+			else
+			{
+				Token->Type = HEX;
+			}
+			
 			return Token;
 		}
 		else if (IsLetter(*c) || *c == '_')
@@ -759,14 +757,13 @@ TOKEN GetToken(char* c, char* str)
 				*c = sgetc(str);
 			}
 
-			if (WaitForID)
+			if (IsKeyword(Token->Value))
 			{
-				Token->Type = ID;
-				WaitForID = 0;
+				Token->Type = KEYWORD;
 			}
 			else
 			{
-				Token->Type = KEYWORD;
+				Token->Type = ID;
 			}
 
 			return Token;
@@ -830,4 +827,20 @@ char sgetc(char* str)
 	{
 		return EOF;
 	}
+}
+
+char IsKeyword(char* str)
+{
+	for (int i = 0; i < TERMINAL_COUNT; i++)
+	{
+		if (IsLetter(TerminalMap[i][0]))
+		{
+			return 1;
+		}
+		else if (TerminalMap[i][0] == '_')
+		{
+			return 1;
+		}
+	}
+	return 0;
 }

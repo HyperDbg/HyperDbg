@@ -51,13 +51,18 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   // Test Parser
   //
   PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
+
+  UINT64 g_TempList[MAX_TEMP_COUNT] = { 0 };
+  UINT64 g_VariableList[MAX_VAR_COUNT] = { 0 };
+
+
   if (CodeBuffer->Message == NULL) {
     PrintSymbolBuffer(CodeBuffer);
 
     for (int i = 0; i < CodeBuffer->Pointer;) {
       printf("%d\n", i);
 
-      ScriptEngineExecute(GuestRegs, CodeBuffer, &i);
+      ScriptEngineExecute(GuestRegs, (UINT64*)g_TempList, (UINT64*) g_VariableList, CodeBuffer, &i);
     }
     RemoveSymbolBuffer(CodeBuffer);
   } else {

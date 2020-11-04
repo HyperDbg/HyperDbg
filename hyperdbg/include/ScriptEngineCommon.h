@@ -151,8 +151,6 @@ typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
 // and allocate variableList Dynamically.
 #define MAX_VAR_COUNT 32
 
-UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
-UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
 
 //////////////////////////////////////////////////
 //            	     Imports                    //
@@ -360,7 +358,7 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
     // TODO: Add all the register
   }
 }
-UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
+UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64* g_TempList, UINT64* g_VariableList, PSYMBOL Symbol) {
 
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:
@@ -376,7 +374,7 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
   }
 }
 
-VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol, UINT64 Value) {
+VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64* g_TempList, UINT64* g_VariableList, PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:
     g_VariableList[Symbol->Value] = Value;
@@ -388,7 +386,7 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 }
 
 //
-VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
+VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,UINT64* g_TempList, UINT64* g_VariableList,
                          PSYMBOL_BUFFER CodeBuffer, int *Indx) {
 
   PSYMBOL Operator;
@@ -416,7 +414,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
   Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                    (unsigned long long)(*Indx * sizeof(SYMBOL)));
   *Indx = *Indx + 1;
-  SrcVal0 = GetValue(GuestRegs, Src0);
+  SrcVal0 = GetValue(GuestRegs, g_TempList, g_VariableList, Src0);
 
   switch (Operator->Value) {
   case FUNC_OR:
@@ -424,14 +422,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 | SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -444,14 +442,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 ^ SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -464,14 +462,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 & SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -484,14 +482,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 >> SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -504,14 +502,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 << SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -523,14 +521,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 + SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -542,14 +540,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 - SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -560,14 +558,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 * SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -579,14 +577,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 / SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -597,14 +595,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, Src1);
+    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = SrcVal1 % SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -617,8 +615,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -631,8 +629,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -644,8 +642,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -657,8 +655,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -699,7 +697,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = ~SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -713,7 +711,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = -(INT64)SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -725,8 +723,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -738,8 +736,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(GuestRegs, Src0));
-    SetValue(GuestRegs, Des, DesVal);
+    DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("DesVal = %d\n", DesVal);
@@ -751,7 +749,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
     if (Des->Type == SYMBOL_ID_TYPE) {
 #ifdef SCRIPT_ENGINE_USER_MODE
       printf("Result is %llx\n", DesVal);
@@ -774,7 +772,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = SrcVal0;
-    SetValue(GuestRegs, Des, DesVal);
+    SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
     if (Des->Type == SYMBOL_ID_TYPE) {
 #ifdef SCRIPT_ENGINE_USER_MODE
       printf("Result is %llx\n", DesVal);

@@ -24,10 +24,10 @@
     <ClInclude Include="src\parse_table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\scanner.h">
+    <ClInclude Include="src\ScriptEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ScriptEngine.h">
+    <ClInclude Include="scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -15,8 +15,6 @@
 #include <string.h>
 #include <stdint.h>
 #include "ScriptEngine.h"
-#include "scanner.h"
-#include "parse_table.h"
 #include "string.h"
 
 /**
@@ -60,7 +58,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     Push(Stack, StartToken);
 
     InputIdx = 0;
-    WaitForID = 0; 
+    
 
     c = sgetc(str);
 

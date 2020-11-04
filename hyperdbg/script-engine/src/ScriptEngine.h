@@ -10,20 +10,12 @@
  *
  */
 
-#ifndef SCRIPT_ENGINE_H
-#define SCRIPT_ENGINE_H
-
+#pragma once
+#include "scanner.h"
 
 #include <stdio.h>
-#include "scanner.h"
 #include "ScriptEngineCommon.h"
 
- //#define _SCRIPT_ENGINE_DBG_EN
-
-
-
-#define SYMBOL_BUFFER_INIT_SIZE 1024
-#define MAX_TEMP_COUNT 32
 
 // TODO : Automate generating this array
 const char* OneOperandSemanticRules[] =
@@ -95,5 +87,3 @@ __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char* str);
 
 void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
 char HasTwoOperand(TOKEN Operator);
-
-#endif // !SCRIPT_ENGINE_H

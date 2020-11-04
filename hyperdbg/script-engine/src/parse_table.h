@@ -1,6 +1,4 @@
-#ifndef PARSE_TABLE_H
-#define PARSE_TABLE_H
-#include "scanner.h"
+#pragma once
 #define RULES_COUNT 56
 #define TERMINAL_COUNT 36
 #define NONETERMINAL_COUNT 25
@@ -278,4 +276,3 @@ const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]=
 	{24		,-1		,24		,24		,24		,-1		,24		,24		,24		,24		,-1		,24		,-1		,-1		,24		,24		,-1		,-1		,-1		,-1		,24		,24		,24		,-1		,-1		,24		,24		,-1		,24		,24		,-1		,24		,24		,-1		,-1		,-1	},
 	{-1		,-1		,-1		,-1		,-1		,23		,-1		,-1		,-1		,-1		,23		,-1		,23		,-1		,-1		,-1		,22		,23		,-1		,-1		,-1		,-1		,-1		,-1		,-1		,-1		,-1		,23		,-1		,-1		,-1		,-1		,-1		,23		,23		,-1	}
 };
-#endif
