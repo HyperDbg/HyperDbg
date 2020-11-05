@@ -311,6 +311,9 @@
     <ClCompile Include="sewrapper.cpp">
       <Filter>Source Files\Debugger\Implementations</Filter>
     </ClCompile>
+    <ClCompile Include="output.cpp">
+      <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

@@ -155,6 +155,7 @@
     <ClCompile Include="msrread.cpp" />
     <ClCompile Include="msrwrite.cpp" />
     <ClCompile Include="namedpipe.cpp" />
+    <ClCompile Include="output.cpp" />
     <ClCompile Include="pa2va.cpp" />
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="pmc.cpp" />

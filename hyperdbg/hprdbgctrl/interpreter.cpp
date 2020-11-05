@@ -232,6 +232,13 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandScript(SplittedCommand, CommandString);
 
+  } else if (!FirstCommand.compare("output")) {
+
+    if (HelpCommand)
+      CommandOutputHelp();
+    else
+      CommandOutput(SplittedCommand, CommandString);
+
   } else if (!FirstCommand.compare("print")) {
 
     if (HelpCommand)
