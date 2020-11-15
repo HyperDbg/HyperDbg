@@ -131,6 +131,23 @@ BOOLEAN g_EventTraceInitialized = FALSE;
 LIST_ENTRY g_EventTrace = {0};
 
 /**
+ * @brief it shows whether the debugger started using
+ * output sources or not or in other words, is g_OutputSources
+ * initialized with a variable or it is empty
+ *
+ */
+BOOLEAN g_OutputSourcesInitialized = FALSE;
+
+/**
+ * @brief Holds a list of output sources created by output command
+ *
+ * @details user-mode events and output sources are two separate things
+ * in HyperDbg
+ *
+ */
+LIST_ENTRY g_OutputSources = {0};
+
+/**
  * @brief Holds the location driver to install it
  *
  */

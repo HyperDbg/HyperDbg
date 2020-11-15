@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern LIST_ENTRY g_OutputSources;
+extern BOOLEAN g_OutputSourcesInitialized;
+
 #define MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME 50
 
 /**
@@ -43,6 +49,8 @@ typedef struct _DEBUGGER_EVENT_FORWARDING {
   DEBUGGER_EVENT_FORWARDING_STATE State;
   HANDLE Handle;
   UINT64 OutputUniqueTag;
+  LIST_ENTRY
+  OutputSourcesList; // Linked-list of output sources list
   CHAR Name[MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME];
 
 } DEBUGGER_EVENT_FORWARDING, *PDEBUGGER_EVENT_FORWARDING;
@@ -104,6 +112,20 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     // Set the state
     //
     EventForwardingObject->State = EVENT_FORWARDING_STATE_NOT_OPENNED;
+
+    //
+    // Check if list is initialized or not
+    //
+    if (!g_OutputSourcesInitialized) {
+      InitializeListHead(&g_OutputSources);
+      g_OutputSourcesInitialized = TRUE;
+    }
+
+    //
+    // Add the source to the trace list
+    //
+    InsertHeadList(&g_OutputSources,
+                   &(EventForwardingObject->OutputSourcesList));
 
   } else if (!SplittedCommand.at(1).compare("open")) {
     //
