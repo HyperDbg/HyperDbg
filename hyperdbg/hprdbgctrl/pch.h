@@ -73,6 +73,7 @@
 #include "transparency.h"
 #include "communication.h"
 #include "namedpipe.h"
+#include "forwarding.h"
 
 #endif // PCH_H
 

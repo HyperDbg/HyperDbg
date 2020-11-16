@@ -110,6 +110,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="exports.h" />
+    <ClInclude Include="forwarding.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="help.h" />
     <ClInclude Include="install.h" />
@@ -139,6 +140,7 @@
     <ClCompile Include="flush.cpp" />
     <ClCompile Include="formats.cpp" />
     <ClCompile Include="epthook2.cpp" />
+    <ClCompile Include="forwarding.cpp" />
     <ClCompile Include="g.cpp" />
     <ClCompile Include="gaussian-rng.cpp" />
     <ClCompile Include="help.cpp" />

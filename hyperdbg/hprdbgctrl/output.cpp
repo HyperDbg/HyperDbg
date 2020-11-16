@@ -17,44 +17,6 @@
 extern LIST_ENTRY g_OutputSources;
 extern BOOLEAN g_OutputSourcesInitialized;
 
-#define MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME 50
-
-/**
- * @brief event forwarding type
- *
- */
-typedef enum _DEBUGGER_EVENT_FORWARDING_TYPE {
-  EVENT_FORWARDING_NAMEDPIPE,
-  EVENT_FORWARDING_FILE,
-  EVENT_FORWARDING_TCP
-} DEBUGGER_EVENT_FORWARDING_TYPE;
-
-/**
- * @brief event forwarding states
- *
- */
-typedef enum _DEBUGGER_EVENT_FORWARDING_STATE {
-  EVENT_FORWARDING_STATE_NOT_OPENNED,
-  EVENT_FORWARDING_STATE_OPENNED,
-  EVENT_FORWARDING_CLOSED
-} DEBUGGER_EVENT_FORWARDING_STATE;
-
-/**
- * @brief structures hold the detail of event forwarding
- *
- */
-typedef struct _DEBUGGER_EVENT_FORWARDING {
-
-  DEBUGGER_EVENT_FORWARDING_TYPE Type;
-  DEBUGGER_EVENT_FORWARDING_STATE State;
-  HANDLE Handle;
-  UINT64 OutputUniqueTag;
-  LIST_ENTRY
-  OutputSourcesList; // Linked-list of output sources list
-  CHAR Name[MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME];
-
-} DEBUGGER_EVENT_FORWARDING, *PDEBUGGER_EVENT_FORWARDING;
-
 /**
  * @brief help of output command
  *
@@ -84,6 +46,9 @@ VOID CommandOutputHelp() {
 VOID CommandOutput(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_EVENT_FORWARDING EventForwardingObject;
+  DEBUGGER_EVENT_FORWARDING_TYPE Type;
+  PLIST_ENTRY TempList = 0;
+  BOOLEAN OutputSourceFound = FALSE;
 
   if (SplittedCommand.size() <= 2) {
     ShowMessages("incorrect use of 'output'\n\n");
@@ -95,8 +60,93 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
   // Check if it's a create, open, or close
   //
   if (!SplittedCommand.at(1).compare("create")) {
+
     //
     // It's a create
+    //
+
+    //
+    // check if the parameters are okay for a create or not
+    //
+    if (SplittedCommand.size() <= 4) {
+      ShowMessages("incorrect use of 'output'\n\n");
+      CommandOutputHelp();
+      return;
+    }
+
+    //
+    // Check for the type of the output source
+    //
+    if (!SplittedCommand.at(3).compare("file")) {
+      Type = EVENT_FORWARDING_FILE;
+    } else if (!SplittedCommand.at(3).compare("namedpipe")) {
+      Type = EVENT_FORWARDING_NAMEDPIPE;
+    } else if (!SplittedCommand.at(3).compare("tcp")) {
+      Type = EVENT_FORWARDING_TCP;
+    } else {
+      ShowMessages("incorrect type near '%s'\n\n",
+                   SplittedCommand.at(3).c_str());
+      CommandOutputHelp();
+      return;
+    }
+
+    //
+    // Check to make sure that the name doesn't exceed the maximum character
+    //
+    if (SplittedCommand.at(2).size() >=
+        MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME) {
+
+      ShowMessages("name of the output cannot exceed form %d.\n\n",
+                   MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME);
+      CommandOutputHelp();
+      return;
+    }
+
+    //
+    // Search to see if there is another output source with the
+    // same name which we don't want to create two or more output
+    // sources with the same name
+    //
+
+    if (g_OutputSourcesInitialized) {
+      TempList = &g_OutputSources;
+
+      while (&g_OutputSources != TempList->Flink) {
+
+        TempList = TempList->Flink;
+
+        PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails =
+            CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING,
+                              OutputSourcesList);
+
+        if (strcmp(CurrentOutputSourceDetails->Name,
+                   SplittedCommand.at(2).c_str()) == 0) {
+
+          //
+          // Indicate that we found this item
+          //
+          OutputSourceFound = TRUE;
+
+          //
+          // No need to search through the list anymore
+          //
+          break;
+        }
+      }
+
+      //
+      // Check whether the entered name already exists
+      //
+      if (OutputSourceFound) {
+
+        ShowMessages("err, the name you entered, already exists, please choose "
+                     "another name.\n\n");
+        return;
+      }
+    }
+
+    //
+    // allocate the buffer for storing the event forwarding details
     //
     EventForwardingObject =
         (PDEBUGGER_EVENT_FORWARDING)malloc(sizeof(DEBUGGER_EVENT_FORWARDING));
@@ -114,6 +164,21 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     EventForwardingObject->State = EVENT_FORWARDING_STATE_NOT_OPENNED;
 
     //
+    // Set the type
+    //
+    EventForwardingObject->Type = Type;
+
+    //
+    // Get a new tag
+    //
+    EventForwardingObject->OutputUniqueTag = ForwardingGetNewOutputSourceTag();
+
+    //
+    // Move the name of the output source to the buffer
+    //
+    strcpy_s(EventForwardingObject->Name, SplittedCommand.at(2).c_str());
+
+    //
     // Check if list is initialized or not
     //
     if (!g_OutputSourcesInitialized) {
@@ -128,13 +193,92 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
                    &(EventForwardingObject->OutputSourcesList));
 
   } else if (!SplittedCommand.at(1).compare("open")) {
+
     //
     // It's an open
     //
+
+    //
+    // Now we should find the corresponding object in the memory and
+    // pass it to the global open functions
+    //
+    TempList = &g_OutputSources;
+
+    while (&g_OutputSources != TempList->Flink) {
+
+      TempList = TempList->Flink;
+
+      PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails = CONTAINING_RECORD(
+          TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
+
+      if (strcmp(CurrentOutputSourceDetails->Name,
+                 SplittedCommand.at(2).c_str()) == 0) {
+        //
+        // Indicate that we found this item
+        //
+        OutputSourceFound = TRUE;
+
+        //
+        // Open the output
+        //
+        ForwardingOpenOutputSource(CurrentOutputSourceDetails);
+
+        //
+        // No need to search through the list anymore
+        //
+        break;
+      }
+    }
+
+    if (!OutputSourceFound) {
+      ShowMessages("err, the name you entered, not found.\n\n");
+      return;
+    }
+
   } else if (!SplittedCommand.at(1).compare("close")) {
+
     //
     // It's a close
     //
+
+    //
+    // Now we should find the corresponding object in the memory and
+    // pass it to the global close functions
+    //
+    TempList = &g_OutputSources;
+
+    while (&g_OutputSources != TempList->Flink) {
+
+      TempList = TempList->Flink;
+
+      PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails = CONTAINING_RECORD(
+          TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
+
+      if (strcmp(CurrentOutputSourceDetails->Name,
+                 SplittedCommand.at(2).c_str()) == 0) {
+
+        //
+        // Indicate that we found this item
+        //
+        OutputSourceFound = TRUE;
+
+        //
+        // Close the output
+        //
+        ForwardingCloseOutputSource(CurrentOutputSourceDetails);
+
+        //
+        // No need to search through the list anymore
+        //
+        break;
+      }
+    }
+
+    if (!OutputSourceFound) {
+      ShowMessages("err, the name you entered, not found.\n\n");
+      return;
+    }
+
   } else {
     //
     // Invalid argument

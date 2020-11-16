@@ -96,6 +96,9 @@
     <ClInclude Include="communication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="forwarding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hprdbgctrl.cpp">
@@ -313,6 +316,9 @@
     </ClCompile>
     <ClCompile Include="output.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="forwarding.cpp">
+      <Filter>Source Files\Debugger\Communication</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

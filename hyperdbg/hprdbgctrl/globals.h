@@ -113,6 +113,13 @@ DEBUGGING_STATE g_DebuggingState = {0};
 UINT64 g_EventTag = DebuggerEventTagStartSeed;
 
 /**
+ * @brief This variable holds the trace and generate numbers
+ * for unique tag of the output resources
+ *
+ */
+UINT64 g_OutputSourceTag = DebuggerOutputSourceTagStartSeed;
+
+/**
  * @brief it shows whether the debugger started using
  * events or not or in other words, is g_EventTrace
  * initialized with a variable or it is empty

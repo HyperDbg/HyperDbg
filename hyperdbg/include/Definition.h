@@ -58,6 +58,13 @@
  */
 #define DebuggerEventTagStartSeed 0x1000000
 
+/**
+ * @brief The seeds that user-mode codes use as the starter
+ * of their output source tag
+ *
+ */
+#define DebuggerOutputSourceTagStartSeed 0x1
+
 //////////////////////////////////////////////////
 //               Remote Connection              //
 //////////////////////////////////////////////////
