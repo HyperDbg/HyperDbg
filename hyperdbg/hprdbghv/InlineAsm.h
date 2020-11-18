@@ -280,7 +280,7 @@ AsmGeneralDetourHook();
  * @param Param4 
  * @return unsigned long long 
  */
-extern unsigned long long
+extern void
 AsmDebuggerCustomCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);
 
 /**

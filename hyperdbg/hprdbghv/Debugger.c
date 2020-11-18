@@ -1012,8 +1012,6 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    PVOID ReturnBufferToUsermodeAddress = 0;
-
     if (Action->CustomCodeBufferSize == 0)
     {
         //
@@ -1050,38 +1048,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         // Because the user might change the nonvolatile registers, we save fastcall nonvolatile registers
         //
-        ReturnBufferToUsermodeAddress = AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
-    }
-
-    //
-    // Check if we need to send the buffer to the usermode or not we only send
-    // buffer in usermode if the user requested a pre allocated buffer and
-    // return its address (in RAX), it's obvious the user might request a buffer
-    // and at last return another address (which is not the address of pre]
-    // allocated buffer), no matter, we send the user specific buffer with the
-    // size of the request for pre allocated buffer
-    //
-    if (ReturnBufferToUsermodeAddress != 0 && Action->RequestedBuffer.RequestBufferSize != 0)
-    {
-        //
-        // Send the buffer to the usermode
-        //
-
-        //
-        // check if buffer is valid or not, actually MS recommends not to use
-        // MmIsAddressValid, but we're not doing anything fancy here just wanna
-        // see if it's a valid address or not, because if this routine return
-        // null then it means that we didn't find a valid physical address for
-        // it, so if the programmer unintentionally forget to zero RAX, we can
-        // avoid doing sth bad here. (This function uses MmGetPhysicalAddress)
-        //
-        if (VirtualAddressToPhysicalAddress(ReturnBufferToUsermodeAddress) != 0)
-        {
-            //
-            // Address is valid, let send it with specific tag
-            //
-            LogSendBuffer(Tag, ReturnBufferToUsermodeAddress, Action->RequestedBuffer.RequestBufferSize);
-        }
+        AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
     }
 }
 
