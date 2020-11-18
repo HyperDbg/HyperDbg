@@ -47,8 +47,10 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_EVENT_FORWARDING EventForwardingObject;
   DEBUGGER_EVENT_FORWARDING_TYPE Type;
+  string DetailsOfSource;
   PLIST_ENTRY TempList = 0;
   BOOLEAN OutputSourceFound = FALSE;
+  HANDLE SourceHandle = INVALID_HANDLE_VALUE;
 
   if (SplittedCommand.size() <= 2) {
     ShowMessages("incorrect use of 'output'\n\n");
@@ -143,6 +145,25 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
                      "another name.\n\n");
         return;
       }
+    }
+
+    //
+    // try to open the source and get the handle
+    //
+
+    DetailsOfSource = Command.substr(Command.find(SplittedCommand.at(3)) +
+                                         SplittedCommand.at(3).size() + 1,
+                                     Command.size());
+
+    SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource);
+
+    //
+    // Check if it's a valid handle or not
+    //
+    if (SourceHandle == INVALID_HANDLE_VALUE) {
+      ShowMessages(
+          "err, invalid address or cannot open or find the address.\n\n");
+      return;
     }
 
     //

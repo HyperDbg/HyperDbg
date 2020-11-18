@@ -1479,6 +1479,8 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   BOOLEAN IsNextCommandPid = FALSE;
   BOOLEAN IsNextCommandCoreId = FALSE;
   BOOLEAN IsNextCommandBufferSize = FALSE;
+  BOOLEAN IsNextCommandImmediateMessaging = FALSE;
+  BOOLEAN ImmediateMessagePassing = TRUE;
   UINT32 CoreId;
   UINT32 ProcessId;
   UINT32 RequestBuffer = 0;
@@ -1894,6 +1896,43 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
 
       continue;
     }
+
+    if (IsNextCommandImmediateMessaging) {
+
+      if (!Section.compare("yes")) {
+        ImmediateMessagePassing = TRUE;
+      } else if (!Section.compare("no")) {
+        ImmediateMessagePassing = FALSE;
+      } else {
+        //
+        // err, not token recognized error
+        //
+        return FALSE;
+      }
+
+      //
+      // Set the specific requested immediate message passing
+      //
+      if (TempActionBreak != NULL) {
+        TempActionBreak->ImmediateMessagePassing = ImmediateMessagePassing;
+      }
+      if (TempActionScript != NULL) {
+        TempActionScript->ImmediateMessagePassing = ImmediateMessagePassing;
+      }
+      if (TempActionCustomCode != NULL) {
+        TempActionCustomCode->ImmediateMessagePassing = ImmediateMessagePassing;
+      }
+
+      IsNextCommandImmediateMessaging = FALSE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+
     if (IsNextCommandPid) {
 
       if (!ConvertStringToUInt32(Section, &ProcessId)) {
@@ -1981,6 +2020,21 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       continue;
     }
 
+    if (!Section.compare("imm")) {
+
+      //
+      // the next commnad is immediate messaging indicator
+      //
+      IsNextCommandImmediateMessaging = TRUE;
+
+      //
+      // Add index to remove it from the command
+      //
+      IndexesToRemove.push_back(Index);
+
+      continue;
+    }
+
     if (!Section.compare("buffer")) {
       IsNextCommandBufferSize = TRUE;
 
@@ -2012,6 +2066,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     }
     return FALSE;
   }
+
   if (IsNextCommandPid) {
     ShowMessages("error : please specify a value for 'pid'\n\n");
     free(BufferOfCommandString);
@@ -2028,8 +2083,32 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     }
     return FALSE;
   }
+
   if (IsNextCommandBufferSize) {
     ShowMessages("errlr : please specify a value for 'buffer'\n\n");
+    free(BufferOfCommandString);
+    free(TempEvent);
+
+    if (TempActionBreak != NULL) {
+      free(TempActionBreak);
+    }
+    if (TempActionScript != NULL) {
+      free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL) {
+      free(TempActionCustomCode);
+    }
+    return FALSE;
+  }
+
+  //
+  // We do not support non-immediate message passing if the user
+  // specified a special output
+  //
+  if (!ImmediateMessagePassing && HasOutputPath) {
+    ShowMessages("error : non-immediate message passing is not supported in "
+                 "'output-forwarding mode'.\n\n");
+
     free(BufferOfCommandString);
     free(TempEvent);
 

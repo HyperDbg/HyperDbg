@@ -242,6 +242,7 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
 typedef struct _DEBUGGER_GENERAL_ACTION {
   UINT64 EventTag;
   DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;
+  BOOLEAN ImmediateMessagePassing;
   UINT32 PreAllocatedBuffer;
 
   UINT32 CustomCodeBufferSize;

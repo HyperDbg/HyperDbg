@@ -82,3 +82,7 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor);
 
 DEBUGGER_OUTPUT_SOURCE_STATUS
 ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor);
+
+HANDLE
+ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
+                             string Description);

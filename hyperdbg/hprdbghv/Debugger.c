@@ -2261,7 +2261,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Add action to event
         //
-        DebuggerAddActionToEvent(Event, RUN_CUSTOM_CODE, TRUE, &CustomCode, NULL);
+        DebuggerAddActionToEvent(Event, RUN_CUSTOM_CODE, Action->ImmediateMessagePassing, &CustomCode, NULL);
 
         //
         // Enable the event
@@ -2296,7 +2296,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         UserScriptConfig.ScriptPointer                                  = Action->ScriptBufferPointer;
         UserScriptConfig.OptionalRequestedBufferSize                    = Action->PreAllocatedBuffer;
 
-        DebuggerAddActionToEvent(Event, RUN_SCRIPT, TRUE, NULL, &UserScriptConfig);
+        DebuggerAddActionToEvent(Event, RUN_SCRIPT, Action->ImmediateMessagePassing, NULL, &UserScriptConfig);
 
         //
         // Enable the event
@@ -2308,7 +2308,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         //
         // Add action BREAK_TO_DEBUGGER to event
         //
-        DebuggerAddActionToEvent(Event, BREAK_TO_DEBUGGER, FALSE, NULL, NULL);
+        DebuggerAddActionToEvent(Event, BREAK_TO_DEBUGGER, Action->ImmediateMessagePassing, NULL, NULL);
 
         //
         // Enable the event

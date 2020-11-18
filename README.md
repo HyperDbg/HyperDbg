@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
 <a href="https://hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Website-orange.svg" alt="Website"></a>
 <a href="https://docs.hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg" alt="Documentation"></a>
 <a href="https://doxygen.hyperdbg.com"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg" alt="Doxygen"></a>
