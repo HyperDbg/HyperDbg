@@ -726,6 +726,7 @@ typedef struct _DEBUGGER_EVENT_REQUEST_CUSTOM_CODE {
  *
  */
 typedef struct _DEBUGGER_EVENT_ACTION {
+  UINT64 Tag;             // Action tag is same as Event's tag
   UINT32 ActionOrderCode; // The code for this action (it also shows the order)
   LIST_ENTRY ActionsList; // Holds the link list of next actions
   DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType; // What action we wanna perform

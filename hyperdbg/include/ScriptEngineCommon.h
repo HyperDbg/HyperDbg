@@ -38,6 +38,13 @@ typedef unsigned __int64 ULONG64, *PULONG64;
 typedef unsigned __int64 DWORD64, *PDWORD64;
 #define VOID void
 
+typedef unsigned char UCHAR;
+typedef unsigned short USHORT;
+typedef unsigned long ULONG;
+
+typedef UCHAR BOOLEAN;     // winnt
+typedef BOOLEAN *PBOOLEAN; // winnt
+
 typedef signed char INT8, *PINT8;
 typedef signed short INT16, *PINT16;
 typedef signed int INT32, *PINT32;
@@ -304,7 +311,8 @@ QWORD ScriptEngineKeywordDq(PUINT64 Address) {
 //
 // Functions
 //
-VOID ScriptEngineFunctionPrint(UINT64 Value) {
+VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+                               UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
   printf("Result is: %llx\n", Value);
@@ -312,7 +320,7 @@ VOID ScriptEngineFunctionPrint(UINT64 Value) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  LogInfo("Result is : %llx\n", Value);
+  LogSimpleWithTag(Tag, ImmediateMessagePassing, "Result is : %llx\n", Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -402,7 +410,8 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
 }
 
 //
-VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
+VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
+                         BOOLEAN ImmediateMessagePassing, UINT64 *g_TempList,
                          UINT64 *g_VariableList, PSYMBOL_BUFFER CodeBuffer,
                          int *Indx) {
 
@@ -787,10 +796,10 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
 
   case FUNC_PRINT:
 
-      //
-      // Call the target function
-      //
-    ScriptEngineFunctionPrint(SrcVal0);
+    //
+    // Call the target function
+    //
+    ScriptEngineFunctionPrint(Tag, ImmediateMessagePassing, SrcVal0);
     return;
   }
 }

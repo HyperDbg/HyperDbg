@@ -81,7 +81,7 @@ void ShowMessages(const char *Fmt, ...) {
       LogopenSaveToFile(TempMessage);
     }
     if (g_MessageHandler != NULL) {
-      
+
       //
       // There is another handler
       //
@@ -106,8 +106,10 @@ void ReadIrpBasedBuffer() {
   DWORD ErrorNum;
   HANDLE Handle;
 
+  /*
   ShowMessages(" =============================== Kernel-Mode Logs (Driver) "
                "===============================\n");
+               */
 
   RegisterEvent.hEvent = NULL;
   RegisterEvent.Type = IRP_BASED;
@@ -183,38 +185,53 @@ void ReadIrpBasedBuffer() {
           continue;
         }
 
+        /*
         ShowMessages("========================= Kernel Mode (Buffer) "
                      "=========================\n");
+                     */
 
         OperationCode = 0;
         memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
+        /*
         ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
         ShowMessages("Operation Code : 0x%x \n", OperationCode);
+        */
 
         switch (OperationCode) {
         case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
 
+          /*
           ShowMessages(
               "A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+              */
+          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
         case OPERATION_LOG_INFO_MESSAGE:
-          ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
-          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+
+          /*
+           ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+           */
+          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
         case OPERATION_LOG_ERROR_MESSAGE:
-          ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
-          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          /*
+        ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+        */
+          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
         case OPERATION_LOG_WARNING_MESSAGE:
-          ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
-          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          /*
+        ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+        */
+          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
 
         default:
-          ShowMessages("Message From Debugger :\n");
-          ShowMessages("%s\n", OutputBuffer + sizeof(UINT32));
+          /*
+        ShowMessages("Message From Debugger :\n");
+        */
+          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
         }
       } else {
@@ -241,9 +258,9 @@ void ReadIrpBasedBuffer() {
 DWORD WINAPI ThreadFunc(void *data) {
 
   //
-  // Do stuff.  This will be the first function called on the new thread.
-  // When this function returns, the thread goes away.  See MSDN for more
-  // details. Test Irp Based Notifications
+  // Do stuff.  This will be the first function called on the new
+  // thread. When this function returns, the thread goes away.  See
+  // MSDN for more details. Test Irp Based Notifications
   //
   ReadIrpBasedBuffer();
 
@@ -254,7 +271,8 @@ DWORD WINAPI ThreadFunc(void *data) {
 /**
  * @brief Install the driver
  *
- * @return int return zero if it was successful or non-zero if there was error
+ * @return int return zero if it was successful or non-zero if there
+ * was error
  */
 HPRDBGCTRL_API int HyperdbgInstallVmmDriver() {
 
@@ -285,7 +303,8 @@ HPRDBGCTRL_API int HyperdbgInstallVmmDriver() {
 /**
  * @brief Uninstall the driver
  *
- * @return int return zero if it was successful or non-zero if there was error
+ * @return int return zero if it was successful or non-zero if there
+ * was error
  */
 HPRDBGCTRL_API int HyperdbgUninstallDriver() {
 
@@ -301,7 +320,8 @@ HPRDBGCTRL_API int HyperdbgUninstallDriver() {
 /**
  * @brief Load the driver
  *
- * @return int return zero if it was successful or non-zero if there was error
+ * @return int return zero if it was successful or non-zero if there
+ * was error
  */
 HPRDBGCTRL_API int HyperdbgLoadVmm() {
 
@@ -323,8 +343,8 @@ HPRDBGCTRL_API int HyperdbgLoadVmm() {
   if (CpuID == "GenuineIntel") {
     ShowMessages("The Processor virtualization technology is VT-x.\n");
   } else {
-    ShowMessages(
-        "This program is not designed to run in a non-VT-x environemnt !\n");
+    ShowMessages("This program is not designed to run in a non-VT-x "
+                 "environemnt !\n");
     return 1;
   }
 
@@ -370,8 +390,8 @@ HPRDBGCTRL_API int HyperdbgLoadVmm() {
   // Register the CTRL+C and CTRL+BREAK Signals handler
   //
   if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
-    ShowMessages(
-        "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+    ShowMessages("Error in registering CTRL+C and CTRL+BREAK Signals "
+                 "handler\n");
     return 1;
   }
 
@@ -381,13 +401,15 @@ HPRDBGCTRL_API int HyperdbgLoadVmm() {
 /**
  * @brief Unload driver
  *
- * @return int return zero if it was successful or non-zero if there was error
+ * @return int return zero if it was successful or non-zero if there
+ * was error
  */
 HPRDBGCTRL_API int HyperdbgUnload() {
   BOOL Status;
 
   if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not initialized.\n");
+    ShowMessages("Handle not found, probably the driver is not "
+                 "initialized.\n");
     return 1;
   }
 
@@ -419,10 +441,12 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   //
   Status = DeviceIoControl(
       g_DeviceHandle,                                      // Handle to device
-      IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO Control code
+      IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL, // IO
+                                                           // Control
+                                                           // code
       NULL, // Input Buffer to driver.
-      0, // Length of input buffer in bytes. (x 2 is bcuz as the driver is x64
-         // and has 64 bit values)
+      0,    // Length of input buffer in bytes. (x 2 is bcuz as the
+            // driver is x64 and has 64 bit values)
       NULL, // Output Buffer from driver.
       0,    // Length of output buffer in bytes.
       NULL, // Bytes placed in buffer.
@@ -451,7 +475,8 @@ HPRDBGCTRL_API int HyperdbgUnload() {
   };
 
   //
-  // Null the handle to indicate that the driver's device is not ready to use
+  // Null the handle to indicate that the driver's device is not ready
+  // to use
   //
   g_DeviceHandle = NULL;
 

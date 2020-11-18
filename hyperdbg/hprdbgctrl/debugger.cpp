@@ -1480,7 +1480,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   BOOLEAN IsNextCommandCoreId = FALSE;
   BOOLEAN IsNextCommandBufferSize = FALSE;
   BOOLEAN IsNextCommandImmediateMessaging = FALSE;
-  BOOLEAN ImmediateMessagePassing = TRUE;
+  BOOLEAN ImmediateMessagePassing = UseImmediateMessagingByDefaultOnEvents;
   UINT32 CoreId;
   UINT32 ProcessId;
   UINT32 RequestBuffer = 0;
@@ -1910,19 +1910,6 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
         return FALSE;
       }
 
-      //
-      // Set the specific requested immediate message passing
-      //
-      if (TempActionBreak != NULL) {
-        TempActionBreak->ImmediateMessagePassing = ImmediateMessagePassing;
-      }
-      if (TempActionScript != NULL) {
-        TempActionScript->ImmediateMessagePassing = ImmediateMessagePassing;
-      }
-      if (TempActionCustomCode != NULL) {
-        TempActionCustomCode->ImmediateMessagePassing = ImmediateMessagePassing;
-      }
-
       IsNextCommandImmediateMessaging = FALSE;
 
       //
@@ -2122,6 +2109,19 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
       free(TempActionCustomCode);
     }
     return FALSE;
+  }
+
+  //
+  // Set the specific requested immediate message passing
+  //
+  if (TempActionBreak != NULL) {
+    TempActionBreak->ImmediateMessagePassing = ImmediateMessagePassing;
+  }
+  if (TempActionScript != NULL) {
+    TempActionScript->ImmediateMessagePassing = ImmediateMessagePassing;
+  }
+  if (TempActionCustomCode != NULL) {
+    TempActionCustomCode->ImmediateMessagePassing = ImmediateMessagePassing;
   }
 
   //

@@ -533,6 +533,17 @@ typedef enum _LOG_TYPE
                               format "\n",                   \
                               __VA_ARGS__)
 
+/**
+ * @brief Log without any prefix
+ * 
+ */
+#    define LogSimpleWithTag(tag, isimmdte, format, ...) \
+        LogSendMessageToQueue(tag,                       \
+                              isimmdte,                  \
+                              FALSE,                     \
+                              format,                    \
+                              __VA_ARGS__)
+
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
 //////////////////////////////////////////////////

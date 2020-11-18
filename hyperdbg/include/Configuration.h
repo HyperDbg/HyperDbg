@@ -35,8 +35,8 @@
 /**
  * @brief Show debug messages in both usermode app and debugger,
  * it works only if you set UseDbgPrintInsteadOfUsermodeMessageTracking to FALSE
- * @details Should be FALSE, I realized that if we enable this flag, we end up in a
- * situation that DbgPrint halts the system because it is executing in
+ * @details Should be FALSE, I realized that if we enable this flag, we end up
+ * in a situation that DbgPrint halts the system because it is executing in
  * Dispatch-level in a DPC routine, I left it to FALSE for future attention
  */
 #define ShowMessagesOnDebugger FALSE
@@ -46,4 +46,12 @@
  * recieved and do not accumulate them) it works only if you set
  * UseDbgPrintInsteadOfUsermodeMessageTracking to FALSE
  */
-#define UseImmediateMessaging FALSE
+#define UseImmediateMessaging TRUE
+
+/**
+ * @brief Use immediate messaging (means that it sends each message when they
+ * recieved and do not accumulate them) its the default value on events,
+ * a user can change this behavior by selecting 'imm yes' or 'imm no' in the
+ * case of events
+ */
+#define UseImmediateMessagingByDefaultOnEvents TRUE

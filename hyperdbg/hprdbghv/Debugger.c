@@ -465,6 +465,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
     //
     Action->ImmediatelySendTheResults = SendTheResultsImmediately;
     Action->ActionType                = ActionType;
+    Action->Tag                       = Event->Tag;
 
     //
     // Now we should add the action to the event's LIST_ENTRY of actions
@@ -996,7 +997,7 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
-        ScriptEngineExecute(Regs, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
+        ScriptEngineExecute(Regs, Action->Tag, Action->ImmediatelySendTheResults, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
     }
 }
 
