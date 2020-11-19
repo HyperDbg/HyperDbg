@@ -47,13 +47,15 @@ BOOL SetPrivilege(HANDLE hToken,         // access token handle
 
 void Trim(std::string &s);
 
+std::string RemoveSpaces(std::string str);
+
 //////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////
 
 /**
  * @brief this structure is copied from Process Hacker source code (ntldr.h)
- * 
+ *
  */
 typedef struct _RTL_PROCESS_MODULE_INFORMATION {
   HANDLE Section;
@@ -68,10 +70,9 @@ typedef struct _RTL_PROCESS_MODULE_INFORMATION {
   UCHAR FullPathName[256];
 } RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 
-
 /**
  * @brief this structure is copied from Process Hacker source code (ntldr.h)
- * 
+ *
  */
 typedef struct _RTL_PROCESS_MODULES {
   ULONG NumberOfModules;

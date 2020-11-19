@@ -48,9 +48,66 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
   PDEBUGGER_EVENT_FORWARDING EventForwardingObject;
   DEBUGGER_EVENT_FORWARDING_TYPE Type;
   string DetailsOfSource;
+  UINT32 IndexToShowList;
   PLIST_ENTRY TempList = 0;
   BOOLEAN OutputSourceFound = FALSE;
   HANDLE SourceHandle = INVALID_HANDLE_VALUE;
+
+  //
+  // Check if the user needs a list of outputs or not
+  //
+  if (SplittedCommand.size() == 1) {
+
+    IndexToShowList = 0;
+
+    if (g_OutputSourcesInitialized) {
+      TempList = &g_OutputSources;
+
+      while (&g_OutputSources != TempList->Blink) {
+
+        TempList = TempList->Blink;
+
+        PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails =
+            CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING,
+                              OutputSourcesList);
+
+        //
+        // Increase index
+        //
+        IndexToShowList++;
+
+        string TempStateString = "";
+        string TempTypeString = "";
+
+        if (CurrentOutputSourceDetails->State ==
+            EVENT_FORWARDING_STATE_NOT_OPENED) {
+          TempStateString = "not opened";
+        } else if (CurrentOutputSourceDetails->State ==
+                   EVENT_FORWARDING_STATE_OPENED) {
+          TempStateString = "opened    ";
+        } else if (CurrentOutputSourceDetails->State ==
+                   EVENT_FORWARDING_CLOSED) {
+          TempStateString = "closed    ";
+        }
+
+        if (CurrentOutputSourceDetails->Type == EVENT_FORWARDING_NAMEDPIPE) {
+          TempTypeString = "namedpipe";
+        } else if (CurrentOutputSourceDetails->Type == EVENT_FORWARDING_FILE) {
+          TempTypeString = "file     ";
+        } else if (CurrentOutputSourceDetails->Type == EVENT_FORWARDING_TCP) {
+          TempTypeString = "tcp      ";
+        }
+
+        ShowMessages("%d  %s   %s\t%s\n", IndexToShowList,
+                     TempTypeString.c_str(), TempStateString.c_str(),
+                     CurrentOutputSourceDetails->Name);
+      }
+    } else {
+      ShowMessages("output forwarding list is empty.\n\n");
+    }
+
+    return;
+  }
 
   if (SplittedCommand.size() <= 2) {
     ShowMessages("incorrect use of 'output'\n\n");

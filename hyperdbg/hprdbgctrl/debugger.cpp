@@ -19,6 +19,8 @@ extern LIST_ENTRY g_EventTrace;
 extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
+extern BOOLEAN g_OutputSourcesInitialized;
+extern LIST_ENTRY g_OutputSources;
 
 /**
  * @brief shows the error message
@@ -969,8 +971,7 @@ InterpretConditionsAndCodes(vector<string> *SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> *SplittedCommand, PUINT64 BufferAddress,
-                PUINT32 BufferLength) {
+InterpretOutput(vector<string> *SplittedCommand, vector<string> &InputSources) {
 
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -979,8 +980,11 @@ InterpretOutput(vector<string> *SplittedCommand, PUINT64 BufferAddress,
   string AppendedFinalBuffer;
   vector<string> SaveBuffer;
   vector<int> IndexesToRemove;
+  string Token;
   int NewIndexToRemove = 0;
   int Index = 0;
+  string Delimiter = ",";
+  size_t Pos = 0;
 
   for (auto Section : *SplittedCommand) {
 
@@ -1164,13 +1168,37 @@ InterpretOutput(vector<string> *SplittedCommand, PUINT64 BufferAddress,
     AppendedFinalBuffer.append(" ");
   }
 
-  printf("Output : %s\n", AppendedFinalBuffer.c_str());
+  //
+  // Check if we see multiple sources or it's just one single output
+  //
+  if (AppendedFinalBuffer.find(Delimiter) != std::string::npos) {
 
-  //
-  // Set the buffer and length
-  //
-  //*BufferAddress = (UINT64)FinalBuffer;
-  //*BufferLength = ParsedBytes.size();
+    //
+    // Delimiter found !
+    //
+    while ((Pos = AppendedFinalBuffer.find(Delimiter)) != string::npos) {
+      Token = AppendedFinalBuffer.substr(0, Pos);
+      Trim(Token);
+
+      if (!Token.empty()) {
+
+        InputSources.push_back(Token);
+      }
+
+      AppendedFinalBuffer.erase(0, Pos + Delimiter.length());
+
+      if (!AppendedFinalBuffer.empty()) {
+
+        InputSources.push_back(AppendedFinalBuffer);
+      }
+    }
+
+  } else {
+    //
+    // Delimiter not found !
+    //
+    InputSources.push_back(AppendedFinalBuffer);
+  }
 
   //
   // Removing the code or condition indexes from the command
@@ -1462,8 +1490,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT32 LengthOfBreakActionBuffer = 0;
   UINT64 ConditionBufferAddress;
   UINT32 ConditionBufferLength = 0;
-  UINT64 OutputBufferAddress;
-  UINT32 OutputBufferLength = 0;
+  vector<string> ListOfOutputSources;
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
   UINT64 ScriptBufferAddress;
@@ -1483,8 +1510,12 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   BOOLEAN ImmediateMessagePassing = UseImmediateMessagingByDefaultOnEvents;
   UINT32 CoreId;
   UINT32 ProcessId;
+  UINT32 IndexOfValidSourceTags;
   UINT32 RequestBuffer = 0;
+  PLIST_ENTRY TempList;
+  BOOLEAN OutputSourceFound;
   vector<int> IndexesToRemove;
+  vector<UINT64> ListOfValidSourceTags;
   int NewIndexToRemove = 0;
   int Index = 0;
 
@@ -1630,8 +1661,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   // Check if there is a output path in the command
   //
-  if (!InterpretOutput(SplittedCommand, &OutputBufferAddress,
-                       &OutputBufferLength)) {
+  if (!InterpretOutput(SplittedCommand, ListOfOutputSources)) {
 
     //
     // Indicate output is not available
@@ -1643,6 +1673,115 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     //
 
   } else {
+
+    //
+    // Check for empty input
+    //
+    if (ListOfOutputSources.size() == 0) {
+
+      //
+      // No input !
+      //
+      ShowMessages("err, no input found !\n\n");
+      free(BufferOfCommandString);
+      return FALSE;
+    }
+
+    //
+    // Check whether the size exceed maximum size or not
+    //
+    if (ListOfOutputSources.size() >
+        DebuggerOutputSourceMaximumRemoteSourceForSingleEvent) {
+
+      ShowMessages(
+          "err, based on this build of HyperDbg, the maximum input sources for "
+          "a single event is %d sources but you entered %d sources.\n\n",
+          DebuggerOutputSourceMaximumRemoteSourceForSingleEvent,
+          ListOfOutputSources.size());
+
+      free(BufferOfCommandString);
+
+      return FALSE;
+    }
+
+    //
+    // Check whether the output source initialized or not
+    //
+    if (!g_OutputSourcesInitialized) {
+
+      ShowMessages("err, the name you entered, not found. Did you use "
+                   "'output' commmand to create it?\n\n");
+
+      free(BufferOfCommandString);
+
+      return FALSE;
+    }
+
+    //
+    // Convert output sources to the corresponding tags
+    //
+    for (auto item : ListOfOutputSources) {
+
+      TempList = 0;
+      OutputSourceFound = FALSE;
+
+      //
+      // Now we should find the corresponding object in the list
+      // of output sources and save its tags
+      //
+      TempList = &g_OutputSources;
+
+      while (&g_OutputSources != TempList->Flink) {
+
+        TempList = TempList->Flink;
+
+        PDEBUGGER_EVENT_FORWARDING CurrentOutputSourceDetails =
+            CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING,
+                              OutputSourcesList);
+
+        if (strcmp(CurrentOutputSourceDetails->Name,
+                   RemoveSpaces(item).c_str()) == 0) {
+
+          //
+          // Check to see the source state, whether it is closed or not
+          //
+          if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_CLOSED) {
+
+            ShowMessages("err, output source already closed.\n\n");
+
+            free(BufferOfCommandString);
+
+            return FALSE;
+          }
+
+          //
+          // Indicate that we found this item
+          //
+          OutputSourceFound = TRUE;
+
+          //
+          // Save the tag into a list which will be used later
+          //
+          ListOfValidSourceTags.push_back(
+              CurrentOutputSourceDetails->OutputUniqueTag);
+
+          //
+          // No need to search through the list anymore
+          //
+          break;
+        }
+      }
+
+      if (!OutputSourceFound) {
+
+        ShowMessages("err, the name you entered, not found. Did you use "
+                     "'output' commmand to create it?\n\n");
+
+        free(BufferOfCommandString);
+
+        return FALSE;
+      }
+    }
     //
     // Indicate output is available
     //
@@ -1956,6 +2095,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     if (IsNextCommandCoreId) {
 
       if (!ConvertStringToUInt32(Section, &CoreId)) {
+
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2072,7 +2212,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   if (IsNextCommandBufferSize) {
-    ShowMessages("errlr : please specify a value for 'buffer'\n\n");
+    ShowMessages("error : please specify a value for 'buffer'\n\n");
     free(BufferOfCommandString);
     free(TempEvent);
 
@@ -2122,6 +2262,19 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
   if (TempActionCustomCode != NULL) {
     TempActionCustomCode->ImmediateMessagePassing = ImmediateMessagePassing;
+  }
+
+  //
+  // Set the tags into the event list
+  //
+  IndexOfValidSourceTags = 0;
+  for (auto item : ListOfValidSourceTags) {
+    TempEvent->OutputSourceTags[IndexOfValidSourceTags] = item;
+
+    //
+    // Increase index
+    //
+    IndexOfValidSourceTags++;
   }
 
   //

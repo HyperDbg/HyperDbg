@@ -134,8 +134,10 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
     return FileHandle;
 
   } else if (SourceType == EVENT_FORWARDING_NAMEDPIPE) {
+    return (HANDLE)1;
 
   } else if (SourceType == EVENT_FORWARDING_TCP) {
+    return (HANDLE)1;
   }
 
   return INVALID_HANDLE_VALUE;

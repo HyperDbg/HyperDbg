@@ -15,9 +15,9 @@ using namespace std;
 
 /**
  * @brief add ` between 64 bit values and convert them to string
- * 
- * @param Value 
- * @return string 
+ *
+ * @param Value
+ * @return string
  */
 string SeparateTo64BitValue(UINT64 Value) {
 
@@ -32,11 +32,11 @@ string SeparateTo64BitValue(UINT64 Value) {
 }
 
 /**
- * @brief print bits and bytes for d* commands 
- * 
- * @param size 
- * @param ptr 
- * @return VOID 
+ * @brief print bits and bytes for d* commands
+ *
+ * @param size
+ * @param ptr
+ * @return VOID
  */
 VOID PrintBits(size_t const size, void const *const ptr) {
   unsigned char *b = (unsigned char *)ptr;
@@ -54,11 +54,11 @@ VOID PrintBits(size_t const size, void const *const ptr) {
 
 /**
  * @brief general replace all function
- * 
- * @param str 
- * @param from 
- * @param to 
- * @return VOID 
+ *
+ * @param str
+ * @param from
+ * @param to
+ * @return VOID
  */
 VOID ReplaceAll(string &str, const string &from, const string &to) {
 
@@ -79,10 +79,10 @@ VOID ReplaceAll(string &str, const string &from, const string &to) {
 
 /**
  * @brief general split command
- * 
+ *
  * @param s target string
  * @param c splitter (delimiter)
- * @return const vector<string> 
+ * @return const vector<string>
  */
 const vector<string> Split(const string &s, const char &c) {
 
@@ -105,9 +105,9 @@ const vector<string> Split(const string &s, const char &c) {
 
 /**
  * @brief check if given string is a numeric string or not
- * 
- * @param str 
- * @return BOOLEAN 
+ *
+ * @param str
+ * @return BOOLEAN
  */
 BOOLEAN IsNumber(const string &str) {
 
@@ -121,10 +121,10 @@ BOOLEAN IsNumber(const string &str) {
 
 /**
  * @brief Function to split string str using given delimiter
- * 
- * @param str 
- * @param delim 
- * @return vector<string> 
+ *
+ * @param str
+ * @param delim
+ * @return vector<string>
  */
 vector<string> SplitIp(const string &str, char delim) {
 
@@ -147,9 +147,9 @@ vector<string> SplitIp(const string &str, char delim) {
 
 /**
  * @brief check whether the string is hex or not
- * 
- * @param s 
- * @return BOOLEAN 
+ *
+ * @param s
+ * @return BOOLEAN
  */
 BOOLEAN IsHexNotation(string s) {
 
@@ -172,9 +172,9 @@ BOOLEAN IsHexNotation(string s) {
 
 /**
  * @brief converts hex to bytes
- * 
- * @param hex 
- * @return vector<char> 
+ *
+ * @param hex
+ * @return vector<char>
  */
 vector<char> HexToBytes(const string &hex) {
 
@@ -260,11 +260,12 @@ BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result) {
 
 /**
  * @brief checks whether the string ends with a special string or not
- * 
- * @param fullString 
- * @param ending 
+ *
+ * @param fullString
+ * @param ending
  * @return BOOLEAN if true then it shows that string ends with another string
- * and if false then it shows that this string is not ended with the target string
+ * and if false then it shows that this string is not ended with the target
+ * string
  */
 BOOLEAN HasEnding(string const &fullString, string const &ending) {
 
@@ -278,9 +279,9 @@ BOOLEAN HasEnding(string const &fullString, string const &ending) {
 
 /**
  * @brief Function to validate an IP address
- * 
- * @param ip 
- * @return BOOLEAN 
+ *
+ * @param ip
+ * @return BOOLEAN
  */
 BOOLEAN ValidateIP(string ip) {
 
@@ -372,8 +373,8 @@ BOOL SetPrivilege(HANDLE hToken,         // access token handle
 
 /**
  * @brief trim from start of string (in place)
- * 
- * @param s 
+ *
+ * @param s
  */
 static inline void ltrim(std::string &s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(),
@@ -382,8 +383,8 @@ static inline void ltrim(std::string &s) {
 
 /**
  * @brief trim from the end of string (in place)
- * 
- * @param s 
+ *
+ * @param s
  */
 static inline void rtrim(std::string &s) {
   s.erase(std::find_if(s.rbegin(), s.rend(),
@@ -394,10 +395,21 @@ static inline void rtrim(std::string &s) {
 
 /**
  * @brief trim from both ends and start of a string (in place)
- * 
- * @param s 
+ *
+ * @param s
  */
 void Trim(std::string &s) {
   ltrim(s);
   rtrim(s);
+}
+
+/**
+ * @brief Remove all the spaces in a string
+ *
+ * @param str
+ */
+std::string RemoveSpaces(std::string str)
+{
+    str.erase(remove(str.begin(), str.end(), ' '), str.end());
+    return str;
 }
