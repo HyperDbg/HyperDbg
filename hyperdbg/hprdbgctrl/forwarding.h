@@ -36,8 +36,8 @@ typedef enum _DEBUGGER_EVENT_FORWARDING_TYPE {
  *
  */
 typedef enum _DEBUGGER_EVENT_FORWARDING_STATE {
-  EVENT_FORWARDING_STATE_NOT_OPENNED,
-  EVENT_FORWARDING_STATE_OPENNED,
+  EVENT_FORWARDING_STATE_NOT_OPENED,
+  EVENT_FORWARDING_STATE_OPENED,
   EVENT_FORWARDING_CLOSED
 } DEBUGGER_EVENT_FORWARDING_STATE;
 
@@ -86,3 +86,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor);
 HANDLE
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
                              string Description);
+
+BOOLEAN
+ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
+                                 CHAR *Message);

@@ -65,6 +65,13 @@
  */
 #define DebuggerOutputSourceTagStartSeed 0x1
 
+/**
+ * @brief Determines how many sources a debugger can have for
+ * a single event
+ *
+ */
+#define DebuggerOutputSourceMaximumRemoteSourceForSingleEvent 0x5
+
 //////////////////////////////////////////////////
 //               Remote Connection              //
 //////////////////////////////////////////////////
@@ -216,6 +223,20 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL {
                     // apply it to all processes
 
   BOOLEAN IsEnabled;
+
+  BOOLEAN HasCustomOutput; // Shows whether this event has a custom output
+                           // source or not
+
+  UINT64
+  OutputSourceTags
+      [DebuggerOutputSourceMaximumRemoteSourceForSingleEvent]; // tags of
+                                                               // multiple
+                                                               // sources which
+                                                               // can be used to
+                                                               // send the event
+                                                               // results of
+                                                               // scripts to
+                                                               // remote sources
 
   UINT32 CountOfActions;
 

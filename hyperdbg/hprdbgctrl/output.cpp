@@ -182,7 +182,7 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     //
     // Set the state
     //
-    EventForwardingObject->State = EVENT_FORWARDING_STATE_NOT_OPENNED;
+    EventForwardingObject->State = EVENT_FORWARDING_STATE_NOT_OPENED;
 
     //
     // Set the type
@@ -203,8 +203,8 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     // Check if list is initialized or not
     //
     if (!g_OutputSourcesInitialized) {
-      InitializeListHead(&g_OutputSources);
       g_OutputSourcesInitialized = TRUE;
+      InitializeListHead(&g_OutputSources);
     }
 
     //

@@ -43,7 +43,7 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
   //
   // check if already opened
   //
-  if (SourceDescriptor->State == EVENT_FORWARDING_STATE_OPENNED) {
+  if (SourceDescriptor->State == EVENT_FORWARDING_STATE_OPENED) {
     return DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_OPENED;
   }
 
@@ -73,8 +73,8 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
   //
   // Check if not opened
   //
-  if (SourceDescriptor->State == EVENT_FORWARDING_STATE_NOT_OPENNED ||
-      SourceDescriptor->State != EVENT_FORWARDING_STATE_OPENNED) {
+  if (SourceDescriptor->State == EVENT_FORWARDING_STATE_NOT_OPENED ||
+      SourceDescriptor->State != EVENT_FORWARDING_STATE_OPENED) {
     //
     // Not opennd ? or state other than opened ?
     //
@@ -139,4 +139,40 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
   }
 
   return INVALID_HANDLE_VALUE;
+}
+
+/**
+ * @brief Send the event result to the corresponding sources
+ * @param EventDetail Description saved about the event in the
+ * user-mode
+ * @details This function will not check whether the event has an
+ * output source or not, the caller if this function should make
+ * sure that the following event has valid output sources or not
+ *
+ * @return BOOLEAN whether sending results was successful or not
+ */
+BOOLEAN
+ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
+                                 CHAR *Message) {
+
+  BOOLEAN Result = FALSE;
+
+  for (size_t i = 0; i < DebuggerOutputSourceMaximumRemoteSourceForSingleEvent;
+       i++) {
+
+    //
+    // Check whether we reached to the end of the events
+    //
+    if (EventDetail->OutputSourceTags[i] == NULL) {
+      return Result;
+    }
+
+    //
+    // If we reach here then the output tag is not null
+    // means that we should find the event tag from list
+    // of tags
+    //
+  }
+
+  return FALSE;
 }

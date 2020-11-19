@@ -25,6 +25,8 @@ extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_OutputSourcesInitialized;
+extern LIST_ENTRY g_OutputSources;
 
 /**
  * @brief Set the function callback that will be called if anything received
@@ -105,6 +107,8 @@ void ReadIrpBasedBuffer() {
   UINT32 OperationCode;
   DWORD ErrorNum;
   HANDLE Handle;
+  BOOLEAN OutputSourceFound;
+  PLIST_ENTRY TempList;
 
   /*
   ShowMessages(" =============================== Kernel-Mode Logs (Driver) "
@@ -231,7 +235,57 @@ void ReadIrpBasedBuffer() {
           /*
         ShowMessages("Message From Debugger :\n");
         */
-          ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
+          //
+          // Set output source to not found
+          //
+          OutputSourceFound = FALSE;
+
+          //
+          // Check if there are available output sources
+          //
+          if (g_OutputSourcesInitialized) {
+
+            //
+            // Now, we should check whether the following flag matches
+            // with an output or not, also this is not where we want to
+            // check output resources
+            //
+            TempList = &g_EventTrace;
+            while (&g_EventTrace != TempList->Blink) {
+              TempList = TempList->Blink;
+
+              PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail = CONTAINING_RECORD(
+                  TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+
+              if (EventDetail->HasCustomOutput) {
+
+                //
+                // Output source found
+                //
+                OutputSourceFound = TRUE;
+
+                //
+                // Send the event to output sources
+                //
+                if (!ForwardingPerformEventForwarding(
+                        EventDetail, OutputBuffer + sizeof(UINT32))) {
+                  ShowMessages("err, there was an error transferring the "
+                               "message to the remote sources.\n");
+                }
+
+                break;
+              }
+            }
+          }
+
+          //
+          // Show the message if the source not found
+          //
+          if (!OutputSourceFound) {
+            ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+          }
+
           break;
         }
       } else {
