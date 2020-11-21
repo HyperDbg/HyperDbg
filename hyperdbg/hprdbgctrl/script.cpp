@@ -20,8 +20,8 @@ extern BOOLEAN g_ExecutingScript;
 
 /**
  * @brief help of .script command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandScriptHelp() {
   ShowMessages(".script : run a HyperDbg script.\n\n");
@@ -30,10 +30,10 @@ VOID CommandScriptHelp() {
 
 /**
  * @brief .script command handler
- * 
- * @param SplittedCommand 
- * @param Command 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
 VOID CommandScript(vector<string> SplittedCommand, string Command) {
 
@@ -76,7 +76,7 @@ VOID CommandScript(vector<string> SplittedCommand, string Command) {
     g_ExecutingScript = TRUE;
 
     while (std::getline(File, Line)) {
-      ShowMessages("HyperDbg >%s\n", Line.c_str());
+      ShowMessages("HyperDbg> %s\n", Line.c_str());
       CommandExecutionResult = HyperdbgInterpreter(Line.c_str());
       ShowMessages("\n");
 

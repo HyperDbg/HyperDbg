@@ -2278,6 +2278,13 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   //
+  // If it has output then we should indicate it in event's object
+  //
+  if (HasOutputPath) {
+    TempEvent->HasCustomOutput = TRUE;
+  }
+
+  //
   // Fill the address and length of event before release
   //
   *EventDetailsToFill = TempEvent;

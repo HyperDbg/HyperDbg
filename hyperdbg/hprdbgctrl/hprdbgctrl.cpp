@@ -269,7 +269,8 @@ void ReadIrpBasedBuffer() {
                 // Send the event to output sources
                 //
                 if (!ForwardingPerformEventForwarding(
-                        EventDetail, OutputBuffer + sizeof(UINT32))) {
+                        EventDetail, OutputBuffer + sizeof(UINT32),
+                        ReturnedLength - sizeof(UINT32))) {
                   ShowMessages("err, there was an error transferring the "
                                "message to the remote sources.\n");
                 }

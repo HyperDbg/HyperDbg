@@ -252,6 +252,11 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     EventForwardingObject->OutputUniqueTag = ForwardingGetNewOutputSourceTag();
 
     //
+    // Set the handle
+    //
+    EventForwardingObject->Handle = SourceHandle;
+
+    //
     // Move the name of the output source to the buffer
     //
     strcpy_s(EventForwardingObject->Name, SplittedCommand.at(2).c_str());

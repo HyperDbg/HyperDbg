@@ -41,7 +41,7 @@ int HyperdbgInterpreter(const char *Command) {
   // Save the command into log open file
   //
   if (g_LogOpened && !g_ExecutingScript) {
-    LogopenSaveToFile("HyperDbg >");
+    LogopenSaveToFile("HyperDbg> ");
     LogopenSaveToFile(Command);
     LogopenSaveToFile("\n");
   }
@@ -520,7 +520,7 @@ VOID HyperdbgShowSignature() {
     ShowMessages("HyperDbg (%x:%x) >", g_DebuggingState.ConnectedProcessId,
                  g_DebuggingState.ConnectedThreadId);
   } else {
-    ShowMessages("HyperDbg >");
+    ShowMessages("HyperDbg> ");
   }
 }
 

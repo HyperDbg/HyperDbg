@@ -89,4 +89,15 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
 
 BOOLEAN
 ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
-                                 CHAR *Message);
+                                 CHAR *Message, UINT32 MessageLength);
+
+BOOLEAN
+ForwardingWriteToFile(HANDLE FileHandle, CHAR *Message, UINT32 MessageLength);
+
+BOOLEAN
+ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
+                          UINT32 MessageLength);
+
+BOOLEAN
+ForwardingSendToTcpSocket(HANDLE TcpSocketHandle, CHAR *Message,
+                          UINT32 MessageLength);
