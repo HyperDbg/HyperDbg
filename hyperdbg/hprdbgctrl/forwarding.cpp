@@ -63,6 +63,12 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     // and nothing should be called to open the handle
     //
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_NAMEDPIPE) {
+
+    //
+    // Nothing special to do here, namedpipe is opened with CreateFile
+    // and nothing should be called to open the handle
+    //
+
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_TCP) {
   }
 
@@ -118,6 +124,11 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
 
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_TCP) {
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_NAMEDPIPE) {
+
+    //
+    // Close the file
+    //
+    NamedPipeClientClosePipe(SourceDescriptor->Handle);
   }
 
   return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
@@ -128,7 +139,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
  * @param SourceType Type of the source
  * @param Description Description of the source
  *
- * @return DEBUGGER_OUTPUT_SOURCE_STATUS return status of the closing function
+ * @return HANDLE returns handle of the source
  */
 HANDLE
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
@@ -149,10 +160,21 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
     return FileHandle;
 
   } else if (SourceType == EVENT_FORWARDING_NAMEDPIPE) {
-    return (HANDLE)1;
+
+    HANDLE PipeHandle = NamedPipeClientCreatePipe(Description.c_str());
+
+    if (!PipeHandle) {
+
+      //
+      // Unable to create handle
+      //
+      return INVALID_HANDLE_VALUE;
+    }
+
+    return PipeHandle;
 
   } else if (SourceType == EVENT_FORWARDING_TCP) {
-    return (HANDLE)1;
+    return INVALID_HANDLE_VALUE;
   }
 
   return INVALID_HANDLE_VALUE;
@@ -303,7 +325,21 @@ ForwardingWriteToFile(HANDLE FileHandle, CHAR *Message, UINT32 MessageLength) {
 BOOLEAN
 ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
                           UINT32 MessageLength) {
-  return FALSE;
+
+  BOOLEAN SentMessageResult;
+  printf("test : %s\n", Message);
+
+  SentMessageResult =
+      NamedPipeClientSendMessage(NamedPipeHandle, Message, MessageLength);
+
+  if (!SentMessageResult) {
+
+    //
+    // Sending error
+    //
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**

@@ -62,8 +62,8 @@ BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
   BOOL bClientConnected = ConnectNamedPipe(PipeHandle, NULL);
 
   if (FALSE == bClientConnected) {
-    printf("\nError occurred while connecting"
-           " to the client: %d",
+    printf("Error occurred while connecting"
+           " to the client: %d\n",
            GetLastError());
     CloseHandle(PipeHandle);
     return FALSE;
@@ -183,8 +183,8 @@ HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
                       NULL);         // no template file
 
   if (INVALID_HANDLE_VALUE == hPipe) {
-    printf("\nError occurred while connecting"
-           " to the server: %d",
+    printf("Error occurred while connecting"
+           " to the server: %d\n",
            GetLastError());
     //
     // One might want to check whether the server pipe is busy

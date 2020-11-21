@@ -19,11 +19,11 @@
 
 /**
  * @brief Create a named pipe server
- * 
- * @param PipeName 
- * @param OutputBufferSize 
- * @param InputBufferSize 
- * @return HANDLE 
+ *
+ * @param PipeName
+ * @param OutputBufferSize
+ * @param InputBufferSize
+ * @return HANDLE
  */
 HANDLE NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize,
                                  UINT32 InputBufferSize) {
@@ -52,9 +52,9 @@ HANDLE NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize,
 
 /**
  * @brief wait for client conncetion
- * 
- * @param PipeHandle 
- * @return BOOLEAN 
+ *
+ * @param PipeHandle
+ * @return BOOLEAN
  */
 BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
 
@@ -64,8 +64,8 @@ BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
   BOOL bClientConnected = ConnectNamedPipe(PipeHandle, NULL);
 
   if (FALSE == bClientConnected) {
-    ShowMessages("\nError occurred while connecting"
-                 " to the client: %d",
+    ShowMessages("Error occurred while connecting"
+                 " to the client: %d\n",
                  GetLastError());
     CloseHandle(PipeHandle);
     return FALSE;
@@ -79,11 +79,11 @@ BOOLEAN NamedPipeServerWaitForClientConntection(HANDLE PipeHandle) {
 
 /**
  * @brief read client message from the named pipe
- * 
- * @param PipeHandle 
- * @param BufferToSave 
- * @param MaximumReadBufferLength 
- * @return UINT32 
+ *
+ * @param PipeHandle
+ * @param BufferToSave
+ * @param MaximumReadBufferLength
+ * @return UINT32
  */
 UINT32 NamedPipeServerReadClientMessage(HANDLE PipeHandle, char *BufferToSave,
                                         int MaximumReadBufferLength) {
@@ -146,9 +146,9 @@ BOOLEAN NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
 
 /**
  * @brief Close handle of server's named pipe
- * 
- * @param PipeHandle 
- * @return VOID 
+ *
+ * @param PipeHandle
+ * @return VOID
  */
 VOID NamedPipeServerCloseHandle(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 
@@ -165,9 +165,9 @@ VOID NamedPipeServerCloseHandle(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
  * @details Pipe name format - \\servername\pipe\pipename
  * This pipe is for server on the same computer,
  * however, pipes can be used to connect to a remote server
- * 
- * @param PipeName 
- * @return HANDLE 
+ *
+ * @param PipeName
+ * @return HANDLE
  */
 HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
   HANDLE hPipe;
@@ -185,8 +185,8 @@ HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
                       NULL);         // no template file
 
   if (INVALID_HANDLE_VALUE == hPipe) {
-    ShowMessages("\nError occurred while connecting"
-                 " to the server: %d",
+    ShowMessages("Error occurred while connecting"
+                 " to the server: %d\n",
                  GetLastError());
     //
     // One might want to check whether the server pipe is busy
@@ -205,11 +205,11 @@ HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
 
 /**
  * @brief send client message over named pipe
- * 
- * @param PipeHandle 
- * @param BufferToSend 
- * @param BufferSize 
- * @return BOOLEAN 
+ *
+ * @param PipeHandle
+ * @param BufferToSend
+ * @param BufferSize
+ * @return BOOLEAN
  */
 BOOLEAN NamedPipeClientSendMessage(HANDLE PipeHandle, char *BufferToSend,
                                    int BufferSize) {
@@ -281,9 +281,9 @@ UINT32 NamedPipeClientReadMessage(HANDLE PipeHandle, char *BufferToRead,
 
 /**
  * @brief close named pipe handle of client
- * 
- * @param PipeHandle 
- * @return VOID 
+ *
+ * @param PipeHandle
+ * @return VOID
  */
 VOID NamedPipeClientClosePipe(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 
@@ -295,8 +295,8 @@ VOID NamedPipeClientClosePipe(HANDLE PipeHandle) { CloseHandle(PipeHandle); }
 
 /**
  * @brief and example of how to use named pipe as a server
- * 
- * @return int 
+ *
+ * @return int
  */
 int NamedPipeServerExample() {
 
@@ -362,8 +362,8 @@ int NamedPipeServerExample() {
 
 /**
  * @brief and example of how to use named pipe as a client
- * 
- * @return int 
+ *
+ * @return int
  */
 int NamedPipeClientExample() {
 
@@ -397,7 +397,7 @@ int NamedPipeClientExample() {
   ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, BufferSize);
 
   if (!ReadBytes) {
-    
+
     //
     // Nothing to read
     //
