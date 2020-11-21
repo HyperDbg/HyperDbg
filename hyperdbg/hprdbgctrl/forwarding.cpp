@@ -70,6 +70,12 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     //
 
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_TCP) {
+
+    //
+    // Nothing special to do here, tcp socket is opened with
+    // CommunicationClientConnectToServer and nothing should be
+    // called to open the socket
+    //
   }
 
   return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
@@ -123,6 +129,17 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
 
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_TCP) {
+
+    //
+    // Shutdown connection
+    //
+    CommunicationClientShutdownConnection(SourceDescriptor->Socket);
+
+    //
+    // Cleanup
+    //
+    CommunicationClientCleanup(SourceDescriptor->Socket);
+
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_NAMEDPIPE) {
 
     //
@@ -138,12 +155,25 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
  * @brief Create a new source (create handle from the source)
  * @param SourceType Type of the source
  * @param Description Description of the source
+ * @param Socket Socket object in the case of TCP connection
+ *
+ * @details If the target connection is a tcp connection then there
+ * is no handle and instead there is a socket, this way we pass a
+ * valid value for handle (TRUE) which is not a valid handle but it
+ * indicates that the operation was successful and the caller can use
+ * the pointer that it passed as the socket.
+ * On anything other than tcp sockets, the socket pointer in not
+ * modified; thus, it's not value
  *
  * @return HANDLE returns handle of the source
  */
 HANDLE
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
-                             string Description) {
+                             string Description, SOCKET *Socket) {
+
+  string IpPortDelimiter;
+  string Ip;
+  string Port;
 
   if (SourceType == EVENT_FORWARDING_FILE) {
 
@@ -174,9 +204,52 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
     return PipeHandle;
 
   } else if (SourceType == EVENT_FORWARDING_TCP) {
-    return INVALID_HANDLE_VALUE;
+
+    //
+    // Check if the port is included in the description string or not
+    //
+    if (Description.find(":") != std::string::npos) {
+
+      //
+      // Split the ip and port by : delimiter
+      //
+      IpPortDelimiter = ":";
+      Ip = Description.substr(0, Description.find(IpPortDelimiter));
+      Port = Description.substr(Description.find(IpPortDelimiter) + 1,
+                                Description.find(IpPortDelimiter) +
+                                    Description.size());
+
+      //
+      // Connect to server, in this function 0 means there was no error
+      // and 1 means there was an error
+      //
+      if (CommunicationClientConnectToServer(Ip.c_str(), Port.c_str(),
+                                             Socket) == 0) {
+
+        //
+        // Send a fake handle just to avoid sending INVALID_HANDLE_VALUE
+        // because this functionality doesn't work with handlers; however,
+        // send 1 or TRUE is a valid handle
+        //
+        return (HANDLE)TRUE;
+      } else {
+        //
+        // There was an error in connecting to the server
+        // so return an invalid handle
+        //
+        return INVALID_HANDLE_VALUE;
+      }
+    } else {
+      //
+      // Invalid address format
+      //
+      return INVALID_HANDLE_VALUE;
+    }
   }
 
+  //
+  // By default, handle is invalid
+  //
   return INVALID_HANDLE_VALUE;
 }
 
@@ -244,7 +317,7 @@ ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
             break;
           case EVENT_FORWARDING_TCP:
             Result = ForwardingSendToTcpSocket(
-                CurrentOutputSourceDetails->Handle, Message, MessageLength);
+                CurrentOutputSourceDetails->Socket, Message, MessageLength);
             break;
           default:
             break;
@@ -304,10 +377,17 @@ ForwardingWriteToFile(HANDLE FileHandle, CHAR *Message, UINT32 MessageLength) {
 
       return FALSE;
     } else {
+
+      //
+      // Successfully wrote
+      //
       return TRUE;
     }
   }
 
+  //
+  // by default we assume there was an error
+  //
   return FALSE;
 }
 
@@ -327,7 +407,6 @@ ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
                           UINT32 MessageLength) {
 
   BOOLEAN SentMessageResult;
-  printf("test : %s\n", Message);
 
   SentMessageResult =
       NamedPipeClientSendMessage(NamedPipeHandle, Message, MessageLength);
@@ -339,12 +418,16 @@ ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
     //
     return FALSE;
   }
+
+  //
+  // Successfully sent
+  //
   return TRUE;
 }
 
 /**
  * @brief Send the output results to the tcp socket
- * @param TcpSocketHandle Handle of the target tcp socket
+ * @param TcpSocket Socket object of the target tcp socket
  * @param Message The message that should be sent to the tcp socket
  * @param MessageLength Length of the message
  * @details This function will not check whether the event has an
@@ -354,7 +437,18 @@ ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
  * @return BOOLEAN whether the sending to the tcp socket was successful or not
  */
 BOOLEAN
-ForwardingSendToTcpSocket(HANDLE TcpSocketHandle, CHAR *Message,
+ForwardingSendToTcpSocket(SOCKET TcpSocket, CHAR *Message,
                           UINT32 MessageLength) {
-  return FALSE;
+  if (CommunicationClientSendMessage(TcpSocket, Message, MessageLength) != 0) {
+
+    //
+    // Failed to send
+    //
+    return FALSE;
+  }
+
+  //
+  // Successfully sent
+  //
+  return TRUE;
 }

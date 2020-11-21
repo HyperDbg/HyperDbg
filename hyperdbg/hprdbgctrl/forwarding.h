@@ -64,6 +64,7 @@ typedef struct _DEBUGGER_EVENT_FORWARDING {
   DEBUGGER_EVENT_FORWARDING_TYPE Type;
   DEBUGGER_EVENT_FORWARDING_STATE State;
   HANDLE Handle;
+  SOCKET Socket;
   UINT64 OutputUniqueTag;
   LIST_ENTRY
   OutputSourcesList; // Linked-list of output sources list
@@ -85,7 +86,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor);
 
 HANDLE
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
-                             string Description);
+                             string Description, SOCKET *Socket);
 
 BOOLEAN
 ForwardingPerformEventForwarding(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetail,
@@ -99,5 +100,5 @@ ForwardingSendToNamedPipe(HANDLE NamedPipeHandle, CHAR *Message,
                           UINT32 MessageLength);
 
 BOOLEAN
-ForwardingSendToTcpSocket(HANDLE TcpSocketHandle, CHAR *Message,
+ForwardingSendToTcpSocket(SOCKET TcpSocket, CHAR *Message,
                           UINT32 MessageLength);

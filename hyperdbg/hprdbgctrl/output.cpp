@@ -52,6 +52,7 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
   PLIST_ENTRY TempList = 0;
   BOOLEAN OutputSourceFound = FALSE;
   HANDLE SourceHandle = INVALID_HANDLE_VALUE;
+  SOCKET Socket = NULL;
 
   //
   // Check if the user needs a list of outputs or not
@@ -212,7 +213,7 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
                                          SplittedCommand.at(3).size() + 1,
                                      Command.size());
 
-    SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource);
+    SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource, &Socket);
 
     //
     // Check if it's a valid handle or not
@@ -252,9 +253,13 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     EventForwardingObject->OutputUniqueTag = ForwardingGetNewOutputSourceTag();
 
     //
-    // Set the handle
+    // Set the handle or in the case of TCP, set the socket
     //
-    EventForwardingObject->Handle = SourceHandle;
+    if (Type == EVENT_FORWARDING_TCP) {
+      EventForwardingObject->Socket = Socket;
+    } else {
+      EventForwardingObject->Handle = SourceHandle;
+    }
 
     //
     // Move the name of the output source to the buffer
