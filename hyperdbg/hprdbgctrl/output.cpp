@@ -25,8 +25,8 @@ extern BOOLEAN g_OutputSourcesInitialized;
 VOID CommandOutputHelp() {
   ShowMessages("output : create an output instance that can be used in event "
                "forwarding.\n\n");
-  ShowMessages("syntax : \toutput [create|open|close] type "
-               "[file|namedpipe|tcp] address\n");
+  ShowMessages("syntax : \toutput [create|open|close] [type "
+               "(file|namedpipe|tcp)] [name|address]\n");
   ShowMessages("\t\te.g : output create MyOutputName1 file "
                "c:\\users\\sina\\desktop\\output.txt\n");
   ShowMessages("\t\te.g : output create MyOutputName2 tcp 192.168.1.10:8080\n");
@@ -285,7 +285,10 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     //
     // It's an open
     //
-
+    if (!g_OutputSourcesInitialized) {
+      ShowMessages("err, the name you entered, not found.\n\n");
+      return;
+    }
     //
     // Now we should find the corresponding object in the memory and
     // pass it to the global open functions
