@@ -1186,14 +1186,15 @@ InterpretOutput(vector<string> *SplittedCommand, vector<string> &InputSources) {
       }
 
       AppendedFinalBuffer.erase(0, Pos + Delimiter.length());
+    }
 
-      if (!AppendedFinalBuffer.empty()) {
+    if (!AppendedFinalBuffer.empty()) {
 
-        InputSources.push_back(AppendedFinalBuffer);
-      }
+      InputSources.push_back(AppendedFinalBuffer);
     }
 
   } else {
+
     //
     // Delimiter not found !
     //

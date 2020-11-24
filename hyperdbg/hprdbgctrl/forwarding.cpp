@@ -62,12 +62,15 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     // Nothing special to do here, file is opened with CreateFile
     // and nothing should be called to open the handle
     //
+    return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
+
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_NAMEDPIPE) {
 
     //
     // Nothing special to do here, namedpipe is opened with CreateFile
     // and nothing should be called to open the handle
     //
+    return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
 
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_TCP) {
 
@@ -76,6 +79,7 @@ ForwardingOpenOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     // CommunicationClientConnectToServer and nothing should be
     // called to open the socket
     //
+    return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED;
   }
 
   return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;
@@ -140,12 +144,22 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor) {
     //
     CommunicationClientCleanup(SourceDescriptor->Socket);
 
+    //
+    // Return the status
+    //
+    return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
+
   } else if (SourceDescriptor->Type == EVENT_FORWARDING_NAMEDPIPE) {
 
     //
     // Close the file
     //
     NamedPipeClientClosePipe(SourceDescriptor->Handle);
+
+    //
+    // Return the status
+    //
+    return DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED;
   }
 
   return DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR;

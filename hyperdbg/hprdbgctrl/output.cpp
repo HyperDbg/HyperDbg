@@ -47,6 +47,7 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_EVENT_FORWARDING EventForwardingObject;
   DEBUGGER_EVENT_FORWARDING_TYPE Type;
+  DEBUGGER_OUTPUT_SOURCE_STATUS Status;
   string DetailsOfSource;
   UINT32 IndexToShowList;
   PLIST_ENTRY TempList = 0;
@@ -312,7 +313,20 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
         //
         // Open the output
         //
-        ForwardingOpenOutputSource(CurrentOutputSourceDetails);
+        Status = ForwardingOpenOutputSource(CurrentOutputSourceDetails);
+
+        if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_CLOSED) {
+          ShowMessages("err, the name you entered was already closed.\n\n");
+          return;
+
+        } else if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_OPENED) {
+          ShowMessages("err, the name you entered was already opened.\n\n");
+          return;
+        } else if (Status !=
+                   DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED) {
+          ShowMessages("err, unable to open the output source.\n\n");
+          return;
+        }
 
         //
         // No need to search through the list anymore
@@ -331,6 +345,10 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
     //
     // It's a close
     //
+    if (!g_OutputSourcesInitialized) {
+      ShowMessages("err, the name you entered, not found.\n\n");
+      return;
+    }
 
     //
     // Now we should find the corresponding object in the memory and
@@ -354,9 +372,22 @@ VOID CommandOutput(vector<string> SplittedCommand, string Command) {
         OutputSourceFound = TRUE;
 
         //
-        // Close the output
+        // Close the output if it's not already closed
         //
-        ForwardingCloseOutputSource(CurrentOutputSourceDetails);
+        Status = ForwardingCloseOutputSource(CurrentOutputSourceDetails);
+
+        if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_CLOSED) {
+          ShowMessages("err, the name you entered was already closed.\n\n");
+          return;
+
+        } else if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR) {
+          ShowMessages("err, unable to close the source.\n\n");
+          return;
+        } else if (Status !=
+                   DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED) {
+          ShowMessages("err, unable to close the source.\n\n");
+          return;
+        }
 
         //
         // No need to search through the list anymore

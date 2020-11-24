@@ -315,12 +315,12 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
                                UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-  printf("Result is: %llx\n", Value);
+  printf("%llx\n", Value);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  LogSimpleWithTag(Tag, ImmediateMessagePassing, "Result is : %llx\n", Value);
+  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
