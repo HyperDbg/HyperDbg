@@ -4,7 +4,7 @@ S'->eps
 C->@PUSH _id = E0 @MOV C'
 C->print ( E0 @PRINT )
 C'->eps
-#
+
 E0->E1 E0'
 E0'->| E1 @OR E0'
 E0'->eps

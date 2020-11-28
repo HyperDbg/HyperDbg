@@ -61,6 +61,8 @@ TOKEN NewToken()
 	//
 	strcpy(Token->Value, "");
 	Token->Type = UNKNOWN;
+	Token->len = 0;
+	Token->max_len = TOKEN_VALUE_MAX_LEN;
 
 	return Token;
 }
@@ -164,7 +166,35 @@ void PrintToken(TOKEN Token)
  */
 void Append(TOKEN Token, char c)
 {
+	//
+	// Check overflow of the string
+	//
+	if (Token->len >= Token->max_len-1)
+	{
+		//
+		// Double the length of the allocated space for the string
+		//
+		Token->max_len *= 2; 
+		char* NewValue = (char*)calloc(Token->max_len, sizeof(char));
+
+
+		// 
+		// Free Old buffer and update the pointer 
+		//
+		strncpy(NewValue, Token->Value, Token->len);
+		free(Token->Value);
+		Token->Value = NewValue;
+	}
+
+
+	// 
+	// Append the new charcter to the string 
+	//
 	strncat(Token->Value, &c, 1);
+	Token->len++;
+
+
+	
 }
 
 /**

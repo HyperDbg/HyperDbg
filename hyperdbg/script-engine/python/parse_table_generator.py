@@ -3,7 +3,7 @@
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @brief Script engine Parse table generator 
  * @details This program reads grammer from Greammer.txt file 
- *          placed in the same directory of the program and 
+ *          placed in the same directory of the program 
  *          and creates ParseTable.h which is used by the 
  *          parser of script engine. 
  * @version 0.1

@@ -8,7 +8,7 @@
 /**
 * @brief maximum length of string in the token
 */
-#define TOKEN_VALUE_MAX_LEN 100
+#define TOKEN_VALUE_MAX_LEN 8
 
 /**
 * @brief init size of token list
@@ -46,6 +46,8 @@ struct _TOKEN
 {
 	TOKEN_TYPE Type;
 	char* Value;
+	unsigned int len;
+	unsigned int max_len;
 };
 
 
