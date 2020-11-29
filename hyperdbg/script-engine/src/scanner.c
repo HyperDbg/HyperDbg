@@ -233,6 +233,12 @@ TOKEN_LIST NewTokenList(void)
  */
 void RemoveTokenList(TOKEN_LIST TokenList)
 {
+	TOKEN Token;
+	for (uintptr_t i = 0; i < TokenList->Pointer; i++)
+	{
+		Token = *(TokenList->Head + i);
+		RemoveToken(Token);
+	}
 	free(TokenList->Head);
 	free(TokenList);
 
@@ -816,7 +822,7 @@ TOKEN GetToken(char* c, char* str)
 */
 TOKEN Scan(char* str, char* c)
 {
-	TOKEN Token = NewToken();
+	TOKEN Token;
 
 	while (1)
 	{
@@ -835,6 +841,7 @@ TOKEN Scan(char* str, char* c)
 
 		else if (Token->Type == WHITE_SPACE || Token->Type == COMMENT)
 		{
+			RemoveToken(Token);
 			continue;
 		}
 		return Token;

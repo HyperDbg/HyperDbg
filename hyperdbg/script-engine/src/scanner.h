@@ -13,7 +13,7 @@
 /**
 * @brief init size of token list
 */
-#define TOKEN_LIST_INIT_SIZE 16
+#define TOKEN_LIST_INIT_SIZE 1024
 
 /**
 * @brief enumerates possible types for token

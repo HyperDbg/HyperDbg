@@ -60,12 +60,6 @@ __declspec(dllexport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 
 PSYMBOL ToSymbol(TOKEN Token);
 
-
-
-
-
-
-
 // Util Functions:
 void SetType(unsigned long long* Val, unsigned char Type);
 unsigned long long int DecimalToInt(char* str);

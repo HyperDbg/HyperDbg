@@ -68,6 +68,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   } else {
     printf("%s\n", CodeBuffer->Message);
   }
+  return;
 }
 
 VOID ScriptEngineWrapperTestParser(string Expr) {

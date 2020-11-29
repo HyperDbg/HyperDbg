@@ -72,8 +72,12 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
         char* Message = "Invalid Syntax!";
         CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
         strcpy(CodeBuffer->Message, Message);
+        
         RemoveTokenList(Stack);
         RemoveTokenList(MatchedStack);
+        RemoveToken(StartToken);
+        RemoveToken(EndToken);
+        RemoveToken(CurrentIn);
         return CodeBuffer;
     }
 
@@ -99,8 +103,12 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 char* Message = "Invalid Syntax!";
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
+                
                 RemoveTokenList(Stack);
                 RemoveTokenList(MatchedStack);
+                RemoveToken(StartToken);
+                RemoveToken(EndToken);
+                RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
             TerminalId = GetTerminalId(CurrentIn);
@@ -109,8 +117,12 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 char* Message = "Invalid Syntax!";
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
+                
                 RemoveTokenList(Stack);
                 RemoveTokenList(MatchedStack);
+                RemoveToken(StartToken);
+                RemoveToken(EndToken);
+                RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
             RuleId = ParseTable[NonTerminalId][TerminalId];
@@ -119,8 +131,13 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 char* Message = "Invalid Syntax!";
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
+               
+
                 RemoveTokenList(Stack);
                 RemoveTokenList(MatchedStack);
+                RemoveToken(StartToken);
+                RemoveToken(EndToken);
+                RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
 
@@ -142,14 +159,20 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
             {
                 TopToken = Pop(Stack);
                 Push(MatchedStack, CurrentIn);
+
                 CurrentIn = Scan(str, &c);
+
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     char* Message = "Invalid Syntax!";
                     CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                     strcpy(CodeBuffer->Message, Message);
+                    
                     RemoveTokenList(Stack);
                     RemoveTokenList(MatchedStack);
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveToken(CurrentIn);
                     return CodeBuffer;
                 }
 
@@ -168,8 +191,12 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 char* Message = "Invalid Syntax!";
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
+                
                 RemoveTokenList(Stack);
                 RemoveTokenList(MatchedStack);
+                RemoveToken(StartToken);
+                RemoveToken(EndToken);
+                RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
             else
@@ -177,8 +204,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 
  
                 RemoveToken(CurrentIn);
-
                 CurrentIn = Scan(str, &c);
+
                 printf("\nCurrent Input :\n");
                 PrintToken(CurrentIn);
                 printf("\n");
@@ -198,6 +225,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 
     RemoveTokenList(Stack);
     RemoveTokenList(MatchedStack);
+    RemoveToken(StartToken);
+    RemoveToken(EndToken);
+    RemoveToken(CurrentIn);
     return CodeBuffer;
 }
 
@@ -234,7 +264,7 @@ void FreeTemp(TOKEN Temp)
     {
         TempMap[id] = 0;
     }
-    free(Temp);
+    RemoveToken(Temp);
 
 }
 void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
@@ -266,9 +296,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
 
         printf("%s\t%s,\t%s\n", Operator->Value, Op1->Value, Op0->Value);
-        PrintSymbol(OperatorSymbol);
-        PrintSymbol(Op1Symbol);
-        PrintSymbol(Op0Symbol);
         printf("_____________\n");
 
         //
@@ -292,15 +319,7 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, TempSymbol);
 
 
-      
-
-        
-
         printf("%s\t%s,\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value, Op1->Value);
-        PrintSymbol(OperatorSymbol);
-        PrintSymbol(TempSymbol);
-        PrintSymbol(Op1Symbol);
-        PrintSymbol(Op0Symbol);
         printf("_____________\n");
 
         // Free the operand if it is a temp value
@@ -316,9 +335,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
             TempSymbol = ToSymbol(Temp);
             PushSymbol(CodeBuffer, TempSymbol);
             printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
-            PrintSymbol(OperatorSymbol);
-            PrintSymbol(TempSymbol);
-            PrintSymbol(Op0Symbol);
             printf("_____________\n");
         }
 
@@ -326,8 +342,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         {
            
             printf("%s\t%s\n", Operator->Value, Op0->Value);
-            PrintSymbol(OperatorSymbol);
-            PrintSymbol(Op0Symbol);
             printf("_____________\n");
         }
         
@@ -337,6 +351,7 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
 
 
+    return;
 }
 
 
@@ -835,13 +850,7 @@ PSYMBOL_BUFFER NewSymbolBuffer(void)
 */
 void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-  // TODO : Exeption thrown here. Fix it. 
-  /*  PSYMBOL Symbol;
-    for (int i = 0; i < SymbolBuffer->Pointer; i++)
-    {
-        Symbol = SymbolBuffer->Head + i;
-        RemoveSymbol(Symbol);
-    }*/
+    free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
     free(SymbolBuffer);
     return;
@@ -865,6 +874,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
     // Write input to the appropriate address in SymbolBuffer
     //
     *WriteAddr = *Symbol;
+    RemoveSymbol(Symbol);
 
     //
     // Update Pointer
