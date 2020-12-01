@@ -18,8 +18,6 @@
 */
 #define TOKEN_LIST_INIT_SIZE 1024
 
-extern const char* KeywordList[];
-extern const char* OneOperandSemanticRules[];
 
 /**
 * @brief enumerates possible types for token
@@ -87,6 +85,11 @@ void PrintToken(TOKEN Token);
 
 void Append(TOKEN Token, char c);
 
+TOKEN NewTemp(void);
+
+void FreeTemp(TOKEN Temp);
+
+
 
 ////////////////////////////////////////////////////
 // TOKEN_LIST related functions					  // 
@@ -103,6 +106,17 @@ TOKEN Pop(TOKEN_LIST TokenList);
 
 TOKEN Top(TOKEN_LIST TokenList);
 
+char IsNoneTerminal(TOKEN Token);
+
+char IsSemanticRule(TOKEN Token);
+
+char IsEqual(const TOKEN Token1, const TOKEN Token2);
+
+int GetNonTerminalId(TOKEN Token);
+
+int GetTerminalId(TOKEN Token);
+
+
 ////////////////////////////////////////////////////
 // Util Functions								  // 
 ////////////////////////////////////////////////////
@@ -115,6 +129,17 @@ char IsLetter(char c);
 char IsBinary(char c);
 
 char IsOctal(char c);
+
+void SetType(unsigned long long* Val, unsigned char Type);
+
+unsigned long long int DecimalToInt(char* str);
+
+unsigned long long int HexToInt(char* str);
+
+unsigned long long int OctalToInt(char* str);
+
+unsigned long long int BinaryToInt(char* str);
+
 
 
 

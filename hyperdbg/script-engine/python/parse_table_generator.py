@@ -99,6 +99,7 @@ class Parser:
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
         self.HeaderFile.write("#define PARSE_TABLE_H\n")
         
+        self.HeaderFile.write("#include \"common.h\"\n")
         self.HeaderFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
         self.HeaderFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
         self.HeaderFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
@@ -106,6 +107,8 @@ class Parser:
         self.HeaderFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
         self.HeaderFile.write("#define KEYWORD_LIST_LENGTH "  + str(len(self.keywordList)) +"\n")
 
+        for Key in self.MapsList:
+            self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.MapsList[Key]))+"\n")
 
        
         self.SourceFile.write("#include \"parse_table.h\"\n")
@@ -128,6 +131,9 @@ class Parser:
 
         # Prints Keywords list into output files 
         self.WriteKeywordList()
+
+        # Prints Maps into outpu files 
+        self.WriteMaps()
 
         self.HeaderFile.write("#endif\n")
 
@@ -309,6 +315,22 @@ class Parser:
             Counter +=1
         self.SourceFile.write("};\n")
 
+    def WriteMaps(self):
+        for Key in self.MapsList:
+            print(Key)
+
+            self.HeaderFile.write("extern const char* "+ Key[1:]+ "[];\n")
+            self.SourceFile.write("const char* "+ Key[1:]+ "[] = {\n")
+
+            Counter = 0
+            for X in self.MapsList[Key]:
+                if Counter == len(self.MapsList[Key])-1:
+                    self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
+                else:
+                    self.SourceFile.write("\"" +"@"+ X.upper() + "\"" + ",\n")
+            Counter +=1
+            self.SourceFile.write("};\n")
+
 
 
     def WriteLhsList(self):
@@ -379,7 +401,7 @@ class Parser:
 
     def WriteTerminalList(self):
         self.SourceFile.write("const char* TerminalMap[TERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("const char* TerminalMap[TERMINAL_COUNT];\n")
+        self.HeaderFile.write("extern const char* TerminalMap[TERMINAL_COUNT];\n")
         Counter = 0
         for X in self.TerminalList:
             if Counter == len(self.TerminalList)-1:
@@ -391,7 +413,7 @@ class Parser:
 
     def WriteNoneTermianlList(self):
         self.SourceFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT];\n")
+        self.HeaderFile.write("extern const char* NoneTerminalMap[NONETERMINAL_COUNT];\n")
         Counter = 0
         for X in self.NonTerminalList:
             if Counter == len(self.NonTerminalList)-1:
@@ -403,7 +425,7 @@ class Parser:
 
     def WriteParseTable(self):
         self.SourceFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];\n")
+        self.HeaderFile.write("extern const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];\n")
         i = 0
         for X in self.NonTerminalList:
             j = 0

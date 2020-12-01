@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 #include "common.h" 
+#include "globals.h"
+#include "parse_table.h"
 
 
 
@@ -400,20 +402,247 @@ char IsOctal(char c)
 
 
 
-// TODO : Automate generating this array
-const char* OneOperandSemanticRules[] =
+TOKEN NewTemp(void)
 {
-	"@POI",
-	"@DB",
-	"@DD",
-	"@DW",
-	"@DQ",
-	"@STR",
-	"@WSTR",
-	"@SIZEOF",
-	"@NOT",
-	"@NEG",
-	"@HI",
-	"@LOW",
-	"@PRINT"
-};
+	static unsigned int TempID = 0;
+	int i;
+	for (i = 0; i < MAX_TEMP_COUNT; i++)
+	{
+		if (TempMap[i] == 0)
+		{
+			TempID = i;
+			TempMap[i] = 1;
+			break;
+		}
+	}
+	if (i == MAX_TEMP_COUNT)
+	{
+		// TODO: Handle Error
+		printf("Error: Not enough tempporary variables to allocate. \n");
+	}
+	TOKEN Temp = NewToken();
+	char TempValue[8];
+	sprintf(TempValue, "%d", TempID);
+	strcpy(Temp->Value, TempValue);
+	Temp->Type = TEMP;
+	return Temp;
+
+}
+void FreeTemp(TOKEN Temp)
+{
+	int id = DecimalToInt(Temp->Value);
+	if (Temp->Type == TEMP)
+	{
+		TempMap[id] = 0;
+	}
+	RemoveToken(Temp);
+
+}
+
+
+char HasTwoOperand(TOKEN Operator)
+{
+	unsigned int n = ONEOPFUNC1_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, OneOpFunc1[i]))
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+
+/**
+*
+*
+*
+*/
+char IsNoneTerminal(TOKEN Token)
+{
+	if (Token->Value[0] >= 'A' && Token->Value[0] <= 'Z')
+		return 1;
+	else
+		return 0;
+}
+
+/**
+*
+*
+*
+*/
+char IsSemanticRule(TOKEN Token)
+{
+	if (Token->Value[0] == '@')
+		return 1;
+	else
+		return 0;
+}
+
+/**
+*
+*
+*
+*/
+int GetNonTerminalId(TOKEN Token)
+{
+	for (int i = 0; i < NONETERMINAL_COUNT; i++)
+	{
+		if (!strcmp(Token->Value, NoneTerminalMap[i]))
+			return i;
+	}
+	return -1;
+}
+
+/**
+*
+*
+*
+*/
+int GetTerminalId(TOKEN Token)
+{
+
+	for (int i = 0; i < TERMINAL_COUNT; i++)
+	{
+		if (Token->Type == HEX)
+		{
+			if (!strcmp("_hex", TerminalMap[i]))
+				return i;
+		}
+		else if (Token->Type == ID)
+		{
+			if (!strcmp("_id", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == REGISTER)
+		{
+			if (!strcmp("_register", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == PSEUDO_REGISTER)
+		{
+			if (!strcmp("_pseudo_register", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == DECIMAL)
+		{
+			if (!strcmp("_decimal", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == BINARY)
+		{
+			if (!strcmp("_binary", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == OCTAL)
+		{
+			if (!strcmp("_octal", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+
+		else // Keyword
+		{
+			if (!strcmp(Token->Value, TerminalMap[i]))
+				return i;
+		}
+	}
+	return -1;
+
+}
+
+/**
+*
+*
+*
+*/
+char IsEqual(const TOKEN Token1, const TOKEN Token2)
+{
+	if (Token1->Type == Token2->Type)
+	{
+		if (Token1->Type == SPECIAL_TOKEN)
+		{
+			if (!strcmp(Token1->Value, Token2->Value))
+			{
+				return 1;
+			}
+		}
+		else
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
+void SetType(unsigned long long* Val, unsigned char Type)
+{
+	*Val = (unsigned long long int)Type;
+}
+
+unsigned long long int DecimalToInt(char* str)
+{
+	unsigned long long int acc = 0;
+	for (int i = 0; i < strlen(str); i++)
+	{
+		acc *= 10;
+		acc += (str[i] - '0');
+	}
+	return acc;
+}
+unsigned long long int HexToInt(char* str)
+{
+	char temp;
+	unsigned long long int acc = 0;
+	for (int i = 0; i < strlen(str); i++)
+	{
+		acc <<= 4;
+		if (str[i] >= '0' && str[i] <= '9')
+		{
+			temp = str[i] - '0';
+		}
+		else if (str[i] >= 'a' && str[i] <= 'f')
+		{
+			temp = str[i] - 'a' + 10;
+		}
+		else
+		{
+			temp = str[i] - 'A' + 10;
+		}
+		acc += temp;
+	}
+
+	return acc;
+}
+unsigned long long int OctalToInt(char* str)
+{
+	unsigned long long int acc = 0;
+	for (int i = 0; i < strlen(str); i++)
+	{
+		acc <<= 3;
+		acc += (str[i] - '0');
+	}
+	return acc;
+}
+unsigned long long int BinaryToInt(char* str)
+{
+	unsigned long long int acc = 0;
+	for (int i = 0; i < strlen(str); i++)
+	{
+		acc <<= 1;
+		acc += (str[i] - '0');
+	}
+	return acc;
+}

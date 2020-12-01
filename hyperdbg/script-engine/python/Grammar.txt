@@ -1,10 +1,14 @@
-.oneOpfunc1->poi db dd dw dq str wstr sizeof neg hi low
-.oneOpfunc2->print
+# OneOpFunc1 input is a number and returns a number.
+.OneOpFunc1->poi db dd dw dq str wstr sizeof neg hi low 
+
+# OneOpFunc2 input is a number.
+.OneOpFunc2->print
+
 S->C ; S'
 S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
-C->.oneOpfunc2 ( E0 @.oneOpfunc2 )
+C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
 C'->eps
 
 
@@ -49,7 +53,7 @@ E9->E10 E9'
 E9'->% E10 @MOD E9'
 E9'->eps 
 
-E10->.oneOpfunc1 ( E0 @.oneOpfunc1 ) 
+E10->.OneOpFunc1 ( E0 @.OneOpFunc1 ) 
 
 
 

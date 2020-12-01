@@ -17,7 +17,7 @@
 #include <string.h>
 #include "scanner.h"
 #include "common.h"
-#include "pasre_table.h"
+#include "parse_table.h"
 
 
 
