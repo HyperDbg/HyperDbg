@@ -1,5 +1,7 @@
-//x1 = poi(poi((poi(($proc&neg(1000`0000))+10)^poi(poi(poi(poi(poi(poi(poi(poi($prcb+18)+220)+648)+8)-240)+2a0)))^neg(0n6708588087252463955)^($proc&neg(100000)))-8)-1080);
-test= poi(2 + 5 * 1);
+
+
+x1 = poi(poi((poi(($proc&neg(1000`0000))+10)^poi(poi(poi(poi(poi(poi(poi(poi($prcb+18)+220)+648)+8)-240)+2a0)))^neg(0n6708588087252463955)^($proc&neg(100000)))-8)-1080);
+//test= poi(2);
 //a2= poi((01)+ 2 * 3) * poi(2); //  Binary
 //test=dw(@rcx+($proc|3+poi(poi(@rax))));
 /*

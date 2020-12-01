@@ -11,29 +11,16 @@
  */
 
 #pragma once
-#include "scanner.h"
+
+
 
 #include <stdio.h>
 #include "ScriptEngineCommon.h"
+#include "scanner.h"
+#include "common.h"
 
 
-// TODO : Automate generating this array
-const char* OneOperandSemanticRules[] =
-{
-	"@POI",
-	"@DB",
-	"@DD",
-	"@DW",
-	"@DQ",
-	"@STR",
-	"@WSTR",
-	"@SIZEOF",
-	"@NOT",
-	"@NEG",
-	"@HI",
-	"@LOW",
-	"@PRINT"
-};
+
 
 char TempMap[MAX_TEMP_COUNT] = { 0 };
 unsigned int IdCounter = 0;

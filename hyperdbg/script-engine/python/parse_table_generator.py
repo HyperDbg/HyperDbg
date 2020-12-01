@@ -2,10 +2,10 @@
  * @file parse_table_generator.py
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @brief Script engine Parse table generator 
- * @details This program reads grammer from Greammer.txt file 
+ * @details This program reads grammar from Greammer.txt file 
  *          placed in the same directory of the program 
- *          and creates ParseTable.h which is used by the 
- *          parser of script engine. 
+ *          and creates parse_table.h and parse_table.c which is 
+ *          used by the parser of script engine. 
  * @version 0.1
  * @date 2020-10-24
  *
@@ -26,15 +26,18 @@ def Read(Tokens):
 
 class Parser:
     def __init__(self):
-        # The file which contains the grammer of the language 
-        self.GrammerFile = open("Grammer.txt", "r")
+        # The file which contains the grammar of the language 
+        self.GrammarFile = open("Grammar.txt", "r")
 
         # The file which is used by parser for parsing the input 
-        self.OutputFile = open("..\src\parse_table.h", "w")
+        self.SourceFile = open("..\\parse_table.c", "w")
+        self.HeaderFile = open("..\\parse_table.h", "w")
+        
 
         # Lists which used for storing the rules:
         # Right Hand Side(Rhs)
         self.RhsList = []
+
         # Left Hand Side(Lhs)
         self.LhsList = []
 
@@ -55,6 +58,9 @@ class Parser:
         # INVALID rule indicator
         self.INVALID = -1 
 
+        self.MapsList = dict()
+        self.keywordList = []
+
         # Dictionaries used for storing first and follow sets 
         self.FirstDict = dict()
         self.FollowDict = dict()
@@ -62,66 +68,75 @@ class Parser:
 
 
     def Run(self):
-        # Read grammer from input file and intialize grammer related variables 
-        self.ReadGrammer()
+        # Read grammar from input file and intialize grammar related variables 
+        self.ReadGrammar()
 
         # Calculate "First Set" for all nonterminals and print it
         self.FindAllFirsts()
-        print("Firsts:")
-        self.PrintFirsts()
-        print("________________________________________________________________________________")
+        # print("Firsts:")
+        # self.PrintFirsts()
+        # print("________________________________________________________________________________")
 
         # Calculate "Follow Set" for all nonterminals and print it
         self.FindAllFollows()
-        print("Follows:")
-        self.PrintFollows()
-        print("________________________________________________________________________________")
+        # print("Follows:")
+        # self.PrintFollows()
+        # print("________________________________________________________________________________")
         
         # Calculate "Prdicted Set" for each rule and print it
         self.FindAllPredicts()
-        print("Predicts:")
-        self.print_predicts()
-        print("________________________________________________________________________________")
+        # print("Predicts:")
+        # self.print_predicts()
+        # print("________________________________________________________________________________")
 
         # Fills "Parse Table" according to calculted "Predicted Set" and print "Parse Table"
         self.FillParseTable()
-        print("Parse Table:")
-        self.PrintParseTable()
-        print()
+        # print("Parse Table:")
+        # self.PrintParseTable()
+        # print()
         
         # Prints variables that is needed for parser for parsing into the output file 
-        self.OutputFile.write("#ifndef PARSE_TABLE_H\n")
-        self.OutputFile.write("#define PARSE_TABLE_H\n")
-        self.OutputFile.write("#include \"scanner.h\"\n")
-        self.OutputFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
-        self.OutputFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
-        self.OutputFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
-        self.OutputFile.write("#define START_VARIABLE " + "\"" + self.Start +"\"\n")
-        self.OutputFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
+        self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
+        self.HeaderFile.write("#define PARSE_TABLE_H\n")
+        
+        self.HeaderFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
+        self.HeaderFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
+        self.HeaderFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
+        self.HeaderFile.write("#define START_VARIABLE " + "\"" + self.Start +"\"\n")
+        self.HeaderFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
+        self.HeaderFile.write("#define KEYWORD_LIST_LENGTH "  + str(len(self.keywordList)) +"\n")
 
 
-        # Prints Rules into output file 
+       
+        self.SourceFile.write("#include \"parse_table.h\"\n")
+        self.SourceFile.write("#include \"common.h\"\n")
+
+
+        # Prints Rules into output files
         self.WriteLhsList()
         self.WriteRhsList()
         
-        # Prints size of each Rhs into output file 
+        # Prints size of each Rhs into output files
         self.WriteRhsSize()
 
-        # Prints noneterminals and Terminal into output file 
+        # Prints noneterminals and Terminal into output files
         self.WriteNoneTermianlList()
         self.WriteTerminalList()
 
-        # Prints "Parse Table" into output file
+        # Prints "Parse Table" into output files
         self.WriteParseTable()
 
+        # Prints Keywords list into output files 
+        self.WriteKeywordList()
 
-        self.OutputFile.write("#endif\n")
+        self.HeaderFile.write("#endif\n")
 
-        # Closes Grammer Input File 
-        self.GrammerFile.close()
+        # Closes Grammar Input File 
+        self.GrammarFile.close()
 
-        # Closes Output File 
-        self.OutputFile.close()
+        # Closes Output Files 
+        self.SourceFile.close()
+        self.HeaderFile.close()
 
 
     # This function simulates of script engine parser in ScriptEngine.C in
@@ -209,56 +224,105 @@ class Parser:
                  
 
             
-    def ReadGrammer(self):
+    def ReadGrammar(self):
         Flag = 1
-        Counter = 0
-        for Line in self.GrammerFile:
+        Counter = -1
+        for Line in self.GrammarFile:
+            Counter += 1
             Line = Line.strip()
             if Line == "" or Line[0] == "#":
                 continue
+            elif Line[0] == ".":
+                L = Line.split("->")
+                Elements = L[1].split(" ")
+                self.MapsList[L[0]] = Elements
+                continue
+
             L = Line.split("->")
             Lhs = L[0]
-            self.NonTerminalSet.add(Lhs)
-            self.LhsList.append(Lhs)
-
-
             Rhs = L[1].split(" ")
-            self.RhsList.append(Rhs)
+
+            HasMapKeyword = False
+            MapKeywordIdx1 = 0
+            MapKeywordIdx2 = 0
+            Idx = 0
             for X in Rhs:
-                if not self.IsNoneTerminal(X) and not self.IsSemanticRule(X) and not X=="eps":
-                    self.TerminalSet.add(X)
+                if X[0] == ".":
+                    HasMapKeyword = True
+                    MapKeywordIdx1 = Idx 
+                elif X[0] == "@":
+                    if X[1] == ".":
+                        MapKeywordIdx2 = Idx
+                Idx += 1
+
+            if not HasMapKeyword:
+                self.NonTerminalSet.add(Lhs)
+                self.LhsList.append(Lhs)
+                self.RhsList.append(Rhs)
+                for X in Rhs:
+                    if not self.IsNoneTerminal(X) and not self.IsSemanticRule(X) and not X=="eps":
+                        self.TerminalSet.add(X)
             
-        
+            else:
+             
+                for value in self.MapsList[Rhs[MapKeywordIdx1]]:
+                    RhsTemp =list(Rhs)
+                    RhsTemp[MapKeywordIdx1] = value
+                    RhsTemp[MapKeywordIdx2] = "@" + value.upper()
 
+                    self.keywordList.append(value)
 
+                    self.NonTerminalSet.add(Lhs)
+                    self.LhsList.append(Lhs)
+                    self.RhsList.append(RhsTemp)
+
+                    for X in RhsTemp:
+                        if not self.IsNoneTerminal(X) and not self.IsSemanticRule(X) and not X=="eps":
+                            self.TerminalSet.add(X)
+                
             if Flag:
                 Flag = 0
                 self.Start = Lhs
             self.MAXIMUM_RHS_LEN = max(self.MAXIMUM_RHS_LEN, len(Rhs))
 
-            Counter += 1
+           
 
         self.TerminalSet.add("$")
         
         self.NonTerminalList = list(self.NonTerminalSet)
+        
         self.TerminalList = list(self.TerminalSet)
 
+        
 
 
+    def WriteKeywordList(self):
+        self.SourceFile.write("const char* KeywordList[]= {\n")
+        self.HeaderFile.write("extern const char* KeywordList[];\n")
+
+        Counter = 0
+        for X in self.keywordList:
+            if Counter == len(self.keywordList)-1:
+                self.SourceFile.write("\"" + X + "\"" + "\n")
+            else:
+                self.SourceFile.write("\"" + X + "\"" + ",\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
 
 
 
     def WriteLhsList(self):
 
-        self.OutputFile.write("const struct _TOKEN Lhs[RULES_COUNT]= \n{\n")
+        self.SourceFile.write("const struct _TOKEN Lhs[RULES_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const struct _TOKEN Lhs[RULES_COUNT];\n")
         Counter = 0
         for Lhs in self.LhsList:
             if Counter == len(self.LhsList)-1:
-                self.OutputFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + "\n")
+                self.SourceFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + "\n")
             else:
-                self.OutputFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + ",\n")
+                self.SourceFile.write("\t{NON_TERMINAL, " + "\"" + Lhs + "\"}" + ",\n")
             Counter +=1
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
 
     def GetType(self,Var):
         if self.IsNoneTerminal(Var):
@@ -278,80 +342,85 @@ class Parser:
 
 
     def WriteRhsList(self):
-        self.OutputFile.write("const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
+        self.SourceFile.write("const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN]= \n{\n")
+        self.HeaderFile.write("extern const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];\n")
         Counter =0
         for Rhs in self.RhsList:
-            self.OutputFile.write("\t{")
+            self.SourceFile.write("\t{")
 
             C = 0
             for Var in Rhs:
                 if C == len(Rhs) -1:
-                    self.OutputFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}" )
+                    self.SourceFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}" )
                 else:
-                    self.OutputFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}," )
+                    self.SourceFile.write("{"+self.GetType(Var) +", "+"\"" + Var + "\"}," )
                 C += 1
 
             if Counter == len(self.RhsList)-1:
-                self.OutputFile.write("}\n")
+                self.SourceFile.write("}\n")
             else:
-                self.OutputFile.write("},\n")
+                self.SourceFile.write("},\n")
             Counter+= 1
 
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
 
     def WriteRhsSize(self):
-        self.OutputFile.write("const unsigned int RhsSize[RULES_COUNT]= \n{\n")
+        self.SourceFile.write("const unsigned int RhsSize[RULES_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const unsigned int RhsSize[RULES_COUNT];\n")
         Counter =0
         for Rhs in self.RhsList:            
             if Counter == len(self.RhsList)-1:
-               self.OutputFile.write( str(len(Rhs)) + "\n" )
+               self.SourceFile.write( str(len(Rhs)) + "\n" )
             else:
-                self.OutputFile.write( str(len(Rhs)) + ",\n" )
+                self.SourceFile.write( str(len(Rhs)) + ",\n" )
             Counter+= 1
 
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
 
     def WriteTerminalList(self):
-        self.OutputFile.write("const char* TerminalMap[TERMINAL_COUNT]= \n{\n")
+        self.SourceFile.write("const char* TerminalMap[TERMINAL_COUNT]= \n{\n")
+        self.HeaderFile.write("const char* TerminalMap[TERMINAL_COUNT];\n")
         Counter = 0
         for X in self.TerminalList:
             if Counter == len(self.TerminalList)-1:
-                self.OutputFile.write("\"" + X + "\"" + "\n")
+                self.SourceFile.write("\"" + X + "\"" + "\n")
             else:
-                self.OutputFile.write("\"" + X + "\"" + ",\n")
+                self.SourceFile.write("\"" + X + "\"" + ",\n")
             Counter +=1
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
 
     def WriteNoneTermianlList(self):
-        self.OutputFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
+        self.SourceFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT]= \n{\n")
+        self.HeaderFile.write("const char* NoneTerminalMap[NONETERMINAL_COUNT];\n")
         Counter = 0
         for X in self.NonTerminalList:
             if Counter == len(self.NonTerminalList)-1:
-                self.OutputFile.write("\"" + X + "\"" + "\n")
+                self.SourceFile.write("\"" + X + "\"" + "\n")
             else:
-                self.OutputFile.write("\"" + X + "\"" + ",\n")
+                self.SourceFile.write("\"" + X + "\"" + ",\n")
             Counter +=1
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
 
     def WriteParseTable(self):
-        self.OutputFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]= \n{\n")
+        self.SourceFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT]= \n{\n")
+        self.HeaderFile.write("const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];\n")
         i = 0
         for X in self.NonTerminalList:
             j = 0
-            self.OutputFile.write("\t{")
+            self.SourceFile.write("\t{")
             for y in self.TerminalList:
-                self.OutputFile.write(str(self.ParseTable[i][j]))
+                self.SourceFile.write(str(self.ParseTable[i][j]))
                 if j != len(self.TerminalList)-1:
-                    self.OutputFile.write("\t\t,")
+                    self.SourceFile.write("\t\t,")
                 j += 1
 
             if i == len(self.NonTerminalList)-1:
-                self.OutputFile.write("\t}\n")
+                self.SourceFile.write("\t}\n")
 
             else:
-                self.OutputFile.write("\t},\n")
+                self.SourceFile.write("\t},\n")
             i +=1
-        self.OutputFile.write("};\n")
+        self.SourceFile.write("};\n")
         
 
 
@@ -430,7 +499,7 @@ class Parser:
                         self.ParseTable[i][j] = RuleId
 
                     else:
-                        print("Error! Input grammer is not LL1.")
+                        print("Error! Input grammar is not LL1.")
                         exit()
 
                 j += 1

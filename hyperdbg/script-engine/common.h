@@ -1,6 +1,9 @@
-#pragma once
-#include <string.h>
 
+
+#pragma once
+
+#ifndef COMMON_H
+#define COMMON_H
 
 #define SYMBOL_BUFFER_INIT_SIZE 128
 #define MAX_TEMP_COUNT 32
@@ -14,6 +17,9 @@
 * @brief init size of token list
 */
 #define TOKEN_LIST_INIT_SIZE 1024
+
+extern const char* KeywordList[];
+extern const char* OneOperandSemanticRules[];
 
 /**
 * @brief enumerates possible types for token
@@ -66,10 +72,8 @@ typedef struct _TOKEN_LIST
 	unsigned int Size;
 } *TOKEN_LIST;
 
-/**
-* @brief number of read characters from input
-*/
-unsigned int InputIdx;
+// TODO: automate generation of KeyWordList
+
 
 
 ////////////////////////////////////////////////////
@@ -99,7 +103,6 @@ TOKEN Pop(TOKEN_LIST TokenList);
 
 TOKEN Top(TOKEN_LIST TokenList);
 
-
 ////////////////////////////////////////////////////
 // Util Functions								  // 
 ////////////////////////////////////////////////////
@@ -114,13 +117,6 @@ char IsBinary(char c);
 char IsOctal(char c);
 
 
-////////////////////////////////////////////////////
-// Interfacing functions						  // 
-////////////////////////////////////////////////////
-TOKEN GetToken(char* c, char* str);
 
-TOKEN Scan(char* str, char* c);
+#endif // !COMMON_H
 
-char sgetc(char* str);
-
-char IsKeyword(char* str);

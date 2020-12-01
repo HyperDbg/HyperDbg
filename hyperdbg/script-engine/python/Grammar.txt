@@ -1,9 +1,12 @@
+.oneOpfunc1->poi db dd dw dq str wstr sizeof neg hi low
+.oneOpfunc2->print
 S->C ; S'
 S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
-C->print ( E0 @PRINT )
+C->.oneOpfunc2 ( E0 @.oneOpfunc2 )
 C'->eps
+
 
 E0->E1 E0'
 E0'->| E1 @OR E0'
@@ -46,22 +49,14 @@ E9->E10 E9'
 E9'->% E10 @MOD E9'
 E9'->eps 
 
-E10->poi ( E0 @POI ) 
-E10->db ( E0 @DB ) 
-E10->dd ( E0 @DD ) 
-E10->dw ( E0 @DW ) 
-E10->dq ( E0 @DQ ) 
-E10->str ( E0 @STR ) 
-E10->wstr ( E0 @WSTR ) 
-E10->sizeof ( E0 @SIZEOF ) 
-E10->not ( E0 @NOT ) 
-E10->neg ( E0 @NEG ) 
-E10->hi ( E0 @HI )
-E10->low ( E0 @LOW )
+E10->.oneOpfunc1 ( E0 @.oneOpfunc1 ) 
+
 
 
 E10->( E0 )
 
+
+# Types must have '_' at the first 
 E10->@PUSH _register
 
 # numbers 

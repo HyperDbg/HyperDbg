@@ -14,8 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "common.h"
 #include "parse_table.h"
-#include "scanner.h"
 #include "ScriptEngine.h"
 
 
@@ -69,7 +69,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
     CurrentIn = Scan(str, &c);
     if (CurrentIn->Type == UNKNOWN)
     {
-        char* Message = "Invalid Syntax!";
+        char* Message = "Invalid Token!";
         CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
         strcpy(CodeBuffer->Message, Message);
         
@@ -104,10 +104,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
                 
-                RemoveTokenList(Stack);
-                RemoveTokenList(MatchedStack);
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
+                RemoveTokenList(MatchedStack);
                 RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
@@ -118,10 +117,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
                 
-                RemoveTokenList(Stack);
-                RemoveTokenList(MatchedStack);
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
+                RemoveTokenList(MatchedStack);
                 RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
@@ -132,11 +130,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
                
-
-                RemoveTokenList(Stack);
-                RemoveTokenList(MatchedStack);
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
+                RemoveTokenList(MatchedStack);
                 RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
@@ -164,14 +160,13 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
-                    char* Message = "Invalid Syntax!";
+                    char* Message = "Invalid Token!";
                     CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                     strcpy(CodeBuffer->Message, Message);
                     
-                    RemoveTokenList(Stack);
-                    RemoveTokenList(MatchedStack);
                     RemoveToken(StartToken);
                     RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
                     RemoveToken(CurrentIn);
                     return CodeBuffer;
                 }
@@ -192,10 +187,9 @@ PSYMBOL_BUFFER ScriptEngineParse(char *str)
                 CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
                 strcpy(CodeBuffer->Message, Message);
                 
-                RemoveTokenList(Stack);
-                RemoveTokenList(MatchedStack);
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
+                RemoveTokenList(MatchedStack);
                 RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
@@ -357,7 +351,7 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
 char HasTwoOperand(TOKEN Operator)
 {
-    unsigned int n = sizeof(OneOperandSemanticRules) / sizeof(char*);
+    unsigned int n = 13;//sizeof(OneOperandSemanticRules) / sizeof(char*);
     for (int i = 0; i < n; i++)
     {
         if (!strcmp(Operator->Value, OneOperandSemanticRules[i]))
