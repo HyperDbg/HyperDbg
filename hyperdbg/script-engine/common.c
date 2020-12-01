@@ -440,17 +440,30 @@ void FreeTemp(TOKEN Temp)
 }
 
 
-char HasTwoOperand(TOKEN Operator)
+char IsType1Func(TOKEN Operator)
 {
 	unsigned int n = ONEOPFUNC1_LENGTH;
 	for (int i = 0; i < n; i++)
 	{
 		if (!strcmp(Operator->Value, OneOpFunc1[i]))
 		{
-			return 0;
+			return 1;
 		}
 	}
-	return 1;
+	return 0;
+}
+
+char IsType2Func(TOKEN Operator)
+{
+	unsigned int n = ONEOPFUNC2_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, OneOpFunc2[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 /**

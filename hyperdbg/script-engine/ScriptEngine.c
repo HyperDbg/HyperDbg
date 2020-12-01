@@ -261,14 +261,30 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         FreeTemp(Op0);
         FreeTemp(Op1);
     }
-    else if (HasTwoOperand(Operator))
+    else if (IsType2Func(Operator))
     {
-      
+        printf("%s\t%s\n", Operator->Value, Op0->Value);
+        printf("_____________\n");
+        
+    }
+    else if (IsType1Func(Operator))
+    {
+        Temp = NewTemp();
+        Push(MatchedStack, Temp);
+        TempSymbol = ToSymbol(Temp);
+        PushSymbol(CodeBuffer, TempSymbol);
+        printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
+        printf("_____________\n");
+        // Free the operand if it is a temp value
+        FreeTemp(Op0);
+    }
+    else
+    {
         Op1 = Pop(MatchedStack);
         Op1Symbol = ToSymbol(Op1);
         PushSymbol(CodeBuffer, Op1Symbol);
 
-        
+
 
         Temp = NewTemp();
         Push(MatchedStack, Temp);
@@ -282,30 +298,12 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Free the operand if it is a temp value
         FreeTemp(Op0);
         FreeTemp(Op1);
-    }
-    else
-    {
-        if (strcmp(Operator->Value, "@PRINT"))
-        {
-            Temp = NewTemp();
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp);
-            PushSymbol(CodeBuffer, TempSymbol);
-            printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
-            printf("_____________\n");
-        }
-
-        else
-        {
            
-            printf("%s\t%s\n", Operator->Value, Op0->Value);
-            printf("_____________\n");
-        }
+    }
         
 
-        // Free the operand if it is a temp value
-        FreeTemp(Op0);
-    }
+        
+    
 
 
     return;

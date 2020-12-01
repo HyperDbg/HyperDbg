@@ -41,8 +41,6 @@ __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char* str);
 
 void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
 
-char HasTwoOperand(TOKEN Operator);
-
 unsigned long long int RegisterToInt(char* str);
 
 unsigned long long int PseudoRegToInt(char* str);
