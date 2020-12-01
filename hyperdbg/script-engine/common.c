@@ -466,6 +466,19 @@ char IsType2Func(TOKEN Operator)
 	return 0;
 }
 
+char IsNaiveOperator(TOKEN Operator)
+{
+	unsigned int n = OPERATORS_LIST_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, Operators[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /**
 *
 *

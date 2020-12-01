@@ -145,7 +145,10 @@ unsigned long long int BinaryToInt(char* str);
 //////////////////////////////////////////////////// 
 
 char IsType1Func(TOKEN Operator);
+
 char IsType2Func(TOKEN Operator);
+
+char IsNaiveOperator(TOKEN Operator);
 
 #endif // !COMMON_H
 

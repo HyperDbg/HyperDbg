@@ -4,6 +4,9 @@
 # OneOpFunc2 input is a number.
 .OneOpFunc2->print
 
+
+.Operators->or xor and asr asl add sub mul div mod 
+
 S->C ; S'
 S'->C ; S'
 S'->eps

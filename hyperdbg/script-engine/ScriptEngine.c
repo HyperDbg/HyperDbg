@@ -278,7 +278,7 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Free the operand if it is a temp value
         FreeTemp(Op0);
     }
-    else
+    else if (IsNaiveOperator(Operator))
     {
         Op1 = Pop(MatchedStack);
         Op1Symbol = ToSymbol(Op1);
@@ -298,7 +298,10 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Free the operand if it is a temp value
         FreeTemp(Op0);
         FreeTemp(Op1);
-           
+    }
+    else
+    {
+        // TODO : Handle Error 
     }
         
 

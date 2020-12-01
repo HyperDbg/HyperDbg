@@ -53,12 +53,13 @@ class Parser:
         self.MAXIMUM_RHS_LEN = 0
 
 
-        self.SPECIAL_TOKENS = ['%', '++', '+=', '+', '--', '-=', '-', '*=', "*", "/=", "/", "=", ",", ";", "(", ")", "{", "}", "|", ">>", "<<", "&", "^"]
+        self.SPECIAL_TOKENS = ['%', '+', '-', "*", "/", "=", ",", ";", "(", ")", "{", "}", "|", ">>", "<<", "&", "^"]
 
         # INVALID rule indicator
         self.INVALID = -1 
 
-        self.MapsList = dict()
+        self.FunctionsDict = dict()
+        self.OperatorsList = []
         self.keywordList = []
 
         # Dictionaries used for storing first and follow sets 
@@ -106,9 +107,9 @@ class Parser:
         self.HeaderFile.write("#define START_VARIABLE " + "\"" + self.Start +"\"\n")
         self.HeaderFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
         self.HeaderFile.write("#define KEYWORD_LIST_LENGTH "  + str(len(self.keywordList)) +"\n")
-
-        for Key in self.MapsList:
-            self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.MapsList[Key]))+"\n")
+        self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
+        for Key in self.FunctionsDict:
+            self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
        
         self.SourceFile.write("#include \"parse_table.h\"\n")
@@ -132,8 +133,12 @@ class Parser:
         # Prints Keywords list into output files 
         self.WriteKeywordList()
 
+        # Prints Operators List into output files 
+        self.WriteOperatorsList()
+
         # Prints Maps into outpu files 
         self.WriteMaps()
+        
 
         self.HeaderFile.write("#endif\n")
 
@@ -241,7 +246,9 @@ class Parser:
             elif Line[0] == ".":
                 L = Line.split("->")
                 Elements = L[1].split(" ")
-                self.MapsList[L[0]] = Elements
+                if L[0][1:] == "Operators":
+                    self.OperatorsList += Elements
+                self.FunctionsDict[L[0]] = Elements
                 continue
 
             L = Line.split("->")
@@ -271,7 +278,7 @@ class Parser:
             
             else:
              
-                for value in self.MapsList[Rhs[MapKeywordIdx1]]:
+                for value in self.FunctionsDict[Rhs[MapKeywordIdx1]]:
                     RhsTemp =list(Rhs)
                     RhsTemp[MapKeywordIdx1] = value
                     RhsTemp[MapKeywordIdx2] = "@" + value.upper()
@@ -315,16 +322,29 @@ class Parser:
             Counter +=1
         self.SourceFile.write("};\n")
 
+    def WriteOperatorsList(self):
+        self.SourceFile.write("const char* OperatorsList[]= {\n")
+        self.HeaderFile.write("extern const char* OperatorsList[];\n")
+
+        Counter = 0
+        for X in self.OperatorsList:
+            if Counter == len(self.OperatorsList)-1:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
+            else:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + ",\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
+
     def WriteMaps(self):
-        for Key in self.MapsList:
+        for Key in self.FunctionsDict:
             print(Key)
 
             self.HeaderFile.write("extern const char* "+ Key[1:]+ "[];\n")
             self.SourceFile.write("const char* "+ Key[1:]+ "[] = {\n")
 
             Counter = 0
-            for X in self.MapsList[Key]:
-                if Counter == len(self.MapsList[Key])-1:
+            for X in self.FunctionsDict[Key]:
+                if Counter == len(self.FunctionsDict[Key])-1:
                     self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
                 else:
                     self.SourceFile.write("\"" +"@"+ X.upper() + "\"" + ",\n")
