@@ -392,7 +392,7 @@ PSYMBOL ToSymbol(TOKEN Token)
         return Symbol;
     case TEMP:
         Symbol->Value = DecimalToInt(Token->Value); // TODO: Convert String to int
-        SetType(&Symbol->Type, SYMBOL_TEMP);
+        SetType(&Symbol->Type, SYMBOL_TEMP_TYPE);
         return Symbol;
 
     default:
@@ -523,179 +523,35 @@ void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 
 unsigned long long int RegisterToInt(char* str)
 {
-
-    if (!strcmp(str, "rax"))
+    for (int i = 0; i < REGISTER_MAP_LIST_LENGTH; i++)
     {
-        return RAX_MNEMONIC;
+        if (!strcmp(str, RegisterMapList[i].Name))
+        {
+            return RegisterMapList[i].Type;
+        }
     }
-    else if (!strcmp(str, "rcx"))
-    {
-        return RCX_MNEMONIC;
-    }
-    else if (!strcmp(str, "rdx"))
-    {
-        return RDX_MNEMONIC;
-    }
-    else if (!strcmp(str, "rbx"))
-    {
-        return RBX_MNEMONIC;
-    }
-    else if (!strcmp(str, "rsp"))
-    {
-        return RSP_MNEMONIC;
-    }
-    else if (!strcmp(str, "rsi"))
-    {
-        return RSI_MNEMONIC;
-    }
-    else if (!strcmp(str, "rdi"))
-    {
-        return RDI_MNEMONIC;
-    }
-    else if (!strcmp(str, "r8"))
-    {
-        return R8_MNEMONIC;
-    }
-    else if (!strcmp(str, "r9"))
-    {
-        return R9_MNEMONIC;
-    }
-    else if (!strcmp(str, "r10"))
-    {
-        return R10_MNEMONIC;
-    }
-    else if (!strcmp(str, "r11"))
-    {
-        return R11_MNEMONIC;
-    }
-    else if (!strcmp(str, "r12"))
-    {
-        return R12_MNEMONIC;
-    }
-    else if (!strcmp(str, "r13"))
-    {
-        return R13_MNEMONIC;
-    }
-    else if (!strcmp(str, "r14"))
-    {
-        return R14_MNEMONIC;
-    }
-    else if (!strcmp(str, "r15"))
-    {
-        return R15_MNEMONIC;
-    }
-
     return INVALID;
 }
 unsigned long long int PseudoRegToInt(char* str)
 {
-    if (!strcmp(str, "tid"))
+    for (int i = 0; i < PSEUDO_REGISTER_MAP_LIST_LENGTH; i++)
     {
-        return TID_MNEMONIC;
-    }
-    if (!strcmp(str, "pid"))
-    {
-        return PID_MNEMONIC;
+        if (!strcmp(str, PseudoRegisterMapList[i].Name))
+        {
+            return PseudoRegisterMapList[i].Type;
+        }
     }
     return INVALID;
 }
 unsigned long long int SemanticRuleToInt(char* str)
 {
-    if (!strcmp(str, "@OR"))
+
+    for (int i = 0; i < SEMANTIC_RULES_MAP_LIST_LENGTH; i++)
     {
-        return (unsigned long long int)FUNC_OR;
+        if (!strcmp(str, SemanticRulesMapList[i].Name))
+        {
+            return SemanticRulesMapList[i].Type;
+        }
     }
-    else if (!strcmp(str, "@XOR"))
-    {
-        return (unsigned long long int)FUNC_XOR;
-    }
-    else if (!strcmp(str, "@AND"))
-    {
-        return (unsigned long long int)FUNC_OR;
-    }
-    else if (!strcmp(str, "@ASR"))
-    {
-        return (unsigned long long int)FUNC_ASR;
-    }
-    else if (!strcmp(str, "@ASL"))
-    {
-        return (unsigned long long int)FUNC_ASL;
-    }
-    else if (!strcmp(str, "@ADD"))
-    {
-        return (unsigned long long int)FUNC_ADD;
-    }
-    else if (!strcmp(str, "@SUB"))
-    {
-        return (unsigned long long int)FUNC_SUB;
-    }
-    else if (!strcmp(str, "@MUL"))
-    {
-        return (unsigned long long int)FUNC_MUL;
-    }
-    else if (!strcmp(str, "@DIV"))
-    {
-        return (unsigned long long int)FUNC_DIV;
-    }
-    else if (!strcmp(str, "@MOD"))
-    {
-        return (unsigned long long int)FUNC_MOD;
-    }
-    else if (!strcmp(str, "@POI"))
-    {
-        return (unsigned long long int)FUNC_POI;
-    }
-    else if (!strcmp(str, "@DB"))
-    {
-        return (unsigned long long int)FUNC_DB;
-    }
-    else if (!strcmp(str, "@DD"))
-    {
-        return (unsigned long long int)FUNC_DD;
-    }
-    else if (!strcmp(str, "@DW"))
-    {
-        return (unsigned long long int)FUNC_DW;
-    }
-    else if (!strcmp(str, "@DQ"))
-    {
-        return (unsigned long long int)FUNC_DQ;
-    }
-    else if (!strcmp(str, "@STR"))
-    {
-        return (unsigned long long int)FUNC_STR;
-    }
-    else if (!strcmp(str, "@WSTR"))
-    {
-        return (unsigned long long int)FUNC_WSTR;
-    }
-    else if (!strcmp(str, "@SIZEOF"))
-    {
-        return (unsigned long long int)FUNC_SIZEOF;
-    }
-    else if (!strcmp(str, "@NOT"))
-    {
-        return (unsigned long long int)FUNC_NOT;
-    }
-    else if (!strcmp(str, "@NEG"))
-    {
-        return (unsigned long long int)FUNC_NEG;
-    }
-    else if (!strcmp(str, "@HI"))
-    {
-        return (unsigned long long int)FUNC_HI;
-    }
-    else if (!strcmp(str, "@LOW"))
-    {
-        return (unsigned long long int)FUNC_LOW;
-    }
-    else if (!strcmp(str, "@MOV"))
-    {
-        return (unsigned long long int)FUNC_MOV;
-    }
-    else if (!strcmp(str, "@PRINT"))
-    {
-        return (unsigned long long int)FUNC_PRINT;
-    }
-    return -1;
+    return INVALID;
 }

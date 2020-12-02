@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 
@@ -12,8 +12,23 @@ typedef struct SYMBOL_BUFFER {
 	unsigned int Pointer;
 	unsigned int Size;
 	char* Message;
-
 } SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+
+typedef struct SYMBOL_MAP
+{
+    char* Name;
+    long long unsigned Type;
+} SYMBOL_MAP, * PSYMBOL_MAP;
+
+#define SYMBOL_ID_TYPE 0
+#define SYMBOL_NUM_TYPE 1
+#define SYMBOL_REGISTER_TYPE 2
+#define SYMBOL_PSEUDO_REG_TYPE 3
+#define SYMBOL_SEMANTIC_RULE_TYPE 4
+#define SYMBOL_TEMP_TYPE 5
+
+#define INVALID -1
+
 
 
 #define FUNC_OR 0
@@ -26,56 +41,39 @@ typedef struct SYMBOL_BUFFER {
 #define FUNC_MUL 7
 #define FUNC_DIV 8
 #define FUNC_MOD 9
-#define FUNC_POI 10
-#define FUNC_DB 11
-#define FUNC_DD 12
-#define FUNC_DW 13
-#define FUNC_DQ 14
-#define FUNC_STR 15
-#define FUNC_WSTR 16
-#define FUNC_SIZEOF 17
-#define FUNC_NOT 18
+#define FUNC_PRINT 10
+#define FUNC_POI 11
+#define FUNC_DB 12
+#define FUNC_DD 13
+#define FUNC_DW 14
+#define FUNC_DQ 15
+#define FUNC_STR 16
+#define FUNC_WSTR 17
+#define FUNC_SIZEOF 18
 #define FUNC_NEG 19
 #define FUNC_HI 20
 #define FUNC_LOW 21
-#define FUNC_MOV 22
-#define FUNC_PRINT 23
+#define FUNC_NOT 22
+#define FUNC_MOV 23
 
-#define SYMBOL_ID_TYPE 0
-#define SYMBOL_NUM_TYPE 1
-#define SYMBOL_REGISTER_TYPE 2
-#define SYMBOL_PSEUDO_REG_TYPE 3
-#define SYMBOL_SEMANTIC_RULE_TYPE 4
-#define SYMBOL_TEMP_TYPE 5
+#define REGISTER_RAX 0
+#define REGISTER_RCX 1
+#define REGISTER_RDX 2
+#define REGISTER_RBX 3
+#define REGISTER_RSP 4
+#define REGISTER_RBP 5
+#define REGISTER_RSI 6
+#define REGISTER_RDI 7
+#define REGISTER_R8 8
+#define REGISTER_R9 9
+#define REGISTER_R10 10
+#define REGISTER_R11 11
+#define REGISTER_R12 12
+#define REGISTER_R13 13
+#define REGISTER_R14 14
+#define REGISTER_R15 15
 
-#define RAX_MNEMONIC 0
-#define RCX_MNEMONIC 1
-#define RDX_MNEMONIC 2
-#define RBX_MNEMONIC 3
-#define RSP_MNEMONIC 4
-#define RBP_MNEMONIC 5
-#define RSI_MNEMONIC 6
-#define RDI_MNEMONIC 7
-#define R8_MNEMONIC 8
-#define R9_MNEMONIC 9
-#define R10_MNEMONIC 10
-#define R11_MNEMONIC 11
-#define R12_MNEMONIC 12
-#define R13_MNEMONIC 13
-#define R14_MNEMONIC 14
-#define R15_MNEMONIC 15
+#define PSEUDO_REGISTER_PID 0
+#define PSEUDO_REGISTER_TID 1
 
-#define INVALID -1
-
-#define TID_MNEMONIC 0
-#define PID_MNEMONIC 1
-
-#define SYMBOL_ID_TYPE 0
-#define SYMBOL_NUM_TYPE 1
-#define SYMBOL_REGISTER_TYPE 2
-#define SYMBOL_PSEUDO_REG_TYPE 3
-#define SYMBOL_SEMANTIC_RULE_TYPE 4
-#define SYMBOL_TEMP 5
-
-#endif // !SCRIPT_ENGINE_COMMON_DEFINITIONS_H
-
+#endif

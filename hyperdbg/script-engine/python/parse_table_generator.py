@@ -32,6 +32,7 @@ class Parser:
         # The file which is used by parser for parsing the input 
         self.SourceFile = open("..\\parse_table.c", "w")
         self.HeaderFile = open("..\\parse_table.h", "w")
+        self.CommonHeaderFile = open("..\..\\include\\ScriptEngineCommonDefinitions.h", "w")
         
 
         # Lists which used for storing the rules:
@@ -60,7 +61,10 @@ class Parser:
 
         self.FunctionsDict = dict()
         self.OperatorsList = []
+        self.RegistersList = []
+        self.PseudoRegistersList = []
         self.keywordList = []
+
 
         # Dictionaries used for storing first and follow sets 
         self.FirstDict = dict()
@@ -101,6 +105,7 @@ class Parser:
         self.HeaderFile.write("#define PARSE_TABLE_H\n")
         
         self.HeaderFile.write("#include \"common.h\"\n")
+        self.HeaderFile.write("#include \"ScriptEngineCommonDefinitions.h\"\n")
         self.HeaderFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
         self.HeaderFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
         self.HeaderFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
@@ -108,12 +113,16 @@ class Parser:
         self.HeaderFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
         self.HeaderFile.write("#define KEYWORD_LIST_LENGTH "  + str(len(self.keywordList)) +"\n")
         self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
+        self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
+        self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 1)+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
        
         self.SourceFile.write("#include \"parse_table.h\"\n")
         self.SourceFile.write("#include \"common.h\"\n")
+        self.SourceFile.write("#include \"ScriptEngineCommonDefinitions.h\"\n")
 
 
         # Prints Rules into output files
@@ -142,12 +151,52 @@ class Parser:
 
         self.HeaderFile.write("#endif\n")
 
+        self.CommonHeaderFile.write(
+    """#pragma once
+#ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
+#define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
+
+typedef struct SYMBOL {
+	long long unsigned Type;
+	long long unsigned Value;
+} SYMBOL, * PSYMBOL;
+
+typedef struct SYMBOL_BUFFER {
+	PSYMBOL Head;
+	unsigned int Pointer;
+	unsigned int Size;
+	char* Message;
+} SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+
+typedef struct SYMBOL_MAP
+{
+    char* Name;
+    long long unsigned Type;
+} SYMBOL_MAP, * PSYMBOL_MAP;
+
+#define SYMBOL_ID_TYPE 0
+#define SYMBOL_NUM_TYPE 1
+#define SYMBOL_REGISTER_TYPE 2
+#define SYMBOL_PSEUDO_REG_TYPE 3
+#define SYMBOL_SEMANTIC_RULE_TYPE 4
+#define SYMBOL_TEMP_TYPE 5
+
+#define INVALID -1
+
+\n\n""")
+        self.WriteSemanticMaps()
+        self.WriteRegisterMaps()
+        self.WritePseudoRegMaps()
+        self.CommonHeaderFile.write("#endif\n")
+
+
         # Closes Grammar Input File 
         self.GrammarFile.close()
 
         # Closes Output Files 
         self.SourceFile.close()
         self.HeaderFile.close()
+        self.CommonHeaderFile.close()
 
 
     # This function simulates of script engine parser in ScriptEngine.C in
@@ -248,6 +297,14 @@ class Parser:
                 Elements = L[1].split(" ")
                 if L[0][1:] == "Operators":
                     self.OperatorsList += Elements
+                    continue
+                elif L[0][1:] == "Registers":
+                    self.RegistersList += Elements
+                    continue
+                elif L[0][1:] == "PseudoRegisters":
+                    self.PseudoRegistersList += Elements
+                    continue
+
                 self.FunctionsDict[L[0]] = Elements
                 continue
 
@@ -307,7 +364,72 @@ class Parser:
         self.TerminalList = list(self.TerminalSet)
 
         
+    def WriteSemanticMaps(self):
 
+        Counter = 0                
+        for X in self.OperatorsList:
+            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            Counter += 1
+
+        for X in self.keywordList:
+            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            Counter += 1
+        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n\n")
+
+
+        self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")
+        self.HeaderFile.write("extern const SYMBOL_MAP SemanticRulesMapList[];\n")
+
+        for X in self.OperatorsList:
+            self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
+
+        for X in self.keywordList:
+                self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
+
+        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "}\n")
+        
+
+        self.SourceFile.write("};\n")
+
+
+    def WriteRegisterMaps(self):
+        Counter = 0          
+        for X in self.RegistersList:
+            self.CommonHeaderFile.write("#define " + "REGISTER_" + X.upper() + " " + str(Counter) + "\n")
+            Counter += 1
+        self.CommonHeaderFile.write("\n")
+
+        self.SourceFile.write("const SYMBOL_MAP RegisterMapList[]= {\n")
+        self.HeaderFile.write("extern const SYMBOL_MAP RegisterMapList[];\n")
+
+        Counter = 0
+        for X in self.RegistersList:
+            if Counter == len(self.RegistersList)-1:
+                self.SourceFile.write("{\"" + X + "\", "+ "REGISTER_" + X.upper()   + "}\n")
+            else:
+                self.SourceFile.write("{\"" + X + "\", "+ "REGISTER_" + X.upper()   + "},\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
+
+
+    def WritePseudoRegMaps(self):
+        Counter = 0          
+        for X in self.PseudoRegistersList:
+            self.CommonHeaderFile.write("#define " + "PSEUDO_REGISTER_" + X.upper() + " " + str(Counter) + "\n")
+            Counter += 1
+        self.CommonHeaderFile.write("\n")
+
+        self.SourceFile.write("const SYMBOL_MAP PseudoRegisterMapList[]= {\n")
+        self.HeaderFile.write("extern const SYMBOL_MAP PseudoRegisterMapList[];\n")
+
+        Counter = 0
+        for X in self.PseudoRegistersList:
+            if Counter == len(self.PseudoRegistersList)-1:
+                self.SourceFile.write("{\"" + X + "\", "+ "PSEUDO_REGISTER_" + X.upper()   + "}\n")
+            else:
+                self.SourceFile.write("{\"" + X + "\", "+ "PSEUDO_REGISTER_" + X.upper()   + "},\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
 
     def WriteKeywordList(self):
         self.SourceFile.write("const char* KeywordList[]= {\n")
@@ -517,13 +639,12 @@ class Parser:
         for i in range(len(self.NonTerminalList)):
             if nonterminal == self.NonTerminalList[i]:
                 return i
-
         return -1
+
     def GetTerminalId(self, Terminal):
         for i in range(len(self.TerminalList)):
             if Terminal == self.TerminalList[i]:
                 return i
-
         return -1
 
 

@@ -252,37 +252,37 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 
 UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
   switch (Symbol->Value) {
-  case RAX_MNEMONIC:
+  case REGISTER_RAX:
     return GuestRegs->rax;
-  case RCX_MNEMONIC:
+  case REGISTER_RCX:
     return GuestRegs->rcx;
-  case RDX_MNEMONIC:
+  case REGISTER_RDX:
     return GuestRegs->rdx;
-  case RBX_MNEMONIC:
+  case REGISTER_RBX:
     return GuestRegs->rbx;
-  case RSP_MNEMONIC:
+  case REGISTER_RSP:
     return GuestRegs->rsp;
-  case RBP_MNEMONIC:
+  case REGISTER_RBP:
     return GuestRegs->rbp;
-  case RSI_MNEMONIC:
+  case REGISTER_RSI:
     return GuestRegs->rsi;
-  case RDI_MNEMONIC:
+  case REGISTER_RDI:
     return GuestRegs->rdi;
-  case R8_MNEMONIC:
+  case REGISTER_R8:
     return GuestRegs->r8;
-  case R9_MNEMONIC:
+  case REGISTER_R9:
     return GuestRegs->r9;
-  case R10_MNEMONIC:
+  case REGISTER_R10:
     return GuestRegs->r10;
-  case R11_MNEMONIC:
+  case REGISTER_R11:
     return GuestRegs->r11;
-  case R12_MNEMONIC:
+  case REGISTER_R12:
     return GuestRegs->r12;
-  case R13_MNEMONIC:
+  case REGISTER_R13:
     return GuestRegs->r13;
-  case R14_MNEMONIC:
+  case REGISTER_R14:
     return GuestRegs->r14;
-  case R15_MNEMONIC:
+  case REGISTER_R15:
     return GuestRegs->r15;
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -294,9 +294,9 @@ UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
 }
 UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
   switch (Symbol->Value) {
-  case TID_MNEMONIC:
+  case PSEUDO_REGISTER_TID:
     return ScriptEnginePseudoRegGetTid();
-  case PID_MNEMONIC:
+  case PSEUDO_REGISTER_PID:
     return ScriptEnginePseudoRegGetPid();
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE

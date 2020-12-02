@@ -471,7 +471,7 @@ char IsNaiveOperator(TOKEN Operator)
 	unsigned int n = OPERATORS_LIST_LENGTH;
 	for (int i = 0; i < n; i++)
 	{
-		if (!strcmp(Operator->Value, Operators[i]))
+		if (!strcmp(Operator->Value, OperatorsList[i]))
 		{
 			return 1;
 		}
