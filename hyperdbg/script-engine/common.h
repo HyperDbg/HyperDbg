@@ -120,7 +120,6 @@ int GetTerminalId(TOKEN Token);
 ////////////////////////////////////////////////////
 //					Util Functions				  //
 ////////////////////////////////////////////////////
-
 char IsHex(char c);
 
 char IsDecimal(char c);
@@ -140,10 +139,10 @@ unsigned long long int HexToInt(char* str);
 unsigned long long int OctalToInt(char* str);
 
 unsigned long long int BinaryToInt(char* str);
+
 ////////////////////////////////////////////////////
 //	       Semantic Rule Related Functions		  //
 //////////////////////////////////////////////////// 
-
 char IsType1Func(TOKEN Operator);
 
 char IsType2Func(TOKEN Operator);

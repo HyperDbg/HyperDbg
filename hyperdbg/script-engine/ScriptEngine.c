@@ -18,7 +18,7 @@
 #include "common.h"
 #include "parse_table.h"
 #include "ScriptEngine.h"
-#include "ScriptEngineCommon.h"
+#include "ScriptEngineCommonDefinitions.h"
 
 
 
