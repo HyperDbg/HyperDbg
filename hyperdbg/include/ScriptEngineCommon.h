@@ -250,6 +250,18 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+                              char* Name, UINT64 Value) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    printf("%s : %d\n", Name, Value);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
   switch (Symbol->Value) {
   case REGISTER_RAX:
@@ -721,6 +733,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     return;
 
   case FUNC_PRINT:
+    
 
     //
     // Call the target function
@@ -733,18 +746,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
       Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
           (unsigned long long)(*Indx * sizeof(SYMBOL)));
       *Indx = *Indx + ( (sizeof(unsigned long long) + strlen((char*)&Src1->Value)) / sizeof(SYMBOL) + 1);
-     /* SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
 
-      Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-          (unsigned long long)(*Indx * sizeof(SYMBOL)));
-      *Indx = *Indx + 1;
-
-      DesVal = SrcVal1 + SrcVal0;
-      SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);*/
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-      printf("%s : %d\n", &Src1->Value, Src0->Value);
-#endif // SCRIPT_ENGINE_USER_MODE
+      ScriptEngineFunctionJson(Tag, ImmediateMessagePassing, (char*)&Src1->Value, SrcVal0);
 
       return;
 
