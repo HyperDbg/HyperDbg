@@ -37,6 +37,29 @@ TOKEN GetToken(char* c, char* str)
 
 	switch (*c)
 	{
+	case '"':
+		do
+		{
+			Append(Token, *c);
+			*c = sgetc(str);
+
+			if (*c == '\\')
+			{
+				Append(Token, *c);
+				*c = sgetc(str);
+				Append(Token, *c);
+				*c = sgetc(str);
+			}
+			
+		} while (*c != '"');
+		Append(Token, *c);
+
+		Token->Type = STRING;
+		*c = sgetc(str);
+		return Token;
+		
+
+
 	case '+':
 		*c = sgetc(str);
 		if (*c == '+')

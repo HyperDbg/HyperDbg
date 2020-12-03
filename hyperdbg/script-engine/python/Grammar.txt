@@ -4,6 +4,8 @@
 # OneOpFunc2 input is a number.
 .OneOpFunc2->print
 
+.TwoOpFunc1->json
+
 
 .Operators->or xor and asr asl add sub mul div mod 
 
@@ -16,6 +18,7 @@ S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
 C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
+C->.TwoOpFunc1 ( E11 , E0 @.OneOpFunc1 )
 C'->eps
 
 
@@ -79,4 +82,6 @@ E10->@PUSH _binary
 
 E10->@PUSH func
 E10->@PUSH _pseudo_register
+
+E11->_string
 
