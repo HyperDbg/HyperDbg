@@ -43,6 +43,14 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
     int RuleId;
     char c;
 
+
+    // 
+    // Initialize Scanner 
+    //
+    InputIdx = 0;
+    CurrentLine = 0;
+    CurrentLineIdx = 0;
+    
     //
     // End of File Token
     //
@@ -60,22 +68,17 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
     Push(Stack, EndToken);
     Push(Stack, StartToken);
 
-    InputIdx = 0;
-
 
     c = sgetc(str);
 
     CurrentIn = Scan(str, &c);
     if (CurrentIn->Type == UNKNOWN)
     {
-        char* Message = "Invalid Token!";
-        CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-        strcpy(CodeBuffer->Message, Message);
+        char* Message = HandleError(UNKOWN_TOKEN, str);
+        CodeBuffer->Message = Message;
 
         RemoveTokenList(Stack);
         RemoveTokenList(MatchedStack);
-        RemoveToken(StartToken);
-        RemoveToken(EndToken);
         RemoveToken(CurrentIn);
         return CodeBuffer;
     }
@@ -99,9 +102,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             NonTerminalId = GetNonTerminalId(TopToken);
             if (NonTerminalId == -1)
             {
-                char* Message = "Invalid Syntax!";
-                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-                strcpy(CodeBuffer->Message, Message);
+                char* Message = HandleError(SYNTAX_ERROR, str);
+                CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
@@ -112,9 +114,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             TerminalId = GetTerminalId(CurrentIn);
             if (TerminalId == -1)
             {
-                char* Message = "Invalid Syntax!";
-                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-                strcpy(CodeBuffer->Message, Message);
+                char* Message = HandleError(SYNTAX_ERROR, str);
+                CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
@@ -125,9 +126,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             RuleId = ParseTable[NonTerminalId][TerminalId];
             if (RuleId == -1)
             {
-                char* Message = "Invalid Syntax!";
-                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-                strcpy(CodeBuffer->Message, Message);
+                char* Message = HandleError(SYNTAX_ERROR, str);
+                CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
@@ -159,9 +159,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
-                    char* Message = "Invalid Token!";
-                    CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-                    strcpy(CodeBuffer->Message, Message);
+                    char* Message = HandleError(UNKOWN_TOKEN, str);
+                    CodeBuffer->Message = Message;
 
                     RemoveToken(StartToken);
                     RemoveToken(EndToken);
@@ -182,9 +181,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
         {
             if (!IsEqual(TopToken, CurrentIn))
             {
-                char* Message = "Invalid Syntax!";
-                CodeBuffer->Message = (char*)malloc(strlen(Message) + 1);
-                strcpy(CodeBuffer->Message, Message);
+                char* Message = HandleError(SYNTAX_ERROR, str);
+                CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
@@ -199,9 +197,21 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
                 RemoveToken(CurrentIn);
                 CurrentIn = Scan(str, &c);
 
-                printf("\nCurrent Input :\n");
+                if (CurrentIn->Type == UNKNOWN)
+                {
+                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    CodeBuffer->Message = Message;
+
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
+                    RemoveToken(CurrentIn);
+                    return CodeBuffer;
+                }
+
+              /*  printf("\nCurrent Input :\n");
                 PrintToken(CurrentIn);
-                printf("\n");
+                printf("\n");*/
 
 #ifdef _SCRIPT_ENGINE_DBG_EN
                 printf("matched...\n");
@@ -252,8 +262,8 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, Op1Symbol);
 
 
-        printf("%s\t%s,\t%s\n", Operator->Value, Op1->Value, Op0->Value);
-        printf("_____________\n");
+       /* printf("%s\t%s,\t%s\n", Operator->Value, Op1->Value, Op0->Value);
+        printf("_____________\n");*/
 
         //
         // Free the operand if it is a temp value
@@ -263,8 +273,8 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
     else if (IsType2Func(Operator))
     {
-        printf("%s\t%s\n", Operator->Value, Op0->Value);
-        printf("_____________\n");
+      /*  printf("%s\t%s\n", Operator->Value, Op0->Value);
+        printf("_____________\n");*/
         
     }
     else if (IsType1Func(Operator))
@@ -273,8 +283,8 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         Push(MatchedStack, Temp);
         TempSymbol = ToSymbol(Temp);
         PushSymbol(CodeBuffer, TempSymbol);
-        printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
-        printf("_____________\n");
+       /* printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
+        printf("_____________\n");*/
         // Free the operand if it is a temp value
         FreeTemp(Op0);
     }
@@ -292,8 +302,8 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, TempSymbol);
 
 
-        printf("%s\t%s,\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value, Op1->Value);
-        printf("_____________\n");
+      /*  printf("%s\t%s,\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value, Op1->Value);
+        printf("_____________\n");*/
 
         // Free the operand if it is a temp value
         FreeTemp(Op0);
@@ -303,12 +313,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     {
         // TODO : Handle Error 
     }
-        
-
-        
-    
-
-
     return;
 }
 
@@ -554,4 +558,72 @@ unsigned long long int SemanticRuleToInt(char* str)
         }
     }
     return INVALID;
+}
+char* HandleError(unsigned int ErrorType, char* str)
+{
+    
+    //
+    // allocate rquired memory for message 
+    // 
+    int MessageSize = (InputIdx - CurrentLineIdx) * 2 + 30 + 100;
+    char* Message = (char*)malloc(MessageSize);
+    
+    // 
+    // add line number 
+    //
+    strcpy(Message, "Line ");
+    char* Line = (char*)malloc(16);
+    sprintf(Line, "%d:\n", CurrentLine);
+    strcat(Message, Line);
+    free(Line);
+
+    //
+    // add the line which error happened at 
+    //
+    unsigned int LineEnd;
+    for (int i = InputIdx; ; i++)
+    {
+        if (str[i] == '\n' || str[i] == '\0')
+        {
+            LineEnd = i;
+            break;
+        }
+    }
+
+    strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
+    strcat(Message, "\n");
+    
+
+
+    printf("CurrenTokenIdx = %d\n", CurrentTokenIdx);
+    // 
+    // add pointer 
+    //
+    char Space = ' ';
+    for (int i = 0; i < (CurrentTokenIdx - CurrentLineIdx); i++)
+    {
+        strncat(Message,&Space , 1);
+    } 
+    strcat(Message, "^\n");
+
+    //
+    // add error cause and details 
+    //
+    switch(ErrorType)
+    {
+    case SYNTAX_ERROR:
+        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Invalid Syntax");
+        return Message;
+
+    case UNKOWN_TOKEN:
+        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Unkown Token");
+        return Message;
+
+
+    default:
+        strcat(Message, "Unkown Error: ");
+        return Message;
+    }
 }

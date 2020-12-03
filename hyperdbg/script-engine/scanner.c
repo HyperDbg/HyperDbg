@@ -416,7 +416,8 @@ TOKEN Scan(char* str, char* c)
 
 	while (1)
 	{
-
+		CurrentTokenIdx = InputIdx-1;
+		
 		Token = GetToken(c, str);
 		
 		//
@@ -428,8 +429,17 @@ TOKEN Scan(char* str, char* c)
 			strcpy(Token->Value, "$");
 			return Token;
 		}
-
-		else if (Token->Type == WHITE_SPACE || Token->Type == COMMENT)
+		else if (Token->Type == WHITE_SPACE)
+		{
+			if (!strcpy(Token->Value, "\n"))
+			{
+				CurrentLine++;
+				CurrentLineIdx = InputIdx;
+			}
+			RemoveToken(Token);
+			continue;
+		}
+		else if (Token->Type == COMMENT)
 		{
 			RemoveToken(Token);
 			continue;

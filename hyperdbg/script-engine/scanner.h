@@ -8,6 +8,22 @@
 */
 unsigned int InputIdx;
 
+/**
+* @brief number of current reading line
+*/
+unsigned int CurrentLine;
+
+/*
+* @brief current line start postion  
+*/
+unsigned int CurrentLineIdx;
+
+/*
+* @brief curren token start postion
+*/
+unsigned int CurrentTokenIdx;
+
+
 ////////////////////////////////////////////////////
 // Interfacing functions						  // 
 ////////////////////////////////////////////////////

@@ -11,6 +11,8 @@
  */
 
 #pragma once
+#ifndef SCRIPT_ENGINE_H
+#define SCRIPT_ENGINE_H
 
 
 
@@ -18,6 +20,9 @@
 #include "ScriptEngineCommon.h"
 #include "scanner.h"
 #include "common.h"
+
+#define SYNTAX_ERROR 0 
+#define UNKOWN_TOKEN 1
 
 PSYMBOL NewSymbol(void);
 
@@ -47,4 +52,6 @@ unsigned long long int PseudoRegToInt(char* str);
 
 unsigned long long int SemanticRuleToInt(char* str);
 
+char* HandleError(unsigned int ErrorType, char* str);
+#endif
 
