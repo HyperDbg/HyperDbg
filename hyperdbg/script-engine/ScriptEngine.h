@@ -28,6 +28,8 @@ PSYMBOL NewSymbol(void);
 
 PSYMBOL NewStringSymbol(char* value);
 
+unsigned int GetStringSymbolSize(char* str);
+
 void RemoveSymbol(PSYMBOL Symbol);
 
 __declspec(dllexport) void PrintSymbol(PSYMBOL Symbol);

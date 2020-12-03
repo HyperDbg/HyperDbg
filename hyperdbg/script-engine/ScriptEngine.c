@@ -351,12 +351,19 @@ PSYMBOL NewSymbol(void)
 PSYMBOL NewStringSymbol(char* value)
 {
     PSYMBOL Symbol;
-    int BufferSize = (sizeof(unsigned long long) + (strlen(value))) / sizeof(SYMBOL) + 1;
+    int BufferSize = GetStringSymbolSize(value);
     Symbol = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
     strcpy(&Symbol->Value, value);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
     return Symbol;
 }
+
+unsigned int GetStringSymbolSize(PSYMBOL str)
+{
+    int Temp = (sizeof(unsigned long long) + (strlen(str))) / sizeof(SYMBOL) + 1;
+    return Temp;
+}
+
 
 /**
 *
@@ -377,7 +384,15 @@ void RemoveSymbol(PSYMBOL Symbol)
 */
 void PrintSymbol(PSYMBOL Symbol)
 {
-    printf("Type:%llx, Value:0x%llx\n", Symbol->Type, Symbol->Value);
+    if (Symbol->Type == SYMBOL_STRING_TYPE)
+    {
+        printf("Type:%llx, Value:%s\n", Symbol->Type, &Symbol->Value);
+    }
+    else
+    {
+        printf("Type:%llx, Value:0x%llx\n", Symbol->Type, Symbol->Value);
+    }
+    
 }
 
 
@@ -493,8 +508,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         //
         // Update Pointer
         //
-        int BufferSize = (sizeof(unsigned long long) + strlen((char*)&Symbol->Value));
-        SymbolBuffer->Pointer += BufferSize / sizeof(SYMBOL) + 1;
+        SymbolBuffer->Pointer += GetStringSymbolSize(&Symbol->Value);
 
         //
         // Handle Overflow
@@ -584,8 +598,18 @@ void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
     PSYMBOL Symbol;
     for (int i = 0; i < SymbolBuffer->Pointer; i++)
     {
+       
         Symbol = SymbolBuffer->Head + i;
+        
         PrintSymbol(Symbol);
+        if (Symbol->Type == SYMBOL_STRING_TYPE)
+        {
+            i += GetStringSymbolSize(Symbol);
+        }
+        else
+        {
+            i++;
+        }
     }
 }
 
