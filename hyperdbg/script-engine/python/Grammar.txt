@@ -18,7 +18,7 @@ S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
 C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
-C->.TwoOpFunc1 ( E11 , E0 @.OneOpFunc1 )
+C->.TwoOpFunc1 ( @PUSH E11 , E0 @.OneOpFunc1 )
 C'->eps
 
 

@@ -148,6 +148,8 @@ char IsType1Func(TOKEN Operator);
 
 char IsType2Func(TOKEN Operator);
 
+char IsType3Func(TOKEN Operator);
+
 char IsNaiveOperator(TOKEN Operator);
 
 #endif // !COMMON_H

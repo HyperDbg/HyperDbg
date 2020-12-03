@@ -26,6 +26,8 @@ typedef struct SYMBOL_MAP
 #define SYMBOL_PSEUDO_REG_TYPE 3
 #define SYMBOL_SEMANTIC_RULE_TYPE 4
 #define SYMBOL_TEMP_TYPE 5
+#define SYMBOL_STRING_TYPE 6
+
 
 #define INVALID -1
 

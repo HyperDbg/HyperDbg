@@ -285,8 +285,23 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, TempSymbol);
        /* printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
         printf("_____________\n");*/
+
+        //
         // Free the operand if it is a temp value
+        //
         FreeTemp(Op0);
+    }
+    else if (IsType3Func(Operator))
+    {
+        Op1 = Pop(MatchedStack);
+        Op1Symbol = ToSymbol(Op1);
+        PushSymbol(CodeBuffer, Op1Symbol);
+
+        //
+        // Free the operand if it is a temp value
+        //
+        FreeTemp(Op0);
+        FreeTemp(Op1);
     }
     else if (IsNaiveOperator(Operator))
     {
@@ -305,13 +320,15 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
       /*  printf("%s\t%s,\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value, Op1->Value);
         printf("_____________\n");*/
 
+        //
         // Free the operand if it is a temp value
+        //
         FreeTemp(Op0);
         FreeTemp(Op1);
     }
     else
     {
-        // TODO : Handle Error 
+        printf("Internal Error: Unhandled sematic ruls.\n");
     }
     return;
 }
@@ -328,6 +345,16 @@ PSYMBOL NewSymbol(void)
     Symbol = (PSYMBOL)malloc(sizeof(*Symbol));
     Symbol->Value = 0;
     Symbol->Type = 0;
+    return Symbol;
+}
+
+PSYMBOL NewStringSymbol(char* value)
+{
+    PSYMBOL Symbol;
+    int BufferSize = (sizeof(unsigned long long) + (strlen(value))) / sizeof(SYMBOL) + 1;
+    Symbol = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
+    strcpy(&Symbol->Value, value);
+    SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
     return Symbol;
 }
 
@@ -381,27 +408,34 @@ PSYMBOL ToSymbol(TOKEN Token)
         return Symbol;
 
     case REGISTER:
-        Symbol->Value = RegisterToInt(Token->Value); // TODO: Implement RegisterToInt(char* str)
+        Symbol->Value = RegisterToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_REGISTER_TYPE);
         return Symbol;
 
     case PSEUDO_REGISTER:
-        Symbol->Value = PseudoRegToInt(Token->Value); // TODO: Implement PseudoRegToInt(char* str)
+        Symbol->Value = PseudoRegToInt(Token->Value);
         SetType(&Symbol->Type, SYMBOL_PSEUDO_REG_TYPE);
         return Symbol;
 
     case SEMANTIC_RULE:
-        Symbol->Value = SemanticRuleToInt(Token->Value); // TODO: Implement SemanticRuleToInt(char* str)
+        Symbol->Value = SemanticRuleToInt(Token->Value); 
         SetType(&Symbol->Type, SYMBOL_SEMANTIC_RULE_TYPE);
         return Symbol;
     case TEMP:
-        Symbol->Value = DecimalToInt(Token->Value); // TODO: Convert String to int
+        Symbol->Value = DecimalToInt(Token->Value); 
         SetType(&Symbol->Type, SYMBOL_TEMP_TYPE);
         return Symbol;
 
+    case STRING:
+        RemoveSymbol(Symbol);
+        NewStringSymbol(Token->Value);
+
+
+        return NewStringSymbol(Token->Value);
+
     default:
         // Raise Error
-        printf("Error in Converting Token with type %d to Symbol!\n",Token->Type); // TODO: Handle Error in a Error Handler Funtion
+        printf("Error in Converting Token with type %d to Symbol!\n",Token->Type);
     }
 }
 
@@ -448,63 +482,94 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
     uintptr_t Pointer = (uintptr_t)SymbolBuffer->Pointer;
     PSYMBOL WriteAddr = (PSYMBOL)(Head + Pointer * sizeof(SYMBOL));
 
-    //
-    // Write input to the appropriate address in SymbolBuffer
-    //
-    *WriteAddr = *Symbol;
-    RemoveSymbol(Symbol);
 
-    //
-    // Update Pointer
-    //
-    SymbolBuffer->Pointer++;
-
-    //
-    // Handle Overflow
-    //
-    if (Pointer == SymbolBuffer->Size - 1)
+    if (Symbol->Type == SYMBOL_STRING_TYPE)
     {
         //
-        // Allocate a new buffer for string list with doubled length
+        // Write input to the appropriate address in SymbolBuffer
         //
-        PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
+        WriteAddr->Type = Symbol->Type;
 
         //
-        // Copy old Buffer to new buffer
+        // Update Pointer
         //
-        memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
+        int BufferSize = (sizeof(unsigned long long) + strlen((char*)&Symbol->Value));
+        SymbolBuffer->Pointer += BufferSize / sizeof(SYMBOL) + 1;
 
         //
-        // Free Old buffer
+        // Handle Overflow
         //
-        free(SymbolBuffer->Head);
+        if (Pointer == SymbolBuffer->Size - 1)
+        {
+            //
+            // Allocate a new buffer for string list with doubled length
+            //
+            PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
 
-        //
-        // Upadate Head and size of SymbolBuffer
-        //
-        SymbolBuffer->Size *= 2;
-        SymbolBuffer->Head = NewHead;
+            //
+            // Copy old Buffer to new buffer
+            //
+            memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
+
+            //
+            // Free Old buffer
+            //
+            free(SymbolBuffer->Head);
+
+            //
+            // Upadate Head and size of SymbolBuffer
+            //
+            SymbolBuffer->Size *= 2;
+            SymbolBuffer->Head = NewHead;
+        }
+
+        strcpy((char*)&WriteAddr->Value, (char*)&Symbol->Value);
+        RemoveSymbol(Symbol);
     }
+    else
+    {
+        //
+        // Write input to the appropriate address in SymbolBuffer
+        //
+        *WriteAddr = *Symbol;
+        RemoveSymbol(Symbol);
+
+        //
+        // Update Pointer
+        //
+        SymbolBuffer->Pointer++;
+
+        //
+        // Handle Overflow
+        //
+        if (Pointer == SymbolBuffer->Size - 1)
+        {
+            //
+            // Allocate a new buffer for string list with doubled length
+            //
+            PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
+
+            //
+            // Copy old Buffer to new buffer
+            //
+            memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
+
+            //
+            // Free Old buffer
+            //
+            free(SymbolBuffer->Head);
+
+            //
+            // Upadate Head and size of SymbolBuffer
+            //
+            SymbolBuffer->Size *= 2;
+            SymbolBuffer->Head = NewHead;
+        }
+    }
+
+    
 
     return SymbolBuffer;
-}
-
-/**
-*
-*
-*
-*/
-PSYMBOL PopSymbol(PSYMBOL_BUFFER SymbolBuffer)
-{
-    if (SymbolBuffer->Pointer > 0)
-    {
-        SymbolBuffer->Pointer--;
-    }
-    uintptr_t Head = SymbolBuffer->Head;
-    uintptr_t Pointer = SymbolBuffer->Pointer;
-    PSYMBOL ReadAddr = (PSYMBOL)(Head + Pointer * sizeof(SYMBOL));
-
-    return ReadAddr;
 }
 
 
@@ -594,8 +659,6 @@ char* HandleError(unsigned int ErrorType, char* str)
     strcat(Message, "\n");
     
 
-
-    printf("CurrenTokenIdx = %d\n", CurrentTokenIdx);
     // 
     // add pointer 
     //

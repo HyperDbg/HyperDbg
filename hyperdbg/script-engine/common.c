@@ -478,6 +478,18 @@ char IsNaiveOperator(TOKEN Operator)
 	}
 	return 0;
 }
+char IsType3Func(TOKEN Operator)
+{
+	unsigned int n = TWOOPFUNC1_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, TwoOpFunc1[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
 
 /**
 *
@@ -573,6 +585,13 @@ int GetTerminalId(TOKEN Token)
 		else if (Token->Type == OCTAL)
 		{
 			if (!strcmp("_octal", TerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == STRING)
+		{
+			if (!strcmp("_string", TerminalMap[i]))
 			{
 				return i;
 			}
