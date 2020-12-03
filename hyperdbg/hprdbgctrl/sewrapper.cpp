@@ -106,6 +106,7 @@ VOID ScriptEngineWrapperTestParser(string Expr) {
   GuestRegs.r15 = 0x10;
 
   ScriptEngineWrapperTestPerformAction(&GuestRegs, Expr);
+  free(TestStruct);
 }
 
 UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer) {

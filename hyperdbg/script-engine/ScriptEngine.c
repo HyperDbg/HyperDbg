@@ -443,9 +443,6 @@ PSYMBOL ToSymbol(TOKEN Token)
 
     case STRING:
         RemoveSymbol(Symbol);
-        NewStringSymbol(Token->Value);
-
-
         return NewStringSymbol(Token->Value);
 
     default:
