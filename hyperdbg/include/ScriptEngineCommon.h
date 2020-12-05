@@ -37,6 +37,8 @@ typedef unsigned int *PUINT;
 typedef unsigned __int64 ULONG64, *PULONG64;
 typedef unsigned __int64 DWORD64, *PDWORD64;
 #define VOID void
+typedef char CHAR;
+typedef wchar_t WCHAR;
 
 typedef unsigned char UCHAR;
 typedef unsigned short USHORT;
@@ -192,6 +194,37 @@ UINT64 ScriptEnginePseudoRegGetBuffer(UINT64 *CorrespondingAction) {
 }
 
 //
+// Check whether the address is valid or
+//
+BOOLEAN ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    //
+    // Actually, there is no way to check this validity as it causes cpu
+    // errors, so the only solution is using SEH which is stupid idea,
+    // sure we don't want to create SEH frame each time we need to check
+    // a function address, so I don't know what to do, let's return TRUE
+    // for now
+    //
+  return TRUE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+  if (VirtualAddressToPhysicalAddress(Address) == 0) {
+    return FALSE;
+  } else {
+    if (VirtualAddressToPhysicalAddress(Address + Length) == 0) {
+      return FALSE;
+    } else {
+      return TRUE;
+    }
+  }
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+//
 // Keywords
 //
 
@@ -234,6 +267,34 @@ QWORD ScriptEngineKeywordDq(PUINT64 Address) {
   return Result;
 }
 
+// str
+CHAR *ScriptEngineKeywordStr(CHAR *Address) {
+
+  UINT64 Len = 0;
+
+  Len = strlen(Address) + 1;
+
+  if (Len == 1) {
+    return NULL;
+  } else {
+    return Address;
+  }
+}
+
+// wstr
+WCHAR *ScriptEngineKeywordWstr(WCHAR *Address) {
+
+  UINT64 Len = 0;
+
+  Len = wcslen(Address) + 1;
+
+  if (Len == 1) {
+    return NULL;
+  } else {
+    return Address;
+  }
+}
+
 //
 // Functions
 //
@@ -251,10 +312,10 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 }
 
 VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
-                              char* Name, UINT64 Value) {
+                              char *Name, UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("%s : %d\n", Name, Value);
+  printf("%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -733,7 +794,6 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     return;
 
   case FUNC_PRINT:
-    
 
     //
     // Call the target function
@@ -741,15 +801,18 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     ScriptEngineFunctionPrint(Tag, ImmediateMessagePassing, SrcVal0);
     return;
 
-  case FUNC_JSON: 
+  case FUNC_JSON:
 
-      Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-          (unsigned long long)(*Indx * sizeof(SYMBOL)));
-      *Indx = *Indx + ( (sizeof(unsigned long long) + strlen((char*)&Src1->Value)) / sizeof(SYMBOL) + 1);
+    Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx =
+        *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src1->Value)) /
+                     sizeof(SYMBOL) +
+                 1);
 
-      ScriptEngineFunctionJson(Tag, ImmediateMessagePassing, (char*)&Src1->Value, SrcVal0);
+    ScriptEngineFunctionJson(Tag, ImmediateMessagePassing, (char *)&Src1->Value,
+                             SrcVal0);
 
-      return;
-
+    return;
   }
 }
