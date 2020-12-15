@@ -76,14 +76,14 @@
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\Build\Debug\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\Build\Release\kdserial.lib;%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -116,6 +116,7 @@
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
     <ClCompile Include="ScriptEngine.c" />
+    <ClCompile Include="SerialConnection.c" />
     <ClCompile Include="Steppings.c" />
     <ClCompile Include="Termination.c" />
     <ClCompile Include="Transparency.c" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Logging.h" />
     <ClInclude Include="MemoryMapper.h" />
     <ClInclude Include="PoolManager.h" />
+    <ClInclude Include="SerialConnection.h" />
     <ClInclude Include="Steppings.h" />
     <ClInclude Include="Termination.h" />
     <ClInclude Include="Trace.h" />

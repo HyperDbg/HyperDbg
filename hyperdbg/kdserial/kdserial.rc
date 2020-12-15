@@ -1,0 +1,14 @@
+//
+//    Copyright (C) Microsoft.  All rights reserved.
+//
+#include <verrsrc.h>
+
+#include <ntverp.h>
+
+#define VER_FILETYPE                VFT_DRV
+#define VER_FILESUBTYPE             VFT2_DRV_COMM
+#define VER_FILEDESCRIPTION_STR     "Serial Kernel Debugger"
+#define VER_INTERNALNAME_STR        "kdcom.dll"
+#define VER_ORIGINALFILENAME_STR    "kdcom.dll"
+
+#include "common.ver"

@@ -88,6 +88,12 @@
     <Filter Include="Source Files\Debugger\ScriptEngine">
       <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Communication">
+      <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger\Communication">
+      <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -206,6 +212,9 @@
     <ClCompile Include="ScriptEngine.c">
       <Filter>Source Files\Debugger\ScriptEngine</Filter>
     </ClCompile>
+    <ClCompile Include="SerialConnection.c">
+      <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -303,6 +312,9 @@
     </ClInclude>
     <ClInclude Include="Evaluation.h">
       <Filter>Header Files\Debugger\Evaluation</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialConnection.h">
+      <Filter>Header Files\Debugger\Communication</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

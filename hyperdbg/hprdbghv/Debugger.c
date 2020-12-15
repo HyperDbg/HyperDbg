@@ -97,6 +97,11 @@ DebuggerInitialize()
     //
     SteppingsInitialize();
 
+    //
+    // Test serial connection
+    //
+    // SerialConnectionTest();
+
     return TRUE;
 }
 

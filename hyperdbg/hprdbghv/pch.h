@@ -52,6 +52,7 @@
 #include "Vmx.h"
 #include "DebuggerCommands.h"
 #include "ExtensionCommands.h"
+#include "SerialConnection.h"
 #include "HypervisorRoutines.h"
 #include "IoHandler.h"
 #include "Steppings.h"

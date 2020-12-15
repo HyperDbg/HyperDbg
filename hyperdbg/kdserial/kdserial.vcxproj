@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hardware.c" />
+    <ClCompile Include="ioaccess.c" />
+    <ClCompile Include="uartio.c" />
+    <ClCompile Include="apm88xxxx.c" />
+    <ClCompile Include="bcm2835.c" />
+    <ClCompile Include="msm8974.c" />
+    <ClCompile Include="msm8x60.c" />
+    <ClCompile Include="mx6uart.c" />
+    <ClCompile Include="nvidia.c" />
+    <ClCompile Include="omap.c" />
+    <ClCompile Include="pl011.c" />
+    <ClCompile Include="sam5250.c" />
+    <ClCompile Include="sdm845.c" />
+    <ClCompile Include="spimax311.c" />
+    <ClCompile Include="uart16550.c" />
+    <ClCompile Include="usif.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="kdserial.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="kdcom.h" />
+    <ClInclude Include="uart.h" />
+    <ClInclude Include="uartp.h" />
+    <ClInclude Include="common.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2D988267-CC53-41E3-936A-48CEF9049DF5}</ProjectGuid>
+    <TemplateGuid>{5ce256cb-a826-4703-9b24-ad2d556ad23b}</TemplateGuid>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <RootNamespace>kdserial</RootNamespace>
+    <DriverTargetPlatform>Universal</DriverTargetPlatform>
+    <TargetPlatformVersion>10.0.10135.0</TargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetName>kdserial</TargetName>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)\build\Debug\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>kdserial</TargetName>
+    <EmbedManifest>false</EmbedManifest>
+    <GenerateManifest>false</GenerateManifest>
+    <OutDir>$(SolutionDir)\build\Release\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <ForcedIncludeFiles />
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(ProjectDir)\lib\$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;bufferoverflowfastfailk.lib;kdserialtransport.lib;kdhv.lib;kdtelemetry.lib</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <ModuleDefinitionFile>kdserial.def</ModuleDefinitionFile>
+      <SubSystem>Native</SubSystem>
+      <Driver>Driver</Driver>
+      <NoEntryPoint>true</NoEntryPoint>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <ForcedIncludeFiles />
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(ProjectDir)\lib\$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ntoskrnl.lib;hal.lib;bufferoverflowfastfailk.lib;kdserialtransport.lib;kdhv.lib;kdtelemetry.lib</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <ModuleDefinitionFile>kdserial.def</ModuleDefinitionFile>
+      <SubSystem>Native</SubSystem>
+      <Driver>Driver</Driver>
+      <NoEntryPoint>true</NoEntryPoint>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

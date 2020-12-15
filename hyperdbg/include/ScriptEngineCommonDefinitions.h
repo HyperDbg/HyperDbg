@@ -28,10 +28,7 @@ typedef struct SYMBOL_MAP
 #define SYMBOL_TEMP_TYPE 5
 #define SYMBOL_STRING_TYPE 6
 
-
 #define INVALID -1
-
-
 
 #define FUNC_OR 0
 #define FUNC_XOR 1
