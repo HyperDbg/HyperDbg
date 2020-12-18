@@ -368,7 +368,8 @@ MigrationBackup/
 !/hyperdbg/libraries/DIA/x64/*
 
 # KdSerial Libraries
-!/hyperdbg/kdserial/lib/x86/*
-!/hyperdbg/kdserial/lib/x64/*
-!/hyperdbg/kdserial/lib/arm/*
-!/hyperdbg/kdserial/lib/arm64/*
+!/hyperdbg/libraries/kdserial/*
+!/hyperdbg/libraries/kdserial/x86/*
+!/hyperdbg/libraries/kdserial/x64/*
+!/hyperdbg/libraries/kdserial/arm/*
+!/hyperdbg/libraries/kdserial/arm64/*

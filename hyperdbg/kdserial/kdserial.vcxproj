@@ -88,7 +88,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(ProjectDir)\lib\$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(SolutionDir)libraries\kdserial\$(PlatformTarget)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ntoskrnl.lib;hal.lib;bufferoverflowfastfailk.lib;kdserialtransport.lib;kdhv.lib;kdtelemetry.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>kdserial.def</ModuleDefinitionFile>
@@ -109,7 +109,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories);$(KM_IncludePath);$(ProjectDir)..\..\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(ProjectDir)\lib\$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(DDK_LIB_PATH);%(AdditionalLibraryDirectories);$(SolutionDir)libraries\kdserial\$(PlatformTarget)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ntoskrnl.lib;hal.lib;bufferoverflowfastfailk.lib;kdserialtransport.lib;kdhv.lib;kdtelemetry.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <ModuleDefinitionFile>kdserial.def</ModuleDefinitionFile>
