@@ -1,7 +1,7 @@
 /**
  * @file listen.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief listen command
+ * @brief .listen command
  * @details
  * @version 0.1
  * @date 2020-08-21

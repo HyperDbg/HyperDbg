@@ -38,6 +38,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS    DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_STEPPINGS                          DebuggerSteppingsRequest;
     PDEBUGGER_PRINT                              DebuggerPrintRequest;
+    PDEBUGGER_PREPARE_DEBUGGEE                   DebuggeeRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;
     NTSTATUS                                     Status;
     ULONG                                        InBuffLength;  // Input buffer length
@@ -819,6 +820,50 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DoNotChangeInformation = TRUE;
 
             break;
+
+        case IOCTL_PREPARE_DEBUGGEE:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PREPARE_DEBUGGEE ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggeeRequest = (PDEBUGGER_PREPARE_DEBUGGEE)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the action
+            //
+            SerialConnectionPrepare(DebuggeeRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREPARE_DEBUGGEE;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         default:
             LogError("Unknow IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;

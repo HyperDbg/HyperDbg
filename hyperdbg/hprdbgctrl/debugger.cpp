@@ -110,6 +110,14 @@ ShowErrorMessage(UINT32 Error) {
         "err, target thread not found or the thread is disabled (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_BAUDRATE:
+    ShowMessages("err, invalid baud rate (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT:
+    ShowMessages("err, invalid serial port (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

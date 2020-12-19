@@ -19,15 +19,10 @@ Abstract:
 
 // ----------------------------------------------- Function Test
 
-
-struct _CPPORT2 {
-    PUCHAR Address;
-    ULONG BaudRate;
-    USHORT Flags;
-    UCHAR ByteWidth;
-    UART_HARDWARE_READ_INDEXED_UCHAR Read;
-    UART_HARDWARE_WRITE_INDEXED_UCHAR Write;
-};
+//
+// Global Variables
+//
+CPPORT g_PortDetails = { 0 };
 
 /*
 
@@ -35,8 +30,6 @@ F8 02 00 00 00 00 00 00  00 C2 01 00 00 00 01 00  ................
 70 35 83 0F 04 F8 FF FF  40 35 83 0F 04 F8 FF FF  p5......@5......
 
 */
-
-
 
 static
 VOID
@@ -71,6 +64,11 @@ ReadPortWithIndex8(
 
 UINT64 KdHyperDbgTest(UINT16 Byte)
 {
+    //
+    // *** This function is for internal use and test
+    // don't use it ***
+    //
+
     CPPORT TempPort = { 0 };
     TempPort.Address = 0x2f8;
     TempPort.BaudRate = 0x01c200; //115200
@@ -90,6 +88,21 @@ UINT64 KdHyperDbgTest(UINT16 Byte)
 
 }
 
+VOID KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
+{
+    g_PortDetails.Address = PortAddress;
+    g_PortDetails.BaudRate = Baudrate;
+    g_PortDetails.Flags = 0;
+    g_PortDetails.ByteWidth = 1;
+
+    g_PortDetails.Write = WritePortWithIndex8;
+    g_PortDetails.Read = ReadPortWithIndex8;
+}
+
+VOID KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
+{
+    Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
+}
 
 // ----------------------------------------------- Internal Function Prototypes
 

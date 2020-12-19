@@ -1,7 +1,7 @@
 /**
  * @file connect.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief connect command
+ * @brief .connect command
  * @details
  * @version 0.1
  * @date 2020-05-27

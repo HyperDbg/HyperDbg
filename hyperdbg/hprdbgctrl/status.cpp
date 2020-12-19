@@ -1,7 +1,7 @@
 /**
  * @file status.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief status command
+ * @brief .status command
  * @details
  * @version 0.1
  * @date 2020-08-23

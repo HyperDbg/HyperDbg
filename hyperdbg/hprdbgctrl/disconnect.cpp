@@ -1,7 +1,7 @@
 /**
  * @file disconnect.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief disconnect command
+ * @brief .disconnect command
  * @details
  * @version 0.1
  * @date 2020-05-27

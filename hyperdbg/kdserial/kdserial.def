@@ -8,3 +8,5 @@ EXPORTS
     KdPower
 
     KdHyperDbgTest
+    KdHyperDbgPrepareDebuggeeConnectionPort
+    KdHyperDbgSendByte

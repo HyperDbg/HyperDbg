@@ -182,6 +182,14 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandDisconnect(SplittedCommand);
 
+  } else if (!FirstCommand.compare(".debug") ||
+             !FirstCommand.compare("debug")) {
+
+    if (HelpCommand)
+      CommandDebugHelp();
+    else
+      CommandDebug(SplittedCommand, CommandString);
+
   } else if (!FirstCommand.compare(".status") ||
              !FirstCommand.compare("status")) {
 

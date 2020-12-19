@@ -644,6 +644,26 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE {
 
 /* ==============================================================================================
  */
+
+#define SIZEOF_DEBUGGER_PREPARE_DEBUGGEE sizeof(DEBUGGER_PREPARE_DEBUGGEE)
+
+/**
+ * @brief request to make this computer to a debuggee
+ *
+ */
+typedef struct _DEBUGGER_PREPARE_DEBUGGEE {
+
+  UINT32 PortAddress;
+  UINT32 Baudrate;
+  UINT32 Result; // Result from kernel
+
+} DEBUGGER_PREPARE_DEBUGGEE, *PDEBUGGER_PREPARE_DEBUGGEE;
+
+/* ==============================================================================================
+ */
+
+/* ==============================================================================================
+ */
 #define SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS                        \
   sizeof(DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)
 
@@ -928,6 +948,18 @@ typedef struct _DEBUGGER_EVENT {
  */
 #define DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED 0xc0000011
 
+/**
+ * @brief error, baud rate is invalid
+ *
+ */
+#define DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_BAUDRATE 0xc0000012
+
+/**
+ * @brief error, serial port address is invalid
+ *
+ */
+#define DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT 0xc0000013
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -1056,3 +1088,10 @@ typedef struct _DEBUGGER_EVENT {
  */
 #define IOCTL_DEBUGGER_PRINT                                                   \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x810, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, prepare debuggee
+ *
+ */
+#define IOCTL_PREPARE_DEBUGGEE                                                 \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
