@@ -233,6 +233,12 @@
  */
 #define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x23
 
+/**
+ * @brief VMCALL to cause vm-exit and halt the system
+ * 
+ */
+#define VMCALL_VM_EXIT_HALT_SYSTEM 0x24
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

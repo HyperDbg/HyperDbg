@@ -35,6 +35,7 @@
 #include "PoolManager.h"
 #include "Trace.h"
 #include "DpcRoutines.h"
+#include "Kd.h"
 #include "InlineAsm.h"
 #include "Vpid.h"
 #include "Ept.h"

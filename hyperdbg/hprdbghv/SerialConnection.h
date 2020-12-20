@@ -24,6 +24,9 @@ KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate);
 VOID
 KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait);
 
+VOID
+KdHyperDbgRecvByte(PUCHAR RecvByte);
+
 //////////////////////////////////////////////////
 //					 Functions					//
 //////////////////////////////////////////////////

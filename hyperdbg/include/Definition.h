@@ -662,6 +662,19 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED                                  \
+  sizeof(DEBUGGER_PAUSE_PACKET_RECEIVED)
+
+/**
+ * @brief request to pause and halt the system
+ *
+ */
+typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED {
+
+  UINT32 Result; // Result from kernel
+
+} DEBUGGER_PAUSE_PACKET_RECEIVED, *PDEBUGGER_PAUSE_PACKET_RECEIVED;
+
 /* ==============================================================================================
  */
 #define SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS                        \
@@ -1095,3 +1108,10 @@ typedef struct _DEBUGGER_EVENT {
  */
 #define IOCTL_PREPARE_DEBUGGEE                                                 \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, pause and halt the system
+ *
+ */
+#define IOCTL_PAUSE_PACKET_RECEIVED                                            \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x812, METHOD_BUFFERED, FILE_ANY_ACCESS)

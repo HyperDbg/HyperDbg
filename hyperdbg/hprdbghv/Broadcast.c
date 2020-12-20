@@ -690,3 +690,31 @@ BroadcastDpcDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Defer
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief vm-exit and halt the system
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // vm-exit and halt current core
+    //
+    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}

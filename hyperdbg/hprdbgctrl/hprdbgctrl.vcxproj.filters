@@ -323,6 +323,9 @@
     <ClCompile Include="debug.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
+    <ClCompile Include="listening.cpp">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

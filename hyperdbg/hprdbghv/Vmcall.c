@@ -344,6 +344,12 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_VM_EXIT_HALT_SYSTEM:
+    {
+        KdManageSystemHaltOnVmxRoot();
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

@@ -150,6 +150,7 @@
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
     <ClCompile Include="listen.cpp" />
+    <ClCompile Include="listening.cpp" />
     <ClCompile Include="load.cpp" />
     <ClCompile Include="logclose.cpp" />
     <ClCompile Include="logopen.cpp" />

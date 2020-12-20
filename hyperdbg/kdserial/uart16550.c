@@ -104,6 +104,11 @@ VOID KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
     Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
 }
 
+VOID KdHyperDbgRecvByte(PUCHAR RecvByte)
+{
+    Uart16550GetByte(&g_PortDetails, RecvByte);
+}
+
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN

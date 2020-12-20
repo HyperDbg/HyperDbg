@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HANDLE g_SerialListeningThreadHandle;
+
 /**
  * @brief help of .debug command
  *
@@ -20,8 +25,8 @@ VOID CommandDebugHelp() {
   ShowMessages(".debug : debug target .\n\n");
   ShowMessages("syntax : \t.debug [action (remote | prepare)] [type (serial | "
                "namedpipe)] [baud rate (decimal value)] address \n");
-  ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
-  ShowMessages("\t\te.g : .debug remote serial 115200 com2\n");
+  ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
+  ShowMessages("\t\te.g : .debug remote serial 115200 com3\n");
   ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
   ShowMessages(
       "\nvalid baud rates (decimal) : 110, 300, 600, 1200, 2400, 4800, 9600, "
@@ -221,6 +226,12 @@ BOOLEAN CommandDebugPrepareAndConnectDebugPort(const char *PortName,
       ShowErrorMessage(DebuggeeRequest.Result);
       return FALSE;
     }
+
+    //
+    // Create a thread to listen for pauses from the remote debugger
+    //
+    g_SerialListeningThreadHandle =
+        CreateThread(NULL, 0, ListeningSerialPauseThread, Comm, 0, NULL);
 
     //
     // Finish it here

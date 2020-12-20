@@ -149,9 +149,6 @@
     <ClCompile Include="DebuggerCommands.c">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
-    <ClCompile Include="BreakControl.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
-    </ClCompile>
     <ClCompile Include="Broadcast.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
@@ -214,6 +211,9 @@
     </ClCompile>
     <ClCompile Include="SerialConnection.c">
       <Filter>Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="Kd.c">
+      <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -315,6 +315,9 @@
     </ClInclude>
     <ClInclude Include="SerialConnection.h">
       <Filter>Header Files\Debugger\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="Kd.h">
+      <Filter>Header Files\Debugger\Essentials</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

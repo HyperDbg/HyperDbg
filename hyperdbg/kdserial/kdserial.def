@@ -10,3 +10,4 @@ EXPORTS
     KdHyperDbgTest
     KdHyperDbgPrepareDebuggeeConnectionPort
     KdHyperDbgSendByte
+    KdHyperDbgRecvByte

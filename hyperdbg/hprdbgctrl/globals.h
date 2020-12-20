@@ -88,6 +88,17 @@ string g_ServerIp = "";
 HANDLE g_RemoteDebuggeeListeningThread = NULL;
 
 //////////////////////////////////////////////////
+//		 Serial Debugging Variables             //
+//////////////////////////////////////////////////
+
+/**
+ * @brief In debuggee (not debugger), we save the handle
+ * of the user-mode listening thread for pauses here
+ *
+ */
+HANDLE g_SerialListeningThreadHandle = NULL;
+
+//////////////////////////////////////////////////
 //				 Global Variables               //
 //////////////////////////////////////////////////
 
