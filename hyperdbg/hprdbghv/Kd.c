@@ -12,20 +12,48 @@
 #include "pch.h"
 
 /**
+ * @brief Spinlock for halting the system
+ * 
+ */
+volatile LONG KdHaltLock;
+
+/**
+ * @brief Spinlock that the first core should release
+ * 
+ */
+volatile LONG KdFirstCoreReceivedLock;
+
+/**
  * @brief manage system halt on vmx-root mode 
  * @return VOID 
  */
 VOID
 KdManageSystemHaltOnVmxRoot()
 {
-    while (TRUE)
+    //
+    // We check for receiving buffer (unhalting) only on the
+    // first core and not on every cores
+    //
+    if (KeGetCurrentProcessorNumber() == 0)
     {
-        UCHAR Test = NULL;
-        KdHyperDbgRecvByte(&Test);
-        if (Test == 'G')
+        //
+        // *** First Core ***
+        //
+        while (TRUE)
         {
-            break;
+            UCHAR Test = NULL;
+            KdHyperDbgRecvByte(&Test);
+            if (Test == 'G')
+            {
+                break;
+            }
         }
+    }
+    else
+    {
+        //
+        // All cores except first core
+        //
     }
 }
 

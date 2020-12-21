@@ -98,6 +98,26 @@ HANDLE g_RemoteDebuggeeListeningThread = NULL;
  */
 HANDLE g_SerialListeningThreadHandle = NULL;
 
+/**
+ * @brief Shows if the debugger was connected to
+ * remote debuggee over
+ *
+ */
+BOOLEAN g_IsSerialConnectedToRemoteDebuggee = FALSE;
+
+/**
+ * @brief Shows if the debuggee is running or not
+ *
+ */
+BOOLEAN g_IsDebuggeeRunning = FALSE;
+
+/**
+ * @brief An event to show whether the debugger is running
+ * or not
+ *
+ */
+HANDLE g_DebuggerIsRunningHandle = NULL;
+
 //////////////////////////////////////////////////
 //				 Global Variables               //
 //////////////////////////////////////////////////

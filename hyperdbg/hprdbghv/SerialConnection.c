@@ -33,8 +33,12 @@ SerialConnectionTest()
  * @return VOID 
  */
 VOID
-SerialConnectionSend(PVOID Buffer, PVOID Length)
+SerialConnectionSend(CHAR * Buffer, PVOID Length)
 {
+    for (size_t i = 0; i < Length; i++)
+    {
+        KdHyperDbgSendByte(Buffer[i], TRUE);
+    }
 }
 
 /**
@@ -117,9 +121,9 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     KdHyperDbgPrepareDebuggeeConnectionPort(DebuggeeRequest->PortAddress, DebuggeeRequest->Baudrate);
 
     //
-    // Send test bytesrds
+    // Send "Start" packet
     //
-    KdHyperDbgSendByte(0x48, TRUE);
+    SerialConnectionSend("Start", 5);
 
     //
     // Set status to successful

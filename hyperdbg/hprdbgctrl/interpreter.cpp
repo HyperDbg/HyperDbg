@@ -22,9 +22,10 @@ extern BOOLEAN g_ExecutingScript;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsRemoteDebuggerMessageReceived;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsDebuggeeRunning;
 extern string g_ServerPort;
 extern string g_ServerIp;
-
 /**
  * @brief Interpret commands
  *

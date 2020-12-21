@@ -15,6 +15,9 @@
 // Global Variables
 //
 extern HANDLE g_SerialListeningThreadHandle;
+extern HANDLE g_DebuggerIsRunningHandle;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
  * @brief help of .debug command
@@ -32,6 +35,134 @@ VOID CommandDebugHelp() {
       "\nvalid baud rates (decimal) : 110, 300, 600, 1200, 2400, 4800, 9600, "
       "14400, 19200, 38400, 56000, 57600, 115200, 128000, 256000\n");
   ShowMessages("valid COM ports : COM1, COM2, COM3, COM4 \n");
+}
+
+/**
+ * @brief Prepare namedpipe to connect to the remote server
+ * @details wait to connect to debuggee (this is debugger)
+ *
+ * @param PipeName
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandDebugPrepareNamedpipeConnectionToRemoteSystem(const char *PipeName) {
+
+  //
+  // Show an indication to connect the debugger
+  //
+  ShowMessages("Waiting for debuggee to connect ...\n");
+
+  return TRUE;
+}
+
+/**
+ * @brief Prepare serial to connect to the remote server
+ * @details wait to connect to debuggee (this is debugger)
+ *
+ * @param SerialHandle
+ * @return BOOLEAN
+ */
+BOOLEAN CommandDebugPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle) {
+
+StartAgain:
+
+  BOOL Status;                 /* Status */
+  char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
+  DWORD EventMask = 0;         /* Event mask to trigger */
+  char ReadData = NULL;        /* temperory Character */
+  DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
+  unsigned char Loop = 0;
+  BOOLEAN StatusIoctl = 0;
+  ULONG ReturnedLength = 0;
+  DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = {0};
+
+  //
+  // Show an indication to connect the debugger
+  //
+  ShowMessages("Waiting for debuggee to connect ...\n");
+
+  //
+  // Setting Receive Mask
+  //
+  Status = SetCommMask(SerialHandle, EV_RXCHAR);
+  if (Status == FALSE) {
+    ShowMessages("err, in setting CommMask\n");
+    return FALSE;
+  }
+
+  //
+  // Setting WaitComm() Event
+  //
+  Status = WaitCommEvent(SerialHandle, &EventMask,
+                         NULL); /* Wait for the character to be received */
+
+  if (Status == FALSE) {
+    ShowMessages("err,in setting WaitCommEvent()\n");
+    return FALSE;
+  }
+
+  //
+  // Read data and store in a buffer
+  //
+  do {
+    Status =
+        ReadFile(SerialHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
+    SerialBuffer[Loop] = ReadData;
+    ++Loop;
+  } while (NoBytesRead > 0);
+  --Loop;
+
+  //
+  // Get actual length of received data
+  //
+  // ShowMessages("Number of bytes received = %d\n", Loop);
+
+  //
+  // Wait for the 'Start' packet
+  //
+  if (Loop == 5 && SerialBuffer[0] == 'S' && SerialBuffer[1] == 't' &&
+      SerialBuffer[2] == 'a' && SerialBuffer[3] == 'r' &&
+      SerialBuffer[4] == 't') {
+
+    //
+    // Create an event for waiting if the debugger is running
+    // (Manually. no signal)
+    //
+    g_DebuggerIsRunningHandle = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    //
+    // Connected to the debuggee
+    //
+    g_IsSerialConnectedToRemoteDebuggee = TRUE;
+
+    //
+    // And debuggee is running
+    //
+    g_IsDebuggeeRunning = TRUE;
+
+    //
+    // Register the CTRL+C and CTRL+BREAK Signals handler
+    //
+    if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+      ShowMessages(
+          "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+      return FALSE;
+    }
+
+    ShowMessages("Connected to debuggee !\n");
+    ShowMessages("Press CTRL+C to pause the debuggee\n");
+    ShowMessages("Debuggee is running...\n");
+
+    //
+    // Wait until the users press CTRL+C
+    //
+    WaitForSingleObject(g_DebuggerIsRunningHandle, INFINITE);
+
+  } else {
+    goto StartAgain;
+  }
+
+  return TRUE;
 }
 
 /**
@@ -81,13 +212,6 @@ BOOLEAN CommandDebugCheckComPort(string ComPort, UINT32 *Port) {
 
   return FALSE;
 }
-
-/**
- * @brief Prepare to connect to a named pipe
- *
- * @param PipeName
- */
-BOOLEAN CommandDebugConnectNamedPipe(const char *PipeName) { return TRUE; }
 
 /**
  * @brief Prepare and initialize COM port
@@ -237,11 +361,14 @@ BOOLEAN CommandDebugPrepareAndConnectDebugPort(const char *PortName,
     // Finish it here
     //
     return TRUE;
-  }
+  } else {
 
-  //
-  // If we are here, then it's a debugger (not debuggee)
-  //
+    //
+    // If we are here, then it's a debugger (not debuggee)
+    // let's prepare the debuggee
+    //
+    CommandDebugPrepareSerialConnectionToRemoteSystem(Comm);
+  }
 
   //
   // everything was done
@@ -329,7 +456,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       }
 
       //
-      // Everything is okay, connect to remote machine to send
+      // Everything is okay, connect to the remote machine to send (debugger)
       //
       CommandDebugPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(),
                                              Baudrate, Port, FALSE);
@@ -346,7 +473,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       //
       // Connect to a namedpipe (it's probably a Virtual Machine debugging)
       //
-      CommandDebugConnectNamedPipe(Token.c_str());
+      CommandDebugPrepareNamedpipeConnectionToRemoteSystem(Token.c_str());
 
     } else {
 
@@ -414,7 +541,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       }
 
       //
-      // Everything is okay, prepare to send
+      // Everything is okay, prepare to send (debuggee)
       //
       CommandDebugPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(),
                                              Baudrate, Port, TRUE);
