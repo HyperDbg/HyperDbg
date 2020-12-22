@@ -74,6 +74,7 @@
 #include "communication.h"
 #include "namedpipe.h"
 #include "forwarding.h"
+#include "kd.h"
 
 #endif // PCH_H
 

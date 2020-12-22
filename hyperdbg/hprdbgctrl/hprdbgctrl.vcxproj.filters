@@ -99,6 +99,9 @@
     <ClInclude Include="forwarding.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="kd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hprdbgctrl.cpp">
@@ -324,6 +327,9 @@
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
     <ClCompile Include="listening.cpp">
+      <Filter>Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="kd.cpp">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
   </ItemGroup>

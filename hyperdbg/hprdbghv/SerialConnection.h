@@ -43,6 +43,9 @@ SerialConnectionCheckPort(UINT32 SerialPort);
 BOOLEAN
 SerialConnectionCheckBaudrate(DWORD Baudrate);
 
+VOID
+SerialConnectionSend(CHAR * Buffer, PVOID Length);
+
 //////////////////////////////////////////////////
 //					 Constants					//
 //////////////////////////////////////////////////

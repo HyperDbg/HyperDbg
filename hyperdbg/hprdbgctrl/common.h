@@ -13,7 +13,7 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	       Functions                  //
+//			    	 Functions                  //
 //////////////////////////////////////////////////
 
 VOID PrintBits(size_t const size, void const *const ptr);

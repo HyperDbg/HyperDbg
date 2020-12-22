@@ -31,6 +31,11 @@ VOID
 KdManageSystemHaltOnVmxRoot()
 {
     //
+    // Send the handshake to show that it paused
+    //
+    SerialConnectionSend("Paused", 6);
+
+    //
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //

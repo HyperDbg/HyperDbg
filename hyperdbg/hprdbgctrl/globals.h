@@ -99,6 +99,13 @@ HANDLE g_RemoteDebuggeeListeningThread = NULL;
 HANDLE g_SerialListeningThreadHandle = NULL;
 
 /**
+ * @brief In debugger (not debuggee), we save the handle
+ * of the user-mode listening thread for remote system here
+ *
+ */
+HANDLE g_SerialRemoteComPortHandle = NULL;
+
+/**
  * @brief Shows if the debugger was connected to
  * remote debuggee over
  *

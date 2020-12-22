@@ -18,38 +18,7 @@ extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsDebuggeeRunning;
 extern HANDLE g_DebuggerIsRunningHandle;
-
-/**
- * @brief check if the debuggee needs to be paused
- *
- * @return VOID
- */
-VOID BreakControlCheckAndPauseDebugger() {
-
-  //
-  // Check if debuggee is running, otherwise the user
-  // pressed ctrl+c multiple times
-  //
-  if (g_IsDebuggeeRunning) {
-
-    //
-    // Send the pause request to the remote computer
-    //
-    ShowMessages("herrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\n");
-
-    //
-    // Set the debuggee to show that it's not running
-    //
-    g_IsDebuggeeRunning = FALSE;
-
-    //
-    // Signal the event
-    //
-    SetEvent(g_DebuggerIsRunningHandle);
-  }
-}
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -69,7 +38,7 @@ BOOL BreakController(DWORD CtrlType) {
     // Check if the debuggee is running because of pausing or not
     //
     if (g_IsSerialConnectedToRemoteDebuggee) {
-      BreakControlCheckAndPauseDebugger();
+      KdBreakControlCheckAndPauseDebugger();
     } else {
       //
       // Sleep because the other thread that shows must be stopped
@@ -121,7 +90,9 @@ BOOL BreakController(DWORD CtrlType) {
     // Check if the debuggee is running because of pausing or not
     //
     if (g_IsSerialConnectedToRemoteDebuggee) {
-      BreakControlCheckAndPauseDebugger();
+
+      KdBreakControlCheckAndPauseDebugger();
+
     } else {
       //
       // Sleep because the other thread that shows must be stopped

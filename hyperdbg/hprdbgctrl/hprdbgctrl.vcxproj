@@ -114,6 +114,7 @@
     <ClInclude Include="globals.h" />
     <ClInclude Include="help.h" />
     <ClInclude Include="install.h" />
+    <ClInclude Include="kd.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
+    <ClCompile Include="kd.cpp" />
     <ClCompile Include="listen.cpp" />
     <ClCompile Include="listening.cpp" />
     <ClCompile Include="load.cpp" />

@@ -16,6 +16,7 @@
 //
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of g command
@@ -43,14 +44,21 @@ VOID CommandG(vector<string> SplittedCommand) {
   }
 
   //
-  // Set the g_BreakPrintingOutput to FALSE
+  // Check if the remote serial debuggee is paused or not
   //
-  g_BreakPrintingOutput = FALSE;
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+    KdBreakControlCheckAndContinueDebugger();
+  } else {
+    //
+    // Set the g_BreakPrintingOutput to FALSE
+    //
+    g_BreakPrintingOutput = FALSE;
 
-  //
-  // If it's a remote debugger then we send the remote debuggee a 'g'
-  //
-  if (g_IsConnectedToRemoteDebuggee) {
-    RemoteConnectionSendCommand("g", strlen("g") + 1);
+    //
+    // If it's a remote debugger then we send the remote debuggee a 'g'
+    //
+    if (g_IsConnectedToRemoteDebuggee) {
+      RemoteConnectionSendCommand("g", strlen("g") + 1);
+    }
   }
 }
