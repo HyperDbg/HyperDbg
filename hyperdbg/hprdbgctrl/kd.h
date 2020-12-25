@@ -19,13 +19,12 @@ VOID KdBreakControlCheckAndPauseDebugger();
 
 VOID KdTheRemoteSystemIsRunning();
 
-BOOLEAN
-KdPrepareNamedpipeConnectionToRemoteSystem(const char *PipeName);
-
-BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle);
+BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle,
+                                                BOOLEAN IsNamedPipe);
 
 BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
-                                     UINT32 Port, BOOLEAN IsPreparing);
+                                     UINT32 Port, BOOLEAN IsPreparing,
+                                     BOOLEAN IsNamedPipe);
 
 BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length);
 

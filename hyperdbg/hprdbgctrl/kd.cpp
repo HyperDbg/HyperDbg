@@ -38,7 +38,7 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
 }
 
 /**
- * @brief Sends a continue or 'g'  command packet to the debuggee
+ * @brief Sends a continue or 'g' command packet to the debuggee
  *
  * @return BOOLEAN
  */
@@ -265,31 +265,14 @@ VOID KdTheRemoteSystemIsRunning() {
 }
 
 /**
- * @brief Prepare namedpipe to connect to the remote server
- * @details wait to connect to debuggee (this is debugger)
- *
- * @param PipeName
- * @return BOOLEAN
- */
-BOOLEAN
-KdPrepareNamedpipeConnectionToRemoteSystem(const char *PipeName) {
-
-  //
-  // Show an indication to connect the debugger
-  //
-  ShowMessages("Waiting for debuggee to connect ...\n");
-
-  return TRUE;
-}
-
-/**
  * @brief Prepare serial to connect to the remote server
  * @details wait to connect to debuggee (this is debugger)
  *
  * @param SerialHandle
  * @return BOOLEAN
  */
-BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle) {
+BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle,
+                                                BOOLEAN IsNamedPipe) {
 
 StartAgain:
 
@@ -299,9 +282,6 @@ StartAgain:
   char ReadData = NULL;        /* temperory Character */
   DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
   unsigned char Loop = 0;
-  BOOLEAN StatusIoctl = 0;
-  ULONG ReturnedLength = 0;
-  DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = {0};
 
   //
   // Show an indication to connect the debugger
@@ -406,7 +386,8 @@ StartAgain:
  * @return BOOLEAN
  */
 BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
-                                     UINT32 Port, BOOLEAN IsPreparing) {
+                                     UINT32 Port, BOOLEAN IsPreparing,
+                                     BOOLEAN IsNamedPipe) {
 
   HANDLE Comm;                 /* Handle to the Serial port */
   BOOL Status;                 /* Status */
@@ -423,6 +404,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   ULONG ReturnedLength;
   DEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest = {0};
 
+  if (IsPreparing && IsNamedPipe) {
+    ShowMessages("err, cannot used named pipe for debuggee");
+    return FALSE;
+  }
+
   //
   // Check if driver is loaded or not, in the case
   // of connecting to a remote machine as debuggee
@@ -436,64 +422,88 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     }
   }
 
-  //
-  // Append name to make a Windows understandable format
-  //
-  sprintf_s(PortNo, 20, "\\\\.\\%s", PortName);
+  if (!IsNamedPipe) {
 
-  //
-  // Open the serial com port
-  //
-  Comm = CreateFile(PortNo,                       // Friendly name
-                    GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                    0,             // No Sharing, ports cant be shared
-                    NULL,          // No Security
-                    OPEN_EXISTING, // Open existing port only
-                    0,             // Non Overlapped I/O
-                    NULL);         // Null for Comm Devices
+    //
+    // It's a serial
+    //
 
-  if (Comm == INVALID_HANDLE_VALUE) {
-    ShowMessages("err, port can't be opened.\n");
-    return FALSE;
-  }
+    //
+    // Append name to make a Windows understandable format
+    //
+    sprintf_s(PortNo, 20, "\\\\.\\%s", PortName);
 
-  //
-  // Setting the Parameters for the SerialPort
-  //
-  SerialParams.DCBlength = sizeof(SerialParams);
+    //
+    // Open the serial com port
+    //
+    Comm = CreateFile(PortNo,                       // Friendly name
+                      GENERIC_READ | GENERIC_WRITE, // Read/Write Access
+                      0,             // No Sharing, ports cant be shared
+                      NULL,          // No Security
+                      OPEN_EXISTING, // Open existing port only
+                      0,             // Non Overlapped I/O
+                      NULL);         // Null for Comm Devices
 
-  //
-  // retreives  the current settings
-  //
-  Status = GetCommState(Comm, &SerialParams);
+    if (Comm == INVALID_HANDLE_VALUE) {
+      ShowMessages("err, port can't be opened.\n");
+      return FALSE;
+    }
 
-  if (Status == FALSE) {
-    ShowMessages("err, to Get the COM state\n");
-    return FALSE;
-  }
+    //
+    // Setting the Parameters for the SerialPort
+    //
+    SerialParams.DCBlength = sizeof(SerialParams);
 
-  SerialParams.BaudRate = Baudrate; // BaudRate = 9600 (Based on user selection)
-  SerialParams.ByteSize = 8;        // ByteSize = 8
-  SerialParams.StopBits = ONESTOPBIT; // StopBits = 1
-  SerialParams.Parity = NOPARITY;     // Parity = None
-  Status = SetCommState(Comm, &SerialParams);
+    //
+    // retreives the current settings
+    //
+    Status = GetCommState(Comm, &SerialParams);
 
-  if (Status == FALSE) {
-    ShowMessages("err, to Setting DCB Structure\n");
-    return FALSE;
-  }
+    if (Status == FALSE) {
+      ShowMessages("err, to Get the COM state\n");
+      return FALSE;
+    }
 
-  //
-  // Setting Timeouts
-  //
-  Timeouts.ReadIntervalTimeout = 50;
-  Timeouts.ReadTotalTimeoutConstant = 50;
-  Timeouts.ReadTotalTimeoutMultiplier = 10;
-  Timeouts.WriteTotalTimeoutConstant = 50;
-  Timeouts.WriteTotalTimeoutMultiplier = 10;
+    SerialParams.BaudRate =
+        Baudrate;              // BaudRate = 9600 (Based on user selection)
+    SerialParams.ByteSize = 8; // ByteSize = 8
+    SerialParams.StopBits = ONESTOPBIT; // StopBits = 1
+    SerialParams.Parity = NOPARITY;     // Parity = None
+    Status = SetCommState(Comm, &SerialParams);
 
-  if (SetCommTimeouts(Comm, &Timeouts) == FALSE) {
-    ShowMessages("err, to Setting Time outs.\n");
+    if (Status == FALSE) {
+      ShowMessages("err, to Setting DCB Structure\n");
+      return FALSE;
+    }
+
+    //
+    // Setting Timeouts
+    //
+    Timeouts.ReadIntervalTimeout = 50;
+    Timeouts.ReadTotalTimeoutConstant = 50;
+    Timeouts.ReadTotalTimeoutMultiplier = 10;
+    Timeouts.WriteTotalTimeoutConstant = 50;
+    Timeouts.WriteTotalTimeoutMultiplier = 10;
+
+    if (SetCommTimeouts(Comm, &Timeouts) == FALSE) {
+      ShowMessages("err, to Setting Time outs %d.\n", GetLastError());
+      return FALSE;
+    }
+
+  } else {
+    //
+    // It's a namedpipe
+    //
+    Comm = NamedPipeClientCreatePipe(PortName);
+
+    if (!Comm) {
+
+      //
+      // Unable to create handle
+      //
+      ShowMessages("err, Is virtual machine running ?");
+      return FALSE;
+    }
   }
 
   if (IsPreparing) {
@@ -543,13 +553,14 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     // Finish it here
     //
     return TRUE;
+
   } else {
 
     //
     // If we are here, then it's a debugger (not debuggee)
     // let's prepare the debuggee
     //
-    KdPrepareSerialConnectionToRemoteSystem(Comm);
+    KdPrepareSerialConnectionToRemoteSystem(Comm, IsNamedPipe);
   }
 
   //

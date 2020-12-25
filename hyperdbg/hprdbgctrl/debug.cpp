@@ -169,7 +169,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       // Everything is okay, connect to the remote machine to send (debugger)
       //
       KdPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(), Baudrate,
-                                   Port, FALSE);
+                                   Port, FALSE, FALSE);
 
     } else if (!SplittedCommand.at(2).compare("namedpipe")) {
 
@@ -183,7 +183,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       //
       // Connect to a namedpipe (it's probably a Virtual Machine debugging)
       //
-      KdPrepareNamedpipeConnectionToRemoteSystem(Token.c_str());
+      KdPrepareAndConnectDebugPort(Token.c_str(), NULL, NULL, FALSE, TRUE);
 
     } else {
 
@@ -254,7 +254,7 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
       // Everything is okay, prepare to send (debuggee)
       //
       KdPrepareAndConnectDebugPort(SplittedCommand.at(4).c_str(), Baudrate,
-                                   Port, TRUE);
+                                   Port, TRUE, FALSE);
 
     } else {
       ShowMessages("invalid parameter '%s'\n\n", SplittedCommand.at(2));
