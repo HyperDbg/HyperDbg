@@ -89,6 +89,7 @@ We spent thousands of hours on HyperDbg and it's free and open-source for you, I
 - Sina Karvandi
 - MH Gholamrezaei
 - Mohammad Ataei
+- Saleh Khalaj
 
 ## Contributing
 Contributing in HyperDbg is super appreciated.
