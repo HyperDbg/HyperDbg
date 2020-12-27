@@ -85,6 +85,11 @@ The plugin framework is not ready for the current version of HyperDbg. Future ve
 We spent thousands of hours on HyperDbg and it's free and open-source for you, If you want to help to develop HyperDbg, please donate to children in Africa and send a picture of your donation to us, this makes all HyperDbg developers, super happy! Don't hesitate to send us the pictures, this way we know that we're doing something useful.
 <p align="center">(https://www.compassion.com/donate/donate-to-children-in-africa.htm)</p>
 
+## Credits
+- <a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
+- <a href="https://twitter.com/mohoseinam">MH Gholamrezaei</a><br />
+- <a href="https://twitter.com/mammadataei">Mohammad Ataei</a><br />
+
 ## Contributing
 Contributing in HyperDbg is super appreciated.
 
