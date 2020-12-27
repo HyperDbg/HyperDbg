@@ -86,9 +86,9 @@ We spent thousands of hours on HyperDbg and it's free and open-source for you, I
 <p align="center">(https://www.compassion.com/donate/donate-to-children-in-africa.htm)</p>
 
 ## Credits
-- <a href="https://twitter.com/Intel80x86">Sina Karvandi</a><br />
-- <a href="https://twitter.com/mohoseinam">MH Gholamrezaei</a><br />
-- <a href="https://twitter.com/mammadataei">Mohammad Ataei</a><br />
+- Sina Karvandi <a href="https://twitter.com/Intel80x86">(link)</a><br />
+- MH Gholamrezaei <a href="https://twitter.com/mohoseinam">(link)</a><br />
+- Mohammad Ataei <a href="https://twitter.com/mammadataei">(link)</a><br />
 
 ## Contributing
 Contributing in HyperDbg is super appreciated.
