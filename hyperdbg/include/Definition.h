@@ -141,6 +141,19 @@
 #define DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD 0x1
 
 //////////////////////////////////////////////////
+//            End of Buffer Detection           //
+//////////////////////////////////////////////////
+
+/**
+ * @brief characters of the buffer that we set at the end of
+ * buffers for serial
+ */
+#define SERIAL_END_OF_BUFFER_CHAR_1 0x00
+#define SERIAL_END_OF_BUFFER_CHAR_2 0x80
+#define SERIAL_END_OF_BUFFER_CHAR_3 0xEE
+#define SERIAL_END_OF_BUFFER_CHAR_4 0xFF
+
+//////////////////////////////////////////////////
 //            Callback Definitions              //
 //////////////////////////////////////////////////
 

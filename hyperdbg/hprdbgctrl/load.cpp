@@ -19,8 +19,8 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 
 /**
  * @brief help of load command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandLoadHelp() {
   ShowMessages("load : installs the drivers and load the modules.\n\n");
@@ -29,26 +29,14 @@ VOID CommandLoadHelp() {
 }
 
 /**
- * @brief load command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ * @brief load vmm module
+ *
+ * @return BOOLEAN
  */
-VOID CommandLoad(vector<string> SplittedCommand) {
+BOOLEAN CommandLoadVmmModule() {
 
   BOOL Status;
   HANDLE hToken;
-
-  if (SplittedCommand.size() != 2) {
-    ShowMessages("incorrect use of 'load'\n\n");
-    CommandLoadHelp();
-    return;
-  }
-  if (!g_IsConnectedToHyperDbgLocally) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
-                 "use '.connect'? \n");
-    return;
-  }
 
   //
   // Enable Debug privilege
@@ -57,12 +45,48 @@ VOID CommandLoad(vector<string> SplittedCommand) {
       OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
   if (!Status) {
     ShowMessages("OpenProcessToken failed, error : %u \n");
-    return;
+    return FALSE;
   }
 
   Status = SetPrivilege(hToken, SE_DEBUG_NAME, TRUE);
   if (!Status) {
     CloseHandle(hToken);
+    return FALSE;
+  }
+
+  if (HyperdbgInstallVmmDriver()) {
+    return FALSE;
+  }
+
+  if (HyperdbgLoadVmm()) {
+    return FALSE;
+  }
+
+  //
+  // If we reach here so the module are loaded
+  //
+  g_IsDebuggerModulesLoaded = TRUE;
+
+  return TRUE;
+}
+
+/**
+ * @brief load command handler
+ *
+ * @param SplittedCommand
+ * @return VOID
+ */
+VOID CommandLoad(vector<string> SplittedCommand) {
+
+  if (SplittedCommand.size() != 2) {
+    ShowMessages("incorrect use of 'load'\n\n");
+    CommandLoadHelp();
+    return;
+  }
+
+  if (!g_IsConnectedToHyperDbgLocally) {
+    ShowMessages("You're not connected to any instance of HyperDbg, did you "
+                 "use '.connect'? \n");
     return;
   }
 
@@ -74,24 +98,15 @@ VOID CommandLoad(vector<string> SplittedCommand) {
     //
     // Load VMM Module
     //
-    ShowMessages("try to install driver...\n");
-    if (HyperdbgInstallVmmDriver()) {
-      ShowMessages("Failed to install driver\n");
+    ShowMessages("try to install and load the VMM driver...\n");
+
+    if (!CommandLoadVmmModule()) {
+      ShowMessages("Failed to install or load the driver\n");
       return;
     }
 
-    ShowMessages("try to install load kernel modules...\n");
-    if (HyperdbgLoadVmm()) {
-      ShowMessages("Failed to load driver\n");
-      return;
-    }
-
-    //
-    // If we reach here so the module are loaded
-    //
-    g_IsDebuggerModulesLoaded = TRUE;
   } else {
-    
+
     //
     // Module not found
     //

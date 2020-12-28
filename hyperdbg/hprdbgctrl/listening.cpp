@@ -26,7 +26,7 @@ StartAgain:
   DWORD EventMask = 0;         /* Event mask to trigger */
   char ReadData = NULL;        /* temperory Character */
   DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
-  unsigned char Loop = 0;
+  UINT32 Loop = 0;
   BOOLEAN StatusIoctl = 0;
   ULONG ReturnedLength = 0;
   DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = {0};
@@ -58,9 +58,13 @@ StartAgain:
     Status =
         ReadFile(SerialHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
     SerialBuffer[Loop] = ReadData;
+
+    if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)SerialBuffer)) {
+      break;
+    }
+
     ++Loop;
   } while (NoBytesRead > 0);
-  --Loop;
 
   //
   // Get actual length of received data

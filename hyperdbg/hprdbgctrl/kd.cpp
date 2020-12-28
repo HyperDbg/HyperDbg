@@ -17,9 +17,11 @@
 extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_DebuggerRunningEventHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
+extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
+extern BYTE g_EndOfBufferCheck[4];
 
 /**
  * @brief compares the buffer with a string
@@ -41,10 +43,10 @@ BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer) {
     return FALSE;
   }
 
-  if (Buffer[ActualBufferLength] == 0xff &&
-      Buffer[ActualBufferLength - 1] == 0xee &&
-      Buffer[ActualBufferLength - 2] == 0x80 &&
-      Buffer[ActualBufferLength - 3] == 0x00) {
+  if (Buffer[ActualBufferLength] == SERIAL_END_OF_BUFFER_CHAR_4 &&
+      Buffer[ActualBufferLength - 1] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+      Buffer[ActualBufferLength - 2] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+      Buffer[ActualBufferLength - 3] == SERIAL_END_OF_BUFFER_CHAR_1) {
 
     //
     // Clear the end character
@@ -121,9 +123,11 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   }
 
   //
-  // Wait for 1 sec so it send the packets
+  // Wait for 1 sec so it send the packets, no need to sleep
+  // as we don't use the time-out mechanism (no need anymore as
+  // we use end buffer detection mechanism)
   //
-  Sleep(800);
+  // Sleep(800);
 
   //
   // Wait for handshake to complete or in other words
@@ -211,14 +215,38 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length) {
                      NULL);
 
   if (Status == FALSE) {
-    ShowMessages("err, fail to write to com port.\n");
+    ShowMessages("err, fail to write to com port or named pipe (error %x).\n",
+                 GetLastError());
     return FALSE;
   }
 
   //
   // Check if message delivered successfully
   //
-  if (BytesWritten == Length) {
+  if (BytesWritten != Length) {
+    return FALSE;
+  }
+
+  //
+  // Send End of Buffer Packet
+  //
+  Status = WriteFile(
+      g_SerialRemoteComPortHandle, // Handle to the Serialport
+      g_EndOfBufferCheck,          // Data to be written to the port
+      sizeof(g_EndOfBufferCheck),  // No of bytes to write into the port
+      &BytesWritten,               // No of bytes written to the port
+      NULL);
+
+  if (Status == FALSE) {
+    ShowMessages("err, fail to write to com port or named pipe (error %x).\n",
+                 GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Check if message delivered successfully
+  //
+  if (BytesWritten == sizeof(g_EndOfBufferCheck)) {
     return TRUE;
   }
 
@@ -468,19 +496,6 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     return FALSE;
   }
 
-  //
-  // Check if driver is loaded or not, in the case
-  // of connecting to a remote machine as debuggee
-  //
-  if (IsPreparing) {
-    if (!g_DeviceHandle) {
-      ShowMessages(
-          "Handle not found, probably the driver is not loaded. Did you "
-          "use 'load' command?\n");
-      return FALSE;
-    }
-  }
-
   if (!IsNamedPipe) {
 
     //
@@ -536,8 +551,12 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     }
 
     //
-    // Setting Timeouts
+    // Setting Timeouts (not use it anymore as we use special signature for
+    // ending buffer)
+    // (no need anymore as we use end buffer detection mechanism)
     //
+
+    /*
     Timeouts.ReadIntervalTimeout = 50;
     Timeouts.ReadTotalTimeoutConstant = 50;
     Timeouts.ReadTotalTimeoutMultiplier = 10;
@@ -548,6 +567,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
       ShowMessages("err, to Setting Time outs %d.\n", GetLastError());
       return FALSE;
     }
+    */
 
   } else {
     //
@@ -560,7 +580,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
       //
       // Unable to create handle
       //
-      ShowMessages("err, Is virtual machine running?\n");
+      ShowMessages("Is virtual machine running ?!\n");
       return FALSE;
     }
   }
@@ -569,6 +589,34 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
 
     //
     // It's a debuggee request
+    //
+
+    //
+    // First, connect to local machine and we load the VMM module as it's a
+    // module that is responsible for working on debugger
+    //
+    g_IsConnectedToHyperDbgLocally = TRUE;
+
+    //
+    // Load the VMM
+    //
+    if (!CommandLoadVmmModule()) {
+      ShowMessages("Failed to install or load the driver\n");
+      return FALSE;
+    }
+
+    //
+    // Check if driver is loaded or not, in the case
+    // of connecting to a remote machine as debuggee
+    //
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return FALSE;
+    }
+
+    //
     // Prepare the details structure
     //
     DebuggeeRequest.PortAddress = Port;

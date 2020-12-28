@@ -92,6 +92,13 @@ HANDLE g_RemoteDebuggeeListeningThread = NULL;
 //////////////////////////////////////////////////
 
 /**
+ * @brief the buffer that we set at the end of buffers for serial
+ */
+BYTE g_EndOfBufferCheck[4] = {
+    SERIAL_END_OF_BUFFER_CHAR_1, SERIAL_END_OF_BUFFER_CHAR_2,
+    SERIAL_END_OF_BUFFER_CHAR_3, SERIAL_END_OF_BUFFER_CHAR_4};
+
+/**
  * @brief In debuggee (not debugger), we save the handle
  * of the user-mode listening thread for pauses here
  *

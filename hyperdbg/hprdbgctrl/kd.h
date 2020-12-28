@@ -31,3 +31,5 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length);
 BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave, UINT32 *LengthReceived);
 
 VOID KdBreakControlCheckAndContinueDebugger();
+
+BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);

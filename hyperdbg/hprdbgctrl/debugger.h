@@ -98,3 +98,5 @@ BOOLEAN IsItALocalCommand(string Command);
 VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid);
 
 VOID DetachFromProcess();
+
+BOOLEAN CommandLoadVmmModule();
