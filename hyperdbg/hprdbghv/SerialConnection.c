@@ -39,6 +39,14 @@ SerialConnectionSend(CHAR * Buffer, PVOID Length)
     {
         KdHyperDbgSendByte(Buffer[i], TRUE);
     }
+
+    //
+    // Send the end buffer
+    //
+    KdHyperDbgSendByte(0x00, TRUE);
+    KdHyperDbgSendByte(0x80, TRUE);
+    KdHyperDbgSendByte(0xee, TRUE);
+    KdHyperDbgSendByte(0xff, TRUE);
 }
 
 /**

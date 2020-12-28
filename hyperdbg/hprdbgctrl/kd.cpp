@@ -15,14 +15,60 @@
 // Global Variables
 //
 extern HANDLE g_SerialListeningThreadHandle;
-extern HANDLE g_DebuggerIsRunningHandle;
+extern HANDLE g_DebuggerRunningEventHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
  * @brief compares the buffer with a string
  *
+ * @param CurrentLoopIndex Number of previously read bytes
+ * @param Buffer
+ * @return BOOLEAN
+ */
+BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer) {
+
+  UINT32 ActualBufferLength;
+
+  ActualBufferLength = *CurrentLoopIndex;
+
+  //
+  // End of buffer is 4 character long
+  //
+  if (*CurrentLoopIndex <= 3) {
+    return FALSE;
+  }
+
+  if (Buffer[ActualBufferLength] == 0xff &&
+      Buffer[ActualBufferLength - 1] == 0xee &&
+      Buffer[ActualBufferLength - 2] == 0x80 &&
+      Buffer[ActualBufferLength - 3] == 0x00) {
+
+    //
+    // Clear the end character
+    //
+    Buffer[ActualBufferLength - 3] = NULL;
+    Buffer[ActualBufferLength - 2] = NULL;
+    Buffer[ActualBufferLength - 1] = NULL;
+    Buffer[ActualBufferLength] = NULL;
+
+    //
+    // Set the new length
+    //
+    *CurrentLoopIndex = ActualBufferLength - 3;
+
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * @brief compares the buffer with a string
+ *
+ * @param Buffer
+ * @param CompareBuffer
  * @return BOOLEAN
  */
 BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
@@ -112,7 +158,7 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave,
   BOOL Status;           /* Status */
   char ReadData = NULL;  /* temperory Character */
   DWORD NoBytesRead = 0; /* Bytes read by ReadFile() */
-  unsigned char Loop = 0;
+  UINT32 Loop = 0;
 
   //
   // Read data and store in a buffer
@@ -121,11 +167,14 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave,
     Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData),
                       &NoBytesRead, NULL);
     BufferToSave[Loop] = ReadData;
-    ++Loop;
-  } while (NoBytesRead > 0);
 
-  --Loop;
-  BufferToSave[Loop] = NULL;
+    if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave)) {
+      break;
+    }
+
+    ++Loop;
+
+  } while (NoBytesRead > 0);
 
   //
   // Set the length
@@ -208,7 +257,7 @@ VOID KdBreakControlCheckAndPauseDebugger() {
     //
     // Signal the event
     //
-    SetEvent(g_DebuggerIsRunningHandle);
+    SetEvent(g_DebuggerRunningEventHandle);
   }
 }
 
@@ -261,7 +310,7 @@ VOID KdTheRemoteSystemIsRunning() {
   //
   // Wait until the users press CTRL+C
   //
-  WaitForSingleObject(g_DebuggerIsRunningHandle, INFINITE);
+  WaitForSingleObject(g_DebuggerRunningEventHandle, INFINITE);
 }
 
 /**
@@ -281,31 +330,34 @@ StartAgain:
   DWORD EventMask = 0;         /* Event mask to trigger */
   char ReadData = NULL;        /* temperory Character */
   DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
-  unsigned char Loop = 0;
+  UINT32 Loop = 0;
 
   //
   // Show an indication to connect the debugger
   //
   ShowMessages("Waiting for debuggee to connect ...\n");
 
-  //
-  // Setting Receive Mask
-  //
-  Status = SetCommMask(SerialHandle, EV_RXCHAR);
-  if (Status == FALSE) {
-    ShowMessages("err, in setting CommMask\n");
-    return FALSE;
-  }
+  if (!IsNamedPipe) {
 
-  //
-  // Setting WaitComm() Event
-  //
-  Status = WaitCommEvent(SerialHandle, &EventMask,
-                         NULL); /* Wait for the character to be received */
+    //
+    // Setting Receive Mask
+    //
+    Status = SetCommMask(SerialHandle, EV_RXCHAR);
+    if (Status == FALSE) {
+      ShowMessages("err, in setting CommMask\n");
+      return FALSE;
+    }
 
-  if (Status == FALSE) {
-    ShowMessages("err,in setting WaitCommEvent()\n");
-    return FALSE;
+    //
+    // Setting WaitComm() Event
+    //
+    Status = WaitCommEvent(SerialHandle, &EventMask,
+                           NULL); /* Wait for the character to be received */
+
+    if (Status == FALSE) {
+      ShowMessages("err,in setting WaitCommEvent()\n");
+      return FALSE;
+    }
   }
 
   //
@@ -315,9 +367,17 @@ StartAgain:
     Status =
         ReadFile(SerialHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
     SerialBuffer[Loop] = ReadData;
+
+    //
+    // Check for end character
+    //
+    if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)SerialBuffer)) {
+      break;
+    }
+
     ++Loop;
+
   } while (NoBytesRead > 0);
-  --Loop;
 
   //
   // Get actual length of received data
@@ -335,7 +395,7 @@ StartAgain:
     // Create an event for waiting if the debugger is running
     // (Manually. no signal)
     //
-    g_DebuggerIsRunningHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
+    g_DebuggerRunningEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     //
     // Connected to the debuggee
@@ -351,6 +411,11 @@ StartAgain:
     // Save the handler
     //
     g_SerialRemoteComPortHandle = SerialHandle;
+
+    //
+    // Is serial handle for a named pipe
+    //
+    g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
 
     //
     // Register the CTRL+C and CTRL+BREAK Signals handler
@@ -393,13 +458,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   BOOL Status;                 /* Status */
   DCB SerialParams = {0};      /* Initializing DCB structure */
   COMMTIMEOUTS Timeouts = {0}; /* Initializing timeouts structure */
-  char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
-  DWORD BytesWritten = 0;      /* No of bytes written to the port */
-  DWORD EventMask;             /* Event mask to trigger */
-  char ReadData;               /* temperory Character */
-  DWORD NoBytesRead;           /* Bytes read by ReadFile() */
   char PortNo[20] = {0};       /* contain friendly name */
-  unsigned char Loop = 0;
   BOOLEAN StatusIoctl;
   ULONG ReturnedLength;
   DEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest = {0};
@@ -501,7 +560,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
       //
       // Unable to create handle
       //
-      ShowMessages("err, Is virtual machine running ?");
+      ShowMessages("err, Is virtual machine running?\n");
       return FALSE;
     }
   }

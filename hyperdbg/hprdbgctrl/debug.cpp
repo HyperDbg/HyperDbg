@@ -15,7 +15,7 @@
 // Global Variables
 //
 extern HANDLE g_SerialListeningThreadHandle;
-extern HANDLE g_DebuggerIsRunningHandle;
+extern HANDLE g_DebuggerRunningEventHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;

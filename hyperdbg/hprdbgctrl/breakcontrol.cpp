@@ -18,7 +18,7 @@ extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern HANDLE g_DebuggerIsRunningHandle;
+extern HANDLE g_DebuggerRunningEventHandle;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events

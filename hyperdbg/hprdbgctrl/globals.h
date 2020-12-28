@@ -119,11 +119,18 @@ BOOLEAN g_IsSerialConnectedToRemoteDebuggee = FALSE;
 BOOLEAN g_IsDebuggeeRunning = FALSE;
 
 /**
+ * @brief Shows if the debugger is connected to the
+ * guest using named pipe
+ *
+ */
+BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
+
+/**
  * @brief An event to show whether the debugger is running
  * or not
  *
  */
-HANDLE g_DebuggerIsRunningHandle = NULL;
+HANDLE g_DebuggerRunningEventHandle = NULL;
 
 //////////////////////////////////////////////////
 //				 Global Variables               //
