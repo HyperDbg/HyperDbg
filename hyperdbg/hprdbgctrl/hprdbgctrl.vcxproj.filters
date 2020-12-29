@@ -332,6 +332,9 @@
     <ClCompile Include="kd.cpp">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="p.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

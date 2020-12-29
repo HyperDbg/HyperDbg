@@ -1,7 +1,7 @@
 /**
- * @file t.cpp
+ * @file p.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief t command
+ * @brief p command
  * @details
  * @version 0.1
  * @date 2020-12-29
@@ -17,27 +17,27 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of t command
+ * @brief help of p command
  *
  * @return VOID
  */
-VOID CommandTHelp() {
+VOID CommandPHelp() {
   ShowMessages(
-      "t : executes a single instruction (step-in) and optionally displays the "
+      "p : executes a single instruction (step) and optionally displays the "
       "resulting values of all registers and flags.\n\n");
-  ShowMessages("syntax : \tt[r] [count]\n");
-  ShowMessages("\t\te.g : t\n");
-  ShowMessages("\t\te.g : tr\n");
-  ShowMessages("\t\te.g : tr 1f\n");
+  ShowMessages("syntax : \tp[r] [count]\n");
+  ShowMessages("\t\te.g : p\n");
+  ShowMessages("\t\te.g : pr\n");
+  ShowMessages("\t\te.g : pr 1f\n");
 }
 
 /**
- * @brief handler of t command
+ * @brief handler of p command
  *
  * @param SplittedCommand
  * @return VOID
  */
-VOID CommandT(vector<string> SplittedCommand) {
+VOID CommandP(vector<string> SplittedCommand) {
 
   UINT32 StepCount;
   DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -46,15 +46,15 @@ VOID CommandT(vector<string> SplittedCommand) {
   // Validate the commands
   //
   if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2) {
-    ShowMessages("incorrect use of 't'\n\n");
-    CommandTHelp();
+    ShowMessages("incorrect use of 'p'\n\n");
+    CommandPHelp();
     return;
   }
 
-  if (!SplittedCommand.at(0).compare("tr")) {
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_WITH_REGS;
+  if (!SplittedCommand.at(0).compare("pr")) {
+    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT_WITH_REGS;
   } else {
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN;
+    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT;
   }
 
   //
@@ -63,7 +63,7 @@ VOID CommandT(vector<string> SplittedCommand) {
   if (SplittedCommand.size() == 2) {
     if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount)) {
       ShowMessages("please specify a correct hex value for [count]\n\n");
-      CommandTHelp();
+      CommandPHelp();
       return;
     }
   } else {
@@ -80,7 +80,7 @@ VOID CommandT(vector<string> SplittedCommand) {
     }
 
   } else {
-    ShowMessages("err, stepping (t) is not valid in the current context, you "
+    ShowMessages("err, stepping (p) is not valid in the current context, you "
                  "should connect to a debuggee.\n");
   }
 }

@@ -145,13 +145,6 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandDetach(SplittedCommand);
 
-  } else if (!FirstCommand.compare("t")) {
-
-    if (HelpCommand)
-      CommandTHelp();
-    else
-      CommandT(SplittedCommand);
-
   } else if (!FirstCommand.compare("sleep")) {
 
     if (HelpCommand)
@@ -465,6 +458,20 @@ int HyperdbgInterpreter(const char *Command) {
       CommandLmHelp();
     else
       CommandLm(SplittedCommand);
+
+  } else if (!FirstCommand.compare("p") || !FirstCommand.compare("pr")) {
+
+    if (HelpCommand)
+      CommandPHelp();
+    else
+      CommandP(SplittedCommand);
+
+  } else if (!FirstCommand.compare("t") || !FirstCommand.compare("tr")) {
+
+    if (HelpCommand)
+      CommandTHelp();
+    else
+      CommandT(SplittedCommand);
 
   } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||
              !FirstCommand.compare("dd") || !FirstCommand.compare("dq") ||

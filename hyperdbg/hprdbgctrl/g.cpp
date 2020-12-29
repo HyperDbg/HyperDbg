@@ -24,8 +24,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  * @return VOID
  */
 VOID CommandGHelp() {
-  ShowMessages("g : continue a breaked debugger (by pause) or a remote breaked "
-               "debugger.\n\n");
+  ShowMessages("g : continue debuggee or processing kernel messages.\n\n");
   ShowMessages("syntax : \tg\n");
 }
 

@@ -12,6 +12,23 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//			       	 Enums                      //
+//////////////////////////////////////////////////
+
+/**
+ * @brief stepping types
+ *
+ */
+typedef enum _DEBUGGER_REMOTE_STEPPING_REQUEST {
+
+  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT,
+  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN,
+  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT_WITH_REGS,
+  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_WITH_REGS,
+
+} DEBUGGER_REMOTE_STEPPING_REQUEST;
+
+//////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
@@ -33,3 +50,6 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave, UINT32 *LengthReceived);
 VOID KdBreakControlCheckAndContinueDebugger();
 
 BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
+
+BOOLEAN
+KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);

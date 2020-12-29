@@ -106,6 +106,44 @@ BOOLEAN KdSendContinuePacketToDebuggee() {
 }
 
 /**
+ * @brief Sends p (step out) and t (step in) packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
+
+  CHAR BufferToReceive[64] = {0};
+  UINT32 LengthReceived = 0;
+
+  //
+  // Send packet to the serial
+  //
+  if (!KdSendPacketToDebuggee("S", 1)) {
+    return FALSE;
+  }
+
+  //
+  // Wait for handshake to complete or in other words
+  // get the receive packet
+  //
+  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
+    return FALSE;
+  }
+
+  //
+  // Check if the handshake is correct or not, and also show the received
+  // results like register, etc.
+  //
+  if (KdCompareBufferWithString(BufferToReceive, "Paused")) {
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
  * @brief Sends a PAUSE packet to the debuggee
  *
  * @return BOOLEAN

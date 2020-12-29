@@ -155,3 +155,5 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr);
 VOID CommandOutput(vector<string> SplittedCommand, string Command);
 
 VOID CommandDebug(vector<string> SplittedCommand, string Command);
+
+VOID CommandP(vector<string> SplittedCommand);

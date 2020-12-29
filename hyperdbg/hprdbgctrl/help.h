@@ -126,3 +126,5 @@ VOID CommandPrintHelp();
 VOID CommandOutputHelp();
 
 VOID CommandDebugHelp();
+
+VOID CommandPHelp();
