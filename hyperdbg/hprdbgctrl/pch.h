@@ -56,6 +56,7 @@
 #include <tchar.h>
 #include <numeric>
 #include <tlhelp32.h>
+#include <VersionHelpers.h>
 
 //
 // HyperDbg defined headers

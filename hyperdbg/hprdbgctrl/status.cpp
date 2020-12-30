@@ -18,13 +18,14 @@ extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern string g_ServerPort;
 extern string g_ServerIp;
 
 /**
  * @brief help of .status command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandStatusHelp() {
   ShowMessages(".status | status : get the status of current debugger in local "
@@ -37,9 +38,9 @@ VOID CommandStatusHelp() {
 
 /**
  * @brief .status command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandStatus(vector<string> SplittedCommand) {
 
@@ -48,7 +49,14 @@ VOID CommandStatus(vector<string> SplittedCommand) {
     CommandStatusHelp();
   }
 
-  if (g_IsConnectedToRemoteDebuggee) {
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+
+    //
+    // Connected to a remote debuggee (serial port)
+    //
+    ShowMessages("remote debugging ('debugger mode')\n");
+
+  } else if (g_IsConnectedToRemoteDebuggee) {
 
     //
     // Connected to a remote debuggee
@@ -70,7 +78,7 @@ VOID CommandStatus(vector<string> SplittedCommand) {
                  "mode'), ip : %s:%s \n",
                  g_ServerIp.c_str(), g_ServerPort.c_str());
   } else {
-    
+
     //
     // we never should see this message
     //

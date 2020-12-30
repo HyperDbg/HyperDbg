@@ -101,15 +101,21 @@
  */
 #define MaximumSearchResults 0x1000
 
-//////////////////////////////////////////////////
-//                 Installer                    //
-//////////////////////////////////////////////////
-
 /**
  * @brief name of HyperDbg driver
  *
  */
 #define DRIVER_NAME "hprdbghv"
+
+//////////////////////////////////////////////////
+//                 Name of OS                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum name for OS name buffer
+ *
+ */
+#define MAXIMUM_CHARACTER_FOR_OS_NAME 256
 
 //////////////////////////////////////////////////
 //             Operation Codes                  //
@@ -668,7 +674,8 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE {
 
   UINT32 PortAddress;
   UINT32 Baudrate;
-  UINT32 Result; // Result from kernel
+  UINT32 Result; // Result from the kernel
+  CHAR OsName[MAXIMUM_CHARACTER_FOR_OS_NAME];
 
 } DEBUGGER_PREPARE_DEBUGGEE, *PDEBUGGER_PREPARE_DEBUGGEE;
 

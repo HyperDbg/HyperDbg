@@ -187,6 +187,69 @@ BOOLEAN KdSendPausePacketToDebuggee() {
 }
 
 /**
+ * @brief Get Windows name, version and build to send to debuggger
+ *
+ * @param BufferToSave
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdGetWindowVersion(CHAR *BufferToSave) {
+
+  HKeyHolder currentVersion;
+  DWORD valueType;
+  CHAR bufferResult[MAXIMUM_CHARACTER_FOR_OS_NAME] = {0};
+  BYTE bufferProductName[MAXIMUM_CHARACTER_FOR_OS_NAME] = {0};
+  BYTE bufferCurrentBuild[MAXIMUM_CHARACTER_FOR_OS_NAME] = {0};
+  BYTE bufferDisplayVersion[MAXIMUM_CHARACTER_FOR_OS_NAME] = {0};
+  DWORD bufferSize = MAXIMUM_CHARACTER_FOR_OS_NAME;
+
+  if (RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                    LR"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)", 0,
+                    KEY_QUERY_VALUE, &currentVersion) != ERROR_SUCCESS) {
+    // return FALSE;
+  }
+
+  if (RegQueryValueExA(currentVersion, "ProductName", nullptr, &valueType,
+                       bufferProductName, &bufferSize) != ERROR_SUCCESS) {
+    // return FALSE;
+  }
+
+  if (valueType != REG_SZ) {
+
+    //  return FALSE;
+  }
+
+  bufferSize = MAXIMUM_CHARACTER_FOR_OS_NAME;
+
+  if (RegQueryValueExA(currentVersion, "DisplayVersion", nullptr, &valueType,
+                       bufferDisplayVersion, &bufferSize) != ERROR_SUCCESS) {
+    // return FALSE;
+  }
+
+  if (valueType != REG_SZ) {
+
+    //  return FALSE;
+  }
+  bufferSize = MAXIMUM_CHARACTER_FOR_OS_NAME;
+
+  if (RegQueryValueExA(currentVersion, "CurrentBuild", nullptr, &valueType,
+                       bufferCurrentBuild, &bufferSize) != ERROR_SUCCESS) {
+    //  return FALSE;
+  }
+
+  if (valueType != REG_SZ) {
+    // return FALSE;
+  }
+
+  sprintf_s(bufferResult, "%s %s %s (OS Build %s)", bufferProductName,
+            IsWindowsServer() ? "- Server" : "- Client", bufferDisplayVersion,
+            bufferCurrentBuild);
+
+  memcpy(BufferToSave, bufferResult, MAXIMUM_CHARACTER_FOR_OS_NAME);
+
+  return TRUE;
+}
+/**
  * @brief Sends a PAUSE packet to the debuggee
  *
  * @param BufferToSave
@@ -393,9 +456,12 @@ StartAgain:
 
   BOOL Status;                 /* Status */
   char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
-  DWORD EventMask = 0;         /* Event mask to trigger */
-  char ReadData = NULL;        /* temperory Character */
-  DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
+  char DebuggeeName[MAXIMUM_CHARACTER_FOR_OS_NAME] = {
+      0};                /* Buffer to receive data about debuggee name */
+  DWORD EventMask = 0;   /* Event mask to trigger */
+  char ReadData = NULL;  /* temperory Character */
+  DWORD NoBytesRead = 0; /* Bytes read by ReadFile() */
+  UINT32 DataRead = 0;   /* Bytes read by ReadFile() */
   UINT32 Loop = 0;
 
   //
@@ -492,7 +558,14 @@ StartAgain:
       return FALSE;
     }
 
-    ShowMessages("Connected to debuggee !\n");
+    //
+    // Read the name of the debuggee OS
+    //
+    if (!KdReceivePacketFromDebuggee(DebuggeeName, &DataRead)) {
+      return FALSE;
+    }
+
+    ShowMessages("Connected to debuggee %s !\n", DebuggeeName);
     ShowMessages("Press CTRL+C to pause the debuggee\n");
 
     //
@@ -527,7 +600,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   char PortNo[20] = {0};       /* contain friendly name */
   BOOLEAN StatusIoctl;
   ULONG ReturnedLength;
-  DEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest = {0};
+  PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
 
   if (IsPreparing && IsNamedPipe) {
     ShowMessages("err, cannot used named pipe for debuggee");
@@ -655,10 +728,33 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     }
 
     //
+    // Allocate buffer
+    //
+    DebuggeeRequest =
+        (PDEBUGGER_PREPARE_DEBUGGEE)malloc(SIZEOF_DEBUGGER_PREPARE_DEBUGGEE);
+
+    if (DebuggeeRequest == NULL) {
+      return FALSE;
+    }
+
+    RtlZeroMemory(DebuggeeRequest, SIZEOF_DEBUGGER_PREPARE_DEBUGGEE);
+
+    //
     // Prepare the details structure
     //
-    DebuggeeRequest.PortAddress = Port;
-    DebuggeeRequest.Baudrate = Baudrate;
+    DebuggeeRequest->PortAddress = Port;
+    DebuggeeRequest->Baudrate = Baudrate;
+
+    //
+    // Set the debuggee name, version, and build number
+    //
+    if (!KdGetWindowVersion(DebuggeeRequest->OsName)) {
+
+      //
+      // It's not an error if it returned null
+      //
+      /*return FALSE;*/
+    }
 
     //
     // Send the request to the kernel
@@ -666,25 +762,30 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     StatusIoctl =
         DeviceIoControl(g_DeviceHandle,         // Handle to device
                         IOCTL_PREPARE_DEBUGGEE, // IO Control code
-                        &DebuggeeRequest,       // Input Buffer to driver.
+                        DebuggeeRequest,        // Input Buffer to driver.
                         SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, // Input buffer
                                                           // length
-                        &DebuggeeRequest, // Output Buffer from driver.
+                        DebuggeeRequest, // Output Buffer from driver.
                         SIZEOF_DEBUGGER_PREPARE_DEBUGGEE, // Length of output
                                                           // buffer in bytes.
                         &ReturnedLength, // Bytes placed in buffer.
                         NULL             // synchronous call
         );
 
+    //
+    // Free the buffer
+    //
+    free(DebuggeeRequest);
+
     if (!StatusIoctl) {
       ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
       return FALSE;
     }
 
-    if (DebuggeeRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+    if (DebuggeeRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
       ShowMessages("The operation was successful\n");
     } else {
-      ShowErrorMessage(DebuggeeRequest.Result);
+      ShowErrorMessage(DebuggeeRequest->Result);
       return FALSE;
     }
 

@@ -134,6 +134,11 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     SerialConnectionSend("Start", 5);
 
     //
+    // Send Windows Name
+    //
+    SerialConnectionSend(DebuggeeRequest->OsName, MAXIMUM_CHARACTER_FOR_OS_NAME);
+
+    //
     // Set status to successful
     //
     DebuggeeRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;

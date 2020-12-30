@@ -12,6 +12,31 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		    Display Windows Details             //
+//////////////////////////////////////////////////
+
+struct HKeyHolder {
+
+private:
+  HKEY m_Key;
+
+public:
+  HKeyHolder() : m_Key(nullptr) {}
+
+  HKeyHolder(const HKeyHolder &) = delete;
+  HKeyHolder &operator=(const HKeyHolder &) = delete;
+
+  ~HKeyHolder() {
+    if (m_Key != nullptr)
+      RegCloseKey(m_Key);
+  }
+
+  operator HKEY() const { return m_Key; }
+
+  HKEY *operator&() { return &m_Key; }
+};
+
+//////////////////////////////////////////////////
 //			       	 Enums                      //
 //////////////////////////////////////////////////
 
