@@ -39,10 +39,12 @@ VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 string SeparateTo64BitValue(UINT64 Value);
 
 int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
-                           UINT64 BaseAddress, UINT64 Size);
+                           UINT64 BaseAddress, UINT64 Size,
+                           UINT32 MaximumInstrDecoded);
 
 int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
-                           UINT64 BaseAddress, UINT64 Size);
+                           UINT64 BaseAddress, UINT64 Size,
+                           UINT32 MaximumInstrDecoded);
 
 VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,

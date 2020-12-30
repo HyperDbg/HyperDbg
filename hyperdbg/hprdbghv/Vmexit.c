@@ -26,6 +26,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     RFLAGS                Flags                 = {0};
     UINT64                GuestPhysicalAddr     = 0;
     UINT64                GuestRsp              = 0;
+    UINT64                GuestRip              = 0;
     ULONG                 ExitReason            = 0;
     ULONG                 ExitQualification     = 0;
     ULONG                 Rflags                = 0;
@@ -65,6 +66,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     // Increase the RIP by default
     //
     g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+
+    //
+    // Save the current rip
+    //
+    __vmx_vmread(GUEST_RIP, &GuestRip);
+    g_GuestState[CurrentProcessorIndex].LastVmexitRip = GuestRip;
 
     //
     // Set the rsp in general purpose registers structure

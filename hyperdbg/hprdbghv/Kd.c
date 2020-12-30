@@ -12,25 +12,31 @@
 #include "pch.h"
 
 /**
- * @brief Spinlock for halting the system
- * 
- */
-volatile LONG KdHaltLock;
-
-/**
- * @brief Spinlock that the first core should release
- * 
- */
-volatile LONG KdFirstCoreReceivedLock;
-
-/**
  * @brief  apply step one instruction to the debuggee
  * @return VOID 
  */
 VOID
-KdStepInstruction()
+KdStepInstruction(ULONG CoreId)
 {
+    //
+    // It is because maximum instruction length in x64 is 16 bytes
+    //
+    BYTE InstructionBytesOnRip[16 * 2] = {0};
+
     DbgBreakPoint();
+
+    //
+    // Read the buffer at that place
+    //
+    MemoryMapperReadMemorySafe(g_GuestState[CoreId].LastVmexitRip, InstructionBytesOnRip, 16 * 2);
+
+    //
+    // Set vm-exit on hardware debug breakpoint exceptions
+    //
+
+    //
+    // Set hardware breakpoint on next instruction
+    //
 
     //
     // Send the handshake to show that it Stepped
@@ -45,6 +51,11 @@ KdStepInstruction()
 VOID
 KdManageSystemHaltOnVmxRoot()
 {
+    ULONG CurrentCore;
+    BYTE  InstructionBytesOnRip[MAXIMUM_INSTR_SIZE * 2] = {0};
+
+    CurrentCore = KeGetCurrentProcessorNumber();
+
     //
     // Send the handshake to show that it paused
     //
@@ -54,11 +65,27 @@ KdManageSystemHaltOnVmxRoot()
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //
-    if (KeGetCurrentProcessorNumber() == 0)
+    if (CurrentCore == 0)
     {
         //
         // *** First Core ***
         //
+
+        //
+        // Find the current instruction
+        //
+        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
+
+        //
+        // Send it to the debugger
+        //
+        SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
+
+        //
+        // Send it to the debuggee
+        //
+        SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
+
         while (TRUE)
         {
             UCHAR Test = NULL;
@@ -69,7 +96,7 @@ KdManageSystemHaltOnVmxRoot()
             }
             if (Test == 'S')
             {
-                KdStepInstruction();
+                KdStepInstruction(CurrentCore);
             }
         }
     }

@@ -87,11 +87,11 @@ ZydisFormatterFunc default_print_address_absolute;
 
 /**
  * @brief Print addresses
- * 
- * @param formatter 
- * @param buffer 
- * @param context 
- * @return ZyanStatus 
+ *
+ * @param formatter
+ * @param buffer
+ * @param context
+ * @return ZyanStatus
  */
 static ZyanStatus
 ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *formatter,
@@ -121,15 +121,16 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *formatter,
 
 /**
  * @brief Disassemble a user-mode buffer
- * 
- * @param decoder 
- * @param runtime_address 
- * @param data 
- * @param length 
+ *
+ * @param decoder
+ * @param runtime_address
+ * @param data
+ * @param length
  */
 void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
-                       ZyanU8 *data, ZyanUSize length) {
+                       ZyanU8 *data, ZyanUSize length, uint32_t maximum_instr) {
   ZydisFormatter formatter;
+  int instr_decoded = 0;
 
   if (g_DisassemblerSyntax == 1) {
     ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
@@ -191,6 +192,11 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
     data += instruction.length;
     length -= instruction.length;
     runtime_address += instruction.length;
+    instr_decoded++;
+
+    if (instr_decoded == maximum_instr) {
+      return;
+    }
   }
 }
 
@@ -202,8 +208,8 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
 
 /**
  * @brief Zydis test
- * 
- * @return int 
+ *
+ * @return int
  */
 int ZydisTest() {
   if (ZydisGetVersion() != ZYDIS_VERSION) {
@@ -227,7 +233,8 @@ int ZydisTest() {
   ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64,
                    ZYDIS_ADDRESS_WIDTH_64);
 
-  DisassembleBuffer(&decoder, 0x007FFFFFFF400000, &data[0], sizeof(data));
+  DisassembleBuffer(&decoder, 0x007FFFFFFF400000, &data[0], sizeof(data),
+                    0xffffffff);
 
   return 0;
 }
@@ -243,14 +250,17 @@ int ZydisTest() {
 
 /**
  * @brief Disassemble x64 assemblies
- * 
+ *
  * @param BufferToDisassemble buffer to disassemble
  * @param BaseAddress the base address of assembly
- * @param Size size of byffer
- * @return int 
+ * @param Size size of buffer
+ * @param MaximumInstrDecoded maximum instructions to decode, 0 means all
+ * possible
+ * @return int
  */
 int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
-                           UINT64 BaseAddress, UINT64 Size) {
+                           UINT64 BaseAddress, UINT64 Size,
+                           UINT32 MaximumInstrDecoded) {
   if (ZydisGetVersion() != ZYDIS_VERSION) {
     fputs("Invalid zydis version\n", ZYAN_STDERR);
     return EXIT_FAILURE;
@@ -260,21 +270,25 @@ int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
   ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64,
                    ZYDIS_ADDRESS_WIDTH_64);
 
-  DisassembleBuffer(&decoder, BaseAddress, &BufferToDisassemble[0], Size);
+  DisassembleBuffer(&decoder, BaseAddress, &BufferToDisassemble[0], Size,
+                    MaximumInstrDecoded);
 
   return 0;
 }
 
 /**
  * @brief Disassemble 32 bit assemblies
- * 
+ *
  * @param BufferToDisassemble buffer to disassemble
  * @param BaseAddress the base address of assembly
- * @param Size size of byffer
- * @return int 
+ * @param Size size of buffer
+ * @param MaximumInstrDecoded maximum instructions to decode, 0 means all
+ * possible
+ * @return int
  */
 int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
-                           UINT64 BaseAddress, UINT64 Size) {
+                           UINT64 BaseAddress, UINT64 Size,
+                           UINT32 MaximumInstrDecoded) {
   if (ZydisGetVersion() != ZYDIS_VERSION) {
     fputs("Invalid zydis version\n", ZYAN_STDERR);
     return EXIT_FAILURE;
@@ -285,7 +299,7 @@ int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
                    ZYDIS_ADDRESS_WIDTH_32);
 
   DisassembleBuffer(&decoder, (UINT32)BaseAddress, &BufferToDisassemble[0],
-                    Size);
+                    Size, MaximumInstrDecoded);
 
   return 0;
 }

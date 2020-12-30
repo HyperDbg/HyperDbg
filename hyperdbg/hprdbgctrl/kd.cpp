@@ -178,12 +178,25 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   //
   // Check if the handshake is correct or not
   //
-  if (KdCompareBufferWithString(BufferToReceive, "Paused")) {
+  if (!KdCompareBufferWithString(BufferToReceive, "Paused")) {
 
-    return TRUE;
+    return FALSE;
   }
 
-  return FALSE;
+  //
+  // Now we should print the instruction
+  //
+
+  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
+    return FALSE;
+  }
+
+  if (LengthReceived == MAXIMUM_INSTR_SIZE * 2) {
+    HyperDbgDisassembler64((UCHAR *)BufferToReceive, 0x0,
+                           MAXIMUM_INSTR_SIZE * 2, 2);
+  }
+
+  return TRUE;
 }
 
 /**

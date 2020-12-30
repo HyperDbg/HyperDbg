@@ -14,8 +14,8 @@
 /**
  * @brief Read memory and disassembler
  * @details currently, HyperDbg is not support reading memory
- * from vmx-root 
- * 
+ * from vmx-root
+ *
  * @param Style style of show memory (as byte, dwrod, qword)
  * @param Address location of where to read the memory
  * @param MemoryType type of memory (phyical or virtual)
@@ -180,7 +180,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       // Print the hex code
       //
       for (size_t j = 0; j < 16; j += 8) {
-        
+
         //
         // check to see if the address is valid or not
         //
@@ -201,13 +201,13 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       ShowMessages("\n");
     }
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
-    HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength);
+    HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0);
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32) {
-    HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength);
+    HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0);
   }
 
   //
-  // free the buffer 
+  // free the buffer
   //
   free(OutputBuffer);
 

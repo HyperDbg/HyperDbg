@@ -556,6 +556,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
     BOOLEAN IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
     BOOLEAN HasLaunched;                                                   // Indicate whether the core is virtualized or not
+    UINT64  LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64  VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
     UINT64  VmxonRegionVirtualAddress;                                     // VMXON region virtual address
     UINT64  VmcsRegionPhysicalAddress;                                     // VMCS region physical address
