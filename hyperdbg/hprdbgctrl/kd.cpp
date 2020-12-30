@@ -135,7 +135,7 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
   // Check if the handshake is correct or not, and also show the received
   // results like register, etc.
   //
-  if (KdCompareBufferWithString(BufferToReceive, "Paused")) {
+  if (KdCompareBufferWithString(BufferToReceive, "Stepped")) {
 
     return TRUE;
   }
@@ -456,7 +456,7 @@ StartAgain:
 
   BOOL Status;                 /* Status */
   char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
-  char DebuggeeName[MAXIMUM_CHARACTER_FOR_OS_NAME] = {
+  char DebuggeeName[MAXIMUM_CHARACTER_FOR_OS_NAME + sizeof(UINT64)] = {
       0};                /* Buffer to receive data about debuggee name */
   DWORD EventMask = 0;   /* Event mask to trigger */
   char ReadData = NULL;  /* temperory Character */
@@ -772,20 +772,27 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
                         NULL             // synchronous call
         );
 
-    //
-    // Free the buffer
-    //
-    free(DebuggeeRequest);
-
     if (!StatusIoctl) {
       ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+
+      //
+      // Free the buffer
+      //
+      free(DebuggeeRequest);
+
       return FALSE;
     }
 
     if (DebuggeeRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
       ShowMessages("The operation was successful\n");
+
     } else {
       ShowErrorMessage(DebuggeeRequest->Result);
+      //
+      // Free the buffer
+      //
+      free(DebuggeeRequest);
+
       return FALSE;
     }
 
@@ -794,6 +801,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     //
     g_SerialListeningThreadHandle =
         CreateThread(NULL, 0, ListeningSerialPauseThread, Comm, 0, NULL);
+
+    //
+    // Free the buffer
+    //
+    free(DebuggeeRequest);
 
     //
     // Finish it here

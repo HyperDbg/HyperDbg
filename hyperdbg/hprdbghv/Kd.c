@@ -24,6 +24,21 @@ volatile LONG KdHaltLock;
 volatile LONG KdFirstCoreReceivedLock;
 
 /**
+ * @brief  apply step one instruction to the debuggee
+ * @return VOID 
+ */
+VOID
+KdStepInstruction()
+{
+    DbgBreakPoint();
+
+    //
+    // Send the handshake to show that it Stepped
+    //
+    SerialConnectionSend("Stepped", 7);
+}
+
+/**
  * @brief manage system halt on vmx-root mode 
  * @return VOID 
  */
@@ -51,6 +66,10 @@ KdManageSystemHaltOnVmxRoot()
             if (Test == 'G')
             {
                 break;
+            }
+            if (Test == 'S')
+            {
+                KdStepInstruction();
             }
         }
     }

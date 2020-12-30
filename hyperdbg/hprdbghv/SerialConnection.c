@@ -142,5 +142,6 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     // Set status to successful
     //
     DebuggeeRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
     return STATUS_SUCCESS;
 }

@@ -78,8 +78,6 @@ StartAgain:
   int index = 0;
   for (index = 0; index < Loop; ++index) {
 
-    /* ShowMessages("%c", SerialBuffer[index]); */
-
     if (SerialBuffer[index] == 'P') {
 
       /*
