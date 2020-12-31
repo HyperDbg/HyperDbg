@@ -186,7 +186,6 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   //
   // Now we should print the instruction
   //
-
   if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
     return FALSE;
   }

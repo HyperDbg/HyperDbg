@@ -350,6 +350,18 @@ VmxVmcallHandler(UINT64 VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SET_VM_EXIT_ON_NMIS:
+    {
+        HvSetNmiExiting(TRUE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_UNSET_VM_EXIT_ON_NMIS:
+    {
+        HvSetNmiExiting(FALSE);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

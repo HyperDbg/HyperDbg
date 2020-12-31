@@ -102,6 +102,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Apic.c" />
     <ClCompile Include="Broadcast.c" />
     <ClCompile Include="Counters.c" />
     <ClCompile Include="CrossVmexits.c" />
@@ -151,6 +152,7 @@
     <MASM Include="AsmVmxContextState.asm" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Apic.h" />
     <ClInclude Include="Broadcast.h" />
     <ClInclude Include="Counters.h" />
     <ClInclude Include="Debugger.h" />

@@ -42,6 +42,7 @@
 #include "Events.h"
 #include "Common.h"
 #include "Debugger.h"
+#include "Apic.h"
 #include "DebuggerEvents.h"
 #include "Hooks.h"
 #include "Counters.h"

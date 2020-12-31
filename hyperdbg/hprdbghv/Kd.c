@@ -12,7 +12,43 @@
 #include "pch.h"
 
 /**
- * @brief  apply step one instruction to the debuggee
+ * @brief initialize kernel debugger
+ * @return VOID 
+ */
+VOID
+KdInitializeKernelDebugger()
+{
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    HvEnableNmiExitingAllCores();
+
+    //
+    // Generate NMIs
+    //
+    ApicTriggerGenericNmi();
+}
+
+/**
+ * @brief Handle NMI Vm-exits
+ * @details This function should be called in vmx-root mode
+ * @return VOID 
+ */
+VOID
+KdHandleNmi()
+{
+    DbgBreakPoint();
+    LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber());
+}
+
+/**
+ * @brief apply step one instruction to the debuggee
+ * @param CoreId 
  * @return VOID 
  */
 VOID
@@ -123,12 +159,18 @@ KdBroadcastHaltOnAllCores()
 
 /**
  * @brief Halt the system
+ * @param PausePacket 
  * 
  * @return VOID 
  */
 VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
 {
+    //
+    // Initialize kernel debugger
+    //
+    KdInitializeKernelDebugger();
+
     //
     // Broadcast to halt everything
     //

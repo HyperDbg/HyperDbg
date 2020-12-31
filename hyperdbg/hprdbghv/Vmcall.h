@@ -239,6 +239,18 @@
  */
 #define VMCALL_VM_EXIT_HALT_SYSTEM 0x24
 
+/**
+ * @brief VMCALL to cause vm-exit on NMIs
+ * 
+ */
+#define VMCALL_SET_VM_EXIT_ON_NMIS 0x25
+
+/**
+ * @brief VMCALL to not cause vm-exit on NMIs
+ * 
+ */
+#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x26
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

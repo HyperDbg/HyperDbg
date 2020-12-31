@@ -104,3 +104,15 @@ BOOLEAN g_EnableDebuggerSteppings;
  * 
  */
 LIST_ENTRY g_ThreadDebuggingStates;
+
+/**
+ * @brief X2APIC or XAPIC routine
+ * 
+ */
+BOOLEAN g_IsX2Apic;
+
+/**
+ * @brief APIC Base
+ * 
+ */
+VOID * g_ApicBase;

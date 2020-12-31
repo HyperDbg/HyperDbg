@@ -94,6 +94,12 @@
     <Filter Include="Header Files\Debugger\Communication">
       <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Devices">
+      <UniqueIdentifier>{3c7b33d6-6147-4c8a-a742-aeff2b63b575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Devices">
+      <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -215,6 +221,9 @@
     <ClCompile Include="Kd.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="Apic.c">
+      <Filter>Source Files\Devices</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -318,6 +327,9 @@
     </ClInclude>
     <ClInclude Include="Kd.h">
       <Filter>Header Files\Debugger\Essentials</Filter>
+    </ClInclude>
+    <ClInclude Include="Apic.h">
+      <Filter>Header Files\Devices</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

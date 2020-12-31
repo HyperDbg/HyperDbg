@@ -251,6 +251,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         // Call the Exception Bitmap and NMI Handler
         //
+        DbgBreakPoint();
         IdtEmulationHandleExceptionAndNmi(InterruptExit, CurrentProcessorIndex, GuestRegs);
 
         //

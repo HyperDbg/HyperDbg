@@ -17,3 +17,6 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
 KdManageSystemHaltOnVmxRoot();
+
+VOID
+KdHandleNmi();

@@ -381,6 +381,15 @@ VOID
 HvSetExternalInterruptExiting(BOOLEAN Set);
 
 /**
+ * @brief Set the NMI Exiting
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetNmiExiting(BOOLEAN Set);
+
+/**
  * @brief Set bits in I/O Bitmap
  * 
  * @param Port 
@@ -422,6 +431,22 @@ HvEnableBreakpointExitingOnExceptionBitmapAllCores();
  */
 VOID
 HvDisableBreakpointExitingOnExceptionBitmapAllCores();
+
+/**
+ * @brief routines to enable vm-exit for NMIs
+ * 
+ * @return VOID 
+ */
+VOID
+HvEnableNmiExitingAllCores();
+
+/**
+ * @brief routines to disable vm-exit for NMIs
+ * 
+ * @return VOID 
+ */
+VOID
+HvDisableNmiExitingAllCores();
 
 /**
  * @brief The broadcast function which removes the single hook and invalidate TLB

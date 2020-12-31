@@ -1592,6 +1592,42 @@ HvSetExternalInterruptExiting(BOOLEAN Set)
 }
 
 /**
+ * @brief Set the NMI Exiting
+ * 
+ * @param Set Set or unset the NMI Exiting
+ * @return VOID 
+ */
+VOID
+HvSetNmiExiting(BOOLEAN Set)
+{
+    ULONG PinBasedControls = 0;
+    ULONG VmExitControls   = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
+    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+
+    if (Set)
+    {
+        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
+        VmExitControls |= VM_EXIT_ACK_INTR_ON_EXIT;
+    }
+    else
+    {
+        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING;
+        VmExitControls &= ~VM_EXIT_ACK_INTR_ON_EXIT;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
+    __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+}
+
+/**
  * @brief Set bits in I/O Bitmap
  * 
  * @param Port Port
@@ -1688,4 +1724,32 @@ HvDisableBreakpointExitingOnExceptionBitmapAllCores()
     // Broadcast to all cores
     //
     KeGenericCallDpc(BroadcastDpcDisableBreakpointOnExceptionBitmapOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to set vm-exit on all NMIs on all cores 
+*
+* @return VOID 
+ */
+VOID
+HvEnableNmiExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableNmiVmexitOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to set vm-exit on all NMIs on all cores 
+*
+* @return VOID 
+ */
+VOID
+HvDisableNmiExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcDisableNmiVmexitOnAllCores, NULL);
 }

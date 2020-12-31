@@ -94,13 +94,9 @@ DebuggerInitialize()
 
     //
     // Initialize the stepping mechanism
+    // (USER-MODE STEPPING IS NOT SUPPORTED IN THIS VERSION)
     //
-    SteppingsInitialize();
-
-    //
-    // Test serial connection
-    //
-    // SerialConnectionTest();
+    //SteppingsInitialize();
 
     return TRUE;
 }
