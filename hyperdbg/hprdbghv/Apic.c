@@ -13,6 +13,8 @@
 
 /**
  * @brief Trigger NMI on XAPIC
+ * @param Low
+ * @param High
  * 
  * @return VOID 
  */
@@ -25,6 +27,8 @@ ApicXTriggerNmi(UINT32 Low, UINT32 High)
 
 /**
  * @brief Trigger NMI on X2APIC
+ * @param Low
+ * @param High
  * 
  * @return VOID 
  */
@@ -55,9 +59,9 @@ ApicTriggerGenericNmi()
 /**
  * @brief Initialize APIC
  * 
- * @return UINT32 
+ * @return BOOLEAN 
  */
-UINT32
+BOOLEAN
 ApicInitialize()
 {
     UINT64           ApicBaseMSR;
@@ -65,19 +69,34 @@ ApicInitialize()
 
     ApicBaseMSR = __readmsr(0x1B);
     if (!(ApicBaseMSR & (1 << 11)))
-        return STATUS_FAILED_DRIVER_ENTRY;
+        return FALSE;
     if (ApicBaseMSR & (1 << 10))
     {
         g_IsX2Apic = TRUE;
-        return STATUS_FAILED_DRIVER_ENTRY;
+        return FALSE;
     }
     else
     {
         PaApicBase.QuadPart = ApicBaseMSR & 0xFFFFFF000;
         g_ApicBase          = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
         if (!g_ApicBase)
-            return STATUS_FAILED_DRIVER_ENTRY;
+            return FALSE;
         g_IsX2Apic = FALSE;
     }
-    return STATUS_SUCCESS;
+    return TRUE;
+}
+
+/**
+ * @brief Uninitialize APIC
+ * 
+ * @return VOID 
+ */
+VOID
+ApicUninitialize()
+{
+    //
+    // Unmap I/O Base
+    //
+    if (g_ApicBase)
+        MmUnmapIoSpace(g_ApicBase, 0x1000);
 }

@@ -210,7 +210,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
     }
     else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI && InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
     {
-        KdHandleNmi();
+        KdHandleNmi(CurrentProcessorIndex, GuestRegs);
     }
     else
     {

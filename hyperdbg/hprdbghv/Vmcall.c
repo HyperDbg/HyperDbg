@@ -346,7 +346,7 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdManageSystemHaltOnVmxRoot();
+        KdManageSystemHaltOnVmxRoot(KeGetCurrentProcessorNumber());
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

@@ -9,14 +9,27 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
 #pragma once
+
+//////////////////////////////////////////////////
+//				   Functions 	    			//
+//////////////////////////////////////////////////
 
 VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdManageSystemHaltOnVmxRoot();
+KdManageSystemHaltOnVmxRoot(ULONG CurrentCore);
 
 VOID
-KdHandleNmi();
+KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
+//////////////////////////////////////////////////
+//				 Spinlock Locks 				//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Lock for halting all cores
+ * 
+ */
+volatile LONG SystemHaltLock;

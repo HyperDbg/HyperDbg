@@ -13,6 +13,8 @@
 
 /**
  * @brief initialize kernel debugger
+ * @details this function should be called on vmx non-root
+ * 
  * @return VOID 
  */
 VOID
@@ -27,7 +29,38 @@ KdInitializeKernelDebugger()
     // Broadcast on all core to cause exit for NMIs
     //
     HvEnableNmiExitingAllCores();
+}
 
+/**
+ * @brief uninitialize kernel debugger
+ *  
+ * @details this function should be called on vmx non-root
+ *
+ * @return VOID 
+ */
+VOID
+KdUninitializeKernelDebugger()
+{
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    HvDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
+}
+
+/**
+ * @brief Halt all other Core by interrupting them to nmi
+ * @details This function can be used in vmx-root mode 
+ * and vmx non-root
+ * @return VOID 
+ */
+VOID
+KdHaltAllOtherCoresByNmi()
+{
     //
     // Generate NMIs
     //
@@ -40,9 +73,14 @@ KdInitializeKernelDebugger()
  * @return VOID 
  */
 VOID
-KdHandleNmi()
+KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber());
+
+    //
+    // All the cores should go and manage through the following function
+    //
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex);
 }
 
 /**
@@ -81,15 +119,14 @@ KdStepInstruction(ULONG CoreId)
 
 /**
  * @brief manage system halt on vmx-root mode 
+ * @CurrentCore  
+ * 
  * @return VOID 
  */
 VOID
-KdManageSystemHaltOnVmxRoot()
+KdManageSystemHaltOnVmxRoot(ULONG CurrentCore)
 {
-    ULONG CurrentCore;
-    BYTE  InstructionBytesOnRip[MAXIMUM_INSTR_SIZE * 2] = {0};
-
-    CurrentCore = KeGetCurrentProcessorNumber();
+    BYTE InstructionBytesOnRip[MAXIMUM_INSTR_SIZE * 2] = {0};
 
     //
     // We check for receiving buffer (unhalting) only on the
@@ -122,6 +159,10 @@ KdManageSystemHaltOnVmxRoot()
             KdHyperDbgRecvByte(&Test);
             if (Test == 'G')
             {
+                //
+                // Unlock other cores
+                //
+                SpinlockUnlock(&SystemHaltLock);
                 break;
             }
             if (Test == 'S')
@@ -135,6 +176,13 @@ KdManageSystemHaltOnVmxRoot()
         //
         // All cores except first core
         //
+
+        //
+        // Lock and unlock the lock so all core can get the lock
+        // and continue their normal execution
+        //
+        SpinlockLock(&SystemHaltLock);
+        SpinlockUnlock(&SystemHaltLock);
     }
 }
 
@@ -164,6 +212,11 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     // Initialize kernel debugger
     //
     KdInitializeKernelDebugger();
+
+    //
+    // Lock the system halt spinlock
+    //
+    SpinlockLock(&SystemHaltLock);
 
     //
     // Broadcast to halt everything

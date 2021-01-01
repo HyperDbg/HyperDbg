@@ -26,5 +26,8 @@
 VOID
 ApicTriggerGenericNmi();
 
-UINT32
+BOOLEAN
 ApicInitialize();
+
+VOID
+ApicUninitialize();
