@@ -98,3 +98,9 @@ BroadcastDpcDisableNmiVmexitOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 
 VOID
 BroadcastDpcVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
+VOID
+BroadcastDpcEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
+VOID
+BroadcastDpcDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

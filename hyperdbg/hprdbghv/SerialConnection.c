@@ -129,6 +129,11 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     KdHyperDbgPrepareDebuggeeConnectionPort(DebuggeeRequest->PortAddress, DebuggeeRequest->Baudrate);
 
     //
+    // Initialize kernel debugger
+    //
+    KdInitializeKernelDebugger();
+
+    //
     // Send "Start" packet
     //
     SerialConnectionSend("Start", 5);

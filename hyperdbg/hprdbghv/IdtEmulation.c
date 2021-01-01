@@ -173,6 +173,15 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
         }
     }
+    else if (g_KernelDebuggerState == TRUE &&
+             (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT ||
+              InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT))
+    {
+        //
+        // It's a breakpoint and should be handled by the kernel debugger
+        //
+    
+}
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //

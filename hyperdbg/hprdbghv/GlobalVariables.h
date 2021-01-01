@@ -106,6 +106,12 @@ BOOLEAN g_EnableDebuggerSteppings;
 LIST_ENTRY g_ThreadDebuggingStates;
 
 /**
+ * @brief shows whether the kernel debugger is enabled or disabled
+ * 
+ */
+BOOLEAN g_KernelDebuggerState;
+
+/**
  * @brief X2APIC or XAPIC routine
  * 
  */

@@ -29,6 +29,17 @@ KdInitializeKernelDebugger()
     // Broadcast on all core to cause exit for NMIs
     //
     HvEnableNmiExitingAllCores();
+
+    //
+    // Enable vm-exit on Hardware debug exceptions and breakpoints
+    // so, intercept #DBs and #BP by changing exception bitmap (one core)
+    //
+    HvEnableDbandBpExitingAllCores();
+
+    //
+    // Indicate that kernel debugger is active
+    //
+    g_KernelDebuggerState = TRUE;
 }
 
 /**
@@ -42,9 +53,20 @@ VOID
 KdUninitializeKernelDebugger()
 {
     //
+    // Indicate that kernel debugger is not active
+    //
+    g_KernelDebuggerState = FALSE;
+
+    //
     // Broadcast on all core to cause not to exit for NMIs
     //
     HvDisableNmiExitingAllCores();
+
+    //
+    // Disable vm-exit on Hardware debug exceptions and breakpoints
+    // so, not intercept #DBs and #BP by changing exception bitmap (one core)
+    //
+    HvDisableDbandBpExitingAllCores();
 
     //
     // Uinitialize APIC related function
@@ -53,18 +75,23 @@ KdUninitializeKernelDebugger()
 }
 
 /**
- * @brief Halt all other Core by interrupting them to nmi
- * @details This function can be used in vmx-root mode 
- * and vmx non-root
+ * @brief Handle #DBs and #BPs for kernel debugger
+ * @details This function can be used in vmx-root 
+ * 
  * @return VOID 
  */
 VOID
-KdHaltAllOtherCoresByNmi()
+KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     //
-    // Generate NMIs
+    // Halt all other Core by interrupting them to nmi
     //
     ApicTriggerGenericNmi();
+
+    //
+    // All the cores should go and manage through the following function
+    //
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs);
 }
 
 /**
@@ -80,7 +107,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs);
 }
 
 /**
@@ -124,7 +151,7 @@ KdStepInstruction(ULONG CoreId)
  * @return VOID 
  */
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore)
+KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
     BYTE InstructionBytesOnRip[MAXIMUM_INSTR_SIZE * 2] = {0};
 
@@ -209,19 +236,25 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
 {
     //
-    // Initialize kernel debugger
-    //
-    KdInitializeKernelDebugger();
-
-    //
     // Lock the system halt spinlock
     //
     SpinlockLock(&SystemHaltLock);
 
     //
     // Broadcast to halt everything
+    // Instead of broadcasting we will just send one vmcall and
+    // from that point, we halt all the other cores by NMIs, this
+    // way we are sure that we get all the other cores at the middle
+    // of their execution codes and not on HyperDbg routines
     //
+    /*
     KdBroadcastHaltOnAllCores();
+    */
+
+    //
+    // vm-exit and halt current core
+    //
+    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
 
     //
     // Set the status

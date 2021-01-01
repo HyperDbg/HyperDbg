@@ -18,7 +18,7 @@
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
+VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
 {
     //
     // Triggeer the event
@@ -39,7 +39,12 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
         //
         // Then we have to manage it as it relates to us
         //
-        GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
+        GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx,
+                                          GuestRegs->rdx,
+                                          GuestRegs->r8,
+                                          GuestRegs->r9,
+                                          GuestRegs,
+                                          CoreIndex);
     }
     else
     {
@@ -81,10 +86,12 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs)
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxVmcallHandler(UINT64 VmcallNumber,
-                 UINT64 OptionalParam1,
-                 UINT64 OptionalParam2,
-                 UINT64 OptionalParam3)
+VmxVmcallHandler(UINT64      VmcallNumber,
+                 UINT64      OptionalParam1,
+                 UINT64      OptionalParam2,
+                 UINT64      OptionalParam3,
+                 PGUEST_REGS GuestRegs,
+                 UINT32      CurrentCoreIndex)
 {
     NTSTATUS VmcallStatus = STATUS_UNSUCCESSFUL;
     BOOLEAN  HookResult   = FALSE;
@@ -346,7 +353,7 @@ VmxVmcallHandler(UINT64 VmcallNumber,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdManageSystemHaltOnVmxRoot(KeGetCurrentProcessorNumber());
+        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex, GuestRegs);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

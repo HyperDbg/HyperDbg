@@ -19,10 +19,16 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore);
+KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs);
 
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
+VOID
+KdInitializeKernelDebugger();
+
+VOID
+KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
 //////////////////////////////////////////////////
 //				 Spinlock Locks 				//

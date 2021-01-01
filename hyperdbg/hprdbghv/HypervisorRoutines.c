@@ -1700,8 +1700,8 @@ HvPerformIoBitmapReset()
 
 /**
  * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
-*
-* @return VOID 
+ *
+ * @return VOID 
  */
 VOID
 HvEnableBreakpointExitingOnExceptionBitmapAllCores()
@@ -1728,8 +1728,8 @@ HvDisableBreakpointExitingOnExceptionBitmapAllCores()
 
 /**
  * @brief routines to set vm-exit on all NMIs on all cores 
-*
-* @return VOID 
+ *
+ * @return VOID 
  */
 VOID
 HvEnableNmiExitingAllCores()
@@ -1742,8 +1742,8 @@ HvEnableNmiExitingAllCores()
 
 /**
  * @brief routines to set vm-exit on all NMIs on all cores 
-*
-* @return VOID 
+ *
+ * @return VOID 
  */
 VOID
 HvDisableNmiExitingAllCores()
@@ -1752,4 +1752,32 @@ HvDisableNmiExitingAllCores()
     // Broadcast to all cores
     //
     KeGenericCallDpc(BroadcastDpcDisableNmiVmexitOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to set vm-exit on all #DBs and #BP on all cores 
+*
+* @return VOID 
+ */
+VOID
+HvEnableDbandBpExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcEnableDbAndBpExitingOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to unset vm-exit on all #DBs and #BP on all cores 
+ *
+ * @return VOID 
+ */
+VOID
+HvDisableDbandBpExitingAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(BroadcastDpcDisableDbAndBpExitingOnAllCores, NULL);
 }

@@ -449,6 +449,22 @@ VOID
 HvDisableNmiExitingAllCores();
 
 /**
+ * @brief routines to enable vm-exit for #DBs and #BPs
+ * 
+ * @return VOID 
+ */
+VOID
+HvEnableDbandBpExitingAllCores();
+
+/**
+ * @brief routines to disable vm-exit for #DBs and #BPs
+ * 
+ * @return VOID 
+ */
+VOID
+HvDisableDbandBpExitingAllCores();
+
+/**
  * @brief The broadcast function which removes the single hook and invalidate TLB
  * 
  * @param Dpc 

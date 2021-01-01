@@ -262,7 +262,7 @@
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs);
+VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex);
 
 /**
  * @brief Main handler for VMCALLs
@@ -274,7 +274,12 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs);
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxVmcallHandler(UINT64 VmcallNumber, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3);
+VmxVmcallHandler(UINT64      VmcallNumber,
+                 UINT64      OptionalParam1,
+                 UINT64      OptionalParam2,
+                 UINT64      OptionalParam3,
+                 PGUEST_REGS GuestRegs,
+                 UINT32      CurrentCoreIndex);
 
 /**
  * @brief Test function which shows a message to test a successfull VMCALL

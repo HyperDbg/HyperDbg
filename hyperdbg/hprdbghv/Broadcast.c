@@ -774,3 +774,69 @@ BroadcastDpcVmExitAndHaltSystemAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID
     //
     KeSignalCallDpcDone(SystemArgument1);
 }
+
+/**
+ * @brief Enable vm-exit on #DBs and #BPs on all cores
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcEnableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Cause vm-exit on #BPs
+    //
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
+
+    //
+    // Cause vm-exit on #DBs
+    //
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Disable vm-exit on #DBs and #BPs on all cores
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+BroadcastDpcDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Cause no vm-exit on #BPs
+    //
+    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
+
+    //
+    // Cause no vm-exit on #DBs
+    //
+    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
