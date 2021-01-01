@@ -42,7 +42,6 @@ KdInitializeKernelDebugger()
 VOID
 KdHandleNmi()
 {
-    DbgBreakPoint();
     LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber());
 }
 
@@ -93,11 +92,6 @@ KdManageSystemHaltOnVmxRoot()
     CurrentCore = KeGetCurrentProcessorNumber();
 
     //
-    // Send the handshake to show that it paused
-    //
-    SerialConnectionSend("Paused", 6);
-
-    //
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //
@@ -108,17 +102,17 @@ KdManageSystemHaltOnVmxRoot()
         //
 
         //
+        // Send the handshake to show that it paused
+        //
+        SerialConnectionSend("Paused", 6);
+
+        //
         // Find the current instruction
         //
         MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
 
         //
         // Send it to the debugger
-        //
-        SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
-
-        //
-        // Send it to the debuggee
         //
         SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
 

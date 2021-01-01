@@ -191,6 +191,7 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   }
 
   if (LengthReceived == MAXIMUM_INSTR_SIZE * 2) {
+    ShowMessages("\n");
     HyperDbgDisassembler64((UCHAR *)BufferToReceive, 0x0,
                            MAXIMUM_INSTR_SIZE * 2, 2);
   }
