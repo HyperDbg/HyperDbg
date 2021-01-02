@@ -27,11 +27,13 @@ extern BOOLEAN g_IsDebuggeeRunning;
  */
 VOID CommandDebugHelp() {
   ShowMessages(".debug : debug target .\n\n");
-  ShowMessages("syntax : \t.debug [action (remote | prepare)] [type (serial | "
-               "namedpipe)] [baud rate (decimal value)] address \n");
+  ShowMessages(
+      "syntax : \t.debug [action (remote | prepare | close)] [type (serial | "
+      "namedpipe)] [baud rate (decimal value)] address \n");
   ShowMessages("\t\te.g : .debug remote serial 115200 com3\n");
   ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
   ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
+  ShowMessages("\t\te.g : .debug close\n");
   ShowMessages(
       "\nvalid baud rates (decimal) : 110, 300, 600, 1200, 2400, 4800, 9600, "
       "14400, 19200, 38400, 56000, 57600, 115200, 128000, 256000\n");
@@ -98,7 +100,11 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
   UINT32 Baudrate;
   UINT32 Port;
 
-  if (SplittedCommand.size() <= 3) {
+  if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("close")) {
+    KdCloseConnection();
+    return;
+
+  } else if (SplittedCommand.size() <= 3) {
     ShowMessages("incorrect use of '.debug'\n\n");
     CommandDebugHelp();
     return;

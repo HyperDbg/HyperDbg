@@ -114,10 +114,17 @@ HANDLE g_SerialRemoteComPortHandle = NULL;
 
 /**
  * @brief Shows if the debugger was connected to
- * remote debuggee over
+ * remote debuggee over (A remote guest)
  *
  */
 BOOLEAN g_IsSerialConnectedToRemoteDebuggee = FALSE;
+
+/**
+ * @brief Shows if the debugger was connected to
+ * remote debugger (A remote host)
+ *
+ */
+BOOLEAN g_IsSerialConnectedToRemoteDebugger = FALSE;
 
 /**
  * @brief Shows if the debuggee is running or not
@@ -138,6 +145,13 @@ BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
  *
  */
 HANDLE g_DebuggerRunningEventHandle = NULL;
+
+/**
+ * @brief An event to make sure that the user won't give any command in debuggee
+ * and all the commands are coming from just the debugger
+ *
+ */
+HANDLE g_DebuggeeStopCommandEventHandle = NULL;
 
 //////////////////////////////////////////////////
 //				 Global Variables               //

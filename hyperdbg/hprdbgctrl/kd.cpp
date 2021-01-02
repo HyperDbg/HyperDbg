@@ -17,8 +17,10 @@
 extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_DebuggerRunningEventHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
+extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BYTE g_EndOfBufferCheck[4];
@@ -615,6 +617,14 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   ULONG ReturnedLength;
   PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
 
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+    ShowMessages(
+        "err, you already connected to an instance of the debugger, you can "
+        "use 'debug close' to disconnect from the debuggee and after that you "
+        "can connect to a new instance of debugger.");
+    return FALSE;
+  }
+
   if (IsPreparing && IsNamedPipe) {
     ShowMessages("err, cannot used named pipe for debuggee");
     return FALSE;
@@ -810,6 +820,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     }
 
     //
+    // Indicate that we connected to the debugger
+    //
+    g_IsSerialConnectedToRemoteDebugger = TRUE;
+
+    //
     // Create a thread to listen for pauses from the remote debugger
     //
     g_SerialListeningThreadHandle =
@@ -819,6 +834,24 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     // Free the buffer
     //
     free(DebuggeeRequest);
+
+    //
+    // Wait here so the user can't give new commands
+    // Create an event (manually. no signal)
+    //
+    g_DebuggeeStopCommandEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    //
+    // Now we should wait on this state until the user closes the connection to
+    // debuggee from debugger
+    //
+    WaitForSingleObject(g_DebuggeeStopCommandEventHandle, INFINITE);
+
+    //
+    // Close the event's handle
+    //
+    CloseHandle(g_DebuggeeStopCommandEventHandle);
+    g_DebuggeeStopCommandEventHandle = NULL;
 
     //
     // Finish it here
@@ -838,4 +871,73 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   // everything was done
   //
   return TRUE;
+}
+
+/**
+ * @brief Send close packet to the debuggee and debugger
+ * @details This function close the connection in both debuggee and debugger
+ * both of the debuggee and debugger can use this function
+ *
+ * @return VOID
+ */
+VOID KdCloseConnection() {
+
+  if (g_IsSerialConnectedToRemoteDebuggee ||
+      g_IsSerialConnectedToRemoteDebugger) {
+
+    //
+    // Close the event's handle
+    //
+    if (g_DebuggerRunningEventHandle != NULL) {
+      CloseHandle(g_DebuggerRunningEventHandle);
+      g_DebuggerRunningEventHandle = NULL;
+    }
+
+    //
+    // If connected to debugger
+    //
+    g_IsSerialConnectedToRemoteDebugger = FALSE;
+
+    //
+    // No longer connected to the debuggee
+    //
+    g_IsSerialConnectedToRemoteDebuggee = FALSE;
+
+    //
+    // And debuggee is not running
+    //
+    g_IsDebuggeeRunning = FALSE;
+
+    //
+    // Clear the handler
+    //
+    if (g_SerialRemoteComPortHandle != NULL) {
+      CloseHandle(g_SerialRemoteComPortHandle);
+      g_SerialRemoteComPortHandle = NULL;
+    }
+
+    //
+    // Is serial handle for a named pipe
+    //
+    g_IsDebuggerConntectedToNamedPipe = FALSE;
+
+    //
+    // Close the handles
+    //
+    if (g_SerialListeningThreadHandle != NULL) {
+      CloseHandle(g_SerialListeningThreadHandle);
+      g_SerialListeningThreadHandle = NULL;
+    }
+
+    if (g_DebuggeeStopCommandEventHandle != NULL) {
+
+      //
+      // Signal the debuggee to get new commands
+      //
+      SetEvent(g_DebuggeeStopCommandEventHandle);
+    }
+
+  } else {
+    ShowMessages("err, you're not connected to any debuggee.\n");
+  }
 }
