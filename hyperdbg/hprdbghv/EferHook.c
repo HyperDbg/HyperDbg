@@ -91,6 +91,12 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
 
         //
+        // Because we're not save or load EFER on vm-exits so
+        // we have to set it manually
+        //
+        __writemsr(MSR_EFER, MsrValue.Flags);
+
+        //
         // unset the exception to not cause vm-exit on #UDs
         //
         HvUnsetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
