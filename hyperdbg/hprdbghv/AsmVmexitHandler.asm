@@ -120,30 +120,33 @@ AsmVmexitHandler ENDP
 ;------------------------------------------------------------------------
 
 AsmVmxoffHandler PROC
-    sub rsp, 020h       ; shadow space
-    call HvReturnStackPointerForVmxoff
-    add rsp, 020h       ; remove for shadow space
 
-    mov [rsp+198h], rax  ; now, rax contains rsp
+	sub rsp, 020h ; shadow space
+	call HvReturnStackPointerForVmxoff
+	add rsp, 020h ; remove for shadow space
 
-    sub rsp, 020h       ; shadow space
-    call HvReturnInstructionPointerForVmxoff
-    add rsp, 020h       ; remove for shadow space
 
-    mov rdx, rsp        ; save current rsp
+	mov [rsp+88h], rax  ; now, rax contains rsp
 
-    mov rbx, [rsp+198h] ; read rsp again
+	sub rsp, 020h      ; shadow space
+	call HvReturnInstructionPointerForVmxoff
+	add rsp, 020h      ; remove for shadow space
 
-    mov rsp, rbx
+	mov rdx, rsp       ; save current rsp
 
-    push rax            ; push the return address as we changed the stack, we push
-                        ; it to the new stack
+	mov rbx, [rsp+88h] ; read rsp again
 
-    mov rsp, rdx        ; restore previous rsp
-                        
-    sub rbx,08h         ; we push sth, so we have to add (sub) +8 from previous stack
-                        ; also rbx already contains the rsp
-    mov [rsp+198h], rbx ; move the new pointer to the current stack
+	mov rsp, rbx
+
+	push rax            ; push the return address as we changed the stack, we push
+                  		; it to the new stack
+
+	mov rsp, rdx        ; restore previous rsp
+                    
+	sub rbx,08h         ; we push sth, so we have to add (sub) +8 from previous stack
+                   		; also rbx already contains the rsp
+	mov [rsp+88h], rbx  ; move the new pointer to the current stack
+
 
 	RestoreState:
 
@@ -165,27 +168,27 @@ AsmVmxoffHandler PROC
     pop r15
 
     ; ------------ Restore XMM Registers ------------
-
-        movaps xmm0, xmmword ptr [rsp+000h]
-        movaps xmm1, xmmword ptr [rsp+010h]
-        movaps xmm2, xmmword ptr [rsp+020h]
-        movaps xmm3, xmmword ptr [rsp+030h]
-        movaps xmm4, xmmword ptr [rsp+040h]
-        movaps xmm5, xmmword ptr [rsp+050h]
-        movaps xmm6, xmmword ptr [rsp+060h]
-        movaps xmm7, xmmword ptr [rsp+070h]
-        movaps xmm8, xmmword ptr [rsp+080h]
-        movaps xmm9, xmmword ptr [rsp+090h]
-        movaps xmm10, xmmword ptr [rsp+0a0h]
-        movaps xmm11, xmmword ptr [rsp+0b0h]
-        movaps xmm12, xmmword ptr [rsp+0c0h]
-        movaps xmm13, xmmword ptr [rsp+0d0h]
-        movaps xmm14, xmmword ptr [rsp+0e0h]
-        movaps xmm15, xmmword ptr [rsp+0f0h]
-
-        ldmxcsr dword ptr [rsp+0100h]          
-        
-        add     rsp, 0110h
+    ;
+    ;    movaps xmm0, xmmword ptr [rsp+000h]
+    ;    movaps xmm1, xmmword ptr [rsp+010h]
+    ;    movaps xmm2, xmmword ptr [rsp+020h]
+    ;    movaps xmm3, xmmword ptr [rsp+030h]
+    ;    movaps xmm4, xmmword ptr [rsp+040h]
+    ;    movaps xmm5, xmmword ptr [rsp+050h]
+    ;    movaps xmm6, xmmword ptr [rsp+060h]
+    ;    movaps xmm7, xmmword ptr [rsp+070h]
+    ;    movaps xmm8, xmmword ptr [rsp+080h]
+    ;    movaps xmm9, xmmword ptr [rsp+090h]
+    ;    movaps xmm10, xmmword ptr [rsp+0a0h]
+    ;    movaps xmm11, xmmword ptr [rsp+0b0h]
+    ;    movaps xmm12, xmmword ptr [rsp+0c0h]
+    ;    movaps xmm13, xmmword ptr [rsp+0d0h]
+    ;    movaps xmm14, xmmword ptr [rsp+0e0h]
+    ;    movaps xmm15, xmmword ptr [rsp+0f0h]
+    ;
+    ;    ldmxcsr dword ptr [rsp+0100h]          
+    ;    
+    ;    add     rsp, 0110h
     ; ----------------------------------------------
 
     popfq

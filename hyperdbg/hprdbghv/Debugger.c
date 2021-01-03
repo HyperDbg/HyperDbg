@@ -96,7 +96,7 @@ DebuggerInitialize()
     // Initialize the stepping mechanism
     // (USER-MODE STEPPING IS NOT SUPPORTED IN THIS VERSION)
     //
-    //SteppingsInitialize();
+    // SteppingsInitialize();
 
     return TRUE;
 }
@@ -108,6 +108,7 @@ DebuggerInitialize()
 VOID
 DebuggerUninitialize()
 {
+    return;
     //
     // Unitialize the stepping mechanism
     //
