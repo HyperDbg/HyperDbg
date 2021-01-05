@@ -19,44 +19,59 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 
 /**
  * @brief help of unload command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandUnloadHelp() {
   ShowMessages(
       "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
-  ShowMessages("syntax : \tunload\n");
+  ShowMessages("syntax : \tunload [Module Name]\n");
+  ShowMessages("\t\te.g : unload vmm\n");
 }
 
 /**
  * @brief unload command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandUnload(vector<string> SplittedCommand) {
 
-  if (SplittedCommand.size() != 1) {
+  if (SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of 'unload'\n\n");
     CommandLoadHelp();
     return;
   }
-  if (!g_IsConnectedToHyperDbgLocally) {
-    ShowMessages("You're not connected to any instance of HyperDbg, did you "
-                 "use '.connect'? \n");
-    return;
-  }
 
-  if (g_IsDebuggerModulesLoaded) {
-    HyperdbgUnload();
+  //
+  // Check for the module
+  //
+  if (!SplittedCommand.at(1).compare("vmm")) {
 
-    //
-    // Installing Driver
-    //
-    if (HyperdbgUninstallDriver()) {
-      ShowMessages("Failed to uninstall driver\n");
+    if (!g_IsConnectedToHyperDbgLocally) {
+      ShowMessages("You're not connected to any instance of HyperDbg, did you "
+                   "use '.connect'? \n");
+      return;
+    }
+
+    if (g_IsDebuggerModulesLoaded) {
+      HyperdbgUnload();
+
+      //
+      // Installing Driver
+      //
+      if (HyperdbgUninstallDriver()) {
+        ShowMessages("Failed to uninstall driver\n");
+      }
+    } else {
+      ShowMessages("there is nothing to unload\n");
     }
   } else {
-    ShowMessages("there is nothing to unload\n");
+
+    //
+    // Module not found
+    //
+    ShowMessages("module not found, currently, 'vmm' is the only available "
+                 "module for HyperDbg.\n");
   }
 }
