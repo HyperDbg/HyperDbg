@@ -139,7 +139,7 @@ VOID
 EventInjectUndefinedOpcode(UINT32 CurrentProcessorIndex);
 
 VOID
-EventInjectPageFault(ULONG32 ErrorCode);
+EventInjectPageFault(UINT64 PageFaultAddress);
 
 VOID
 EventInjectDebugBreakpoint();

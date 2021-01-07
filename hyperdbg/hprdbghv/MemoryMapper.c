@@ -202,6 +202,34 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
 }
 
 /**
+ * @brief This function checks if the page is mapped or not
+ * @details this function checks for PRESENT Bit of the page table
+ * 
+ * @param Va Virtual Address
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+BOOLEAN
+MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
+{
+    PPAGE_ENTRY PageEntry;
+
+    //
+    // Find the page table entry
+    //
+    PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
+
+    if (PageEntry->Present)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
  * @brief This function reserve memory from system range (without physically allocating them)
  * 
  * @param Size Size of reserving buffers

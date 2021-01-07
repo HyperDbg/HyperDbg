@@ -224,10 +224,10 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 BOOLEAN
 SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {
-    UINT64  GuestCr3;
-    UINT64  OriginalCr3;
-    UINT64  Rip;
-    BOOLEAN Result;
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    UINT64   Rip;
+    BOOLEAN  Result;
 
     //
     // Reading guest's RIP
@@ -240,18 +240,48 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     //
 
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3                     = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
-    if ((GuestCr3 & PCID_MASK) != PCID_NONE)
+    if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
     {
         OriginalCr3 = __readcr3();
 
-        __writecr3(GuestCr3);
+        __writecr3(GuestCr3.Flags);
         //
         // Read the memory
         //
         CHAR * InstructionBuffer[3] = {0};
-        MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
+
+        if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
+        {
+
+            //
+            // The page is safe to read (present)
+            //
+            MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
+        }
+        else
+        {
+            //
+            // The page is not present, we have to inject a #PF
+            //
+            g_GuestState[CoreIndex].IncrementRip = FALSE;
+
+            //
+            // For testing purpose
+            //
+            LogInfo("#PF Injected.");
+
+            //
+            // Inject #PF
+            //
+            EventInjectPageFault(Rip);
+
+            //
+            // We should not inject #UD
+            //
+            return FALSE;
+        }
 
         if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
         {

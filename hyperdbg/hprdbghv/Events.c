@@ -94,14 +94,30 @@ EventInjectDebugBreakpoint()
 /**
  * @brief Inject #PF to the guest (Page-Fault for EFER Injector)
  * 
- * @param ErrorCode 
+ * @param PageFaultAddress Address of page fault 
  * @return VOID 
  */
 VOID
-EventInjectPageFault(ULONG32 ErrorCode)
+EventInjectPageFault(UINT64 PageFaultAddress)
 {
+    PAGE_FAULT_ERROR_CODE ErrorCode = {0};
+
+    //
+    // Write the page-fault address
+    //
+    __writecr2(PageFaultAddress);
+
+    //
+    // Make the error code
+    //
+    ErrorCode.Fields.Fetch    = 0;
+    ErrorCode.Fields.Present  = 0;
+    ErrorCode.Fields.Reserved = 0;
+    ErrorCode.Fields.User     = 0;
+    ErrorCode.Fields.Write    = 0;
+
     //
     // Error code is from PAGE_FAULT_ERROR_CODE structure
     //
-    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode);
+    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.All);
 }
