@@ -151,6 +151,18 @@ UINT64 ScriptEnginePseudoRegGetThread() {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+// $peb
+UINT64 ScriptEnginePseudoRegGetPeb() {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return NULL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 // $teb
 UINT64 ScriptEnginePseudoRegGetTeb() {
 
@@ -200,13 +212,13 @@ BOOLEAN ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    //
-    // Actually, there is no way to check this validity as it causes cpu
-    // errors, so the only solution is using SEH which is stupid idea,
-    // sure we don't want to create SEH frame each time we need to check
-    // a function address, so I don't know what to do, let's return TRUE
-    // for now
-    //
+  //
+  // Actually, there is no way to check this validity as it causes cpu
+  // errors, so the only solution is using SEH which is stupid idea,
+  // sure we don't want to create SEH frame each time we need to check
+  // a function address, so I don't know what to do, let's return TRUE
+  // for now
+  //
   return TRUE;
 #endif // SCRIPT_ENGINE_USER_MODE
 

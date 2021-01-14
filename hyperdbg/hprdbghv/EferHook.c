@@ -254,7 +254,6 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 
         if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
         {
-
             //
             // The page is safe to read (present)
             //
@@ -270,7 +269,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             //
             // For testing purpose
             //
-            LogInfo("#PF Injected.");
+            // LogInfo("#PF Injected.");
 
             //
             // Inject #PF
