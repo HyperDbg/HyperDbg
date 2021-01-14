@@ -72,7 +72,7 @@ We explained about how HyperDbg internally works and how we designed its feature
 Here's a diagram that shows how HyperDbg works !
 </br>
 
-<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
+<p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/Diagram-hq-v1/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
 </p>
 </br>
 
