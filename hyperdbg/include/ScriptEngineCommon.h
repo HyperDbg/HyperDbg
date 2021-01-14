@@ -263,7 +263,7 @@ UINT64 ScriptEnginePseudoRegGetPeb() {
   //
   PebPtr = (struct PEB *)BasicInfo.PebBaseAddress;
 
-  /* printf("PEB : %p\n", PebPtr); */
+  /* ShowMessages("PEB : %p\n", PebPtr); */
 
   return (UINT64)PebPtr;
 
@@ -363,8 +363,6 @@ UINT64 ScriptEngineKeywordPoi(PUINT64 Address) {
   //
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-
-
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -452,7 +450,7 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
                                UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-  printf("%llx\n", Value);
+  ShowMessages("%llx\n", Value);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -465,7 +463,7 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
                               char *Name, UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-  printf("%s : %d\n", Name, Value);
+  ShowMessages("%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -509,7 +507,7 @@ UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
     return GuestRegs->r15;
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error in reading regesiter");
+    ShowMessages("Error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
     return INVALID;
     // TODO: Add all the register
@@ -538,7 +536,7 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer) {
     return ActionBuffer.Context;
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error in reading regesiter");
+    ShowMessages("Error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
     return INVALID;
     // TODO: Add all the register
@@ -593,7 +591,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
   if (Operator->Type != SYMBOL_SEMANTIC_RULE_TYPE) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error:Expecting Operator Type.\n");
+    ShowMessages("Error:Expecting Operator Type.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
   }
 
@@ -619,7 +617,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -640,7 +638,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -661,7 +659,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -682,7 +680,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -703,7 +701,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -723,7 +721,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -743,7 +741,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -762,7 +760,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -782,7 +780,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -801,7 +799,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -816,7 +814,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -831,7 +829,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -845,7 +843,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -859,7 +857,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -868,7 +866,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     // TODO: Hanlde str function
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error: STR functions is not handled yet.\n");
+    ShowMessages("Error: STR functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -877,7 +875,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     // TODO: Hanlde wstr function
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error: WSTR functions is not handled yet.\n");
+    ShowMessages("Error: WSTR functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -886,7 +884,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     // TODO: Hanlde sizeof function because we do not support pdb so
     // we don't have support this function
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Error: DB functions is not handled yet.\n");
+    ShowMessages("Error: DB functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -900,7 +898,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return;
@@ -914,7 +912,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
 
@@ -928,7 +926,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
 
@@ -942,7 +940,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
   case FUNC_MOV:
@@ -954,7 +952,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
     if (Des->Type == SYMBOL_ID_TYPE) {
 #ifdef SCRIPT_ENGINE_USER_MODE
-      printf("Result is %llx\n", DesVal);
+      ShowMessages("Result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -964,7 +962,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     }
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("DesVal = %d\n", DesVal);
+    ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
     return;
 
