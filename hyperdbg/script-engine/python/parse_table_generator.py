@@ -174,6 +174,13 @@ typedef struct SYMBOL_MAP
     long long unsigned Type;
 } SYMBOL_MAP, * PSYMBOL_MAP;
 
+typedef struct ACTION_BUFFER {
+  long long unsigned Tag;
+  long long unsigned CurrentAction;
+  char ImmediatelySendTheResults;
+  long long unsigned Context;
+} ACTION_BUFFER, *PACTION_BUFFER;
+
 #define SYMBOL_ID_TYPE 0
 #define SYMBOL_NUM_TYPE 1
 #define SYMBOL_REGISTER_TYPE 2

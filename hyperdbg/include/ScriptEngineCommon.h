@@ -396,6 +396,8 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer) {
     return ScriptEnginePseudoRegGetIp();
   case PSEUDO_REGISTER_BUFFER:
     return ScriptEnginePseudoRegGetBuffer((UINT64 *)ActionBuffer.CurrentAction);
+  case PSEUDO_REGISTER_CONTEXT:
+    return ActionBuffer.Context;
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("Error in reading regesiter");
