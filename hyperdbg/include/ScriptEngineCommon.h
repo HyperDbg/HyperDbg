@@ -23,6 +23,9 @@ ScriptEngineWrapperGetInstructionPointer();
 UINT64
 ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
 
+BOOLEAN
+ScriptEngineCheckIfAddressIsValidAndSafeToAccess(UINT64 Address, UINT32 Length);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 typedef unsigned long long QWORD;
@@ -353,7 +356,30 @@ BOOLEAN ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length) {
 //
 
 // poi
-UINT64 ScriptEngineKeywordPoi(PUINT64 Address) { return *Address; }
+UINT64 ScriptEngineKeywordPoi(PUINT64 Address) {
+
+  //
+  // Validate the address
+  //
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+  if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+                                                        sizeof(UINT64))) {
+    LogInfo("The provided address is either not valid or not present in the "
+            "current context or its not safe to access.");
+    return NULL;
+  }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+  return *Address;
+}
 
 // hi
 WORD ScriptEngineKeywordHi(PUINT64 Address) {
