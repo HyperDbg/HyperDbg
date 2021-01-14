@@ -982,10 +982,27 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
  * @param Context Optional parameter
  * @return VOID 
  */
+typedef struct ACTION_BUFFER
+{
+    UINT64  Tag;
+    UINT64  CurrentAction;
+    BOOLEAN ImmediatelySendTheResults;
+    PVOID   Context;
+} ACTION_BUFFER, *PACTION_BUFFER;
+
 VOID
 DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    SYMBOL_BUFFER CodeBuffer = {0};
+    SYMBOL_BUFFER CodeBuffer   = {0};
+    ACTION_BUFFER ActionBuffer = {0};
+
+    //
+    // Fill the action buffer
+    //
+    ActionBuffer.Context                   = Context;
+    ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
+    ActionBuffer.CurrentAction             = Action;
+    ActionBuffer.Tag                       = Tag;
 
     //
     // Context point to the registers

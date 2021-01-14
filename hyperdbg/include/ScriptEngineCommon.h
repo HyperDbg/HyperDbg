@@ -384,17 +384,18 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
   case PSEUDO_REGISTER_PID:
     return ScriptEnginePseudoRegGetPid();
   case PSEUDO_REGISTER_PROC:
-      return ScriptEnginePseudoRegGetProc();
+    return ScriptEnginePseudoRegGetProc();
   case PSEUDO_REGISTER_THREAD:
-      return ScriptEnginePseudoRegGetThread();
+    return ScriptEnginePseudoRegGetThread();
   case PSEUDO_REGISTER_PEB:
-      return ScriptEnginePseudoRegGetPeb();
+    return ScriptEnginePseudoRegGetPeb();
   case PSEUDO_REGISTER_TEB:
-      return ScriptEnginePseudoRegGetTeb();
+    return ScriptEnginePseudoRegGetTeb();
   case PSEUDO_REGISTER_IP:
-      return ScriptEnginePseudoRegGetIp();
+    return ScriptEnginePseudoRegGetIp();
   case PSEUDO_REGISTER_BUFFER:
-      return ScriptEnginePseudoRegGetBuffer();
+    // return ScriptEnginePseudoRegGetBuffer();
+    return NULL;
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("Error in reading regesiter");
