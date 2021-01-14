@@ -601,7 +601,8 @@ void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
         PrintSymbol(Symbol);
         if (Symbol->Type == SYMBOL_STRING_TYPE)
         {
-            i += GetStringSymbolSize(Symbol);
+            int temp = GetStringSymbolSize(Symbol);
+            i += temp;
         }
         else
         {

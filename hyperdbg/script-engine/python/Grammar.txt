@@ -11,7 +11,7 @@
 
 .Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15
 
-.PseudoRegisters->pid tid 
+.PseudoRegisters->pid tid proc thread peb teb ip buffer 
 
 S->C ; S'
 S'->C ; S'

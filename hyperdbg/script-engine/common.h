@@ -5,7 +5,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define SYMBOL_BUFFER_INIT_SIZE 128
+#define SYMBOL_BUFFER_INIT_SIZE 256
 #define MAX_TEMP_COUNT 32
 
 /**
