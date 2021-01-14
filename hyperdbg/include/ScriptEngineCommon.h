@@ -377,7 +377,8 @@ UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
     // TODO: Add all the register
   }
 }
-UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
+UINT64 GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer) {
+
   switch (Symbol->Value) {
   case PSEUDO_REGISTER_TID:
     return ScriptEnginePseudoRegGetTid();
@@ -394,8 +395,7 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
   case PSEUDO_REGISTER_IP:
     return ScriptEnginePseudoRegGetIp();
   case PSEUDO_REGISTER_BUFFER:
-    // return ScriptEnginePseudoRegGetBuffer();
-    return NULL;
+    return ScriptEnginePseudoRegGetBuffer((UINT64 *)ActionBuffer.CurrentAction);
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
     printf("Error in reading regesiter");
@@ -404,8 +404,8 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol) {
     // TODO: Add all the register
   }
 }
-UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
-                UINT64 *g_VariableList, PSYMBOL Symbol) {
+UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
+                UINT64 *g_TempList, UINT64 *g_VariableList, PSYMBOL Symbol) {
 
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:
@@ -415,7 +415,7 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
   case SYMBOL_REGISTER_TYPE:
     return GetRegValue(GuestRegs, Symbol);
   case SYMBOL_PSEUDO_REG_TYPE:
-    return GetPseudoRegValue(Symbol);
+    return GetPseudoRegValue(Symbol, ActionBuffer);
   case SYMBOL_TEMP_TYPE:
     return g_TempList[Symbol->Value];
   }
@@ -434,8 +434,8 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
 }
 
 //
-VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
-                         BOOLEAN ImmediateMessagePassing, UINT64 *g_TempList,
+VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
+                         ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
                          UINT64 *g_VariableList, PSYMBOL_BUFFER CodeBuffer,
                          int *Indx) {
 
@@ -460,7 +460,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
   Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                    (unsigned long long)(*Indx * sizeof(SYMBOL)));
   *Indx = *Indx + 1;
-  SrcVal0 = GetValue(GuestRegs, g_TempList, g_VariableList, Src0);
+  SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
 
   switch (Operator->Value) {
   case FUNC_OR:
@@ -468,7 +468,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -488,7 +489,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -508,7 +510,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -528,7 +531,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -548,7 +552,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -567,7 +572,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -586,7 +592,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -604,7 +611,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -623,7 +631,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -641,7 +650,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
-    SrcVal1 = GetValue(GuestRegs, g_TempList, g_VariableList, Src1);
+    SrcVal1 =
+        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -661,8 +671,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordPoi(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -676,8 +686,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -690,8 +700,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -704,8 +714,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDq(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -773,8 +783,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordHi(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -787,8 +797,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordLow(
-        (PUINT64)GetValue(GuestRegs, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -823,7 +833,8 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
     //
     // Call the target function
     //
-    ScriptEngineFunctionPrint(Tag, ImmediateMessagePassing, SrcVal0);
+    ScriptEngineFunctionPrint(ActionDetail.Tag,
+                              ActionDetail.ImmediatelySendTheResults, SrcVal0);
     return;
 
   case FUNC_JSON:
@@ -835,8 +846,9 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs, UINT64 Tag,
                      sizeof(SYMBOL) +
                  1);
 
-    ScriptEngineFunctionJson(Tag, ImmediateMessagePassing, (char *)&Src1->Value,
-                             SrcVal0);
+    ScriptEngineFunctionJson(ActionDetail.Tag,
+                             ActionDetail.ImmediatelySendTheResults,
+                             (char *)&Src1->Value, SrcVal0);
 
     return;
   }

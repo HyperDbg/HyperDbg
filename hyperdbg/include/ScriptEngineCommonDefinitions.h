@@ -3,22 +3,28 @@
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 
 typedef struct SYMBOL {
-	long long unsigned Type;
-	long long unsigned Value;
-} SYMBOL, * PSYMBOL;
+  long long unsigned Type;
+  long long unsigned Value;
+} SYMBOL, *PSYMBOL;
 
 typedef struct SYMBOL_BUFFER {
-	PSYMBOL Head;
-	unsigned int Pointer;
-	unsigned int Size;
-	char* Message;
-} SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+  PSYMBOL Head;
+  unsigned int Pointer;
+  unsigned int Size;
+  char *Message;
+} SYMBOL_BUFFER, *PSYMBOL_BUFFER;
 
-typedef struct SYMBOL_MAP
-{
-    char* Name;
-    long long unsigned Type;
-} SYMBOL_MAP, * PSYMBOL_MAP;
+typedef struct SYMBOL_MAP {
+  char *Name;
+  long long unsigned Type;
+} SYMBOL_MAP, *PSYMBOL_MAP;
+
+typedef struct ACTION_BUFFER {
+  long long unsigned Tag;
+  long long unsigned CurrentAction;
+  char ImmediatelySendTheResults;
+  long long unsigned Context;
+} ACTION_BUFFER, *PACTION_BUFFER;
 
 #define SYMBOL_ID_TYPE 0
 #define SYMBOL_NUM_TYPE 1
@@ -26,10 +32,9 @@ typedef struct SYMBOL_MAP
 #define SYMBOL_PSEUDO_REG_TYPE 3
 #define SYMBOL_SEMANTIC_RULE_TYPE 4
 #define SYMBOL_TEMP_TYPE 5
+#define SYMBOL_STRING_TYPE 6
 
 #define INVALID -1
-
-
 
 #define FUNC_OR 0
 #define FUNC_XOR 1

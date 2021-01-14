@@ -54,6 +54,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
 
   UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
   UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
+  ACTION_BUFFER ActionBuffer = {0};
 
   if (CodeBuffer->Message == NULL) {
     PrintSymbolBuffer(CodeBuffer);
@@ -61,7 +62,16 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
     for (int i = 0; i < CodeBuffer->Pointer;) {
       printf("%d\n", i);
 
-      ScriptEngineExecute(GuestRegs, NULL, FALSE, (UINT64 *)g_TempList,
+      //
+      // Fill the action buffer but as we're in user-mode here
+      // then there is nothing to fill
+      //
+      ActionBuffer.Context = NULL;
+      ActionBuffer.CurrentAction = NULL;
+      ActionBuffer.ImmediatelySendTheResults = FALSE;
+      ActionBuffer.Tag = NULL;
+
+      ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList,
                           (UINT64 *)g_VariableList, CodeBuffer, &i);
     }
     RemoveSymbolBuffer(CodeBuffer);

@@ -982,14 +982,6 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
  * @param Context Optional parameter
  * @return VOID 
  */
-typedef struct ACTION_BUFFER
-{
-    UINT64  Tag;
-    UINT64  CurrentAction;
-    BOOLEAN ImmediatelySendTheResults;
-    PVOID   Context;
-} ACTION_BUFFER, *PACTION_BUFFER;
-
 VOID
 DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
@@ -1016,7 +1008,7 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
-        ScriptEngineExecute(Regs, Action->Tag, Action->ImmediatelySendTheResults, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
+        ScriptEngineExecute(Regs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
     }
 }
 
