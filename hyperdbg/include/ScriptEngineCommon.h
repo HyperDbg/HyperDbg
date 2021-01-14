@@ -155,10 +155,122 @@ UINT64 ScriptEnginePseudoRegGetThread() {
 UINT64 ScriptEnginePseudoRegGetPeb() {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-  return NULL;
+  //
+  // Hand-rolled structs ( may cause conflict depending on your dev env )
+  //
+  struct PROCESS_BASIC_INFORMATION {
+    PVOID Reserved1;
+    PVOID PebBaseAddress;
+    PVOID Reserved2[2];
+    ULONG_PTR UniqueProcessId;
+    PVOID Reserved3;
+  };
+
+  struct PEB_LDR_DATA {
+    BYTE Reserved1[8];
+    PVOID Reserved2[3];
+    LIST_ENTRY InMemoryOrderModuleList;
+  };
+
+  struct PEB {
+    BYTE Reserved1[2];
+    BYTE BeingDebugged;
+    BYTE Reserved2[1];
+    PVOID Reserved3[2];
+    struct PEB_LDR_DATA *Ldr;
+    PVOID ProcessParameters; /* PRTL_USER_PROCESS_PARAMETERS */
+    BYTE Reserved4[104];
+    PVOID Reserved5[52];
+    PVOID PostProcessInitRoutine; /* PPS_POST_PROCESS_INIT_ROUTINE */
+    BYTE Reserved6[128];
+    PVOID Reserved7[1];
+    ULONG SessionId;
+  };
+
+  struct UNICODE_STRING {
+    USHORT Length;
+    USHORT MaximumLength;
+    PWSTR Buffer;
+  };
+
+  struct LDR_MODULE {
+    LIST_ENTRY InLoadOrderModuleList;
+    LIST_ENTRY InMemoryOrderModuleList;
+    LIST_ENTRY InInitializationOrderModuleList;
+    PVOID BaseAddress;
+    PVOID EntryPoint;
+    ULONG SizeOfImage;
+    struct UNICODE_STRING FullDllName;
+    struct UNICODE_STRING BaseDllName;
+    ULONG Flags;
+    SHORT LoadCount;
+    SHORT TlsIndex;
+    LIST_ENTRY HashTableEntry;
+    ULONG TimeDateStamp;
+  };
+
+  enum PROCESSINFOCLASS {
+    ProcessBasicInformation = 0,
+    ProcessDebugPort = 7,
+    ProcessWow64Information = 26,
+    ProcessImageFileName = 27
+  };
+
+  LPCWSTR NTDLL_NAME = L"ntdll.dll";
+  LPCSTR NTQUERYINFO_NAME = "NtQueryInformationProcess";
+
+  HMODULE NtdllMod;
+  HANDLE ThisProcess;
+  NTSTATUS NtCallRet;
+  ULONG BytesReturned;
+
+  //
+  // function pointer to house result from GetProcAddress
+  //
+  NTSTATUS(WINAPI * QueryInfoProcPtr)
+  (HANDLE, enum PROCESSINFOCLASS, PVOID, ULONG, PULONG);
+
+  struct PROCESS_BASIC_INFORMATION BasicInfo;
+  struct PEB *PebPtr;
+  struct LDR_MODULE *modPtr;
+
+  /* retrieve pseudo-handle */
+  ThisProcess = GetCurrentProcess();
+
+  //
+  // get address to already loaded module
+  //
+  NtdllMod = LoadLibraryW(NTDLL_NAME);
+
+  //
+  // get pointer to query function
+  //
+  QueryInfoProcPtr =
+      (NTSTATUS(WINAPI *)(HANDLE, enum PROCESSINFOCLASS, PVOID, ULONG,
+                          PULONG))GetProcAddress(NtdllMod, NTQUERYINFO_NAME);
+
+  //
+  // call function on self; introspect
+  //
+  NtCallRet = QueryInfoProcPtr(ThisProcess, ProcessBasicInformation, &BasicInfo,
+                               sizeof(BasicInfo), &BytesReturned);
+
+  //
+  // get peb ptr and decode some if its fields
+  //
+  PebPtr = (struct PEB *)BasicInfo.PebBaseAddress;
+
+  /* printf("PEB : %p\n", PebPtr); */
+
+  return (UINT64)PebPtr;
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+  //
+  // PEB doesn't make sense in kernel-mode
+  //
   return NULL;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
