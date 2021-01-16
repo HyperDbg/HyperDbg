@@ -28,7 +28,7 @@ PSYMBOL NewSymbol(void);
 
 PSYMBOL NewStringSymbol(char* value);
 
-unsigned int GetStringSymbolSize(char* str);
+unsigned int GetStringSymbolSize(PSYMBOL Symbol);
 
 void RemoveSymbol(PSYMBOL Symbol);
 

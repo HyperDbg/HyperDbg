@@ -351,16 +351,16 @@ PSYMBOL NewSymbol(void)
 PSYMBOL NewStringSymbol(char* value)
 {
     PSYMBOL Symbol;
-    int BufferSize = GetStringSymbolSize(value);
+    int BufferSize = (sizeof(unsigned long long) + (strlen(value))) / sizeof(SYMBOL) + 1;
     Symbol = (unsigned long long)malloc(BufferSize * sizeof(SYMBOL));
     strcpy(&Symbol->Value, value);
     SetType(&Symbol->Type, SYMBOL_STRING_TYPE);
     return Symbol;
 }
 
-unsigned int GetStringSymbolSize(PSYMBOL str)
+unsigned int GetStringSymbolSize(PSYMBOL Symbol)
 {
-    int Temp = (sizeof(unsigned long long) + (strlen(str))) / sizeof(SYMBOL) + 1;
+    int Temp = (sizeof(unsigned long long) + (strlen(&Symbol->Value))) / sizeof(SYMBOL) + 1;
     return Temp;
 }
 
@@ -505,7 +505,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         //
         // Update Pointer
         //
-        SymbolBuffer->Pointer += GetStringSymbolSize(&Symbol->Value);
+        SymbolBuffer->Pointer += GetStringSymbolSize(Symbol);
 
         //
         // Handle Overflow
