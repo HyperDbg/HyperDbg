@@ -617,11 +617,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
   ULONG ReturnedLength;
   PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest;
 
-  if (g_IsSerialConnectedToRemoteDebuggee) {
-    ShowMessages(
-        "err, you already connected to an instance of the debugger, you can "
-        "use 'debug close' to disconnect from the debuggee and after that you "
-        "can connect to a new instance of debugger.");
+  //
+  // Check if the debugger or debuggee is already active
+  //
+  if (IsConnectedToAnyInstanceOfDebuggerOrDebuggee()) {
+
     return FALSE;
   }
 

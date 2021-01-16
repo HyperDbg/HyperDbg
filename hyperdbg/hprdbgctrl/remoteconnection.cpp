@@ -39,6 +39,14 @@ VOID RemoteConnectionListen(PCSTR Port) {
   char recvbuf[COMMUNICATION_BUFFER_SIZE] = {0};
 
   //
+  // Check if the debugger or debuggee is already active
+  //
+  if (IsConnectedToAnyInstanceOfDebuggerOrDebuggee()) {
+
+    return;
+  }
+
+  //
   // Start server and wait for client
   //
   CommunicationServerCreateServerAndWaitForClient(Port, &g_SeverSocket,
@@ -194,6 +202,14 @@ DWORD WINAPI RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam) {
 VOID RemoteConnectionConnect(PCSTR Ip, PCSTR Port) {
 
   DWORD ThreadId;
+
+  //
+  // Check if the debugger or debuggee is already active
+  //
+  if (IsConnectedToAnyInstanceOfDebuggerOrDebuggee()) {
+
+    return;
+  }
 
   //
   // Connect to server

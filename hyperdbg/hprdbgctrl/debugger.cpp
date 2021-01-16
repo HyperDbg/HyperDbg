@@ -21,6 +21,10 @@ extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_OutputSourcesInitialized;
 extern LIST_ENTRY g_OutputSources;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief shows the error message
@@ -125,6 +129,43 @@ ShowErrorMessage(UINT32 Error) {
   }
 
   return TRUE;
+}
+
+/**
+ * @brief Shows whether the debugger is connected to a debugger
+ * or debuggee connected to a debugger
+ * @details we use this function to avoid connecting to a remote machine whem\n
+ * debuggee or debugger is already connected to an instance
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN IsConnectedToAnyInstanceOfDebuggerOrDebuggee() {
+
+  if (g_IsConnectedToRemoteDebuggee) {
+    ShowMessages("err, the current system is already connected to remote "
+                 "machine (debuggee), use '.disconnect' to disconnect from the "
+                 "remote machine.\n");
+    return TRUE;
+  } else if (g_IsConnectedToRemoteDebugger) {
+    ShowMessages("err, the current system is already connected to remote "
+                 "machine (debugger), use '.disconnect' to disconnect from the "
+                 "remote machine from debugger.\n");
+    return TRUE;
+  } else if (g_IsSerialConnectedToRemoteDebuggee) {
+    ShowMessages(
+        "err, the current system is already connected to remote "
+        "machine (debuggee), use '.debug close' to disconnect from the "
+        "remote machine.\n");
+    return TRUE;
+  } else if (g_IsSerialConnectedToRemoteDebugger) {
+    ShowMessages(
+        "err, the current system is already connected to remote "
+        "machine (debugger), use '.debug close' to disconnect from the "
+        "remote machine from debugger.\n");
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**

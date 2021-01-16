@@ -28,8 +28,8 @@ extern string g_ServerIp;
 
 /**
  * @brief help of .connect command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandConnectHelp() {
   ShowMessages(".connect : connects to a remote or local machine to start "
@@ -41,9 +41,9 @@ VOID CommandConnectHelp() {
 
 /**
  * @brief .connect command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandConnect(vector<string> SplittedCommand) {
 
@@ -108,7 +108,7 @@ VOID CommandConnect(vector<string> SplittedCommand) {
       g_ServerPort = port;
       RemoteConnectionConnect(ip.c_str(), port.c_str());
     } else {
-      
+
       //
       // connect to remote debugger (default port)
       //

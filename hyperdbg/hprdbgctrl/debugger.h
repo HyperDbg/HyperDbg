@@ -50,6 +50,8 @@ typedef struct _DEBUGGING_STATE {
 BOOLEAN
 ShowErrorMessage(UINT32 Error);
 
+BOOLEAN IsConnectedToAnyInstanceOfDebuggerOrDebuggee();
+
 BOOLEAN IsTagExist(UINT64 Tag);
 
 BOOLEAN
