@@ -54,6 +54,8 @@ BOOLEAN IsConnectedToAnyInstanceOfDebuggerOrDebuggee();
 
 BOOLEAN IsTagExist(UINT64 Tag);
 
+BOOLEAN DebuggerPauseDebuggee();
+
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> *SplittedCommand,
                             BOOLEAN IsConditionBuffer, PUINT64 BufferAddress,

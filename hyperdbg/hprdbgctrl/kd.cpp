@@ -156,9 +156,10 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   UINT32 LengthReceived = 0;
 
   //
-  // Send 'P' as pause packet
+  // Send pause packet to debuggee
   //
-  if (!KdSendPacketToDebuggee("P", 1)) {
+  if (!KdCommandPacketToDebuggee(
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_PAUSE)) {
     return FALSE;
   }
 
@@ -370,6 +371,35 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length) {
   // Not all the bytes are sent
   //
   return FALSE;
+}
+
+/**
+ * @brief Sends a HyperDbg packet to the debuggee
+ *
+ * @param RequestedAction
+ * @return BOOLEAN
+ */
+BOOLEAN KdCommandPacketToDebuggee(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction) {
+
+  DEBUGGER_REMOTE_PACKET Packet = {0};
+
+  //
+  // Make the packet's structure
+  //
+  Packet.Indicator = INDICATOR_OF_HYPERDBG_PACKER;
+  Packet.TypeOfThePacket = DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE;
+
+  //
+  // Set the requested action
+  //
+  Packet.RequestedActionOfThePacket = RequestedAction;
+
+  if (!KdSendPacketToDebuggee((const CHAR *)&Packet,
+                              sizeof(DEBUGGER_REMOTE_PACKET))) {
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**

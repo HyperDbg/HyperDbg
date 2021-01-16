@@ -132,6 +132,52 @@ ShowErrorMessage(UINT32 Error) {
 }
 
 /**
+ * @brief pauses the debuggee
+ *
+ * @return BOOLEAN shows whether the pause was successful or not, if successful
+ * then when it returns true the debuggee is not paused anymore (continued)
+ */
+BOOLEAN DebuggerPauseDebuggee() {
+
+  BOOLEAN StatusIoctl = 0;
+  ULONG ReturnedLength = 0;
+  DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = {0};
+
+  //
+  // Send a pause IOCTL
+  //
+  StatusIoctl =
+      DeviceIoControl(g_DeviceHandle,              // Handle to device
+                      IOCTL_PAUSE_PACKET_RECEIVED, // IO Control code
+                      &PauseRequest,               // Input Buffer to driver.
+                      SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
+                                                             // length
+                      &PauseRequest, // Output Buffer from driver.
+                      SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
+                                                             // buffer in bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!StatusIoctl) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  if (PauseRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    //
+    // Nothing to show, the request was successfully processed
+    //
+    return TRUE;
+  } else {
+    ShowErrorMessage(PauseRequest.Result);
+    return FALSE;
+  }
+  return FALSE;
+}
+
+/**
  * @brief Shows whether the debugger is connected to a debugger
  * or debuggee connected to a debugger
  * @details we use this function to avoid connecting to a remote machine whem\n

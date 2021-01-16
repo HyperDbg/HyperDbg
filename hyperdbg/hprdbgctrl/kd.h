@@ -59,6 +59,9 @@ typedef enum _DEBUGGER_REMOTE_STEPPING_REQUEST {
 
 VOID KdBreakControlCheckAndPauseDebugger();
 
+BOOLEAN KdCommandPacketToDebuggee(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction);
+
 VOID KdTheRemoteSystemIsRunning();
 
 BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle,

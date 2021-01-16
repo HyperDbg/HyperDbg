@@ -17,7 +17,7 @@
  * @param SerialHandle
  * @return BOOLEAN
  */
-BOOLEAN ListeningSerialPort(HANDLE SerialHandle) {
+BOOLEAN ListeningSerialPortInDebuggee(HANDLE SerialHandle) {
 
 StartAgain:
 
@@ -27,9 +27,8 @@ StartAgain:
   char ReadData = NULL;        /* temperory Character */
   DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
   UINT32 Loop = 0;
-  BOOLEAN StatusIoctl = 0;
-  ULONG ReturnedLength = 0;
-  DEBUGGER_PAUSE_PACKET_RECEIVED PauseRequest = {0};
+  PDEBUGGER_REMOTE_PACKET TheActualPacket =
+      (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
 
   //
   // Setting Receive Mask
@@ -71,50 +70,46 @@ StartAgain:
   //
   // ShowMessages("Number of bytes received = %d\n", Loop);
 
-  //
-  // print receive data on console
-  //
+  for (size_t i = 0; i < Loop; i++) {
+    ShowMessages("%x ", SerialBuffer[i]);
+  }
+  ShowMessages("\n");
 
-  int index = 0;
-  for (index = 0; index < Loop; ++index) {
+  if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
 
-    if (SerialBuffer[index] == 'P') {
-
-      /*
-      ShowMessages("\nPause packet received.\n");
-      */
-
+    //
+    // Check if the packet type is correct
+    //
+    if (TheActualPacket->TypeOfThePacket !=
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE) {
       //
-      // Send a pause IOCTL
+      // sth wrong happened, the packet is not belonging to use
+      // nothing to do, just wait again
       //
-      StatusIoctl = DeviceIoControl(
-          g_DeviceHandle,                        // Handle to device
-          IOCTL_PAUSE_PACKET_RECEIVED,           // IO Control code
-          &PauseRequest,                         // Input Buffer to driver.
-          SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Input buffer
-                                                 // length
-          &PauseRequest,                         // Output Buffer from driver.
-          SIZEOF_DEBUGGER_PAUSE_PACKET_RECEIVED, // Length of output
-                                                 // buffer in bytes.
-          &ReturnedLength,                       // Bytes placed in buffer.
-          NULL                                   // synchronous call
-      );
-
-      if (!StatusIoctl) {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return FALSE;
-      }
-
-      if (PauseRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-
-        //
-        // Nothing to show, the request was successfully processed
-        //
-      } else {
-        ShowErrorMessage(PauseRequest.Result);
-        return FALSE;
-      }
+      ShowMessages("err, unknown packet received from the debugger.\n");
+      goto StartAgain;
     }
+
+    //
+    // It's a HyperDbg packet
+    //
+    switch (TheActualPacket->RequestedActionOfThePacket) {
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_PAUSE:
+      if (!DebuggerPauseDebuggee()) {
+        ShowMessages("err, debugger tries to pause the debuggee but the "
+                     "attempt was unsuccessful.\n");
+      }
+      break;
+    default:
+      ShowMessages("err, unknown packet action received from the debugger.\n");
+      break;
+    }
+
+  } else {
+    //
+    // It's not a HyperDbg packet, it's probably a GDB packet
+    //
+    DebugBreak();
   }
 
   //
@@ -136,7 +131,7 @@ DWORD WINAPI ListeningSerialPauseThread(PVOID Param) {
   //
   // Create a listening thead
   //
-  ListeningSerialPort((HANDLE)Param);
+  ListeningSerialPortInDebuggee((HANDLE)Param);
 
   return 0;
 }

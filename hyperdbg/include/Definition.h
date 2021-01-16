@@ -862,6 +862,46 @@ typedef struct _DEBUGGER_EVENT {
 
 } DEBUGGER_EVENT, *PDEBUGGER_EVENT;
 
+/* ==============================================================================================
+ */
+
+#define INDICATOR_OF_HYPERDBG_PACKER                                           \
+  0x4859504552444247 // HYPERDBG = 0x4859504552444247
+
+/**
+ * @brief enum for diffrent packet types in HyperDbg packets
+ *
+ */
+typedef enum _DEBUGGER_REMOTE_PACKET_TYPE {
+
+  DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE = 1,
+  DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER
+
+} DEBUGGER_REMOTE_PACKET_TYPE;
+
+/**
+ * @brief enum for requested action for HyperDbg packet
+ *
+ */
+typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
+
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_PAUSE = 1,
+
+} DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
+
+/**
+ * @brief The structure of remote packets in HyperDbg
+ *
+ */
+typedef struct _DEBUGGER_REMOTE_PACKET {
+
+  UINT64 Indicator; /* Shows the type of the packet, whether it's a GDB packet
+                       or a HyperDbg packet */
+  DEBUGGER_REMOTE_PACKET_TYPE TypeOfThePacket;
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedActionOfThePacket;
+
+} DEBUGGER_REMOTE_PACKET, *PDEBUGGER_REMOTE_PACKET;
+
 //////////////////////////////////////////////////
 //		    	Debugger Success Codes            //
 //////////////////////////////////////////////////
