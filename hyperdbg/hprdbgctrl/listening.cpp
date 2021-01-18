@@ -69,11 +69,11 @@ StartAgain:
   // Get actual length of received data
   //
   // ShowMessages("Number of bytes received = %d\n", Loop);
-
-  for (size_t i = 0; i < Loop; i++) {
-    ShowMessages("%x ", SerialBuffer[i]);
-  }
-  ShowMessages("\n");
+  // for (size_t i = 0; i < Loop; i++) {
+  //   ShowMessages("%x ", SerialBuffer[i]);
+  // }
+  // ShowMessages("\n");
+  //
 
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
 
@@ -81,7 +81,7 @@ StartAgain:
     // Check if the packet type is correct
     //
     if (TheActualPacket->TypeOfThePacket !=
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE) {
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_EXECUTE_ON_USER_MODE) {
       //
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
@@ -94,7 +94,7 @@ StartAgain:
     // It's a HyperDbg packet
     //
     switch (TheActualPacket->RequestedActionOfThePacket) {
-    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_PAUSE:
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE:
       if (!DebuggerPauseDebuggee()) {
         ShowMessages("err, debugger tries to pause the debuggee but the "
                      "attempt was unsuccessful.\n");

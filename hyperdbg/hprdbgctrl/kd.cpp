@@ -94,13 +94,12 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
  */
 BOOLEAN KdSendContinuePacketToDebuggee() {
 
-  CHAR BufferToReceive[64] = {0};
-  UINT32 LengthReceived = 0;
-
   //
   // Send 'G' as pause packet
   //
-  if (!KdSendPacketToDebuggee("G", 1)) {
+  if (!KdCommandPacketToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE)) {
     return FALSE;
   }
 
@@ -159,7 +158,8 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   // Send pause packet to debuggee
   //
   if (!KdCommandPacketToDebuggee(
-          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_PAUSE)) {
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_EXECUTE_ON_USER_MODE,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE)) {
     return FALSE;
   }
 
@@ -265,8 +265,9 @@ BOOLEAN KdGetWindowVersion(CHAR *BufferToSave) {
 
   return TRUE;
 }
+
 /**
- * @brief Sends a PAUSE packet to the debuggee
+ * @brief Receive packet from the debugger
  *
  * @param BufferToSave
  * @param LengthReceived
@@ -380,6 +381,7 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length) {
  * @return BOOLEAN
  */
 BOOLEAN KdCommandPacketToDebuggee(
+    DEBUGGER_REMOTE_PACKET_TYPE PacketType,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction) {
 
   DEBUGGER_REMOTE_PACKET Packet = {0};
@@ -388,7 +390,7 @@ BOOLEAN KdCommandPacketToDebuggee(
   // Make the packet's structure
   //
   Packet.Indicator = INDICATOR_OF_HYPERDBG_PACKER;
-  Packet.TypeOfThePacket = DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE;
+  Packet.TypeOfThePacket = PacketType;
 
   //
   // Set the requested action

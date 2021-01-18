@@ -75,6 +75,95 @@ KdUninitializeKernelDebugger()
 }
 
 /**
+ * @brief compares the buffer with a string
+ *
+ * @param CurrentLoopIndex Number of previously read bytes
+ * @param Buffer
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
+{
+    UINT32 ActualBufferLength;
+
+    ActualBufferLength = *CurrentLoopIndex;
+
+    //
+    // End of buffer is 4 character long
+    //
+    if (*CurrentLoopIndex <= 3)
+    {
+        return FALSE;
+    }
+
+    if (Buffer[ActualBufferLength] == SERIAL_END_OF_BUFFER_CHAR_4 &&
+        Buffer[ActualBufferLength - 1] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+        Buffer[ActualBufferLength - 2] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+        Buffer[ActualBufferLength - 3] == SERIAL_END_OF_BUFFER_CHAR_1)
+    {
+        //
+        // Clear the end character
+        //
+        Buffer[ActualBufferLength - 3] = NULL;
+        Buffer[ActualBufferLength - 2] = NULL;
+        Buffer[ActualBufferLength - 1] = NULL;
+        Buffer[ActualBufferLength]     = NULL;
+
+        //
+        // Set the new length
+        //
+        *CurrentLoopIndex = ActualBufferLength - 3;
+
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/**
+ * @brief Receive packet from the debugger
+ *
+ * @param BufferToSave
+ * @param LengthReceived
+ *
+ * @return VOID
+ */
+VOID
+KdRecvBuffer(CHAR *   BufferToSave,
+             UINT32 * LengthReceived)
+{
+    UINT32 Loop = 0;
+
+    //
+    // Read data and store in a buffer
+    //
+    while (TRUE)
+    {
+        UCHAR RecvChar = NULL;
+
+        if (!KdHyperDbgRecvByte(&RecvChar))
+        {
+            continue;
+        }
+
+        BufferToSave[Loop] = RecvChar;
+
+        if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave))
+        {
+            break;
+        }
+
+        ++Loop;
+    }
+
+    //
+    // Set the length
+    //
+    *LengthReceived = Loop;
+
+    return TRUE;
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -145,8 +234,86 @@ KdStepInstruction(ULONG CoreId)
 }
 
 /**
+ * @brief This function applies commands from the debugger to the debuggee
+ * @details when we reach here, we are on the first core
+ * @param GuestRegs  
+ * 
+ * @return VOID 
+ */
+VOID
+KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
+{
+    while (TRUE)
+    {
+        BOOLEAN                 EscapeFromTheLoop = FALSE;
+        CHAR *                  RecvBuffer[64]    = {0};
+        UINT32                  RecvBufferLength  = 0;
+        PDEBUGGER_REMOTE_PACKET TheActualPacket =
+            (PDEBUGGER_REMOTE_PACKET)RecvBuffer;
+
+        //
+        // Receive the buffer in pulling mode
+        //
+        KdRecvBuffer(&RecvBuffer, &RecvBufferLength);
+
+        if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
+        {
+            //
+            // Check if the packet type is correct
+            //
+            if (TheActualPacket->TypeOfThePacket !=
+                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT)
+            {
+                //
+                // sth wrong happened, the packet is not belonging to use
+                // nothing to do, just wait again
+                //
+                LogError("err, unknown packet received from the debugger.\n");
+            }
+
+            //
+            // It's a HyperDbg packet
+            //
+            switch (TheActualPacket->RequestedActionOfThePacket)
+            {
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE:
+                //
+                // Unlock other cores
+                //
+                SpinlockUnlock(&SystemHaltLock);
+
+                //
+                // No need to wait for new commands
+                //
+                EscapeFromTheLoop = TRUE;
+                break;
+            default:
+                LogError("err, unknown packet action received from the debugger.\n");
+                break;
+            }
+        }
+        else
+        {
+            //
+            // It's not a HyperDbg packet, it's probably a GDB packet
+            //
+            DbgBreakPoint();
+        }
+
+        //
+        // If we have to leave the loop, we apply it here
+        //
+        if (EscapeFromTheLoop)
+        {
+            break;
+        }
+    }
+}
+
+/**
  * @brief manage system halt on vmx-root mode 
- * @CurrentCore  
+ * @param CurrentCore  
+ * @param GuestRegs  
  * 
  * @return VOID 
  */
@@ -180,23 +347,10 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
         SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
 
-        while (TRUE)
-        {
-            UCHAR Test = NULL;
-            KdHyperDbgRecvByte(&Test);
-            if (Test == 'G')
-            {
-                //
-                // Unlock other cores
-                //
-                SpinlockUnlock(&SystemHaltLock);
-                break;
-            }
-            if (Test == 'S')
-            {
-                KdStepInstruction(CurrentCore);
-            }
-        }
+        //
+        // Perform Commands from the debugger
+        //
+        KdDispatchAndPerformCommandsFromDebugger(GuestRegs);
     }
     else
     {

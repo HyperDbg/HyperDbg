@@ -104,9 +104,13 @@ VOID KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
     Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
 }
 
-VOID KdHyperDbgRecvByte(PUCHAR RecvByte)
+BOOLEAN KdHyperDbgRecvByte(PUCHAR RecvByte)
 {
-    Uart16550GetByte(&g_PortDetails, RecvByte);
+    if (Uart16550GetByte(&g_PortDetails, RecvByte) == UartSuccess)
+    {
+        return TRUE;
+    } 
+    return FALSE;
 }
 
 // ----------------------------------------------- Internal Function Prototypes
