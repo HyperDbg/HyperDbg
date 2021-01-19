@@ -180,14 +180,13 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         // It's a breakpoint and should be handled by the kernel debugger
         //
-    
-}
+    }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //
         // Check whether it is because of thread change detection or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState)
+        if (g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState)
         {
             SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
             // HvSetMonitorTrapFlag(TRUE);

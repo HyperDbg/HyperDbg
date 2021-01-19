@@ -95,7 +95,7 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
 BOOLEAN KdSendContinuePacketToDebuggee() {
 
   //
-  // Send 'G' as pause packet
+  // Send 'g' as continue packet
   //
   if (!KdCommandPacketToDebuggee(
           DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
@@ -118,9 +118,11 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
   UINT32 LengthReceived = 0;
 
   //
-  // Send packet to the serial
+  // Send step packet to the serial
   //
-  if (!KdSendPacketToDebuggee("S", 1)) {
+  if (!KdCommandPacketToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP)) {
     return FALSE;
   }
 
@@ -133,12 +135,23 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
   }
 
   //
-  // Check if the handshake is correct or not, and also show the received
-  // results like register, etc.
+  // Check if the handshake is correct or not
   //
-  if (KdCompareBufferWithString(BufferToReceive, "Stepped")) {
+  if (!KdCompareBufferWithString(BufferToReceive, "Paused")) {
 
-    return TRUE;
+    return FALSE;
+  }
+
+  //
+  // Now we should print the instruction
+  //
+  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
+    return FALSE;
+  }
+
+  if (LengthReceived == MAXIMUM_INSTR_SIZE + sizeof(UINT64)) {
+    HyperDbgDisassembler64((UCHAR *)BufferToReceive + sizeof(UINT64),
+                           *((UINT64 *)BufferToReceive), MAXIMUM_INSTR_SIZE, 1);
   }
 
   return FALSE;
@@ -193,10 +206,9 @@ BOOLEAN KdSendPausePacketToDebuggee() {
     return FALSE;
   }
 
-  if (LengthReceived == MAXIMUM_INSTR_SIZE * 2) {
-    ShowMessages("\n");
-    HyperDbgDisassembler64((UCHAR *)BufferToReceive, 0x0,
-                           MAXIMUM_INSTR_SIZE * 2, 2);
+  if (LengthReceived == MAXIMUM_INSTR_SIZE) {
+    HyperDbgDisassembler64((UCHAR *)BufferToReceive, 0x0, MAXIMUM_INSTR_SIZE,
+                           1);
   }
 
   return TRUE;

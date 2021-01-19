@@ -326,6 +326,19 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             //
             g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
         }
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf)
+        {
+            //
+            //  Unset the MTF flag
+            //
+            g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf = FALSE;
+            g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset                  = FALSE;
+
+            //
+            // Handle the breakpoint
+            //
+            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
+        }
         else if (g_GuestState[CurrentProcessorIndex].MtfTest)
         {
             SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
@@ -335,15 +348,19 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         {
             LogError("Why MTF occured ?!");
         }
+
         //
         // Redo the instruction
         //
         g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
-        //
-        // We don't need MTF anymore if it set to disable MTF
-        //
-        HvSetMonitorTrapFlag(FALSE);
+        if (!g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset)
+        {
+            //
+            // We don't need MTF anymore if it set to disable MTF
+            //
+            HvSetMonitorTrapFlag(FALSE);
+        }
 
         break;
     }
@@ -423,7 +440,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // because on detecting thread scheduling we ignore the hardware debug
         // registers modifications
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState)
+        if (!g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState)
         {
             HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 

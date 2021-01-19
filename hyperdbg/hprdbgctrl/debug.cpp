@@ -26,7 +26,8 @@ extern BOOLEAN g_IsDebuggeeRunning;
  * @return VOID
  */
 VOID CommandDebugHelp() {
-  ShowMessages(".debug : debug target .\n\n");
+  ShowMessages(
+      ".debug : debug target machine or make this machine a debuggee.\n\n");
   ShowMessages(
       "syntax : \t.debug [action (remote | prepare | close)] [type (serial | "
       "namedpipe)] [baud rate (decimal value)] address \n");

@@ -556,6 +556,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN IsOnVmxRootMode;                                               // Detects whether the current logical core is on Executing on VMX Root Mode
     BOOLEAN IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
     BOOLEAN HasLaunched;                                                   // Indicate whether the core is virtualized or not
+    BOOLEAN IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     UINT64  LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64  VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
     UINT64  VmxonRegionVirtualAddress;                                     // VMXON region virtual address
@@ -575,13 +576,13 @@ typedef struct _VIRTUAL_MACHINE_STATE
                                                                            // Make storage for up-to 64 pending interrupts.
                                                                            // In practice I haven't seen more than 2 pending interrupts.
 
-    PROCESSOR_DEBUGGING_STATE               DebuggingState;          // Holds the debugging state of the processor (used by HyperDbg to execute commands)
-    VMX_VMXOFF_STATE                        VmxoffState;             // Shows the vmxoff state of the guest
-    VM_EXIT_TRANSPARENCY                    TransparencyState;       // The state of the debugger in transparent-mode
-    PEPT_HOOKED_PAGE_DETAIL                 MtfEptHookRestorePoint;  // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    BOOLEAN                                 MtfTest;                 // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS DebuggerSteppingDetails; // It shows the detail of stepping for debugger
-    MEMORY_MAPPER_ADDRESSES                 MemoryMapper;            // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
+    PROCESSOR_DEBUGGING_STATE               DebuggingState;                  // Holds the debugging state of the processor (used by HyperDbg to execute commands)
+    VMX_VMXOFF_STATE                        VmxoffState;                     // Shows the vmxoff state of the guest
+    VM_EXIT_TRANSPARENCY                    TransparencyState;               // The state of the debugger in transparent-mode
+    PEPT_HOOKED_PAGE_DETAIL                 MtfEptHookRestorePoint;          // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    BOOLEAN                                 MtfTest;                         // It shows the detail of the hooked paged that should be restore in MTF vm-exit
+    DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS DebuggerUserModeSteppingDetails; // It shows the detail of stepping for debugger in user-mode
+    MEMORY_MAPPER_ADDRESSES                 MemoryMapper;                    // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
 /**

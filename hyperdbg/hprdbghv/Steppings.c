@@ -232,32 +232,32 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
         //
         // Set that we are waiting for a special thread id
         //
-        g_GuestState[i].DebuggerSteppingDetails.TargetProcessId = ProcessId;
+        g_GuestState[i].DebuggerUserModeSteppingDetails.TargetProcessId = ProcessId;
 
         //
         // Set that we are waiting for a special process id
         //
-        g_GuestState[i].DebuggerSteppingDetails.TargetThreadId = ThreadId;
+        g_GuestState[i].DebuggerUserModeSteppingDetails.TargetThreadId = ThreadId;
 
         //
         // Set the kernel cr3 (save cr3 of kernel for future use)
         //
-        g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3 = GetCr3FromProcessId(ProcessId);
+        g_GuestState[i].DebuggerUserModeSteppingDetails.TargetThreadKernelCr3 = GetCr3FromProcessId(ProcessId);
 
         //
         // We should not disable external-interrupts until we find the process
         //
-        g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = FALSE;
+        g_GuestState[i].DebuggerUserModeSteppingDetails.DisableExternalInterrupts = FALSE;
 
         //
         // Set that we are waiting for clock-interrupt on all cores
         //
-        g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt = TRUE;
+        g_GuestState[i].DebuggerUserModeSteppingDetails.IsWaitingForClockInterrupt = TRUE;
 
         //
         // Set the buffer for saving the details about a debugging thread
         //
-        g_GuestState[i].DebuggerSteppingDetails.BufferToSaveThreadDetails = ThreadDetailsBuffer;
+        g_GuestState[i].DebuggerUserModeSteppingDetails.BufferToSaveThreadDetails = ThreadDetailsBuffer;
 
         //
         // Enable external-interrupt exiting, because we are waiting for
@@ -301,18 +301,18 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
     // because of debugger steppings mechanism or not and also check
     // whether the target process already found or not
     //
-    if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp)
+    if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptp)
     {
         //
         // Disable the flag of change eptp
         //
-        g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = FALSE;
+        g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptp = FALSE;
 
         //
         // Check if the buffer for changing details is null, if null it's an
         // indicator of an error
         //
-        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail == NULL)
+        if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail == NULL)
         {
             LogError("Forgot to set the restoration part of the thread !!!");
         }
@@ -322,7 +322,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             // Also, restore the state of the entry on the secondary entry
             // Because we might use this page later
             //
-            RestorationThreadDetails = (PDEBUGGER_STEPPING_THREAD_DETAILS)g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail;
+            RestorationThreadDetails = (PDEBUGGER_STEPPING_THREAD_DETAILS)g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail;
 
             EptSetPML1AndInvalidateTLB(RestorationThreadDetails->TargetEntryOnSecondaryPageTable,
                                        RestorationThreadDetails->OriginalEntryContent,
@@ -331,7 +331,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             //
             // Make restoration point to null
             //
-            g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = NULL;
+            g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = NULL;
         }
 
         //
@@ -347,7 +347,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         HvSetExternalInterruptExiting(FALSE);
     }
-    else if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.DisableExternalInterrupts)
+    else if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.DisableExternalInterrupts)
     {
         //
         // The target process and thread already found, not need to
@@ -377,7 +377,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         // We only handle interrupts that are related to the clock-timer interrupt
         //
-        if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.IsWaitingForClockInterrupt &&
+        if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.IsWaitingForClockInterrupt &&
                 (InterruptExit->Vector == CLOCK_INTERRUPT && ProcessorIndex == 0) ||
             (InterruptExit->Vector == IPI_INTERRUPT && ProcessorIndex != 0))
         {
@@ -387,8 +387,8 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
             CurrentProcessId = PsGetCurrentProcessId();
             CurrentThreadId  = PsGetCurrentThreadId();
 
-            if (g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetProcessId == CurrentProcessId &&
-                g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadId == CurrentThreadId)
+            if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.TargetProcessId == CurrentProcessId &&
+                g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.TargetThreadId == CurrentThreadId)
             {
                 //
                 // *** The target process is found and we are in middle of the process ***
@@ -397,12 +397,12 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
                 //
                 // Save the kernel cr3 of target process
                 //
-                ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.TargetThreadKernelCr3;
+                ProcessKernelCr3 = g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.TargetThreadKernelCr3;
 
                 //
                 // Save the buffer for saving thread details
                 //
-                ThreadDetailsBuffer = g_GuestState[ProcessorIndex].DebuggerSteppingDetails.BufferToSaveThreadDetails;
+                ThreadDetailsBuffer = g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.BufferToSaveThreadDetails;
 
                 //
                 // Find count of all the processors
@@ -414,11 +414,11 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
                 //
                 for (size_t i = 0; i < ProcessorCount; i++)
                 {
-                    g_GuestState[i].DebuggerSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
-                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadId              = NULL;
-                    g_GuestState[i].DebuggerSteppingDetails.TargetProcessId             = NULL;
-                    g_GuestState[i].DebuggerSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
-                    g_GuestState[i].DebuggerSteppingDetails.BufferToSaveThreadDetails   = NULL;
+                    g_GuestState[i].DebuggerUserModeSteppingDetails.IsWaitingForClockInterrupt  = FALSE;
+                    g_GuestState[i].DebuggerUserModeSteppingDetails.TargetThreadId              = NULL;
+                    g_GuestState[i].DebuggerUserModeSteppingDetails.TargetProcessId             = NULL;
+                    g_GuestState[i].DebuggerUserModeSteppingDetails.TargetThreadKernelCr3.Flags = NULL;
+                    g_GuestState[i].DebuggerUserModeSteppingDetails.BufferToSaveThreadDetails   = NULL;
 
                     //
                     // Because we disabled external-interrupts here in this function, no need
@@ -426,7 +426,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
                     //
                     if (i != ProcessorIndex)
                     {
-                        g_GuestState[i].DebuggerSteppingDetails.DisableExternalInterrupts = TRUE;
+                        g_GuestState[i].DebuggerUserModeSteppingDetails.DisableExternalInterrupts = TRUE;
                     }
                 }
 
@@ -587,12 +587,12 @@ SteppingsHandleTargetThreadForTheFirstTime(PGUEST_REGS GuestRegs, PDEBUGGER_STEP
     // timing clock interrupt is received (external-interrupt exiting is
     // enabled at this moment)
     //
-    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
+    g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptp = TRUE;
 
     //
     // Set the details about the current thread
     //
-    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadDetailsBuffer;
+    g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadDetailsBuffer;
 }
 
 /**
@@ -899,12 +899,12 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
     // We should make the vmm to restore to the primary eptp whenever a
     // timing clock interrupt is received
     //
-    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptp = TRUE;
+    g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptp = TRUE;
 
     //
     // Set the details about the current thread
     //
-    g_GuestState[ProcessorIndex].DebuggerSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadSteppingDetail;
+    g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail = ThreadSteppingDetail;
 
     //
     // At this moment, external interrupt exiting in the current core must be
@@ -1312,12 +1312,12 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         //
         // Set the global value for current thread of this processor
         //
-        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs = MsrGsBase;
+        g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.CurrentThreadLocationOnGs = MsrGsBase;
 
         //
         // Set interception state
         //
-        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState = TRUE;
+        g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState = TRUE;
 
         //
         // Enable load debug controls and save debug controls because we don't
@@ -1351,7 +1351,7 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
             0,
             BREAK_ON_WRITE_ONLY,
             FALSE,
-            g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs);
+            g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.CurrentThreadLocationOnGs);
 
         //
         // Enables mov to debug registers exitings in primary cpu-based controls
@@ -1374,7 +1374,7 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         //
         // We should not ignore debug registers change anymore
         //
-        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.DebugRegisterInterceptionState = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState = FALSE;
 
         //
         // Disable mov to debug regs vm-exit
@@ -1396,7 +1396,7 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         //
         // No longer need to store such gs:188 value
         //
-        g_GuestState[CurrentProcessorIndex].DebuggerSteppingDetails.CurrentThreadLocationOnGs = NULL;
+        g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.CurrentThreadLocationOnGs = NULL;
     }
 
     //

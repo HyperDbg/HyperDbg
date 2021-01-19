@@ -210,27 +210,17 @@ KdStepInstruction(ULONG CoreId)
     //
     // It is because maximum instruction length in x64 is 16 bytes
     //
-    BYTE InstructionBytesOnRip[16 * 2] = {0};
-
-    DbgBreakPoint();
+    g_GuestState[CoreId].DebuggingState.WaitForStepOnMtf = TRUE;
 
     //
-    // Read the buffer at that place
+    // Not unset again
     //
-    MemoryMapperReadMemorySafe(g_GuestState[CoreId].LastVmexitRip, InstructionBytesOnRip, 16 * 2);
+    g_GuestState[CoreId].IgnoreMtfUnset = TRUE;
 
     //
-    // Set vm-exit on hardware debug breakpoint exceptions
+    // Set the MTF flag
     //
-
-    //
-    // Set hardware breakpoint on next instruction
-    //
-
-    //
-    // Send the handshake to show that it Stepped
-    //
-    SerialConnectionSend("Stepped", 7);
+    HvSetMonitorTrapFlag(TRUE);
 }
 
 /**
@@ -252,7 +242,7 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
             (PDEBUGGER_REMOTE_PACKET)RecvBuffer;
 
         //
-        // Receive the buffer in pulling mode
+        // Receive the buffer in polling mode
         //
         KdRecvBuffer(&RecvBuffer, &RecvBufferLength);
 
@@ -286,6 +276,26 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
                 // No need to wait for new commands
                 //
                 EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP:
+
+                //
+                // Indicate a step
+                //
+                KdStepInstruction(0);
+
+                //
+                // Unlock other cores
+                //
+                SpinlockUnlock(&SystemHaltLock);
+
+                //
+                // No need to wait for new commands
+                //
+                EscapeFromTheLoop = TRUE;
+
                 break;
             default:
                 LogError("err, unknown packet action received from the debugger.\n");
@@ -320,7 +330,7 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
-    BYTE InstructionBytesOnRip[MAXIMUM_INSTR_SIZE * 2] = {0};
+    BYTE InstructionBytesOnRip[sizeof(UINT64) + MAXIMUM_INSTR_SIZE] = {0};
 
     //
     // We check for receiving buffer (unhalting) only on the
@@ -338,14 +348,19 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         SerialConnectionSend("Paused", 6);
 
         //
+        // Set the RIP
+        //
+        memcpy(InstructionBytesOnRip, &g_GuestState[CurrentCore].LastVmexitRip, sizeof(UINT64));
+
+        //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
+        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip + sizeof(UINT64), MAXIMUM_INSTR_SIZE);
 
         //
         // Send it to the debugger
         //
-        SerialConnectionSend(InstructionBytesOnRip, MAXIMUM_INSTR_SIZE * 2);
+        SerialConnectionSend(InstructionBytesOnRip, sizeof(UINT64) + MAXIMUM_INSTR_SIZE);
 
         //
         // Perform Commands from the debugger

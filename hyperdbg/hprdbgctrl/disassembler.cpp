@@ -163,7 +163,7 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
       ZydisDecoderDecodeBuffer(decoder, data, length, &instruction))) {
 
     // ZYAN_PRINTF("%016" PRIX64 "  ", runtime_address);
-    ShowMessages("%s", SeparateTo64BitValue(runtime_address).c_str());
+    ShowMessages("%s   ", SeparateTo64BitValue(runtime_address).c_str());
     //
     // We have to pass a `runtime_address` different to
     // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
