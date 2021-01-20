@@ -386,11 +386,6 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
 
         //
-        // Send the handshake to show that it paused
-        //
-        SerialConnectionSend("Paused", 6);
-
-        //
         // Set the RIP
         //
         memcpy(InstructionBytesOnRip, &g_GuestState[CurrentCore].LastVmexitRip, sizeof(UINT64));
@@ -401,9 +396,13 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip + sizeof(UINT64), MAXIMUM_INSTR_SIZE);
 
         //
-        // Send it to the debugger
+        // Send the pause packet, along with RIP and an
+        // indication to pause to the debugger to the debugger
         //
-        SerialConnectionSend(InstructionBytesOnRip, sizeof(UINT64) + MAXIMUM_INSTR_SIZE);
+        KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
+                                   InstructionBytesOnRip,
+                                   sizeof(UINT64) + MAXIMUM_INSTR_SIZE);
 
         //
         // Perform Commands from the debugger

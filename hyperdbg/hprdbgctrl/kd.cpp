@@ -89,6 +89,28 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
 }
 
 /**
+ * @brief Interpret the packets from debuggee in the case of paused
+ *
+ * @return VOID
+ */
+VOID KdInterpretPausedDebuggee() {
+
+  //
+  // Wait for handshake to complete or in other words
+  // get the receive packet
+  //
+  ListeningSerialPortInDebugger();
+
+  //
+  // Wait for the detail packet on the listener side
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS],
+      INFINITE);
+}
+
+/**
  * @brief Sends a continue or 'g' command packet to the debuggee
  *
  * @return BOOLEAN
@@ -115,9 +137,6 @@ BOOLEAN KdSendContinuePacketToDebuggee() {
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
 
-  CHAR BufferToReceive[64] = {0};
-  UINT32 LengthReceived = 0;
-
   //
   // Send step packet to the serial
   //
@@ -128,34 +147,11 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
   }
 
   //
-  // Wait for handshake to complete or in other words
-  // get the receive packet
+  // Handle the paused state (show rip, instructions, etc.)
   //
-  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-    return FALSE;
-  }
+  KdInterpretPausedDebuggee();
 
-  //
-  // Check if the handshake is correct or not
-  //
-  if (!KdCompareBufferWithString(BufferToReceive, "Paused")) {
-
-    return FALSE;
-  }
-
-  //
-  // Now we should print the instruction
-  //
-  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-    return FALSE;
-  }
-
-  if (LengthReceived == MAXIMUM_INSTR_SIZE + sizeof(UINT64)) {
-    HyperDbgDisassembler64((UCHAR *)BufferToReceive + sizeof(UINT64),
-                           *((UINT64 *)BufferToReceive), MAXIMUM_INSTR_SIZE, 1);
-  }
-
-  return FALSE;
+  return TRUE;
 }
 
 /**
@@ -178,39 +174,9 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   }
 
   //
-  // Wait for 1 sec so it send the packets, no need to sleep
-  // as we don't use the time-out mechanism (no need anymore as
-  // we use end buffer detection mechanism)
+  // Handle the paused state (show rip, instructions, etc.)
   //
-  // Sleep(800);
-
-  //
-  // Wait for handshake to complete or in other words
-  // get the receive packet
-  //
-  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-    return FALSE;
-  }
-
-  //
-  // Check if the handshake is correct or not
-  //
-  if (!KdCompareBufferWithString(BufferToReceive, "Paused")) {
-
-    return FALSE;
-  }
-
-  //
-  // Now we should print the instruction
-  //
-  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-    return FALSE;
-  }
-
-  if (LengthReceived == MAXIMUM_INSTR_SIZE + sizeof(UINT64)) {
-    HyperDbgDisassembler64((UCHAR *)BufferToReceive + sizeof(UINT64),
-                           *((UINT64 *)BufferToReceive), MAXIMUM_INSTR_SIZE, 1);
-  }
+  KdInterpretPausedDebuggee();
 
   return TRUE;
 }
@@ -564,6 +530,7 @@ StartAgain:
   //
   // Create the listening thread in debugger
   //
+
   // g_SerialListeningThreadHandle =
   //    CreateThread(NULL, 0, ListeningSerialPauseDebuggerThread, NULL, 0,
   //    NULL);

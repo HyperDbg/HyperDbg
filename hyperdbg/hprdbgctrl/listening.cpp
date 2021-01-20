@@ -73,6 +73,23 @@ StartAgain:
                    [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
 
       break;
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
+
+      ShowMessages("\n");
+      HyperDbgDisassembler64(((UCHAR *)TheActualPacket) +
+                                 sizeof(DEBUGGER_REMOTE_PACKET) +
+                                 sizeof(UINT64),
+                             *((UINT64 *)((UCHAR *)TheActualPacket) +
+                               sizeof(DEBUGGER_REMOTE_PACKET)),
+                             MAXIMUM_INSTR_SIZE, 1);
+
+      //
+      // Signal the event
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+
+      break;
     default:
       ShowMessages("err, unknown packet action received from the debugger.\n");
       break;
