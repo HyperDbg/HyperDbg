@@ -30,6 +30,13 @@ KdInitializeKernelDebugger();
 VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
+BOOLEAN
+KdResponsePacketToDebugger(
+    DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+    CHAR *                                  OptionalBuffer,
+    UINT32                                  OptionalBufferLength);
+
 //////////////////////////////////////////////////
 //				 Spinlock Locks 				//
 //////////////////////////////////////////////////

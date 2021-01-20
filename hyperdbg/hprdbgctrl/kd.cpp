@@ -15,9 +15,10 @@
 // Global Variables
 //
 extern HANDLE g_SerialListeningThreadHandle;
-extern HANDLE g_DebuggerRunningEventHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern HANDLE g_DebuggeeStopCommandEventHandle;
+extern HANDLE
+    g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
@@ -171,7 +172,7 @@ BOOLEAN KdSendPausePacketToDebuggee() {
   // Send pause packet to debuggee
   //
   if (!KdCommandPacketToDebuggee(
-          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_EXECUTE_ON_USER_MODE,
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE)) {
     return FALSE;
   }
@@ -206,9 +207,9 @@ BOOLEAN KdSendPausePacketToDebuggee() {
     return FALSE;
   }
 
-  if (LengthReceived == MAXIMUM_INSTR_SIZE) {
-    HyperDbgDisassembler64((UCHAR *)BufferToReceive, 0x0, MAXIMUM_INSTR_SIZE,
-                           1);
+  if (LengthReceived == MAXIMUM_INSTR_SIZE + sizeof(UINT64)) {
+    HyperDbgDisassembler64((UCHAR *)BufferToReceive + sizeof(UINT64),
+                           *((UINT64 *)BufferToReceive), MAXIMUM_INSTR_SIZE, 1);
   }
 
   return TRUE;
@@ -445,7 +446,8 @@ VOID KdBreakControlCheckAndPauseDebugger() {
     //
     // Signal the event
     //
-    SetEvent(g_DebuggerRunningEventHandle);
+    SetEvent(g_SyncronizationObjectsHandleTable
+                 [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
   }
 }
 
@@ -498,7 +500,9 @@ VOID KdTheRemoteSystemIsRunning() {
   //
   // Wait until the users press CTRL+C
   //
-  WaitForSingleObject(g_DebuggerRunningEventHandle, INFINITE);
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING],
+                      INFINITE);
 }
 
 /**
@@ -513,15 +517,8 @@ BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle,
 
 StartAgain:
 
-  BOOL Status;                 /* Status */
-  char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
-  char DebuggeeName[MAXIMUM_CHARACTER_FOR_OS_NAME + sizeof(UINT64)] = {
-      0};                /* Buffer to receive data about debuggee name */
-  DWORD EventMask = 0;   /* Event mask to trigger */
-  char ReadData = NULL;  /* temperory Character */
-  DWORD NoBytesRead = 0; /* Bytes read by ReadFile() */
-  UINT32 DataRead = 0;   /* Bytes read by ReadFile() */
-  UINT32 Loop = 0;
+  BOOL Status;         /* Status */
+  DWORD EventMask = 0; /* Event mask to trigger */
 
   //
   // Show an indication to connect the debugger
@@ -552,89 +549,67 @@ StartAgain:
   }
 
   //
-  // Read data and store in a buffer
+  // Initialize the handle table
   //
-  do {
-    Status =
-        ReadFile(SerialHandle, &ReadData, sizeof(ReadData), &NoBytesRead, NULL);
-    SerialBuffer[Loop] = ReadData;
-
-    //
-    // Check for end character
-    //
-    if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)SerialBuffer)) {
-      break;
-    }
-
-    ++Loop;
-
-  } while (NoBytesRead > 0);
-
-  //
-  // Get actual length of received data
-  //
-  // ShowMessages("Number of bytes received = %d\n", Loop);
-
-  //
-  // Wait for the 'Start' packet
-  //
-  if (Loop == 5 && SerialBuffer[0] == 'S' && SerialBuffer[1] == 't' &&
-      SerialBuffer[2] == 'a' && SerialBuffer[3] == 'r' &&
-      SerialBuffer[4] == 't') {
-
-    //
-    // Create an event for waiting if the debugger is running
-    // (Manually. no signal)
-    //
-    g_DebuggerRunningEventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-    //
-    // Connected to the debuggee
-    //
-    g_IsSerialConnectedToRemoteDebuggee = TRUE;
-
-    //
-    // And debuggee is running
-    //
-    g_IsDebuggeeRunning = TRUE;
-
-    //
-    // Save the handler
-    //
-    g_SerialRemoteComPortHandle = SerialHandle;
-
-    //
-    // Is serial handle for a named pipe
-    //
-    g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
-
-    //
-    // Register the CTRL+C and CTRL+BREAK Signals handler
-    //
-    if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
-      ShowMessages(
-          "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
-      return FALSE;
-    }
-
-    //
-    // Read the name of the debuggee OS
-    //
-    if (!KdReceivePacketFromDebuggee(DebuggeeName, &DataRead)) {
-      return FALSE;
-    }
-
-    ShowMessages("Connected to debuggee %s !\n", DebuggeeName);
-    ShowMessages("Press CTRL+C to pause the debuggee\n");
-
-    //
-    // Wait for event on this thread
-    //
-    KdTheRemoteSystemIsRunning();
-
-  } else {
-    goto StartAgain;
+  for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS; i++) {
+    g_SyncronizationObjectsHandleTable[i] =
+        CreateEvent(NULL, FALSE, FALSE, NULL);
   }
+
+  //
+  // Save the handler
+  //
+  g_SerialRemoteComPortHandle = SerialHandle;
+
+  //
+  // Create the listening thread in debugger
+  //
+  // g_SerialListeningThreadHandle =
+  //    CreateThread(NULL, 0, ListeningSerialPauseDebuggerThread, NULL, 0,
+  //    NULL);
+  ListeningSerialPortInDebugger();
+
+  //
+  // Wait for the 'Start' packet on the listener side
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED],
+      INFINITE);
+
+  //
+  // Connected to the debuggee
+  //
+  g_IsSerialConnectedToRemoteDebuggee = TRUE;
+
+  //
+  // And debuggee is running
+  //
+  g_IsDebuggeeRunning = TRUE;
+
+  //
+  // Save the handler
+  //
+  g_SerialRemoteComPortHandle = SerialHandle;
+
+  //
+  // Is serial handle for a named pipe
+  //
+  g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+
+  //
+  // Register the CTRL+C and CTRL+BREAK Signals handler
+  //
+  if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+    ShowMessages(
+        "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+    return FALSE;
+  }
+
+  //
+  // Wait for event on this thread
+  //
+  KdTheRemoteSystemIsRunning();
 
   return TRUE;
 }
@@ -871,8 +846,8 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     //
     // Create a thread to listen for pauses from the remote debugger
     //
-    g_SerialListeningThreadHandle =
-        CreateThread(NULL, 0, ListeningSerialPauseThread, Comm, 0, NULL);
+    g_SerialListeningThreadHandle = CreateThread(
+        NULL, 0, ListeningSerialPauseDebuggeeThread, Comm, 0, NULL);
 
     //
     // Free the buffer
@@ -930,11 +905,14 @@ VOID KdCloseConnection() {
       g_IsSerialConnectedToRemoteDebugger) {
 
     //
-    // Close the event's handle
+    // Close synchronization objects
     //
-    if (g_DebuggerRunningEventHandle != NULL) {
-      CloseHandle(g_DebuggerRunningEventHandle);
-      g_DebuggerRunningEventHandle = NULL;
+    for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS; i++) {
+
+      if (g_SyncronizationObjectsHandleTable[i] != NULL) {
+        CloseHandle(g_SyncronizationObjectsHandleTable[i]);
+        g_SyncronizationObjectsHandleTable[i] = NULL;
+      }
     }
 
     //

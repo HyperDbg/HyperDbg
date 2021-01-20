@@ -103,6 +103,14 @@ BYTE g_EndOfBufferCheck[4] = {
  * of the user-mode listening thread for pauses here
  *
  */
+HANDLE g_SyncronizationObjectsHandleTable
+    [DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS] = {0};
+
+/**
+ * @brief In debuggee and debugger, we save the handle
+ * of the user-mode listening thread for pauses here
+ *
+ */
 HANDLE g_SerialListeningThreadHandle = NULL;
 
 /**
@@ -138,13 +146,6 @@ BOOLEAN g_IsDebuggeeRunning = FALSE;
  *
  */
 BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
-
-/**
- * @brief An event to show whether the debugger is running
- * or not
- *
- */
-HANDLE g_DebuggerRunningEventHandle = NULL;
 
 /**
  * @brief An event to make sure that the user won't give any command in debuggee

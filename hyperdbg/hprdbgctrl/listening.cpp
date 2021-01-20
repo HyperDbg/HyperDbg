@@ -11,6 +11,88 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern HANDLE
+    g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
+
+/**
+ * @brief Check if the remote debuggee needs to pause the system
+ * and also process the debuggee's messages
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN ListeningSerialPortInDebugger() {
+
+StartAgain:
+
+  CHAR BufferToReceive[0x1000] = {0};
+  UINT32 LengthReceived = 0;
+  PDEBUGGER_REMOTE_PACKET TheActualPacket;
+
+  //
+  // Wait for handshake to complete or in other words
+  // get the receive packet
+  //
+  if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
+    return FALSE;
+  }
+
+  TheActualPacket = (PDEBUGGER_REMOTE_PACKET)BufferToReceive;
+
+  if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
+
+    //
+    // Check if the packet type is correct
+    //
+    if (TheActualPacket->TypeOfThePacket !=
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER) {
+      //
+      // sth wrong happened, the packet is not belonging to use
+      // nothing to do, just wait again
+      //
+      ShowMessages("err, unknown packet received from the debugger.\n");
+      goto StartAgain;
+    }
+
+    //
+    // It's a HyperDbg packet
+    //
+    switch (TheActualPacket->RequestedActionOfThePacket) {
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
+
+      ShowMessages("Connected to debuggee %s !\n",
+                   ((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+      ShowMessages("Press CTRL+C to pause the debuggee\n");
+
+      //
+      // Signal the event that the debugger started
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
+
+      break;
+    default:
+      ShowMessages("err, unknown packet action received from the debugger.\n");
+      break;
+    }
+
+  } else {
+    //
+    // It's not a HyperDbg packet, it's probably a GDB packet
+    //
+    DebugBreak();
+  }
+
+  //
+  // Wait for debug pause command again
+  //
+  // goto StartAgain;
+
+  return TRUE;
+}
+
 /**
  * @brief Check if the remote debugger needs to pause the system
  *
@@ -81,7 +163,7 @@ StartAgain:
     // Check if the packet type is correct
     //
     if (TheActualPacket->TypeOfThePacket !=
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_EXECUTE_ON_USER_MODE) {
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE) {
       //
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
@@ -121,17 +203,33 @@ StartAgain:
 }
 
 /**
+ * @brief Check if the remote debuggee needs to pause the system
+ *
+ * @param Param
+ * @return BOOLEAN
+ */
+DWORD WINAPI ListeningSerialPauseDebuggerThread(PVOID Param) {
+
+  //
+  // Create a listening thead in debugger
+  //
+  ListeningSerialPortInDebugger();
+
+  return 0;
+}
+
+/**
  * @brief Check if the remote debugger needs to pause the system
  *
  * @param SerialHandle
  * @return BOOLEAN
  */
-DWORD WINAPI ListeningSerialPauseThread(PVOID Param) {
+DWORD WINAPI ListeningSerialPauseDebuggeeThread(PVOID SerialHandle) {
 
   //
-  // Create a listening thead
+  // Create a listening thead in debuggee
   //
-  ListeningSerialPortInDebuggee((HANDLE)Param);
+  ListeningSerialPortInDebuggee((HANDLE)SerialHandle);
 
   return 0;
 }

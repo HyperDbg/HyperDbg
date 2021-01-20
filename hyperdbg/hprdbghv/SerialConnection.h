@@ -44,7 +44,10 @@ BOOLEAN
 SerialConnectionCheckBaudrate(DWORD Baudrate);
 
 VOID
-SerialConnectionSend(CHAR * Buffer, PVOID Length);
+SerialConnectionSend(CHAR * Buffer, UINT32 Length);
+
+VOID
+SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, UINT32 Length2);
 
 //////////////////////////////////////////////////
 //					 Constants					//

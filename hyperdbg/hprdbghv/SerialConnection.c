@@ -33,11 +33,48 @@ SerialConnectionTest()
  * @return VOID 
  */
 VOID
-SerialConnectionSend(CHAR * Buffer, PVOID Length)
+SerialConnectionSend(CHAR * Buffer, UINT32 Length)
 {
     for (size_t i = 0; i < Length; i++)
     {
         KdHyperDbgSendByte(Buffer[i], TRUE);
+    }
+
+    //
+    // Send the end buffer
+    //
+    KdHyperDbgSendByte(0x00, TRUE);
+    KdHyperDbgSendByte(0x80, TRUE);
+    KdHyperDbgSendByte(0xee, TRUE);
+    KdHyperDbgSendByte(0xff, TRUE);
+}
+
+/**
+ * @brief Perform sending 2 not appended buffers over serial
+ * 
+ * @param Buffer1 buffer to send
+ * @param Length1 length of buffer to send
+ * @param Buffer2 buffer to send
+ * @param Length2 length of buffer to send
+ * @return VOID 
+ */
+VOID
+SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, UINT32 Length2)
+{
+    //
+    // Send first buffer
+    //
+    for (size_t i = 0; i < Length1; i++)
+    {
+        KdHyperDbgSendByte(Buffer1[i], TRUE);
+    }
+
+    //
+    // Send second buffer
+    //
+    for (size_t i = 0; i < Length2; i++)
+    {
+        KdHyperDbgSendByte(Buffer2[i], TRUE);
     }
 
     //
@@ -134,14 +171,12 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     KdInitializeKernelDebugger();
 
     //
-    // Send "Start" packet
+    // Send "Start" packet along with Windows Name
     //
-    SerialConnectionSend("Start", 5);
-
-    //
-    // Send Windows Name
-    //
-    SerialConnectionSend(DebuggeeRequest->OsName, MAXIMUM_CHARACTER_FOR_OS_NAME);
+    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
+                               DebuggeeRequest->OsName,
+                               MAXIMUM_CHARACTER_FOR_OS_NAME);
 
     //
     // Set status to successful

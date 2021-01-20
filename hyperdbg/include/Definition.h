@@ -147,6 +147,25 @@
 #define DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD 0x1
 
 //////////////////////////////////////////////////
+//		Debugger Synchronization Objects        //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Maximum Number of Event Handles
+ */
+#define DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS 0x40
+
+///////////////////////////////////////////////////
+
+/**
+ * @brief An event to show whether the debugger is running
+ * or not
+ *
+ */
+#define DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING 0x0
+#define DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED 0x1
+
+//////////////////////////////////////////////////
 //            End of Buffer Detection           //
 //////////////////////////////////////////////////
 
@@ -874,8 +893,16 @@ typedef struct _DEBUGGER_EVENT {
  */
 typedef enum _DEBUGGER_REMOTE_PACKET_TYPE {
 
+  //
+  // Debugger to debuggee
+  //
   DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT = 1,
-  DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER_EXECUTE_ON_USER_MODE
+  DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+
+  //
+  // Debuggee to debugger
+  //
+  DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER
 
 } DEBUGGER_REMOTE_PACKET_TYPE;
 
@@ -885,9 +912,21 @@ typedef enum _DEBUGGER_REMOTE_PACKET_TYPE {
  */
 typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
 
+  //
+  // Debugger to debuggee (user-mode execution)
+  //
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE = 1,
+
+  //
+  // Debugger to debuggee (vmx-root mode execution)
+  //
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE,
+
+  //
+  // Debuggee to debugger
+  //
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 

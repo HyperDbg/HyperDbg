@@ -120,6 +120,48 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 }
 
 /**
+ * @brief Sends a HyperDbg response packet to the debugger
+ *
+ * @param PacketType
+ * @param Response
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdResponsePacketToDebugger(
+    DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
+    CHAR *                                  OptionalBuffer,
+    UINT32                                  OptionalBufferLength)
+{
+    DEBUGGER_REMOTE_PACKET Packet = {0};
+
+    //
+    // Make the packet's structure
+    //
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.TypeOfThePacket = PacketType;
+
+    //
+    // Set the requested action
+    //
+    Packet.RequestedActionOfThePacket = Response;
+
+    //
+    // Send the serial packets to the debugger
+    //
+    if (OptionalBuffer == NULL || OptionalBufferLength == 0)
+    {
+        SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+    }
+    else
+    {
+        SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Receive packet from the debugger
  *
  * @param BufferToSave
@@ -322,6 +364,7 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
 
 /**
  * @brief manage system halt on vmx-root mode 
+ * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param CurrentCore  
  * @param GuestRegs  
  * 
