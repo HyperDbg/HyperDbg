@@ -13,10 +13,7 @@
 #pragma once
 
 #ifndef _GDBSTUB_H_
-#define _GDBSTUB_H_
-
-
-
+#    define _GDBSTUB_H_
 
 /*****************************************************************************
  * Macros
@@ -74,8 +71,6 @@ typedef unsigned char  uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long  uint32_t;
 #        endif
-
-
 
 typedef unsigned int address;
 typedef unsigned int reg;
@@ -159,18 +154,30 @@ void const * const dbg_int_handlers[10000];
  * Prototypes
  ****************************************************************************/
 
-int dbg_hook_idt(uint8_t vector, const void * function);
-int dbg_init_gates(void);
-int dbg_init_idt(void);
-int dbg_load_idt(struct dbg_idtr * idtr);
-int dbg_store_idt(struct dbg_idtr * idtr);
-uint32_t dbg_get_cs(void);
-void dbg_int_handler(struct dbg_interrupt_state * istate);
-void dbg_interrupt(struct dbg_interrupt_state * istate);
-void dbg_start(void);
-void dbg_io_write_8(uint16_t port, uint8_t val);
-uint8_t dbg_io_read_8(uint16_t port);
-void *dbg_sys_memset(void * ptr, int data, size_t len);
+int
+dbg_hook_idt(uint8_t vector, const void * function);
+int
+dbg_init_gates(void);
+int
+dbg_init_idt(void);
+int
+dbg_load_idt(struct dbg_idtr * idtr);
+int
+dbg_store_idt(struct dbg_idtr * idtr);
+uint32_t
+dbg_get_cs(void);
+void
+dbg_int_handler(struct dbg_interrupt_state * istate);
+void
+dbg_interrupt(struct dbg_interrupt_state * istate);
+void
+dbg_start(void);
+void
+dbg_io_write_8(uint16_t port, uint8_t val);
+uint8_t
+dbg_io_read_8(uint16_t port);
+void *
+dbg_sys_memset(void * ptr, int data, size_t len);
 
 #    endif
 
@@ -178,14 +185,21 @@ void *dbg_sys_memset(void * ptr, int data, size_t len);
   * Prototypes
   ****************************************************************************/
 
-int dbg_main(struct dbg_state * state);
+int
+dbg_main(struct dbg_state * state);
 
 /* System functions, supported by all stubs */
-int dbg_sys_getc(void);
-int dbg_sys_putchar(int ch);
-int dbg_sys_mem_readb(address addr, char * val);
-int dbg_sys_mem_writeb(address addr, char val);
-int dbg_sys_continue();
-int dbg_sys_step();
+int
+dbg_sys_getc(void);
+int
+dbg_sys_putchar(int ch);
+int
+dbg_sys_mem_readb(address addr, char * val);
+int
+dbg_sys_mem_writeb(address addr, char val);
+int
+dbg_sys_continue();
+int
+dbg_sys_step();
 
 #endif

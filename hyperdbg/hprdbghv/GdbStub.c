@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-
-
 #include "GdbStub.h"
 
 #ifdef __STRICT_ANSI__
@@ -39,6 +37,7 @@ static struct dbg_state dbg_state;
 void *
 dbg_sys_memset(void * ptr, int data, size_t len)
 {
+    DbgBreakPoint();
     //set memory function
     //printf("memset function runs %x: %d, %d", ptr, data, len);
 }
@@ -50,6 +49,7 @@ dbg_sys_memset(void * ptr, int data, size_t len)
 uint32_t
 dbg_get_cs(void)
 {
+    DbgBreakPoint();
     //dbg_get_cs function
     //
     //printf("dbg_get_cs function runs\n");
@@ -66,6 +66,7 @@ dbg_get_cs(void)
 int
 dbg_init_gates(void)
 {
+    DbgBreakPoint();
     size_t   i;
     uint16_t cs;
 
@@ -87,6 +88,7 @@ dbg_init_gates(void)
 int
 dbg_load_idt(struct dbg_idtr * idtr)
 {
+    DbgBreakPoint();
     return 0;
 }
 
@@ -96,6 +98,7 @@ dbg_load_idt(struct dbg_idtr * idtr)
 int
 dbg_store_idt(struct dbg_idtr * idtr)
 {
+    DbgBreakPoint();
     return 0;
 }
 
@@ -105,6 +108,7 @@ dbg_store_idt(struct dbg_idtr * idtr)
 int
 dbg_hook_idt(uint8_t vector, const void * function)
 {
+    DbgBreakPoint();
     struct dbg_idtr       idtr;
     struct dbg_idt_gate * gates;
 
@@ -124,6 +128,7 @@ dbg_hook_idt(uint8_t vector, const void * function)
 int
 dbg_init_idt(void)
 {
+    DbgBreakPoint();
     struct dbg_idtr idtr;
 
     dbg_init_gates();
@@ -140,6 +145,7 @@ dbg_init_idt(void)
 void
 dbg_int_handler(struct dbg_interrupt_state * istate)
 {
+    DbgBreakPoint();
     dbg_interrupt(istate);
 }
 
@@ -149,6 +155,7 @@ dbg_int_handler(struct dbg_interrupt_state * istate)
 void
 dbg_interrupt(struct dbg_interrupt_state * istate)
 {
+    DbgBreakPoint();
     dbg_sys_memset(&dbg_state.registers, 0, sizeof(dbg_state.registers));
 
     /* Translate vector to signal */
@@ -213,6 +220,7 @@ dbg_interrupt(struct dbg_interrupt_state * istate)
 void
 dbg_io_write_8(uint16_t port, uint8_t val)
 {
+    DbgBreakPoint();
     //dbg_io_write_8
     //printf("dbg_io_write_8 function runs\n");
     return 0;
@@ -224,6 +232,7 @@ dbg_io_write_8(uint16_t port, uint8_t val)
 uint8_t
 dbg_io_read_8(uint16_t port)
 {
+    DbgBreakPoint();
     //dbg_io_write_8
     //printf("dbg_io_read_8 function runs\n");
     //returns number of bytes
@@ -241,6 +250,7 @@ dbg_io_read_8(uint16_t port)
 int
 dbg_serial_getc(void)
 {
+    DbgBreakPoint();
     /* Wait for data */
     while ((dbg_io_read_8(SERIAL_PORT + SERIAL_LSR) & 1) == 0)
         ;
@@ -250,6 +260,7 @@ dbg_serial_getc(void)
 int
 dbg_serial_putchar(int ch)
 {
+    DbgBreakPoint();
     /* Wait for THRE (bit 5) to be high */
     while ((dbg_io_read_8(SERIAL_PORT + SERIAL_LSR) & (1 << 5)) == 0)
         ;
@@ -267,6 +278,7 @@ dbg_serial_putchar(int ch)
 int
 dbg_sys_putchar(int ch)
 {
+    DbgBreakPoint();
     return dbg_serial_putchar(ch);
 }
 
@@ -276,6 +288,7 @@ dbg_sys_putchar(int ch)
 int
 dbg_sys_getc(void)
 {
+    DbgBreakPoint();
     return dbg_serial_getc() & 0xff;
 }
 
@@ -285,6 +298,7 @@ dbg_sys_getc(void)
 int
 dbg_sys_mem_readb(address addr, char * val)
 {
+    DbgBreakPoint();
     *val = *(volatile char *)addr;
     return 0;
 }
@@ -295,6 +309,7 @@ dbg_sys_mem_readb(address addr, char * val)
 int
 dbg_sys_mem_writeb(address addr, char val)
 {
+    DbgBreakPoint();
     *(volatile char *)addr = val;
     return 0;
 }
@@ -305,6 +320,7 @@ dbg_sys_mem_writeb(address addr, char val)
 int
 dbg_sys_continue(void)
 {
+    DbgBreakPoint();
     //dbg_sys_continue
     //printf("dbg_sys_continue function runs\n");
     return 0;
@@ -316,6 +332,7 @@ dbg_sys_continue(void)
 int
 dbg_sys_step(void)
 {
+    DbgBreakPoint();
     //dbg_sys_step
     //printf("dbg_sys_step function runs\n");
     return 0;
@@ -329,12 +346,13 @@ dbg_sys_step(void)
 void
 dbg_start(void)
 {
+    DbgBreakPoint();
     /* Hook current IDT. */
-   // dbg_hook_idt(1, dbg_int_handlers[1]);
+    // dbg_hook_idt(1, dbg_int_handlers[1]);
     //dbg_hook_idt(3, dbg_int_handlers[3]);
 
     /* Interrupt to start debugging. */
-   // asm volatile("int3");
+    // asm volatile("int3");
 }
 /*****************************************************************************
  * Types
@@ -421,6 +439,7 @@ dbg_step(void);
 int
 dbg_strlen(const char * ch)
 {
+    DbgBreakPoint();
     int len;
 
     len = 0;
@@ -447,6 +466,7 @@ dbg_strlen(const char * ch)
 int
 dbg_strtol(const char * str, size_t len, int base, const char ** endptr)
 {
+    DbgBreakPoint();
     size_t pos;
     int    sign, tmp, value, valid;
 
@@ -522,6 +542,7 @@ dbg_strtol(const char * str, size_t len, int base, const char ** endptr)
 char
 dbg_get_digit(int val)
 {
+    DbgBreakPoint();
     if ((val >= 0) && (val <= 0xf))
     {
         return digits[val];
@@ -540,6 +561,7 @@ dbg_get_digit(int val)
 int
 dbg_get_val(char digit, int base)
 {
+    DbgBreakPoint();
     int value;
 
     if ((digit >= '0') && (digit <= '9'))
@@ -568,6 +590,7 @@ dbg_get_val(char digit, int base)
 int
 dbg_is_printable_char(char ch)
 {
+    DbgBreakPoint();
     return (ch >= 0x20 && ch <= 0x7e);
 }
 
@@ -586,6 +609,7 @@ dbg_is_printable_char(char ch)
 int
 dbg_recv_ack(void)
 {
+    DbgBreakPoint();
     int response;
 
     /* Wait for packet ack */
@@ -613,6 +637,7 @@ dbg_recv_ack(void)
 int
 dbg_checksum(const char * buf, size_t len)
 {
+    DbgBreakPoint();
     unsigned char csum;
 
     csum = 0;
@@ -637,6 +662,7 @@ dbg_checksum(const char * buf, size_t len)
 int
 dbg_send_packet(const char * pkt_data, size_t pkt_len)
 {
+    DbgBreakPoint();
     char buf[3];
     char csum;
 
@@ -692,6 +718,7 @@ dbg_send_packet(const char * pkt_data, size_t pkt_len)
 int
 dbg_recv_packet(char * pkt_buf, size_t pkt_buf_len, size_t * pkt_len)
 {
+    DbgBreakPoint();
     int  data;
     char expected_csum, actual_csum;
     char buf[2];
@@ -793,6 +820,7 @@ dbg_recv_packet(char * pkt_buf, size_t pkt_buf_len, size_t * pkt_len)
 int
 dbg_enc_hex(char * buf, size_t buf_len, const char * data, size_t data_len)
 {
+    DbgBreakPoint();
     size_t pos;
 
     if (buf_len < data_len * 2)
@@ -819,6 +847,7 @@ dbg_enc_hex(char * buf, size_t buf_len, const char * data, size_t data_len)
 int
 dbg_dec_hex(const char * buf, size_t buf_len, char * data, size_t data_len)
 {
+    DbgBreakPoint();
     size_t pos;
     int    tmp;
 
@@ -837,7 +866,6 @@ dbg_dec_hex(const char * buf, size_t buf_len, char * data, size_t data_len)
             /* Buffer contained junk. */
             ASSERT(0);
             return EOF;
-    
         }
 
         data[pos] = tmp << 4;
@@ -866,6 +894,7 @@ dbg_dec_hex(const char * buf, size_t buf_len, char * data, size_t data_len)
 int
 dbg_enc_bin(char * buf, size_t buf_len, const char * data, size_t data_len)
 {
+    DbgBreakPoint();
     size_t buf_pos, data_pos;
 
     for (buf_pos = 0, data_pos = 0; data_pos < data_len; data_pos++)
@@ -904,6 +933,7 @@ dbg_enc_bin(char * buf, size_t buf_len, const char * data, size_t data_len)
 int
 dbg_dec_bin(const char * buf, size_t buf_len, char * data, size_t data_len)
 {
+    DbgBreakPoint();
     size_t buf_pos, data_pos;
     for (buf_pos = 0, data_pos = 0; buf_pos < buf_len; buf_pos++)
     {
@@ -948,6 +978,7 @@ dbg_dec_bin(const char * buf, size_t buf_len, char * data, size_t data_len)
 int
 dbg_mem_read(char * buf, size_t buf_len, address addr, size_t len, dbg_enc_func enc)
 {
+    DbgBreakPoint();
     char   data[64];
     size_t pos;
 
@@ -976,6 +1007,7 @@ dbg_mem_read(char * buf, size_t buf_len, address addr, size_t len, dbg_enc_func 
 int
 dbg_mem_write(const char * buf, size_t buf_len, address addr, size_t len, dbg_dec_func dec)
 {
+    DbgBreakPoint();
     char   data[64];
     size_t pos;
 
@@ -1009,6 +1041,7 @@ dbg_mem_write(const char * buf, size_t buf_len, address addr, size_t len, dbg_de
 int
 dbg_continue(void)
 {
+    DbgBreakPoint();
     dbg_sys_continue();
     return 0;
 }
@@ -1019,6 +1052,7 @@ dbg_continue(void)
 int
 dbg_step(void)
 {
+    DbgBreakPoint();
     dbg_sys_step();
     return 0;
 }
@@ -1033,6 +1067,7 @@ dbg_step(void)
 int
 dbg_send_ok_packet(char * buf, size_t buf_len)
 {
+    DbgBreakPoint();
     return dbg_send_packet("OK", 2);
 }
 
@@ -1042,6 +1077,7 @@ dbg_send_ok_packet(char * buf, size_t buf_len)
 int
 dbg_send_conmsg_packet(char * buf, size_t buf_len, const char * msg)
 {
+    DbgBreakPoint();
     size_t size;
     int    status;
 
@@ -1067,6 +1103,7 @@ dbg_send_conmsg_packet(char * buf, size_t buf_len, const char * msg)
 int
 dbg_send_signal_packet(char * buf, size_t buf_len, char signal)
 {
+    DbgBreakPoint();
     size_t size;
     int    status;
 
@@ -1092,6 +1129,7 @@ dbg_send_signal_packet(char * buf, size_t buf_len, char signal)
 int
 dbg_send_error_packet(char * buf, size_t buf_len, char error)
 {
+    DbgBreakPoint();
     size_t size;
     int    status;
 
@@ -1125,6 +1163,7 @@ dbg_send_error_packet(char * buf, size_t buf_len, char error)
 int
 dbg_write(const char * buf, size_t len)
 {
+    DbgBreakPoint();
     while (len--)
     {
         if (dbg_sys_putchar(*buf++) == EOF)
@@ -1146,6 +1185,7 @@ dbg_write(const char * buf, size_t len)
 int
 dbg_read(char * buf, size_t buf_len, size_t len)
 {
+    DbgBreakPoint();
     char c;
 
     if (buf_len < len)
@@ -1176,6 +1216,7 @@ dbg_read(char * buf, size_t buf_len, size_t len)
 int
 main(struct dbg_state * state)
 {
+    DbgBreakPoint();
     address      addr;
     char         pkt_buf[256];
     int          status;
@@ -1238,6 +1279,7 @@ main(struct dbg_state * state)
 		 * Command Format: g
 		 */
         case 'g':
+            DbgBreakPoint();
             /* Encode registers */
             status = dbg_enc_hex(pkt_buf, sizeof(pkt_buf), (char *)&(state->registers), sizeof(state->registers));
             if (status == EOF)
@@ -1253,6 +1295,7 @@ main(struct dbg_state * state)
 		 * Command Format: G XX...
 		 */
         case 'G':
+            DbgBreakPoint();
             status = dbg_dec_hex(pkt_buf + 1, pkt_len - 1, (char *)&(state->registers), sizeof(state->registers));
             if (status == EOF)
             {
@@ -1266,6 +1309,7 @@ main(struct dbg_state * state)
 		 * Command Format: p n
 		 */
         case 'p':
+            DbgBreakPoint();
             ptr_next += 1;
             token_expect_integer_arg(addr);
 
@@ -1288,6 +1332,7 @@ main(struct dbg_state * state)
 		 * Command Format: P n...=r...
 		 */
         case 'P':
+            DbgBreakPoint();
             ptr_next += 1;
             token_expect_integer_arg(addr);
             token_expect_seperator('=');
@@ -1308,6 +1353,7 @@ main(struct dbg_state * state)
 		 * Command Format: m addr,length
 		 */
         case 'm':
+            DbgBreakPoint();
             ptr_next += 1;
             token_expect_integer_arg(addr);
             token_expect_seperator(',');
@@ -1327,6 +1373,7 @@ main(struct dbg_state * state)
 		 * Command Format: M addr,length:XX..
 		 */
         case 'M':
+            DbgBreakPoint();
             ptr_next += 1;
             token_expect_integer_arg(addr);
             token_expect_seperator(',');
@@ -1347,6 +1394,7 @@ main(struct dbg_state * state)
 		 * Command Format: X addr,length:XX..
 		 */
         case 'X':
+            DbgBreakPoint();
             ptr_next += 1;
             token_expect_integer_arg(addr);
             token_expect_seperator(',');
@@ -1367,6 +1415,7 @@ main(struct dbg_state * state)
 		 * Command Format: c [addr]
 		 */
         case 'c':
+            DbgBreakPoint();
             dbg_continue();
             return 0;
 
@@ -1375,10 +1424,12 @@ main(struct dbg_state * state)
 		 * Command Format: s [addr]
 		 */
         case 's':
+            DbgBreakPoint();
             dbg_step();
             return 0;
 
         case '?':
+            DbgBreakPoint();
             dbg_send_signal_packet(pkt_buf, sizeof(pkt_buf), state->signum);
             break;
 
@@ -1386,6 +1437,7 @@ main(struct dbg_state * state)
 		 * Unsupported Command
 		 */
         default:
+            DbgBreakPoint();
             dbg_send_packet(NULL, 0);
         }
 
