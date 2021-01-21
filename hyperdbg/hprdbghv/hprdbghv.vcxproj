@@ -115,6 +115,7 @@
     <ClCompile Include="EferHook.c" />
     <ClCompile Include="Ept.c" />
     <ClCompile Include="Events.c" />
+    <ClCompile Include="GdbStub.c" />
     <ClCompile Include="Kd.c" />
     <ClCompile Include="ScriptEngine.c" />
     <ClCompile Include="SerialConnection.c" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Evaluation.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
+    <ClInclude Include="GdbStub.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Kd.h" />
     <ClInclude Include="pch.h" />

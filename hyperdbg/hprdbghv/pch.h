@@ -43,6 +43,7 @@
 #include "Debugger.h"
 #include "Apic.h"
 #include "Kd.h"
+#include "GdbStub.h"
 #include "DebuggerEvents.h"
 #include "Hooks.h"
 #include "Counters.h"

@@ -100,6 +100,9 @@
     <Filter Include="Source Files\Devices">
       <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Communication\GdbStub">
+      <UniqueIdentifier>{6b346168-5ff9-4a5a-b6f6-9737951bd2cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -224,6 +227,9 @@
     <ClCompile Include="Apic.c">
       <Filter>Source Files\Devices</Filter>
     </ClCompile>
+    <ClCompile Include="GdbStub.c">
+      <Filter>Source Files\Debugger\Communication\GdbStub</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -330,6 +336,9 @@
     </ClInclude>
     <ClInclude Include="Apic.h">
       <Filter>Header Files\Devices</Filter>
+    </ClInclude>
+    <ClInclude Include="GdbStub.h">
+      <Filter>Header Files\Debugger\Communication</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
