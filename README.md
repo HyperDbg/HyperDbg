@@ -49,7 +49,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Exception (IDT < 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/exception" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/vmm-module/design-of-exception-and-interrupt" target="_blank">link</a>]
 * External-Interrupt (IDT > 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/interrupt" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/vmm-module/design-of-exception-and-interrupt" target="_blank">link</a>]
 * Running Automated Scripts [<a href="https://docs.hyperdbg.com/using-hyperdbg/examples/running-hyperdbg-script" target="_blank">link</a>]
-* Transparent-mode (Anti-debugging and Anti-hypervisor Resistance) [<a href="https://docs.hyperdbg.com/design/debugger-internals/transparent-mode" target="_blank">link</a>]
+* Transparent-mode (Anti-debugging and Anti-hypervisor Resistance) [<a href="https://docs.hyperdbg.com/tips-and-tricks/considerations/transparent-mode" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/using-hyperdbg/examples/defeating-anti-debug-and-anti-hypervisor-methods" target="_blank">link</a>]
 * Running Custom Assembly In Both VMX-root, VMX non-root (Kernel & User) [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-an-action" target="_blank">link</a>]
 * Checking For Custom Conditions [<a href="https://docs.hyperdbg.com/using-hyperdbg/prerequisites/how-to-create-a-condition" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/debugger-internals/conditions" target="_blank">link</a>]
 * VMX-root Compatible Message Tracing [<a href="https://docs.hyperdbg.com/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
@@ -85,10 +85,11 @@ We spent thousands of hours on HyperDbg and it's free and open-source for you, I
 <p align="center">(https://www.compassion.com/donate/donate-to-children-in-africa.htm)</p>
 
 ## Credits
-- Sina Karvandi
-- MH Gholamrezaei
-- Mohammad Ataei
-- Saleh Khalaj
+- Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
+- MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
+- Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
+- Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
+- Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
 
 ## Contributing
 Contributing in HyperDbg is super appreciated.
