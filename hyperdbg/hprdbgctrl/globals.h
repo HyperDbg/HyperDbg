@@ -154,6 +154,15 @@ BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
  */
 HANDLE g_DebuggeeStopCommandEventHandle = NULL;
 
+/**
+ * @brief This is an OVERLAPPED structure for managing simultaneous
+ * read and writes for debugger (in current design debuggee is not needed
+ * to read and write simultaneously)
+ *
+ */
+OVERLAPPED g_OverlappedIoStructureForReadDebugger = {0};
+OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
+
 //////////////////////////////////////////////////
 //				 Global Variables               //
 //////////////////////////////////////////////////

@@ -72,7 +72,8 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
                                      UINT32 Port, BOOLEAN IsPreparing,
                                      BOOLEAN IsNamedPipe);
 
-BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length);
+BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
+                               BOOLEAN SendEndOfBuffer);
 
 BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave, UINT32 *LengthReceived);
 

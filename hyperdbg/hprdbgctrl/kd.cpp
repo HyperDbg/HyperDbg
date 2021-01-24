@@ -20,6 +20,8 @@ extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern HANDLE
     g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
+extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
@@ -98,11 +100,6 @@ VOID KdInterpretPausedDebuggee() {
   //
   // Wait for handshake to complete or in other words
   // get the receive packet
-  //
-  ListeningSerialPortInDebugger();
-
-  //
-  // Wait for the detail packet on the listener side
   //
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
@@ -265,8 +262,51 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave,
   // Read data and store in a buffer
   //
   do {
-    Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData),
-                      &NoBytesRead, NULL);
+    if (g_IsSerialConnectedToRemoteDebugger) {
+
+      //
+      // It's a debuggee
+      //
+      Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData,
+                        sizeof(ReadData), &NoBytesRead, NULL);
+
+    } else {
+
+      //
+      // It's a debugger
+      //
+
+      //
+      // Try to read one byte in overlapped I/O (in debugger)
+      //
+      if (!ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData),
+                    NULL, &g_OverlappedIoStructureForReadDebugger)) {
+
+        DWORD e = GetLastError();
+
+        if (e != ERROR_IO_PENDING) {
+          return FALSE;
+        }
+      }
+
+      //
+      // Wait till one packet becomes available
+      //
+      WaitForSingleObject(g_OverlappedIoStructureForReadDebugger.hEvent,
+                          INFINITE);
+
+      //
+      // Get the result
+      //
+      GetOverlappedResult(g_SerialRemoteComPortHandle,
+                          &g_OverlappedIoStructureForReadDebugger, &NoBytesRead,
+                          FALSE);
+
+      //
+      // Reset event for next try
+      //
+      ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
+    }
     BufferToSave[Loop] = ReadData;
 
     if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave)) {
@@ -292,10 +332,12 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave,
  * @param Length
  * @return BOOLEAN
  */
-BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length) {
+BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
+                               BOOLEAN SendEndOfBuffer) {
 
   BOOL Status;
   DWORD BytesWritten = 0;
+  DWORD LastErrorCode = 0;
 
   //
   // Check if the remote code's handle found or not
@@ -305,52 +347,82 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length) {
     return FALSE;
   }
 
-  Status = WriteFile(g_SerialRemoteComPortHandle, // Handle to the Serialport
-                     Buffer,        // Data to be written to the port
-                     Length,        // No of bytes to write into the port
-                     &BytesWritten, // No of bytes written to the port
-                     NULL);
+  if (g_IsSerialConnectedToRemoteDebugger) {
 
-  if (Status == FALSE) {
-    ShowMessages("err, fail to write to com port or named pipe (error %x).\n",
-                 GetLastError());
-    return FALSE;
+    //
+    // It's for a debuggee
+    //
+    Status = WriteFile(g_SerialRemoteComPortHandle, // Handle to the Serialport
+                       Buffer,        // Data to be written to the port
+                       Length,        // No of bytes to write into the port
+                       &BytesWritten, // No of bytes written to the port
+                       NULL);
+
+    if (Status == FALSE) {
+      ShowMessages("err, fail to write to com port or named pipe (error %x).\n",
+                   GetLastError());
+      return FALSE;
+    }
+
+    //
+    // Check if message delivered successfully
+    //
+    if (BytesWritten != Length) {
+      return FALSE;
+    }
+  } else {
+    //
+    // It's a debugger
+    //
+
+    if (WriteFile(g_SerialRemoteComPortHandle, Buffer, Length, NULL,
+                  &g_OverlappedIoStructureForWriteDebugger)) {
+      //
+      // Write Completed
+      //
+      goto Out;
+    }
+
+    LastErrorCode = GetLastError();
+    if (LastErrorCode != ERROR_IO_PENDING) {
+      //
+      // Error
+      //
+      ShowMessages("err, on sending serial packets (0x%x)", LastErrorCode);
+      return FALSE;
+    }
+
+    //
+    // Wait until write completed
+    //
+    if (WaitForSingleObject(g_OverlappedIoStructureForWriteDebugger.hEvent,
+                            INFINITE) != WAIT_OBJECT_0) {
+      ShowMessages("err, on sending serial packets (signal error)");
+      return FALSE;
+    }
+
+    //
+    // Reset event
+    //
+    ResetEvent(g_OverlappedIoStructureForWriteDebugger.hEvent);
+  }
+
+Out:
+  if (SendEndOfBuffer) {
+
+    //
+    // Send End of Buffer Packet
+    //
+    if (!KdSendPacketToDebuggee((const CHAR *)g_EndOfBufferCheck,
+                                sizeof(g_EndOfBufferCheck), FALSE)) {
+      return FALSE;
+    }
   }
 
   //
-  // Check if message delivered successfully
+  // All the bytes are sent
   //
-  if (BytesWritten != Length) {
-    return FALSE;
-  }
-
-  //
-  // Send End of Buffer Packet
-  //
-  Status = WriteFile(
-      g_SerialRemoteComPortHandle, // Handle to the Serialport
-      g_EndOfBufferCheck,          // Data to be written to the port
-      sizeof(g_EndOfBufferCheck),  // No of bytes to write into the port
-      &BytesWritten,               // No of bytes written to the port
-      NULL);
-
-  if (Status == FALSE) {
-    ShowMessages("err, fail to write to com port or named pipe (error %x).\n",
-                 GetLastError());
-    return FALSE;
-  }
-
-  //
-  // Check if message delivered successfully
-  //
-  if (BytesWritten == sizeof(g_EndOfBufferCheck)) {
-    return TRUE;
-  }
-
-  //
-  // Not all the bytes are sent
-  //
-  return FALSE;
+  return TRUE;
 }
 
 /**
@@ -377,7 +449,7 @@ BOOLEAN KdCommandPacketToDebuggee(
   Packet.RequestedActionOfThePacket = RequestedAction;
 
   if (!KdSendPacketToDebuggee((const CHAR *)&Packet,
-                              sizeof(DEBUGGER_REMOTE_PACKET))) {
+                              sizeof(DEBUGGER_REMOTE_PACKET), TRUE)) {
     return FALSE;
   }
   return TRUE;
@@ -531,10 +603,8 @@ StartAgain:
   // Create the listening thread in debugger
   //
 
-  // g_SerialListeningThreadHandle =
-  //    CreateThread(NULL, 0, ListeningSerialPauseDebuggerThread, NULL, 0,
-  //    NULL);
-  ListeningSerialPortInDebugger();
+  g_SerialListeningThreadHandle =
+      CreateThread(NULL, 0, ListeningSerialPauseDebuggerThread, NULL, 0, NULL);
 
   //
   // Wait for the 'Start' packet on the listener side
@@ -628,20 +698,57 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     sprintf_s(PortNo, 20, "\\\\.\\%s", PortName);
 
     //
-    // Open the serial com port
+    // Open the serial com port (if it's the debugger (not debuggee)) then
+    // open with Overlapped I/O
     //
-    Comm = CreateFile(PortNo,                       // Friendly name
-                      GENERIC_READ | GENERIC_WRITE, // Read/Write Access
-                      0,             // No Sharing, ports cant be shared
-                      NULL,          // No Security
-                      OPEN_EXISTING, // Open existing port only
-                      0,             // Non Overlapped I/O
-                      NULL);         // Null for Comm Devices
+
+    if (IsPreparing) {
+      //
+      // It's debuggee (Non-overlapped I/O)
+      //
+      Comm = CreateFile(PortNo,                       // Friendly name
+                        GENERIC_READ | GENERIC_WRITE, // Read/Write Access
+                        0,             // No Sharing, ports cant be shared
+                        NULL,          // No Security
+                        OPEN_EXISTING, // Open existing port only
+                        0,             // Non Overlapped I/O
+                        NULL);         // Null for Comm Devices
+    } else {
+
+      //
+      // It's debugger (Overlapped I/O)
+      //
+      Comm = CreateFile(PortNo,                       // Friendly name
+                        GENERIC_READ | GENERIC_WRITE, // Read/Write Access
+                        0,             // No Sharing, ports cant be shared
+                        NULL,          // No Security
+                        OPEN_EXISTING, // Open existing port only
+                        FILE_FLAG_OVERLAPPED, // Overlapped I/O
+                        NULL);                // Null for Comm Devices
+
+      //
+      // Create event for overlapped I/O (Read)
+      //
+      g_OverlappedIoStructureForReadDebugger.hEvent =
+          CreateEvent(NULL, TRUE, FALSE, NULL);
+
+      //
+      // Create event for overlapped I/O (Write)
+      //
+      g_OverlappedIoStructureForWriteDebugger.hEvent =
+          CreateEvent(NULL, TRUE, FALSE, NULL);
+    }
 
     if (Comm == INVALID_HANDLE_VALUE) {
       ShowMessages("err, port can't be opened.\n");
       return FALSE;
     }
+
+    //
+    // Purge the serial port
+    //
+    PurgeComm(Comm,
+              PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 
     //
     // Setting the Parameters for the SerialPort
@@ -811,10 +918,15 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     g_IsSerialConnectedToRemoteDebugger = TRUE;
 
     //
+    // Set handle to serial device
+    //
+    g_SerialRemoteComPortHandle = Comm;
+
+    //
     // Create a thread to listen for pauses from the remote debugger
     //
     g_SerialListeningThreadHandle = CreateThread(
-        NULL, 0, ListeningSerialPauseDebuggeeThread, Comm, 0, NULL);
+        NULL, 0, ListeningSerialPauseDebuggeeThread, NULL, 0, NULL);
 
     //
     // Free the buffer
@@ -867,6 +979,14 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
  * @return VOID
  */
 VOID KdCloseConnection() {
+
+  if (g_OverlappedIoStructureForReadDebugger.hEvent != NULL) {
+    CloseHandle(g_OverlappedIoStructureForReadDebugger.hEvent);
+  }
+
+  if (g_OverlappedIoStructureForWriteDebugger.hEvent != NULL) {
+    CloseHandle(g_OverlappedIoStructureForWriteDebugger.hEvent);
+  }
 
   if (g_IsSerialConnectedToRemoteDebuggee ||
       g_IsSerialConnectedToRemoteDebugger) {

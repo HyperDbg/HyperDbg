@@ -27,9 +27,9 @@ UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer);
 
 UINT32 ScriptEngineWrapperGetPointer(PVOID SymbolBuffer);
 
-DWORD WINAPI ListeningSerialPauseDebuggeeThread(PVOID SerialHandle);
+DWORD WINAPI ListeningSerialPauseDebuggeeThread(PVOID Param);
 
-BOOLEAN ListeningSerialPortInDebugger();
+DWORD WINAPI ListeningSerialPauseDebuggerThread(PVOID Param);
 
 //////////////////////////////////////////////////
 //            	    Structures                  //
