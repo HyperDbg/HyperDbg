@@ -595,11 +595,6 @@ StartAgain:
   }
 
   //
-  // Save the handler
-  //
-  g_SerialRemoteComPortHandle = SerialHandle;
-
-  //
   // Create the listening thread in debugger
   //
 
@@ -658,6 +653,7 @@ StartAgain:
  * @param Baudrate
  * @param Port
  * @param IsPreparing
+ * @param IsNamedPipe
  * @return BOOLEAN
  */
 BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
@@ -800,7 +796,7 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     //
     // It's a namedpipe
     //
-    Comm = NamedPipeClientCreatePipe(PortName);
+    Comm = NamedPipeClientCreatePipeOverlappedIo(PortName);
 
     if (!Comm) {
 
@@ -957,6 +953,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     return TRUE;
 
   } else {
+
+    //
+    // Save the handler
+    //
+    g_SerialRemoteComPortHandle = Comm;
 
     //
     // If we are here, then it's a debugger (not debuggee)

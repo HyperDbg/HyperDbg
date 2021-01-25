@@ -108,7 +108,17 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         if (!IsHandled)
         {
-            EventInjectBreakpoint();
+            if (g_KernelDebuggerState)
+            {
+                //
+                // Kernel debugger is attached, let's halt everything
+                //
+                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
+            }
+            else
+            {
+                EventInjectBreakpoint();
+            }
         }
     }
     else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_HARDWARE_EXCEPTION && InterruptExit.Vector == EXCEPTION_VECTOR_UNDEFINED_OPCODE)
@@ -174,12 +184,12 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         }
     }
     else if (g_KernelDebuggerState == TRUE &&
-             (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT ||
-              InterruptExit.Vector == EXCEPTION_VECTOR_BREAKPOINT))
+             InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //
         // It's a breakpoint and should be handled by the kernel debugger
         //
+        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {

@@ -98,10 +98,10 @@ StartAgain:
     }
 
   } else {
+
     //
     // It's not a HyperDbg packet, it's probably a GDB packet
     //
-
     DebugBreak();
   }
 

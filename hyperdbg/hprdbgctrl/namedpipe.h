@@ -34,6 +34,8 @@ VOID NamedPipeServerCloseHandle(HANDLE PipeHandle);
 
 HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName);
 
+HANDLE NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName);
+
 BOOLEAN NamedPipeClientSendMessage(HANDLE PipeHandle, char *BufferToSend,
                                    int BufferSize);
 

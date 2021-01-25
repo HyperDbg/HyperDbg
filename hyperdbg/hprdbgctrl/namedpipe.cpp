@@ -11,6 +11,12 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
+extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
+
 ////////////////////////////////////////////////////////////////////////////
 //                                                                        //
 //                            Server Side                                 //
@@ -199,6 +205,62 @@ HANDLE NamedPipeClientCreatePipe(LPCSTR PipeName) {
     //
     return NULL;
   } else {
+    return hPipe;
+  }
+}
+
+/**
+ * @brief Create a client named pipe through overlapped I/O
+ * @details Pipe name format - \\servername\pipe\pipename
+ * This pipe is for server on the same computer,
+ * however, pipes can be used to connect to a remote server
+ *
+ * @param PipeName
+ * @return HANDLE
+ */
+HANDLE NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName) {
+  HANDLE hPipe;
+
+  //
+  // Connect to the server pipe using CreateFile()
+  //
+  hPipe = CreateFileA(PipeName,      // pipe name
+                      GENERIC_READ | // read and write access
+                          GENERIC_WRITE,
+                      0,                    // no sharing
+                      NULL,                 // default security attributes
+                      OPEN_EXISTING,        // opens existing pipe
+                      FILE_FLAG_OVERLAPPED, // Overlapped I/O
+                      NULL);                // no template file
+
+  if (INVALID_HANDLE_VALUE == hPipe) {
+    ShowMessages("Error occurred while connecting"
+                 " to the server: %d\n",
+                 GetLastError());
+    //
+    // One might want to check whether the server pipe is busy
+    // This sample will error out if the server pipe is busy
+    // Read on ERROR_PIPE_BUSY and WaitNamedPipe() for that
+    //
+
+    //
+    // Error
+    //
+    return NULL;
+  } else {
+
+    //
+    // Create event for overlapped I/O (Read)
+    //
+    g_OverlappedIoStructureForReadDebugger.hEvent =
+        CreateEvent(NULL, TRUE, FALSE, NULL);
+
+    //
+    // Create event for overlapped I/O (Write)
+    //
+    g_OverlappedIoStructureForWriteDebugger.hEvent =
+        CreateEvent(NULL, TRUE, FALSE, NULL);
+
     return hPipe;
   }
 }
