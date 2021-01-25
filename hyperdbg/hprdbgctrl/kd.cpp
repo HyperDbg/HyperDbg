@@ -471,13 +471,7 @@ VOID KdBreakControlCheckAndPauseDebugger() {
     //
     // Send the pause request to the remote computer
     //
-    if (KdSendPausePacketToDebuggee()) {
-      //
-      // Set the debuggee to show that it's not running
-      //
-      g_IsDebuggeeRunning = FALSE;
-
-    } else {
+    if (!KdSendPausePacketToDebuggee()) {
       ShowMessages("err, unable to pause the debuggee\n");
     }
 

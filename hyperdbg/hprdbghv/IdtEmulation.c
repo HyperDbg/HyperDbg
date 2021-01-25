@@ -116,6 +116,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
                 KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                       GuestRegs,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT);
+                g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
             }
             else
             {
