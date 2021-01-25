@@ -28,11 +28,13 @@ extern HANDLE g_SerialRemoteComPortHandle;
  */
 BOOLEAN ListeningSerialPortInDebugger() {
 
+  PDEBUGGEE_PAUSED_PACKET PausePacket;
+  PDEBUGGER_REMOTE_PACKET TheActualPacket;
+
 StartAgain:
 
   CHAR BufferToReceive[0x1000] = {0};
   UINT32 LengthReceived = 0;
-  PDEBUGGER_REMOTE_PACKET TheActualPacket;
 
   //
   // Wait for handshake to complete or in other words
@@ -78,18 +80,31 @@ StartAgain:
       break;
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
 
-      HyperDbgDisassembler64(((UCHAR *)TheActualPacket) +
-                                 sizeof(DEBUGGER_REMOTE_PACKET) +
-                                 sizeof(UINT64),
-                             *((UINT64 *)((UCHAR *)TheActualPacket) +
-                               sizeof(DEBUGGER_REMOTE_PACKET)),
-                             MAXIMUM_INSTR_SIZE, 1);
+      PausePacket = (DEBUGGEE_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
+                                               sizeof(DEBUGGER_REMOTE_PACKET));
 
-      //
-      // Signal the event
-      //
-      SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+      HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                             PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+
+      if (PausePacket->PausingReason ==
+              DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT ||
+          PausePacket->PausingReason ==
+              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT) {
+
+        //
+        // Unpause the debugger to get commands
+        //
+        SetEvent(g_SyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
+
+      } else {
+        //
+        // Signal the event relating to commands that are waiting for
+        // the details of a halted debuggeee
+        //
+        SetEvent(g_SyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+      }
 
       break;
     default:

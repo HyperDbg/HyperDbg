@@ -1760,7 +1760,7 @@ HvDisableNmiExitingAllCores()
 * @return VOID 
  */
 VOID
-HvEnableDbandBpExitingAllCores()
+HvEnableDbAndBpExitingAllCores()
 {
     //
     // Broadcast to all cores
@@ -1774,7 +1774,7 @@ HvEnableDbandBpExitingAllCores()
  * @return VOID 
  */
 VOID
-HvDisableDbandBpExitingAllCores()
+HvDisableDbAndBpExitingAllCores()
 {
     //
     // Broadcast to all cores

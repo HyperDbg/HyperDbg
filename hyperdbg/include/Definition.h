@@ -889,6 +889,20 @@ typedef struct _DEBUGGER_EVENT {
   0x4859504552444247 // HYPERDBG = 0x4859504552444247
 
 /**
+ * @brief enum for reasons why debuggee is paused
+ *
+ */
+typedef enum _DEBUGGEE_PAUSING_REASON {
+
+  DEBUGGEE_PAUSING_REASON_NOT_PAUSED = 0,
+  DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+  DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+  DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
+
+} DEBUGGEE_PAUSING_REASON;
+
+/**
  * @brief enum for diffrent packet types in HyperDbg packets
  *
  */
@@ -944,6 +958,18 @@ typedef struct _DEBUGGER_REMOTE_PACKET {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedActionOfThePacket;
 
 } DEBUGGER_REMOTE_PACKET, *PDEBUGGER_REMOTE_PACKET;
+
+/**
+ * @brief The structure of pausing packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_PAUSED_PACKET {
+
+  UINT64 Rip;
+  DEBUGGEE_PAUSING_REASON PausingReason;
+  BYTE InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+
+} DEBUGGEE_PAUSED_PACKET, *PDEBUGGEE_PAUSED_PACKET;
 
 //////////////////////////////////////////////////
 //		    	Debugger Success Codes            //

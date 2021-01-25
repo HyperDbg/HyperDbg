@@ -113,7 +113,9 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
                 //
                 // Kernel debugger is attached, let's halt everything
                 //
-                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
+                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                      GuestRegs,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT);
             }
             else
             {
@@ -189,7 +191,9 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         // It's a breakpoint and should be handled by the kernel debugger
         //
-        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
+        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                              GuestRegs,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {

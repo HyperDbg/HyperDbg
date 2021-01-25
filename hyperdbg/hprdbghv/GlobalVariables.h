@@ -122,3 +122,9 @@ BOOLEAN g_IsX2Apic;
  * 
  */
 VOID * g_ApicBase;
+
+/**
+ * @brief Reason that the debuggee is halted
+ * 
+ */
+DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;

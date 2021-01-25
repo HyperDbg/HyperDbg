@@ -34,7 +34,7 @@ KdInitializeKernelDebugger()
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    HvEnableDbandBpExitingAllCores();
+    HvEnableDbAndBpExitingAllCores();
 
     //
     // Indicate that kernel debugger is active
@@ -66,7 +66,7 @@ KdUninitializeKernelDebugger()
     // Disable vm-exit on Hardware debug exceptions and breakpoints
     // so, not intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    HvDisableDbandBpExitingAllCores();
+    HvDisableDbAndBpExitingAllCores();
 
     //
     // Uinitialize APIC related function
@@ -212,8 +212,18 @@ KdRecvBuffer(CHAR *   BufferToSave,
  * @return VOID 
  */
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason)
 {
+    //
+    // Lock the system halt spinlock
+    //
+    SpinlockLock(&SystemHaltLock);
+
+    //
+    // Set the halting reason
+    //
+    g_DebuggeeHaltReason = Reason;
+
     //
     // Halt all other Core by interrupting them to nmi
     //
@@ -223,6 +233,11 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     // All the cores should go and manage through the following function
     //
     KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs);
+
+    //
+    // Clear the halting reason
+    //
+    g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
 }
 
 /**
@@ -373,7 +388,7 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
-    BYTE InstructionBytesOnRip[sizeof(UINT64) + MAXIMUM_INSTR_SIZE] = {0};
+    DEBUGGEE_PAUSED_PACKET PausePacket = {0};
 
     //
     // We check for receiving buffer (unhalting) only on the
@@ -386,14 +401,21 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
 
         //
+        // Set the halt reason
+        //
+        PausePacket.PausingReason = g_DebuggeeHaltReason;
+
+        //
         // Set the RIP
         //
-        memcpy(InstructionBytesOnRip, &g_GuestState[CurrentCore].LastVmexitRip, sizeof(UINT64));
+        PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
 
         //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip, InstructionBytesOnRip + sizeof(UINT64), MAXIMUM_INSTR_SIZE);
+        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
+                                   &PausePacket.InstructionBytesOnRip,
+                                   MAXIMUM_INSTR_SIZE);
 
         //
         // Send the pause packet, along with RIP and an
@@ -401,8 +423,8 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
-                                   InstructionBytesOnRip,
-                                   sizeof(UINT64) + MAXIMUM_INSTR_SIZE);
+                                   &PausePacket,
+                                   sizeof(DEBUGGEE_PAUSED_PACKET));
 
         //
         // Perform Commands from the debugger
@@ -446,11 +468,6 @@ KdBroadcastHaltOnAllCores()
 VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
 {
-    //
-    // Lock the system halt spinlock
-    //
-    SpinlockLock(&SystemHaltLock);
-
     //
     // Broadcast to halt everything
     // Instead of broadcasting we will just send one vmcall and

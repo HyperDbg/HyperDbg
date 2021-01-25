@@ -337,7 +337,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             //
             // Handle the breakpoint
             //
-            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs);
+            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                  GuestRegs,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED);
         }
         else if (g_GuestState[CurrentProcessorIndex].MtfTest)
         {

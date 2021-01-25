@@ -353,7 +353,9 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM:
     {
-        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex, GuestRegs);
+        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
+                                              GuestRegs,
+                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

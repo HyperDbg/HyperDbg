@@ -28,7 +28,7 @@ VOID
 KdInitializeKernelDebugger();
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason);
 
 BOOLEAN
 KdResponsePacketToDebugger(
