@@ -312,57 +312,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_MONITOR_TRAP_FLAG:
     {
         //
-        // Monitor Trap Flag
+        // General handler to monitor trap flags (MTF)
         //
-        if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
-        {
-            //
-            // Restore the previous state
-            //
-            EptHandleMonitorTrapFlag(g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint);
-
-            //
-            // Set it to NULL
-            //
-            g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
-        }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf)
-        {
-            //
-            //  Unset the MTF flag
-            //
-            g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf = FALSE;
-            g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset                  = FALSE;
-
-            //
-            // Handle the breakpoint
-            //
-            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                                  GuestRegs,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED);
-        }
-        else if (g_GuestState[CurrentProcessorIndex].MtfTest)
-        {
-            SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
-            g_GuestState[CurrentProcessorIndex].MtfTest = FALSE;
-        }
-        else
-        {
-            LogError("Why MTF occured ?!");
-        }
-
-        //
-        // Redo the instruction
-        //
-        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-
-        if (!g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset)
-        {
-            //
-            // We don't need MTF anymore if it set to disable MTF
-            //
-            HvSetMonitorTrapFlag(FALSE);
-        }
+        MtfHandleVmexit(CurrentProcessorIndex, GuestRegs);
 
         break;
     }

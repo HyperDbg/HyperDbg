@@ -230,6 +230,9 @@
     <ClCompile Include="GdbStub.c">
       <Filter>Source Files\Debugger\Communication\GdbStub</Filter>
     </ClCompile>
+    <ClCompile Include="Mtf.c">
+      <Filter>Source Files\VMM\VMX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -339,6 +342,9 @@
     </ClInclude>
     <ClInclude Include="GdbStub.h">
       <Filter>Header Files\Debugger\Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="Mtf.h">
+      <Filter>Header Files\VMM\VMX</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

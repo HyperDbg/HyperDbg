@@ -21,6 +21,11 @@ VOID
 KdInitializeKernelDebugger()
 {
     //
+    // All cores are continued
+    //
+    CountOfLockedCores = ALL_CORES_CONTINUED_INDICATOR;
+
+    //
     // Initialize APIC
     //
     ApicInitialize();
@@ -206,6 +211,34 @@ KdRecvBuffer(CHAR *   BufferToSave,
 }
 
 /**
+ * @brief continue the debuggee, this function gurantees that all other cores
+ * are continued (except current core)
+ * @return VOID 
+ */
+VOID
+KdContinueDebuggee()
+{
+    //
+    // Unlock other cores
+    //
+    SpinlockUnlock(&SystemHaltLock);
+
+    //
+    // The current core will also be continued, let's decrement it
+    //
+    InterlockedDecrement64(&CountOfLockedCores);
+
+    //
+    // Now, we should compare to make sure all the cores continued
+    //
+    do
+    {
+        InterlockedCompareExchange64(&CountOfLockedCores, ALL_CORES_CONTINUED_INDICATOR, 0);
+
+    } while (CountOfLockedCores != ALL_CORES_CONTINUED_INDICATOR);
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -215,9 +248,23 @@ VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason)
 {
     //
+    // Wait if other cores need to be continued first
+    //
+    do
+    {
+        InterlockedCompareExchange64(&CountOfLockedCores, 0, ALL_CORES_CONTINUED_INDICATOR);
+
+    } while (CountOfLockedCores != 0);
+
+    //
     // Lock the system halt spinlock
     //
     SpinlockLock(&SystemHaltLock);
+
+    //
+    // Increment count of locked cores (atomic)
+    //
+    InterlockedIncrement64(&CountOfLockedCores);
 
     //
     // Set the halting reason
@@ -248,7 +295,12 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber());
+    //
+    // Increment count of locked cores (atomic)
+    //
+    InterlockedIncrement64(&CountOfLockedCores);
+
+    /* LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber()); */
 
     //
     // All the cores should go and manage through the following function
@@ -265,7 +317,7 @@ VOID
 KdStepInstruction(ULONG CoreId)
 {
     //
-    // It is because maximum instruction length in x64 is 16 bytes
+    // Set an indicator of wait for MTF
     //
     g_GuestState[CoreId].DebuggingState.WaitForStepOnMtf = TRUE;
 
@@ -324,10 +376,11 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
             switch (TheActualPacket->RequestedActionOfThePacket)
             {
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE:
+
                 //
                 // Unlock other cores
                 //
-                SpinlockUnlock(&SystemHaltLock);
+                KdContinueDebuggee();
 
                 //
                 // No need to wait for new commands
@@ -339,14 +392,14 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP:
 
                 //
+                // Unlock other cores
+                //
+                KdContinueDebuggee();
+
+                //
                 // Indicate a step
                 //
                 KdStepInstruction(0);
-
-                //
-                // Unlock other cores
-                //
-                SpinlockUnlock(&SystemHaltLock);
 
                 //
                 // No need to wait for new commands
@@ -443,6 +496,11 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
         SpinlockLock(&SystemHaltLock);
         SpinlockUnlock(&SystemHaltLock);
+
+        //
+        // One core is continued, let's decrement the locked core count
+        //
+        InterlockedDecrement64(&CountOfLockedCores);
     }
 }
 

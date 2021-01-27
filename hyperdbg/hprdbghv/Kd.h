@@ -12,6 +12,17 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//			     Definitions 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief All cores are being continued
+ * 
+ */
+
+#define ALL_CORES_CONTINUED_INDICATOR 0xffffffffffffffff
+
+//////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////
 
@@ -46,3 +57,9 @@ KdResponsePacketToDebugger(
  * 
  */
 volatile LONG SystemHaltLock;
+
+/**
+ * @brief Count of locked cores
+ * 
+ */
+volatile LONG64 CountOfLockedCores;
