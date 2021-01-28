@@ -175,9 +175,9 @@ KdResponsePacketToDebugger(
  * @param BufferToSave
  * @param LengthReceived
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 KdRecvBuffer(CHAR *   BufferToSave,
              UINT32 * LengthReceived)
 {
@@ -195,6 +195,18 @@ KdRecvBuffer(CHAR *   BufferToSave,
             continue;
         }
 
+        //
+        // We already now that the maximum packet size is MaxSerialPacketSize
+        // Check to make sure that we don't pass the boundaries
+        //
+        if (!(MaxSerialPacketSize > Loop))
+        {
+            //
+            // Invalid buffer (size of buffer exceeds the limitation)
+            //
+            return FALSE;
+        }
+
         BufferToSave[Loop] = RecvChar;
 
         if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave))
@@ -202,7 +214,7 @@ KdRecvBuffer(CHAR *   BufferToSave,
             break;
         }
 
-        ++Loop;
+        Loop++;
     }
 
     //
@@ -364,16 +376,22 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
 {
     while (TRUE)
     {
-        BOOLEAN                 EscapeFromTheLoop = FALSE;
-        CHAR *                  RecvBuffer[64]    = {0};
-        UINT32                  RecvBufferLength  = 0;
+        BOOLEAN                 EscapeFromTheLoop               = FALSE;
+        CHAR *                  RecvBuffer[MaxSerialPacketSize] = {0};
+        UINT32                  RecvBufferLength                = 0;
         PDEBUGGER_REMOTE_PACKET TheActualPacket =
             (PDEBUGGER_REMOTE_PACKET)RecvBuffer;
 
         //
         // Receive the buffer in polling mode
         //
-        KdRecvBuffer(&RecvBuffer, &RecvBufferLength);
+        if (!KdRecvBuffer(&RecvBuffer, &RecvBufferLength))
+        {
+            //
+            // Invalid buffer
+            //
+            continue;
+        }
 
         if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
         {

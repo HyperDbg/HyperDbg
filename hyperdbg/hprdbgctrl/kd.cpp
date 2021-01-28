@@ -305,13 +305,28 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave,
       //
       ResetEvent(g_OverlappedIoStructureForReadDebugger.hEvent);
     }
+
+    //
+    // We already now that the maximum packet size is MaxSerialPacketSize
+    // Check to make sure that we don't pass the boundaries
+    //
+    if (!(MaxSerialPacketSize > Loop)) {
+
+      //
+      // Invalid buffer
+      //
+      ShowMessages("err, a buffer received in which exceeds the "
+                   "buffer limitation.\n");
+      return FALSE;
+    }
+
     BufferToSave[Loop] = ReadData;
 
     if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave)) {
       break;
     }
 
-    ++Loop;
+    Loop++;
 
   } while (NoBytesRead > 0);
 
@@ -336,6 +351,13 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
   BOOL Status;
   DWORD BytesWritten = 0;
   DWORD LastErrorCode = 0;
+
+  //
+  // Check if buffer not pass the boundary
+  //
+  if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize) {
+    return FALSE;
+  }
 
   //
   // Check if the remote code's handle found or not

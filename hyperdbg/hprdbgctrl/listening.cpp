@@ -34,7 +34,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
 
 StartAgain:
 
-  CHAR BufferToReceive[0x1000] = {0};
+  CHAR BufferToReceive[MaxSerialPacketSize] = {0};
   UINT32 LengthReceived = 0;
 
   //
@@ -42,7 +42,9 @@ StartAgain:
   // get the receive packet
   //
   if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
-    return FALSE;
+
+    ShowMessages("err, invalid buffer received.\n");
+    goto StartAgain;
   }
 
   //
@@ -152,11 +154,12 @@ BOOLEAN ListeningSerialPortInDebuggee() {
 
 StartAgain:
 
-  BOOL Status;                 /* Status */
-  char SerialBuffer[64] = {0}; /* Buffer to send and receive data */
-  DWORD EventMask = 0;         /* Event mask to trigger */
-  char ReadData = NULL;        /* temperory Character */
-  DWORD NoBytesRead = 0;       /* Bytes read by ReadFile() */
+  BOOL Status; /* Status */
+  char SerialBuffer[MaxSerialPacketSize] = {
+      0};                /* Buffer to send and receive data */
+  DWORD EventMask = 0;   /* Event mask to trigger */
+  char ReadData = NULL;  /* temperory Character */
+  DWORD NoBytesRead = 0; /* Bytes read by ReadFile() */
   UINT32 Loop = 0;
   PDEBUGGER_REMOTE_PACKET TheActualPacket =
       (PDEBUGGER_REMOTE_PACKET)SerialBuffer;
@@ -188,6 +191,19 @@ StartAgain:
 
     Status = ReadFile(g_SerialRemoteComPortHandle, &ReadData, sizeof(ReadData),
                       &NoBytesRead, NULL);
+
+    //
+    // Check to make sure that we don't pass the boundaries
+    //
+    if (!(MaxSerialPacketSize > Loop)) {
+
+      //
+      // Invalid buffer
+      //
+      ShowMessages("err, a buffer received in debuggee which exceeds the "
+                   "buffer limitation.\n");
+      goto StartAgain;
+    }
 
     SerialBuffer[Loop] = ReadData;
 

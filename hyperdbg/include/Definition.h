@@ -30,12 +30,22 @@
 #define PacketChunkSize 1000
 
 /**
- * @brief size of usermode buffer
+ * @brief size of user-mode buffer
  * @details Because of Opeation code at the start of the
  * buffer + 1 for null-termminating
  *
  */
 #define UsermodeBufferSize sizeof(UINT32) + PacketChunkSize + 1
+
+/**
+ * @brief size of buffer for serial
+ * @details the maximum packet size for sending over serial
+ * User-mode buffer size + Header Structure Size + Count Of End Buffer Bytes
+ *
+ */
+#define MaxSerialPacketSize                                                    \
+  UsermodeBufferSize + sizeof(DEBUGGER_REMOTE_PACKET) +                        \
+      SERIAL_END_OF_BUFFER_CHARS_COUNT
 
 /**
  * @brief Final storage size of message tracing
@@ -171,6 +181,10 @@
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
 //////////////////////////////////////////////////
+/**
+ * @brief count of characters for serial end of buffer
+ */
+#define SERIAL_END_OF_BUFFER_CHARS_COUNT 0x4
 
 /**
  * @brief characters of the buffer that we set at the end of
