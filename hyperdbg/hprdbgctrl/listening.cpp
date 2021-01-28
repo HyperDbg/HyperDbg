@@ -45,6 +45,13 @@ StartAgain:
     return FALSE;
   }
 
+  //
+  // Check for invalid close packets
+  //
+  if (LengthReceived == 1 && BufferToReceive[0] == NULL) {
+    goto StartAgain;
+  }
+
   TheActualPacket = (PDEBUGGER_REMOTE_PACKET)BufferToReceive;
 
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
@@ -123,6 +130,7 @@ StartAgain:
     //
     // It's not a HyperDbg packet, it's probably a GDB packet
     //
+    ShowMessages("invalid packet received.\n");
     DebugBreak();
   }
 

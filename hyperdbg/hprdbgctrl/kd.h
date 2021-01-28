@@ -85,3 +85,5 @@ BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
 VOID KdCloseConnection();
+
+VOID KdUninitializeConnection();

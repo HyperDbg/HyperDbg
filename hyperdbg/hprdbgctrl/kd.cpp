@@ -26,6 +26,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BYTE g_EndOfBufferCheck[4];
 
 /**
@@ -975,6 +976,47 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
  */
 VOID KdCloseConnection() {
 
+  //
+  // Unload the VMM driver if it's debuggee
+  //
+  if (g_IsSerialConnectedToRemoteDebugger) {
+
+    if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded) {
+
+      HyperdbgUnload();
+
+      //
+      // Installing Driver
+      //
+      if (HyperdbgUninstallDriver()) {
+        ShowMessages("Failed to uninstall driver\n");
+      }
+    }
+  }
+
+  //
+  // Close handle and uninitialize everything
+  //
+  KdUninitializeConnection();
+}
+
+/**
+ * @brief Uninitialize everything in both debuggee and debugger
+ * @details This function close the connection in both debuggee and debugger
+ * both of the debuggee and debugger can use this function
+ *
+ * @return VOID
+ */
+VOID KdUninitializeConnection() {
+
+  //
+  // Close the handles of the listening threads
+  //
+  if (g_SerialListeningThreadHandle != NULL) {
+    CloseHandle(g_SerialListeningThreadHandle);
+    g_SerialListeningThreadHandle = NULL;
+  }
+
   if (g_OverlappedIoStructureForReadDebugger.hEvent != NULL) {
     CloseHandle(g_OverlappedIoStructureForReadDebugger.hEvent);
   }
@@ -1024,14 +1066,6 @@ VOID KdCloseConnection() {
     // Is serial handle for a named pipe
     //
     g_IsDebuggerConntectedToNamedPipe = FALSE;
-
-    //
-    // Close the handles
-    //
-    if (g_SerialListeningThreadHandle != NULL) {
-      CloseHandle(g_SerialListeningThreadHandle);
-      g_SerialListeningThreadHandle = NULL;
-    }
 
     if (g_DebuggeeStopCommandEventHandle != NULL) {
 

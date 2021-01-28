@@ -57,26 +57,29 @@ KdInitializeKernelDebugger()
 VOID
 KdUninitializeKernelDebugger()
 {
-    //
-    // Indicate that kernel debugger is not active
-    //
-    g_KernelDebuggerState = FALSE;
+    if (g_KernelDebuggerState)
+    {
+        //
+        // Indicate that kernel debugger is not active
+        //
+        g_KernelDebuggerState = FALSE;
 
-    //
-    // Broadcast on all core to cause not to exit for NMIs
-    //
-    HvDisableNmiExitingAllCores();
+        //
+        // Broadcast on all core to cause not to exit for NMIs
+        //
+        HvDisableNmiExitingAllCores();
 
-    //
-    // Disable vm-exit on Hardware debug exceptions and breakpoints
-    // so, not intercept #DBs and #BP by changing exception bitmap (one core)
-    //
-    HvDisableDbAndBpExitingAllCores();
+        //
+        // Disable vm-exit on Hardware debug exceptions and breakpoints
+        // so, not intercept #DBs and #BP by changing exception bitmap (one core)
+        //
+        HvDisableDbAndBpExitingAllCores();
 
-    //
-    // Uinitialize APIC related function
-    //
-    ApicUninitialize();
+        //
+        // Uinitialize APIC related function
+        //
+        ApicUninitialize();
+    }
 }
 
 /**
@@ -392,14 +395,14 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP:
 
                 //
-                // Unlock other cores
-                //
-                KdContinueDebuggee();
-
-                //
                 // Indicate a step
                 //
                 KdStepInstruction(0);
+
+                //
+                // Unlock other cores
+                //
+                KdContinueDebuggee();
 
                 //
                 // No need to wait for new commands
