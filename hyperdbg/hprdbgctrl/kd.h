@@ -84,6 +84,6 @@ BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
-VOID KdCloseConnection();
+BOOLEAN KdCloseConnection();
 
 VOID KdUninitializeConnection();

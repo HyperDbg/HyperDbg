@@ -23,6 +23,8 @@ extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern string g_ServerPort;
 extern string g_ServerIp;
 
@@ -54,6 +56,13 @@ VOID CommandConnect(vector<string> SplittedCommand) {
       g_IsConnectedToRemoteDebugger) {
     ShowMessages("you're connected to a debugger, please use '.disconnect' "
                  "command.\n");
+    return;
+  }
+
+  if (g_IsSerialConnectedToRemoteDebuggee ||
+      g_IsSerialConnectedToRemoteDebugger) {
+    ShowMessages("you're connected to a an instance of HyperDbg, please use "
+                 "'.debug close' command.\n");
     return;
   }
 

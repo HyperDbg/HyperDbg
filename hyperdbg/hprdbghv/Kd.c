@@ -242,6 +242,23 @@ KdContinueDebuggee()
 }
 
 /**
+ * @brief Notify user-mode to unload the debuggee and close the connections
+ * @details  
+ * 
+ * @return VOID 
+ */
+VOID
+KdCloseConnectionAndUnloadDebuggee()
+{
+    //
+    // Send one byte buffer and operation codes
+    //
+    LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
+                  "$",
+                  1);
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -398,6 +415,25 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
                 // Indicate a step
                 //
                 KdStepInstruction(0);
+
+                //
+                // Unlock other cores
+                //
+                KdContinueDebuggee();
+
+                //
+                // No need to wait for new commands
+                //
+                EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE:
+
+                //
+                // Send the close buffer
+                //
+                KdCloseConnectionAndUnloadDebuggee();
 
                 //
                 // Unlock other cores

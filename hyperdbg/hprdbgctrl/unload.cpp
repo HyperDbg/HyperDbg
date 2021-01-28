@@ -39,7 +39,7 @@ VOID CommandUnload(vector<string> SplittedCommand) {
 
   if (SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of 'unload'\n\n");
-    CommandLoadHelp();
+    CommandUnloadHelp();
     return;
   }
 
@@ -58,7 +58,7 @@ VOID CommandUnload(vector<string> SplittedCommand) {
       HyperdbgUnload();
 
       //
-      // Installing Driver
+      // Uninstalling Driver
       //
       if (HyperdbgUninstallDriver()) {
         ShowMessages("Failed to uninstall driver\n");

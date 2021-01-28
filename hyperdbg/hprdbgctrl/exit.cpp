@@ -49,7 +49,7 @@ VOID CommandExit(vector<string> SplittedCommand) {
     HyperdbgUnload();
 
     //
-    // Installing Driver
+    // Uninstalling Driver
     //
     if (HyperdbgUninstallDriver()) {
       ShowMessages("Failed to uninstall driver\n");

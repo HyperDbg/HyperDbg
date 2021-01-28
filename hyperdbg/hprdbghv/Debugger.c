@@ -108,11 +108,10 @@ DebuggerInitialize()
 VOID
 DebuggerUninitialize()
 {
-    return;
     //
     // Unitialize the stepping mechanism
     //
-    SteppingsUninitialize();
+    //SteppingsUninitialize();
 
     //
     //  *** Disable, terminate and clear all the events ***
@@ -141,6 +140,11 @@ DebuggerUninitialize()
     // Third, remove all events
     //
     DebuggerRemoveAllEvents();
+
+    //
+    // Uninitialize kernel debugger
+    //
+    KdUninitializeKernelDebugger();
 }
 
 /**

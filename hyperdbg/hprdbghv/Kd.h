@@ -39,6 +39,9 @@ VOID
 KdInitializeKernelDebugger();
 
 VOID
+KdUninitializeKernelDebugger();
+
+VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason);
 
 BOOLEAN

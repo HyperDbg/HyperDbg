@@ -231,6 +231,10 @@ void ReadIrpBasedBuffer() {
           ShowMessages("%s", OutputBuffer + sizeof(UINT32));
           break;
 
+        case OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM:
+          KdCloseConnection();
+          break;
+
         default:
           /*
         ShowMessages("Message From Debugger :\n");

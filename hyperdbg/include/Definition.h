@@ -124,13 +124,15 @@
 /**
  * @brief Message logs id that comes from kernel-mode to
  * user-mode
- * @details Message area >= 0x4
+ * @details Message area >= 0x5
  */
 #define OPERATION_LOG_INFO_MESSAGE 0x1
 #define OPERATION_LOG_WARNING_MESSAGE 0x2
 #define OPERATION_LOG_ERROR_MESSAGE 0x3
 #define OPERATION_LOG_NON_IMMEDIATE_MESSAGE 0x4
 #define OPERATION_LOG_WITH_TAG 0x5
+
+#define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM 0x6
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -909,9 +911,13 @@ typedef enum _DEBUGGEE_PAUSING_REASON {
 typedef enum _DEBUGGER_REMOTE_PACKET_TYPE {
 
   //
-  // Debugger to debuggee
+  // Debugger to debuggee (vmx-root)
   //
   DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT = 1,
+
+  //
+  // Debugger to debuggee (user-mode)
+  //
   DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
 
   //
@@ -931,12 +937,14 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   // Debugger to debuggee (user-mode execution)
   //
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE = 1,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET,
 
   //
   // Debugger to debuggee (vmx-root mode execution)
   //
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CONTINUE,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE,
 
   //
   // Debuggee to debugger
