@@ -128,3 +128,5 @@ VOID CommandOutputHelp();
 VOID CommandDebugHelp();
 
 VOID CommandPHelp();
+
+VOID CommandTildeHelp();

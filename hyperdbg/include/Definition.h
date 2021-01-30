@@ -766,6 +766,12 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS {
  * @brief Apply the event to all the cores
  *
  */
+#define DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE 0xffffffff
+
+/**
+ * @brief Apply the event to all the cores
+ *
+ */
 #define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
 
 /**
@@ -989,6 +995,7 @@ typedef struct _DEBUGGEE_PAUSED_PACKET {
 
   UINT64 Rip;
   DEBUGGEE_PAUSING_REASON PausingReason;
+  ULONG CurrentCore;
   BYTE InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
 
 } DEBUGGEE_PAUSED_PACKET, *PDEBUGGEE_PAUSED_PACKET;

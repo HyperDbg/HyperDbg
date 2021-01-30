@@ -148,6 +148,12 @@ BOOLEAN g_IsSerialConnectedToRemoteDebugger = FALSE;
 BOOLEAN g_IsDebuggeeRunning = FALSE;
 
 /**
+ * @brief Current core that the debuggee is debugging
+ *
+ */
+ULONG g_CurrentRemoteCore = DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE;
+
+/**
  * @brief Shows if the debugger is connected to the
  * guest using named pipe
  *

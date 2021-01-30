@@ -21,6 +21,7 @@ extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
+extern ULONG g_CurrentRemoteCore;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -115,6 +116,11 @@ StartAgain:
       // Debuggee is not running
       //
       g_IsDebuggeeRunning = FALSE;
+
+      //
+      // Set the current core
+      //
+      g_CurrentRemoteCore = PausePacket->CurrentCore;
 
       HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                              PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);

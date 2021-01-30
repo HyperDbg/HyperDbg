@@ -311,7 +311,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, TRUE);
 
     //
     // Clear the halting reason
@@ -337,7 +337,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, FALSE);
 }
 
 /**
@@ -367,12 +367,13 @@ KdStepInstruction(ULONG CoreId)
 /**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
+ * @param CurrentCore  
  * @param GuestRegs  
  * 
  * @return VOID 
  */
 VOID
-KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
+KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
     while (TRUE)
     {
@@ -432,7 +433,7 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
                 //
                 // Indicate a step
                 //
-                KdStepInstruction(0);
+                KdStepInstruction(CurrentCore);
 
                 //
                 // Unlock other cores
@@ -492,11 +493,12 @@ KdDispatchAndPerformCommandsFromDebugger(PGUEST_REGS GuestRegs)
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param CurrentCore  
  * @param GuestRegs  
+ * @param MainCore the core that triggered the event  
  * 
  * @return VOID 
  */
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
+KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket = {0};
 
@@ -504,7 +506,7 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //
-    if (CurrentCore == 0)
+    if (MainCore)
     {
         //
         // *** First Core ***
@@ -514,6 +516,11 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         // Set the halt reason
         //
         PausePacket.PausingReason = g_DebuggeeHaltReason;
+
+        //
+        // Set the current core
+        //
+        PausePacket.CurrentCore = CurrentCore;
 
         //
         // Set the RIP
@@ -539,7 +546,7 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs)
         //
         // Perform Commands from the debugger
         //
-        KdDispatchAndPerformCommandsFromDebugger(GuestRegs);
+        KdDispatchAndPerformCommandsFromDebugger(CurrentCore, GuestRegs);
     }
     else
     {

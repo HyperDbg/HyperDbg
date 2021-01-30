@@ -325,6 +325,13 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandMonitor(SplittedCommand);
 
+  } else if (!FirstCommand.compare("~")) {
+
+    if (HelpCommand)
+      CommandTildeHelp();
+    else
+      CommandTilde(SplittedCommand);
+
   } else if (!FirstCommand.compare("!vmcall")) {
 
     if (HelpCommand)

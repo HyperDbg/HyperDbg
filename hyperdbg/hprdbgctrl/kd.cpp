@@ -29,6 +29,7 @@ extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BYTE g_EndOfBufferCheck[4];
+extern ULONG g_CurrentRemoteCore;
 
 /**
  * @brief compares the buffer with a string
@@ -115,6 +116,11 @@ VOID KdInterpretPausedDebuggee() {
  * @return BOOLEAN
  */
 BOOLEAN KdSendContinuePacketToDebuggee() {
+
+  //
+  // No core
+  //
+  g_CurrentRemoteCore = DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE;
 
   //
   // Send 'g' as continue packet
@@ -1132,6 +1138,11 @@ VOID KdUninitializeConnection() {
       g_SyncronizationObjectsHandleTable[i] = NULL;
     }
   }
+
+  //
+  // No current core
+  //
+  g_CurrentRemoteCore = DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE;
 
   //
   // If connected to debugger
