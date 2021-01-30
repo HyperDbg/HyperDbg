@@ -630,38 +630,44 @@ StartAgain:
       INFINITE);
 
   //
-  // Connected to the debuggee
+  // Check to make sure the connection not close before starting a session
   //
-  g_IsSerialConnectedToRemoteDebuggee = TRUE;
+  if (!g_SerialConnectionAlreadyClosed) {
 
-  //
-  // And debuggee is running
-  //
-  g_IsDebuggeeRunning = TRUE;
+    //
+    // Connected to the debuggee
+    //
+    g_IsSerialConnectedToRemoteDebuggee = TRUE;
 
-  //
-  // Save the handler
-  //
-  g_SerialRemoteComPortHandle = SerialHandle;
+    //
+    // And debuggee is running
+    //
+    g_IsDebuggeeRunning = TRUE;
 
-  //
-  // Is serial handle for a named pipe
-  //
-  g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+    //
+    // Save the handler
+    //
+    g_SerialRemoteComPortHandle = SerialHandle;
 
-  //
-  // Register the CTRL+C and CTRL+BREAK Signals handler
-  //
-  if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
-    ShowMessages(
-        "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
-    return FALSE;
+    //
+    // Is serial handle for a named pipe
+    //
+    g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+
+    //
+    // Register the CTRL+C and CTRL+BREAK Signals handler
+    //
+    if (!SetConsoleCtrlHandler(BreakController, TRUE)) {
+      ShowMessages(
+          "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+      return FALSE;
+    }
+
+    //
+    // Wait for event on this thread
+    //
+    KdTheRemoteSystemIsRunning();
   }
-
-  //
-  // Wait for event on this thread
-  //
-  KdTheRemoteSystemIsRunning();
 
   return TRUE;
 }
@@ -1053,8 +1059,20 @@ BOOLEAN KdCloseConnection() {
     }
 
   } else {
-    ShowMessages("err, debugger is not attached to any instance of debuggee\n");
-    return FALSE;
+
+    //
+    // If we're here, probably the connection started but the debuggee is closed
+    // without sending the start packet; thus, the debugger has no idea about
+    // connection but we should uninitialize everything
+    //
+    ShowMessages("err, start packet not received but the debuggee closed the "
+                 "connection\n");
+
+    //
+    // Not waiting for start packet
+    //
+    SetEvent(g_SyncronizationObjectsHandleTable
+                 [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
   }
 
   //

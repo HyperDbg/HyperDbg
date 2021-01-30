@@ -17,6 +17,7 @@
 extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
@@ -101,7 +102,14 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command) {
   UINT32 Port;
 
   if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("close")) {
-    KdCloseConnection();
+    if (!g_IsSerialConnectedToRemoteDebuggee &&
+        !g_IsSerialConnectedToRemoteDebugger) {
+      ShowMessages(
+          "err, debugger is not attached to any instance of debuggee\n");
+
+    } else {
+      KdCloseConnection();
+    }
     return;
 
   } else if (SplittedCommand.size() <= 3) {

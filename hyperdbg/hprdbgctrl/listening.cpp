@@ -19,6 +19,7 @@ extern HANDLE
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE g_SerialRemoteComPortHandle;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 
 /**
@@ -48,7 +49,13 @@ StartAgain:
       //
       // The remote computer (debuggee) closed the connection
       //
-      ShowMessages("the remote computer (debuggee) closed the connection !\n");
+      ShowMessages("the remote connection is closed\n");
+
+      if (g_IsDebuggeeRunning == FALSE && g_IsSerialConnectedToRemoteDebuggee) {
+        ShowMessages("\n");
+        HyperdbgShowSignature();
+      }
+
       KdCloseConnection();
       return FALSE;
 
