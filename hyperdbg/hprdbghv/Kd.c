@@ -306,7 +306,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     //
     // Halt all other Core by interrupting them to nmi
     //
-    ApicTriggerGenericNmi();
+    ApicTriggerGenericNmi(CurrentProcessorIndex);
 
     //
     // All the cores should go and manage through the following function

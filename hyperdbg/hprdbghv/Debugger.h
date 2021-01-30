@@ -96,6 +96,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
     BOOLEAN                               WaitForStepOnMtf;
+    BOOLEAN                               WaitingForNmi;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

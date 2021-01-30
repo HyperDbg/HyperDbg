@@ -231,8 +231,11 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             }
         }
     }
-    else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI && InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
+    else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
+             InterruptExit.Vector == EXCEPTION_VECTOR_NMI &&
+             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi)
     {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
         KdHandleNmi(CurrentProcessorIndex, GuestRegs);
     }
     else
