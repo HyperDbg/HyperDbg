@@ -27,6 +27,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BYTE g_EndOfBufferCheck[4];
 
 /**
@@ -408,7 +409,7 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
       //
       // Error
       //
-      ShowMessages("err, on sending serial packets (0x%x)", LastErrorCode);
+      // ShowMessages("err, on sending serial packets (0x%x)", LastErrorCode);
       return FALSE;
     }
 
@@ -417,7 +418,7 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
     //
     if (WaitForSingleObject(g_OverlappedIoStructureForWriteDebugger.hEvent,
                             INFINITE) != WAIT_OBJECT_0) {
-      ShowMessages("err, on sending serial packets (signal error)");
+      // ShowMessages("err, on sending serial packets (signal error)");
       return FALSE;
     }
 
@@ -607,6 +608,11 @@ StartAgain:
     g_SyncronizationObjectsHandleTable[i] =
         CreateEvent(NULL, FALSE, FALSE, NULL);
   }
+
+  //
+  // the debuggee is not already closed the connection
+  //
+  g_SerialConnectionAlreadyClosed = FALSE;
 
   //
   // Create the listening thread in debugger
@@ -923,6 +929,11 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
     }
 
     //
+    // Serial connection is not already closed
+    //
+    g_SerialConnectionAlreadyClosed = FALSE;
+
+    //
     // Indicate that we connected to the debugger
     //
     g_IsSerialConnectedToRemoteDebugger = TRUE;
@@ -997,6 +1008,15 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
 BOOLEAN KdCloseConnection() {
 
   //
+  // The process of closing connection already started
+  //
+  if (g_SerialConnectionAlreadyClosed) {
+    return TRUE;
+  } else {
+    g_SerialConnectionAlreadyClosed = TRUE;
+  }
+
+  //
   // Unload the VMM driver if it's debuggee
   //
   if (g_IsSerialConnectedToRemoteDebugger) {
@@ -1014,31 +1034,26 @@ BOOLEAN KdCloseConnection() {
   } else if (g_IsSerialConnectedToRemoteDebuggee) {
 
     //
-    // It's a debugger, we should send the close packet to debuggee
-    //
-    ShowMessages("unloading debugger vmm module on debuggee...\n");
-
-    //
     // Send close & unload packet to debuggee (vmx-root)
     //
-    if (!KdCommandPacketToDebuggee(
+    if (KdCommandPacketToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE)) {
-      return FALSE;
-    }
+      //
+      // It's a debugger, we should send the close packet to debuggee
+      //
+      ShowMessages("unloading debugger vmm module on debuggee...\n");
 
-    //
-    // Send another packet so the user-mode is not waiting for new packet
-    //
-    if (!KdCommandPacketToDebuggee(
-            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
-            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET)) {
-      return FALSE;
+      //
+      // Send another packet so the user-mode is not waiting for new packet
+      //
+      !KdCommandPacketToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET);
     }
 
   } else {
-    ShowMessages(
-        "err, debugger is not attached to any instance of debuggee.\n");
+    ShowMessages("err, debugger is not attached to any instance of debuggee\n");
     return FALSE;
   }
 
@@ -1074,6 +1089,20 @@ VOID KdUninitializeConnection() {
   if (g_OverlappedIoStructureForWriteDebugger.hEvent != NULL) {
     CloseHandle(g_OverlappedIoStructureForWriteDebugger.hEvent);
   }
+
+  if (g_DebuggeeStopCommandEventHandle != NULL) {
+
+    //
+    // Signal the debuggee to get new commands
+    //
+    SetEvent(g_DebuggeeStopCommandEventHandle);
+  }
+
+  //
+  // Unpause the debugger to get commands
+  //
+  SetEvent(g_SyncronizationObjectsHandleTable
+               [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
 
   //
   // Close synchronization objects
@@ -1113,12 +1142,4 @@ VOID KdUninitializeConnection() {
   // Is serial handle for a named pipe
   //
   g_IsDebuggerConntectedToNamedPipe = FALSE;
-
-  if (g_DebuggeeStopCommandEventHandle != NULL) {
-
-    //
-    // Signal the debuggee to get new commands
-    //
-    SetEvent(g_DebuggeeStopCommandEventHandle);
-  }
 }

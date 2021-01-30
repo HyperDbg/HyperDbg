@@ -43,8 +43,19 @@ StartAgain:
   //
   if (!KdReceivePacketFromDebuggee(BufferToReceive, &LengthReceived)) {
 
-    ShowMessages("err, invalid buffer received.\n");
-    goto StartAgain;
+    if (LengthReceived == 0 && BufferToReceive[0] == NULL) {
+
+      //
+      // The remote computer (debuggee) closed the connection
+      //
+      ShowMessages("the remote computer (debuggee) closed the connection !\n");
+      KdCloseConnection();
+      return FALSE;
+
+    } else {
+      ShowMessages("err, invalid buffer received\n");
+      goto StartAgain;
+    }
   }
 
   //

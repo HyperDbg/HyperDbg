@@ -87,6 +87,13 @@ string g_ServerIp = "";
  */
 HANDLE g_RemoteDebuggeeListeningThread = NULL;
 
+/**
+ * @brief In both debuggee and debugger we save the state of
+ * the closed connection to avoid double close
+ *
+ */
+BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
+
 //////////////////////////////////////////////////
 //		 Serial Debugging Variables             //
 //////////////////////////////////////////////////
