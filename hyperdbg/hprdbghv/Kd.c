@@ -21,11 +21,6 @@ VOID
 KdInitializeKernelDebugger()
 {
     //
-    // All cores are continued
-    //
-    CountOfLockedCores = ALL_CORES_CONTINUED_INDICATOR;
-
-    //
     // Initialize APIC
     //
     ApicInitialize();
@@ -233,24 +228,17 @@ KdRecvBuffer(CHAR *   BufferToSave,
 VOID
 KdContinueDebuggee()
 {
-    //
-    // Unlock other cores
-    //
-    SpinlockUnlock(&SystemHaltLock);
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // The current core will also be continued, let's decrement it
+    // Unlock all the cores
     //
-    InterlockedDecrement64(&CountOfLockedCores);
-
-    //
-    // Now, we should compare to make sure all the cores continued
-    //
-    do
+    for (size_t i = 0; i < CoreCount; i++)
     {
-        InterlockedCompareExchange64(&CountOfLockedCores, ALL_CORES_CONTINUED_INDICATOR, 0);
-
-    } while (CountOfLockedCores != ALL_CORES_CONTINUED_INDICATOR);
+        SpinlockUnlock(&g_GuestState[i].DebuggingState.Lock);
+    }
 }
 
 /**
@@ -279,24 +267,17 @@ KdCloseConnectionAndUnloadDebuggee()
 VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason)
 {
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
     //
-    // Wait if other cores need to be continued first
+    // Lock all the cores
     //
-    do
+    for (size_t i = 0; i < CoreCount; i++)
     {
-        InterlockedCompareExchange64(&CountOfLockedCores, 0, ALL_CORES_CONTINUED_INDICATOR);
-
-    } while (CountOfLockedCores != 0);
-
-    //
-    // Lock the system halt spinlock
-    //
-    SpinlockLock(&SystemHaltLock);
-
-    //
-    // Increment count of locked cores (atomic)
-    //
-    InterlockedIncrement64(&CountOfLockedCores);
+        SpinlockLock(&g_GuestState[i].DebuggingState.Lock);
+    }
 
     //
     // Set the halting reason
@@ -306,7 +287,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     //
     // Halt all other Core by interrupting them to nmi
     //
-    ApicTriggerGenericNmi(CurrentProcessorIndex);
+    ApicTriggerGenericNmi(CurrentProcessorIndex, CoreCount);
 
     //
     // All the cores should go and manage through the following function
@@ -327,11 +308,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    //
-    // Increment count of locked cores (atomic)
-    //
-    InterlockedIncrement64(&CountOfLockedCores);
-
     /* LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber()); */
 
     //
@@ -509,7 +485,7 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
     if (MainCore)
     {
         //
-        // *** First Core ***
+        // *** Current Operating Core  ***
         //
 
         //
@@ -551,20 +527,15 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
     else
     {
         //
-        // All cores except first core
+        // All cores except operating core
         //
 
         //
         // Lock and unlock the lock so all core can get the lock
         // and continue their normal execution
         //
-        SpinlockLock(&SystemHaltLock);
-        SpinlockUnlock(&SystemHaltLock);
-
-        //
-        // One core is continued, let's decrement the locked core count
-        //
-        InterlockedDecrement64(&CountOfLockedCores);
+        SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+        SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
     }
 }
 

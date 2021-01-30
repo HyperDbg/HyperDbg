@@ -12,17 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			     Definitions 	    			//
-//////////////////////////////////////////////////
-
-/**
- * @brief All cores are being continued
- * 
- */
-
-#define ALL_CORES_CONTINUED_INDICATOR 0xffffffffffffffff
-
-//////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////
 
@@ -50,19 +39,3 @@ KdResponsePacketToDebugger(
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
     CHAR *                                  OptionalBuffer,
     UINT32                                  OptionalBufferLength);
-
-//////////////////////////////////////////////////
-//				 Spinlock Locks 				//
-//////////////////////////////////////////////////
-
-/**
- * @brief Lock for halting all cores
- * 
- */
-volatile LONG SystemHaltLock;
-
-/**
- * @brief Count of locked cores
- * 
- */
-volatile LONG64 CountOfLockedCores;

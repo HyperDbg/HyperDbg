@@ -94,6 +94,7 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
+    volatile LONG                         Lock;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
     BOOLEAN                               WaitForStepOnMtf;
     BOOLEAN                               WaitingForNmi;

@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////
 
 VOID
-ApicTriggerGenericNmi(UINT32 CurrentCoreIndex);
+ApicTriggerGenericNmi(UINT32 CurrentCoreIndex, ULONG CoreCount);
 
 BOOLEAN
 ApicInitialize();
