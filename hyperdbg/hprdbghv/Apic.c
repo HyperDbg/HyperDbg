@@ -44,8 +44,12 @@ ApicX2TriggerNmi(UINT32 Low, UINT32 High)
  * @return VOID 
  */
 VOID
-ApicTriggerGenericNmi(UINT32 CurrentCoreIndex, ULONG CoreCount)
+ApicTriggerGenericNmi(UINT32 CurrentCoreIndex)
 {
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
     //
     // Indicate that we're waiting for NMI
     //

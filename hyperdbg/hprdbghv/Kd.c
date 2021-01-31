@@ -245,7 +245,7 @@ KdContinueDebuggee()
  * @brief Notify user-mode to unload the debuggee and close the connections
  * @details  
  * 
- * @return VOID 
+ * @return VOID
  */
 VOID
 KdCloseConnectionAndUnloadDebuggee()
@@ -267,17 +267,10 @@ KdCloseConnectionAndUnloadDebuggee()
 VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason)
 {
-    ULONG CoreCount;
-
-    CoreCount = KeQueryActiveProcessorCount(0);
-
     //
-    // Lock all the cores
+    // Lock current core
     //
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        SpinlockLock(&g_GuestState[i].DebuggingState.Lock);
-    }
+    SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
     // Set the halting reason
@@ -287,7 +280,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     //
     // Halt all other Core by interrupting them to nmi
     //
-    ApicTriggerGenericNmi(CurrentProcessorIndex, CoreCount);
+    ApicTriggerGenericNmi(CurrentProcessorIndex);
 
     //
     // All the cores should go and manage through the following function
@@ -309,6 +302,11 @@ VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     /* LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber()); */
+
+    //
+    // Lock current core
+    //
+    SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
     // All the cores should go and manage through the following function
@@ -506,9 +504,9 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
         //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
+        /*MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
                                    &PausePacket.InstructionBytesOnRip,
-                                   MAXIMUM_INSTR_SIZE);
+                                   MAXIMUM_INSTR_SIZE);*/
 
         //
         // Send the pause packet, along with RIP and an

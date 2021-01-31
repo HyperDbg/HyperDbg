@@ -42,6 +42,9 @@ void
 SpinlockLock(volatile LONG * Lock);
 
 void
+SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
+
+void
 SpinlockUnlock(volatile LONG * Lock);
 
 //////////////////////////////////////////////////

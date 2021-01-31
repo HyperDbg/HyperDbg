@@ -77,6 +77,40 @@ SpinlockLock(volatile LONG * Lock)
 }
 
 /**
+ * @brief Tries to get the lock and won't return until successfully get the lock
+ * 
+ * @param LONG Lock variable
+ * @param LONG MaxWait Maximum wait (pause) count
+ */
+void
+SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait)
+{
+    unsigned wait = 1;
+
+    while (!SpinlockTryLock(Lock))
+    {
+        for (unsigned i = 0; i < wait; ++i)
+        {
+            _mm_pause();
+        }
+
+        //
+        // Don't call "pause" too many times. If the wait becomes too big,
+        // clamp it to the MaxWait.
+        //
+
+        if (wait * 2 > MaximumWait)
+        {
+            wait = MaximumWait;
+        }
+        else
+        {
+            wait = wait * 2;
+        }
+    }
+}
+
+/**
  * @brief Release the lock
  * 
  * @param LONG Lock variable
