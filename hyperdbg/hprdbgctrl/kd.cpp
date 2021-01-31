@@ -135,6 +135,38 @@ BOOLEAN KdSendContinuePacketToDebuggee() {
 }
 
 /**
+ * @brief Sends a change core or '~ x' command packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
+
+  DEBUGGEE_CHANGE_CORE_PACKET CoreChangePacket = {0};
+
+  CoreChangePacket.NewCore = NewCore;
+
+  //
+  // Send '~' as switch packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE,
+          (CHAR *)&CoreChangePacket, sizeof(DEBUGGEE_CHANGE_CORE_PACKET))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of core change received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT],
+      INFINITE);
+
+  return TRUE;
+}
+
+/**
  * @brief Sends p (step out) and t (step in) packet to the debuggee
  *
  * @return BOOLEAN
@@ -479,6 +511,50 @@ BOOLEAN KdCommandPacketToDebuggee(
                               sizeof(DEBUGGER_REMOTE_PACKET), TRUE)) {
     return FALSE;
   }
+  return TRUE;
+}
+
+/**
+ * @brief Sends a HyperDbg packet + a buffer to the debuggee
+ *
+ * @param RequestedAction
+ * @param Buffer
+ * @param BufferLength
+ * @return BOOLEAN
+ */
+BOOLEAN KdCommandPacketAndBufferToDebuggee(
+    DEBUGGER_REMOTE_PACKET_TYPE PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, CHAR *Buffer,
+    UINT32 BufferLength) {
+
+  DEBUGGER_REMOTE_PACKET Packet = {0};
+
+  //
+  // Make the packet's structure
+  //
+  Packet.Indicator = INDICATOR_OF_HYPERDBG_PACKER;
+  Packet.TypeOfThePacket = PacketType;
+
+  //
+  // Set the requested action
+  //
+  Packet.RequestedActionOfThePacket = RequestedAction;
+
+  //
+  // Send the first buffer (without ending buffer indication)
+  //
+  if (!KdSendPacketToDebuggee((const CHAR *)&Packet,
+                              sizeof(DEBUGGER_REMOTE_PACKET), FALSE)) {
+    return FALSE;
+  }
+
+  //
+  // Send the second buffer (with ending buffer indication)
+  //
+  if (!KdSendPacketToDebuggee((const CHAR *)Buffer, BufferLength, TRUE)) {
+    return FALSE;
+  }
+
   return TRUE;
 }
 

@@ -63,6 +63,11 @@ BOOLEAN KdCommandPacketToDebuggee(
     DEBUGGER_REMOTE_PACKET_TYPE PacketType,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction);
 
+BOOLEAN KdCommandPacketAndBufferToDebuggee(
+    DEBUGGER_REMOTE_PACKET_TYPE PacketType,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, CHAR *Buffer,
+    UINT32 BufferLength);
+
 VOID KdTheRemoteSystemIsRunning();
 
 BOOLEAN KdPrepareSerialConnectionToRemoteSystem(HANDLE SerialHandle,
@@ -80,6 +85,8 @@ BOOLEAN KdReceivePacketFromDebuggee(CHAR *BufferToSave, UINT32 *LengthReceived);
 VOID KdBreakControlCheckAndContinueDebugger();
 
 BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
+
+BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);

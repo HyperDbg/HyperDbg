@@ -122,6 +122,10 @@ ShowErrorMessage(UINT32 Error) {
     ShowMessages("err, invalid serial port (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE:
+    ShowMessages("err, invalid core selected in switching cores (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

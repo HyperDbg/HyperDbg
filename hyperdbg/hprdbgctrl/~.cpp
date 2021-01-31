@@ -25,6 +25,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID CommandTildeHelp() {
   ShowMessages("~ : show and change the operating processor.\n\n");
   ShowMessages("syntax : \t~\n");
+  ShowMessages("\t\te.g : ~ \n");
+  ShowMessages("\t\te.g : ~ 2 \n");
 }
 
 /**
@@ -35,7 +37,9 @@ VOID CommandTildeHelp() {
  */
 VOID CommandTilde(vector<string> SplittedCommand) {
 
-  if (SplittedCommand.size() != 1) {
+  UINT32 TargetCore = 0;
+
+  if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of '~'\n\n");
     CommandTildeHelp();
     return;
@@ -49,5 +53,19 @@ VOID CommandTilde(vector<string> SplittedCommand) {
     return;
   }
 
-  ShowMessages("current processor : 0x%x\n", g_CurrentRemoteCore);
+  if (SplittedCommand.size() == 1) {
+    ShowMessages("current processor : 0x%x\n", g_CurrentRemoteCore);
+  } else if (SplittedCommand.size() == 2) {
+    if (!ConvertStringToUInt32(SplittedCommand.at(1), &TargetCore)) {
+      ShowMessages("please specify a correct hex value for the core that you "
+                   "want to operate on it\n\n");
+      CommandTildeHelp();
+      return;
+    }
+
+    //
+    // Send the changing core packet
+    //
+    KdSendSwitchCorePacketToDebuggee(TargetCore);
+  }
 }

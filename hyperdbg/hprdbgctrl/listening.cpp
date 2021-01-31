@@ -31,8 +31,9 @@ extern ULONG g_CurrentRemoteCore;
  */
 BOOLEAN ListeningSerialPortInDebugger() {
 
-  PDEBUGGEE_PAUSED_PACKET PausePacket;
   PDEBUGGER_REMOTE_PACKET TheActualPacket;
+  PDEBUGGEE_PAUSED_PACKET PausePacket;
+  PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
 
 StartAgain:
 
@@ -144,6 +145,27 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
       }
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE:
+
+      ChangeCorePacket =
+          (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
+                                          sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (ChangeCorePacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+        ShowMessages("current operating core changed to 0x%x\n",
+                     ChangeCorePacket->NewCore);
+      } else {
+        ShowErrorMessage(ChangeCorePacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of core change
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
 
       break;
     default:

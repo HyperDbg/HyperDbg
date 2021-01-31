@@ -242,6 +242,56 @@ KdContinueDebuggee()
 }
 
 /**
+ * @brief change the current operating core to new core
+ * 
+ * @param CurrentCore
+ * @param NewCore
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
+{
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Check if core is valid or not
+    //
+    if (NewCore >= CoreCount)
+    {
+        //
+        // Invalid core count
+        //
+        return FALSE;
+    }
+
+    //
+    // *** Core is valid ***
+    //
+
+    //
+    // Unset the current operating core (this is not important as if we
+    // return from the operating function then the it will be unset
+    // automatically but as we want to not have two operating cores
+    // at the same time so we unset it here too)
+    //
+    g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = FALSE;
+
+    //
+    // Set new operating core
+    //
+    g_GuestState[NewCore].DebuggingState.CurrentOperatingCore = TRUE;
+
+    //
+    // Unlock the new core
+    //
+    SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+
+    return TRUE;
+}
+
+/**
  * @brief Notify user-mode to unload the debuggee and close the connections
  * @details  
  * 
@@ -349,6 +399,8 @@ KdStepInstruction(ULONG CoreId)
 VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
+    PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
+
     while (TRUE)
     {
         BOOLEAN                 EscapeFromTheLoop               = FALSE;
@@ -439,6 +491,38 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 EscapeFromTheLoop = TRUE;
 
                 break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE:
+
+                ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Switch to new core
+                //
+                if (KdSwitchCore(CurrentCore, ChangeCorePacket->NewCore))
+                {
+                    //
+                    // No need to wait for new commands
+                    //
+                    EscapeFromTheLoop = TRUE;
+
+                    ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    ChangeCorePacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE;
+                }
+
+                //
+                // Send the result of switching core back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE,
+                                           ChangeCorePacket,
+                                           sizeof(DEBUGGEE_CHANGE_CORE_PACKET));
+
+                break;
             default:
                 LogError("err, unknown packet action received from the debugger.\n");
                 break;
@@ -474,6 +558,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
 {
+StartAgain:
+
     DEBUGGEE_PAUSED_PACKET PausePacket = {0};
 
     //
@@ -485,6 +571,11 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
         //
         // *** Current Operating Core  ***
         //
+
+        //
+        // Set as current operating core
+        //
+        g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = TRUE;
 
         //
         // Set the halt reason
@@ -504,9 +595,9 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
         //
         // Find the current instruction
         //
-        /*MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
+        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
                                    &PausePacket.InstructionBytesOnRip,
-                                   MAXIMUM_INSTR_SIZE);*/
+                                   MAXIMUM_INSTR_SIZE);
 
         //
         // Send the pause packet, along with RIP and an
@@ -521,6 +612,25 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
         // Perform Commands from the debugger
         //
         KdDispatchAndPerformCommandsFromDebugger(CurrentCore, GuestRegs);
+
+        //
+        // Check if it's a change core event or not
+        //
+        if (!g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore)
+        {
+            //
+            // Set main core to FALSE
+            //
+            MainCore = FALSE;
+            goto StartAgain;
+        }
+        else
+        {
+            //
+            // Unset the current operating core
+            //
+            g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = FALSE;
+        }
     }
     else
     {
@@ -533,6 +643,25 @@ KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN Ma
         // and continue their normal execution
         //
         SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+
+        //
+        // Check if it's a change core event or not
+        //
+        if (g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore)
+        {
+            //
+            // It's a core change event
+            //
+            MainCore = TRUE;
+
+            //
+            // Lock the core again
+            //
+            SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+
+            goto StartAgain;
+        }
+
         SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
     }
 }
