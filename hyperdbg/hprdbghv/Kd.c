@@ -242,6 +242,26 @@ KdContinueDebuggee()
 }
 
 /**
+ * @brief continue the debuggee, just the current operating core
+ * @param CurrentCore
+ * @return VOID 
+ */
+VOID
+KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
+{
+    //
+    // In the case of any halting event, the processor won't send NMIs
+    // to other cores if this field is set
+    //
+    g_GuestState[CurrentCore].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = TRUE;
+
+    //
+    // Unlock the current core
+    //
+    SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+}
+
+/**
  * @brief change the current operating core to new core
  * 
  * @param CurrentCore
@@ -329,10 +349,20 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     //
     g_DebuggeeHaltReason = Reason;
 
-    //
-    // Halt all other Core by interrupting them to nmi
-    //
-    ApicTriggerGenericNmi(CurrentProcessorIndex);
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
+    {
+        //
+        // Halt all other Core by interrupting them to nmi
+        //
+        ApicTriggerGenericNmi(CurrentProcessorIndex);
+    }
+    else
+    {
+        //
+        // Unset to avoid future not notifying events
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = FALSE;
+    }
 
     //
     // All the cores should go and manage through the following function
@@ -465,9 +495,9 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdStepInstruction(CurrentCore);
 
                 //
-                // Unlock other cores
+                // Unlock just on core
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggeeJustCurrentCore(CurrentCore);
 
                 //
                 // No need to wait for new commands
