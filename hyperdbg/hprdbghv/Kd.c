@@ -285,8 +285,10 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
 
     //
     // Unlock the new core
+    // *** We should not unlock the spinlock here as the other core might
+    // simultaneously start sending packets and corrupt our packets ***
     //
-    SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+    // SpinlockUnlock(&g_GuestState[NewCore].DebuggingState.Lock);
 
     return TRUE;
 }
@@ -400,6 +402,7 @@ VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
     PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
+    BOOLEAN                      UnlockTheNewCore = FALSE;
 
     while (TRUE)
     {
@@ -432,7 +435,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // sth wrong happened, the packet is not belonging to use
                 // nothing to do, just wait again
                 //
-                LogError("err, unknown packet received from the debugger.\n");
+                LogError("err, unknown packet received from the debugger\n");
             }
 
             //
@@ -497,21 +500,36 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 ChangeCorePacket = (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
                                                                    sizeof(DEBUGGER_REMOTE_PACKET));
 
-                //
-                // Switch to new core
-                //
-                if (KdSwitchCore(CurrentCore, ChangeCorePacket->NewCore))
+                if (CurrentCore != ChangeCorePacket->NewCore)
                 {
                     //
-                    // No need to wait for new commands
+                    // Switch to new core
                     //
-                    EscapeFromTheLoop = TRUE;
+                    if (KdSwitchCore(CurrentCore, ChangeCorePacket->NewCore))
+                    {
+                        //
+                        // No need to wait for new commands
+                        //
+                        EscapeFromTheLoop = TRUE;
 
-                    ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                        //
+                        // Unlock the new core
+                        //
+                        UnlockTheNewCore = TRUE;
+
+                        ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    }
+                    else
+                    {
+                        ChangeCorePacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE;
+                    }
                 }
                 else
                 {
-                    ChangeCorePacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE;
+                    //
+                    // The operating core and the target core is the same, no need for further action
+                    //
+                    ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
                 }
 
                 //
@@ -521,6 +539,15 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE,
                                            ChangeCorePacket,
                                            sizeof(DEBUGGEE_CHANGE_CORE_PACKET));
+
+                //
+                // Because we don't want two cores to send the same packets simultaneously
+                //
+                if (UnlockTheNewCore)
+                {
+                    UnlockTheNewCore = FALSE;
+                    SpinlockUnlock(&g_GuestState[ChangeCorePacket->NewCore].DebuggingState.Lock);
+                }
 
                 break;
             default:
@@ -652,12 +679,8 @@ StartAgain:
             //
             // It's a core change event
             //
-            MainCore = TRUE;
-
-            //
-            // Lock the core again
-            //
-            SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
+            MainCore             = TRUE;
+            g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED;
 
             goto StartAgain;
         }

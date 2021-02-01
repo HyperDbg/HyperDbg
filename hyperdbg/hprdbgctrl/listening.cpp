@@ -87,7 +87,7 @@ StartAgain:
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
       //
-      ShowMessages("err, unknown packet received from the debugger.\n");
+      ShowMessages("err, unknown packet received from the debugger\n");
       goto StartAgain;
     }
 
@@ -137,6 +137,14 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
 
+      } else if (PausePacket->PausingReason ==
+                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED) {
+        //
+        // Signal the event relating to receiving result of core change
+        //
+        SetEvent(g_SyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
+
       } else {
         //
         // Signal the event relating to commands that are waiting for
@@ -157,19 +165,21 @@ StartAgain:
       if (ChangeCorePacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
         ShowMessages("current operating core changed to 0x%x\n",
                      ChangeCorePacket->NewCore);
-      } else {
-        ShowErrorMessage(ChangeCorePacket->Result);
-      }
 
-      //
-      // Signal the event relating to receiving result of core change
-      //
-      SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
+      } else {
+
+        ShowErrorMessage(ChangeCorePacket->Result);
+
+        //
+        // Signal the event relating to receiving result of core change
+        //
+        SetEvent(g_SyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
+      }
 
       break;
     default:
-      ShowMessages("err, unknown packet action received from the debugger.\n");
+      ShowMessages("err, unknown packet action received from the debugger\n");
       break;
     }
 
@@ -178,7 +188,7 @@ StartAgain:
     //
     // It's not a HyperDbg packet, it's probably a GDB packet
     //
-    ShowMessages("invalid packet received.\n");
+    ShowMessages("invalid packet received\n");
     DebugBreak();
   }
 
@@ -247,7 +257,7 @@ StartAgain:
       // Invalid buffer
       //
       ShowMessages("err, a buffer received in debuggee which exceeds the "
-                   "buffer limitation.\n");
+                   "buffer limitation\n");
       goto StartAgain;
     }
 
@@ -293,7 +303,7 @@ StartAgain:
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
       //
-      ShowMessages("err, unknown packet received from the debugger.\n");
+      ShowMessages("err, unknown packet received from the debugger\n");
       goto StartAgain;
     }
 
@@ -304,7 +314,7 @@ StartAgain:
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE:
       if (!DebuggerPauseDebuggee()) {
         ShowMessages("err, debugger tries to pause the debuggee but the "
-                     "attempt was unsuccessful.\n");
+                     "attempt was unsuccessful\n");
       }
       break;
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET:
@@ -314,7 +324,7 @@ StartAgain:
       return TRUE;
       break;
     default:
-      ShowMessages("err, unknown packet action received from the debugger.\n");
+      ShowMessages("err, unknown packet action received from the debugger\n");
       break;
     }
 

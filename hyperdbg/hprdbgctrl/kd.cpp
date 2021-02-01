@@ -145,6 +145,17 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
 
   CoreChangePacket.NewCore = NewCore;
 
+  if (CoreChangePacket.NewCore == g_CurrentRemoteCore) {
+    //
+    // We show an error message here when there is no core change (because the
+    // target core and current operating core is the same)
+    //
+    ShowMessages("the current operating core is %x (not changed)\n",
+                 CoreChangePacket.NewCore);
+
+    return FALSE;
+  }
+
   //
   // Send '~' as switch packet
   //
