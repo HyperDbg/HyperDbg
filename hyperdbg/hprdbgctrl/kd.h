@@ -88,6 +88,8 @@ BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
 
 BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
+BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
+                                            UINT32 NewPid);
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 

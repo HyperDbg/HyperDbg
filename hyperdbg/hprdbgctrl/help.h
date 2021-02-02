@@ -130,3 +130,5 @@ VOID CommandDebugHelp();
 VOID CommandPHelp();
 
 VOID CommandTildeHelp();
+
+VOID CommandProcessHelp();

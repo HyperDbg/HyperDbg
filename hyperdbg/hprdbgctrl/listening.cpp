@@ -34,6 +34,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGER_REMOTE_PACKET TheActualPacket;
   PDEBUGGEE_PAUSED_PACKET PausePacket;
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
+  PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
 
 StartAgain:
 
@@ -178,6 +179,37 @@ StartAgain:
       }
 
       break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS:
+
+      ChangeProcessPacket =
+          (DEBUGGEE_CHANGE_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
+                                             sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (ChangeProcessPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        if (ChangeProcessPacket->GetRemotePid) {
+          ShowMessages("current process id : %x\n",
+                       ChangeProcessPacket->ProcessId);
+        } else {
+          ShowMessages(
+              "press 'g' to continue the debuggee, if the pid is valid then "
+              "the debuggee will be automatically paused when it attached to "
+              "the target process\n");
+        }
+
+      } else {
+        ShowErrorMessage(ChangeProcessPacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of process change
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]);
+
+      break;
+
     default:
       ShowMessages("err, unknown packet action received from the debugger\n");
       break;

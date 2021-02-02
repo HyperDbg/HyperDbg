@@ -262,6 +262,32 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
 }
 
 /**
+ * @brief change the current process
+ * @param PidRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
+{
+    if (PidRequest->GetRemotePid)
+    {
+        //
+        // Debugger wants to know current pid
+        //
+        PidRequest->ProcessId = PsGetCurrentProcessId();
+    }
+    else
+    {
+        //
+        // Debugger wants to switch to new process
+        //
+        LogInfo("Change process id to : %x\n", PidRequest->ProcessId);
+    }
+    return TRUE;
+}
+
+/**
  * @brief change the current operating core to new core
  * 
  * @param CurrentCore
@@ -431,8 +457,9 @@ KdStepInstruction(ULONG CoreId)
 VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
-    PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
-    BOOLEAN                      UnlockTheNewCore = FALSE;
+    PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
+    PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
+    BOOLEAN                         UnlockTheNewCore = FALSE;
 
     while (TRUE)
     {
@@ -580,6 +607,34 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 }
 
                 break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS:
+
+                ChangeProcessPacket = (DEBUGGEE_CHANGE_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Switch to new process
+                //
+                if (KdSwitchProcess(ChangeProcessPacket))
+                {
+                    ChangeProcessPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    ChangeProcessPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS;
+                }
+
+                //
+                // Send the result of switching process back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
+                                           ChangeProcessPacket,
+                                           sizeof(DEBUGGEE_CHANGE_PROCESS_PACKET));
+
+                break;
+
             default:
                 LogError("err, unknown packet action received from the debugger.\n");
                 break;

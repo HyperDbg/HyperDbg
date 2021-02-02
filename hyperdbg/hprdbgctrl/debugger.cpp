@@ -126,6 +126,10 @@ ShowErrorMessage(UINT32 Error) {
     ShowMessages("err, invalid core selected in switching cores (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS:
+    ShowMessages("err, unable to switch to new process (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

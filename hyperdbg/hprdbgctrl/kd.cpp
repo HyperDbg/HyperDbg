@@ -178,6 +178,44 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
 }
 
 /**
+ * @brief Sends a change core or '.process pid x' command packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
+                                            UINT32 NewPid) {
+
+  DEBUGGEE_CHANGE_PROCESS_PACKET ProcessChangePacket = {0};
+
+  if (GetRemotePid) {
+    ProcessChangePacket.GetRemotePid = TRUE;
+  } else {
+    ProcessChangePacket.ProcessId = NewPid;
+  }
+
+  //
+  // Send '.process' as switch packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
+          (CHAR *)&ProcessChangePacket,
+          sizeof(DEBUGGEE_CHANGE_PROCESS_PACKET))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of process change received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT],
+      INFINITE);
+
+  return TRUE;
+}
+
+/**
  * @brief Sends p (step out) and t (step in) packet to the debuggee
  *
  * @return BOOLEAN

@@ -167,6 +167,7 @@
     <ClCompile Include="pause.cpp" />
     <ClCompile Include="pmc.cpp" />
     <ClCompile Include="print.cpp" />
+    <ClCompile Include="process.cpp" />
     <ClCompile Include="pte.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />

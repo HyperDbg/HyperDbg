@@ -145,6 +145,13 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandDetach(SplittedCommand);
 
+  } else if (!FirstCommand.compare(".process")) {
+
+    if (HelpCommand)
+      CommandProcessHelp();
+    else
+      CommandProcess(SplittedCommand);
+
   } else if (!FirstCommand.compare("sleep")) {
 
     if (HelpCommand)
