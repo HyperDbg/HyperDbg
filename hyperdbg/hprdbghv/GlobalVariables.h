@@ -128,3 +128,9 @@ VOID * g_ApicBase;
  * 
  */
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
+
+/**
+ * @brief Dpc state for debuggee
+ * 
+ */
+PKDPC g_DebuggeeDpc;

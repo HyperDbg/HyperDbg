@@ -26,6 +26,17 @@ KdInitializeKernelDebugger()
     ApicInitialize();
 
     //
+    // Allocate DPC routine
+    //
+    g_DebuggeeDpc = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
+
+    if (g_DebuggeeDpc == NULL)
+    {
+        LogError("err, allocating dpc holder for debuggee");
+        return;
+    }
+
+    //
     // Broadcast on all core to cause exit for NMIs
     //
     HvEnableNmiExitingAllCores();
@@ -69,6 +80,11 @@ KdUninitializeKernelDebugger()
         // so, not intercept #DBs and #BP by changing exception bitmap (one core)
         //
         HvDisableDbAndBpExitingAllCores();
+
+        //
+        // Free DPC holder
+        //
+        ExFreePoolWithTag(g_DebuggeeDpc, POOLTAG);
 
         //
         // Uinitialize APIC related function
@@ -261,6 +277,29 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
     SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
 }
 
+VOID
+KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    LogInfo("I'm here %x\n", DeferredContext);
+}
+
+VOID
+KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
+{
+    KeInitializeDpc(&g_DebuggeeDpc, Routine, Paramter);
+
+    if (ProcessorNumber != DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT)
+    {
+        KeSetTargetProcessorDpc(&g_DebuggeeDpc, ProcessorNumber);
+    }
+
+    KeInsertQueueDpc(&g_DebuggeeDpc, NULL, NULL);
+}
+
 /**
  * @brief change the current process
  * @param PidRequest
@@ -282,8 +321,9 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
         //
         // Debugger wants to switch to new process
         //
-        LogInfo("Change process id to : %x\n", PidRequest->ProcessId);
+        KdFireDpc(KdDummyDPC, 0x55, DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
     }
+
     return TRUE;
 }
 
