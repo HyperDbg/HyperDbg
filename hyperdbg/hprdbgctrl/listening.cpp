@@ -130,7 +130,9 @@ StartAgain:
       if (PausePacket->PausingReason ==
               DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT ||
           PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT) {
+              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT ||
+          PausePacket->PausingReason ==
+              DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED) {
 
         //
         // Unpause the debugger to get commands

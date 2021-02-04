@@ -277,6 +277,15 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
     SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
 }
 
+/**
+ * @brief A test function for DPC
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * 
+ * @return VOID 
+ */
 VOID
 KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
@@ -287,6 +296,69 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
     LogInfo("I'm here %x\n", DeferredContext);
 }
 
+/**
+ * @brief Switch to new process
+ * @details This function will be called in vmx non-root
+ * @param Dpc
+ * @param DeferredContext It's the process ID
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * 
+ * @return VOID 
+ */
+VOID
+KdSwitchToNewProcessDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
+    PHYSICAL_ADDRESS PhysicalAddr;
+
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(DeferredContext);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentProcessCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        LogInfo("err, process id is invalid (unable to switch)");
+
+        //
+        // Trigger a breakpoint to be managed by HyperDbg as sign of failure
+        //
+        DbgBreakPoint();
+
+        return NULL;
+    }
+
+    //
+    // vm-exit and halt current core with change the process
+    //
+    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3, CurrentProcessCr3.Flags, 0, 0);
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+}
+
+/**
+ * @brief Add a DPC to dpc queue
+ * @param Routine
+ * @param Paramter
+ * @param ProcessorNumber
+ * 
+ * @return VOID 
+ */
 VOID
 KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
 {
@@ -321,7 +393,9 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
         //
         // Debugger wants to switch to new process
         //
-        KdFireDpc(KdDummyDPC, 0x55, DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
+        KdFireDpc(KdSwitchToNewProcessDpc,
+                  PidRequest->ProcessId,
+                  DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
     }
 
     return TRUE;
@@ -439,6 +513,42 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     // Clear the halting reason
     //
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
+}
+
+/**
+ * @brief Handle #DBs and #BPs for kernel debugger
+ * @details This function can be used in vmx-root 
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ * @param Reason
+ * @param TargetCr3
+ * 
+ * @return VOID 
+ */
+VOID
+KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
+                                       PGUEST_REGS             GuestRegs,
+                                       DEBUGGEE_PAUSING_REASON Reason,
+                                       CR3_TYPE                TargetCr3)
+
+{
+    CR3_TYPE CurrentProcessCr3 = {0};
+
+    //
+    // Switch to new process's memory layout, it is because in vmx-root
+    // we are in system process layout (PID=4)
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+
+    //
+    // Trigger the breakpoint
+    //
+    KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs, Reason);
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
 }
 
 /**
@@ -710,9 +820,9 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
 {
-StartAgain:
+    DEBUGGEE_PAUSED_PACKET PausePacket;
 
-    DEBUGGEE_PAUSED_PACKET PausePacket = {0};
+StartAgain:
 
     //
     // We check for receiving buffer (unhalting) only on the
@@ -723,6 +833,7 @@ StartAgain:
         //
         // *** Current Operating Core  ***
         //
+        RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_PAUSED_PACKET));
 
         //
         // Set as current operating core

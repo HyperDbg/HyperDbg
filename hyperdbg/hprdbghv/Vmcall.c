@@ -371,6 +371,18 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3:
+    {
+        CR3_TYPE ProcCr3 = {0};
+        ProcCr3.Flags    = OptionalParam1;
+
+        KdChangeCr3AndTriggerBreakpointHandler(CurrentCoreIndex,
+                                               GuestRegs,
+                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED,
+                                               ProcCr3);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

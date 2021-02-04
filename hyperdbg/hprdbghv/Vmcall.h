@@ -251,6 +251,12 @@
  */
 #define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x26
 
+/**
+ * @brief VMCALL to cause vm-exit and set the cr3
+ * 
+ */
+#define VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3 0x27
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

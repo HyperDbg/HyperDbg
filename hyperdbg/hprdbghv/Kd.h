@@ -33,6 +33,12 @@ KdUninitializeKernelDebugger();
 VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason);
 
+VOID
+KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
+                                       PGUEST_REGS             GuestRegs,
+                                       DEBUGGEE_PAUSING_REASON Reason,
+                                       CR3_TYPE                TargetCr3);
+
 BOOLEAN
 KdResponsePacketToDebugger(
     DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
