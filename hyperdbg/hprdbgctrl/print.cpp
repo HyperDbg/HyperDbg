@@ -89,6 +89,7 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
       //
       // return to show that this item contains an script
       //
+      ShowMessages("err, syntax error\n");
       return;
     }
 

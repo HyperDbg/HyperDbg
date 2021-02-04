@@ -130,6 +130,12 @@ VOID * g_ApicBase;
 DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 
 /**
+ * @brief Optional context as the debuggee is halted
+ * 
+ */
+PVOID g_DebuggeeHaltContext;
+
+/**
  * @brief Dpc state for debuggee
  * 
  */

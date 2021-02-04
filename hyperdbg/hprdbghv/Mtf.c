@@ -53,7 +53,8 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                               GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED);
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                              g_GuestState[CurrentProcessorIndex].LastVmexitRip);
     }
     else if (g_GuestState[CurrentProcessorIndex].MtfTest)
     {

@@ -948,7 +948,7 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
             DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
             break;
         case RUN_SCRIPT:
-            DebuggerPerformRunScript(Event->Tag, CurrentAction, Regs, Context);
+            DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
             break;
         case RUN_CUSTOM_CODE:
             DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
@@ -963,49 +963,65 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 }
 
 /**
- * @brief Manage breaking to the debugger action
- * 
- * @param Tag Tag of event
- * @param Action Action object
- * @param Regs Guest registers
- * @param Context Optional parameter
- * @return VOID 
- */
-VOID
-DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
-{
-    DbgBreakPoint();
-}
-
-/**
  * @brief Managing run script action
  * 
  * @param Tag Tag of event
  * @param Action Action object
  * @param Regs Guest registers
  * @param Context Optional parameter
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
-DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+BOOLEAN
+DebuggerPerformRunScript(UINT64                  Tag,
+                         PDEBUGGER_EVENT_ACTION  Action,
+                         PDEBUGGEE_SCRIPT_PACKET ScriptDetails,
+                         PGUEST_REGS             Regs,
+                         PVOID                   Context)
 {
     SYMBOL_BUFFER CodeBuffer   = {0};
     ACTION_BUFFER ActionBuffer = {0};
 
-    //
-    // Fill the action buffer
-    //
-    ActionBuffer.Context                   = Context;
-    ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
-    ActionBuffer.CurrentAction             = Action;
-    ActionBuffer.Tag                       = Tag;
+    if (Action != NULL)
+    {
+        //
+        // Fill the action buffer
+        //
+        ActionBuffer.Context                   = Context;
+        ActionBuffer.ImmediatelySendTheResults = Action->ImmediatelySendTheResults;
+        ActionBuffer.CurrentAction             = Action;
+        ActionBuffer.Tag                       = Tag;
 
-    //
-    // Context point to the registers
-    //
-    CodeBuffer.Head    = Action->ScriptConfiguration.ScriptBuffer;
-    CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
-    CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
+        //
+        // Context point to the registers
+        //
+        CodeBuffer.Head    = Action->ScriptConfiguration.ScriptBuffer;
+        CodeBuffer.Size    = Action->ScriptConfiguration.ScriptLength;
+        CodeBuffer.Pointer = Action->ScriptConfiguration.ScriptPointer;
+    }
+    else if (ScriptDetails != NULL)
+    {
+        //
+        // Fill the action buffer
+        //
+        ActionBuffer.Context                   = Context;
+        ActionBuffer.ImmediatelySendTheResults = TRUE;
+        ActionBuffer.CurrentAction             = NULL;
+        ActionBuffer.Tag                       = Tag;
+
+        //
+        // Context point to the registers
+        //
+        CodeBuffer.Head    = ((CHAR *)ScriptDetails + sizeof(DEBUGGEE_SCRIPT_PACKET));
+        CodeBuffer.Size    = ScriptDetails->ScriptBufferSize;
+        CodeBuffer.Pointer = ScriptDetails->ScriptBufferPointer;
+    }
+    else
+    {
+        //
+        // The parameters are wrong !
+        //
+        return FALSE;
+    }
 
     UINT64 g_TempList[MAX_TEMP_COUNT]    = {0};
     UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
@@ -1014,6 +1030,8 @@ DebuggerPerformRunScript(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS 
     {
         ScriptEngineExecute(Regs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
     }
+
+    return TRUE;
 }
 
 /**
@@ -1042,9 +1060,9 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     //
     // LogInfo("%x       Called from : %llx", Tag, Context);
     //
-
-    LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
-    return;
+    //
+    // LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
+    // return;
     //
     // -----------------------------------------------------------------------------------------------------
     //
@@ -1066,6 +1084,21 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
         //
         AsmDebuggerCustomCodeHandler(Action->RequestedBuffer.RequstBufferAddress, Regs, Context, Action->CustomCodeBufferAddress);
     }
+}
+
+/**
+ * @brief Manage breaking to the debugger action
+ * 
+ * @param Tag Tag of event
+ * @param Action Action object
+ * @param Regs Guest registers
+ * @param Context Optional parameter
+ * @return VOID 
+ */
+VOID
+DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
+{
+    DbgBreakPoint();
 }
 
 /**

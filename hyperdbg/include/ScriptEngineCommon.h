@@ -531,7 +531,13 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer) {
   case PSEUDO_REGISTER_IP:
     return ScriptEnginePseudoRegGetIp();
   case PSEUDO_REGISTER_BUFFER:
-    return ScriptEnginePseudoRegGetBuffer((UINT64 *)ActionBuffer.CurrentAction);
+    if (ActionBuffer.CurrentAction != NULL) {
+      return ScriptEnginePseudoRegGetBuffer(
+          (UINT64 *)ActionBuffer.CurrentAction);
+
+    } else {
+      return NULL;
+    }
   case PSEUDO_REGISTER_CONTEXT:
     return ActionBuffer.Context;
   case INVALID:

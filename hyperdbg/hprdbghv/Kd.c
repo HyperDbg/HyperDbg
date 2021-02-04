@@ -373,21 +373,6 @@ KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
 }
 
 /**
- * @brief Run the parsed script in debuggee
- * @param ScriptDetails
- * 
- * @return BOOLEAN 
- */
-BOOL Test = FALSE;
-BOOLEAN
-KdRunScript(PDEBUGGEE_SCRIPT_PACKET ScriptDetails)
-{
-    LogInfo("running script");
-    Test = !Test;
-    return Test;
-}
-
-/**
  * @brief change the current process
  * @param PidRequest
  * 
@@ -492,7 +477,10 @@ KdCloseConnectionAndUnloadDebuggee()
  * @return VOID 
  */
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason)
+KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
+                                      PGUEST_REGS             GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON Reason,
+                                      PVOID                   Context)
 {
     //
     // Lock current core
@@ -503,6 +491,11 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     // Set the halting reason
     //
     g_DebuggeeHaltReason = Reason;
+
+    //
+    // Set the context
+    //
+    g_DebuggeeHaltContext = Context;
 
     if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
     {
@@ -528,6 +521,11 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS 
     // Clear the halting reason
     //
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
+
+    //
+    // Clear the context
+    //
+    g_DebuggeeHaltContext = NULL;
 }
 
 /**
@@ -558,7 +556,7 @@ KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorI
     //
     // Trigger the breakpoint
     //
-    KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs, Reason);
+    KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs, Reason, NULL);
 
     //
     // Restore the original process
@@ -809,13 +807,24 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Run the script in debuggee
                 //
-                if (KdRunScript(ScriptPacket))
+
+                if (DebuggerPerformRunScript(OPERATION_LOG_INFO_MESSAGE /* simple print */,
+                                             NULL,
+                                             ScriptPacket,
+                                             GuestRegs,
+                                             g_DebuggeeHaltContext))
                 {
+                    //
+                    // Set status
+                    //
                     ScriptPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
-                    ScriptPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPTRD;
+                    //
+                    // Set status
+                    //
+                    ScriptPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT;
                 }
 
                 //

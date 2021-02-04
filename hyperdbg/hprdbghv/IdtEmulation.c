@@ -115,7 +115,9 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
                 //
                 KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                       GuestRegs,
-                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT);
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                      g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+
                 g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
             }
             else
@@ -194,7 +196,8 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                               GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT);
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
+                                              g_GuestState[CurrentProcessorIndex].LastVmexitRip);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {

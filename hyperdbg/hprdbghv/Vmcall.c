@@ -355,7 +355,8 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     {
         KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
                                               GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER);
+                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+                                              NULL);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

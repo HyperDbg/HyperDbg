@@ -31,7 +31,10 @@ VOID
 KdUninitializeKernelDebugger();
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, DEBUGGEE_PAUSING_REASON Reason);
+KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
+                                      PGUEST_REGS             GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON Reason,
+                                      PVOID                   Context);
 
 VOID
 KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
