@@ -60,7 +60,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
     PrintSymbolBuffer(CodeBuffer);
 
     for (int i = 0; i < CodeBuffer->Pointer;) {
-      printf("%d\n", i);
+      ShowMessages("%d\n", i);
 
       //
       // Fill the action buffer but as we're in user-mode here
@@ -76,7 +76,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
     }
     RemoveSymbolBuffer(CodeBuffer);
   } else {
-    printf("%s\n", CodeBuffer->Message);
+    ShowMessages("%s\n", CodeBuffer->Message);
   }
   return;
 }
@@ -132,4 +132,8 @@ UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer) {
 UINT32 ScriptEngineWrapperGetPointer(PVOID SymbolBuffer) {
 
   return (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Pointer;
+}
+
+VOID ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer) {
+  RemoveSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
 }

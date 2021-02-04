@@ -68,6 +68,12 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   Trim(Expr);
 
   //
+  // Prepend and append 'print(' and ')'
+  //
+  Expr.insert(0, "print(");
+  Expr.append(");");
+
+  //
   // TODO: end of string must have a whitspace. fix it.
   //
   Expr.append(" ");
@@ -109,6 +115,11 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
     // Send it to the remote debuggee
     //
     KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer);
+
+    //
+    // Remove the buffer of script engine interpreted code
+    //
+    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
 
   } else {
 

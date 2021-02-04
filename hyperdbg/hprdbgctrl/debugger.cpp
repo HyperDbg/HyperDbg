@@ -278,7 +278,8 @@ BOOLEAN IsTagExist(UINT64 Tag) {
  */
 BOOLEAN
 InterpretScript(vector<string> *SplittedCommand, PBOOLEAN ScriptSyntaxErrors,
-                PUINT64 BufferAddress, PUINT32 BufferLength, PUINT32 Pointer) {
+                PUINT64 BufferAddress, PUINT32 BufferLength, PUINT32 Pointer,
+                PUINT64 ScriptCodeBuffer) {
 
   BOOLEAN IsTextVisited = FALSE;
   BOOLEAN IsInState = FALSE;
@@ -698,6 +699,7 @@ InterpretScript(vector<string> *SplittedCommand, PBOOLEAN ScriptSyntaxErrors,
   *BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
   *BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
   *Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
+  *ScriptCodeBuffer = (UINT64)CodeBuffer;
 
   //
   // Removing the script indexes from the command
@@ -1602,6 +1604,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   UINT64 CodeBufferAddress;
   UINT32 CodeBufferLength = 0;
   UINT64 ScriptBufferAddress;
+  UINT64 ScriptCodeBuffer = 0;
   BOOLEAN HasScriptSyntaxError = 0;
   UINT32 ScriptBufferLength = 0;
   UINT32 ScriptBufferPointer = 0;
@@ -1741,7 +1744,7 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   //
   if (!InterpretScript(SplittedCommand, &HasScriptSyntaxError,
                        &ScriptBufferAddress, &ScriptBufferLength,
-                       &ScriptBufferPointer)) {
+                       &ScriptBufferPointer, &ScriptCodeBuffer)) {
 
     //
     // Indicate code is not available
@@ -2075,6 +2078,11 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
     // Increase the count of actions
     //
     TempEvent->CountOfActions = TempEvent->CountOfActions + 1;
+
+    //
+    // Free the buffer of script related functions
+    //
+    ScriptEngineWrapperRemoveSymbolBuffer((PVOID)ScriptCodeBuffer);
   }
 
   //

@@ -250,7 +250,7 @@ VOID CommandHide(vector<string> SplittedCommand, string Command) {
 
     RealTime = TransparentModeRdtscDiffVmexit();
 
-    printf("Time of VM-exit : %d\n", RealTime);
+    ShowMessages("Time of VM-exit : %d\n", RealTime);
     _getch();
   }
   */
