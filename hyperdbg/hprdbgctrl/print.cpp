@@ -79,7 +79,7 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   Expr.append(" ");
   // Expr = " x = 4 >> 1; ";
 
-  if (g_IsSerialConnectedToRemoteDebuggee) {
+  if (!g_IsSerialConnectedToRemoteDebuggee) {
 
     //
     // Send over serial
@@ -95,7 +95,6 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
       //
       // return to show that this item contains an script
       //
-      ShowMessages("err, syntax error\n");
       return;
     }
 

@@ -32,6 +32,11 @@ PVOID ScriptEngineParseWrapper(char *str) {
   if (SymbolBuffer->Message == NULL) {
     return SymbolBuffer;
   } else {
+    //
+    // Show error message and free the buffer
+    //
+    ShowMessages("syntax error:\n %s\n", SymbolBuffer->Message);
+    ScriptEngineWrapperRemoveSymbolBuffer(SymbolBuffer);
     return NULL;
   }
 }
@@ -74,10 +79,11 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
       ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList,
                           (UINT64 *)g_VariableList, CodeBuffer, &i);
     }
-    RemoveSymbolBuffer(CodeBuffer);
   } else {
     ShowMessages("%s\n", CodeBuffer->Message);
   }
+  RemoveSymbolBuffer(CodeBuffer);
+
   return;
 }
 
