@@ -90,6 +90,10 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
 BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
                                             UINT32 NewPid);
+
+BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
+                                     UINT32 Pointer);
+
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 

@@ -34,6 +34,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGER_REMOTE_PACKET TheActualPacket;
   PDEBUGGEE_PAUSED_PACKET PausePacket;
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
+  PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
 
 StartAgain:
@@ -209,6 +210,28 @@ StartAgain:
       //
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_RUNNING_SCRIPT:
+
+      ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) +
+                                                sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (ScriptPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+        //
+        // Nothing to do
+        //
+      } else {
+
+        ShowErrorMessage(ScriptPacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of running script
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]);
 
       break;
 

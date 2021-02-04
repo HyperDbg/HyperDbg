@@ -373,6 +373,21 @@ KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
 }
 
 /**
+ * @brief Run the parsed script in debuggee
+ * @param ScriptDetails
+ * 
+ * @return BOOLEAN 
+ */
+BOOL Test = FALSE;
+BOOLEAN
+KdRunScript(PDEBUGGEE_SCRIPT_PACKET ScriptDetails)
+{
+    LogInfo("running script");
+    Test = !Test;
+    return Test;
+}
+
+/**
  * @brief change the current process
  * @param PidRequest
  * 
@@ -609,6 +624,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 {
     PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_SCRIPT_PACKET         ScriptPacket;
     BOOLEAN                         UnlockTheNewCore = FALSE;
 
     while (TRUE)
@@ -782,6 +798,33 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
                                            ChangeProcessPacket,
                                            sizeof(DEBUGGEE_CHANGE_PROCESS_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_RUN_SCRIPT:
+
+                ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) +
+                                                          sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Run the script in debuggee
+                //
+                if (KdRunScript(ScriptPacket))
+                {
+                    ScriptPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    ScriptPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPTRD;
+                }
+
+                //
+                // Send the result of running script back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_RUNNING_SCRIPT,
+                                           ScriptPacket,
+                                           sizeof(DEBUGGEE_SCRIPT_PACKET));
 
                 break;
 

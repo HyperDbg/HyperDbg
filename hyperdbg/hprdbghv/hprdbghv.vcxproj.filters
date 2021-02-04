@@ -79,12 +79,6 @@
     <Filter Include="Header Files\Debugger\Transparency">
       <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Evaluation">
-      <UniqueIdentifier>{e550daf2-00ca-405f-a06d-4d9129414c0e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger\Evaluation">
-      <UniqueIdentifier>{a1b25bcb-223a-4488-b37d-08898c62869a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Debugger\ScriptEngine">
       <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
     </Filter>
@@ -212,9 +206,6 @@
     <ClCompile Include="Steppings.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Evaluation.c">
-      <Filter>Source Files\Debugger\Evaluation</Filter>
-    </ClCompile>
     <ClCompile Include="ScriptEngine.c">
       <Filter>Source Files\Debugger\ScriptEngine</Filter>
     </ClCompile>
@@ -327,9 +318,6 @@
     </ClInclude>
     <ClInclude Include="Steppings.h">
       <Filter>Header Files\Debugger\Essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="Evaluation.h">
-      <Filter>Header Files\Debugger\Evaluation</Filter>
     </ClInclude>
     <ClInclude Include="SerialConnection.h">
       <Filter>Header Files\Debugger\Communication</Filter>

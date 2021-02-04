@@ -130,6 +130,10 @@ ShowErrorMessage(UINT32 Error) {
     ShowMessages("err, unable to switch to new process (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPTRD:
+    ShowMessages("err, unable to run script on remote debuggee (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

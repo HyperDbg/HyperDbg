@@ -61,7 +61,6 @@
 #include "IoHandler.h"
 #include "Steppings.h"
 #include "Termination.h"
-#include "Evaluation.h"
 
 //
 // Global Variables should be the last header to include

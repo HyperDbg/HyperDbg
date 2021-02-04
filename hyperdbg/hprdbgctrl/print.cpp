@@ -14,6 +14,11 @@
 
 using namespace std;
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of print command
  *
@@ -36,6 +41,10 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   BOOL Status;
   ULONG ReturnedLength;
   DEBUGGER_PRINT PrintRequest = {0};
+  PVOID CodeBuffer;
+  UINT64 BufferAddress;
+  UINT32 BufferLength;
+  UINT32 Pointer;
 
   if (SplittedCommand.size() == 1) {
     ShowMessages("incorrect use of 'print'\n\n");
@@ -64,32 +73,48 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   Expr.append(" ");
   // Expr = " x = 4 >> 1; ";
 
-  printf("Expression : %s \n", Expr.c_str());
-  ScriptEngineWrapperTestParser(Expr);
-  return;
+  if (g_IsSerialConnectedToRemoteDebuggee) {
 
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
+    //
+    // Send over serial
+    //
 
-  //
-  // Send the request to the kernel
-  //
-  Status = DeviceIoControl(g_DeviceHandle,        // Handle to device
-                           IOCTL_DEBUGGER_PRINT,  // IO Control coder
-                           &PrintRequest,         // Input Buffer to driver.
-                           SIZEOF_DEBUGGER_PRINT, // Input buffer length
-                           &PrintRequest,         // Output Buffer from driver.
-                           SIZEOF_DEBUGGER_PRINT, // Length of output buffer
-                                                  // in bytes.
-                           &ReturnedLength,       // Bytes placed in buffer.
-                           NULL                   // synchronous call
-  );
+    //
+    // Run script engine handler
+    //
+    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
 
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return;
+    if (CodeBuffer == NULL) {
+
+      //
+      // return to show that this item contains an script
+      //
+      return;
+    }
+
+    //
+    // Print symbols (test)
+    //
+    // PrintSymbolBufferWrapper(CodeBuffer);
+
+    //
+    // Set the buffer and length
+    //
+    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+    BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
+    Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+    //
+    // Send it to the remote debuggee
+    //
+    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer);
+
+  } else {
+
+    //
+    // It's a test
+    //
+    ShowMessages("Expression : %s \n", Expr.c_str());
+    ScriptEngineWrapperTestParser(Expr);
   }
 }

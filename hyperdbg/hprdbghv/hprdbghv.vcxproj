@@ -110,7 +110,6 @@
     <ClCompile Include="DebuggerCommands.c" />
     <ClCompile Include="DebuggerEvents.c" />
     <ClCompile Include="DpcRoutines.c" />
-    <ClCompile Include="Evaluation.c" />
     <ClCompile Include="ExtensionCommands.c" />
     <ClCompile Include="EferHook.c" />
     <ClCompile Include="Ept.c" />
@@ -162,7 +161,6 @@
     <ClInclude Include="DebuggerEvents.h" />
     <ClInclude Include="Dpc.h" />
     <ClInclude Include="DpcRoutines.h" />
-    <ClInclude Include="Evaluation.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="ExtensionCommands.h" />
     <ClInclude Include="GdbStub.h" />

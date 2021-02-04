@@ -768,60 +768,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
-        case IOCTL_DEBUGGER_PRINT:
-
-            //
-            // First validate the parameters.
-            //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PRINT ||
-                Irp->AssociatedIrp.SystemBuffer == NULL)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
-                break;
-            }
-
-            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
-            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
-
-            if (!InBuffLength || !OutBuffLength)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            //
-            // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
-            //
-            DebuggerPrintRequest = (PDEBUGGER_PRINT)Irp->AssociatedIrp.SystemBuffer;
-
-            //
-            // Here we should validate whether the input parameter is
-            // valid or in other words whether we recieved enough space or not
-            //
-            if (DebuggerPrintRequest->SizeOfEvaluationBuffer != 0 && IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
-                                                                         SIZEOF_DEBUGGER_EDIT_MEMORY + DebuggerPrintRequest->SizeOfEvaluationBuffer)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            //
-            // Perform the steppings action
-            //
-            EvaluationInterpretPrintRequest(DebuggerPrintRequest, (PVOID)DebuggerPrintRequest, &SizeOfPrintRequestToBeDeliveredToUsermode);
-
-            Irp->IoStatus.Information = SizeOfPrintRequestToBeDeliveredToUsermode;
-            Status                    = STATUS_SUCCESS;
-
-            //
-            // Avoid zeroing it
-            //
-            DoNotChangeInformation = TRUE;
-
-            break;
-
         case IOCTL_PREPARE_DEBUGGEE:
 
             //

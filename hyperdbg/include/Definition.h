@@ -163,16 +163,14 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Maximum Number of Event Handles
- */
-#define DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS 0x40
-
-/**
  * @brief The processor is not important
  */
 #define DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT 0xffffffff
 
-///////////////////////////////////////////////////
+/**
+ * @brief Maximum Number of Event Handles
+ */
+#define DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS 0x40
 
 /**
  * @brief An event to show whether the debugger is running
@@ -184,6 +182,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS 0x2
 #define DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT 0x3
 #define DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT 0x4
+#define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT 0x5
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -976,6 +975,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_RUN_SCRIPT,
 
   //
   // Debuggee to debugger
@@ -984,6 +984,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_CORE,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_RUNNING_SCRIPT,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -1035,6 +1036,22 @@ typedef struct _DEBUGGEE_CHANGE_PROCESS_PACKET {
   UINT32 Result;
 
 } DEBUGGEE_CHANGE_PROCESS_PACKET, *PDEBUGGEE_CHANGE_PROCESS_PACKET;
+
+/**
+ * @brief The structure of script packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_SCRIPT_PACKET {
+
+  UINT32 ScriptBufferSize;
+  UINT32 ScriptBufferPointer;
+  UINT32 Result;
+
+  //
+  // The script buffer is here
+  //
+
+} DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
 
 //////////////////////////////////////////////////
 //		    	Debugger Success Codes            //
@@ -1190,6 +1207,12 @@ typedef struct _DEBUGGEE_CHANGE_PROCESS_PACKET {
 #define DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS      \
   0xc0000015
 
+/**
+ * @brief error, unable to run script in remote debuggee
+ *
+ */
+#define DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPTRD 0xc0000016
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -1313,7 +1336,8 @@ typedef struct _DEBUGGEE_CHANGE_PROCESS_PACKET {
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80f, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, print states
+ * @brief ioctl, print states (Deprecated)
+ *
  *
  */
 #define IOCTL_DEBUGGER_PRINT                                                   \

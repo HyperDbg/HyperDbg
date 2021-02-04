@@ -179,6 +179,8 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
 
 /**
  * @brief Sends a change core or '.process pid x' command packet to the debuggee
+ * @param GetRemotePid
+ * @param NewPid
  *
  * @return BOOLEAN
  */
@@ -212,6 +214,59 @@ BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
           [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT],
       INFINITE);
 
+  return TRUE;
+}
+
+/**
+ * @brief Sends a script packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
+                                     UINT32 Pointer) {
+
+  PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
+  UINT32 SizeOfStruct = 0;
+
+  SizeOfStruct = sizeof(DEBUGGEE_SCRIPT_PACKET) + BufferLength;
+
+  ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)malloc(SizeOfStruct);
+
+  RtlZeroMemory(ScriptPacket, SizeOfStruct);
+
+  //
+  // Fill the script packet buffer
+  //
+  ScriptPacket->ScriptBufferSize = BufferLength;
+  ScriptPacket->ScriptBufferPointer = Pointer;
+
+  //
+  // Move the buffer at the bottom of the script packet
+  //
+  memcpy((PVOID)((UINT64)ScriptPacket + sizeof(DEBUGGEE_SCRIPT_PACKET)),
+         (PVOID)BufferAddress, BufferLength);
+
+  //
+  // Send script packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_RUN_SCRIPT,
+          (CHAR *)ScriptPacket, SizeOfStruct)) {
+
+    free(ScriptPacket);
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of script engine received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT],
+      INFINITE);
+
+  free(ScriptPacket);
   return TRUE;
 }
 
