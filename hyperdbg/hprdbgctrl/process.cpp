@@ -23,7 +23,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  */
 VOID CommandProcessHelp() {
   ShowMessages(".process : show and change the current process.\n\n");
-  ShowMessages("syntax : \t.process pid [new process id (hex)]\n");
+  ShowMessages("syntax : \t.process [type (pid)] [new process id (hex)]\n");
   ShowMessages("\t\te.g : .process\n");
   ShowMessages("\t\te.g : .process pid 4\n");
 }
