@@ -136,6 +136,7 @@
     <ClCompile Include="dr.cpp" />
     <ClCompile Include="e.cpp" />
     <ClCompile Include="epthook.cpp" />
+    <ClCompile Include="eval.cpp" />
     <ClCompile Include="events.cpp" />
     <ClCompile Include="exception.cpp" />
     <ClCompile Include="exit.cpp" />

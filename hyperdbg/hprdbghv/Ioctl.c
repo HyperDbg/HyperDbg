@@ -37,7 +37,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS              DebuggerFlushBuffersRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS    DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_STEPPINGS                          DebuggerSteppingsRequest;
-    PDEBUGGER_PRINT                              DebuggerPrintRequest;
     PDEBUGGER_PREPARE_DEBUGGEE                   DebuggeeRequest;
     PDEBUGGER_PAUSE_PACKET_RECEIVED              DebuggerPauseKernelRequest;
     PDEBUGGER_GENERAL_ACTION                     DebuggerNewActionRequest;

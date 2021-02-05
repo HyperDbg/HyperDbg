@@ -532,25 +532,6 @@ typedef struct _DEBUGGER_STEPPINGS {
 /* ==============================================================================================
  */
 
-#define SIZEOF_DEBUGGER_PRINT sizeof(DEBUGGER_PRINT)
-
-/**
- * @brief request for print
- *
- */
-typedef struct _DEBUGGER_PRINT {
-
-  UINT32 SizeOfEvaluationBuffer;
-
-  //
-  // Here is the buffer relating to the
-  //
-
-} DEBUGGER_PRINT, *PDEBUGGER_PRINT;
-
-/* ==============================================================================================
- */
-
 #define SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS                                  \
   sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS)
 

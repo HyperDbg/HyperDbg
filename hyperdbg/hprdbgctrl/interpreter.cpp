@@ -255,6 +255,14 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandPrint(SplittedCommand, CommandString);
 
+  } else if (!FirstCommand.compare("?") || !FirstCommand.compare("eval") ||
+             !FirstCommand.compare("evaluate")) {
+
+    if (HelpCommand)
+      CommandEvalHelp();
+    else
+      CommandEval(SplittedCommand, CommandString);
+
   } else if (!FirstCommand.compare(".logopen")) {
 
     if (HelpCommand)
@@ -332,12 +340,12 @@ int HyperdbgInterpreter(const char *Command) {
     else
       CommandMonitor(SplittedCommand);
 
-  } else if (!FirstCommand.compare("~")) {
+  } else if (!FirstCommand.compare("~") || !FirstCommand.compare("core")) {
 
     if (HelpCommand)
-      CommandTildeHelp();
+      CommandCoreHelp();
     else
-      CommandTilde(SplittedCommand);
+      CommandCore(SplittedCommand);
 
   } else if (!FirstCommand.compare("!vmcall")) {
 

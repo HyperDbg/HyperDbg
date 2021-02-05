@@ -22,7 +22,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  *
  * @return VOID
  */
-VOID CommandTildeHelp() {
+VOID CommandCoreHelp() {
   ShowMessages("~ : show and change the operating processor.\n\n");
   ShowMessages("syntax : \t~ [new operating core (hex)]\n");
   ShowMessages("\t\te.g : ~ \n");
@@ -35,13 +35,13 @@ VOID CommandTildeHelp() {
  * @param SplittedCommand
  * @return VOID
  */
-VOID CommandTilde(vector<string> SplittedCommand) {
+VOID CommandCore(vector<string> SplittedCommand) {
 
   UINT32 TargetCore = 0;
 
   if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of '~'\n\n");
-    CommandTildeHelp();
+    CommandCoreHelp();
     return;
   }
 
@@ -59,7 +59,7 @@ VOID CommandTilde(vector<string> SplittedCommand) {
     if (!ConvertStringToUInt32(SplittedCommand.at(1), &TargetCore)) {
       ShowMessages("please specify a correct hex value for the core that you "
                    "want to operate on it\n\n");
-      CommandTildeHelp();
+      CommandCoreHelp();
       return;
     }
 

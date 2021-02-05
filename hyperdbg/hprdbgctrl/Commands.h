@@ -160,6 +160,8 @@ VOID CommandDebug(vector<string> SplittedCommand, string Command);
 
 VOID CommandP(vector<string> SplittedCommand);
 
-VOID CommandTilde(vector<string> SplittedCommand);
+VOID CommandCore(vector<string> SplittedCommand);
 
 VOID CommandProcess(vector<string> SplittedCommand);
+
+VOID CommandEval(vector<string> SplittedCommand, string Expr);

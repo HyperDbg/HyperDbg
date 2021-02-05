@@ -1,11 +1,10 @@
 /**
- * @file print.cpp
+ * @file eval.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
- * @brief print command
+ * @brief eval (?) command
  * @details
  * @version 0.1
- * @date 2020-10-08
+ * @date 2021-02-05
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -20,23 +19,24 @@ using namespace std;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of print command
+ * @brief help of ? command
  *
  * @return VOID
  */
-VOID CommandPrintHelp() {
-  ShowMessages("print : evaluate expressions.\n\n");
-  ShowMessages("syntax : \tprint [expression]\n");
-  ShowMessages("\t\te.g : print dq(poi(@rcx))\n");
+VOID CommandEvalHelp() {
+  ShowMessages("? : evaluate and execute expressions in debuggee.\n\n");
+  ShowMessages("syntax : \t? [expression]\n");
+  ShowMessages("\t\te.g : ? print(dq(poi(@rcx)))\n");
+  ShowMessages("\t\te.g : ? json(dq(poi(@rcx)))\n");
 }
 
 /**
- * @brief handler of print command
+ * @brief handler of ? command
  *
  * @param SplittedCommand
  * @return VOID
  */
-VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
+VOID CommandEval(vector<string> SplittedCommand, string Expr) {
 
   PVOID CodeBuffer;
   UINT64 BufferAddress;
@@ -44,8 +44,8 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   UINT32 Pointer;
 
   if (SplittedCommand.size() == 1) {
-    ShowMessages("incorrect use of 'print'\n\n");
-    CommandPrintHelp();
+    ShowMessages("incorrect use of '?'\n\n");
+    CommandEvalHelp();
     return;
   }
 
@@ -55,20 +55,14 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   Trim(Expr);
 
   //
-  // Remove print from it
+  // Remove first command from it
   //
-  Expr.erase(0, 5);
+  Expr.erase(0, SplittedCommand.at(0).size());
 
   //
   // Trim it again
   //
   Trim(Expr);
-
-  //
-  // Prepend and append 'print(' and ')'
-  //
-  Expr.insert(0, "print(");
-  Expr.append(");");
 
   //
   // TODO: end of string must have a whitspace. fix it.
@@ -118,9 +112,11 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
     ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
 
   } else {
+
     //
-    // error
+    // It's a test
     //
-    ShowMessages("err, you're not connected to any debuggee\n");
+    ShowMessages("Test Expression : %s \n", Expr.c_str());
+    ScriptEngineWrapperTestParser(Expr);
   }
 }

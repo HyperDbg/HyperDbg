@@ -341,6 +341,9 @@
     <ClCompile Include="process.cpp">
       <Filter>Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
+    <ClCompile Include="eval.cpp">
+      <Filter>Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

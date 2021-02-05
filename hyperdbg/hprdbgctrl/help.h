@@ -129,6 +129,8 @@ VOID CommandDebugHelp();
 
 VOID CommandPHelp();
 
-VOID CommandTildeHelp();
+VOID CommandCoreHelp();
 
 VOID CommandProcessHelp();
+
+VOID CommandEvalHelp();
