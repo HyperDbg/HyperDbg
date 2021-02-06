@@ -76,6 +76,13 @@ VOID CommandP(vector<string> SplittedCommand) {
   if (g_IsSerialConnectedToRemoteDebuggee) {
 
     for (size_t i = 0; i < StepCount; i++) {
+
+      //
+      // For logging purpose
+      //
+      /* ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
+         (float)StepCount), i); */
+
       KdSendStepPacketToDebuggee(RequestFormat);
     }
 

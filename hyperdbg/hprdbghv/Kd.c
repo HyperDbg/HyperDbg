@@ -278,6 +278,71 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
 }
 
 /**
+ * @brief Check the safety to access the memory
+ * @param CurrentCore
+ * @param TargetAddress
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdCheckMemoryAccessSafety(UINT32 CurrentCore, UINT64 TargetAddress)
+{
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    BOOLEAN  Result;
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+    {
+        OriginalCr3 = __readcr3();
+        __writecr3(GuestCr3.Flags);
+    }
+
+    //
+    // Check if memory is safe and present
+    //
+    if (MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+    {
+        Result = TRUE;
+    }
+    else
+    {
+        //
+        // The page is not present, we have to inject a #PF
+        //
+        // g_GuestState[CurrentCore].IncrementRip = FALSE;
+
+        //
+        // For testing purpose
+        //
+        // LogInfo("#PF Injected.");
+
+        //
+        // Inject #PF
+        //
+        // EventInjectPageFault(TargetAddress);
+
+        //
+        // We should not inject #UD
+        //
+        Result = FALSE;
+    }
+
+    if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+    {
+        __writecr3(OriginalCr3);
+    }
+
+    return Result;
+}
+
+/**
  * @brief A test function for DPC
  * @param Dpc
  * @param DeferredContext
@@ -873,6 +938,7 @@ VOID
 KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
+    ULONG                  ExitInstructionLength = 0;
 
 StartAgain:
 
@@ -908,11 +974,16 @@ StartAgain:
         PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
 
         //
+        // Read the instruction len
+        //
+        __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+
+        //
         // Find the current instruction
         //
         MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
                                    &PausePacket.InstructionBytesOnRip,
-                                   MAXIMUM_INSTR_SIZE);
+                                   ExitInstructionLength);
 
         //
         // Send the pause packet, along with RIP and an
