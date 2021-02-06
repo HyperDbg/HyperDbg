@@ -643,7 +643,7 @@ BOOLEAN
 IsProcessExist(UINT32 ProcId);
 
 BOOLEAN
-CheckIfAddressIsValidUsingTsx(UINT64 Address);
+CheckIfAddressIsValidUsingTsx(CHAR * Address);
 
 VOID
 GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
@@ -652,7 +652,7 @@ BOOLEAN
 CheckCpuSupportRtm();
 
 BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress);
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
 //////////////////////////////////////////////////
 //			 WDK Major Functions				//

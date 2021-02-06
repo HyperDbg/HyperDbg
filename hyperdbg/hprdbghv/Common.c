@@ -574,18 +574,18 @@ IsProcessExist(UINT32 ProcId)
  * @return BOOLEAN Returns true if the address is valid; otherwise, false
  */
 BOOLEAN
-CheckIfAddressIsValidUsingTsx(UINT64 Address)
+CheckIfAddressIsValidUsingTsx(CHAR * Address)
 {
     UINT32  Status = 0;
     BOOLEAN Result = FALSE;
-    UINT64  TempContent;
+    CHAR    TempContent;
 
     if ((Status = _xbegin()) == _XBEGIN_STARTED)
     {
         //
         // Try to read the memory
         //
-        TempContent = *(UINT64 *)Address;
+        TempContent = *(CHAR *)Address;
         _xend();
 
         //
@@ -660,18 +660,30 @@ CheckCpuSupportRtm()
  * @return BOOLEAN
  */
 BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress)
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 {
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
-    BOOLEAN  Result;
 
     if (g_RtmSupport)
     {
         //
         // The guest supports Intel TSX
         //
-        Result = CheckIfAddressIsValidUsingTsx(TargetAddress);
+        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+
+        for (size_t i = 0; i <= PageCount; i++)
+        {
+            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+            if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+            {
+                //
+                // Access failed and Result = FALSE
+                //
+                return FALSE;
+            }
+        }
     }
     else
     {
@@ -695,13 +707,21 @@ CheckMemoryAccessSafety(UINT64 TargetAddress)
         //
         // Check if memory is safe and present
         //
-        if (MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+
+        for (size_t i = 0; i <= PageCount; i++)
         {
-            Result = TRUE;
-        }
-        else
-        {
-            Result = FALSE;
+            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+            if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
+            {
+                if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+                {
+                    __writecr3(OriginalCr3);
+                }
+
+                return FALSE;
+            }
         }
 
         if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
@@ -710,16 +730,5 @@ CheckMemoryAccessSafety(UINT64 TargetAddress)
         }
     }
 
-    //
-    // if (g_RtmSupport)
-    // {
-    //     LogInfo("Check address with TSX : %s", Result ? "valid" : "invalid");
-    // }
-    // else
-    // {
-    //     LogInfo("Check address without TSX : %s", Result ? "valid" : "invalid");
-    // }
-    //
-
-    return Result;
+    return TRUE;
 }
