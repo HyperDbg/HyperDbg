@@ -563,3 +563,163 @@ IsProcessExist(UINT32 ProcId)
         return TRUE;
     }
 }
+
+/**
+ * @brief This function checks whether the address is valid or not using 
+ * Intel TSX
+ * 
+ * @param Address Address to check
+ *
+ * @param UINT32 ProcId
+ * @return BOOLEAN Returns true if the address is valid; otherwise, false
+ */
+BOOLEAN
+CheckIfAddressIsValidUsingTsx(UINT64 Address)
+{
+    UINT32  Status = 0;
+    BOOLEAN Result = FALSE;
+    UINT64  TempContent;
+
+    if ((Status = _xbegin()) == _XBEGIN_STARTED)
+    {
+        //
+        // Try to read the memory
+        //
+        TempContent = *(UINT64 *)Address;
+        _xend();
+
+        //
+        // No error, address is valid
+        //
+        Result = TRUE;
+    }
+    else
+    {
+        //
+        // Address is not valid, it aborts the tsx rtm
+        //
+        Result = FALSE;
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Get cpuid results
+ * 
+ * @param UINT32 Func
+ * @param UINT32 SubFunc
+ * @param int * CpuInfo
+ * @return VOID
+ */
+VOID
+GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
+{
+    __cpuidex(CpuInfo, Func, SubFunc);
+}
+
+/**
+ * @brief Check whether the processor supports RTM or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckCpuSupportRtm()
+{
+    int     Regs1[4];
+    int     Regs2[4];
+    BOOLEAN Result;
+
+    //
+    // TSX is controlled via MSR_IA32_TSX_CTRL.  However, support for this
+    // MSR is enumerated by ARCH_CAP_TSX_MSR bit in MSR_IA32_ARCH_CAPABILITIES.
+    //
+    // TSX control (aka MSR_IA32_TSX_CTRL) is only available after a
+    // microcode update on CPUs that have their MSR_IA32_ARCH_CAPABILITIES
+    // bit MDS_NO=1. CPUs with MDS_NO=0 are not planned to get
+    // MSR_IA32_TSX_CTRL support even after a microcode update. Thus,
+    // tsx= cmdline requests will do nothing on CPUs without
+    // MSR_IA32_TSX_CTRL support.
+    //
+
+    GetCpuid(0, 0, Regs1);
+    GetCpuid(7, 0, Regs2);
+
+    //
+    // Check RTM and MPX extensions in order to filter out TSX on Haswell CPUs
+    //
+    Result = Regs1[0] >= 0x7 && (Regs2[1] & 0x4800) == 0x4800;
+
+    return Result;
+}
+
+/**
+ * @brief Check the safety to access the memory
+ * @param TargetAddress
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress)
+{
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    BOOLEAN  Result;
+
+    if (g_RtmSupport)
+    {
+        //
+        // The guest supports Intel TSX
+        //
+        Result = CheckIfAddressIsValidUsingTsx(TargetAddress);
+    }
+    else
+    {
+        //
+        // The guest not supports Intel TSX
+        //
+
+        //
+        // Due to KVA Shadowing, we need to switch to a different directory table base
+        // if the PCID indicates this is a user mode directory table base.
+        //
+        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+        GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+        {
+            OriginalCr3 = __readcr3();
+            __writecr3(GuestCr3.Flags);
+        }
+
+        //
+        // Check if memory is safe and present
+        //
+        if (MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
+        {
+            Result = TRUE;
+        }
+        else
+        {
+            Result = FALSE;
+        }
+
+        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+        {
+            __writecr3(OriginalCr3);
+        }
+    }
+
+    //
+    // if (g_RtmSupport)
+    // {
+    //     LogInfo("Check address with TSX : %s", Result ? "valid" : "invalid");
+    // }
+    // else
+    // {
+    //     LogInfo("Check address without TSX : %s", Result ? "valid" : "invalid");
+    // }
+    //
+
+    return Result;
+}

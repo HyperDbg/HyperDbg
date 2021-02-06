@@ -232,6 +232,11 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     MemoryMapperInitialize();
 
     //
+    // Check if processor supports TSX (RTM)
+    //
+    g_RtmSupport = CheckCpuSupportRtm();
+
+    //
     // Initialize Vmx
     //
     if (HvVmxInitialize())

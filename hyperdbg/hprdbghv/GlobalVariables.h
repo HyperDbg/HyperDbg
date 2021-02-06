@@ -140,3 +140,9 @@ PVOID g_DebuggeeHaltContext;
  * 
  */
 PKDPC g_DebuggeeDpc;
+
+/**
+ * @brief check for RTM support
+ * 
+ */
+BOOLEAN g_RtmSupport;

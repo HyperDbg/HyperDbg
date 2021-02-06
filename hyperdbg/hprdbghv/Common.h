@@ -188,6 +188,19 @@ SpinlockUnlock(volatile LONG * Lock);
  */
 #define PAGE_OFFSET(Va) ((PVOID)((ULONG_PTR)(Va) & (PAGE_SIZE - 1)))
 
+/**
+ * @brief Intel TSX Constants
+ * 
+ */
+#define _XBEGIN_STARTED  (~0u)
+#define _XABORT_EXPLICIT (1 << 0)
+#define _XABORT_RETRY    (1 << 1)
+#define _XABORT_CONFLICT (1 << 2)
+#define _XABORT_CAPACITY (1 << 3)
+#define _XABORT_DEBUG    (1 << 4)
+#define _XABORT_NESTED   (1 << 5)
+#define _XABORT_CODE(x)  (((x) >> 24) & 0xFF)
+
 //////////////////////////////////////////////////
 //					 Structures					//
 //////////////////////////////////////////////////
@@ -628,6 +641,18 @@ StartsWith(const char * pre, const char * str);
 
 BOOLEAN
 IsProcessExist(UINT32 ProcId);
+
+BOOLEAN
+CheckIfAddressIsValidUsingTsx(UINT64 Address);
+
+VOID
+GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+
+BOOLEAN
+CheckCpuSupportRtm();
+
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress);
 
 //////////////////////////////////////////////////
 //			 WDK Major Functions				//
