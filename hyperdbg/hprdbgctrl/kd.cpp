@@ -257,6 +257,7 @@ BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
     free(ScriptPacket);
     return FALSE;
   }
+
   if (IsFormat) {
 
     //

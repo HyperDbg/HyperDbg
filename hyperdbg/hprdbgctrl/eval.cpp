@@ -105,7 +105,7 @@ VOID CommandEval(vector<string> SplittedCommand, string Expr) {
     //
     // Send it to the remote debuggee
     //
-    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer);
+    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
 
     //
     // Remove the buffer of script engine interpreted code

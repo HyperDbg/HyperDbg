@@ -35,6 +35,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_PAUSED_PACKET PausePacket;
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
+  PDEBUGGEE_FORMATS_PACKET FormatsPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
 
 StartAgain:
@@ -232,6 +233,32 @@ StartAgain:
       //
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS:
+
+      FormatsPacket =
+          (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) +
+                                      sizeof(DEBUGGEE_FORMATS_PACKET));
+
+      if (FormatsPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // Show .formats
+        //
+        CommandFormatsShowResults(FormatsPacket->Value);
+
+      } else {
+
+        ShowErrorMessage(FormatsPacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of .formats command
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]);
 
       break;
 

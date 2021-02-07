@@ -108,3 +108,5 @@ VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid);
 VOID DetachFromProcess();
 
 BOOLEAN CommandLoadVmmModule();
+
+VOID CommandFormatsShowResults(UINT64 U64Value);
