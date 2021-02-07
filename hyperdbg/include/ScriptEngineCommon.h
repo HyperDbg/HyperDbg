@@ -548,7 +548,11 @@ VOID ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+  if (g_KernelDebuggerState) {
+    KdSendFormatsFunctionResult(Value);
+  } else {
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+  }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

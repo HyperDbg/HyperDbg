@@ -471,6 +471,30 @@ KdCloseConnectionAndUnloadDebuggee()
 }
 
 /**
+ * @brief Notify user-mode to unload the debuggee and close the connections
+ * @param Value
+ * 
+ * @return VOID
+ */
+VOID
+KdSendFormatsFunctionResult(UINT64 Value)
+{
+    DEBUGGEE_FORMATS_PACKET FormatsPacket = {0};
+
+    FormatsPacket.Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    FormatsPacket.Value  = Value;
+
+    //
+    // Kernel debugger is active, we should send the bytes over serial
+    //
+    KdResponsePacketToDebugger(
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS,
+        &FormatsPacket,
+        sizeof(DEBUGGEE_FORMATS_PACKET));
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -831,7 +855,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // Send the result of running script back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_RUNNING_SCRIPT,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT,
                                            ScriptPacket,
                                            sizeof(DEBUGGEE_SCRIPT_PACKET));
 

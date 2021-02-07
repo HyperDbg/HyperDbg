@@ -324,7 +324,7 @@ int HyperdbgInterpreter(const char *Command) {
     if (HelpCommand)
       CommandFormatsHelp();
     else
-      CommandFormats(SplittedCommand);
+      CommandFormats(SplittedCommand, CommandString);
 
   } else if (!FirstCommand.compare("!pte")) {
 

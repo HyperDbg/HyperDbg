@@ -74,7 +74,7 @@ VOID CommandExit(vector<string> SplittedCommand);
 
 VOID CommandDisconnect(vector<string> SplittedCommand);
 
-VOID CommandFormats(vector<string> SplittedCommand);
+VOID CommandFormats(vector<string> SplittedCommand, string Expr);
 
 VOID CommandRdmsr(vector<string> SplittedCommand);
 

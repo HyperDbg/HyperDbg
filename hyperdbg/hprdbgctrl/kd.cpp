@@ -223,7 +223,7 @@ BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
  * @return BOOLEAN
  */
 BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
-                                     UINT32 Pointer) {
+                                     UINT32 Pointer, BOOLEAN IsFormat) {
 
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   UINT32 SizeOfStruct = 0;
@@ -256,6 +256,16 @@ BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
 
     free(ScriptPacket);
     return FALSE;
+  }
+  if (IsFormat) {
+
+    //
+    // Wait for formats results too
+    //
+    WaitForSingleObject(
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT],
+        INFINITE);
   }
 
   //
