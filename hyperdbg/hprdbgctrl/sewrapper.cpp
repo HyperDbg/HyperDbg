@@ -60,6 +60,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
   UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
   ACTION_BUFFER ActionBuffer = {0};
+  PSYMBOL ErrorSymbol = NULL;
 
   if (CodeBuffer->Message == NULL) {
     PrintSymbolBuffer(CodeBuffer);
@@ -76,8 +77,16 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
       ActionBuffer.ImmediatelySendTheResults = FALSE;
       ActionBuffer.Tag = NULL;
 
-      ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList,
-                          (UINT64 *)g_VariableList, CodeBuffer, &i);
+      //
+      // If has error, show error message and abort.
+      //
+      if (ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList,
+                              (UINT64 *)g_VariableList, CodeBuffer,
+                              &i, ErrorSymbol) == TRUE) {
+          ShowMessages("Invalid returning address for operator: ");
+          PrintSymbol(ErrorSymbol);
+          break;
+      }
     }
   } else {
     ShowMessages("%s\n", CodeBuffer->Message);

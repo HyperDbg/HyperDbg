@@ -356,21 +356,14 @@ BOOLEAN ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length) {
 //
 
 // poi
-UINT64 ScriptEngineKeywordPoi(PUINT64 Address) {
-
-  //
-  // Validate the address
-  //
-#ifdef SCRIPT_ENGINE_USER_MODE
-
-#endif // SCRIPT_ENGINE_USER_MODE
+UINT64 ScriptEngineKeywordPoi(PUINT64 Address, BOOL* HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
   if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
                                                         sizeof(UINT64))) {
-    LogInfo("The provided address is either not valid or not present in the "
-            "current context or its not safe to access.");
+    *HasError = TRUE;
+
     return NULL;
   }
 
@@ -380,43 +373,126 @@ UINT64 ScriptEngineKeywordPoi(PUINT64 Address) {
 }
 
 // hi
-WORD ScriptEngineKeywordHi(PUINT64 Address) {
+WORD ScriptEngineKeywordHi(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+  if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+                                                        sizeof(UINT64))) {
+    *HasError = TRUE;
+
+    return NULL;
+  }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   QWORD Result = *Address;
   return HIWORD(Result);
 }
 
 // low
-WORD ScriptEngineKeywordLow(PUINT64 Address) {
+WORD ScriptEngineKeywordLow(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   QWORD Result = *Address;
   return LOWORD(Result);
 }
 
 // db
-BYTE ScriptEngineKeywordDb(PUINT64 Address) {
+BYTE ScriptEngineKeywordDb(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   BYTE Result = *Address;
   return Result;
 }
 
 // dd
-WORD ScriptEngineKeywordDd(PUINT64 Address) {
+WORD ScriptEngineKeywordDd(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   WORD Result = *Address;
   return Result;
 }
 
 // dw
-DWORD ScriptEngineKeywordDw(PUINT64 Address) {
+DWORD ScriptEngineKeywordDw(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   DWORD Result = *Address;
   return Result;
 }
 
 // dq
-QWORD ScriptEngineKeywordDq(PUINT64 Address) {
+QWORD ScriptEngineKeywordDq(PUINT64 Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
   QWORD Result = *Address;
   return Result;
 }
 
 // str
-CHAR *ScriptEngineKeywordStr(CHAR *Address) {
+CHAR *ScriptEngineKeywordStr(CHAR *Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
   UINT64 Len = 0;
 
@@ -430,7 +506,18 @@ CHAR *ScriptEngineKeywordStr(CHAR *Address) {
 }
 
 // wstr
-WCHAR *ScriptEngineKeywordWstr(WCHAR *Address) {
+WCHAR *ScriptEngineKeywordWstr(WCHAR *Address, BOOL* HasError) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
+        sizeof(UINT64))) {
+        *HasError = TRUE;
+
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
   UINT64 Len = 0;
 
@@ -460,15 +547,15 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 }
 
 VOID ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
-    UINT64 Value) {
+                                 UINT64 Value) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("%llx\n", Value);
+  ShowMessages("%llx\n", Value);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -591,10 +678,10 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
 }
 
 //
-VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
+BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                          ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
                          UINT64 *g_VariableList, PSYMBOL_BUFFER CodeBuffer,
-                         int *Indx) {
+                         int *Indx, PSYMBOL ErrorOperator) {
 
   PSYMBOL Operator;
   PSYMBOL Src0;
@@ -603,6 +690,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
   UINT64 SrcVal0;
   UINT64 SrcVal1;
   UINT64 DesVal;
+  BOOL HasError = 0;
 
   Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -639,7 +727,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError; 
 
   case FUNC_XOR:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -660,7 +748,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_AND:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -681,7 +769,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_ASR:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -702,7 +790,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_ASL:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -723,7 +811,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_ADD:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -743,7 +831,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_SUB:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -763,7 +851,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
   case FUNC_MUL:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -782,7 +870,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_DIV:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -802,7 +890,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
   case FUNC_MOD:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -821,22 +909,24 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_POI:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+    DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                      g_TempList,
+                                                      g_VariableList, Src0),
+                                    &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_DB:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -844,42 +934,45 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
+                                    &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
   case FUNC_DW:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
+                                    &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
   case FUNC_DQ:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
     DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
+                                    &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_STR:
     // TODO: Hanlde str function
@@ -888,7 +981,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("Error: STR functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_WSTR:
     // TODO: Hanlde wstr function
@@ -897,7 +990,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("Error: WSTR functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_SIZEOF:
     // TODO: Hanlde sizeof function because we do not support pdb so
@@ -906,7 +999,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("Error: DB functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_NOT:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -920,7 +1013,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return;
+    return HasError;
 
   case FUNC_NEG:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -933,7 +1026,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-    return;
+    return HasError;
 
   case FUNC_HI:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -941,13 +1034,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
+                                        &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-    return;
+    return HasError;
 
   case FUNC_LOW:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -955,13 +1049,14 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     *Indx = *Indx + 1;
 
     DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0));
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
+                                        &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-    return;
+    return HasError;
   case FUNC_MOV:
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -983,7 +1078,7 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-    return;
+    return HasError;
 
   case FUNC_PRINT:
 
@@ -992,16 +1087,16 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     //
     ScriptEngineFunctionPrint(ActionDetail.Tag,
                               ActionDetail.ImmediatelySendTheResults, SrcVal0);
-    return;
+    return HasError;
 
   case FUNC_FORMATS:
 
-      //
-      // Call the target function
-      //
-      ScriptEngineFunctionFormats(ActionDetail.Tag,
-          ActionDetail.ImmediatelySendTheResults, SrcVal0);
-      return;
+    //
+    // Call the target function
+    //
+    ScriptEngineFunctionFormats(
+        ActionDetail.Tag, ActionDetail.ImmediatelySendTheResults, SrcVal0);
+    return HasError;
 
   case FUNC_JSON:
 
@@ -1016,6 +1111,6 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                              ActionDetail.ImmediatelySendTheResults,
                              (char *)&Src1->Value, SrcVal0);
 
-    return;
+    return HasError;
   }
 }
