@@ -388,7 +388,7 @@ TOKEN GetToken(char* c, char* str)
 				if (*c != '`')
 					Append(Token, *c);
 				*c = sgetc(str);
-			} while (IsHex(*c) || *c == '`');
+			} while (IsLetter(*c) || *c == '`');
 			if (IsKeyword(Token->Value))
 			{
 				Token->Type = KEYWORD;

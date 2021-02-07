@@ -459,6 +459,19 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+VOID ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+    UINT64 Value) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("%llx\n", Value);
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
                               char *Name, UINT64 Value) {
 
@@ -980,6 +993,15 @@ VOID ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ScriptEngineFunctionPrint(ActionDetail.Tag,
                               ActionDetail.ImmediatelySendTheResults, SrcVal0);
     return;
+
+  case FUNC_FORMATS:
+
+      //
+      // Call the target function
+      //
+      ScriptEngineFunctionFormats(ActionDetail.Tag,
+          ActionDetail.ImmediatelySendTheResults, SrcVal0);
+      return;
 
   case FUNC_JSON:
 

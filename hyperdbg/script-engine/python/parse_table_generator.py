@@ -96,9 +96,9 @@ class Parser:
 
         # Fills "Parse Table" according to calculted "Predicted Set" and print "Parse Table"
         self.FillParseTable()
-        # print("Parse Table:")
-        # self.PrintParseTable()
-        # print()
+        print("Parse Table:")
+        self.PrintParseTable()
+        print()
         
         # Prints variables that is needed for parser for parsing into the output file 
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
@@ -680,15 +680,15 @@ typedef struct ACTION_BUFFER {
     def PrintParseTable(self):
         print("\t", end = "")
         for j in range(len(self.TerminalList)):
-            print(self.TerminalList[j], end= "\t ")
+            print(self.TerminalList[j], end= "\t")
         print()
         for i in range(len(self.NonTerminalList)):
             print(self.NonTerminalList[i], end= "\t")
             for j in range(len(self.TerminalList)):
                 if self.ParseTable[i][j] == self.INVALID:
-                    print(".", end= "\t ")
+                    print(".", end= "\t")
                 else:
-                    print(self.ParseTable[i][j], end= "\t ")
+                    print(self.ParseTable[i][j], end= "\t")
             print()
                 
 
