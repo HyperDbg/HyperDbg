@@ -52,17 +52,3 @@ ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action)
 {
     return Action->RequestedBuffer.RequstBufferAddress;
 }
-
-/**
- * @brief Check whether the address is valid and present so its 
- * @details safe to access or not, the buffer should be contiguous
- * 
- * @param Address Corresponding Address
- * @param Length Size
- * @return BOOLEAN returns TRUE if the address is valid and present
- */
-BOOLEAN
-ScriptEngineCheckIfAddressIsValidAndSafeToAccess(UINT64 Address, UINT32 Length)
-{
-    return TRUE;
-}

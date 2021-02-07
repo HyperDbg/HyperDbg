@@ -980,6 +980,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
 {
     SYMBOL_BUFFER CodeBuffer   = {0};
     ACTION_BUFFER ActionBuffer = {0};
+    SYMBOL        ErrorSymbol  = {0};
 
     if (Action != NULL)
     {
@@ -1028,7 +1029,22 @@ DebuggerPerformRunScript(UINT64                  Tag,
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
-        ScriptEngineExecute(Regs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, &CodeBuffer, &i);
+        //
+        // If has error, show error message and abort.
+        //
+        if (ScriptEngineExecute(Regs,
+                                ActionBuffer,
+                                (UINT64 *)g_TempList,
+                                (UINT64 *)g_VariableList,
+                                &CodeBuffer,
+                                &i,
+                                &ErrorSymbol) == TRUE)
+        {
+            CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
+            ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
+            LogInfo("Invalid returning address for operator: %s", NameOfOperator);
+            break;
+        }
     }
 
     return TRUE;

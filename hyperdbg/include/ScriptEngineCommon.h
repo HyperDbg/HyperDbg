@@ -24,7 +24,7 @@ UINT64
 ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
 
 BOOLEAN
-ScriptEngineCheckIfAddressIsValidAndSafeToAccess(UINT64 Address, UINT32 Length);
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -88,6 +88,8 @@ typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.
 #define MAX_VAR_COUNT 32
+
+#define MAX_FUNCTION_NAME_LENGTH 32
 
 //////////////////////////////////////////////////
 //            	     Imports                    //
@@ -356,12 +358,11 @@ BOOLEAN ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length) {
 //
 
 // poi
-UINT64 ScriptEngineKeywordPoi(PUINT64 Address, BOOL* HasError) {
+UINT64 ScriptEngineKeywordPoi(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-  if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-                                                        sizeof(UINT64))) {
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
     *HasError = TRUE;
 
     return NULL;
@@ -373,12 +374,11 @@ UINT64 ScriptEngineKeywordPoi(PUINT64 Address, BOOL* HasError) {
 }
 
 // hi
-WORD ScriptEngineKeywordHi(PUINT64 Address, BOOL* HasError) {
+WORD ScriptEngineKeywordHi(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-  if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-                                                        sizeof(UINT64))) {
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
     *HasError = TRUE;
 
     return NULL;
@@ -391,16 +391,15 @@ WORD ScriptEngineKeywordHi(PUINT64 Address, BOOL* HasError) {
 }
 
 // low
-WORD ScriptEngineKeywordLow(PUINT64 Address, BOOL* HasError) {
+WORD ScriptEngineKeywordLow(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -409,16 +408,15 @@ WORD ScriptEngineKeywordLow(PUINT64 Address, BOOL* HasError) {
 }
 
 // db
-BYTE ScriptEngineKeywordDb(PUINT64 Address, BOOL* HasError) {
+BYTE ScriptEngineKeywordDb(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -427,16 +425,15 @@ BYTE ScriptEngineKeywordDb(PUINT64 Address, BOOL* HasError) {
 }
 
 // dd
-WORD ScriptEngineKeywordDd(PUINT64 Address, BOOL* HasError) {
+WORD ScriptEngineKeywordDd(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -445,16 +442,15 @@ WORD ScriptEngineKeywordDd(PUINT64 Address, BOOL* HasError) {
 }
 
 // dw
-DWORD ScriptEngineKeywordDw(PUINT64 Address, BOOL* HasError) {
+DWORD ScriptEngineKeywordDw(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -463,16 +459,15 @@ DWORD ScriptEngineKeywordDw(PUINT64 Address, BOOL* HasError) {
 }
 
 // dq
-QWORD ScriptEngineKeywordDq(PUINT64 Address, BOOL* HasError) {
+QWORD ScriptEngineKeywordDq(PUINT64 Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -481,16 +476,15 @@ QWORD ScriptEngineKeywordDq(PUINT64 Address, BOOL* HasError) {
 }
 
 // str
-CHAR *ScriptEngineKeywordStr(CHAR *Address, BOOL* HasError) {
+CHAR *ScriptEngineKeywordStr(CHAR *Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -506,16 +500,15 @@ CHAR *ScriptEngineKeywordStr(CHAR *Address, BOOL* HasError) {
 }
 
 // wstr
-WCHAR *ScriptEngineKeywordWstr(WCHAR *Address, BOOL* HasError) {
+WCHAR *ScriptEngineKeywordWstr(WCHAR *Address, BOOL *HasError) {
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (!ScriptEngineCheckIfAddressIsValidAndSafeToAccess(Address,
-        sizeof(UINT64))) {
-        *HasError = TRUE;
+  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
+    *HasError = TRUE;
 
-        return NULL;
-    }
+    return NULL;
+  }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -677,7 +670,42 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
   }
 }
 
-//
+VOID ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR *BufferForName) {
+
+  switch (OperatorSymbol->Value) {
+  case FUNC_POI:
+    memcpy(BufferForName, "poi", 3);
+    break;
+  case FUNC_DB:
+    memcpy(BufferForName, "db", 2);
+    break;
+  case FUNC_DD:
+    memcpy(BufferForName, "dd", 2);
+    break;
+  case FUNC_DW:
+    memcpy(BufferForName, "dw", 2);
+    break;
+  case FUNC_DQ:
+    memcpy(BufferForName, "dq", 2);
+    break;
+  case FUNC_STR:
+    memcpy(BufferForName, "str", 3);
+    break;
+  case FUNC_WSTR:
+    memcpy(BufferForName, "wstr", 4);
+    break;
+  case FUNC_HI:
+    memcpy(BufferForName, "hi", 2);
+    break;
+  case FUNC_LOW:
+    memcpy(BufferForName, "low", 3);
+    break;
+  default:
+    memcpy(BufferForName, "error", 5);
+    break;
+  }
+}
+
 BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                          ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
                          UINT64 *g_VariableList, PSYMBOL_BUFFER CodeBuffer,
@@ -694,6 +722,9 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
   Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+  *ErrorOperator = *Operator;
+
   *Indx = *Indx + 1;
   if (Operator->Type != SYMBOL_SEMANTIC_RULE_TYPE) {
 
@@ -727,7 +758,7 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     ShowMessages("DesVal = %d\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-    return HasError; 
+    return HasError;
 
   case FUNC_XOR:
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -933,9 +964,10 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
-                                    &HasError);
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                     g_TempList, g_VariableList,
+                                                     Src0),
+                                   &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -948,9 +980,10 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
-                                    &HasError);
+    DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                     g_TempList, g_VariableList,
+                                                     Src0),
+                                   &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -963,9 +996,10 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
-                                    &HasError);
+    DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                     g_TempList, g_VariableList,
+                                                     Src0),
+                                   &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1033,9 +1067,10 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
-                                        &HasError);
+    DesVal = ScriptEngineKeywordHi((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                     g_TempList, g_VariableList,
+                                                     Src0),
+                                   &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1048,9 +1083,10 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
 
-    DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
-                                        &HasError);
+    DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(GuestRegs, ActionDetail,
+                                                      g_TempList,
+                                                      g_VariableList, Src0),
+                                    &HasError);
     SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
