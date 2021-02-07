@@ -656,6 +656,7 @@ CheckCpuSupportRtm()
 /**
  * @brief Check the safety to access the memory
  * @param TargetAddress
+ * @param Size
  * 
  * @return BOOLEAN
  */
