@@ -49,6 +49,14 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length);
 VOID
 SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, UINT32 Length2);
 
+BOOLEAN
+SerialConnectionSendThreeBuffers(CHAR * Buffer1,
+                                    UINT32 Length1,
+                                    CHAR * Buffer2,
+                                    UINT32 Length2,
+                                    CHAR * Buffer3,
+                                    UINT32 Length3);
+
 //////////////////////////////////////////////////
 //					 Constants					//
 //////////////////////////////////////////////////

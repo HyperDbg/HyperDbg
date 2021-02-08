@@ -33,6 +33,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
 
   PDEBUGGER_REMOTE_PACKET TheActualPacket;
   PDEBUGGEE_PAUSED_PACKET PausePacket;
+  PDEBUGGEE_MESSAGE_PACKET MessagePacket;
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
@@ -98,6 +99,7 @@ StartAgain:
     // It's a HyperDbg packet
     //
     switch (TheActualPacket->RequestedActionOfThePacket) {
+
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
       ShowMessages("Connected to debuggee %s !\n",
@@ -111,6 +113,16 @@ StartAgain:
                    [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
 
       break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM:
+
+      MessagePacket =
+          (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) +
+                                      sizeof(DEBUGGER_REMOTE_PACKET));
+      ShowMessages("%s", MessagePacket->Message);
+
+      break;
+
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
 
       PausePacket = (DEBUGGEE_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +

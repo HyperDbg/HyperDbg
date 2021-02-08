@@ -12,6 +12,16 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				      Locks 	    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Vmx-root lock for sending response of debugger
+ * 
+ */
+volatile LONG DebuggerResponseLock;
+
+//////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////
 
@@ -51,3 +61,6 @@ KdResponsePacketToDebugger(
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,
     CHAR *                                  OptionalBuffer,
     UINT32                                  OptionalBufferLength);
+
+BOOLEAN
+KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLength, UINT32 OperationCode);

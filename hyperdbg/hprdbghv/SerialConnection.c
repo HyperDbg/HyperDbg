@@ -107,6 +107,68 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
 }
 
 /**
+ * @brief Perform sending 3 not appended buffers over serial
+ * 
+ * @param Buffer1 buffer to send
+ * @param Length1 length of buffer to send
+ * @param Buffer2 buffer to send
+ * @param Length2 length of buffer to send
+ * @param Buffer3 buffer to send
+ * @param Length3 length of buffer to send
+ * @return BOOLEAN 
+ */
+BOOLEAN
+SerialConnectionSendThreeBuffers(CHAR * Buffer1,
+                                 UINT32 Length1,
+                                 CHAR * Buffer2,
+                                 UINT32 Length2,
+                                 CHAR * Buffer3,
+                                 UINT32 Length3)
+{
+    //
+    // Check if buffer not pass the boundary
+    //
+    if ((Length1 + Length2 + Length3 + SERIAL_END_OF_BUFFER_CHARS_COUNT) > MaxSerialPacketSize)
+    {
+        return FALSE;
+    }
+
+    //
+    // Send first buffer
+    //
+    for (size_t i = 0; i < Length1; i++)
+    {
+        KdHyperDbgSendByte(Buffer1[i], TRUE);
+    }
+
+    //
+    // Send second buffer
+    //
+    for (size_t i = 0; i < Length2; i++)
+    {
+        KdHyperDbgSendByte(Buffer2[i], TRUE);
+    }
+
+    //
+    // Send third buffer
+    //
+    for (size_t i = 0; i < Length3; i++)
+    {
+        KdHyperDbgSendByte(Buffer3[i], TRUE);
+    }
+
+    //
+    // Send the end buffer
+    //
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_1, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+
+    return TRUE;
+}
+
+/**
  * @brief Check if baud rate is valid or not
  *
  * @param Baudrate

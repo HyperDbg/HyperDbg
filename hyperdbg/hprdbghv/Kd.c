@@ -143,6 +143,8 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
  *
  * @param PacketType
  * @param Response
+ * @param OptionalBuffer
+ * @param OptionalBufferLength
  * @return BOOLEAN
  */
 BOOLEAN
@@ -166,6 +168,12 @@ KdResponsePacketToDebugger(
     Packet.RequestedActionOfThePacket = Response;
 
     //
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+    // if not we use the windows spinlock
+    //
+    SpinlockLock(&DebuggerResponseLock);
+
+    //
     // Send the serial packets to the debugger
     //
     if (OptionalBuffer == NULL || OptionalBufferLength == 0)
@@ -176,6 +184,53 @@ KdResponsePacketToDebugger(
     {
         SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
     }
+
+    SpinlockUnlock(&DebuggerResponseLock);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends a HyperDbg logging response packet to the debugger
+ *
+ * @param OptionalBuffer
+ * @param OptionalBufferLength
+ * @param OperationCode
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdLoggingResponsePacketToDebugger(
+    CHAR * OptionalBuffer,
+    UINT32 OptionalBufferLength,
+    UINT32 OperationCode)
+{
+    DEBUGGER_REMOTE_PACKET Packet = {0};
+
+    //
+    // Make the packet's structure
+    //
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.TypeOfThePacket = DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER;
+
+    //
+    // Set the requested action
+    //
+    Packet.RequestedActionOfThePacket = DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM;
+
+    //
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+    // if not we use the windows spinlock
+    //
+    SpinlockLock(&DebuggerResponseLock);
+
+    SerialConnectionSendThreeBuffers((CHAR *)&Packet,
+                                     sizeof(DEBUGGER_REMOTE_PACKET),
+                                     &OperationCode,
+                                     sizeof(UINT32),
+                                     OptionalBuffer,
+                                     OptionalBufferLength);
+
+    SpinlockUnlock(&DebuggerResponseLock);
 
     return TRUE;
 }

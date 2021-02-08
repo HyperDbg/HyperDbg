@@ -120,6 +120,22 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     UINT32  Index;
     BOOLEAN IsVmxRoot;
 
+    //
+    // Check if we're connected to remote debugger, send it directly to the debugger
+    //
+    if (g_KernelDebuggerState)
+    {
+        //
+        // Kernel debugger is active, we should send the bytes over serial
+        //
+        KdLoggingResponsePacketToDebugger(
+            Buffer,
+            BufferLength,
+            OperationCode);
+
+        return TRUE;
+    }
+
     if (BufferLength > PacketChunkSize - 1 || BufferLength == 0)
     {
         //
