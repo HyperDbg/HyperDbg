@@ -239,6 +239,7 @@ BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
   //
   ScriptPacket->ScriptBufferSize = BufferLength;
   ScriptPacket->ScriptBufferPointer = Pointer;
+  ScriptPacket->IsFormat = IsFormat;
 
   //
   // Move the buffer at the bottom of the script packet

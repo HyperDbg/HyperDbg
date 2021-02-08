@@ -228,6 +228,15 @@ StartAgain:
         ShowErrorMessage(ScriptPacket->Result);
       }
 
+      if (ScriptPacket->IsFormat) {
+
+        //
+        // Signal the event relating to receiving result of .formats command
+        //
+        SetEvent(g_SyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]);
+      }
+
       //
       // Signal the event relating to receiving result of running script
       //
@@ -253,12 +262,6 @@ StartAgain:
 
         ShowErrorMessage(FormatsPacket->Result);
       }
-
-      //
-      // Signal the event relating to receiving result of .formats command
-      //
-      SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]);
 
       break;
 

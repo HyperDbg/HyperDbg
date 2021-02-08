@@ -1039,6 +1039,7 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET {
 
   UINT32 ScriptBufferSize;
   UINT32 ScriptBufferPointer;
+  BOOLEAN IsFormat;
   UINT32 Result;
 
   //
