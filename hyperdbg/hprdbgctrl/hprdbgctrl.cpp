@@ -235,6 +235,10 @@ void ReadIrpBasedBuffer() {
           KdCloseConnection();
           break;
 
+        case OPERATION_DEBUGGEE_USER_INPUT:
+          KdHandleUserInputInDebuggee(OutputBuffer + sizeof(UINT32));
+          break;
+
         default:
           /*
         ShowMessages("Message From Debugger :\n");

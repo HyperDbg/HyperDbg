@@ -71,8 +71,23 @@ int HyperdbgInterpreter(const char *Command) {
   // send it to the remote computer, it is because in a remote connection
   // still some of the commands should be handled in the local HyperDbg
   //
-  if (g_IsConnectedToRemoteDebuggee && !IsItALocalCommand(FirstCommand)) {
-    RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+  if ((g_IsConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebuggee) &&
+      !IsItALocalCommand(FirstCommand)) {
+
+    if (g_IsConnectedToRemoteDebuggee) {
+
+      //
+      // It's a connection over network (VMI-Mode)
+      //
+      RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+
+    } else if (g_IsSerialConnectedToRemoteDebuggee) {
+
+      //
+      // It's a connection over serial (Debugger-Mode)
+      //
+      KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
+    }
 
     //
     // Indicate that we sent the command to the target system

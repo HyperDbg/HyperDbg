@@ -151,6 +151,7 @@
 
 #define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM                   \
   0x6 | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_USER_INPUT 0x7 | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -192,6 +193,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT 0x4
 #define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT 0x5
 #define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT 0x6
+#define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_USER_INPUT_EXECUTION_RESULT 0x7
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -966,6 +968,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_RUN_SCRIPT,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_USER_INPUT_BUFFER,
 
   //
   // Debuggee to debugger
@@ -1068,8 +1071,23 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET {
 
 } DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
 
+/**
+ * @brief The structure of user-input packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_USER_INPUT_PACKET {
+
+  UINT32 CommandLen;
+  UINT32 Result;
+
+  //
+  // The user's input is here
+  //
+
+} DEBUGGEE_USER_INPUT_PACKET, *PDEBUGGEE_USER_INPUT_PACKET;
+
 //////////////////////////////////////////////////
-//		    	Debugger Success Codes            //
+//		    	Debugger Success Codes          //
 //////////////////////////////////////////////////
 
 /**

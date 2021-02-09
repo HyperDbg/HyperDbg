@@ -526,6 +526,26 @@ KdCloseConnectionAndUnloadDebuggee()
 }
 
 /**
+ * @brief Notify user-mode to about new user-input buffer
+ * @details  
+ * @param Buffer
+ * @param Len
+ * 
+ * @return VOID
+ */
+VOID
+KdNotifyDebuggeeForUserInput(CHAR * Buffer, UINT32 Len)
+{
+    //
+    // Send user-input buffer along with operation code to
+    // the user-mode
+    //
+    LogSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
+                  Buffer,
+                  Len);
+}
+
+/**
  * @brief Notify user-mode to unload the debuggee and close the connections
  * @param Value
  * 
@@ -710,6 +730,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET         ScriptPacket;
+    PDEBUGGEE_USER_INPUT_PACKET     UserInputPacket;
     BOOLEAN                         UnlockTheNewCore = FALSE;
 
     while (TRUE)
@@ -921,6 +942,25 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT,
                                            ScriptPacket,
                                            sizeof(DEBUGGEE_SCRIPT_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_USER_INPUT_BUFFER:
+
+                UserInputPacket = (DEBUGGEE_USER_INPUT_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                 sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Send the user-input to user-mode debuggee
+                //
+                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket + sizeof(DEBUGGEE_USER_INPUT_PACKET)),
+                                             UserInputPacket->CommandLen);
+
+                //
+                // Continue Debuggee
+                //
+                KdContinueDebuggee();
+                EscapeFromTheLoop = TRUE;
 
                 break;
 

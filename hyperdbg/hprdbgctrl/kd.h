@@ -94,8 +94,12 @@ BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
 BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
                                      UINT32 Pointer, BOOLEAN IsFormat);
 
+BOOLEAN KdSendUserInputPacketToDebuggee(const char *Sendbuf, int Len);
+
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
+
+VOID KdHandleUserInputInDebuggee(CHAR *Input);
 
 BOOLEAN KdCloseConnection();
 
