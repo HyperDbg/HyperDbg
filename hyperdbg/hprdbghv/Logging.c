@@ -120,22 +120,6 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     UINT32  Index;
     BOOLEAN IsVmxRoot;
 
-    //
-    // Check if we're connected to remote debugger, send it directly to the debugger
-    //
-    if (g_KernelDebuggerState)
-    {
-        //
-        // Kernel debugger is active, we should send the bytes over serial
-        //
-        KdLoggingResponsePacketToDebugger(
-            Buffer,
-            BufferLength,
-            OperationCode);
-
-        return TRUE;
-    }
-
     if (BufferLength > PacketChunkSize - 1 || BufferLength == 0)
     {
         //
@@ -148,6 +132,49 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     // Check that if we're in vmx root-mode
     //
     IsVmxRoot = g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode;
+
+    //
+    // Check if we're connected to remote debugger, send it directly to the debugger
+    //
+    if (g_KernelDebuggerState)
+    {
+        //
+        // if we're in vmx non-root then in order to avoid scheduling we raise the IRQL
+        // to DISPATCH_LEVEL because we will get the lock of sending over serial in the
+        // next function. In vmx-root RFLAGS.IF is cleared so no interrupt happens and
+        // we're safe to get the lock, the same approach is for KeAcquireSpinLock
+        //
+        if (!IsVmxRoot)
+        {
+            //
+            // vmx non-root
+            //
+            OldIRQL = KeRaiseIrqlToDpcLevel();
+
+            KeLowerIrql(OldIRQL);
+        }
+
+        //
+        // Kernel debugger is active, we should send the bytes over serial
+        //
+        KdLoggingResponsePacketToDebugger(
+            Buffer,
+            BufferLength,
+            OperationCode);
+
+        //
+        // Release the vmx non-root lock
+        //
+        if (!IsVmxRoot)
+        {
+            //
+            // vmx non-root
+            //
+            KeLowerIrql(OldIRQL);
+        }
+
+        return TRUE;
+    }
 
     //
     // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,

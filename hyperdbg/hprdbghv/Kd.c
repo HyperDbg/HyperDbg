@@ -581,7 +581,15 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
         //
         // Halt all other Core by interrupting them to nmi
         //
+
+        //
+        // make sure, nobody is in the middle of sending anything
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
         ApicTriggerGenericNmi(CurrentProcessorIndex);
+
+        SpinlockUnlock(&DebuggerResponseLock);
     }
     else
     {
