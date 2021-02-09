@@ -135,8 +135,10 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
 
     //
     // Check if we're connected to remote debugger, send it directly to the debugger
+    // and the OPERATION_MANDATORY_DEBUGGEE_BIT should not be set because those operation
+    // codes that their MSB are set should be handled locally
     //
-    if (g_KernelDebuggerState)
+    if (g_KernelDebuggerState && !(OperationCode & OPERATION_MANDATORY_DEBUGGEE_BIT))
     {
         //
         // if we're in vmx non-root then in order to avoid scheduling we raise the IRQL

@@ -132,6 +132,13 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief If a operation use this bit in its Operation code,
+ * then it means that the operation should be performed
+ * mandatorily in debuggee and should not be sent to the debugger
+ */
+#define OPERATION_MANDATORY_DEBUGGEE_BIT (1 << 31)
+
+/**
  * @brief Message logs id that comes from kernel-mode to
  * user-mode
  * @details Message area >= 0x5
@@ -142,7 +149,8 @@
 #define OPERATION_LOG_NON_IMMEDIATE_MESSAGE 0x4
 #define OPERATION_LOG_WITH_TAG 0x5
 
-#define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM 0x6
+#define OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM                   \
+  0x6 | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
