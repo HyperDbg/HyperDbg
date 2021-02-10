@@ -6,6 +6,7 @@
 
 .TwoOpFunc1->json
 
+.VarArgFunc1->printf 
 
 .Operators->or xor and asr asl add sub mul div mod 
 
@@ -18,8 +19,15 @@ S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
 C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
-C->.TwoOpFunc1 ( @PUSH E11 , E0 @.OneOpFunc1 )
+C->.TwoOpFunc1 ( E11 , E0 @.OneOpFunc1 )
+C->.VarArgFunc1 ( E11 @VARGSTART VA @VarArgFunc1 )
+VA->, E0 VA
+VA->eps
+
+
 C'->eps
+
+
 
 
 E0->E1 E0'
@@ -83,5 +91,5 @@ E10->@PUSH _binary
 E10->@PUSH func
 E10->@PUSH _pseudo_register
 
-E11->_string
+E11->@PUSH _string
 

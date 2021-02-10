@@ -96,9 +96,9 @@ class Parser:
 
         # Fills "Parse Table" according to calculted "Predicted Set" and print "Parse Table"
         self.FillParseTable()
-        print("Parse Table:")
-        self.PrintParseTable()
-        print()
+        # print("Parse Table:")
+        # self.PrintParseTable()
+        # print()
         
         # Prints variables that is needed for parser for parsing into the output file 
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
@@ -237,7 +237,9 @@ typedef struct ACTION_BUFFER {
             # Read top of stack 
             Top = GetTop(Stack)
 
-            
+            print(CurrentIn)
+            print(Stack)
+
             if self.IsNoneTerminal(Top):
                 Id = self.ParseTable[self.GetNoneTerminalId(Top)][self.GetTerminalId(CurrentIn)]
 
@@ -841,6 +843,6 @@ typedef struct ACTION_BUFFER {
 
 parser = Parser()
 parser.Run()
-Tokens = ['print', '(', '_hex',  ')', ';', '$']
+Tokens = ['_id', '=', '(', '_hex', ')', ';', '$']
 Stack = parser.Parse(Tokens)
 print(Stack)
