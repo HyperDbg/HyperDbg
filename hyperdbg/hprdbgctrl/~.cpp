@@ -33,9 +33,10 @@ VOID CommandCoreHelp() {
  * @brief ~ command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandCore(vector<string> SplittedCommand) {
+VOID CommandCore(vector<string> SplittedCommand, string Command) {
 
   UINT32 TargetCore = 0;
 

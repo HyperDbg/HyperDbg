@@ -32,9 +32,10 @@ VOID CommandDrHelp() {
  * @brief !dr command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandDr(vector<string> SplittedCommand) {
+VOID CommandDr(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

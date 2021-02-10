@@ -20,8 +20,8 @@ extern BOOLEAN g_IsConnectedToRemoteDebugger;
 
 /**
  * @brief help of listen command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandListenHelp() {
   ShowMessages(".listen : listen for a client to connect to HyperDbg (works as "
@@ -38,11 +38,12 @@ VOID CommandListenHelp() {
 
 /**
  * @brief listen command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandListen(vector<string> SplittedCommand) {
+VOID CommandListen(vector<string> SplittedCommand, string Command) {
 
   string port;
 

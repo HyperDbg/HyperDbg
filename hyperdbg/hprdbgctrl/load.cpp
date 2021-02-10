@@ -74,9 +74,10 @@ BOOLEAN CommandLoadVmmModule() {
  * @brief load command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandLoad(vector<string> SplittedCommand) {
+VOID CommandLoad(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of 'load'\n\n");

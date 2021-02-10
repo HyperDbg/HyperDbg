@@ -13,8 +13,8 @@
 
 /**
  * @brief help of rdmsr command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandRdmsrHelp() {
   ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
@@ -26,11 +26,12 @@ VOID CommandRdmsrHelp() {
 
 /**
  * @brief rdmsr command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandRdmsr(vector<string> SplittedCommand) {
+VOID CommandRdmsr(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   BOOL IsNextCoreId = FALSE;
@@ -145,7 +146,7 @@ VOID CommandRdmsr(vector<string> SplittedCommand) {
                    SeparateTo64BitValue((OutputBuffer[i])).c_str());
     }
   } else {
-    
+
     //
     // Show for a single-core
     //

@@ -40,9 +40,10 @@ VOID CommandStatusHelp() {
  * @brief .status command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandStatus(vector<string> SplittedCommand) {
+VOID CommandStatus(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of '.status'\n\n");

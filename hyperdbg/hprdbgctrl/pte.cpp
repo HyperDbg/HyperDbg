@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !pte command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandPteHelp() {
   ShowMessages("!pte : Find virtual address of different paging-levels.\n\n");
@@ -24,11 +24,12 @@ VOID CommandPteHelp() {
 
 /**
  * @brief !pte command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandPte(vector<string> SplittedCommand) {
+VOID CommandPte(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   ULONG ReturnedLength;
@@ -51,7 +52,7 @@ VOID CommandPte(vector<string> SplittedCommand) {
                  "use 'load' command?\n");
     return;
   }
-  
+
   //
   // Prepare the buffer
   // We use same buffer for input and output

@@ -34,10 +34,10 @@ VOID CommandEvalHelp() {
  * @brief handler of ? command
  *
  * @param SplittedCommand
- * @param Expr
+ * @param Command
  * @return VOID
  */
-VOID CommandEval(vector<string> SplittedCommand, string Expr) {
+VOID CommandEval(vector<string> SplittedCommand, string Command) {
 
   PVOID CodeBuffer;
   UINT64 BufferAddress;
@@ -53,22 +53,22 @@ VOID CommandEval(vector<string> SplittedCommand, string Expr) {
   //
   // Trim the command
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // Remove first command from it
   //
-  Expr.erase(0, SplittedCommand.at(0).size());
+  Command.erase(0, SplittedCommand.at(0).size());
 
   //
   // Trim it again
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // TODO: end of string must have a whitspace. fix it.
   //
-  Expr.append(" ");
+  Command.append(" ");
   // Expr = " x = 4 >> 1; ";
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
@@ -80,7 +80,7 @@ VOID CommandEval(vector<string> SplittedCommand, string Expr) {
     //
     // Run script engine handler
     //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
+    CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
 
     if (CodeBuffer == NULL) {
 
@@ -117,7 +117,7 @@ VOID CommandEval(vector<string> SplittedCommand, string Expr) {
     //
     // It's a test
     //
-    ShowMessages("Test Expression : %s \n", Expr.c_str());
-    ScriptEngineWrapperTestParser(Expr);
+    ShowMessages("Test Expression : %s \n", Command.c_str());
+    ScriptEngineWrapperTestParser(Command);
   }
 }

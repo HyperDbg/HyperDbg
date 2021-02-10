@@ -254,7 +254,7 @@ VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid) {
  * @param Command
  * @return VOID
  */
-VOID CommandAttach(vector<string> SplittedCommand) {
+VOID CommandAttach(vector<string> SplittedCommand, string Command) {
 
   UINT64 TargetPid = 0;
   UINT64 TargetTid = 0;

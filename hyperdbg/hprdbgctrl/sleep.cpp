@@ -13,8 +13,8 @@
 
 /**
  * @brief help of sleep command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandSleepHelp() {
   ShowMessages("sleep : sleep command is used in scripts, it doesn't breaks "
@@ -25,11 +25,12 @@ VOID CommandSleepHelp() {
 
 /**
  * @brief sleep command help
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandSleep(vector<string> SplittedCommand) {
+VOID CommandSleep(vector<string> SplittedCommand, string Command) {
   UINT32 MillisecondsTime = 0;
 
   if (SplittedCommand.size() != 2) {

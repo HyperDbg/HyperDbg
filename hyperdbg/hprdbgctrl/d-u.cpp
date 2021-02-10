@@ -13,8 +13,8 @@
 
 /**
  * @brief help of u* d* !u* !d* commands
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandReadMemoryAndDisassemblerHelp() {
   ShowMessages("u !u u2 !u2 & db dc dd dq !db !dc !dd !dq : read the  "
@@ -38,11 +38,13 @@ VOID CommandReadMemoryAndDisassemblerHelp() {
 
 /**
  * @brief u* d* !u* !d* commands handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
+VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
+                                      string Command) {
 
   UINT32 Pid = 0;
   UINT32 Length = 0;
@@ -54,7 +56,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand) {
   string FirstCommand = SplittedCommand.front();
 
   if (SplittedCommand.size() == 1) {
-    
+
     //
     // Means that user entered just a connect so we have to
     // ask to connect to what ?

@@ -13,8 +13,8 @@
 
 /**
  * @brief help of cpu command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandCpuHelp() {
   ShowMessages("cpu : collects a report from cpu features.\n\n");
@@ -23,11 +23,12 @@ VOID CommandCpuHelp() {
 
 /**
  * @brief cpu command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandCpu(vector<string> SplittedCommand) {
+VOID CommandCpu(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'cpu'\n\n");
@@ -45,7 +46,6 @@ class InstructionSet {
   class InstructionSet_Internal;
 
 public:
-
   //
   // getters
   //

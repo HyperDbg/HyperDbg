@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !e* and e* commands
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandEditMemoryHelp() {
   ShowMessages("eb !eb ed !ed eq !eq : edit the memory at specific address \n");
@@ -35,11 +35,12 @@ VOID CommandEditMemoryHelp() {
 
 /**
  * @brief !e* and e* commands handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandEditMemory(vector<string> SplittedCommand) {
+VOID CommandEditMemory(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   BOOL SetAddress = FALSE;
@@ -290,7 +291,7 @@ VOID CommandEditMemory(vector<string> SplittedCommand) {
     //
     // Was successful, nothing to do
     //
-    
+
   } else if (
       EditMemoryRequest.Result ==
       DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS) {

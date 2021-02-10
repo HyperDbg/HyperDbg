@@ -33,9 +33,10 @@ VOID CommandUnloadHelp() {
  * @brief unload command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandUnload(vector<string> SplittedCommand) {
+VOID CommandUnload(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 2) {
     ShowMessages("incorrect use of 'unload'\n\n");

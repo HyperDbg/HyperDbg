@@ -32,9 +32,10 @@ VOID CommandTscHelp() {
  * @brief handler of !tsc command
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandTsc(vector<string> SplittedCommand) {
+VOID CommandTsc(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

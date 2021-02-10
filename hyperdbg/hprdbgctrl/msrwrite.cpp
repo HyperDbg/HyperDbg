@@ -34,9 +34,10 @@ VOID CommandMsrwriteHelp() {
  * @brief !msrwrite command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandMsrwrite(vector<string> SplittedCommand) {
+VOID CommandMsrwrite(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

@@ -21,8 +21,8 @@ extern ofstream g_LogOpenFile;
 
 /**
  * @brief help of .logopen command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandLogopenHelp() {
   ShowMessages(".logopen : save commands and results in a file.\n\n");
@@ -31,10 +31,10 @@ VOID CommandLogopenHelp() {
 
 /**
  * @brief .logopen command handler
- * 
- * @param SplittedCommand 
- * @param Command 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
 VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
 
@@ -99,8 +99,8 @@ VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
 
 /**
  * @brief Append text to the file object
- * 
- * @param Text 
- * @return VOID 
+ *
+ * @param Text
+ * @return VOID
  */
 VOID LogopenSaveToFile(const char *Text) { g_LogOpenFile << Text; }

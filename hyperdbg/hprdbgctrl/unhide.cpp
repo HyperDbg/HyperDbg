@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !unhide command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandUnhideHelp() {
   ShowMessages("!unhide : Reveals the debugger to the applications.\n\n");
@@ -24,11 +24,12 @@ VOID CommandUnhideHelp() {
 
 /**
  * @brief !unhide command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandUnhide(vector<string> SplittedCommand) {
+VOID CommandUnhide(vector<string> SplittedCommand, string Command) {
 
   BOOLEAN Status;
   ULONG ReturnedLength;

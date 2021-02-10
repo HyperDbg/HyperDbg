@@ -86,10 +86,10 @@ VOID CommandFormatsShowResults(UINT64 U64Value) {
  * @brief handler of .formats command
  *
  * @param SplittedCommand
- * @param Expr
+ * @param Command
  * @return VOID
  */
-VOID CommandFormats(vector<string> SplittedCommand, string Expr) {
+VOID CommandFormats(vector<string> SplittedCommand, string Command) {
 
   PVOID CodeBuffer;
   UINT64 BufferAddress;
@@ -105,28 +105,28 @@ VOID CommandFormats(vector<string> SplittedCommand, string Expr) {
   //
   // Trim the command
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // Remove print.formats from it
   //
-  Expr.erase(0, 8);
+  Command.erase(0, 8);
 
   //
   // Trim it again
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // Prepend and append 'print(' and ')'
   //
-  Expr.insert(0, "formats(");
-  Expr.append(");");
+  Command.insert(0, "formats(");
+  Command.append(");");
 
   //
   // TODO: end of string must have a whitspace. fix it.
   //
-  Expr.append(" ");
+  Command.append(" ");
   // Expr = " x = 4 >> 1; ";
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
@@ -138,7 +138,7 @@ VOID CommandFormats(vector<string> SplittedCommand, string Expr) {
     //
     // Run script engine handler
     //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
+    CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
 
     if (CodeBuffer == NULL) {
 

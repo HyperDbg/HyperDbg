@@ -20,8 +20,8 @@ extern HANDLE g_RemoteDebuggeeListeningThread;
 
 /**
  * @brief help of .disconnect command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandDisconnectHelp() {
   ShowMessages(".disconnect : disconnect from a debugging session (it won't "
@@ -31,11 +31,12 @@ VOID CommandDisconnectHelp() {
 
 /**
  * @brief .disconnect command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandDisconnect(vector<string> SplittedCommand) {
+VOID CommandDisconnect(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of '.disconnect'\n\n");

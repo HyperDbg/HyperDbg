@@ -15,8 +15,8 @@ using namespace std;
 
 /**
  * @brief help of lm command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandLmHelp() {
   ShowMessages(
@@ -31,11 +31,12 @@ VOID CommandLmHelp() {
 
 /**
  * @brief handle lm command
- * 
- * @param SplittedCommand 
- * @return int 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-int CommandLm(vector<string> SplittedCommand) {
+VOID CommandLm(vector<string> SplittedCommand, string Command) {
 
   PRTL_PROCESS_MODULES ModuleInfo;
   NTSTATUS status;
@@ -45,33 +46,31 @@ int CommandLm(vector<string> SplittedCommand) {
   if (SplittedCommand.size() >= 3) {
     ShowMessages("incorrect use of 'lm'\n\n");
     CommandLmHelp();
-    return -1;
+    return;
   }
 
   //
   // Allocate memory for the module list
   //
   ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
-      NULL, 1024 * 1024, MEM_COMMIT | MEM_RESERVE,
-      PAGE_READWRITE); 
+      NULL, 1024 * 1024, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
   if (!ModuleInfo) {
     ShowMessages("\nUnable to allocate memory for module list (%d)\n",
                  GetLastError());
-    return -1;
+    return;
   }
 
   //
   // 11 = SystemModuleInformation
   //
-  if (!NT_SUCCESS(status = NtQuerySystemInformation(
-                      (SYSTEM_INFORMATION_CLASS)11, ModuleInfo, 1024 * 1024,
-                      NULL)))
-  {
+  if (!NT_SUCCESS(
+          status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11,
+                                            ModuleInfo, 1024 * 1024, NULL))) {
     ShowMessages("\nError: Unable to query module list (%#x)\n", status);
 
     VirtualFree(ModuleInfo, 0, MEM_RELEASE);
-    return -1;
+    return;
   }
 
   ShowMessages("start\t\t\tsize\tname\t\tpath\n\n");
@@ -85,7 +84,7 @@ int CommandLm(vector<string> SplittedCommand) {
       Search = strstr((char *)ModuleInfo->Modules[i].FullPathName,
                       SplittedCommand.at(1).c_str());
       if (Search == NULL) {
-        
+
         //
         // not found
         //
@@ -102,5 +101,5 @@ int CommandLm(vector<string> SplittedCommand) {
   }
 
   VirtualFree(ModuleInfo, 0, MEM_RELEASE);
-  return 0;
+  return;
 }

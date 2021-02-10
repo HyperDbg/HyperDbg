@@ -32,9 +32,10 @@ VOID CommandGHelp() {
  * @brief handler of g command
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandG(vector<string> SplittedCommand) {
+VOID CommandG(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'g'\n\n");

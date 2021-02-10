@@ -77,7 +77,14 @@ VOID CommandFlushRequestFlush() {
   }
 }
 
-VOID CommandFlush(vector<string> SplittedCommand) {
+/**
+ * @brief flush command handler
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID CommandFlush(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   ULONG ReturnedLength;

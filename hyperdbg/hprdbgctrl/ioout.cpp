@@ -35,9 +35,10 @@ VOID CommandIooutHelp() {
  * @brief !ioout command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandIoout(vector<string> SplittedCommand) {
+VOID CommandIoout(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

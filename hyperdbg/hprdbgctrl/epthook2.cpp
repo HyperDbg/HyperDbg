@@ -33,9 +33,10 @@ VOID CommandEptHook2Help() {
  * @brief !epthook2 command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandEptHook2(vector<string> SplittedCommand) {
+VOID CommandEptHook2(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

@@ -17,6 +17,8 @@ using namespace std;
 // Global Variables
 //
 extern DEBUGGING_STATE g_DebuggingState;
+extern BOOLEAN g_IsCommandListInitialized;
+extern CommandType g_CommandList;
 extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_ExecutingScript;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
@@ -26,6 +28,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern string g_ServerPort;
 extern string g_ServerIp;
+
 /**
  * @brief Interpret commands
  *
@@ -37,7 +40,21 @@ int HyperdbgInterpreter(const char *Command) {
 
   string CommandString(Command);
   BOOLEAN HelpCommand = FALSE;
+  CommandType::iterator Iterator;
 
+  //
+  // Check if it's the first command and whether the mapping of command is
+  // initialized or not
+  //
+  if (!g_IsCommandListInitialized) {
+
+    //
+    // Initialize the mapping of functions
+    //
+    InitializeCommandsDictionary();
+
+    g_IsCommandListInitialized = TRUE;
+  }
   //
   // Save the command into log open file
   //
@@ -113,442 +130,23 @@ int HyperdbgInterpreter(const char *Command) {
     }
   }
 
-  if (!FirstCommand.compare("clear") || !FirstCommand.compare("cls") ||
-      !FirstCommand.compare(".cls")) {
-
-    if (HelpCommand)
-      CommandClearScreenHelp();
-    else
-      CommandClearScreen();
-
-  } else if (!FirstCommand.compare(".connect") ||
-             !FirstCommand.compare("connect")) {
-
-    if (HelpCommand)
-      CommandConnectHelp();
-    else
-      CommandConnect(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".listen") ||
-             !FirstCommand.compare("listen")) {
-
-    if (HelpCommand)
-      CommandListenHelp();
-    else
-      CommandListen(SplittedCommand);
-
-  } else if (!FirstCommand.compare("g") || !FirstCommand.compare("go")) {
-
-    if (HelpCommand)
-      CommandGHelp();
-    else
-      CommandG(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".attach") ||
-             !FirstCommand.compare("attach")) {
-
-    if (HelpCommand)
-      CommandAttachHelp();
-    else
-      CommandAttach(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".detach") ||
-             !FirstCommand.compare("detach")) {
-
-    if (HelpCommand)
-      CommandDetachHelp();
-    else
-      CommandDetach(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".process")) {
-
-    if (HelpCommand)
-      CommandProcessHelp();
-    else
-      CommandProcess(SplittedCommand);
-
-  } else if (!FirstCommand.compare("sleep")) {
-
-    if (HelpCommand)
-      CommandSleepHelp();
-    else
-      CommandSleep(SplittedCommand);
-
-  } else if (!FirstCommand.compare("event") ||
-             !FirstCommand.compare("events")) {
-
-    if (HelpCommand)
-      CommandEventsHelp();
-    else
-      CommandEvents(SplittedCommand);
-
-  } else if (!FirstCommand.compare("setting") ||
-             !FirstCommand.compare("settings")) {
-
-    if (HelpCommand)
-      CommandSettingsHelp();
-    else
-      CommandSettings(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".disconnect") ||
-             !FirstCommand.compare("disconnect")) {
-
-    if (HelpCommand)
-      CommandDisconnectHelp();
-    else
-      CommandDisconnect(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".debug") ||
-             !FirstCommand.compare("debug")) {
-
-    if (HelpCommand)
-      CommandDebugHelp();
-    else
-      CommandDebug(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare(".status") ||
-             !FirstCommand.compare("status")) {
-
-    if (HelpCommand)
-      CommandStatusHelp();
-    else
-      CommandStatus(SplittedCommand);
-
-  } else if (!FirstCommand.compare("load")) {
-
-    if (HelpCommand)
-      CommandLoadHelp();
-    else
-      CommandLoad(SplittedCommand);
-
-  } else if (!FirstCommand.compare("exit") || !FirstCommand.compare(".exit")) {
-
-    if (HelpCommand)
-      CommandExitHelp();
-    else
-      CommandExit(SplittedCommand);
-
-  } else if (!FirstCommand.compare("flush")) {
-
-    if (HelpCommand)
-      CommandFlushHelp();
-    else
-      CommandFlush(SplittedCommand);
-
-  } else if (!FirstCommand.compare("pause")) {
-
-    if (HelpCommand)
-      CommandPauseHelp();
-    else
-      CommandPause(SplittedCommand);
-
-  } else if (!FirstCommand.compare("unload")) {
-
-    if (HelpCommand)
-      CommandUnloadHelp();
-    else
-      CommandUnload(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".script")) {
-
-    if (HelpCommand)
-      CommandScriptHelp();
-    else
-      CommandScript(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare("output")) {
-
-    if (HelpCommand)
-      CommandOutputHelp();
-    else
-      CommandOutput(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare("print")) {
-
-    if (HelpCommand)
-      CommandPrintHelp();
-    else
-      CommandPrint(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare("?") || !FirstCommand.compare("eval") ||
-             !FirstCommand.compare("evaluate")) {
-
-    if (HelpCommand)
-      CommandEvalHelp();
-    else
-      CommandEval(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare(".logopen")) {
-
-    if (HelpCommand)
-      CommandLogopenHelp();
-    else
-      CommandLogopen(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare(".logclose")) {
-
-    if (HelpCommand)
-      CommandLogcloseHelp();
-    else
-      CommandLogclose(SplittedCommand);
-
-  } else if (!FirstCommand.compare("test")) {
-
-    if (HelpCommand)
-      CommandTestHelp();
-    else
-      CommandTest(SplittedCommand);
-
-  } else if (!FirstCommand.compare("cpu")) {
-
-    if (HelpCommand)
-      CommandCpuHelp();
-    else
-      CommandCpu(SplittedCommand);
-
-  } else if (!FirstCommand.compare("wrmsr")) {
-
-    if (HelpCommand)
-      CommandWrmsrHelp();
-    else
-      CommandWrmsr(SplittedCommand);
-
-  } else if (!FirstCommand.compare("rdmsr")) {
-
-    if (HelpCommand)
-      CommandRdmsrHelp();
-    else
-      CommandRdmsr(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!va2pa")) {
-
-    if (HelpCommand)
-      CommandVa2paHelp();
-    else
-      CommandVa2pa(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!pa2va")) {
-
-    if (HelpCommand)
-      CommandPa2vaHelp();
-    else
-      CommandPa2va(SplittedCommand);
-
-  } else if (!FirstCommand.compare(".formats")) {
-
-    if (HelpCommand)
-      CommandFormatsHelp();
-    else
-      CommandFormats(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare("!pte")) {
-
-    if (HelpCommand)
-      CommandPteHelp();
-    else
-      CommandPte(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!monitor")) {
-
-    if (HelpCommand)
-      CommandMonitorHelp();
-    else
-      CommandMonitor(SplittedCommand);
-
-  } else if (!FirstCommand.compare("~") || !FirstCommand.compare("core")) {
-
-    if (HelpCommand)
-      CommandCoreHelp();
-    else
-      CommandCore(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!vmcall")) {
-
-    if (HelpCommand)
-      CommandVmcallHelp();
-    else
-      CommandVmcall(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!epthook") || !FirstCommand.compare("bh") ||
-             !FirstCommand.compare("bp")) {
-
-    if (HelpCommand)
-      CommandEptHookHelp();
-    else
-      CommandEptHook(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!epthook2")) {
-
-    if (HelpCommand)
-      CommandEptHook2Help();
-    else
-      CommandEptHook2(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!cpuid")) {
-
-    if (HelpCommand)
-      CommandCpuidHelp();
-    else
-      CommandCpuid(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!msrread")) {
-
-    if (HelpCommand)
-      CommandMsrreadHelp();
-    else
-      CommandMsrread(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!msrwrite")) {
-
-    if (HelpCommand)
-      CommandMsrwriteHelp();
-    else
-      CommandMsrwrite(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!tsc")) {
-
-    if (HelpCommand)
-      CommandTscHelp();
-    else
-      CommandTsc(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!pmc")) {
-
-    if (HelpCommand)
-      CommandPmcHelp();
-    else
-      CommandPmc(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!dr")) {
-
-    if (HelpCommand)
-      CommandDrHelp();
-    else
-      CommandDr(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!ioin")) {
-
-    if (HelpCommand)
-      CommandIoinHelp();
-    else
-      CommandIoin(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!ioout")) {
-
-    if (HelpCommand)
-      CommandIooutHelp();
-    else
-      CommandIoout(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!exception")) {
-
-    if (HelpCommand)
-      CommandExceptionHelp();
-    else
-      CommandException(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!interrupt")) {
-
-    if (HelpCommand)
-      CommandInterruptHelp();
-    else
-      CommandInterrupt(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!syscall")) {
-
-    if (HelpCommand)
-      CommandSyscallHelp();
-    else
-      CommandSyscallAndSysret(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!sysret")) {
-
-    if (HelpCommand)
-      CommandSysretHelp();
-    else
-      CommandSyscallAndSysret(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!hide")) {
-
-    if (HelpCommand)
-      CommandHideHelp();
-    else
-      CommandHide(SplittedCommand, CommandString);
-
-  } else if (!FirstCommand.compare("!unhide")) {
-
-    if (HelpCommand)
-      CommandUnhideHelp();
-    else
-      CommandUnhide(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!measure")) {
-
-    if (HelpCommand)
-      CommandMeasureHelp();
-    else
-      CommandMeasure(SplittedCommand);
-
-  } else if (!FirstCommand.compare("lm")) {
-
-    if (HelpCommand)
-      CommandLmHelp();
-    else
-      CommandLm(SplittedCommand);
-
-  } else if (!FirstCommand.compare("p") || !FirstCommand.compare("pr")) {
-
-    if (HelpCommand)
-      CommandPHelp();
-    else
-      CommandP(SplittedCommand);
-
-  } else if (!FirstCommand.compare("t") || !FirstCommand.compare("tr")) {
-
-    if (HelpCommand)
-      CommandTHelp();
-    else
-      CommandT(SplittedCommand);
-
-  } else if (!FirstCommand.compare("db") || !FirstCommand.compare("dc") ||
-             !FirstCommand.compare("dd") || !FirstCommand.compare("dq") ||
-             !FirstCommand.compare("!db") || !FirstCommand.compare("!dc") ||
-             !FirstCommand.compare("!dd") || !FirstCommand.compare("!dq") ||
-             !FirstCommand.compare("!u") || !FirstCommand.compare("u") ||
-             !FirstCommand.compare("!u2") || !FirstCommand.compare("u2")) {
-
-    if (HelpCommand)
-      CommandReadMemoryAndDisassemblerHelp();
-    else
-      CommandReadMemoryAndDisassembler(SplittedCommand);
-
-  } else if (!FirstCommand.compare("!epthook2")) {
-
-    if (HelpCommand)
-      CommandEptHook2Help();
-    else
-      CommandEptHook2(SplittedCommand);
-
-  } else if (!FirstCommand.compare("eb") || !FirstCommand.compare("ed") ||
-             !FirstCommand.compare("eq") || !FirstCommand.compare("!eb") ||
-             !FirstCommand.compare("!ed") || !FirstCommand.compare("!eq")) {
-
-    if (HelpCommand)
-      CommandEditMemoryHelp();
-    else
-      CommandEditMemory(SplittedCommand);
-
-  } else if (!FirstCommand.compare("sb") || !FirstCommand.compare("sd") ||
-             !FirstCommand.compare("sq") || !FirstCommand.compare("!sb") ||
-             !FirstCommand.compare("!sd") || !FirstCommand.compare("!sq")) {
-
-    if (HelpCommand)
-      CommandSearchMemoryHelp();
-    else
-      CommandSearchMemory(SplittedCommand);
-
-  } else {
+  //
+  // Start parsing commands
+  //
+  Iterator = g_CommandList.find(FirstCommand);
+
+  if (Iterator == g_CommandList.end()) {
+
+    //
+    //  Command doesn't exist
+    //
     ShowMessages("Couldn't resolve error at '%s'\n", FirstCommand.c_str());
+  } else {
+    if (HelpCommand) {
+      Iterator->second.CommandHelpFunction();
+    } else {
+      Iterator->second.CommandFunction(SplittedCommand, CommandString);
+    }
   }
 
   //
@@ -606,4 +204,183 @@ BOOLEAN IsItALocalCommand(string Command) {
   }
 
   return FALSE;
+}
+
+VOID InitializeCommandsDictionary() {
+
+  g_CommandList["clear"] = {&CommandClearScreen, &CommandClearScreenHelp, NULL};
+  g_CommandList[".cls"] = {&CommandClearScreen, &CommandClearScreenHelp, NULL};
+  g_CommandList["cls"] = {&CommandClearScreen, &CommandClearScreenHelp, NULL};
+
+  g_CommandList[".connect"] = {&CommandConnect, &CommandConnectHelp, NULL};
+  g_CommandList["connect"] = {&CommandConnect, &CommandConnectHelp, NULL};
+
+  g_CommandList[".listen"] = {&CommandListen, &CommandListenHelp, NULL};
+  g_CommandList["listen"] = {&CommandListen, &CommandListenHelp, NULL};
+
+  g_CommandList["g"] = {&CommandG, &CommandGHelp, NULL};
+  g_CommandList["go"] = {&CommandG, &CommandGHelp, NULL};
+
+  g_CommandList[".attach"] = {&CommandAttach, &CommandAttachHelp, NULL};
+  g_CommandList["attach"] = {&CommandAttach, &CommandAttachHelp, NULL};
+
+  g_CommandList[".detach"] = {&CommandDetach, &CommandDetachHelp, NULL};
+  g_CommandList["detach"] = {&CommandDetach, &CommandDetachHelp, NULL};
+
+  g_CommandList[".process"] = {&CommandProcess, &CommandProcessHelp, NULL};
+
+  g_CommandList["sleep"] = {&CommandSleep, &CommandSleepHelp, NULL};
+
+  g_CommandList["event"] = {&CommandEvents, &CommandEventsHelp, NULL};
+  g_CommandList["events"] = {&CommandEvents, &CommandEventsHelp, NULL};
+
+  g_CommandList["setting"] = {&CommandSettings, &CommandSettingsHelp, NULL};
+  g_CommandList["settings"] = {&CommandSettings, &CommandSettingsHelp, NULL};
+
+  g_CommandList[".disconnect"] = {&CommandDisconnect, &CommandDisconnectHelp,
+                                  NULL};
+  g_CommandList["disconnect"] = {&CommandDisconnect, &CommandDisconnectHelp,
+                                 NULL};
+
+  g_CommandList[".debug"] = {&CommandDebug, &CommandDebugHelp, NULL};
+  g_CommandList["debug"] = {&CommandDebug, &CommandDebugHelp, NULL};
+
+  g_CommandList[".status"] = {&CommandStatus, &CommandStatusHelp, NULL};
+  g_CommandList["status"] = {&CommandStatus, &CommandStatusHelp, NULL};
+
+  g_CommandList["load"] = {&CommandLoad, &CommandLoadHelp, NULL};
+
+  g_CommandList["exit"] = {&CommandExit, &CommandExitHelp, NULL};
+  g_CommandList[".exit"] = {&CommandExit, &CommandExitHelp, NULL};
+
+  g_CommandList["flush"] = {&CommandFlush, &CommandFlushHelp, NULL};
+
+  g_CommandList["pause"] = {&CommandPause, &CommandPauseHelp, NULL};
+
+  g_CommandList["unload"] = {&CommandUnload, &CommandUnloadHelp, NULL};
+
+  g_CommandList[".script"] = {&CommandScript, &CommandScriptHelp, NULL};
+
+  g_CommandList["output"] = {&CommandOutput, &CommandOutputHelp, NULL};
+
+  g_CommandList["print"] = {&CommandPrint, &CommandPrintHelp, NULL};
+
+  g_CommandList["?"] = {&CommandEval, &CommandEvalHelp, NULL};
+  g_CommandList["eval"] = {&CommandEval, &CommandEvalHelp, NULL};
+  g_CommandList["evaluate"] = {&CommandEval, &CommandEvalHelp, NULL};
+
+  g_CommandList[".logopen"] = {&CommandLogopen, &CommandLogopenHelp, NULL};
+
+  g_CommandList[".logclose"] = {&CommandLogclose, &CommandLogcloseHelp, NULL};
+
+  g_CommandList["test"] = {&CommandTest, &CommandTestHelp, NULL};
+
+  g_CommandList["cpu"] = {&CommandCpu, &CommandCpuHelp, NULL};
+
+  g_CommandList["wrmsr"] = {&CommandWrmsr, &CommandWrmsrHelp, NULL};
+
+  g_CommandList["rdmsr"] = {&CommandRdmsr, &CommandRdmsrHelp, NULL};
+
+  g_CommandList["!va2pa"] = {&CommandVa2pa, &CommandVa2paHelp, NULL};
+
+  g_CommandList["!pa2va"] = {&CommandPa2va, &CommandPa2vaHelp, NULL};
+
+  g_CommandList[".formats"] = {&CommandFormats, &CommandFormatsHelp, NULL};
+  g_CommandList[".format"] = {&CommandFormats, &CommandFormatsHelp, NULL};
+
+  g_CommandList["!pte"] = {&CommandPte, &CommandPteHelp, NULL};
+
+  g_CommandList["!monitor"] = {&CommandMonitor, &CommandMonitorHelp, NULL};
+
+  g_CommandList["~"] = {&CommandCore, &CommandCoreHelp, NULL};
+  g_CommandList["core"] = {&CommandCore, &CommandCoreHelp, NULL};
+
+  g_CommandList["!vmcall"] = {&CommandVmcall, &CommandVmcallHelp, NULL};
+
+  g_CommandList["!epthook"] = {&CommandEptHook, &CommandEptHookHelp, NULL};
+  g_CommandList["bh"] = {&CommandEptHook, &CommandEptHookHelp, NULL};
+  g_CommandList["bp"] = {&CommandEptHook, &CommandEptHookHelp, NULL};
+
+  g_CommandList["!epthook2"] = {&CommandEptHook2, &CommandEptHook2Help, NULL};
+
+  g_CommandList["!cpuid"] = {&CommandCpuid, &CommandCpuidHelp, NULL};
+
+  g_CommandList["!msrread"] = {&CommandMsrread, &CommandMsrreadHelp, NULL};
+
+  g_CommandList["!msrwrite"] = {&CommandMsrwrite, &CommandMsrwriteHelp, NULL};
+
+  g_CommandList["!tsc"] = {&CommandTsc, &CommandTscHelp, NULL};
+
+  g_CommandList["!pmc"] = {&CommandPmc, &CommandPmcHelp, NULL};
+
+  g_CommandList["!dr"] = {&CommandDr, &CommandDrHelp, NULL};
+
+  g_CommandList["!ioin"] = {&CommandIoin, &CommandIoinHelp, NULL};
+
+  g_CommandList["!ioout"] = {&CommandIoout, &CommandIooutHelp, NULL};
+
+  g_CommandList["!exception"] = {&CommandException, &CommandExceptionHelp,
+                                 NULL};
+
+  g_CommandList["!interrupt"] = {&CommandInterrupt, &CommandInterruptHelp,
+                                 NULL};
+
+  g_CommandList["!syscall"] = {&CommandSyscallAndSysret, &CommandSyscallHelp,
+                               NULL};
+
+  g_CommandList["!sysret"] = {&CommandSyscallAndSysret, &CommandSysretHelp,
+                              NULL};
+
+  g_CommandList["!hide"] = {&CommandHide, &CommandHideHelp, NULL};
+
+  g_CommandList["!unhide"] = {&CommandUnhide, &CommandUnhideHelp, NULL};
+
+  g_CommandList["!measure"] = {&CommandMeasure, &CommandMeasureHelp, NULL};
+
+  g_CommandList["lm"] = {&CommandLm, &CommandLmHelp, NULL};
+
+  g_CommandList["p"] = {&CommandP, &CommandPHelp, NULL};
+  g_CommandList["pr"] = {&CommandP, &CommandPHelp, NULL};
+
+  g_CommandList["t"] = {&CommandT, &CommandTHelp, NULL};
+  g_CommandList["tr"] = {&CommandT, &CommandTHelp, NULL};
+
+  g_CommandList["db"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["dc"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["dd"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["dq"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!db"] = {&CommandReadMemoryAndDisassembler,
+                          &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!dc"] = {&CommandReadMemoryAndDisassembler,
+                          &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!dd"] = {&CommandReadMemoryAndDisassembler,
+                          &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!dq"] = {&CommandReadMemoryAndDisassembler,
+                          &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!u"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["u"] = {&CommandReadMemoryAndDisassembler,
+                        &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["!u2"] = {&CommandReadMemoryAndDisassembler,
+                          &CommandReadMemoryAndDisassemblerHelp, NULL};
+  g_CommandList["u2"] = {&CommandReadMemoryAndDisassembler,
+                         &CommandReadMemoryAndDisassemblerHelp, NULL};
+
+  g_CommandList["eb"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+  g_CommandList["ed"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+  g_CommandList["eq"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+  g_CommandList["!eb"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+  g_CommandList["!ed"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+  g_CommandList["!eq"] = {&CommandEditMemory, &CommandEditMemoryHelp, NULL};
+
+  g_CommandList["sb"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
+  g_CommandList["sd"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
+  g_CommandList["sq"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
+  g_CommandList["!sb"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
+  g_CommandList["!sd"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
+  g_CommandList["!sq"] = {&CommandSearchMemory, &CommandSearchMemoryHelp, NULL};
 }

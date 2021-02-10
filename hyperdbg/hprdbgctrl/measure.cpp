@@ -42,9 +42,10 @@ VOID CommandMeasureHelp() {
  * @brief !measure command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandMeasure(vector<string> SplittedCommand) {
+VOID CommandMeasure(vector<string> SplittedCommand, string Command) {
 
   BOOLEAN DefaultMode = FALSE;
 

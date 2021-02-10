@@ -20,8 +20,8 @@ extern UINT32 g_DisassemblerSyntax;
 
 /**
  * @brief help of settings command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandSettingsHelp() {
   ShowMessages(
@@ -41,9 +41,9 @@ VOID CommandSettingsHelp() {
 /**
  * @brief set the auto-flush mode to enabled and disable
  * and query the status of this mode
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandSettingsAutoFlush(vector<string> SplittedCommand) {
 
@@ -71,7 +71,7 @@ VOID CommandSettingsAutoFlush(vector<string> SplittedCommand) {
       g_AutoFlush = FALSE;
       ShowMessages("set auto-flush to disabled\n");
     } else {
-      
+
       //
       // Sth is incorrect
       //
@@ -92,9 +92,9 @@ VOID CommandSettingsAutoFlush(vector<string> SplittedCommand) {
 
 /**
  * @brief set auto-unpause mode to enabled or disabled
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandSettingsAutoUpause(vector<string> SplittedCommand) {
 
@@ -143,9 +143,9 @@ VOID CommandSettingsAutoUpause(vector<string> SplittedCommand) {
 
 /**
  * @brief set the syntax of !u !u2 u u2 command
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @return VOID
  */
 VOID CommandSettingsSyntax(vector<string> SplittedCommand) {
   if (SplittedCommand.size() == 2) {
@@ -201,11 +201,12 @@ VOID CommandSettingsSyntax(vector<string> SplittedCommand) {
 
 /**
  * @brief settings command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandSettings(vector<string> SplittedCommand) {
+VOID CommandSettings(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() <= 1) {
     ShowMessages("incorrect use of 'settings'\n\n");

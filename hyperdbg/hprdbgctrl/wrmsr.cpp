@@ -12,9 +12,9 @@
 #include "pch.h"
 
 /**
- * @brief help of wrmsr command 
- * 
- * @return VOID 
+ * @brief help of wrmsr command
+ *
+ * @return VOID
  */
 VOID CommandWrmsrHelp() {
   ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
@@ -26,11 +26,12 @@ VOID CommandWrmsrHelp() {
 
 /**
  * @brief wrmsr command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandWrmsr(vector<string> SplittedCommand) {
+VOID CommandWrmsr(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   BOOL IsNextCoreId = FALSE;
@@ -96,7 +97,7 @@ VOID CommandWrmsr(vector<string> SplittedCommand) {
       }
     }
   }
-  
+
   //
   // Check if msr is set or not
   //

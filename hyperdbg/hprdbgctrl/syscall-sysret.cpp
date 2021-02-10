@@ -52,8 +52,10 @@ VOID CommandSysretHelp() {
  * @brief !syscall and !sysret commands handler
  *
  * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-void CommandSyscallAndSysret(vector<string> SplittedCommand) {
+VOID CommandSyscallAndSysret(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

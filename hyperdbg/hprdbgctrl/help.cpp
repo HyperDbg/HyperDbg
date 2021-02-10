@@ -14,6 +14,8 @@
 /**
  * @brief help of help command :)
  * 
+ * @param SplittedCommand
+ * @param Command
  * @return VOID 
  */
 VOID CommandHelpHelp() {

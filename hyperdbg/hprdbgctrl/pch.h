@@ -45,6 +45,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <map>
 #include <string>
 #include <strsafe.h>
 #include <time.h>

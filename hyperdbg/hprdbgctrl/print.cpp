@@ -34,10 +34,10 @@ VOID CommandPrintHelp() {
  * @brief handler of print command
  *
  * @param SplittedCommand
- * @param Expr
+ * @param Command
  * @return VOID
  */
-VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
+VOID CommandPrint(vector<string> SplittedCommand, string Command) {
 
   PVOID CodeBuffer;
   UINT64 BufferAddress;
@@ -53,29 +53,29 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
   //
   // Trim the command
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // Remove print from it
   //
-  Expr.erase(0, 5);
+  Command.erase(0, 5);
 
   //
   // Trim it again
   //
-  Trim(Expr);
+  Trim(Command);
 
   //
   // Prepend and append 'print(' and ')'
   //
-  Expr.insert(0, "print(");
-  Expr.append(");");
+  Command.insert(0, "print(");
+  Command.append(");");
 
   //
   // TODO: end of string must have a whitspace. fix it.
   //
-  Expr.append(" ");
-  // Expr = " x = 4 >> 1; ";
+  Command.append(" ");
+  // Command = " x = 4 >> 1; ";
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
 
@@ -86,7 +86,7 @@ VOID CommandPrint(vector<string> SplittedCommand, string Expr) {
     //
     // Run script engine handler
     //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
+    CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
 
     if (CodeBuffer == NULL) {
 

@@ -181,6 +181,18 @@ OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 //////////////////////////////////////////////////
 
 /**
+ * @brief List of command and attributes
+ *
+ */
+CommandType g_CommandList;
+
+/**
+ * @brief Is list of command initialized
+ *
+ */
+BOOLEAN g_IsCommandListInitialized = FALSE;
+
+/**
  * @brief this variable is used to indicate that modules
  * are loaded so we make sure to later use a trace of
  * loading in 'unload' command

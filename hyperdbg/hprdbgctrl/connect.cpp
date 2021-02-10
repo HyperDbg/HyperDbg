@@ -45,9 +45,10 @@ VOID CommandConnectHelp() {
  * @brief .connect command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandConnect(vector<string> SplittedCommand) {
+VOID CommandConnect(vector<string> SplittedCommand, string Command) {
 
   string ip;
   string port;

@@ -19,8 +19,8 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 
 /**
  * @brief help of exit command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandExitHelp() {
   ShowMessages(
@@ -30,11 +30,12 @@ VOID CommandExitHelp() {
 
 /**
  * @brief exit command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandExit(vector<string> SplittedCommand) {
+VOID CommandExit(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of 'exit'\n\n");

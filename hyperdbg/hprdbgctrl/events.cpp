@@ -44,9 +44,10 @@ VOID CommandEventsHelp() {
  * @brief events command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandEvents(vector<string> SplittedCommand) {
+VOID CommandEvents(vector<string> SplittedCommand, string Command) {
 
   DEBUGGER_MODIFY_EVENTS_TYPE RequestedAction;
   UINT64 RequestedTag;

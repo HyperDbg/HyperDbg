@@ -32,9 +32,10 @@ VOID CommandProcessHelp() {
  * @brief .process command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandProcess(vector<string> SplittedCommand) {
+VOID CommandProcess(vector<string> SplittedCommand, string Command) {
 
   UINT64 TargetProcess = 0;
 

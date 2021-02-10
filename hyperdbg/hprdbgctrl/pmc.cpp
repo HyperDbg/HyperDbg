@@ -32,9 +32,10 @@ VOID CommandPmcHelp() {
  * @brief !pmc command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandPmc(vector<string> SplittedCommand) {
+VOID CommandPmc(vector<string> SplittedCommand, string Command) {
 
   PDEBUGGER_GENERAL_EVENT_DETAIL Event = NULL;
   PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger = NULL;

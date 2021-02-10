@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !s* s* commands
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandSearchMemoryHelp() {
   ShowMessages("sb !sb sd !sd sq !sq : searches a contiguous memory for a "
@@ -38,11 +38,12 @@ VOID CommandSearchMemoryHelp() {
 
 /**
  * @brief !s* s* commands handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandSearchMemory(vector<string> SplittedCommand) {
+VOID CommandSearchMemory(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   BOOL SetAddress = FALSE;
@@ -230,7 +231,7 @@ VOID CommandSearchMemory(vector<string> SplittedCommand) {
         CountOfValues++;
 
         if (!SetValue) {
-          
+
           //
           // At least on walue is there
           //

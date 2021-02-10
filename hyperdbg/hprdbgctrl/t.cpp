@@ -35,9 +35,10 @@ VOID CommandTHelp() {
  * @brief handler of t command
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandT(vector<string> SplittedCommand) {
+VOID CommandT(vector<string> SplittedCommand, string Command) {
 
   UINT32 StepCount;
   DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;

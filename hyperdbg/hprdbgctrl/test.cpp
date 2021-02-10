@@ -59,9 +59,10 @@ BOOLEAN CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase) {
  * @brief test command handler
  *
  * @param SplittedCommand
+ * @param Command
  * @return VOID
  */
-VOID CommandTest(vector<string> SplittedCommand) {
+VOID CommandTest(vector<string> SplittedCommand, string Command) {
 
   BOOLEAN GetTestCase = FALSE;
   BOOLEAN TestEverything = FALSE;

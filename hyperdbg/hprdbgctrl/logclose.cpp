@@ -19,8 +19,8 @@ extern ofstream g_LogOpenFile;
 
 /**
  * @brief help .logclose command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandLogcloseHelp() {
   ShowMessages(".logclose : close the previously opened log.\n\n");
@@ -29,11 +29,12 @@ VOID CommandLogcloseHelp() {
 
 /**
  * @brief .logclose command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandLogclose(vector<string> SplittedCommand) {
+VOID CommandLogclose(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() != 1) {
     ShowMessages("incorrect use of '.logclose'\n\n");
@@ -63,5 +64,4 @@ VOID CommandLogclose(vector<string> SplittedCommand) {
   // Globally indicate that file is no longer available
   //
   g_LogOpened = FALSE;
-
 }

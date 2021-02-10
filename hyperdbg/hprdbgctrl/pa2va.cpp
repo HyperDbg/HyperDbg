@@ -13,8 +13,8 @@
 
 /**
  * @brief help of !pa2va command
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID CommandPa2vaHelp() {
   ShowMessages("!pa2va : Converts virtual address to physical address.\n\n");
@@ -26,11 +26,12 @@ VOID CommandPa2vaHelp() {
 
 /**
  * @brief !pa2va command handler
- * 
- * @param SplittedCommand 
- * @return VOID 
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
  */
-VOID CommandPa2va(vector<string> SplittedCommand) {
+VOID CommandPa2va(vector<string> SplittedCommand, string Command) {
 
   BOOL Status;
   ULONG ReturnedLength;
@@ -46,7 +47,7 @@ VOID CommandPa2va(vector<string> SplittedCommand) {
   }
 
   if (SplittedCommand.size() == 2) {
-    
+
     //
     // It's just a address for current process
     //
