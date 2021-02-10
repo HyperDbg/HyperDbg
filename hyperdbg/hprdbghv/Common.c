@@ -733,3 +733,60 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 
     return TRUE;
 }
+
+/**
+ * @brief implementation of vmx-root mode compatible strlen
+ * @param S
+ * 
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the 
+ * string
+ */
+UINT32
+VmxrootCompatibleStrlen(const CHAR * S)
+{
+    CHAR   Temp  = NULL;
+    UINT32 Count = 0;
+    UINT64 AlignedAddress;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // First check
+    //
+    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(CHAR)))
+    {
+        //
+        // Error
+        //
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(CHAR));
+
+        if (Temp != '\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(CHAR)))
+            {
+                //
+                // Error
+                //
+                return 0;
+            }
+        }
+    }
+}
