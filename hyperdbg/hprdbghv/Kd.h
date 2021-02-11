@@ -44,6 +44,9 @@ VOID
 KdSendFormatsFunctionResult(UINT64 Value);
 
 VOID
+KdSendCommandFinishedSignal();
+
+VOID
 KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
                                       PGUEST_REGS             GuestRegs,
                                       DEBUGGEE_PAUSING_REASON Reason,

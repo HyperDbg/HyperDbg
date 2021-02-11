@@ -351,9 +351,9 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
  */
 VOID
 PerformSearchAddress(UINT64 *                AddressToSaveResults,
-                  PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
-                  UINT64                  StartAddress,
-                  UINT64                  EndAddress)
+                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
+                     UINT64                  StartAddress,
+                     UINT64                  EndAddress)
 {
     UINT64   Cmp64                 = 0;
     UINT32   IndexToArrayOfResults = 0;
@@ -828,6 +828,26 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = LogMarkAllAsRead(TRUE);
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
     DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Perform the command finished signal
+ * 
+ * @param DebuggerFinishedExecutionRequest Request to 
+ * signal debuggee about execution state
+ * @return NTSTATUS 
+ */
+NTSTATUS
+DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerFinishedExecutionRequest)
+{
+    //
+    // It's better to send the signal from vmx-root mode
+    //
+    AsmVmxVmcall(VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED, 0, 0, 0);
+
+    DebuggerFinishedExecutionRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }

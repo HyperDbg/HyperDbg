@@ -570,6 +570,24 @@ KdSendFormatsFunctionResult(UINT64 Value)
 }
 
 /**
+ * @brief Notify debugger that the execution of command finished
+ * 
+ * @return VOID
+ */
+VOID
+KdSendCommandFinishedSignal()
+{
+    //
+    // Kernel debugger should be signaled, we should send the bytes over serial
+    //
+    KdResponsePacketToDebugger(
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_FINISHED_COMMAND_EXECUTION,
+        NULL,
+        NULL);
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 

@@ -332,7 +332,7 @@ BOOLEAN KdSendUserInputPacketToDebuggee(const char *Sendbuf, int Len) {
   //
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_USER_INPUT_EXECUTION_RESULT],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION],
       INFINITE);
 
   free(UserInputPacket);
@@ -1354,7 +1354,44 @@ BOOLEAN KdCloseConnection() {
  */
 VOID KdHandleUserInputInDebuggee(CHAR *Input) {
 
-  ShowMessages("Here we are at : %s\n", Input);
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL FinishExecutionRequest = {0};
+
+  //
+  // Run the command
+  //
+  HyperdbgInterpreter(Input);
+
+  //
+  // Send a signal to indicate that the execution of command
+  // finished
+  //
+
+  //
+  // By the way, we don't need to send an input buffer
+  // to the kernel, but let's keep it like this, if we
+  // want to pass some other aguments to the kernel in
+  // the future
+  //
+  Status = DeviceIoControl(
+      g_DeviceHandle,                                   // Handle to device
+      IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED, // IO Control code
+      &FinishExecutionRequest, // Input Buffer to driver.
+      SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Input buffer
+                                                              // length
+      &FinishExecutionRequest, // Output Buffer from driver.
+      SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Length of
+                                                              // output buffer
+                                                              // in bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return;
+  }
 }
 
 /**

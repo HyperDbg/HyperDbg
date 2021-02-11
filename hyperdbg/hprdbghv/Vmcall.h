@@ -257,6 +257,13 @@
  */
 #define VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3 0x27
 
+/**
+ * @brief VMCALL to signal debugger that debuggee finished
+ * execution of the command
+ * 
+ */
+#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x28
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

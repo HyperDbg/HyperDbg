@@ -277,6 +277,17 @@ StartAgain:
 
       break;
 
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_FINISHED_COMMAND_EXECUTION:
+
+      //
+      // Signal the event relating to result of command execution finished
+      //
+      SetEvent(
+          g_SyncronizationObjectsHandleTable
+              [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
+
+      break;
+
     default:
       ShowMessages("err, unknown packet action received from the debugger\n");
       break;

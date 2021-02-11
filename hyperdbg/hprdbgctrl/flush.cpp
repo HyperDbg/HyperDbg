@@ -28,6 +28,7 @@ VOID CommandFlushHelp() {
  * @return VOID
  */
 VOID CommandFlushRequestFlush() {
+
   BOOL Status;
   ULONG ReturnedLength;
   DEBUGGER_FLUSH_LOGGING_BUFFERS FlushRequest = {0};
