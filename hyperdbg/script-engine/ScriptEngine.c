@@ -247,19 +247,24 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     PSYMBOL TempSymbol;
 
     OperatorSymbol = ToSymbol(Operator);
-    PushSymbol(CodeBuffer, OperatorSymbol);
+   
     
-    Op0 = Pop(MatchedStack);
-    Op0Symbol = ToSymbol(Op0);
-    PushSymbol(CodeBuffer, Op0Symbol);
+
 
     
 
     if (!strcmp(Operator->Value, "@MOV"))
     {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
         Op1 = Pop(MatchedStack);
         Op1Symbol = ToSymbol(Op1);
         PushSymbol(CodeBuffer, Op1Symbol);
+        RemoveSymbol(Op1Symbol);
 
 
        /* printf("%s\t%s,\t%s\n", Operator->Value, Op1->Value, Op0->Value);
@@ -270,19 +275,34 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
+        
     }
     else if (IsType2Func(Operator))
     {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
       /*  printf("%s\t%s\n", Operator->Value, Op0->Value);
         printf("_____________\n");*/
+
+        
         
     }
     else if (IsType1Func(Operator))
     {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
         Temp = NewTemp();
         Push(MatchedStack, Temp);
         TempSymbol = ToSymbol(Temp);
         PushSymbol(CodeBuffer, TempSymbol);
+        RemoveSymbol(TempSymbol);
        /* printf("%s\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value);
         printf("_____________\n");*/
 
@@ -290,24 +310,91 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Free the operand if it is a temp value
         //
         FreeTemp(Op0);
+        
     }
     else if (IsType3Func(Operator))
     {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
         Op1 = Pop(MatchedStack);
         Op1Symbol = ToSymbol(Op1);
         PushSymbol(CodeBuffer, Op1Symbol);
+        RemoveSymbol(Op1Symbol);
+        
 
         //
         // Free the operand if it is a temp value
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
+        
+    }
+    else if (IsType4Func(Operator))
+    {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        PSYMBOL_BUFFER TempStack = NewSymbolBuffer();
+        UINT32 OperandCount = 0;
+
+        do
+        {
+            Op1 = Pop(MatchedStack);
+            if (Op1->Type != SEMANTIC_RULE)
+            {
+                Op1Symbol = ToSymbol(Op1);
+                PushSymbol(TempStack, Op1Symbol);
+                RemoveSymbol(Op1Symbol);
+                FreeTemp(Op1);
+                OperandCount++;
+            }
+                
+        } while (!(Op1->Type == SEMANTIC_RULE && !strcmp(Op1->Value, "@VARGSTART")));
+
+        printf("Operand Count = %d \n", OperandCount);
+
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        // TODO: Push OperandCount
+        PSYMBOL OperandCountSymbol = NewSymbol();
+        OperandCountSymbol->Type = SYMBOL_VARIABLE_COUNT_TYPE;
+        OperandCountSymbol->Value = OperandCount;
+        PushSymbol(CodeBuffer, OperandCountSymbol);
+        RemoveSymbol(OperandCountSymbol);
+
+
+        PSYMBOL Symbol;
+        for (int i = TempStack->Pointer - 1; i >= 0 ;i--)
+        {
+            Symbol = TempStack->Head + i;
+            PushSymbol(CodeBuffer, Symbol);
+        }
+        RemoveSymbolBuffer(TempStack);
+
+
+
+
+       
+        FreeTemp(Op0);
+        
     }
     else if (IsNaiveOperator(Operator))
     {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0 = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
         Op1 = Pop(MatchedStack);
         Op1Symbol = ToSymbol(Op1);
         PushSymbol(CodeBuffer, Op1Symbol);
+        RemoveSymbol(Op1Symbol);
 
 
 
@@ -315,6 +402,9 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         Push(MatchedStack, Temp);
         TempSymbol = ToSymbol(Temp);
         PushSymbol(CodeBuffer, TempSymbol);
+        RemoveSymbol(TempSymbol);
+
+        
 
 
       /*  printf("%s\t%s,\t%s,\t%s\n", Operator->Value, Temp->Value, Op0->Value, Op1->Value);
@@ -325,11 +415,23 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
+        
     }
+    else if (!strcmp (Operator->Value, "@VARGSTART"))
+    {
+        TOKEN OperatorCopy = NewToken();
+        OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
+        strcpy(OperatorCopy->Value, Operator->Value);
+        OperatorCopy->Type = Operator->Type;
+        Push(MatchedStack, OperatorCopy);
+
+    }
+    
     else
     {
-        printf("Internal Error: Unhandled sematic ruls.\n");
+        printf("Internal Error: Unhandled semantic ruls.\n");
     }
+    RemoveSymbol(OperatorSymbol);
     return;
 }
 
@@ -535,7 +637,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         }
 
         strcpy((char*)&WriteAddr->Value, (char*)&Symbol->Value);
-        RemoveSymbol(Symbol);
+
     }
     else
     {
@@ -543,7 +645,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         // Write input to the appropriate address in SymbolBuffer
         //
         *WriteAddr = *Symbol;
-        RemoveSymbol(Symbol);
+
 
         //
         // Update Pointer
@@ -593,7 +695,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 {
     PSYMBOL Symbol;
-    for (int i = 0; i < SymbolBuffer->Pointer; i++)
+    for (int i = 0; i < SymbolBuffer->Pointer;)
     {
        
         Symbol = SymbolBuffer->Head + i;

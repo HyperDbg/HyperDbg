@@ -91,7 +91,6 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
                      NameOfOperator);
 
         break;
-        break;
       }
     }
   } else {

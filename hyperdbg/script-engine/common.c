@@ -116,6 +116,12 @@ void PrintToken(TOKEN Token)
 	case END_OF_STACK:
 		printf(" END_OF_STACK>\n");
 		break;
+	case STRING:
+		printf(" STRING>\n");
+		break;
+	case TEMP:
+		printf(" TEMP>\n");
+		break;
 	case UNKNOWN:
 		printf(" UNKNOWN>\n");
 		break;
@@ -418,7 +424,7 @@ TOKEN NewTemp(void)
 	if (i == MAX_TEMP_COUNT)
 	{
 		// TODO: Handle Error
-		printf("Error: Not enough tempporary variables to allocate. \n");
+		printf("Error: Not enough temporary variables to allocate. \n");
 	}
 	TOKEN Temp = NewToken();
 	char TempValue[8];
@@ -484,6 +490,19 @@ char IsType3Func(TOKEN Operator)
 	for (int i = 0; i < n; i++)
 	{
 		if (!strcmp(Operator->Value, TwoOpFunc1[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char IsType4Func(TOKEN Operator)
+{
+	unsigned int n = TWOOPFUNC1_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, VarArgFunc1[i]))
 		{
 			return 1;
 		}

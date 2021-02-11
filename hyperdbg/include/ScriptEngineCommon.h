@@ -568,6 +568,25 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+VOID ScriptEngineFunctionPrintf(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+    char* Format, UINT64 ArgCount, PSYMBOL FirstArg) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("%s\n", Format);
+    PSYMBOL Symbol;
+    for (int i = 0; i < ArgCount; i++)
+    {
+        Symbol = FirstArg + i;
+        ShowMessages("%d\t",Symbol->Value);
+    }
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
   switch (Symbol->Value) {
   case REGISTER_RAX:
@@ -734,6 +753,7 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("Error:Expecting Operator Type.\n");
+    return HasError;
 #endif // SCRIPT_ENGINE_USER_MODE
   }
 
@@ -1152,5 +1172,37 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                              (char *)&Src1->Value, SrcVal0);
 
     return HasError;
+
+  case FUNC_PRINTF:
+
+    //
+    // Call the target function
+    //
+   
+
+    *Indx =
+        *Indx + ((sizeof(unsigned long long) + strlen((char*)&Src0->Value)) /
+            sizeof(SYMBOL));
+
+    Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+    *Indx = *Indx + 1;
+
+
+    PSYMBOL Src2 = NULL;
+
+    if (Src1->Value > 0)
+    {
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+            (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + Src1->Value;
+    }
+    ScriptEngineFunctionPrintf(ActionDetail.Tag,
+        ActionDetail.ImmediatelySendTheResults, (char*)&Src0->Value, Src1->Value, Src2);
+
+    
+      return HasError;
   }
 }

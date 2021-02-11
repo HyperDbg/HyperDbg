@@ -34,6 +34,7 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_SEMANTIC_RULE_TYPE 4
 #define SYMBOL_TEMP_TYPE 5
 #define SYMBOL_STRING_TYPE 6
+#define SYMBOL_VARIABLE_COUNT_TYPE 7
 
 #define INVALID -1
 
@@ -66,6 +67,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_LOW 24
 #define FUNC_NOT 25
 #define FUNC_MOV 26
+#define FUNC_VARGSTART 27
 
 #define REGISTER_RAX 0
 #define REGISTER_RCX 1

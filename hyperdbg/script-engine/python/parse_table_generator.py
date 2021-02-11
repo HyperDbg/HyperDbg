@@ -115,7 +115,7 @@ class Parser:
         self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
-        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 1)+ "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 2)+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
@@ -188,6 +188,7 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_SEMANTIC_RULE_TYPE 4
 #define SYMBOL_TEMP_TYPE 5
 #define SYMBOL_STRING_TYPE 6
+#define SYMBOL_VARIABLE_COUNT_TYPE 7
 
 #define INVALID -1
 
@@ -236,9 +237,6 @@ typedef struct ACTION_BUFFER {
 
             # Read top of stack 
             Top = GetTop(Stack)
-
-            print(CurrentIn)
-            print(Stack)
 
             if self.IsNoneTerminal(Top):
                 Id = self.ParseTable[self.GetNoneTerminalId(Top)][self.GetTerminalId(CurrentIn)]
@@ -384,7 +382,10 @@ typedef struct ACTION_BUFFER {
         for X in self.keywordList:
             self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
             Counter += 1
-        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n\n")
+        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n")
+
+        Counter += 1 
+        self.CommonHeaderFile.write("#define "+ "FUNC_VARGSTART " + str(Counter) + "\n\n")
 
 
         self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")
@@ -396,7 +397,8 @@ typedef struct ACTION_BUFFER {
         for X in self.keywordList:
                 self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
-        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "}\n")
+        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "},\n")
+        self.SourceFile.write("{\"@" + "VARGSTART" + "\", "+ "FUNC_VARGSTART"  + "}\n")
         
 
         self.SourceFile.write("};\n")
@@ -469,8 +471,6 @@ typedef struct ACTION_BUFFER {
 
     def WriteMaps(self):
         for Key in self.FunctionsDict:
-            print(Key)
-
             self.HeaderFile.write("extern const char* "+ Key[1:]+ "[];\n")
             self.SourceFile.write("const char* "+ Key[1:]+ "[] = {\n")
 
