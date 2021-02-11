@@ -88,24 +88,27 @@ int HyperdbgInterpreter(const char *Command) {
   // send it to the remote computer, it is because in a remote connection
   // still some of the commands should be handled in the local HyperDbg
   //
-  if ((g_IsConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebuggee) &&
-      !IsItALocalCommand(FirstCommand)) {
+  if (g_IsConnectedToRemoteDebuggee &&
+      !(GetCommandAttributes(FirstCommand) &
+        DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION)) {
 
-    if (g_IsConnectedToRemoteDebuggee) {
+    //
+    // It's a connection over network (VMI-Mode)
+    //
+    RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+    //
+    // Indicate that we sent the command to the target system
+    //
+    return 2;
 
-      //
-      // It's a connection over network (VMI-Mode)
-      //
-      RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+  } else if (g_IsSerialConnectedToRemoteDebuggee &&
+             !(GetCommandAttributes(FirstCommand) &
+               DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE)) {
 
-    } else if (g_IsSerialConnectedToRemoteDebuggee) {
-
-      //
-      // It's a connection over serial (Debugger-Mode)
-      //
-      KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
-    }
-
+    //
+    // It's a connection over serial (Debugger-Mode)
+    //
+    KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
     //
     // Indicate that we sent the command to the target system
     //
@@ -176,34 +179,33 @@ VOID HyperdbgShowSignature() {
 }
 
 /**
- * @brief This function is used to mark some commands as local
- * so we won't send them in local connections and instead handle
- * them in local instance of HyperDbg
+ * @brief Get Command Attributes
  *
- * @param Command just the first word of command (without other parameters)
- * @return BOOLEAN if true then it shows that the command is a local
- * command and if false then it shows that the command can be used in
- * a remote machine
+ * @param FirstCommand just the first word of command (without other parameters)
+ * @return BOOLEAN Mask of the command's attributes
  */
-BOOLEAN IsItALocalCommand(string Command) {
+UINT64 GetCommandAttributes(string FirstCommand) {
+
+  CommandType::iterator Iterator;
 
   //
   // Some commands should not be passed to the remote system
   // and instead should be handled in the current debugger
   //
-  if (!Command.compare(".status") || !Command.compare("cls") ||
-      !Command.compare(".cls") || !Command.compare("clear") ||
-      !Command.compare("sleep") || !Command.compare("connect") ||
-      !Command.compare(".connect") || !Command.compare("disconnect") ||
-      !Command.compare(".disconnect") || !Command.compare(".listen") ||
-      !Command.compare("listen") || !Command.compare(".logopen") ||
-      !Command.compare(".logclose") || !Command.compare(".script") ||
-      !Command.compare("g") || !Command.compare("go")) {
 
-    return TRUE;
+  Iterator = g_CommandList.find(FirstCommand);
+
+  if (Iterator == g_CommandList.end()) {
+
+    //
+    //  Command doesn't exist
+    //
+    return NULL;
+  } else {
+    return Iterator->second.CommandAttrib;
   }
 
-  return FALSE;
+  return NULL;
 }
 
 VOID InitializeCommandsDictionary() {

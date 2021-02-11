@@ -101,7 +101,7 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
 
 VOID CommandFlushRequestFlush();
 
-BOOLEAN IsItALocalCommand(string Command);
+UINT64 GetCommandAttributes(string FirstCommand);
 
 VOID AttachToProcess(UINT32 TargetPid, UINT32 TargetTid);
 
