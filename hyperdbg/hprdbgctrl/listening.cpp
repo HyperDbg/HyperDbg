@@ -162,7 +162,18 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
 
-      } else {
+      } else if (PausePacket->PausingReason ==
+                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED) {
+
+        //
+        // Signal the event relating to result of command execution finished
+        //
+        SetEvent(
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
+      }
+
+      else {
         //
         // Signal the event relating to commands that are waiting for
         // the details of a halted debuggeee
@@ -274,17 +285,6 @@ StartAgain:
 
         ShowErrorMessage(FormatsPacket->Result);
       }
-
-      break;
-
-    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_FINISHED_COMMAND_EXECUTION:
-
-      //
-      // Signal the event relating to result of command execution finished
-      //
-      SetEvent(
-          g_SyncronizationObjectsHandleTable
-              [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
 
       break;
 

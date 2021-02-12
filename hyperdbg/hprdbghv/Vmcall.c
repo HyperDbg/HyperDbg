@@ -386,7 +386,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED:
     {
-        KdSendCommandFinishedSignal();
+        KdSendCommandFinishedSignal(CurrentCoreIndex, GuestRegs);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

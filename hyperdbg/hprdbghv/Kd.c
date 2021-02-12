@@ -575,16 +575,16 @@ KdSendFormatsFunctionResult(UINT64 Value)
  * @return VOID
  */
 VOID
-KdSendCommandFinishedSignal()
+KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
+                            PGUEST_REGS GuestRegs)
 {
     //
-    // Kernel debugger should be signaled, we should send the bytes over serial
+    // Halt other cores again
     //
-    KdResponsePacketToDebugger(
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_FINISHED_COMMAND_EXECUTION,
-        NULL,
-        NULL);
+    KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                          GuestRegs,
+                                          DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
+                                          NULL);
 }
 
 /**
