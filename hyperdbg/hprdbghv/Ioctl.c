@@ -956,7 +956,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             DebuggerCommandSendMessage(DebuggerSendUsermodeMessageRequest);
 
-            Irp->IoStatus.Information = IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
             Status                    = STATUS_SUCCESS;
 
             //

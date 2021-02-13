@@ -393,7 +393,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SEND_MESSAGES_TO_DEBUGGER:
     {
-        //KdSendCommandFinishedSignal(CurrentCoreIndex, GuestRegs);
+        //
+        // Kernel debugger is active, we should send the bytes over serial
+        //
+        KdLoggingResponsePacketToDebugger(
+            OptionalParam1,
+            OptionalParam2,
+            OPERATION_LOG_INFO_MESSAGE);
 
         VmcallStatus = STATUS_SUCCESS;
         break;

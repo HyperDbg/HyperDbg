@@ -1429,10 +1429,10 @@ VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length) {
   Status = DeviceIoControl(
       g_DeviceHandle,                           // Handle to device
       IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
-      &UsermodeMessageRequest,                  // Input Buffer to driver.
+      UsermodeMessageRequest,                  // Input Buffer to driver.
       SizeToSend,                               // Input buffer
                                                 // length
-      &UsermodeMessageRequest,                  // Output Buffer from driver.
+      UsermodeMessageRequest,                  // Output Buffer from driver.
       SizeToSend,                               // Length of
                                                 // output buffer
                                                 // in bytes.
