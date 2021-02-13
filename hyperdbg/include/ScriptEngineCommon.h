@@ -12,6 +12,7 @@
  */
 #pragma once
 #include "ScriptEngineCommonDefinitions.h"
+
 //
 // Wrapper headers
 //
@@ -569,17 +570,38 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 }
 
 VOID ScriptEngineFunctionPrintf(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
-    char* Format, UINT64 ArgCount, PSYMBOL FirstArg) {
+    char* Format, UINT64 ArgCount, PSYMBOL FirstArg, BOOLEAN HasError) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("%s\n", Format);
-    PSYMBOL Symbol;
-    for (int i = 0; i < ArgCount; i++)
-    {
-        Symbol = FirstArg + i;
-        ShowMessages("%d\t",Symbol->Value);
-    }
 
+    HasError = FALSE;
+    PSYMBOL Symbol;
+
+    UINT32 ArgCounter = 0;
+
+    char* Str = Format;
+
+    do
+    {
+        if (!strncmp(Str, "%s", 2))
+        {
+            Symbol = FirstArg + ArgCounter;
+            Symbol->Type |= SYMBOL_MEM_VALID_CHECK_MASK;
+            ArgCounter++;
+            if (ArgCounter == ArgCount)
+                break;
+        }
+        else if (!strncmp(Str, "%d", 2) || !strncmp(Str, "%x", 2))
+        {
+            ArgCounter++;
+            if (ArgCounter == ArgCount)
+                break;
+        }
+        Str++;
+    } while(*Str);
+
+    HasError = (ArgCounter != ArgCount);
+    
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -1199,8 +1221,8 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
         *Indx = *Indx + Src1->Value;
     }
-    ScriptEngineFunctionPrintf(ActionDetail.Tag,
-        ActionDetail.ImmediatelySendTheResults, (char*)&Src0->Value, Src1->Value, Src2);
+        ScriptEngineFunctionPrintf(ActionDetail.Tag,
+        ActionDetail.ImmediatelySendTheResults, (char*)&Src0->Value, Src1->Value, Src2, HasError);
 
     
       return HasError;

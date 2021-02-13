@@ -63,10 +63,9 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   SYMBOL ErrorSymbol = {0};
 
   if (CodeBuffer->Message == NULL) {
-    PrintSymbolBuffer(CodeBuffer);
 
     for (int i = 0; i < CodeBuffer->Pointer;) {
-      ShowMessages("%d\n", i);
+
 
       //
       // Fill the action buffer but as we're in user-mode here

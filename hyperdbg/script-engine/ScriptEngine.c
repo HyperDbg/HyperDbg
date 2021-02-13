@@ -353,7 +353,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
                 
         } while (!(Op1->Type == SEMANTIC_RULE && !strcmp(Op1->Value, "@VARGSTART")));
 
-        printf("Operand Count = %d \n", OperandCount);
 
         Op0 = Pop(MatchedStack);
         Op0Symbol = ToSymbol(Op0);
@@ -378,8 +377,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
 
 
-
-       
         FreeTemp(Op0);
         
     }
