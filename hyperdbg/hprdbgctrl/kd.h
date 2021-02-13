@@ -101,6 +101,8 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
 VOID KdHandleUserInputInDebuggee(CHAR *Input);
 
+VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length);
+
 BOOLEAN KdCloseConnection();
 
 VOID KdUninitializeConnection();

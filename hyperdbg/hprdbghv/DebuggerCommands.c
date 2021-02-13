@@ -851,3 +851,25 @@ DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SI
 
     return STATUS_SUCCESS;
 }
+
+/**
+ * @brief Send the user-mode buffer to debugger
+ * 
+ * @param DebuggerSendUsermodeMessageRequest Request to send message to debugger
+ * @return NTSTATUS 
+ */
+NTSTATUS
+DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER DebuggerSendUsermodeMessageRequest)
+{
+    //
+    // It's better to send the signal from vmx-root mode
+    //
+    AsmVmxVmcall(VMCALL_SEND_MESSAGES_TO_DEBUGGER,
+                 (UINT64)DebuggerSendUsermodeMessageRequest + (SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER),
+                 DebuggerSendUsermodeMessageRequest->Length,
+                 0);
+
+    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return STATUS_SUCCESS;
+}

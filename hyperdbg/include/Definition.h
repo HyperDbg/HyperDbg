@@ -577,6 +577,28 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL {
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER                     \
+  sizeof(DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)
+
+/**
+ * @brief request for send a send user-mode message to debugger
+ *
+ */
+typedef struct _DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER {
+
+  UINT32 KernelStatus;
+  UINT32 Length;
+
+  //
+  // Here is the messages
+  //
+
+} DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER,
+    *PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR                                  \
   sizeof(DEBUGGER_READ_AND_WRITE_ON_MSR)
 #define DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES 0xffffffff
@@ -1413,3 +1435,10 @@ typedef struct _DEBUGGEE_USER_INPUT_PACKET {
  */
 #define IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED                       \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x813, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, send user-mode messages to the debugger
+ *
+ */
+#define IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER                               \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x814, METHOD_BUFFERED, FILE_ANY_ACCESS)

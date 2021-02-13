@@ -391,6 +391,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SEND_MESSAGES_TO_DEBUGGER:
+    {
+        //KdSendCommandFinishedSignal(CurrentCoreIndex, GuestRegs);
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

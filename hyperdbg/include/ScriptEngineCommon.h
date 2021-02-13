@@ -564,7 +564,7 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+  //LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -583,7 +583,7 @@ VOID ScriptEngineFunctionPrintf(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+    //LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

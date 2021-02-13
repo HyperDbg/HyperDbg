@@ -35,7 +35,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL                   DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                          DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                  DebuggerFlushBuffersRequest;
-    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerCommandExecutionFinished;
+    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerCommandExecutionFinishedRequest;
+    PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER     DebuggerSendUsermodeMessageRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS        DebuggerAttachOrDetachToThreadRequest;
     PDEBUGGER_STEPPINGS                              DebuggerSteppingsRequest;
     PDEBUGGER_PREPARE_DEBUGGEE                       DebuggeeRequest;
@@ -65,7 +66,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REGISTER_EVENT || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_REGISTER_EVENT ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -129,7 +131,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_MEMORY || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_MEMORY ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -167,7 +170,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_AND_WRITE_ON_MSR ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -223,7 +227,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -294,7 +299,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerParseEventFromUsermode(DebuggerNewEventRequest, InBuffLength, (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+            DebuggerParseEventFromUsermode(DebuggerNewEventRequest,
+                                           InBuffLength,
+                                           (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
             Status                    = STATUS_SUCCESS;
@@ -334,7 +341,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerParseActionFromUsermode(DebuggerNewActionRequest, InBuffLength, (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
+            DebuggerParseActionFromUsermode(DebuggerNewActionRequest,
+                                            InBuffLength,
+                                            (PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER)Irp->AssociatedIrp.SystemBuffer);
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER);
             Status                    = STATUS_SUCCESS;
@@ -351,7 +360,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -438,7 +448,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -480,7 +491,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_EDIT_MEMORY || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_EDIT_MEMORY ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -535,7 +547,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_SEARCH_MEMORY || Irp->AssociatedIrp.SystemBuffer == NULL)
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_SEARCH_MEMORY ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
                 LogError("Invalid parameter to IOCTL Dispatcher.");
@@ -880,15 +893,70 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            DebuggerCommandExecutionFinished =
+            DebuggerCommandExecutionFinishedRequest =
                 (PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL)Irp->AssociatedIrp.SystemBuffer;
 
             //
             // Perform the signal operation
             //
-            DebuggerCommandSignalExecutionState(DebuggerCommandExecutionFinished);
+            DebuggerCommandSignalExecutionState(DebuggerCommandExecutionFinishedRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerSendUsermodeMessageRequest =
+                (PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Second validation phase
+            //
+            if (DebuggerSendUsermodeMessageRequest->Length == NULL ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
+                    SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER + DebuggerSendUsermodeMessageRequest->Length)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Perform the signal operation
+            //
+            DebuggerCommandSendMessage(DebuggerSendUsermodeMessageRequest);
+
+            Irp->IoStatus.Information = IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
             Status                    = STATUS_SUCCESS;
 
             //

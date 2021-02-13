@@ -264,6 +264,12 @@
  */
 #define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x28
 
+/**
+ * @brief VMCALL to send messages to the debugger
+ * 
+ */
+#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x29
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

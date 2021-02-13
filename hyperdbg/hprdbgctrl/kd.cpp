@@ -1395,6 +1395,58 @@ VOID KdHandleUserInputInDebuggee(CHAR *Input) {
 }
 
 /**
+ * @brief send result of user-mode ShowMessages to debuggee
+ * @param Input
+ * @param Length
+ * @return VOID
+ */
+VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER UsermodeMessageRequest;
+  UINT32 SizeToSend;
+
+  SizeToSend = sizeof(DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER) + Length;
+
+  UsermodeMessageRequest =
+      (DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER *)malloc(SizeToSend);
+
+  RtlZeroMemory(UsermodeMessageRequest, SizeToSend);
+
+  //
+  // Set the length
+  //
+  UsermodeMessageRequest->Length = Length;
+
+  //
+  // Move the user message buffer at the bottom of the structure packet
+  //
+  memcpy((PVOID)((UINT64)UsermodeMessageRequest +
+                 sizeof(DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)),
+         (PVOID)Input, Length);
+
+  Status = DeviceIoControl(
+      g_DeviceHandle,                           // Handle to device
+      IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
+      &UsermodeMessageRequest,                  // Input Buffer to driver.
+      SizeToSend,                               // Input buffer
+                                                // length
+      &UsermodeMessageRequest,                  // Output Buffer from driver.
+      SizeToSend,                               // Length of
+                                                // output buffer
+                                                // in bytes.
+      &ReturnedLength,                          // Bytes placed in buffer.
+      NULL                                      // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return;
+  }
+}
+
+/**
  * @brief Uninitialize everything in both debuggee and debugger
  * @details This function close the connection in both debuggee and debugger
  * both of the debuggee and debugger can use this function

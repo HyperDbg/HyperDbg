@@ -26,6 +26,7 @@ extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_OutputSourcesInitialized;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -49,7 +50,8 @@ void ShowMessages(const char *Fmt, ...) {
   va_list Args;
   char TempMessage[PacketChunkSize] = {0};
 
-  if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger) {
+  if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger &&
+      !g_IsSerialConnectedToRemoteDebugger) {
 
     va_start(Args, Fmt);
     vprintf(Fmt, Args);
@@ -73,6 +75,8 @@ void ShowMessages(const char *Fmt, ...) {
       // if an output error occurs.
       //
       RemoteConnectionSendResultsToHost(TempMessage, sprintfresult);
+    } else if (g_IsSerialConnectedToRemoteDebugger) {
+      KdSendUsermodePrints(TempMessage, sprintfresult);
     }
 
     if (g_LogOpened) {
