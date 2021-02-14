@@ -48,10 +48,10 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
                             PGUEST_REGS GuestRegs);
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
-                                      PGUEST_REGS             GuestRegs,
-                                      DEBUGGEE_PAUSING_REASON Reason,
-                                      PVOID                   Context);
+KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentProcessorIndex,
+                                      PGUEST_REGS                       GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 VOID
 KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,

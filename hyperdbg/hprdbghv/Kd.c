@@ -594,10 +594,10 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
  * @return VOID 
  */
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
-                                      PGUEST_REGS             GuestRegs,
-                                      DEBUGGEE_PAUSING_REASON Reason,
-                                      PVOID                   Context)
+KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentProcessorIndex,
+                                      PGUEST_REGS                       GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
     // Lock current core
@@ -610,9 +610,13 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
     g_DebuggeeHaltReason = Reason;
 
     //
-    // Set the context
+    // Set the context and tag
     //
-    g_DebuggeeHaltContext = Context;
+    if (EventDetails != NULL)
+    {
+        g_DebuggeeHaltContext = EventDetails->Context;
+        g_DebuggeeHaltTag     = EventDetails->Tag;
+    }
 
     if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
     {
@@ -648,13 +652,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
 
     //
-    // Clear the context
+    // Clear the context and tag
     //
     g_DebuggeeHaltContext = NULL;
+    g_DebuggeeHaltTag     = NULL;
 }
 
 /**
- * @brief Handle #DBs and #BPs for kernel debugger
+ * @brief Handle changes to cr3
  * @details This function can be used in vmx-root 
  * @param CurrentProcessorIndex
  * @param GuestRegs
@@ -933,7 +938,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Run the script in debuggee
                 //
-
                 if (DebuggerPerformRunScript(OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,

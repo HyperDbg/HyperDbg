@@ -136,6 +136,12 @@ DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 PVOID g_DebuggeeHaltContext;
 
 /**
+ * @brief Optional tag as the debuggee is halted
+ * 
+ */
+UINT64 g_DebuggeeHaltTag;
+
+/**
  * @brief Dpc state for debuggee
  * 
  */

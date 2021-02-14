@@ -21,6 +21,8 @@
 VOID
 MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+
     //
     // Explicitly say that we want to unset MTFs
     //
@@ -51,10 +53,11 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Handle the breakpoint
         //
+        ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
         KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                               GuestRegs,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                              g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+                                              &ContextAndTag);
     }
     else if (g_GuestState[CurrentProcessorIndex].MtfTest)
     {

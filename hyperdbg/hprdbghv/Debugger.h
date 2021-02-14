@@ -190,6 +190,12 @@ DebuggerTerminateAllEvents();
 UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
 
+BOOLEAN
+DebuggerEnableEvent(UINT64 Tag);
+
+BOOLEAN
+DebuggerDisableEvent(UINT64 Tag);
+
 VOID
 DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context);
 
