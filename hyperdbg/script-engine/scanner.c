@@ -381,33 +381,82 @@ TOKEN GetToken(char* c, char* str)
 		}
 
 	default:
-		if (IsHex(*c))
+		if (*c >= '0' && *c <= '9')
 		{
 			do
 			{
 				if (*c != '`')
 					Append(Token, *c);
 				*c = sgetc(str);
-			} while (IsLetter(*c) || IsHex(*c) || *c == '`');
-			if (IsKeyword(Token->Value))
+			} while (IsHex(*c) || *c == '`');
+			Token->Type = HEX;
+			return Token;
+		}
+		else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F'))
+		{	
+			uint8_t NotHex = 0;
+			do
 			{
-				Token->Type = KEYWORD;
+				if (*c != '`')
+					Append(Token, *c);
+				*c = sgetc(str);
+				if (IsHex(*c))
+				{
+					// Nothing 
+				}
+				else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z'))
+				{
+					NotHex = 1;
+					break;
+				}
+				else
+				{
+					break;
+				}
+			} while (1);
+			if (NotHex)
+			{
+				do
+				{
+					if (*c != '`')
+						Append(Token, *c);
+					*c = sgetc(str);
+				} while (IsLetter(*c));
+				if (IsKeyword(Token->Value))
+				{
+					Token->Type = KEYWORD;
+				}
+				else
+				{
+					Token->Type = ID;
+				}
+				return Token;
 			}
 			else
 			{
-				Token->Type = HEX;
+				if (IsKeyword(Token->Value))
+				{
+					Token->Type = KEYWORD;
+				}
+				else if (IsId(Token->Value))
+				{
+					Token->Type = ID;
+				}
+				else
+				{
+					Token->Type = HEX;
+				}
+				return Token;
 			}
-			
-			return Token;
 		}
-		else if (IsLetter(*c) || *c == '_')
+		else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z'))
 		{
-			while (IsLetter(*c) || *c == '_' || IsDecimal(*c))
+			do
 			{
-				Append(Token, *c);
+				if (*c != '`')
+					Append(Token, *c);
 				*c = sgetc(str);
-			}
-
+			} while (IsLetter(*c));
 			if (IsKeyword(Token->Value))
 			{
 				Token->Type = KEYWORD;
@@ -416,10 +465,8 @@ TOKEN GetToken(char* c, char* str)
 			{
 				Token->Type = ID;
 			}
-
 			return Token;
 		}
-
 
 		Token->Type = UNKNOWN;
 		*c = sgetc(str);
@@ -500,5 +547,10 @@ char IsKeyword(char* str)
 			return 1; 
 		}
 	}
+	return 0;
+}
+char IsId(char* str)
+{
+	// TODO: Check the str is a id or not
 	return 0;
 }

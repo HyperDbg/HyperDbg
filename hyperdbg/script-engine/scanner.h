@@ -35,6 +35,8 @@ char sgetc(char* str);
 
 char IsKeyword(char* str);
 
+char IsId(char* str);	
+
 #endif // !SCANNER_H
 
 

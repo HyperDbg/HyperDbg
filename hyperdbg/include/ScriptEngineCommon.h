@@ -601,6 +601,9 @@ VOID ScriptEngineFunctionPrintf(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
     } while(*Str);
 
     HasError = (ArgCounter != ArgCount);
+    if (HasError)
+        return;
+
     
 #endif // SCRIPT_ENGINE_USER_MODE
 
