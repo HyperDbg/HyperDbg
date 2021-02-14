@@ -2,19 +2,20 @@
 #define PARSE_TABLE_H
 #include "common.h"
 #include "ScriptEngineCommonDefinitions.h"
-#define RULES_COUNT 62
-#define TERMINAL_COUNT 41
+#define RULES_COUNT 64
+#define TERMINAL_COUNT 43
 #define NONETERMINAL_COUNT 27
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 7
-#define KEYWORD_LIST_LENGTH 16
+#define KEYWORD_LIST_LENGTH 19
 #define OPERATORS_LIST_LENGTH 10
 #define REGISTER_MAP_LIST_LENGTH 16
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 9
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 28
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 31
 #define ONEOPFUNC1_LENGTH 12
-#define ONEOPFUNC2_LENGTH 2
+#define ONEOPFUNC2_LENGTH 4
 #define TWOOPFUNC1_LENGTH 1
+#define ZEROOPFUNC1_LENGTH 1
 #define VARARGFUNC1_LENGTH 1
 extern const struct _TOKEN Lhs[RULES_COUNT];
 extern const struct _TOKEN Rhs[RULES_COUNT][MAX_RHS_LEN];
@@ -27,6 +28,7 @@ extern const char* OperatorsList[];
 extern const char* OneOpFunc1[];
 extern const char* OneOpFunc2[];
 extern const char* TwoOpFunc1[];
+extern const char* ZeroOpFunc1[];
 extern const char* VarArgFunc1[];
 #endif
 extern const SYMBOL_MAP SemanticRulesMapList[];

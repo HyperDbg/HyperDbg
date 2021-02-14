@@ -540,6 +540,18 @@ VOID ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+VOID ScriptEngineFunctionDisableEvent(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+    UINT64 Value) {
+
+}
+VOID ScriptEngineFunctionEnableEvent(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
+    UINT64 Value) {
+
+}
+VOID ScriptEngineFunctionBreak(UINT64 Tag, BOOLEAN ImmediateMessagePassing) {
+
+}
+
 VOID ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
                                  UINT64 Value) {
 
@@ -782,13 +794,23 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 #endif // SCRIPT_ENGINE_USER_MODE
   }
 
-  Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                   (unsigned long long)(*Indx * sizeof(SYMBOL)));
-  *Indx = *Indx + 1;
-  SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
-
+  
   switch (Operator->Value) {
+
+  case FUNC_BREAK:
+      ScriptEngineFunctionBreak(ActionDetail.Tag,
+        ActionDetail.ImmediatelySendTheResults);
+    return HasError;
+    
+
+    
+
   case FUNC_OR:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -810,6 +832,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_XOR:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -831,6 +858,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_AND:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -852,6 +884,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_ASR:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -873,6 +910,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_ASL:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -894,6 +936,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_ADD:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -914,6 +961,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_SUB:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -933,6 +985,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
     return HasError;
   case FUNC_MUL:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -953,6 +1010,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_DIV:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -972,6 +1034,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
     return HasError;
   case FUNC_MOD:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -992,6 +1059,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_POI:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1009,6 +1081,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_DB:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1025,6 +1102,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
     return HasError;
   case FUNC_DW:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1041,6 +1123,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
     return HasError;
   case FUNC_DQ:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1058,6 +1145,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_STR:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     // TODO: Hanlde str function
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1067,6 +1159,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_WSTR:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     // TODO: Hanlde wstr function
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1076,6 +1173,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_SIZEOF:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     // TODO: Hanlde sizeof function because we do not support pdb so
     // we don't have support this function
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1085,6 +1187,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_NOT:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1099,6 +1206,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_NEG:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1112,6 +1224,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_HI:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1128,6 +1245,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_LOW:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1143,6 +1265,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 #endif // SCRIPT_ENGINE_USER_MODE
     return HasError;
   case FUNC_MOV:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
     Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1166,6 +1293,11 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_PRINT:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
 
     //
     // Call the target function
@@ -1174,7 +1306,33 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
                               ActionDetail.ImmediatelySendTheResults, SrcVal0);
     return HasError;
 
+  case FUNC_DISABLEEVENT:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+      ScriptEngineFunctionDisableEvent(ActionDetail.Tag,
+          ActionDetail.ImmediatelySendTheResults, SrcVal0);
+      return HasError;
+
+    case FUNC_ENABLEEVENT:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+      ScriptEngineFunctionEnableEvent(ActionDetail.Tag,
+          ActionDetail.ImmediatelySendTheResults, SrcVal0);
+      return HasError;
+
+
+
   case FUNC_FORMATS:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
 
     //
     // Call the target function
@@ -1183,22 +1341,12 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
         ActionDetail.Tag, ActionDetail.ImmediatelySendTheResults, SrcVal0);
     return HasError;
 
-  case FUNC_JSON:
-
-    Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
-    *Indx =
-        *Indx + ((sizeof(unsigned long long) + strlen((char *)&Src1->Value)) /
-                     sizeof(SYMBOL) +
-                 1);
-
-    ScriptEngineFunctionJson(ActionDetail.Tag,
-                             ActionDetail.ImmediatelySendTheResults,
-                             (char *)&Src1->Value, SrcVal0);
-
-    return HasError;
-
   case FUNC_PRINTF:
+    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+    *Indx = *Indx + 1;
+    SrcVal0 = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
 
     //
     // Call the target function

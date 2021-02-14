@@ -499,10 +499,23 @@ char IsType3Func(TOKEN Operator)
 
 char IsType4Func(TOKEN Operator)
 {
-	unsigned int n = TWOOPFUNC1_LENGTH;
+	unsigned int n = VARARGFUNC1_LENGTH;
 	for (int i = 0; i < n; i++)
 	{
 		if (!strcmp(Operator->Value, VarArgFunc1[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
+char IsType5Func(TOKEN Operator)
+{
+	unsigned int n = ZEROOPFUNC1_LENGTH;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(Operator->Value, ZeroOpFunc1[i]))
 		{
 			return 1;
 		}

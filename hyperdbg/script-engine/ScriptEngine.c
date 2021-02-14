@@ -380,6 +380,10 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         FreeTemp(Op0);
         
     }
+    else if (IsType5Func(Operator))
+    {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+    }
     else if (IsNaiveOperator(Operator))
     {
         PushSymbol(CodeBuffer, OperatorSymbol);

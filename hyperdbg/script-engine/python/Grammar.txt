@@ -2,9 +2,9 @@
 .OneOpFunc1->poi db dd dw dq str wstr sizeof neg hi low not
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats
+.OneOpFunc2->print formats disableevent enableevent
 
-.TwoOpFunc1->json
+.ZeroOpFunc1->break
 
 .VarArgFunc1->printf 
 
@@ -19,8 +19,8 @@ S'->C ; S'
 S'->eps
 C->@PUSH _id = E0 @MOV C'
 C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
-C->.TwoOpFunc1 ( E11 , E0 @.OneOpFunc1 )
 C->.VarArgFunc1 ( E11 @VARGSTART VA @.VarArgFunc1 )
+C->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
 VA->, E0 VA
 VA->eps
 
@@ -88,7 +88,7 @@ E10->@PUSH _octal
 E10->@PUSH _binary
 
 
-E10->@PUSH func
+
 E10->@PUSH _pseudo_register
 
 E11->@PUSH _string
