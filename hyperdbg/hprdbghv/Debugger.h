@@ -100,6 +100,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                               WaitForStepOnMtf;
     BOOLEAN                               WaitingForNmi;
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
+    BOOLEAN                               IsGuestNeedsToBeHaltedFromVmxRoot;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

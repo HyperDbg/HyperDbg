@@ -168,6 +168,7 @@ StartAgain:
         //
         // Signal the event relating to result of command execution finished
         //
+        ShowMessages("\n");
         SetEvent(
             g_SyncronizationObjectsHandleTable
                 [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);

@@ -148,6 +148,12 @@ UINT64 g_DebuggeeHaltTag;
 PKDPC g_DebuggeeDpc;
 
 /**
+ * @brief NMI handler pointer for KeDeregisterNmiCallback 
+ * 
+ */
+PVOID g_NmiHandlerForKeDeregisterNmiCallback;
+
+/**
  * @brief check for RTM support
  * 
  */

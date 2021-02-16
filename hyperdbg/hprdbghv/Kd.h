@@ -60,6 +60,9 @@ KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorI
                                        CR3_TYPE                TargetCr3);
 
 BOOLEAN
+KdNmiCallback(PVOID Context, BOOLEAN Handled);
+
+BOOLEAN
 KdResponsePacketToDebugger(
     DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,

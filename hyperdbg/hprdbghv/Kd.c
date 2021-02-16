@@ -37,6 +37,11 @@ KdInitializeKernelDebugger()
     }
 
     //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&KdNmiCallback, NULL);
+
+    //
     // Broadcast on all core to cause exit for NMIs
     //
     HvEnableNmiExitingAllCores();
@@ -71,6 +76,11 @@ KdUninitializeKernelDebugger()
         g_KernelDebuggerState = FALSE;
 
         //
+        // De-register NMI handler
+        //
+        KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+        //
         // Broadcast on all core to cause not to exit for NMIs
         //
         HvDisableNmiExitingAllCores();
@@ -91,6 +101,58 @@ KdUninitializeKernelDebugger()
         //
         ApicUninitialize();
     }
+}
+
+
+/**
+ * @brief Handles NMIs in kernel-mode
+ *
+ * @param Context
+ * @param Handled
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdNmiCallback(PVOID Context, BOOLEAN Handled)
+{
+    UINT32 CurrentCoreIndex;
+
+    CurrentCoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // This mechanism tries to solve the problem of receiving NMIs
+    // when we're already in vmx-root mode, e.g., when we want to
+    // inject NMIs to other cores and those cores are already operating
+    // in vmx-root mode; however, this is not the approach to solve the
+    // problem. In order to solve this problem, we should create our own
+    // host IDT in vmx-root mode (Note that we should set HOST_IDTR_BASE
+    // and there is no need to LIMIT as it's fixed at 0xffff for VMX
+    // operations).
+    // Because we want to use the debugging mechanism of the Windows
+    // we use the same IDT with the guest (guest and host IDT is the
+    // same), but in the future versions we solve this problem by our
+    // own ISR NMI handler in vmx-root mode
+    //
+
+    //
+    // We should check whether the NMI is in vmx-root mode or not
+    // if it's not in vmx-root mode then it's not relate to use
+    //
+    if (!g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi)
+    {
+        return Handled;
+    }
+
+    //
+    // If we're here then it related to us
+    // We set a flag to indicate that this core should be halted
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi                     = FALSE;
+    g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = TRUE;
+
+    //
+    // Also, return true to show that it's handled
+    //
+    return TRUE;
 }
 
 /**
