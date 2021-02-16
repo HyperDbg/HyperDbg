@@ -28,6 +28,7 @@ extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
+extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BYTE g_EndOfBufferCheck[4];
 extern ULONG g_CurrentRemoteCore;
 
@@ -564,6 +565,11 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
   BOOL Status;
   DWORD BytesWritten = 0;
   DWORD LastErrorCode = 0;
+
+  //
+  // Start getting debuggee messages again
+  //
+  g_IgnoreNewLoggingMessages = FALSE;
 
   //
   // Check if buffer not pass the boundary
@@ -1429,10 +1435,10 @@ VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length) {
   Status = DeviceIoControl(
       g_DeviceHandle,                           // Handle to device
       IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
-      UsermodeMessageRequest,                  // Input Buffer to driver.
+      UsermodeMessageRequest,                   // Input Buffer to driver.
       SizeToSend,                               // Input buffer
                                                 // length
-      UsermodeMessageRequest,                  // Output Buffer from driver.
+      UsermodeMessageRequest,                   // Output Buffer from driver.
       SizeToSend,                               // Length of
                                                 // output buffer
                                                 // in bytes.
@@ -1523,6 +1529,11 @@ VOID KdUninitializeConnection() {
     CloseHandle(g_SerialRemoteComPortHandle);
     g_SerialRemoteComPortHandle = NULL;
   }
+
+  //
+  // Start getting debuggee messages on next try
+  //
+  g_IgnoreNewLoggingMessages = FALSE;
 
   //
   // Is serial handle for a named pipe

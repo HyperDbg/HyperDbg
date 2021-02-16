@@ -148,6 +148,13 @@ BOOLEAN g_IsSerialConnectedToRemoteDebugger = FALSE;
 BOOLEAN g_IsDebuggeeRunning = FALSE;
 
 /**
+ * @brief Shows if the debugger should show debuggee's messages
+ * or not
+ *
+ */
+BOOLEAN g_IgnoreNewLoggingMessages = FALSE;
+
+/**
  * @brief Current core that the debuggee is debugging
  *
  */

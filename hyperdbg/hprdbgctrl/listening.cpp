@@ -21,6 +21,7 @@ extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
+extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern ULONG g_CurrentRemoteCore;
 
 /**
@@ -119,11 +120,23 @@ StartAgain:
       MessagePacket =
           (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) +
                                       sizeof(DEBUGGER_REMOTE_PACKET));
-      ShowMessages("%s", MessagePacket->Message);
+
+      //
+      // We check g_IgnoreNewLoggingMessages here because we want to
+      // avoid messages when the debuggee is halted
+      //
+      if (!g_IgnoreNewLoggingMessages) {
+        ShowMessages("%s", MessagePacket->Message);
+      }
 
       break;
 
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
+
+      //
+      // Pause logging mechanism
+      //
+      g_IgnoreNewLoggingMessages = TRUE;
 
       PausePacket = (DEBUGGEE_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
                                                sizeof(DEBUGGER_REMOTE_PACKET));

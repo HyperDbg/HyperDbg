@@ -690,6 +690,9 @@ BOOLEAN
 VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
 BOOLEAN
+VmxCheckIsOnVmxRoot();
+
+BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
