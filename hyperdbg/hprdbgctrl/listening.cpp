@@ -39,6 +39,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
+  PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
 
 StartAgain:
 
@@ -248,6 +249,35 @@ StartAgain:
       //
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH:
+
+      FlushPacket =
+          (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
+                                             sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (FlushPacket->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // The amount of message that are deleted are the amount of
+        // vmx-root messages and vmx non-root messages
+        //
+        ShowMessages("flushing buffers was successful, total %d messages were "
+                     "cleared.\n",
+                     FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot +
+                         FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
+
+      } else {
+        ShowErrorMessage(FlushPacket->KernelStatus);
+      }
+
+      //
+      // Signal the event relating to receiving result of flushing
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]);
 
       break;
 

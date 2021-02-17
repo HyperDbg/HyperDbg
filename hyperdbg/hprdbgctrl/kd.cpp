@@ -179,6 +179,35 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
 }
 
 /**
+ * @brief Send a flush request to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendFlushPacketToDebuggee() {
+
+  DEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket = {0};
+
+  //
+  // Send 'flush' command as flush packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS,
+          (CHAR *)&FlushPacket, sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of flush received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT],
+                      INFINITE);
+
+  return TRUE;
+}
+
+/**
  * @brief Sends a change core or '.process pid x' command packet to the debuggee
  * @param GetRemotePid
  * @param NewPid

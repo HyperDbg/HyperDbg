@@ -103,7 +103,6 @@ KdUninitializeKernelDebugger()
     }
 }
 
-
 /**
  * @brief Handles NMIs in kernel-mode
  *
@@ -813,6 +812,7 @@ VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
     PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET         ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET     UserInputPacket;
@@ -962,6 +962,25 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     UnlockTheNewCore = FALSE;
                     SpinlockUnlock(&g_GuestState[ChangeCorePacket->NewCore].DebuggingState.Lock);
                 }
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS:
+
+                FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
+                                                                 sizeof(DEBUGGER_REMOTE_PACKET));
+                //
+                // Flush the buffers
+                //
+                DebuggerCommandFlush(FlushPacket);
+
+                //
+                // Send the result of flushing back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
+                                           FlushPacket,
+                                           sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
 
                 break;
 
