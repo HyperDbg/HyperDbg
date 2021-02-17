@@ -1114,7 +1114,31 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
 VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    DbgBreakPoint();
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
+    UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    {
+        //
+        // The guest is already in vmx-root mode
+        // Halt other cores
+        //
+        ContextAndTag.Tag     = Tag;
+        ContextAndTag.Context = Context;
+
+        KdHandleBreakpointAndDebugBreakpoints(
+            CurrentProcessorIndex,
+            Regs,
+            DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+            &ContextAndTag);
+    }
+    else
+    {
+        //
+        // The guest is on vmx non-root mode
+        //
+        AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+    }
 }
 
 /**

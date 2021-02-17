@@ -109,6 +109,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_CLEAR_ATTRIBUTES                                      \
   DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
+#define DEBUGGER_COMMAND_HELP_ATTRIBUTES                                       \
+  DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
+
 #define DEBUGGER_COMMAND_CONNECT_ATTRIBUTES                                    \
   DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 

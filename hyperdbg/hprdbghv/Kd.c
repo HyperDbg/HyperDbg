@@ -705,7 +705,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, TRUE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, EventDetails, TRUE);
 
     //
     // Clear the halting reason
@@ -773,7 +773,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, FALSE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, NULL, FALSE);
 }
 
 /**
@@ -1095,12 +1095,16 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param CurrentCore  
  * @param GuestRegs  
+ * @param EventDetails  
  * @param MainCore the core that triggered the event  
  * 
  * @return VOID 
  */
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
+KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
+                            PGUEST_REGS                       GuestRegs,
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                            BOOLEAN                           MainCore)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
     ULONG                  ExitInstructionLength = 0;
@@ -1137,6 +1141,14 @@ StartAgain:
         // Set the RIP
         //
         PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
+
+        //
+        // Set the event tag (if it's an event)
+        //
+        if (EventDetails != NULL)
+        {
+            PausePacket.EventTag = EventDetails->Tag;
+        }
 
         //
         // Read the instruction len

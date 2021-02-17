@@ -152,15 +152,24 @@ StartAgain:
       //
       g_CurrentRemoteCore = PausePacket->CurrentCore;
 
+      //
+      // Check whether the pausing was because of triggering an event
+      // or not
+      //
+      if (PausePacket->EventTag != NULL) {
+        ShowMessages("event 0x%x triggered\n",
+                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+      }
+
       HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                              PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
 
-      if (PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT ||
-          PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT ||
-          PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED) {
+      switch (PausePacket->PausingReason) {
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
 
         //
         // Unpause the debugger to get commands
@@ -168,16 +177,19 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
 
-      } else if (PausePacket->PausingReason ==
-                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED) {
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED:
+
         //
         // Signal the event relating to receiving result of core change
         //
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
 
-      } else if (PausePacket->PausingReason ==
-                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED) {
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED:
 
         //
         // Signal the event relating to result of command execution finished
@@ -186,15 +198,19 @@ StartAgain:
         SetEvent(
             g_SyncronizationObjectsHandleTable
                 [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
-      }
 
-      else {
+        break;
+
+      default:
+
         //
         // Signal the event relating to commands that are waiting for
         // the details of a halted debuggeee
         //
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+
+        break;
       }
 
       break;
