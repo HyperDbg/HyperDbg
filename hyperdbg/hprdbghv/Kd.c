@@ -210,10 +210,12 @@ BYTE
 KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
 {
     BYTE CalculatedCheckSum = 0;
-
+    BYTE Temp               = 0;
     while (Length--)
     {
-        CalculatedCheckSum = CalculatedCheckSum + *((BYTE *)((UINT32)Buffer + 1));
+        Temp               = *(BYTE *)Buffer;
+        CalculatedCheckSum = CalculatedCheckSum + Temp;
+        Buffer             = (PVOID)((UINT32)Buffer + 1);
     }
     return CalculatedCheckSum;
 }
