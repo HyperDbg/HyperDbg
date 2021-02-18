@@ -50,7 +50,7 @@ KdInitializeKernelDebugger()
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    HvEnableDbAndBpExitingAllCores();
+    //HvEnableDbAndBpExitingAllCores();
 
     //
     // Indicate that kernel debugger is active
@@ -215,7 +215,7 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
     {
         Temp               = *(BYTE *)Buffer;
         CalculatedCheckSum = CalculatedCheckSum + Temp;
-        Buffer             = (PVOID)((UINT32)Buffer + 1);
+        Buffer             = (PVOID)((UINT64)Buffer + 1);
     }
     return CalculatedCheckSum;
 }
@@ -880,7 +880,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
             //
             // Check checksum
             //
-            if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+            if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
                                       RecvBufferLength - sizeof(BYTE)) !=
                 TheActualPacket->Checksum)
             {

@@ -218,6 +218,7 @@ SerialConnectionCheckPort(UINT32 SerialPort)
 NTSTATUS
 SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
 {
+
     //
     // Check if baud rate is valid or not
     //

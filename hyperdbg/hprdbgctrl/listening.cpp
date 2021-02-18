@@ -87,7 +87,7 @@ StartAgain:
     //
     // Check checksum
     //
-    if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+    if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
                               LengthReceived - sizeof(BYTE)) !=
         TheActualPacket->Checksum) {
 
@@ -478,7 +478,7 @@ StartAgain:
     //
     // Check checksum
     //
-    if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+    if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
                               Loop - sizeof(BYTE)) !=
         TheActualPacket->Checksum) {
 

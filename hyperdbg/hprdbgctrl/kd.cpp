@@ -101,18 +101,16 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
  * @param LengthReceived
  * @return BYTE
  */
-BYTE
-KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
-{
-    BYTE CalculatedCheckSum = 0;
-    BYTE Temp = 0;
-    while (Length--)
-    {
-        Temp = *(BYTE*)Buffer;
-        CalculatedCheckSum = CalculatedCheckSum + Temp;
-        Buffer = (PVOID)((UINT32)Buffer + 1);
-    }
-    return CalculatedCheckSum;
+BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length) {
+
+  BYTE CalculatedCheckSum = 0;
+  BYTE Temp = 0;
+  while (Length--) {
+    Temp = *(BYTE *)Buffer;
+    CalculatedCheckSum = CalculatedCheckSum + Temp;
+    Buffer = (PVOID)((UINT64)Buffer + 1);
+  }
+  return CalculatedCheckSum;
 }
 
 /**
