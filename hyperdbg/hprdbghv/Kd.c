@@ -200,6 +200,25 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 }
 
 /**
+ * @brief calculate the checksum of recived buffer from debugger
+ *
+ * @param Buffer
+ * @param LengthReceived
+ * @return BYTE
+ */
+BYTE
+KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
+{
+    BYTE CalculatedCheckSum = 0;
+
+    while (Length--)
+    {
+        CalculatedCheckSum = CalculatedCheckSum + *((BYTE *)((UINT32)Buffer + 1));
+    }
+    return CalculatedCheckSum;
+}
+
+/**
  * @brief Sends a HyperDbg response packet to the debugger
  *
  * @param PacketType
@@ -239,10 +258,20 @@ KdResponsePacketToDebugger(
     //
     if (OptionalBuffer == NULL || OptionalBufferLength == 0)
     {
+        Packet.Checksum =
+            KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                                  sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
         SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
     }
     else
     {
+        Packet.Checksum =
+            KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                                  sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+        Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
+
         SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
     }
 
@@ -283,6 +312,13 @@ KdLoggingResponsePacketToDebugger(
     // if not we use the windows spinlock
     //
     SpinlockLock(&DebuggerResponseLock);
+
+    Packet.Checksum =
+        KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                              sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+    Packet.Checksum += KdComputeDataChecksum((PVOID)&OperationCode, sizeof(UINT32));
+    Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
 
     SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                      sizeof(DEBUGGER_REMOTE_PACKET),
@@ -839,6 +875,17 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
         if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
         {
+            //
+            // Check checksum
+            //
+            if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+                                      RecvBufferLength - sizeof(BYTE)) !=
+                TheActualPacket->Checksum)
+            {
+                LogError("err, checksum is invalid");
+                continue;
+            }
+
             //
             // Check if the packet type is correct
             //

@@ -95,6 +95,24 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
 }
 
 /**
+ * @brief calculate the checksum of recived buffer from debugger
+ *
+ * @param Buffer
+ * @param LengthReceived
+ * @return BYTE
+ */
+BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length) {
+
+  BYTE CalculatedCheckSum = 0;
+
+  while (Length--) {
+
+    CalculatedCheckSum = CalculatedCheckSum + *((BYTE *)((UINT32)Buffer + 1));
+  }
+  return CalculatedCheckSum;
+}
+
+/**
  * @brief Interpret the packets from debuggee in the case of paused
  *
  * @return VOID
@@ -716,6 +734,13 @@ BOOLEAN KdCommandPacketToDebuggee(
   //
   Packet.RequestedActionOfThePacket = RequestedAction;
 
+  //
+  // calculate checksum of the packet
+  //
+  Packet.Checksum =
+      KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                            sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
   if (!KdSendPacketToDebuggee((const CHAR *)&Packet,
                               sizeof(DEBUGGER_REMOTE_PACKET), TRUE)) {
     return FALSE;
@@ -748,6 +773,15 @@ BOOLEAN KdCommandPacketAndBufferToDebuggee(
   // Set the requested action
   //
   Packet.RequestedActionOfThePacket = RequestedAction;
+
+  //
+  // calculate checksum of the packet
+  //
+  Packet.Checksum =
+      KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                            sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+  Packet.Checksum += KdComputeDataChecksum((PVOID)Buffer, BufferLength);
 
   //
   // Send the first buffer (without ending buffer indication)

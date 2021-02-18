@@ -101,6 +101,8 @@ BOOLEAN KdSendUserInputPacketToDebuggee(const char *Sendbuf, int Len);
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
+BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length);
+
 VOID KdHandleUserInputInDebuggee(CHAR *Input);
 
 VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length);

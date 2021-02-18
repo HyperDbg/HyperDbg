@@ -85,6 +85,17 @@ StartAgain:
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
 
     //
+    // Check checksum
+    //
+    if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+                              LengthReceived - sizeof(BYTE)) !=
+        TheActualPacket->Checksum) {
+
+      ShowMessages("err checksum is invalid\n");
+      goto StartAgain;
+    }
+
+    //
     // Check if the packet type is correct
     //
     if (TheActualPacket->TypeOfThePacket !=
@@ -463,6 +474,17 @@ StartAgain:
   // ShowMessages("\n");
 
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
+
+    //
+    // Check checksum
+    //
+    if (KdComputeDataChecksum((PVOID)TheActualPacket->Indicator,
+                              Loop - sizeof(BYTE)) !=
+        TheActualPacket->Checksum) {
+
+      ShowMessages("err checksum is invalid\n");
+      goto StartAgain;
+    }
 
     //
     // Check if the packet type is correct
