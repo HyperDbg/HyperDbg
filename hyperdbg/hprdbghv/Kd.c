@@ -250,12 +250,6 @@ KdResponsePacketToDebugger(
     Packet.RequestedActionOfThePacket = Response;
 
     //
-    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
-    // if not we use the windows spinlock
-    //
-    SpinlockLock(&DebuggerResponseLock);
-
-    //
     // Send the serial packets to the debugger
     //
     if (OptionalBuffer == NULL || OptionalBufferLength == 0)
@@ -264,7 +258,15 @@ KdResponsePacketToDebugger(
             KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
                                   sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
 
+        //
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+        // if not we use the windows spinlock
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
         SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+
+        SpinlockUnlock(&DebuggerResponseLock);
     }
     else
     {
@@ -274,10 +276,16 @@ KdResponsePacketToDebugger(
 
         Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
 
-        SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
-    }
+        //
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+        // if not we use the windows spinlock
+        //
+        SpinlockLock(&DebuggerResponseLock);
 
-    SpinlockUnlock(&DebuggerResponseLock);
+        SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+
+        SpinlockUnlock(&DebuggerResponseLock);
+    }
 
     return TRUE;
 }
@@ -310,17 +318,20 @@ KdLoggingResponsePacketToDebugger(
     Packet.RequestedActionOfThePacket = DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM;
 
     //
-    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
-    // if not we use the windows spinlock
+    // Calculate checksum
     //
-    SpinlockLock(&DebuggerResponseLock);
-
     Packet.Checksum =
         KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
                               sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
 
     Packet.Checksum += KdComputeDataChecksum((PVOID)&OperationCode, sizeof(UINT32));
     Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
+
+    //
+    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+    // if not we use the windows spinlock
+    //
+    SpinlockLock(&DebuggerResponseLock);
 
     SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                      sizeof(DEBUGGER_REMOTE_PACKET),
