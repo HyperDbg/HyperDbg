@@ -64,7 +64,7 @@
 //
 #include "Configuration.h"
 #include "Definition.h"
-#include "commands.h"
+#include "commands1.h"
 #include "common.h"
 #include "debugger.h"
 #include "exports.h"

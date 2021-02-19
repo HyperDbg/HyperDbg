@@ -22,6 +22,9 @@ extern HANDLE
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+    g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
@@ -217,13 +220,85 @@ BOOLEAN KdSendFlushPacketToDebuggee() {
   }
 
   //
-  // Wait until the result of flush received
+  // Wait until the result of flushing received
   //
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
                           [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT],
                       INFINITE);
 
   return TRUE;
+}
+
+/**
+ * @brief Send a register event request to the debuggee
+ * @details as this command uses one global variable to transfer the buffers
+ * so should not be called simultaneously
+ * @param Event
+ * @param EventBufferLength
+ *
+ * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ */
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                                    UINT32 EventBufferLength) {
+
+  RtlZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
+                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+  //
+  // Send register event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT,
+          (CHAR *)Event, EventBufferLength)) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of registering received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT],
+                      INFINITE);
+
+  return &g_DebuggeeResultOfRegisteringEvent;
+}
+
+/**
+ * @brief Send an add action to event request to the debuggee
+ * @details as this command uses one global variable to transfer the buffers
+ * so should not be called simultaneously
+ * @param GeneralAction
+ * @param GeneralActionLength
+ *
+ * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ */
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
+                                       UINT32 GeneralActionLength) {
+
+  RtlZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
+                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+  //
+  // Send add action to event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT,
+          (CHAR *)GeneralAction, GeneralActionLength)) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of adding action to event received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT],
+                      INFINITE);
+
+  return &g_DebuggeeResultOfAddingActionsToEvent;
 }
 
 /**

@@ -1357,35 +1357,56 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   return TRUE;
   */
 
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return FALSE;
-  }
+  if (g_IsSerialConnectedToRemoteDebuggee) {
 
-  //
-  // Send IOCTL
-  //
+    //
+    // It's a debuggger, we should send the events buffer directly
+    // from here
+    //
 
-  Status =
-      DeviceIoControl(g_DeviceHandle,                // Handle to device
-                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
-                      Event,                         // Input Buffer to driver.
-                      EventBufferLength,             // Input buffer length
-                      &ReturnedBuffer, // Output Buffer from driver.
-                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                    // of
-                                                                    // output
-                                                                    // buffer
-                                                                    // in
-                                                                    // bytes.
-                      &ReturnedLength, // Bytes placed in buffer.
-                      NULL             // synchronous call
-      );
+    //
+    // Send the buffer from here
+    //
+    memcpy(&ReturnedBuffer,
+           KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength),
+           sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return FALSE;
+  } else {
+    //
+    // It's either a debuggee or a local debugging instance
+    //
+
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return FALSE;
+    }
+
+    //
+    // Send IOCTL
+    //
+
+    Status =
+        DeviceIoControl(g_DeviceHandle,                // Handle to device
+                        IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                        Event,             // Input Buffer to driver.
+                        EventBufferLength, // Input buffer length
+                        &ReturnedBuffer,   // Output Buffer from driver.
+                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                      // of
+                                                                      // output
+                                                                      // buffer
+                                                                      // in
+                                                                      // bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
   }
 
   if (ReturnedBuffer.IsSuccessful && ReturnedBuffer.Error == 0) {
@@ -1447,109 +1468,183 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
   ULONG ReturnedLength;
   DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
 
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return FALSE;
-  }
-
-  //
-  // Send IOCTLs
-  //
-
-  //
-  // Send Break to debugger ioctl
-  //
-  if (ActionBreakToDebugger != NULL) {
-    Status =
-        DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-                        ActionBreakToDebugger,       // Input Buffer to driver.
-                        ActionBreakToDebuggerLength, // Input buffer length
-                        &ReturnedBuffer, // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                      // of
-                                                                      // output
-                                                                      // buffer
-                                                                      // in
-                                                                      // bytes.
-                        &ReturnedLength, // Bytes placed in buffer.
-                        NULL             // synchronous call
-        );
+  if (g_IsSerialConnectedToRemoteDebuggee) {
 
     //
-    // The action buffer is allocated once using malloc and
-    // is not used anymore, we have to free it
+    // It's action(s) in debugger mode
     //
-    free(ActionBreakToDebugger);
 
-    if (!Status) {
-      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    //
+    // Send Break to debugger packet to debuggee
+    //
+    if (ActionBreakToDebugger != NULL) {
+
+      //
+      // Send the add action to event from here
+      //
+      memcpy(&ReturnedBuffer,
+             KdSendAddActionToEventPacketToDebuggee(
+                 ActionBreakToDebugger, ActionBreakToDebuggerLength),
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionBreakToDebugger);
+    }
+
+    //
+    // Send custom code packet to debuggee
+    //
+    if (ActionCustomCode != NULL) {
+
+      //
+      // Send the add action to event from here
+      //
+      memcpy(&ReturnedBuffer,
+             KdSendAddActionToEventPacketToDebuggee(ActionCustomCode,
+                                                    ActionCustomCodeLength),
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionCustomCode);
+    }
+
+    //
+    // Send custom code packet to debuggee
+    //
+    if (ActionScript != NULL) {
+
+      //
+      // Send the add action to event from here
+      //
+      memcpy(&ReturnedBuffer,
+             KdSendAddActionToEventPacketToDebuggee(ActionScript,
+                                                    ActionScriptLength),
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionScript);
+    }
+
+  } else {
+
+    //
+    // It's either a local debugger to in vmi-mode remote conntection
+    //
+
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
       return FALSE;
     }
-  }
-
-  //
-  // Send custom code ioctl
-  //
-  if (ActionCustomCode != NULL) {
-    Status =
-        DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-                        ActionCustomCode,       // Input Buffer to driver.
-                        ActionCustomCodeLength, // Input buffer length
-                        &ReturnedBuffer,        // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                      // of
-                                                                      // output
-                                                                      // buffer
-                                                                      // in
-                                                                      // bytes.
-                        &ReturnedLength, // Bytes placed in buffer.
-                        NULL             // synchronous call
-        );
 
     //
-    // The action buffer is allocated once using malloc and
-    // is not used anymore, we have to free it
+    // Send IOCTLs
     //
-    free(ActionCustomCode);
 
-    if (!Status) {
-      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-      return FALSE;
+    //
+    // Send Break to debugger ioctl
+    //
+    if (ActionBreakToDebugger != NULL) {
+      Status = DeviceIoControl(
+          g_DeviceHandle,                     // Handle to device
+          IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+          ActionBreakToDebugger,              // Input Buffer to driver.
+          ActionBreakToDebuggerLength,        // Input buffer length
+          &ReturnedBuffer,                    // Output Buffer from driver.
+          sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                        // of
+                                                        // output
+                                                        // buffer
+                                                        // in
+                                                        // bytes.
+          &ReturnedLength, // Bytes placed in buffer.
+          NULL             // synchronous call
+      );
+
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionBreakToDebugger);
+
+      if (!Status) {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+      }
     }
-  }
-
-  //
-  // Send custom code ioctl
-  //
-  if (ActionScript != NULL) {
-    Status =
-        DeviceIoControl(g_DeviceHandle,                     // Handle to device
-                        IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
-                        ActionScript,       // Input Buffer to driver.
-                        ActionScriptLength, // Input buffer length
-                        &ReturnedBuffer,    // Output Buffer from driver.
-                        sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
-                                                                      // of
-                                                                      // output
-                                                                      // buffer
-                                                                      // in
-                                                                      // bytes.
-                        &ReturnedLength, // Bytes placed in buffer.
-                        NULL             // synchronous call
-        );
 
     //
-    // The action buffer is allocated once using malloc and
-    // is not used anymore, we have to free it
+    // Send custom code ioctl
     //
-    free(ActionScript);
+    if (ActionCustomCode != NULL) {
+      Status = DeviceIoControl(
+          g_DeviceHandle,                     // Handle to device
+          IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+          ActionCustomCode,                   // Input Buffer to driver.
+          ActionCustomCodeLength,             // Input buffer length
+          &ReturnedBuffer,                    // Output Buffer from driver.
+          sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                        // of
+                                                        // output
+                                                        // buffer
+                                                        // in
+                                                        // bytes.
+          &ReturnedLength, // Bytes placed in buffer.
+          NULL             // synchronous call
+      );
 
-    if (!Status) {
-      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-      return FALSE;
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionCustomCode);
+
+      if (!Status) {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+      }
+    }
+
+    //
+    // Send custom code ioctl
+    //
+    if (ActionScript != NULL) {
+      Status = DeviceIoControl(
+          g_DeviceHandle,                     // Handle to device
+          IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+          ActionScript,                       // Input Buffer to driver.
+          ActionScriptLength,                 // Input buffer length
+          &ReturnedBuffer,                    // Output Buffer from driver.
+          sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                        // of
+                                                        // output
+                                                        // buffer
+                                                        // in
+                                                        // bytes.
+          &ReturnedLength, // Bytes placed in buffer.
+          NULL             // synchronous call
+      );
+
+      //
+      // The action buffer is allocated once using malloc and
+      // is not used anymore, we have to free it
+      //
+      free(ActionScript);
+
+      if (!Status) {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+      }
     }
   }
 

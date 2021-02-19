@@ -90,6 +90,14 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
 BOOLEAN KdSendFlushPacketToDebuggee();
 
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                                    UINT32 EventBufferLength);
+
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
+                                       UINT32 GeneralActionLength);
+
 BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
                                             UINT32 NewPid);
 

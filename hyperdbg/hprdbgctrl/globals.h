@@ -175,6 +175,19 @@ BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
 HANDLE g_DebuggeeStopCommandEventHandle = NULL;
 
 /**
+ * @brief Holds the result of registering events from the remote debuggee
+ *
+ */
+DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent = {0};
+
+/**
+ * @brief Holds the result of adding action to events from the remote debuggee
+ *
+ */
+DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
+    0};
+
+/**
  * @brief This is an OVERLAPPED structure for managing simultaneous
  * read and writes for debugger (in current design debuggee is not needed
  * to read and write simultaneously)
