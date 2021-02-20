@@ -242,6 +242,32 @@ PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                     UINT32 EventBufferLength) {
 
+  PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Header;
+  UINT32 Len;
+
+  Len = EventBufferLength +
+        sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET);
+
+  Header = (PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)malloc(Len);
+
+  if (Header == NULL) {
+    return NULL;
+  }
+
+  RtlZeroMemory(Header, Len);
+
+  //
+  // Set length in header
+  //
+  Header->Length = EventBufferLength;
+
+  //
+  // Move buffer
+  //
+  memcpy((PVOID)((UINT64)Header +
+                 sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+         (PVOID)Event, EventBufferLength);
+
   RtlZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
@@ -251,8 +277,10 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   if (!KdCommandPacketAndBufferToDebuggee(
           DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT,
-          (CHAR *)Event, EventBufferLength)) {
-    return FALSE;
+          (CHAR *)Header, Len)) {
+
+    free(Header);
+    return NULL;
   }
 
   //
@@ -261,6 +289,8 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
                           [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT],
                       INFINITE);
+
+  free(Header);
 
   return &g_DebuggeeResultOfRegisteringEvent;
 }
@@ -278,6 +308,32 @@ PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
                                        UINT32 GeneralActionLength) {
 
+  PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Header;
+  UINT32 Len;
+
+  Len = GeneralActionLength +
+        sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET);
+
+  Header = (PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)malloc(Len);
+
+  if (Header == NULL) {
+    return NULL;
+  }
+
+  RtlZeroMemory(Header, Len);
+
+  //
+  // Set length in header
+  //
+  Header->Length = GeneralActionLength;
+
+  //
+  // Move buffer
+  //
+  memcpy((PVOID)((UINT64)Header +
+                 sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+         (PVOID)GeneralAction, GeneralActionLength);
+
   RtlZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
                 sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
@@ -287,8 +343,10 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
   if (!KdCommandPacketAndBufferToDebuggee(
           DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT,
-          (CHAR *)GeneralAction, GeneralActionLength)) {
-    return FALSE;
+          (CHAR *)Header, Len)) {
+
+    free(Header);
+    return NULL;
   }
 
   //
@@ -297,6 +355,8 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
                           [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT],
                       INFINITE);
+
+  free(Header);
 
   return &g_DebuggeeResultOfAddingActionsToEvent;
 }

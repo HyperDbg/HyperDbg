@@ -850,6 +850,30 @@ KdStepInstruction(ULONG CoreId)
 }
 
 /**
+ * @brief Send event registeration buffer to user-mode to register the event
+ * @param EventDetailHeader 
+ * 
+ * @return VOID 
+ */
+VOID
+KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
+{
+    DbgBreakPoint();
+}
+
+/**
+ * @brief Send action buffer to user-mode to be added to the event
+ * @param ActionDetailHeader 
+ * 
+ * @return VOID 
+ */
+VOID
+KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
+{
+    DbgBreakPoint();
+}
+
+/**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
  * @param CurrentCore  
@@ -860,12 +884,14 @@ KdStepInstruction(ULONG CoreId)
 VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
-    PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
-    PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
-    PDEBUGGEE_SCRIPT_PACKET         ScriptPacket;
-    PDEBUGGEE_USER_INPUT_PACKET     UserInputPacket;
-    BOOLEAN                         UnlockTheNewCore = FALSE;
+    PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
+    PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
+    PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
+    PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
+    PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
+    BOOLEAN                                             UnlockTheNewCore = FALSE;
 
     while (TRUE)
     {
@@ -1118,6 +1144,42 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket + sizeof(DEBUGGEE_USER_INPUT_PACKET)),
                                              UserInputPacket->CommandLen);
+
+                //
+                // Continue Debuggee
+                //
+                KdContinueDebuggee();
+                EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT:
+
+                EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) +
+                                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Send the event buffer to user-mode debuggee
+                //
+                KdPerformRegisterEvent(EventRegPacket);
+
+                //
+                // Continue Debuggee
+                //
+                KdContinueDebuggee();
+                EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT:
+
+                AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) +
+                                                              sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Send the action buffer to user-mode debuggee
+                //
+                KdPerformAddActionToEvent(AddActionPacket);
 
                 //
                 // Continue Debuggee

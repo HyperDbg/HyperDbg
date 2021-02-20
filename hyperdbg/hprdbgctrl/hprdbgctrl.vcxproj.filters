@@ -99,7 +99,7 @@
     <ClInclude Include="kd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="commands1.h">
+    <ClInclude Include="commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

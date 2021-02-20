@@ -1147,6 +1147,21 @@ typedef struct _DEBUGGEE_USER_INPUT_PACKET {
 
 } DEBUGGEE_USER_INPUT_PACKET, *PDEBUGGEE_USER_INPUT_PACKET;
 
+/**
+ * @brief The structure of user-input packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET {
+
+  UINT32 Length;
+
+  //
+  // The buffer for event and action is here
+  //
+
+} DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET,
+    *PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET;
+
 //////////////////////////////////////////////////
 //		    	Debugger Success Codes          //
 //////////////////////////////////////////////////

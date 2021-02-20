@@ -23,6 +23,9 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern ULONG g_CurrentRemoteCore;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+    g_DebuggeeResultOfAddingActionsToEvent;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -38,6 +41,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
+  PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
 
@@ -356,6 +360,46 @@ StartAgain:
 
         ShowErrorMessage(FormatsPacket->Result);
       }
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
+
+      EventAndActionPacket =
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGEE_FORMATS_PACKET));
+
+      //
+      // Move the buffer to the global variable
+      //
+      memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket,
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // Signal the event relating to receiving result of register event
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
+
+      EventAndActionPacket =
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGEE_FORMATS_PACKET));
+
+      //
+      // Move the buffer to the global variable
+      //
+      memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket,
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // Signal the event relating to receiving result of adding action to event
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]);
 
       break;
 
