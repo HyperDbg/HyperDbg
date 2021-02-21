@@ -1474,6 +1474,104 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
 }
 
 /**
+ * @brief Send general buffer from debuggee to debugger
+ * @param RequestedAction
+ * @param Buffer
+ * @param Length
+ * @param PauseDebuggeeWhenSent
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendGeneralBuffersFromDebuggeeToDebugger(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, PVOID Buffer,
+    UINT32 BufferLength, BOOLEAN PauseDebuggeeWhenSent) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER
+  GeneralPacketFromDebuggeeToDebuggerRequest;
+  UINT32 Length;
+
+  //
+  // Compute the length of the packet (add to header )
+  //
+  Length = sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER) +
+           BufferLength;
+
+  //
+  // Allocate the target buffer
+  //
+  GeneralPacketFromDebuggeeToDebuggerRequest =
+      (PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)malloc(Length);
+
+  if (GeneralPacketFromDebuggeeToDebuggerRequest == NULL) {
+    //
+    // err, allocating buffer
+    //
+    return FALSE;
+  }
+
+  RtlZeroMemory(GeneralPacketFromDebuggeeToDebuggerRequest, Length);
+
+  //
+  // Fill the header structure
+  //
+  GeneralPacketFromDebuggeeToDebuggerRequest->RequestedAction = RequestedAction;
+  GeneralPacketFromDebuggeeToDebuggerRequest->LengthOfBuffer = BufferLength;
+  GeneralPacketFromDebuggeeToDebuggerRequest->PauseDebuggeeWhenSent =
+      PauseDebuggeeWhenSent;
+
+  //
+  // Move the memory to the bottom of the structure
+  //
+  memcpy(
+      (PVOID)((UINT64)GeneralPacketFromDebuggeeToDebuggerRequest +
+              sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
+      (PVOID)Buffer, BufferLength);
+
+  //
+  // Send Ioctl to the kernel
+  //
+  Status = DeviceIoControl(
+      g_DeviceHandle,                                      // Handle to device
+      IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER, // IO Control code
+      GeneralPacketFromDebuggeeToDebuggerRequest, // Input Buffer to driver.
+      Length,                                     // Input buffer
+                                                  // length
+      GeneralPacketFromDebuggeeToDebuggerRequest, // Output Buffer from driver.
+      SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER, // Length
+                                                                     // of
+                                                                     // output
+                                                                     // buffer
+                                                                     // in
+                                                                     // bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult !=
+      DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
+
+    //
+    // Free the buffer
+    //
+    free(GeneralPacketFromDebuggeeToDebuggerRequest);
+
+    return FALSE;
+  }
+
+  free(GeneralPacketFromDebuggeeToDebuggerRequest);
+  return TRUE;
+}
+
+/**
  * @brief Send close packet to the debuggee and debugger
  * @details This function close the connection in both debuggee and debugger
  * both of the debuggee and debugger can use this function
@@ -1550,6 +1648,111 @@ BOOLEAN KdCloseConnection() {
   KdUninitializeConnection();
 
   return TRUE;
+}
+
+/**
+ * @brief Register an event in the debuggee
+ * @param EventRegBuffer
+ * @param Length
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
+                                  UINT32 Length) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+  Status =
+      DeviceIoControl(g_DeviceHandle,                // Handle to device
+                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                      EventRegBuffer,
+                      Length           // Input Buffer to driver.
+                      ,                // Input buffer length
+                      &ReturnedBuffer, // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Now that we registered the event (with or without error),
+  // we should send the results back to the debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
+      &ReturnedBuffer, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), TRUE);
+}
+
+/**
+ * @brief Add action to an event in the debuggee
+ * @param ActionAddingBuffer
+ * @param Length
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
+                             UINT32 Length) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  Status =
+      DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                      ActionAddingBuffer, // Input Buffer to driver.
+                      Length,             // Input buffer length
+                      &ReturnedBuffer,    // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Now that we added the action to the event, we should send the
+  // results to the debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
+      &ReturnedBuffer, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), TRUE);
 }
 
 /**

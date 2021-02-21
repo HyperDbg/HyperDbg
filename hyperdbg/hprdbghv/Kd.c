@@ -858,7 +858,9 @@ KdStepInstruction(ULONG CoreId)
 VOID
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
 {
-    DbgBreakPoint();
+    LogSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
+                  ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                  EventDetailHeader->Length);
 }
 
 /**
@@ -870,7 +872,9 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 VOID
 KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
 {
-    DbgBreakPoint();
+    LogSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
+                  ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                  ActionDetailHeader->Length);
 }
 
 /**

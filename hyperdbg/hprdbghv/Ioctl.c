@@ -22,32 +22,33 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-    PIO_STACK_LOCATION                               IrpStack;
-    PREGISTER_NOTIFY_BUFFER                          RegisterEventRequest;
-    PDEBUGGER_READ_MEMORY                            DebuggerReadMemRequest;
-    PDEBUGGER_READ_AND_WRITE_ON_MSR                  DebuggerReadOrWriteMsrRequest;
-    PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE     DebuggerHideAndUnhideRequest;
-    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS        DebuggerPteRequest;
-    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS               DebuggerVa2paAndPa2vaRequest;
-    PDEBUGGER_EDIT_MEMORY                            DebuggerEditMemoryRequest;
-    PDEBUGGER_SEARCH_MEMORY                          DebuggerSearchMemoryRequest;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER            RegBufferResult;
-    PDEBUGGER_GENERAL_EVENT_DETAIL                   DebuggerNewEventRequest;
-    PDEBUGGER_MODIFY_EVENTS                          DebuggerModifyEventRequest;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS                  DebuggerFlushBuffersRequest;
-    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerCommandExecutionFinishedRequest;
-    PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER     DebuggerSendUsermodeMessageRequest;
-    PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS        DebuggerAttachOrDetachToThreadRequest;
-    PDEBUGGER_STEPPINGS                              DebuggerSteppingsRequest;
-    PDEBUGGER_PREPARE_DEBUGGEE                       DebuggeeRequest;
-    PDEBUGGER_PAUSE_PACKET_RECEIVED                  DebuggerPauseKernelRequest;
-    PDEBUGGER_GENERAL_ACTION                         DebuggerNewActionRequest;
-    NTSTATUS                                         Status;
-    ULONG                                            InBuffLength;  // Input buffer length
-    ULONG                                            OutBuffLength; // Output buffer length
-    SIZE_T                                           ReturnSize;
-    BOOLEAN                                          DoNotChangeInformation = FALSE;
-    UINT32                                           SizeOfPrintRequestToBeDeliveredToUsermode;
+    PIO_STACK_LOCATION                                      IrpStack;
+    PREGISTER_NOTIFY_BUFFER                                 RegisterEventRequest;
+    PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
+    PDEBUGGER_READ_AND_WRITE_ON_MSR                         DebuggerReadOrWriteMsrRequest;
+    PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE            DebuggerHideAndUnhideRequest;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS               DebuggerPteRequest;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                      DebuggerVa2paAndPa2vaRequest;
+    PDEBUGGER_EDIT_MEMORY                                   DebuggerEditMemoryRequest;
+    PDEBUGGER_SEARCH_MEMORY                                 DebuggerSearchMemoryRequest;
+    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER                   RegBufferResult;
+    PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
+    PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
+    PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
+    PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
+    PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
+    PDEBUGGER_STEPPINGS                                     DebuggerSteppingsRequest;
+    PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
+    PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
+    PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
+    NTSTATUS                                                Status;
+    ULONG                                                   InBuffLength;  // Input buffer length
+    ULONG                                                   OutBuffLength; // Output buffer length
+    SIZE_T                                                  ReturnSize;
+    BOOLEAN                                                 DoNotChangeInformation = FALSE;
+    UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -957,6 +958,62 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandSendMessage(DebuggerSendUsermodeMessageRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerSendBufferFromDebuggeeToDebuggerRequest =
+                (PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Second validation phase
+            //
+            if (DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer == NULL ||
+                IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
+                    SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER +
+                        DebuggerSendBufferFromDebuggeeToDebuggerRequest->LengthOfBuffer)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Perform the signal operation
+            //
+            DebuggerCommandSendGeneralBufferToDebugger(DebuggerSendBufferFromDebuggeeToDebuggerRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER;
             Status                    = STATUS_SUCCESS;
 
             //

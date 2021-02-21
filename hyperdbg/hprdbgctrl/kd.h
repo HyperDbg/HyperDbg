@@ -113,7 +113,18 @@ BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length);
 
 VOID KdHandleUserInputInDebuggee(CHAR *Input);
 
+BOOLEAN KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
+                                  UINT32 Length);
+
+BOOLEAN
+KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
+                             UINT32 Length);
+
 VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length);
+
+BOOLEAN KdSendGeneralBuffersFromDebuggeeToDebugger(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, PVOID Buffer,
+    UINT32 BufferLength, BOOLEAN PauseDebuggeeWhenSent);
 
 BOOLEAN KdCloseConnection();
 

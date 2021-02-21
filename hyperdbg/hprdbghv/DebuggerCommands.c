@@ -862,7 +862,7 @@ NTSTATUS
 DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER DebuggerSendUsermodeMessageRequest)
 {
     //
-    // It's better to send the signal from vmx-root mode
+    // It's better to send the signal from vmx-root mode to avoid deadlock
     //
     AsmVmxVmcall(VMCALL_SEND_MESSAGES_TO_DEBUGGER,
                  (UINT64)DebuggerSendUsermodeMessageRequest + (SIZEOF_DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER),
@@ -870,6 +870,28 @@ DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER Debugger
                  0);
 
     DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Send general buffers from the debuggee to the debugger
+ * 
+ * @param DebuggeeBufferRequest Request to buffer that will be sent to the debugger
+ * @return NTSTATUS 
+ */
+NTSTATUS
+DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest)
+{
+    //
+    // It's better to send the signal from vmx-root mode to avoid deadlock
+    //
+    AsmVmxVmcall(VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER,
+                 DebuggeeBufferRequest,
+                 0,
+                 0);
+
+    DebuggeeBufferRequest->KernelResult = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }

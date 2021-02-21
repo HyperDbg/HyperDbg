@@ -108,7 +108,7 @@ StartAgain:
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
       //
-      ShowMessages("err, unknown packet received from the debugger\n");
+      ShowMessages("err, unknown packet received from the debuggee\n");
       goto StartAgain;
     }
 
@@ -176,8 +176,11 @@ StartAgain:
                      PausePacket->EventTag - DebuggerEventTagStartSeed);
       }
 
-      HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                             PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+      if (PausePacket->PausingReason !=
+          DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM) {
+        HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                               PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+      }
 
       switch (PausePacket->PausingReason) {
 
@@ -185,6 +188,7 @@ StartAgain:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
+      case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
 
         //
         // Unpause the debugger to get commands

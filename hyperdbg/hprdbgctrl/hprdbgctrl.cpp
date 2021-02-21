@@ -240,7 +240,22 @@ void ReadIrpBasedBuffer() {
           break;
 
         case OPERATION_DEBUGGEE_USER_INPUT:
+
           KdHandleUserInputInDebuggee(OutputBuffer + sizeof(UINT32));
+          break;
+
+        case OPERATION_DEBUGGEE_REGISTER_EVENT:
+
+          KdRegisterEventInDebuggee(
+              (PDEBUGGER_GENERAL_EVENT_DETAIL)(OutputBuffer + sizeof(UINT32)),
+              ReturnedLength);
+          break;
+
+        case OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT:
+
+          KdAddActionToEventInDebuggee(
+              (PDEBUGGER_GENERAL_ACTION)(OutputBuffer + sizeof(UINT32)),
+              ReturnedLength);
           break;
 
         default:
