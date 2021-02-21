@@ -1338,6 +1338,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   BOOL Status;
   ULONG ReturnedLength;
   DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+  PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempRegResult;
 
   //
   // Test
@@ -1367,8 +1368,13 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     //
     // Send the buffer from here
     //
-    memcpy(&ReturnedBuffer,
-           KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength),
+    TempRegResult =
+        KdSendRegisterEventPacketToDebuggee(Event, EventBufferLength);
+
+    //
+    // Move the buffer to local buffer
+    //
+    memcpy(&ReturnedBuffer, TempRegResult,
            sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
   } else {
@@ -1444,6 +1450,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     if (ReturnedBuffer.Error != 0) {
       ShowErrorMessage(ReturnedBuffer.Error);
     }
+    return FALSE;
   }
 
   return TRUE;
@@ -1467,6 +1474,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
   BOOL Status;
   ULONG ReturnedLength;
   DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+  PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempAddingResult;
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
 
@@ -1482,9 +1490,13 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
       //
       // Send the add action to event from here
       //
-      memcpy(&ReturnedBuffer,
-             KdSendAddActionToEventPacketToDebuggee(
-                 ActionBreakToDebugger, ActionBreakToDebuggerLength),
+      TempAddingResult = KdSendAddActionToEventPacketToDebuggee(
+          ActionBreakToDebugger, ActionBreakToDebuggerLength);
+
+      //
+      // Move the buffer to local buffer
+      //
+      memcpy(&ReturnedBuffer, TempAddingResult,
              sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
       //
@@ -1502,9 +1514,13 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
       //
       // Send the add action to event from here
       //
-      memcpy(&ReturnedBuffer,
-             KdSendAddActionToEventPacketToDebuggee(ActionCustomCode,
-                                                    ActionCustomCodeLength),
+      TempAddingResult = KdSendAddActionToEventPacketToDebuggee(
+          ActionCustomCode, ActionCustomCodeLength);
+
+      //
+      // Move the buffer to local buffer
+      //
+      memcpy(&ReturnedBuffer, TempAddingResult,
              sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
       //
@@ -1522,9 +1538,13 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
       //
       // Send the add action to event from here
       //
-      memcpy(&ReturnedBuffer,
-             KdSendAddActionToEventPacketToDebuggee(ActionScript,
-                                                    ActionScriptLength),
+      TempAddingResult = KdSendAddActionToEventPacketToDebuggee(
+          ActionScript, ActionScriptLength);
+
+      //
+      // Move the buffer to local buffer
+      //
+      memcpy(&ReturnedBuffer, TempAddingResult,
              sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
       //

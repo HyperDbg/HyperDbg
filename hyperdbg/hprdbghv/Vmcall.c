@@ -413,6 +413,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest =
             OptionalParam1;
 
+        DbgBreakPoint();
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DebuggeeBufferRequest->RequestedAction,
                                    (UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),

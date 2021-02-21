@@ -351,7 +351,7 @@ StartAgain:
 
       FormatsPacket =
           (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) +
-                                      sizeof(DEBUGGEE_FORMATS_PACKET));
+                                      sizeof(DEBUGGER_REMOTE_PACKET));
 
       if (FormatsPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
 
@@ -370,13 +370,14 @@ StartAgain:
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
 
       EventAndActionPacket =
-          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGEE_FORMATS_PACKET));
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                   sizeof(
+                                                       DEBUGGER_REMOTE_PACKET));
 
       //
       // Move the buffer to the global variable
       //
-      memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket,
+      memcpy(&g_DebuggeeResultOfRegisteringEvent, EventAndActionPacket,
              sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
 
       //
@@ -390,8 +391,9 @@ StartAgain:
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
 
       EventAndActionPacket =
-          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGEE_FORMATS_PACKET));
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                   sizeof(
+                                                       DEBUGGER_REMOTE_PACKET));
 
       //
       // Move the buffer to the global variable
