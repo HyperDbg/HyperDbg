@@ -116,7 +116,77 @@ VOID CommandEvents(vector<string> SplittedCommand, string Command) {
   if (RequestedTag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
     RequestedTag = RequestedTag + DebuggerEventTagStartSeed;
   }
+
+  //
+  // Perform event related tasks
+  //
   CommandEventsModifyEvents(RequestedTag, RequestedAction);
+}
+
+/**
+ * @brief Check the kernel whether the event is enabled or disabled
+ *
+ * @param Tag the tag of the target event
+ * @return BOOLEAN if the event was enabled and false if event was
+ * disabled
+ */
+BOOLEAN CommandEventQueryEventState(UINT64 Tag) {
+
+  BOOLEAN Status;
+  ULONG ReturnedLength;
+  DEBUGGER_QUERY_EVENT_STATE QueryEventStateRequest = {0};
+
+  //
+  // Check if debugger is loaded or not
+  //
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  //
+  // Fill the structure to send it to the kernel
+  //
+  QueryEventStateRequest.Tag = Tag;
+
+  //
+  // Send the request to the kernel
+  //
+  Status =
+      DeviceIoControl(g_DeviceHandle,                   // Handle to device
+                      IOCTL_DEBUGGER_QUERY_EVENT_STATE, // IO Control code
+                      &QueryEventStateRequest, // Input Buffer to driver.
+                      SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Input buffer length
+                      &QueryEventStateRequest, // Output Buffer from driver.
+                      SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Length of output
+                                                         // buffer in bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  if (QueryEventStateRequest.KernelStatus ==
+      DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    if (QueryEventStateRequest.IsEnabled) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+
+  } else {
+    ShowMessages("err, enable to query the event's state\n");
+  }
+
+  //
+  // By default, disabled, even if there was an error
+  //
+  return FALSE;
 }
 
 /**
@@ -143,7 +213,10 @@ VOID CommandEventsShowEvents() {
 
     ShowMessages("%x\t(%s)\t    %s\n",
                  CommandDetail->Tag - DebuggerEventTagStartSeed,
-                 CommandDetail->IsEnabled ? "enabled" : "disabled",
+                 // CommandDetail->IsEnabled ? "enabled" : "disabled",
+                 CommandEventQueryEventState(CommandDetail->Tag)
+                     ? "enabled"
+                     : "disabled", /* Query is live now */
                  CommandDetail->CommandStringBuffer);
 
     if (!IsThereAnyEvents) {

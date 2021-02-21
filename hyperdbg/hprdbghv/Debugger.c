@@ -1386,6 +1386,35 @@ DebuggerEnableEvent(UINT64 Tag)
 }
 
 /**
+ * @brief returns whether an event is enabled/disabled by tag
+ * @details this function won't check for Tag validity and if
+ * not found then returns false
+ * 
+ * @param Tag Tag of target event
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * found
+ */
+BOOLEAN
+DebuggerQueryStateEvent(UINT64 Tag)
+{
+    PDEBUGGER_EVENT Event;
+    //
+    // Search all the cores for enable this event
+    //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Check if tag is valid or not
+    //
+    if (Event == NULL)
+    {
+        return FALSE;
+    }
+
+    return Event->Enabled;
+}
+
+/**
  * @brief Disable an event by tag
  * 
  * @param Tag Tag of target event
@@ -2741,6 +2770,45 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     // The function was successful
     //
     DebuggerEventModificationRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    return TRUE;
+}
+
+/**
+ * @brief Query the state of an event (enabled/disalbed)
+ * 
+ * @param DebuggerQueryEventStateRequest event modification request details
+ * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
+ * an error
+ */
+BOOLEAN
+DebuggerQueryEventState(PDEBUGGER_QUERY_EVENT_STATE DebuggerQueryEventStateRequest)
+{
+    //
+    // check if tag is valid or not
+    //
+    if (!DebuggerIsTagValid(DebuggerQueryEventStateRequest->Tag))
+    {
+        DebuggerQueryEventStateRequest->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+        return FALSE;
+    }
+
+    //
+    // Set event state
+    //
+    if (DebuggerQueryStateEvent(DebuggerQueryEventStateRequest->Tag))
+    {
+        DebuggerQueryEventStateRequest->IsEnabled = TRUE;
+    }
+    else
+    {
+        DebuggerQueryEventStateRequest->IsEnabled = FALSE;
+    }
+
+    //
+    // The function was successful
+    //
+    DebuggerQueryEventStateRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
     return TRUE;
 }
 

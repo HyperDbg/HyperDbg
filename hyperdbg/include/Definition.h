@@ -480,6 +480,7 @@ typedef struct _REGISTER_NOTIFY_BUFFER {
 
 /* ==============================================================================================
  */
+
 #define SIZEOF_DEBUGGER_MODIFY_EVENTS sizeof(DEBUGGER_MODIFY_EVENTS)
 
 /* Constants */
@@ -507,6 +508,23 @@ typedef struct _DEBUGGER_MODIFY_EVENTS {
   TypeOfAction; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_QUERY_EVENT_STATE sizeof(DEBUGGER_QUERY_EVENT_STATE)
+
+/**
+ * @brief query whether the event is enabled or disabled
+ *
+ */
+typedef struct _DEBUGGER_QUERY_EVENT_STATE {
+
+  UINT64 Tag;          // Tag of the target event that we want to query about it
+  UINT64 KernelStatus; // Kerenl put the status in this field
+  BOOLEAN IsEnabled;   // Show the state of the event (enabled/disabled)
+
+} DEBUGGER_QUERY_EVENT_STATE, *PDEBUGGER_QUERY_EVENT_STATE;
 
 /*
 ==============================================================================================
@@ -1518,3 +1536,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET {
  */
 #define IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, check whether the event is enabled or not
+ *
+ */
+#define IOCTL_DEBUGGER_QUERY_EVENT_STATE                                       \
+  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)
