@@ -22,6 +22,7 @@ extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
+extern BOOLEAN g_SharedEventStatus;
 extern ULONG g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
@@ -42,6 +43,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
+  PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET EventModifyAndQueryPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
 
@@ -188,7 +190,6 @@ StartAgain:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
-      case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
 
         //
         // Unpause the debugger to get commands
@@ -196,6 +197,13 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
 
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
+
+        //
+        // Nothing
+        //
         break;
 
       case DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED:
@@ -406,6 +414,50 @@ StartAgain:
       //
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT:
+
+      EventModifyAndQueryPacket =
+          (DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET
+               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+
+      //
+      // Set the result of query
+      //
+      if (EventModifyAndQueryPacket->Result !=
+          DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // There was an error
+        //
+        ShowErrorMessage(EventModifyAndQueryPacket->Result);
+
+      } else if (EventModifyAndQueryPacket->Action ==
+                 DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+
+        //
+        // Set the global state
+        //
+        g_SharedEventStatus = EventModifyAndQueryPacket->IsEnabled;
+      } else {
+        DEBUGGER_MODIFY_EVENTS ModifyEventsConversion = {0};
+
+        ModifyEventsConversion.KernelStatus = EventModifyAndQueryPacket->Result;
+        ModifyEventsConversion.Tag = EventModifyAndQueryPacket->Tag;
+        ModifyEventsConversion.TypeOfAction = EventModifyAndQueryPacket->Action;
+
+        CommandEventsHandleModifiedEvent(EventModifyAndQueryPacket->Tag,
+                                         &ModifyEventsConversion);
+      }
+
+      //
+      // Signal the event relating to receiving result of event query and
+      // modification
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]);
 
       break;
 

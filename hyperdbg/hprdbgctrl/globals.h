@@ -196,6 +196,12 @@ DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
 OVERLAPPED g_OverlappedIoStructureForReadDebugger = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 
+/**
+ * @brief Shows whether the queried event is enabled or disabled
+ *
+ */
+BOOLEAN g_SharedEventStatus = FALSE;
+
 //////////////////////////////////////////////////
 //				 Global Variables               //
 //////////////////////////////////////////////////

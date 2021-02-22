@@ -195,7 +195,13 @@ UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
 
 BOOLEAN
+DebuggerIsTagValid(UINT64 Tag);
+
+BOOLEAN
 DebuggerEnableEvent(UINT64 Tag);
+
+BOOLEAN
+DebuggerQueryStateEvent(UINT64 Tag);
 
 BOOLEAN
 DebuggerDisableEvent(UINT64 Tag);

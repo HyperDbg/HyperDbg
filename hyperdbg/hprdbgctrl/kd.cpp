@@ -32,6 +32,7 @@ extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
+extern BOOLEAN g_SharedEventStatus;
 extern BYTE g_EndOfBufferCheck[4];
 extern ULONG g_CurrentRemoteCore;
 
@@ -196,6 +197,58 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
       g_SyncronizationObjectsHandleTable
           [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT],
       INFINITE);
+
+  return TRUE;
+}
+
+/**
+ * @brief Sends a query or request to enable/disable/clear for event
+ * @details if IsQueryState is TRUE then TypeOfAction is ignored
+ * @param Tag
+ * @param TypeOfAction
+ * @param IsEnabled If it's a query state then this argument can be used
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
+    UINT64 Tag, DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction, BOOLEAN *IsEnabled) {
+
+  DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET ModifyAndQueryEventPacket = {0};
+
+  g_SharedEventStatus = FALSE;
+
+  //
+  // Fill the structure of packet
+  //
+  ModifyAndQueryEventPacket.Tag = Tag;
+  ModifyAndQueryEventPacket.Action = TypeOfAction;
+
+  //
+  // Send modify and query event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
+          (CHAR *)&ModifyAndQueryEventPacket,
+          sizeof(DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of query and modify event is received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT],
+      INFINITE);
+
+  if (TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+
+    //
+    // We should read the results to set IsEnabled variable
+    //
+    *IsEnabled = g_SharedEventStatus;
+  }
 
   return TRUE;
 }

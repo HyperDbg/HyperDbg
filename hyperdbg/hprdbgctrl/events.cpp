@@ -19,6 +19,7 @@ extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoFlush;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of events command
@@ -133,56 +134,80 @@ VOID CommandEvents(vector<string> SplittedCommand, string Command) {
 BOOLEAN CommandEventQueryEventState(UINT64 Tag) {
 
   BOOLEAN Status;
+  BOOLEAN IsEnabled;
   ULONG ReturnedLength;
   DEBUGGER_QUERY_EVENT_STATE QueryEventStateRequest = {0};
 
-  //
-  // Check if debugger is loaded or not
-  //
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return FALSE;
-  }
+  if (g_IsSerialConnectedToRemoteDebuggee) {
 
-  //
-  // Fill the structure to send it to the kernel
-  //
-  QueryEventStateRequest.Tag = Tag;
+    //
+    // It's a remote debugger in Debugger Mode
+    //
+    if (KdSendEventQueryAndModifyPacketToDebuggee(
+            Tag, DEBUGGER_MODIFY_EVENTS_QUERY_STATE, &IsEnabled)) {
 
-  //
-  // Send the request to the kernel
-  //
-  Status =
-      DeviceIoControl(g_DeviceHandle,                   // Handle to device
-                      IOCTL_DEBUGGER_QUERY_EVENT_STATE, // IO Control code
-                      &QueryEventStateRequest, // Input Buffer to driver.
-                      SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Input buffer length
-                      &QueryEventStateRequest, // Output Buffer from driver.
-                      SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Length of output
-                                                         // buffer in bytes.
-                      &ReturnedLength, // Bytes placed in buffer.
-                      NULL             // synchronous call
-      );
+      return IsEnabled;
 
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return FALSE;
-  }
-
-  if (QueryEventStateRequest.KernelStatus ==
-      DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-
-    if (QueryEventStateRequest.IsEnabled) {
-      return TRUE;
     } else {
+      ShowMessages("err, unable to get the state of the event\n");
       return FALSE;
     }
 
   } else {
-    ShowMessages("err, enable to query the event's state\n");
-  }
 
+    //
+    // It's a local debugging in VMI Mode
+    //
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return FALSE;
+    }
+
+    //
+    // Fill the structure to send it to the kernel
+    //
+    QueryEventStateRequest.Tag = Tag;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                    // Handle to device
+        IOCTL_DEBUGGER_QUERY_EVENT_STATE,  // IO Control code
+        &QueryEventStateRequest,           // Input Buffer to driver.
+        SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Input buffer length
+        &QueryEventStateRequest,           // Output Buffer from driver.
+        SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Length of output
+                                           // buffer in bytes.
+        &ReturnedLength,                   // Bytes placed in buffer.
+        NULL                               // synchronous call
+    );
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
+
+    if (QueryEventStateRequest.KernelStatus ==
+        DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+      if (QueryEventStateRequest.IsEnabled) {
+        return TRUE;
+      } else {
+        return FALSE;
+      }
+
+    } else {
+      ShowMessages("err, enable to query the event's state\n");
+      return FALSE;
+    }
+  }
   //
   // By default, disabled, even if there was an error
   //
@@ -387,101 +412,39 @@ BOOLEAN CommandEventClearEvent(UINT64 Tag) {
 }
 
 /**
- * @brief modify a special event (enable/disable/clear) and send the
- * request directly to the kernel
- * @details if you pass DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG as the
- * tag then it will be applied to all the active/disabled events in the
- * kernel
+ * @brief Handle events after modification
  *
  * @param Tag the tag of the target event
- * @param TypeOfAction whether its a enable/disable/clear
+ * @param ModifyEventRequest Results
  * @return VOID
  */
-VOID CommandEventsModifyEvents(UINT64 Tag,
-                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
+VOID CommandEventsHandleModifiedEvent(
+    UINT64 Tag, PDEBUGGER_MODIFY_EVENTS ModifyEventRequest) {
 
-  BOOLEAN Status;
-  ULONG ReturnedLength;
-  DEBUGGER_MODIFY_EVENTS ModifyEventRequest = {0};
-
-  //
-  // Check if there is no event, then we shouldn't apply the
-  // enable, disable, or clear commands, this command also
-  // checks for DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG to
-  // see if at least one tag exists or not; however, it's not
-  // necessary as the kernel will check for the validity of
-  // tag too, but let's not send it to kernel as we can prevent
-  // invalid requests from user-mode too
-  //
-  if (!IsTagExist(Tag)) {
-    if (Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
-      ShowMessages("err, there is no event\n");
-
-    } else {
-      ShowMessages("err, tag id is invalid\n");
-    }
-    return;
-  }
-
-  //
-  // Check if debugger is loaded or not
-  //
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
-
-  //
-  // Fill the structure to send it to the kernel
-  //
-  ModifyEventRequest.Tag = Tag;
-  ModifyEventRequest.TypeOfAction = TypeOfAction;
-
-  //
-  // Send the request to the kernel
-  //
-
-  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
-                           IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
-                           &ModifyEventRequest, // Input Buffer to driver.
-                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
-                           &ModifyEventRequest, // Output Buffer from driver.
-                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
-                                                          // buffer in bytes.
-                           &ReturnedLength, // Bytes placed in buffer.
-                           NULL             // synchronous call
-  );
-
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return;
-  }
-
-  if (ModifyEventRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+  if (ModifyEventRequest->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
 
     //
     // Successfull, nothing to show but we should also
     // do the same (change) the user-mode structures
     // that hold the event data
     //
-    if (ModifyEventRequest.TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
+    if (ModifyEventRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
 
       if (!CommandEventEnableEvent(Tag)) {
 
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
       }
 
-    } else if (ModifyEventRequest.TypeOfAction ==
+    } else if (ModifyEventRequest->TypeOfAction ==
                DEBUGGER_MODIFY_EVENTS_DISABLE) {
 
       if (!CommandEventDisableEvent(Tag)) {
 
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
       } else {
 
         //
@@ -513,14 +476,14 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
         }
       }
 
-    } else if (ModifyEventRequest.TypeOfAction ==
+    } else if (ModifyEventRequest->TypeOfAction ==
                DEBUGGER_MODIFY_EVENTS_CLEAR) {
 
       if (!CommandEventClearEvent(Tag)) {
 
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
       } else {
 
         //
@@ -563,7 +526,101 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
     //
     // Interpret error
     //
-    ShowErrorMessage(ModifyEventRequest.KernelStatus);
+    ShowErrorMessage(ModifyEventRequest->KernelStatus);
     return;
+  }
+}
+
+/**
+ * @brief modify a special event (enable/disable/clear) and send the
+ * request directly to the kernel
+ * @details if you pass DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG as the
+ * tag then it will be applied to all the active/disabled events in the
+ * kernel
+ *
+ * @param Tag the tag of the target event
+ * @param TypeOfAction whether its a enable/disable/clear
+ * @return VOID
+ */
+VOID CommandEventsModifyEvents(UINT64 Tag,
+                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
+
+  BOOLEAN Status;
+  ULONG ReturnedLength;
+  DEBUGGER_MODIFY_EVENTS ModifyEventRequest = {0};
+
+  //
+  // Check if there is no event, then we shouldn't apply the
+  // enable, disable, or clear commands, this command also
+  // checks for DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG to
+  // see if at least one tag exists or not; however, it's not
+  // necessary as the kernel will check for the validity of
+  // tag too, but let's not send it to kernel as we can prevent
+  // invalid requests from user-mode too
+  //
+  if (!IsTagExist(Tag)) {
+    if (Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
+      ShowMessages("err, there is no event\n");
+
+    } else {
+      ShowMessages("err, tag id is invalid\n");
+    }
+    return;
+  }
+
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+
+    //
+    // Remote debuggee Debugger Mode
+    //
+    KdSendEventQueryAndModifyPacketToDebuggee(Tag, TypeOfAction, NULL);
+
+  } else {
+
+    //
+    // Local debugging VMI-Mode
+    //
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return;
+    }
+
+    //
+    // Fill the structure to send it to the kernel
+    //
+    ModifyEventRequest.Tag = Tag;
+    ModifyEventRequest.TypeOfAction = TypeOfAction;
+
+    //
+    // Send the request to the kernel
+    //
+
+    Status =
+        DeviceIoControl(g_DeviceHandle,               // Handle to device
+                        IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
+                        &ModifyEventRequest,          // Input Buffer to driver.
+                        SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
+                        &ModifyEventRequest, // Output Buffer from driver.
+                        SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
+                                                       // buffer in bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return;
+    }
+
+    //
+    // Perform further actions
+    //
+    CommandEventsHandleModifiedEvent(Tag, &ModifyEventRequest);
   }
 }

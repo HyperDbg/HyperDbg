@@ -88,6 +88,9 @@ BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
 
 BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
+BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
+    UINT64 Tag, DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction, BOOLEAN *IsEnabled);
+
 BOOLEAN KdSendFlushPacketToDebuggee();
 
 PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
