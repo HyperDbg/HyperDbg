@@ -884,7 +884,7 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
  * @return VOID 
  */
 VOID
-KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET ModifyAndQueryEvent)
+KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 {
     BOOLEAN IsForAllEvents = FALSE;
 
@@ -900,7 +900,7 @@ KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET Modif
         //
         // Tag is invalid
         //
-        ModifyAndQueryEvent->Result = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
         return;
     }
 
@@ -911,14 +911,14 @@ KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET Modif
     //
     // Check if it's a query state command
     //
-    if (ModifyAndQueryEvent->Action == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+    if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
     {
         //
         // check if tag is valid or not
         //
         if (!DebuggerIsTagValid(ModifyAndQueryEvent->Tag))
         {
-            ModifyAndQueryEvent->Result = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            ModifyAndQueryEvent->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
         }
         else
         {
@@ -937,10 +937,10 @@ KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET Modif
             //
             // The function was successful
             //
-            ModifyAndQueryEvent->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
         }
     }
-    else if (ModifyAndQueryEvent->Action == DEBUGGER_MODIFY_EVENTS_ENABLE)
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
     {
         if (IsForAllEvents)
         {
@@ -960,9 +960,9 @@ KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET Modif
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
     }
-    else if (ModifyAndQueryEvent->Action == DEBUGGER_MODIFY_EVENTS_DISABLE)
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
     {
         if (IsForAllEvents)
         {
@@ -981,22 +981,23 @@ KdPerformEventQueryAndModification(PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET Modif
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
     }
-    else if (ModifyAndQueryEvent->Action == DEBUGGER_MODIFY_EVENTS_CLEAR)
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
         //
-        // Not yet implemented
+        // Send one byte buffer and operation codes
         //
-        DbgBreakPoint();
-        ModifyAndQueryEvent->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        LogSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
+                      "$",
+                      1);
     }
     else
     {
         //
         // Invalid parameter specifed in Action
         //
-        ModifyAndQueryEvent->Result = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
     }
 }
 
@@ -1018,7 +1019,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
-    PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET             QueryAndModifyEventPacket;
+    PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
     BOOLEAN                                             UnlockTheNewCore = FALSE;
 
     while (TRUE)
@@ -1319,8 +1320,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT:
 
-                QueryAndModifyEventPacket = (DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET *)(((CHAR *)TheActualPacket) +
-                                                                                       sizeof(DEBUGGER_REMOTE_PACKET));
+                QueryAndModifyEventPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) +
+                                                                       sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
                 // Perform the action
@@ -1333,12 +1334,12 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
                                            QueryAndModifyEventPacket,
-                                           sizeof(DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET));
+                                           sizeof(DEBUGGER_MODIFY_EVENTS));
 
                 //
                 // Only continue debuggee if it's a clear event action
                 //
-                if (QueryAndModifyEventPacket->Action == DEBUGGER_MODIFY_EVENTS_CLEAR)
+                if (QueryAndModifyEventPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
                 {
                     //
                     // Continue Debuggee

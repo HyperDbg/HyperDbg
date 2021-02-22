@@ -34,7 +34,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER                   RegBufferResult;
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
-    PDEBUGGER_QUERY_EVENT_STATE                             DebuggerQueryEventStateRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
@@ -1015,46 +1014,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandSendGeneralBufferToDebugger(DebuggerSendBufferFromDebuggeeToDebuggerRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER;
-            Status                    = STATUS_SUCCESS;
-
-            //
-            // Avoid zeroing it
-            //
-            DoNotChangeInformation = TRUE;
-
-            break;
-
-        case IOCTL_DEBUGGER_QUERY_EVENT_STATE:
-
-            //
-            // First validate the parameters.
-            //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_QUERY_EVENT_STATE ||
-                Irp->AssociatedIrp.SystemBuffer == NULL)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
-                break;
-            }
-
-            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
-            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
-
-            if (!InBuffLength || !OutBuffLength)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            DebuggerQueryEventStateRequest = (PDEBUGGER_QUERY_EVENT_STATE)Irp->AssociatedIrp.SystemBuffer;
-
-            //
-            // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
-            //
-            DebuggerQueryEventState(DebuggerQueryEventStateRequest);
-
-            Irp->IoStatus.Information = SIZEOF_DEBUGGER_QUERY_EVENT_STATE;
             Status                    = STATUS_SUCCESS;
 
             //

@@ -43,7 +43,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
   PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
-  PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET EventModifyAndQueryPacket;
+  PDEBUGGER_MODIFY_EVENTS EventModifyAndQueryPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
 
@@ -420,21 +420,21 @@ StartAgain:
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT:
 
       EventModifyAndQueryPacket =
-          (DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET
-               *)(((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+          (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) +
+                                     sizeof(DEBUGGER_REMOTE_PACKET));
 
       //
       // Set the result of query
       //
-      if (EventModifyAndQueryPacket->Result !=
+      if (EventModifyAndQueryPacket->KernelStatus !=
           DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
 
         //
         // There was an error
         //
-        ShowErrorMessage(EventModifyAndQueryPacket->Result);
+        ShowErrorMessage(EventModifyAndQueryPacket->KernelStatus);
 
-      } else if (EventModifyAndQueryPacket->Action ==
+      } else if (EventModifyAndQueryPacket->TypeOfAction ==
                  DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
 
         //
@@ -442,14 +442,9 @@ StartAgain:
         //
         g_SharedEventStatus = EventModifyAndQueryPacket->IsEnabled;
       } else {
-        DEBUGGER_MODIFY_EVENTS ModifyEventsConversion = {0};
-
-        ModifyEventsConversion.KernelStatus = EventModifyAndQueryPacket->Result;
-        ModifyEventsConversion.Tag = EventModifyAndQueryPacket->Tag;
-        ModifyEventsConversion.TypeOfAction = EventModifyAndQueryPacket->Action;
 
         CommandEventsHandleModifiedEvent(EventModifyAndQueryPacket->Tag,
-                                         &ModifyEventsConversion);
+                                         EventModifyAndQueryPacket);
       }
 
       //

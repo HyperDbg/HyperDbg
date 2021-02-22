@@ -2756,6 +2756,29 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag);
         }
     }
+    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+    {
+        //
+        // check if tag is valid or not
+        //
+        if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
+        {
+            DebuggerEventModificationRequest->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            return FALSE;
+        }
+
+        //
+        // Set event state
+        //
+        if (DebuggerQueryStateEvent(DebuggerEventModificationRequest->Tag))
+        {
+            DebuggerEventModificationRequest->IsEnabled = TRUE;
+        }
+        else
+        {
+            DebuggerEventModificationRequest->IsEnabled = FALSE;
+        }
+    }
     else
     {
         //
@@ -2770,45 +2793,6 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     // The function was successful
     //
     DebuggerEventModificationRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
-    return TRUE;
-}
-
-/**
- * @brief Query the state of an event (enabled/disalbed)
- * 
- * @param DebuggerQueryEventStateRequest event modification request details
- * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
- * an error
- */
-BOOLEAN
-DebuggerQueryEventState(PDEBUGGER_QUERY_EVENT_STATE DebuggerQueryEventStateRequest)
-{
-    //
-    // check if tag is valid or not
-    //
-    if (!DebuggerIsTagValid(DebuggerQueryEventStateRequest->Tag))
-    {
-        DebuggerQueryEventStateRequest->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
-        return FALSE;
-    }
-
-    //
-    // Set event state
-    //
-    if (DebuggerQueryStateEvent(DebuggerQueryEventStateRequest->Tag))
-    {
-        DebuggerQueryEventStateRequest->IsEnabled = TRUE;
-    }
-    else
-    {
-        DebuggerQueryEventStateRequest->IsEnabled = FALSE;
-    }
-
-    //
-    // The function was successful
-    //
-    DebuggerQueryEventStateRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
-
     return TRUE;
 }
 

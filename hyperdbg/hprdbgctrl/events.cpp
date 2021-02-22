@@ -121,7 +121,7 @@ VOID CommandEvents(vector<string> SplittedCommand, string Command) {
   //
   // Perform event related tasks
   //
-  CommandEventsModifyEvents(RequestedTag, RequestedAction);
+  CommandEventsModifyAndQueryEvents(RequestedTag, RequestedAction);
 }
 
 /**
@@ -133,10 +133,7 @@ VOID CommandEvents(vector<string> SplittedCommand, string Command) {
  */
 BOOLEAN CommandEventQueryEventState(UINT64 Tag) {
 
-  BOOLEAN Status;
   BOOLEAN IsEnabled;
-  ULONG ReturnedLength;
-  DEBUGGER_QUERY_EVENT_STATE QueryEventStateRequest = {0};
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
 
@@ -158,55 +155,8 @@ BOOLEAN CommandEventQueryEventState(UINT64 Tag) {
     //
     // It's a local debugging in VMI Mode
     //
-
-    //
-    // Check if debugger is loaded or not
-    //
-    if (!g_DeviceHandle) {
-      ShowMessages(
-          "Handle not found, probably the driver is not loaded. Did you "
-          "use 'load' command?\n");
-      return FALSE;
-    }
-
-    //
-    // Fill the structure to send it to the kernel
-    //
-    QueryEventStateRequest.Tag = Tag;
-
-    //
-    // Send the request to the kernel
-    //
-    Status = DeviceIoControl(
-        g_DeviceHandle,                    // Handle to device
-        IOCTL_DEBUGGER_QUERY_EVENT_STATE,  // IO Control code
-        &QueryEventStateRequest,           // Input Buffer to driver.
-        SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Input buffer length
-        &QueryEventStateRequest,           // Output Buffer from driver.
-        SIZEOF_DEBUGGER_QUERY_EVENT_STATE, // Length of output
-                                           // buffer in bytes.
-        &ReturnedLength,                   // Bytes placed in buffer.
-        NULL                               // synchronous call
-    );
-
-    if (!Status) {
-      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-      return FALSE;
-    }
-
-    if (QueryEventStateRequest.KernelStatus ==
-        DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
-
-      if (QueryEventStateRequest.IsEnabled) {
-        return TRUE;
-      } else {
-        return FALSE;
-      }
-
-    } else {
-      ShowMessages("err, enable to query the event's state\n");
-      return FALSE;
-    }
+    return CommandEventsModifyAndQueryEvents(
+        Tag, DEBUGGER_MODIFY_EVENTS_QUERY_STATE);
   }
   //
   // By default, disabled, even if there was an error
@@ -515,6 +465,12 @@ VOID CommandEventsHandleModifiedEvent(
         }
       }
 
+    } else if (ModifyEventRequest->TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+      //
+      // Nothing to show
+      //
+
     } else {
 
       ShowMessages(
@@ -540,10 +496,11 @@ VOID CommandEventsHandleModifiedEvent(
  *
  * @param Tag the tag of the target event
  * @param TypeOfAction whether its a enable/disable/clear
- * @return VOID
+ * @return BOOLEAN Shows whether the event is enabled or disabled
  */
-VOID CommandEventsModifyEvents(UINT64 Tag,
-                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
+BOOLEAN
+CommandEventsModifyAndQueryEvents(UINT64 Tag,
+                                  DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
 
   BOOLEAN Status;
   ULONG ReturnedLength;
@@ -565,7 +522,7 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
     } else {
       ShowMessages("err, tag id is invalid\n");
     }
-    return;
+    return FALSE;
   }
 
   if (g_IsSerialConnectedToRemoteDebuggee) {
@@ -588,7 +545,7 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
       ShowMessages(
           "Handle not found, probably the driver is not loaded. Did you "
           "use 'load' command?\n");
-      return;
+      return FALSE;
     }
 
     //
@@ -615,12 +572,22 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
 
     if (!Status) {
       ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-      return;
+      return FALSE;
     }
 
     //
     // Perform further actions
     //
     CommandEventsHandleModifiedEvent(Tag, &ModifyEventRequest);
+
+    if (TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+      return ModifyEventRequest.IsEnabled;
+    }
   }
+
+  //
+  // in all the cases except query state it shows whether the operation was
+  // successful or not
+  //
+  return TRUE;
 }

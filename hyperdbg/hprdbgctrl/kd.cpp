@@ -213,7 +213,7 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
 BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
     UINT64 Tag, DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction, BOOLEAN *IsEnabled) {
 
-  DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET ModifyAndQueryEventPacket = {0};
+  DEBUGGER_MODIFY_EVENTS ModifyAndQueryEventPacket = {0};
 
   g_SharedEventStatus = FALSE;
 
@@ -221,7 +221,7 @@ BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
   // Fill the structure of packet
   //
   ModifyAndQueryEventPacket.Tag = Tag;
-  ModifyAndQueryEventPacket.Action = TypeOfAction;
+  ModifyAndQueryEventPacket.TypeOfAction = TypeOfAction;
 
   //
   // Send modify and query event packet
@@ -229,8 +229,7 @@ BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
   if (!KdCommandPacketAndBufferToDebuggee(
           DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
-          (CHAR *)&ModifyAndQueryEventPacket,
-          sizeof(DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET))) {
+          (CHAR *)&ModifyAndQueryEventPacket, sizeof(DEBUGGER_MODIFY_EVENTS))) {
     return FALSE;
   }
 

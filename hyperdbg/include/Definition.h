@@ -155,6 +155,7 @@
 #define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT                                 \
   0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xA | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -509,26 +510,10 @@ typedef struct _DEBUGGER_MODIFY_EVENTS {
   UINT64 Tag;          // Tag of the target event that we want to modify
   UINT64 KernelStatus; // Kerenl put the status in this field
   DEBUGGER_MODIFY_EVENTS_TYPE
-  TypeOfAction; // Determines what's the action (enable | disable | clear)
+  TypeOfAction;      // Determines what's the action (enable | disable | clear)
+  BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
-
-/* ==============================================================================================
- */
-
-#define SIZEOF_DEBUGGER_QUERY_EVENT_STATE sizeof(DEBUGGER_QUERY_EVENT_STATE)
-
-/**
- * @brief query whether the event is enabled or disabled
- *
- */
-typedef struct _DEBUGGER_QUERY_EVENT_STATE {
-
-  UINT64 Tag;          // Tag of the target event that we want to query about it
-  UINT64 KernelStatus; // Kerenl put the status in this field
-  BOOLEAN IsEnabled;   // Show the state of the event (enabled/disabled)
-
-} DEBUGGER_QUERY_EVENT_STATE, *PDEBUGGER_QUERY_EVENT_STATE;
 
 /*
 ==============================================================================================
@@ -1147,22 +1132,6 @@ typedef struct _DEBUGGEE_CHANGE_CORE_PACKET {
 } DEBUGGEE_CHANGE_CORE_PACKET, *PDEBUGGEE_CHANGE_CORE_PACKET;
 
 /**
- * @brief The structure of modify events and query event state packet in
- * HyperDbg
- *
- */
-typedef struct _DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET {
-
-  UINT64 Tag;
-  DEBUGGER_MODIFY_EVENTS_TYPE Action;
-  BOOLEAN IsEnabled; // only valid after an action =
-                     // DEBUGGER_MODIFY_EVENTS_QUERY_STATE
-  UINT32 Result;
-
-} DEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET,
-    *PDEBUGGEE_QUERY_AND_MODIFY_EVENT_PACKET;
-
-/**
  * @brief The structure of changing process packet in HyperDbg
  *
  */
@@ -1556,10 +1525,3 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET {
  */
 #define IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER                    \
   CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
- * @brief ioctl, check whether the event is enabled or not
- *
- */
-#define IOCTL_DEBUGGER_QUERY_EVENT_STATE                                       \
-  CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)
