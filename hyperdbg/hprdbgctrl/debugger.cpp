@@ -2460,6 +2460,30 @@ BOOLEAN InterpretGeneralEventAndActionsFields(
   }
 
   //
+  // It's not possible to break to debugger in vmi-mode
+  //
+  if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL) {
+    ShowMessages(
+        "error : it's not possible to break to the debugger in VMI Mode. "
+        "You should operate in Debugger Mode to break and get the "
+        "full control of the system. Still, you can use 'script' and run "
+        "'custom code' in your local debugging (VMI Mode).\n\n");
+    free(BufferOfCommandString);
+    free(TempEvent);
+
+    if (TempActionBreak != NULL) {
+      free(TempActionBreak);
+    }
+    if (TempActionScript != NULL) {
+      free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL) {
+      free(TempActionCustomCode);
+    }
+    return FALSE;
+  }
+
+  //
   // We do not support non-immediate message passing if the user
   // specified a special output
   //
