@@ -258,6 +258,13 @@ void ReadIrpBasedBuffer() {
               ReturnedLength);
           break;
 
+        case OPERATION_DEBUGGEE_CLEAR_EVENTS:
+
+          KdSendModifyEventInDebuggee(
+              (PDEBUGGER_MODIFY_EVENTS)(OutputBuffer + sizeof(UINT32)));
+
+          break;
+
         default:
           /*
         ShowMessages("Message From Debugger :\n");
@@ -272,7 +279,6 @@ void ReadIrpBasedBuffer() {
           // Check if there are available output sources
           //
           if (g_OutputSourcesInitialized) {
-
             //
             // Now, we should check whether the following flag matches
             // with an output or not, also this is not where we want to

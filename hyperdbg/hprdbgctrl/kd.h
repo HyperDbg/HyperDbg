@@ -123,6 +123,8 @@ BOOLEAN
 KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
                              UINT32 Length);
 
+BOOLEAN KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent);
+
 VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length);
 
 BOOLEAN KdSendGeneralBuffersFromDebuggeeToDebugger(

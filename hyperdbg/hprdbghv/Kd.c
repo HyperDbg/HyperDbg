@@ -989,8 +989,8 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         // Send one byte buffer and operation codes
         //
         LogSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
-                      "$",
-                      1);
+                      ModifyAndQueryEvent,
+                      sizeof(DEBUGGER_MODIFY_EVENTS));
     }
     else
     {
@@ -1329,14 +1329,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdPerformEventQueryAndModification(QueryAndModifyEventPacket);
 
                 //
-                // Send the response of event query and modification
-                //
-                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
-                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
-                                           QueryAndModifyEventPacket,
-                                           sizeof(DEBUGGER_MODIFY_EVENTS));
-
-                //
                 // Only continue debuggee if it's a clear event action
                 //
                 if (QueryAndModifyEventPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
@@ -1346,6 +1338,16 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     KdContinueDebuggee();
                     EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event query and modification (anything other than clear)
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+                                               QueryAndModifyEventPacket,
+                                               sizeof(DEBUGGER_MODIFY_EVENTS));
                 }
 
                 break;

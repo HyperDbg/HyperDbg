@@ -1808,6 +1808,60 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 }
 
 /**
+ * @brief Modify event ioctl in the debuggee
+ * @param ModifyEvent
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent) {
+
+  BOOLEAN Status;
+  ULONG ReturnedLength;
+
+  //
+  // This mechanism is only used for clear event,
+  // it is because we apply enable/disable in kernel
+  // directly
+  //
+
+  //
+  // Check if debugger is loaded or not
+  //
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  //
+  // Send the request to the kernel
+  //
+
+  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
+                           IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
+                           ModifyEvent, // Input Buffer to driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
+                           ModifyEvent, // Output Buffer from driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
+                                                          // buffer in bytes.
+                           &ReturnedLength, // Bytes placed in buffer.
+                           NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Send the buffer back to debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+      ModifyEvent, sizeof(DEBUGGER_MODIFY_EVENTS), TRUE);
+}
+
+/**
  * @brief Handle user-input in debuggee
  * @param Input
  * @return VOID
