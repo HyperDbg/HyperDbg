@@ -14,7 +14,7 @@
 /**
  * @brief Read process memory
  * 
- * @details This function, should be called from vmx-root mode
+ * @details This function should not be called from vmx-root mode
  * 
  * @param PID Target Process Id
  * @param Address Target Address
@@ -25,7 +25,12 @@
  * @return NTSTATUS 
  */
 NTSTATUS
-MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize)
+MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
+                                     PVOID                     Address,
+                                     DEBUGGER_READ_MEMORY_TYPE MemType,
+                                     PVOID                     UserBuffer,
+                                     SIZE_T                    Size,
+                                     PSIZE_T                   ReturnSize)
 {
     PEPROCESS        SourceProcess;
     MM_COPY_ADDRESS  CopyAddress         = {0};

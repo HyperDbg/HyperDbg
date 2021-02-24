@@ -50,7 +50,12 @@ KdInitializeKernelDebugger()
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    //HvEnableDbAndBpExitingAllCores();
+    HvEnableDbAndBpExitingAllCores();
+
+    //
+    // Reset pause break requests
+    //
+    RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
     //
     // Indicate that kernel debugger is active
@@ -74,6 +79,11 @@ KdUninitializeKernelDebugger()
         // Indicate that kernel debugger is not active
         //
         g_KernelDebuggerState = FALSE;
+
+        //
+        // Reset pause break requests
+        //
+        RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
         //
         // De-register NMI handler
@@ -287,6 +297,14 @@ KdResponsePacketToDebugger(
         SpinlockUnlock(&DebuggerResponseLock);
     }
 
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent &&
+        g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
+    {
+        //
+        // Set it to false by zeroing it
+        //
+        RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+    }
     return TRUE;
 }
 
@@ -404,14 +422,22 @@ KdRecvBuffer(CHAR *   BufferToSave,
 /**
  * @brief continue the debuggee, this function gurantees that all other cores
  * are continued (except current core)
+ * @param 
+ * 
  * @return VOID 
  */
 VOID
-KdContinueDebuggee()
+KdContinueDebuggee(BOOLEAN PauseBreaksUntilASpecialMessageSent, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse)
 {
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
+
+    if (PauseBreaksUntilASpecialMessageSent)
+    {
+        g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent = TRUE;
+        g_IgnoreBreaksToDebugger.SpeialEventResponse                 = SpeialEventResponse;
+    }
 
     //
     // Unlock all the cores
@@ -710,6 +736,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
+    // Check if we should ignore this break request or not
+    //
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent)
+    {
+        return;
+    }
+
+    //
     // Lock current core
     //
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
@@ -978,6 +1012,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
             //
             DebuggerDisableEvent(ModifyAndQueryEvent->Tag);
         }
+
         //
         // The function was successful
         //
@@ -1077,7 +1112,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -1115,7 +1150,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -1277,7 +1312,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -1295,7 +1330,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(TRUE,
+                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -1313,7 +1349,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(TRUE,
+                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
                 EscapeFromTheLoop = TRUE;
 
                 break;
@@ -1336,7 +1373,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Continue Debuggee
                     //
-                    KdContinueDebuggee();
+                    KdContinueDebuggee(TRUE,
+                                       DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT);
                     EscapeFromTheLoop = TRUE;
                 }
                 else

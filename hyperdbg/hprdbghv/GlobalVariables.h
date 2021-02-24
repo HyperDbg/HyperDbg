@@ -158,3 +158,10 @@ PVOID g_NmiHandlerForKeDeregisterNmiCallback;
  * 
  */
 BOOLEAN g_RtmSupport;
+
+/**
+ * @brief Holds the requests to pause the break of debuggee until
+ * a special event happens
+ * 
+ */
+DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;

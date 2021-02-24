@@ -21,6 +21,17 @@
  */
 volatile LONG DebuggerResponseLock;
 
+/**
+ * @brief request to pause and halt the system
+ *
+ */
+typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
+{
+    BOOLEAN                                 PauseBreaksUntilASpecialMessageSent;
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse;
+
+} DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
+
 //////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////

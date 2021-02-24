@@ -1125,6 +1125,7 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
         //
         ContextAndTag.Tag     = Tag;
         ContextAndTag.Context = Context;
+        // DbgBreakPoint();
 
         KdHandleBreakpointAndDebugBreakpoints(
             CurrentProcessorIndex,
