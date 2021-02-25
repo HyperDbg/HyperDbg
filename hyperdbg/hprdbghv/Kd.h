@@ -22,12 +22,18 @@
 volatile LONG DebuggerResponseLock;
 
 /**
+ * @brief Vmx-root lock for handling breaks to debugger
+ * 
+ */
+volatile LONG DebuggerHandleBreakpointLock;
+
+/**
  * @brief request to pause and halt the system
  *
  */
 typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
 {
-    BOOLEAN                                 PauseBreaksUntilASpecialMessageSent;
+    volatile BOOLEAN                        PauseBreaksUntilASpecialMessageSent;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse;
 
 } DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;

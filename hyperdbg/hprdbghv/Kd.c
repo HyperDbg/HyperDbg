@@ -159,6 +159,15 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = TRUE;
 
     //
+    // Check if the guest needs to be halted
+    //
+    if (g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot)
+    {
+        g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = FALSE;
+        KdHandleNmi(CurrentCoreIndex, NULL);
+    }
+
+    //
     // Also, return true to show that it's handled
     //
     return TRUE;
@@ -744,6 +753,11 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     }
 
     //
+    // Lock handling breakpoints
+    //
+    SpinlockLock(&DebuggerHandleBreakpointLock);
+
+    //
     // Lock current core
     //
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
@@ -800,6 +814,11 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     g_DebuggeeHaltContext = NULL;
     g_DebuggeeHaltTag     = NULL;
+
+    //
+    // Unlock handling breakpoints
+    //
+    SpinlockUnlock(&DebuggerHandleBreakpointLock);
 }
 
 /**
@@ -840,6 +859,9 @@ KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorI
 
 /**
  * @brief Handle NMI Vm-exits
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ * 
  * @details This function should be called in vmx-root mode
  * @return VOID 
  */
