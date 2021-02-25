@@ -382,7 +382,9 @@ class LL1Parser:
         for X in self.keywordList:
             self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
             Counter += 1
-        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n\n")
+        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n")
+        self.CommonHeaderFile.write("#define "+ "FUNC_VARGSTART " + str(Counter+1) + "\n\n")
+
 
 
         self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")

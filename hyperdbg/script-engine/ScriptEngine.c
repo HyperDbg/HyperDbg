@@ -182,7 +182,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             if (!IsEqual(TopToken, CurrentIn))
             {
                 char* Message = HandleError(SYNTAX_ERROR, str);
-                    CodeBuffer->Message = Message;
+                CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);

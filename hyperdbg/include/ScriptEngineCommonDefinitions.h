@@ -64,6 +64,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_LOW 26
 #define FUNC_NOT 27
 #define FUNC_MOV 28
+#define FUNC_VARGSTART 29
 
 #define REGISTER_RAX 0
 #define REGISTER_RCX 1
