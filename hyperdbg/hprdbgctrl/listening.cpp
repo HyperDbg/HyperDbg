@@ -176,7 +176,6 @@ StartAgain:
       if (PausePacket->EventTag != NULL) {
         ShowMessages("event 0x%x triggered\n",
                      PausePacket->EventTag - DebuggerEventTagStartSeed);
-        // Sleep(3000);
       }
 
       if (PausePacket->PausingReason !=
