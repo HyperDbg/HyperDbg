@@ -60,9 +60,8 @@ typedef unsigned short UINT16, *PUINT16;
 typedef unsigned int UINT32, *PUINT32;
 typedef unsigned __int64 UINT64, *PUINT64;
 
-#define FALSE   0
-#define TRUE    1
-
+#define FALSE 0
+#define TRUE 1
 
 typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
   ULONG64 rax; // 0x00
@@ -109,9 +108,8 @@ __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
-
 UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
-    UINT64* g_TempList, UINT64* g_VariableList, PSYMBOL Symbol);
+                UINT64 *g_TempList, UINT64 *g_VariableList, PSYMBOL Symbol);
 
 //
 // Pseudo registers
@@ -638,17 +636,13 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-BOOLEAN CheckIfStringIsSafe(char* StrAddr, BOOLEAN IsWstring)
-{
-    return TRUE;
-}
-
+BOOLEAN CheckIfStringIsSafe(char *StrAddr, BOOLEAN IsWstring) { return TRUE; }
 
 VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
-                                ACTION_BUFFER ActionDetail, UINT64* g_TempList,
-                                UINT64* g_VariableList, UINT64 Tag,
-                                BOOLEAN ImmediateMessagePassing,
-                                char *Format, UINT64 ArgCount, PSYMBOL FirstArg,
+                                ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
+                                UINT64 *g_VariableList, UINT64 Tag,
+                                BOOLEAN ImmediateMessagePassing, char *Format,
+                                UINT64 ArgCount, PSYMBOL FirstArg,
                                 BOOLEAN HasError) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -680,39 +674,54 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     return;
 
   UINT64 Val;
-  for (int i = 0; i < ArgCount; i++)
-  {
-      Symbol = FirstArg + i;
-      
-      Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
-      printf("%d\n", Val);
-      // 
-      // Address is either wstring (%ws) or string (%s)
-      //
-      if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK)
-      {
-          if (!CheckIfStringIsSafe((char*)Symbol->Value, FALSE))
-          {
-              HasError = TRUE;
-              return;
-          }
+
+  for (int i = 0; i < ArgCount; i++) {
+    Symbol = FirstArg + i;
+
+    Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
+    printf("%d\n", Val);
+    //
+    // Address is either wstring (%ws) or string (%s)
+    //
+    if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
+      if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
+        HasError = TRUE;
+        return;
       }
-      
-      // 
-      // Call Sprintf
-      //
+    }
   }
 
+  //
+  // Call Sprintf
+  //
 
+  //
+  // When we're here, all the pointers are the pointers including %ws and %s
+  // pointers are checked and are safe to access
+  //
+  char FinalBuffer[PacketChunkSize] = {0};
+
+  for (int i = 0; i < ArgCount; i++) {
+    Symbol = FirstArg + i;
+
+    if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
+      //
+      // It means that it's either string or wstring
+      //
+        "salam %d khobi?  %s" => "salam " , "%d", " khobi? ", 
+    } else {
+      //
+      // It's an int or anything else
+      //
+    }
+  }
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    // LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+  // LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
-
-
 
 UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
   switch (Symbol->Value) {
@@ -1480,9 +1489,9 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
       *Indx = *Indx + Src1->Value;
     }
     ScriptEngineFunctionPrintf(
-        GuestRegs, ActionDetail, g_TempList, g_VariableList,
-        ActionDetail.Tag, ActionDetail.ImmediatelySendTheResults,
-        (char *)&Src0->Value, Src1->Value, Src2, HasError);
+        GuestRegs, ActionDetail, g_TempList, g_VariableList, ActionDetail.Tag,
+        ActionDetail.ImmediatelySendTheResults, (char *)&Src0->Value,
+        Src1->Value, Src2, HasError);
 
     return HasError;
   }
