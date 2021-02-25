@@ -1114,7 +1114,32 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
 VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
 {
-    DbgBreakPoint();
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
+    UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    {
+        //
+        // The guest is already in vmx-root mode
+        // Halt other cores
+        //
+        ContextAndTag.Tag     = Tag;
+        ContextAndTag.Context = Context;
+        // DbgBreakPoint();
+
+        KdHandleBreakpointAndDebugBreakpoints(
+            CurrentProcessorIndex,
+            Regs,
+            DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+            &ContextAndTag);
+    }
+    else
+    {
+        //
+        // The guest is on vmx non-root mode
+        //
+        AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+    }
 }
 
 /**
@@ -1359,6 +1384,35 @@ DebuggerEnableEvent(UINT64 Tag)
     Event->Enabled = TRUE;
 
     return TRUE;
+}
+
+/**
+ * @brief returns whether an event is enabled/disabled by tag
+ * @details this function won't check for Tag validity and if
+ * not found then returns false
+ * 
+ * @param Tag Tag of target event
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * found
+ */
+BOOLEAN
+DebuggerQueryStateEvent(UINT64 Tag)
+{
+    PDEBUGGER_EVENT Event;
+    //
+    // Search all the cores for enable this event
+    //
+    Event = DebuggerGetEventByTag(Tag);
+
+    //
+    // Check if tag is valid or not
+    //
+    if (Event == NULL)
+    {
+        return FALSE;
+    }
+
+    return Event->Enabled;
 }
 
 /**
@@ -2701,6 +2755,29 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
             // Third, remove it from the list
             //
             DebuggerRemoveEvent(DebuggerEventModificationRequest->Tag);
+        }
+    }
+    else if (DebuggerEventModificationRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+    {
+        //
+        // check if tag is valid or not
+        //
+        if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
+        {
+            DebuggerEventModificationRequest->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            return FALSE;
+        }
+
+        //
+        // Set event state
+        //
+        if (DebuggerQueryStateEvent(DebuggerEventModificationRequest->Tag))
+        {
+            DebuggerEventModificationRequest->IsEnabled = TRUE;
+        }
+        else
+        {
+            DebuggerEventModificationRequest->IsEnabled = FALSE;
         }
     }
     else

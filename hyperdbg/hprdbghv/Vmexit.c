@@ -425,6 +425,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
 
     //
+    // Check if the guest needs to be halted
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot)
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = FALSE;
+        KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+    }
+
+    //
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //

@@ -22,12 +22,17 @@ extern HANDLE
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+    g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
+extern BOOLEAN g_IgnoreNewLoggingMessages;
+extern BOOLEAN g_SharedEventStatus;
 extern BYTE g_EndOfBufferCheck[4];
 extern ULONG g_CurrentRemoteCore;
 
@@ -91,6 +96,25 @@ BOOLEAN KdCompareBufferWithString(CHAR *Buffer, const CHAR *CompareBuffer) {
     return TRUE;
   else
     return FALSE;
+}
+
+/**
+ * @brief calculate the checksum of recived buffer from debugger
+ *
+ * @param Buffer
+ * @param LengthReceived
+ * @return BYTE
+ */
+BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length) {
+
+  BYTE CalculatedCheckSum = 0;
+  BYTE Temp = 0;
+  while (Length--) {
+    Temp = *(BYTE *)Buffer;
+    CalculatedCheckSum = CalculatedCheckSum + Temp;
+    Buffer = (PVOID)((UINT64)Buffer + 1);
+  }
+  return CalculatedCheckSum;
 }
 
 /**
@@ -175,6 +199,218 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
       INFINITE);
 
   return TRUE;
+}
+
+/**
+ * @brief Sends a query or request to enable/disable/clear for event
+ * @details if IsQueryState is TRUE then TypeOfAction is ignored
+ * @param Tag
+ * @param TypeOfAction
+ * @param IsEnabled If it's a query state then this argument can be used
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
+    UINT64 Tag, DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction, BOOLEAN *IsEnabled) {
+
+  DEBUGGER_MODIFY_EVENTS ModifyAndQueryEventPacket = {0};
+
+  g_SharedEventStatus = FALSE;
+
+  //
+  // Fill the structure of packet
+  //
+  ModifyAndQueryEventPacket.Tag = Tag;
+  ModifyAndQueryEventPacket.TypeOfAction = TypeOfAction;
+
+  //
+  // Send modify and query event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
+          (CHAR *)&ModifyAndQueryEventPacket, sizeof(DEBUGGER_MODIFY_EVENTS))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of query and modify event is received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT],
+      INFINITE);
+
+  if (TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+
+    //
+    // We should read the results to set IsEnabled variable
+    //
+    *IsEnabled = g_SharedEventStatus;
+  }
+
+  return TRUE;
+}
+
+/**
+ * @brief Send a flush request to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendFlushPacketToDebuggee() {
+
+  DEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket = {0};
+
+  //
+  // Send 'flush' command as flush packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS,
+          (CHAR *)&FlushPacket, sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of flushing received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT],
+                      INFINITE);
+
+  return TRUE;
+}
+
+/**
+ * @brief Send a register event request to the debuggee
+ * @details as this command uses one global variable to transfer the buffers
+ * so should not be called simultaneously
+ * @param Event
+ * @param EventBufferLength
+ *
+ * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ */
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                                    UINT32 EventBufferLength) {
+
+  PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Header;
+  UINT32 Len;
+
+  Len = EventBufferLength +
+        sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET);
+
+  Header = (PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)malloc(Len);
+
+  if (Header == NULL) {
+    return NULL;
+  }
+
+  RtlZeroMemory(Header, Len);
+
+  //
+  // Set length in header
+  //
+  Header->Length = EventBufferLength;
+
+  //
+  // Move buffer
+  //
+  memcpy((PVOID)((UINT64)Header +
+                 sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+         (PVOID)Event, EventBufferLength);
+
+  RtlZeroMemory(&g_DebuggeeResultOfRegisteringEvent,
+                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+  //
+  // Send register event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT,
+          (CHAR *)Header, Len)) {
+
+    free(Header);
+    return NULL;
+  }
+
+  //
+  // Wait until the result of registering received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT],
+                      INFINITE);
+
+  free(Header);
+
+  return &g_DebuggeeResultOfRegisteringEvent;
+}
+
+/**
+ * @brief Send an add action to event request to the debuggee
+ * @details as this command uses one global variable to transfer the buffers
+ * so should not be called simultaneously
+ * @param GeneralAction
+ * @param GeneralActionLength
+ *
+ * @return PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+ */
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
+                                       UINT32 GeneralActionLength) {
+
+  PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Header;
+  UINT32 Len;
+
+  Len = GeneralActionLength +
+        sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET);
+
+  Header = (PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)malloc(Len);
+
+  if (Header == NULL) {
+    return NULL;
+  }
+
+  RtlZeroMemory(Header, Len);
+
+  //
+  // Set length in header
+  //
+  Header->Length = GeneralActionLength;
+
+  //
+  // Move buffer
+  //
+  memcpy((PVOID)((UINT64)Header +
+                 sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+         (PVOID)GeneralAction, GeneralActionLength);
+
+  RtlZeroMemory(&g_DebuggeeResultOfAddingActionsToEvent,
+                sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+  //
+  // Send add action to event packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT,
+          (CHAR *)Header, Len)) {
+
+    free(Header);
+    return NULL;
+  }
+
+  //
+  // Wait until the result of adding action to event received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT],
+                      INFINITE);
+
+  free(Header);
+
+  return &g_DebuggeeResultOfAddingActionsToEvent;
 }
 
 /**
@@ -566,6 +802,11 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
   DWORD LastErrorCode = 0;
 
   //
+  // Start getting debuggee messages again
+  //
+  g_IgnoreNewLoggingMessages = FALSE;
+
+  //
   // Check if buffer not pass the boundary
   //
   if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize) {
@@ -681,6 +922,13 @@ BOOLEAN KdCommandPacketToDebuggee(
   //
   Packet.RequestedActionOfThePacket = RequestedAction;
 
+  //
+  // calculate checksum of the packet
+  //
+  Packet.Checksum =
+      KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                            sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
   if (!KdSendPacketToDebuggee((const CHAR *)&Packet,
                               sizeof(DEBUGGER_REMOTE_PACKET), TRUE)) {
     return FALSE;
@@ -713,6 +961,15 @@ BOOLEAN KdCommandPacketAndBufferToDebuggee(
   // Set the requested action
   //
   Packet.RequestedActionOfThePacket = RequestedAction;
+
+  //
+  // calculate checksum of the packet
+  //
+  Packet.Checksum =
+      KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                            sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+  Packet.Checksum += KdComputeDataChecksum((PVOID)Buffer, BufferLength);
 
   //
   // Send the first buffer (without ending buffer indication)
@@ -1269,6 +1526,104 @@ BOOLEAN KdPrepareAndConnectDebugPort(const char *PortName, DWORD Baudrate,
 }
 
 /**
+ * @brief Send general buffer from debuggee to debugger
+ * @param RequestedAction
+ * @param Buffer
+ * @param Length
+ * @param PauseDebuggeeWhenSent
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendGeneralBuffersFromDebuggeeToDebugger(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, PVOID Buffer,
+    UINT32 BufferLength, BOOLEAN PauseDebuggeeWhenSent) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER
+  GeneralPacketFromDebuggeeToDebuggerRequest;
+  UINT32 Length;
+
+  //
+  // Compute the length of the packet (add to header )
+  //
+  Length = sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER) +
+           BufferLength;
+
+  //
+  // Allocate the target buffer
+  //
+  GeneralPacketFromDebuggeeToDebuggerRequest =
+      (PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)malloc(Length);
+
+  if (GeneralPacketFromDebuggeeToDebuggerRequest == NULL) {
+    //
+    // err, allocating buffer
+    //
+    return FALSE;
+  }
+
+  RtlZeroMemory(GeneralPacketFromDebuggeeToDebuggerRequest, Length);
+
+  //
+  // Fill the header structure
+  //
+  GeneralPacketFromDebuggeeToDebuggerRequest->RequestedAction = RequestedAction;
+  GeneralPacketFromDebuggeeToDebuggerRequest->LengthOfBuffer = BufferLength;
+  GeneralPacketFromDebuggeeToDebuggerRequest->PauseDebuggeeWhenSent =
+      PauseDebuggeeWhenSent;
+
+  //
+  // Move the memory to the bottom of the structure
+  //
+  memcpy(
+      (PVOID)((UINT64)GeneralPacketFromDebuggeeToDebuggerRequest +
+              sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)),
+      (PVOID)Buffer, BufferLength);
+
+  //
+  // Send Ioctl to the kernel
+  //
+  Status = DeviceIoControl(
+      g_DeviceHandle,                                      // Handle to device
+      IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER, // IO Control code
+      GeneralPacketFromDebuggeeToDebuggerRequest, // Input Buffer to driver.
+      Length,                                     // Input buffer
+                                                  // length
+      GeneralPacketFromDebuggeeToDebuggerRequest, // Output Buffer from driver.
+      SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER, // Length
+                                                                     // of
+                                                                     // output
+                                                                     // buffer
+                                                                     // in
+                                                                     // bytes.
+      &ReturnedLength, // Bytes placed in buffer.
+      NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult !=
+      DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
+
+    //
+    // Free the buffer
+    //
+    free(GeneralPacketFromDebuggeeToDebuggerRequest);
+
+    return FALSE;
+  }
+
+  free(GeneralPacketFromDebuggeeToDebuggerRequest);
+  return TRUE;
+}
+
+/**
  * @brief Send close packet to the debuggee and debugger
  * @details This function close the connection in both debuggee and debugger
  * both of the debuggee and debugger can use this function
@@ -1345,6 +1700,165 @@ BOOLEAN KdCloseConnection() {
   KdUninitializeConnection();
 
   return TRUE;
+}
+
+/**
+ * @brief Register an event in the debuggee
+ * @param EventRegBuffer
+ * @param Length
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
+                                  UINT32 Length) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  //
+  // Send IOCTL
+  //
+  Status =
+      DeviceIoControl(g_DeviceHandle,                // Handle to device
+                      IOCTL_DEBUGGER_REGISTER_EVENT, // IO Control code
+                      EventRegBuffer,
+                      Length           // Input Buffer to driver.
+                      ,                // Input buffer length
+                      &ReturnedBuffer, // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Now that we registered the event (with or without error),
+  // we should send the results back to the debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
+      &ReturnedBuffer, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), TRUE);
+}
+
+/**
+ * @brief Add action to an event in the debuggee
+ * @param ActionAddingBuffer
+ * @param Length
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
+                             UINT32 Length) {
+
+  BOOL Status;
+  ULONG ReturnedLength;
+  DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
+
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  Status =
+      DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                      IOCTL_DEBUGGER_ADD_ACTION_TO_EVENT, // IO Control code
+                      ActionAddingBuffer, // Input Buffer to driver.
+                      Length,             // Input buffer length
+                      &ReturnedBuffer,    // Output Buffer from driver.
+                      sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), // Length
+                                                                    // of
+                                                                    // output
+                                                                    // buffer
+                                                                    // in
+                                                                    // bytes.
+                      &ReturnedLength, // Bytes placed in buffer.
+                      NULL             // synchronous call
+      );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Now that we added the action to the event, we should send the
+  // results to the debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
+      &ReturnedBuffer, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER), TRUE);
+}
+
+/**
+ * @brief Modify event ioctl in the debuggee
+ * @param ModifyEvent
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent) {
+
+  BOOLEAN Status;
+  ULONG ReturnedLength;
+
+  //
+  // This mechanism is only used for clear event,
+  // it is because we apply enable/disable in kernel
+  // directly
+  //
+
+  //
+  // Check if debugger is loaded or not
+  //
+  if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return FALSE;
+  }
+
+  //
+  // Send the request to the kernel
+  //
+
+  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
+                           IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
+                           ModifyEvent, // Input Buffer to driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
+                           ModifyEvent, // Output Buffer from driver.
+                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
+                                                          // buffer in bytes.
+                           &ReturnedLength, // Bytes placed in buffer.
+                           NULL             // synchronous call
+  );
+
+  if (!Status) {
+    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+    return FALSE;
+  }
+
+  //
+  // Send the buffer back to debugger
+  //
+  return KdSendGeneralBuffersFromDebuggeeToDebugger(
+      DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+      ModifyEvent, sizeof(DEBUGGER_MODIFY_EVENTS), TRUE);
 }
 
 /**
@@ -1429,10 +1943,10 @@ VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length) {
   Status = DeviceIoControl(
       g_DeviceHandle,                           // Handle to device
       IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER, // IO Control code
-      UsermodeMessageRequest,                  // Input Buffer to driver.
+      UsermodeMessageRequest,                   // Input Buffer to driver.
       SizeToSend,                               // Input buffer
                                                 // length
-      UsermodeMessageRequest,                  // Output Buffer from driver.
+      UsermodeMessageRequest,                   // Output Buffer from driver.
       SizeToSend,                               // Length of
                                                 // output buffer
                                                 // in bytes.
@@ -1523,6 +2037,11 @@ VOID KdUninitializeConnection() {
     CloseHandle(g_SerialRemoteComPortHandle);
     g_SerialRemoteComPortHandle = NULL;
   }
+
+  //
+  // Start getting debuggee messages on next try
+  //
+  g_IgnoreNewLoggingMessages = FALSE;
 
   //
   // Is serial handle for a named pipe

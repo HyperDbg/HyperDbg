@@ -61,7 +61,11 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 ### Second Release (v0.2.0.0)
 (not released yet !)
 
-## Installation
+## Build & Installation
+If you want to build HyperDbg, you should clone HyperDbg with `--recursive` flag.
+```
+git clone --recursive https://github.com/HyperDbg/HyperDbg.git
+```
 Please visit <a href="https://docs.hyperdbg.com/getting-started/build-and-install">Build & Install</a> and <a href="https://docs.hyperdbg.com/getting-started/quick-start">Quick Start</a> for a detailed explanation of how to start with **HyperDbg**. You can also see <a href="https://docs.hyperdbg.com/getting-started/faq">FAQ</a> for more information.
 
 ## How does it work?

@@ -148,6 +148,13 @@ BOOLEAN g_IsSerialConnectedToRemoteDebugger = FALSE;
 BOOLEAN g_IsDebuggeeRunning = FALSE;
 
 /**
+ * @brief Shows if the debugger should show debuggee's messages
+ * or not
+ *
+ */
+BOOLEAN g_IgnoreNewLoggingMessages = FALSE;
+
+/**
  * @brief Current core that the debuggee is debugging
  *
  */
@@ -168,6 +175,19 @@ BOOLEAN g_IsDebuggerConntectedToNamedPipe = FALSE;
 HANDLE g_DebuggeeStopCommandEventHandle = NULL;
 
 /**
+ * @brief Holds the result of registering events from the remote debuggee
+ *
+ */
+DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent = {0};
+
+/**
+ * @brief Holds the result of adding action to events from the remote debuggee
+ *
+ */
+DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
+    0};
+
+/**
  * @brief This is an OVERLAPPED structure for managing simultaneous
  * read and writes for debugger (in current design debuggee is not needed
  * to read and write simultaneously)
@@ -175,6 +195,12 @@ HANDLE g_DebuggeeStopCommandEventHandle = NULL;
  */
 OVERLAPPED g_OverlappedIoStructureForReadDebugger = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
+
+/**
+ * @brief Shows whether the queried event is enabled or disabled
+ *
+ */
+BOOLEAN g_SharedEventStatus = FALSE;
 
 //////////////////////////////////////////////////
 //				 Global Variables               //

@@ -37,6 +37,11 @@ KdInitializeKernelDebugger()
     }
 
     //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&KdNmiCallback, NULL);
+
+    //
     // Broadcast on all core to cause exit for NMIs
     //
     HvEnableNmiExitingAllCores();
@@ -46,6 +51,11 @@ KdInitializeKernelDebugger()
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
     HvEnableDbAndBpExitingAllCores();
+
+    //
+    // Reset pause break requests
+    //
+    RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
     //
     // Indicate that kernel debugger is active
@@ -71,6 +81,16 @@ KdUninitializeKernelDebugger()
         g_KernelDebuggerState = FALSE;
 
         //
+        // Reset pause break requests
+        //
+        RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+
+        //
+        // De-register NMI handler
+        //
+        KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+        //
         // Broadcast on all core to cause not to exit for NMIs
         //
         HvDisableNmiExitingAllCores();
@@ -91,6 +111,57 @@ KdUninitializeKernelDebugger()
         //
         ApicUninitialize();
     }
+}
+
+/**
+ * @brief Handles NMIs in kernel-mode
+ *
+ * @param Context
+ * @param Handled
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdNmiCallback(PVOID Context, BOOLEAN Handled)
+{
+    UINT32 CurrentCoreIndex;
+
+    CurrentCoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // This mechanism tries to solve the problem of receiving NMIs
+    // when we're already in vmx-root mode, e.g., when we want to
+    // inject NMIs to other cores and those cores are already operating
+    // in vmx-root mode; however, this is not the approach to solve the
+    // problem. In order to solve this problem, we should create our own
+    // host IDT in vmx-root mode (Note that we should set HOST_IDTR_BASE
+    // and there is no need to LIMIT as it's fixed at 0xffff for VMX
+    // operations).
+    // Because we want to use the debugging mechanism of the Windows
+    // we use the same IDT with the guest (guest and host IDT is the
+    // same), but in the future versions we solve this problem by our
+    // own ISR NMI handler in vmx-root mode
+    //
+
+    //
+    // We should check whether the NMI is in vmx-root mode or not
+    // if it's not in vmx-root mode then it's not relate to use
+    //
+    if (!g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi)
+    {
+        return Handled;
+    }
+
+    //
+    // If we're here then it related to us
+    // We set a flag to indicate that this core should be halted
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi                     = FALSE;
+    g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = TRUE;
+
+    //
+    // Also, return true to show that it's handled
+    //
+    return TRUE;
 }
 
 /**
@@ -139,6 +210,27 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
 }
 
 /**
+ * @brief calculate the checksum of recived buffer from debugger
+ *
+ * @param Buffer
+ * @param LengthReceived
+ * @return BYTE
+ */
+BYTE
+KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
+{
+    BYTE CalculatedCheckSum = 0;
+    BYTE Temp               = 0;
+    while (Length--)
+    {
+        Temp               = *(BYTE *)Buffer;
+        CalculatedCheckSum = CalculatedCheckSum + Temp;
+        Buffer             = (PVOID)((UINT64)Buffer + 1);
+    }
+    return CalculatedCheckSum;
+}
+
+/**
  * @brief Sends a HyperDbg response packet to the debugger
  *
  * @param PacketType
@@ -168,25 +260,51 @@ KdResponsePacketToDebugger(
     Packet.RequestedActionOfThePacket = Response;
 
     //
-    // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
-    // if not we use the windows spinlock
-    //
-    SpinlockLock(&DebuggerResponseLock);
-
-    //
     // Send the serial packets to the debugger
     //
     if (OptionalBuffer == NULL || OptionalBufferLength == 0)
     {
+        Packet.Checksum =
+            KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                                  sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+        //
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+        // if not we use the windows spinlock
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
         SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+
+        SpinlockUnlock(&DebuggerResponseLock);
     }
     else
     {
+        Packet.Checksum =
+            KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                                  sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+        Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
+
+        //
+        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+        // if not we use the windows spinlock
+        //
+        SpinlockLock(&DebuggerResponseLock);
+
         SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+
+        SpinlockUnlock(&DebuggerResponseLock);
     }
 
-    SpinlockUnlock(&DebuggerResponseLock);
-
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent &&
+        g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
+    {
+        //
+        // Set it to false by zeroing it
+        //
+        RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
+    }
     return TRUE;
 }
 
@@ -216,6 +334,16 @@ KdLoggingResponsePacketToDebugger(
     // Set the requested action
     //
     Packet.RequestedActionOfThePacket = DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_LOGGING_MECHANISM;
+
+    //
+    // Calculate checksum
+    //
+    Packet.Checksum =
+        KdComputeDataChecksum((PVOID)((UINT64)&Packet + 1),
+                              sizeof(DEBUGGER_REMOTE_PACKET) - sizeof(BYTE));
+
+    Packet.Checksum += KdComputeDataChecksum((PVOID)&OperationCode, sizeof(UINT32));
+    Packet.Checksum += KdComputeDataChecksum((PVOID)OptionalBuffer, OptionalBufferLength);
 
     //
     // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
@@ -294,14 +422,22 @@ KdRecvBuffer(CHAR *   BufferToSave,
 /**
  * @brief continue the debuggee, this function gurantees that all other cores
  * are continued (except current core)
+ * @param 
+ * 
  * @return VOID 
  */
 VOID
-KdContinueDebuggee()
+KdContinueDebuggee(BOOLEAN PauseBreaksUntilASpecialMessageSent, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse)
 {
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
+
+    if (PauseBreaksUntilASpecialMessageSent)
+    {
+        g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent = TRUE;
+        g_IgnoreBreaksToDebugger.SpeialEventResponse                 = SpeialEventResponse;
+    }
 
     //
     // Unlock all the cores
@@ -594,11 +730,19 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
  * @return VOID 
  */
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
-                                      PGUEST_REGS             GuestRegs,
-                                      DEBUGGEE_PAUSING_REASON Reason,
-                                      PVOID                   Context)
+KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentProcessorIndex,
+                                      PGUEST_REGS                       GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
+    //
+    // Check if we should ignore this break request or not
+    //
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent)
+    {
+        return;
+    }
+
     //
     // Lock current core
     //
@@ -610,9 +754,13 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
     g_DebuggeeHaltReason = Reason;
 
     //
-    // Set the context
+    // Set the context and tag
     //
-    g_DebuggeeHaltContext = Context;
+    if (EventDetails != NULL)
+    {
+        g_DebuggeeHaltContext = EventDetails->Context;
+        g_DebuggeeHaltTag     = EventDetails->Tag;
+    }
 
     if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
     {
@@ -640,7 +788,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, TRUE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, EventDetails, TRUE);
 
     //
     // Clear the halting reason
@@ -648,13 +796,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIn
     g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_NOT_PAUSED;
 
     //
-    // Clear the context
+    // Clear the context and tag
     //
     g_DebuggeeHaltContext = NULL;
+    g_DebuggeeHaltTag     = NULL;
 }
 
 /**
- * @brief Handle #DBs and #BPs for kernel debugger
+ * @brief Handle changes to cr3
  * @details This function can be used in vmx-root 
  * @param CurrentProcessorIndex
  * @param GuestRegs
@@ -707,7 +856,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, FALSE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, NULL, FALSE);
 }
 
 /**
@@ -735,6 +884,159 @@ KdStepInstruction(ULONG CoreId)
 }
 
 /**
+ * @brief Send event registeration buffer to user-mode to register the event
+ * @param EventDetailHeader 
+ * 
+ * @return VOID 
+ */
+VOID
+KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
+{
+    LogSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
+                  ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                  EventDetailHeader->Length);
+}
+
+/**
+ * @brief Send action buffer to user-mode to be added to the event
+ * @param ActionDetailHeader 
+ * 
+ * @return VOID 
+ */
+VOID
+KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
+{
+    LogSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
+                  ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
+                  ActionDetailHeader->Length);
+}
+
+/**
+ * @brief Perform modify and query events
+ * @param ModifyAndQueryEvent 
+ * 
+ * @return VOID 
+ */
+VOID
+KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
+{
+    BOOLEAN IsForAllEvents = FALSE;
+
+    //
+    // Check if the tag is valid or not
+    //
+    if (ModifyAndQueryEvent->Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
+    {
+        IsForAllEvents = TRUE;
+    }
+    else if (!DebuggerIsTagValid(ModifyAndQueryEvent->Tag))
+    {
+        //
+        // Tag is invalid
+        //
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG;
+        return;
+    }
+
+    //
+    // ***************************************************************************
+    //
+
+    //
+    // Check if it's a query state command
+    //
+    if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE)
+    {
+        //
+        // check if tag is valid or not
+        //
+        if (!DebuggerIsTagValid(ModifyAndQueryEvent->Tag))
+        {
+            ModifyAndQueryEvent->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+        }
+        else
+        {
+            //
+            // Set event state
+            //
+            if (DebuggerQueryStateEvent(ModifyAndQueryEvent->Tag))
+            {
+                ModifyAndQueryEvent->IsEnabled = TRUE;
+            }
+            else
+            {
+                ModifyAndQueryEvent->IsEnabled = FALSE;
+            }
+
+            //
+            // The function was successful
+            //
+            ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        }
+    }
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
+    {
+        if (IsForAllEvents)
+        {
+            //
+            // Enable all events
+            //
+            DebuggerEnableOrDisableAllEvents(TRUE);
+        }
+        else
+        {
+            //
+            // Enable just one event
+            //
+            DebuggerEnableEvent(ModifyAndQueryEvent->Tag);
+        }
+
+        //
+        // The function was successful
+        //
+        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    }
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
+    {
+        if (IsForAllEvents)
+        {
+            //
+            // Disable all events
+            //
+            DebuggerEnableOrDisableAllEvents(FALSE);
+        }
+        else
+        {
+            //
+            // Disable just one event
+            //
+            DebuggerDisableEvent(ModifyAndQueryEvent->Tag);
+        }
+
+        //
+        // The function was successful
+        //
+        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    }
+    else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
+    {
+        //
+        // Send one byte buffer and operation codes
+        //
+        LogSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
+                      ModifyAndQueryEvent,
+                      sizeof(DEBUGGER_MODIFY_EVENTS));
+    }
+    else
+    {
+        //
+        // Invalid parameter specifed in Action
+        //
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION;
+    }
+}
+
+/**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
  * @param CurrentCore  
@@ -745,11 +1047,15 @@ KdStepInstruction(ULONG CoreId)
 VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
-    PDEBUGGEE_CHANGE_CORE_PACKET    ChangeCorePacket;
-    PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
-    PDEBUGGEE_SCRIPT_PACKET         ScriptPacket;
-    PDEBUGGEE_USER_INPUT_PACKET     UserInputPacket;
-    BOOLEAN                         UnlockTheNewCore = FALSE;
+    PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
+    PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
+    PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
+    PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
+    PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
+    PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
+    BOOLEAN                                             UnlockTheNewCore = FALSE;
 
     while (TRUE)
     {
@@ -773,6 +1079,17 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
         if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
         {
             //
+            // Check checksum
+            //
+            if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
+                                      RecvBufferLength - sizeof(BYTE)) !=
+                TheActualPacket->Checksum)
+            {
+                LogError("err, checksum is invalid");
+                continue;
+            }
+
+            //
             // Check if the packet type is correct
             //
             if (TheActualPacket->TypeOfThePacket !=
@@ -795,7 +1112,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -833,7 +1150,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Unlock other cores
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
 
                 //
                 // No need to wait for new commands
@@ -898,6 +1215,25 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 break;
 
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS:
+
+                FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
+                                                                 sizeof(DEBUGGER_REMOTE_PACKET));
+                //
+                // Flush the buffers
+                //
+                DebuggerCommandFlush(FlushPacket);
+
+                //
+                // Send the result of flushing back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
+                                           FlushPacket,
+                                           sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
+
+                break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS:
 
                 ChangeProcessPacket = (DEBUGGEE_CHANGE_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
@@ -933,7 +1269,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Run the script in debuggee
                 //
-
                 if (DebuggerPerformRunScript(OPERATION_LOG_INFO_MESSAGE /* simple print */,
                                              NULL,
                                              ScriptPacket,
@@ -977,8 +1312,81 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Continue Debuggee
                 //
-                KdContinueDebuggee();
+                KdContinueDebuggee(FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
                 EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT:
+
+                EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) +
+                                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Send the event buffer to user-mode debuggee
+                //
+                KdPerformRegisterEvent(EventRegPacket);
+
+                //
+                // Continue Debuggee
+                //
+                KdContinueDebuggee(TRUE,
+                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT);
+                EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT:
+
+                AddActionPacket = (DEBUGGER_GENERAL_ACTION *)(((CHAR *)TheActualPacket) +
+                                                              sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Send the action buffer to user-mode debuggee
+                //
+                KdPerformAddActionToEvent(AddActionPacket);
+
+                //
+                // Continue Debuggee
+                //
+                KdContinueDebuggee(TRUE,
+                                   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT);
+                EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT:
+
+                QueryAndModifyEventPacket = (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) +
+                                                                       sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the action
+                //
+                KdPerformEventQueryAndModification(QueryAndModifyEventPacket);
+
+                //
+                // Only continue debuggee if it's a clear event action
+                //
+                if (QueryAndModifyEventPacket->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
+                {
+                    //
+                    // Continue Debuggee
+                    //
+                    KdContinueDebuggee(TRUE,
+                                       DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT);
+                    EscapeFromTheLoop = TRUE;
+                }
+                else
+                {
+                    //
+                    // Send the response of event query and modification (anything other than clear)
+                    //
+                    KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                               DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+                                               QueryAndModifyEventPacket,
+                                               sizeof(DEBUGGER_MODIFY_EVENTS));
+                }
 
                 break;
 
@@ -1010,12 +1418,16 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param CurrentCore  
  * @param GuestRegs  
+ * @param EventDetails  
  * @param MainCore the core that triggered the event  
  * 
  * @return VOID 
  */
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore)
+KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
+                            PGUEST_REGS                       GuestRegs,
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                            BOOLEAN                           MainCore)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
     ULONG                  ExitInstructionLength = 0;
@@ -1052,6 +1464,14 @@ StartAgain:
         // Set the RIP
         //
         PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
+
+        //
+        // Set the event tag (if it's an event)
+        //
+        if (EventDetails != NULL)
+        {
+            PausePacket.EventTag = EventDetails->Tag;
+        }
 
         //
         // Read the instruction len

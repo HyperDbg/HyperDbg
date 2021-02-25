@@ -404,6 +404,35 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER:
+    {
+        //
+        // Cast the buffer received to perform sending buffer and possibly
+        // halt the the debuggee
+        //
+        PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest =
+            OptionalParam1;
+
+        KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                   DebuggeeBufferRequest->RequestedAction,
+                                   (UINT64)DebuggeeBufferRequest + (SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER),
+                                   DebuggeeBufferRequest->LengthOfBuffer);
+
+        //
+        // Check if we expect a buffer and command from the debugger or the
+        // request is just finished
+        //
+        if (DebuggeeBufferRequest->PauseDebuggeeWhenSent)
+        {
+            KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
+                                                  GuestRegs,
+                                                  DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
+                                                  NULL);
+        }
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

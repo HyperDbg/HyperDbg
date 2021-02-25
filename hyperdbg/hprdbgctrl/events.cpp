@@ -19,6 +19,7 @@ extern BOOLEAN g_EventTraceInitialized;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoFlush;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of events command
@@ -116,7 +117,51 @@ VOID CommandEvents(vector<string> SplittedCommand, string Command) {
   if (RequestedTag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG) {
     RequestedTag = RequestedTag + DebuggerEventTagStartSeed;
   }
-  CommandEventsModifyEvents(RequestedTag, RequestedAction);
+
+  //
+  // Perform event related tasks
+  //
+  CommandEventsModifyAndQueryEvents(RequestedTag, RequestedAction);
+}
+
+/**
+ * @brief Check the kernel whether the event is enabled or disabled
+ *
+ * @param Tag the tag of the target event
+ * @return BOOLEAN if the event was enabled and false if event was
+ * disabled
+ */
+BOOLEAN CommandEventQueryEventState(UINT64 Tag) {
+
+  BOOLEAN IsEnabled;
+
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+
+    //
+    // It's a remote debugger in Debugger Mode
+    //
+    if (KdSendEventQueryAndModifyPacketToDebuggee(
+            Tag, DEBUGGER_MODIFY_EVENTS_QUERY_STATE, &IsEnabled)) {
+
+      return IsEnabled;
+
+    } else {
+      ShowMessages("err, unable to get the state of the event\n");
+      return FALSE;
+    }
+
+  } else {
+
+    //
+    // It's a local debugging in VMI Mode
+    //
+    return CommandEventsModifyAndQueryEvents(
+        Tag, DEBUGGER_MODIFY_EVENTS_QUERY_STATE);
+  }
+  //
+  // By default, disabled, even if there was an error
+  //
+  return FALSE;
 }
 
 /**
@@ -143,7 +188,10 @@ VOID CommandEventsShowEvents() {
 
     ShowMessages("%x\t(%s)\t    %s\n",
                  CommandDetail->Tag - DebuggerEventTagStartSeed,
-                 CommandDetail->IsEnabled ? "enabled" : "disabled",
+                 // CommandDetail->IsEnabled ? "enabled" : "disabled",
+                 CommandEventQueryEventState(CommandDetail->Tag)
+                     ? "enabled"
+                     : "disabled", /* Query is live now */
                  CommandDetail->CommandStringBuffer);
 
     if (!IsThereAnyEvents) {
@@ -314,6 +362,132 @@ BOOLEAN CommandEventClearEvent(UINT64 Tag) {
 }
 
 /**
+ * @brief Handle events after modification
+ *
+ * @param Tag the tag of the target event
+ * @param ModifyEventRequest Results
+ * @return VOID
+ */
+VOID CommandEventsHandleModifiedEvent(
+    UINT64 Tag, PDEBUGGER_MODIFY_EVENTS ModifyEventRequest) {
+
+  if (ModifyEventRequest->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+    //
+    // Successfull, nothing to show but we should also
+    // do the same (change) the user-mode structures
+    // that hold the event data
+    //
+    if (ModifyEventRequest->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
+
+      if (!CommandEventEnableEvent(Tag)) {
+
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
+      }
+
+    } else if (ModifyEventRequest->TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_DISABLE) {
+
+      if (!CommandEventDisableEvent(Tag)) {
+
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
+      } else {
+
+        //
+        // The action was applied successfully
+        //
+        if (g_BreakPrintingOutput) {
+
+          //
+          // It is because we didn't query the target debuggee auto-flush
+          // variable
+          //
+          if (!g_IsConnectedToRemoteDebuggee) {
+
+            if (!g_AutoFlush) {
+              ShowMessages(
+                  "auto-flush mode is disabled, if there is still "
+                  "messages or buffers in the kernel, you continue to see "
+                  "the messages when you run 'g' until the kernel "
+                  "buffers are empty. you can run 'settings autoflush "
+                  "on' and after disabling and clearing events, "
+                  "kernel buffers will be flushed automatically.\n");
+            } else {
+              //
+              // We should flush buffers here
+              //
+              CommandFlushRequestFlush();
+            }
+          }
+        }
+      }
+
+    } else if (ModifyEventRequest->TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_CLEAR) {
+
+      if (!CommandEventClearEvent(Tag)) {
+
+        ShowMessages("error, the event was successfully, "
+                     "(enabled|disabled|cleared) but "
+                     "can't apply it to the user-mode structures.\n");
+      } else {
+
+        //
+        // The action was applied successfully
+        //
+        if (g_BreakPrintingOutput) {
+
+          //
+          // It is because we didn't query the target debuggee auto-flush
+          // variable
+          //
+          if (!g_IsConnectedToRemoteDebuggee) {
+
+            if (!g_AutoFlush) {
+              ShowMessages(
+                  "auto-flush mode is disabled, if there is still "
+                  "messages or buffers in the kernel, you continue to see "
+                  "the messages when you run 'g' until the kernel "
+                  "buffers are empty. you can run 'settings autoflush "
+                  "on' and after disabling and clearing events, "
+                  "kernel buffers will be flushed automatically.\n");
+            } else {
+              //
+              // We should flush buffers here
+              //
+              CommandFlushRequestFlush();
+            }
+          }
+        }
+      }
+
+    } else if (ModifyEventRequest->TypeOfAction ==
+               DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+      //
+      // Nothing to show
+      //
+
+    } else {
+
+      ShowMessages(
+          "error, the event was successfully, (enabled|disabled|cleared) but "
+          "can't apply it to the user-mode structures.\n");
+    }
+
+  } else {
+    //
+    // Interpret error
+    //
+    ShowErrorMessage(ModifyEventRequest->KernelStatus);
+    return;
+  }
+}
+
+/**
  * @brief modify a special event (enable/disable/clear) and send the
  * request directly to the kernel
  * @details if you pass DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG as the
@@ -322,10 +496,11 @@ BOOLEAN CommandEventClearEvent(UINT64 Tag) {
  *
  * @param Tag the tag of the target event
  * @param TypeOfAction whether its a enable/disable/clear
- * @return VOID
+ * @return BOOLEAN Shows whether the event is enabled or disabled
  */
-VOID CommandEventsModifyEvents(UINT64 Tag,
-                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
+BOOLEAN
+CommandEventsModifyAndQueryEvents(UINT64 Tag,
+                                  DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction) {
 
   BOOLEAN Status;
   ULONG ReturnedLength;
@@ -347,150 +522,72 @@ VOID CommandEventsModifyEvents(UINT64 Tag,
     } else {
       ShowMessages("err, tag id is invalid\n");
     }
-    return;
+    return FALSE;
   }
 
-  //
-  // Check if debugger is loaded or not
-  //
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
-
-  //
-  // Fill the structure to send it to the kernel
-  //
-  ModifyEventRequest.Tag = Tag;
-  ModifyEventRequest.TypeOfAction = TypeOfAction;
-
-  //
-  // Send the request to the kernel
-  //
-
-  Status = DeviceIoControl(g_DeviceHandle,               // Handle to device
-                           IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
-                           &ModifyEventRequest, // Input Buffer to driver.
-                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
-                           &ModifyEventRequest, // Output Buffer from driver.
-                           SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
-                                                          // buffer in bytes.
-                           &ReturnedLength, // Bytes placed in buffer.
-                           NULL             // synchronous call
-  );
-
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return;
-  }
-
-  if (ModifyEventRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+  if (g_IsSerialConnectedToRemoteDebuggee) {
 
     //
-    // Successfull, nothing to show but we should also
-    // do the same (change) the user-mode structures
-    // that hold the event data
+    // Remote debuggee Debugger Mode
     //
-    if (ModifyEventRequest.TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE) {
-
-      if (!CommandEventEnableEvent(Tag)) {
-
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
-      }
-
-    } else if (ModifyEventRequest.TypeOfAction ==
-               DEBUGGER_MODIFY_EVENTS_DISABLE) {
-
-      if (!CommandEventDisableEvent(Tag)) {
-
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
-      } else {
-
-        //
-        // The action was applied successfully
-        //
-        if (g_BreakPrintingOutput) {
-
-          //
-          // It is because we didn't query the target debuggee auto-flush
-          // variable
-          //
-          if (!g_IsConnectedToRemoteDebuggee) {
-
-            if (!g_AutoFlush) {
-              ShowMessages(
-                  "auto-flush mode is disabled, if there is still "
-                  "messages or buffers in the kernel, you continue to see "
-                  "the messages when you run 'g' until the kernel "
-                  "buffers are empty. you can run 'settings autoflush "
-                  "on' and after disabling and clearing events, "
-                  "kernel buffers will be flushed automatically.\n");
-            } else {
-              //
-              // We should flush buffers here
-              //
-              CommandFlushRequestFlush();
-            }
-          }
-        }
-      }
-
-    } else if (ModifyEventRequest.TypeOfAction ==
-               DEBUGGER_MODIFY_EVENTS_CLEAR) {
-
-      if (!CommandEventClearEvent(Tag)) {
-
-        ShowMessages(
-            "error, the event was successfully, (enabled|disabled|cleared) but "
-            "can't apply it to the user-mode structures.\n");
-      } else {
-
-        //
-        // The action was applied successfully
-        //
-        if (g_BreakPrintingOutput) {
-
-          //
-          // It is because we didn't query the target debuggee auto-flush
-          // variable
-          //
-          if (!g_IsConnectedToRemoteDebuggee) {
-
-            if (!g_AutoFlush) {
-              ShowMessages(
-                  "auto-flush mode is disabled, if there is still "
-                  "messages or buffers in the kernel, you continue to see "
-                  "the messages when you run 'g' until the kernel "
-                  "buffers are empty. you can run 'settings autoflush "
-                  "on' and after disabling and clearing events, "
-                  "kernel buffers will be flushed automatically.\n");
-            } else {
-              //
-              // We should flush buffers here
-              //
-              CommandFlushRequestFlush();
-            }
-          }
-        }
-      }
-
-    } else {
-
-      ShowMessages(
-          "error, the event was successfully, (enabled|disabled|cleared) but "
-          "can't apply it to the user-mode structures.\n");
-    }
+    KdSendEventQueryAndModifyPacketToDebuggee(Tag, TypeOfAction, NULL);
 
   } else {
+
     //
-    // Interpret error
+    // Local debugging VMI-Mode
     //
-    ShowErrorMessage(ModifyEventRequest.KernelStatus);
-    return;
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle) {
+      ShowMessages(
+          "Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return FALSE;
+    }
+
+    //
+    // Fill the structure to send it to the kernel
+    //
+    ModifyEventRequest.Tag = Tag;
+    ModifyEventRequest.TypeOfAction = TypeOfAction;
+
+    //
+    // Send the request to the kernel
+    //
+
+    Status =
+        DeviceIoControl(g_DeviceHandle,               // Handle to device
+                        IOCTL_DEBUGGER_MODIFY_EVENTS, // IO Control code
+                        &ModifyEventRequest,          // Input Buffer to driver.
+                        SIZEOF_DEBUGGER_MODIFY_EVENTS, // Input buffer length
+                        &ModifyEventRequest, // Output Buffer from driver.
+                        SIZEOF_DEBUGGER_MODIFY_EVENTS, // Length of output
+                                                       // buffer in bytes.
+                        &ReturnedLength, // Bytes placed in buffer.
+                        NULL             // synchronous call
+        );
+
+    if (!Status) {
+      ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+      return FALSE;
+    }
+
+    //
+    // Perform further actions
+    //
+    CommandEventsHandleModifiedEvent(Tag, &ModifyEventRequest);
+
+    if (TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+      return ModifyEventRequest.IsEnabled;
+    }
   }
+
+  //
+  // in all the cases except query state it shows whether the operation was
+  // successful or not
+  //
+  return TRUE;
 }

@@ -88,6 +88,19 @@ BOOLEAN KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE *Buffer);
 
 BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
 
+BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
+    UINT64 Tag, DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction, BOOLEAN *IsEnabled);
+
+BOOLEAN KdSendFlushPacketToDebuggee();
+
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                                    UINT32 EventBufferLength);
+
+PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
+                                       UINT32 GeneralActionLength);
+
 BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
                                             UINT32 NewPid);
 
@@ -99,9 +112,24 @@ BOOLEAN KdSendUserInputPacketToDebuggee(const char *Sendbuf, int Len);
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
+BYTE KdComputeDataChecksum(PVOID Buffer, UINT32 Length);
+
 VOID KdHandleUserInputInDebuggee(CHAR *Input);
 
+BOOLEAN KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
+                                  UINT32 Length);
+
+BOOLEAN
+KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
+                             UINT32 Length);
+
+BOOLEAN KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent);
+
 VOID KdSendUsermodePrints(CHAR *Input, UINT32 Length);
+
+BOOLEAN KdSendGeneralBuffersFromDebuggeeToDebugger(
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction, PVOID Buffer,
+    UINT32 BufferLength, BOOLEAN PauseDebuggeeWhenSent);
 
 BOOLEAN KdCloseConnection();
 

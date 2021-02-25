@@ -96,8 +96,12 @@ BOOL BreakController(DWORD CtrlType);
 
 VOID CommandEventsShowEvents();
 
-VOID CommandEventsModifyEvents(UINT64 Tag,
-                               DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction);
+BOOLEAN
+CommandEventsModifyAndQueryEvents(UINT64 Tag,
+                                  DEBUGGER_MODIFY_EVENTS_TYPE TypeOfAction);
+
+VOID CommandEventsHandleModifiedEvent(
+    UINT64 Tag, PDEBUGGER_MODIFY_EVENTS ModifyEventRequest);
 
 VOID CommandFlushRequestFlush();
 

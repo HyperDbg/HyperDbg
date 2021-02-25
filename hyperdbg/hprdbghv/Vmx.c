@@ -105,6 +105,35 @@ VmxInitializer()
 }
 
 /**
+ * @brief It can deteministcly check whether the caller is on vmx-root mode
+ * or not
+ * 
+ * @return BOOLEAN Returns true if current operation mode is vmx-root and false
+ * if current operation mode is vmx non-root
+ */
+BOOLEAN
+VmxCheckIsOnVmxRoot()
+{
+    ULONG64 VmcsLink = 0;
+
+    __try
+    {
+        if (!__vmx_vmread(VMCS_LINK_POINTER, &VmcsLink))
+        {
+            if (VmcsLink != 0)
+            {
+                return TRUE;
+            }
+        }
+    }
+    __except (1)
+    {
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief Initialize VMX Operation
  * 
  * @param GuestStack Guest stack for the this core (GUEST_RSP)

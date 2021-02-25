@@ -270,6 +270,13 @@
  */
 #define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x29
 
+/**
+ * @brief VMCALL to send general buffers from debuggee user-mode
+ * to the debugger
+ * 
+ */
+#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x2a
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

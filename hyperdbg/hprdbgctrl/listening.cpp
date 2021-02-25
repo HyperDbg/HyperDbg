@@ -21,7 +21,12 @@ extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
+extern BOOLEAN g_IgnoreNewLoggingMessages;
+extern BOOLEAN g_SharedEventStatus;
 extern ULONG g_CurrentRemoteCore;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
+extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
+    g_DebuggeeResultOfAddingActionsToEvent;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -37,7 +42,10 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_CHANGE_CORE_PACKET ChangeCorePacket;
   PDEBUGGEE_SCRIPT_PACKET ScriptPacket;
   PDEBUGGEE_FORMATS_PACKET FormatsPacket;
+  PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
+  PDEBUGGER_MODIFY_EVENTS EventModifyAndQueryPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
+  PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
 
 StartAgain:
 
@@ -83,6 +91,17 @@ StartAgain:
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
 
     //
+    // Check checksum
+    //
+    if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
+                              LengthReceived - sizeof(BYTE)) !=
+        TheActualPacket->Checksum) {
+
+      ShowMessages("err checksum is invalid\n");
+      goto StartAgain;
+    }
+
+    //
     // Check if the packet type is correct
     //
     if (TheActualPacket->TypeOfThePacket !=
@@ -91,7 +110,7 @@ StartAgain:
       // sth wrong happened, the packet is not belonging to use
       // nothing to do, just wait again
       //
-      ShowMessages("err, unknown packet received from the debugger\n");
+      ShowMessages("err, unknown packet received from the debuggee\n");
       goto StartAgain;
     }
 
@@ -119,11 +138,23 @@ StartAgain:
       MessagePacket =
           (DEBUGGEE_MESSAGE_PACKET *)(((CHAR *)TheActualPacket) +
                                       sizeof(DEBUGGER_REMOTE_PACKET));
-      ShowMessages("%s", MessagePacket->Message);
+
+      //
+      // We check g_IgnoreNewLoggingMessages here because we want to
+      // avoid messages when the debuggee is halted
+      //
+      if (!g_IgnoreNewLoggingMessages) {
+        ShowMessages("%s", MessagePacket->Message);
+      }
 
       break;
 
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION:
+
+      //
+      // Pause logging mechanism
+      //
+      g_IgnoreNewLoggingMessages = TRUE;
 
       PausePacket = (DEBUGGEE_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
                                                sizeof(DEBUGGER_REMOTE_PACKET));
@@ -138,15 +169,28 @@ StartAgain:
       //
       g_CurrentRemoteCore = PausePacket->CurrentCore;
 
-      HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                             PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+      //
+      // Check whether the pausing was because of triggering an event
+      // or not
+      //
+      if (PausePacket->EventTag != NULL) {
+        ShowMessages("event 0x%x triggered\n",
+                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+        // Sleep(3000);
+      }
 
-      if (PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT ||
-          PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT ||
-          PausePacket->PausingReason ==
-              DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED) {
+      if (PausePacket->PausingReason !=
+          DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM) {
+        HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                               PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+      }
+
+      switch (PausePacket->PausingReason) {
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
 
         //
         // Unpause the debugger to get commands
@@ -154,32 +198,47 @@ StartAgain:
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
 
-      } else if (PausePacket->PausingReason ==
-                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED) {
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM:
+
+        //
+        // Nothing
+        //
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED:
+
         //
         // Signal the event relating to receiving result of core change
         //
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
 
-      } else if (PausePacket->PausingReason ==
-                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED) {
+        break;
+
+      case DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED:
 
         //
         // Signal the event relating to result of command execution finished
         //
+        ShowMessages("\n");
         SetEvent(
             g_SyncronizationObjectsHandleTable
                 [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
-      }
 
-      else {
+        break;
+
+      default:
+
         //
         // Signal the event relating to commands that are waiting for
         // the details of a halted debuggeee
         //
         SetEvent(g_SyncronizationObjectsHandleTable
                      [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+
+        break;
       }
 
       break;
@@ -237,6 +296,35 @@ StartAgain:
 
       break;
 
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH:
+
+      FlushPacket =
+          (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
+                                             sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (FlushPacket->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // The amount of message that are deleted are the amount of
+        // vmx-root messages and vmx non-root messages
+        //
+        ShowMessages("flushing buffers was successful, total %d messages were "
+                     "cleared.\n",
+                     FlushPacket->CountOfMessagesThatSetAsReadFromVmxNonRoot +
+                         FlushPacket->CountOfMessagesThatSetAsReadFromVmxRoot);
+
+      } else {
+        ShowErrorMessage(FlushPacket->KernelStatus);
+      }
+
+      //
+      // Signal the event relating to receiving result of flushing
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]);
+
+      break;
+
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT:
 
       ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) +
@@ -272,7 +360,7 @@ StartAgain:
 
       FormatsPacket =
           (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) +
-                                      sizeof(DEBUGGEE_FORMATS_PACKET));
+                                      sizeof(DEBUGGER_REMOTE_PACKET));
 
       if (FormatsPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
 
@@ -285,6 +373,87 @@ StartAgain:
 
         ShowErrorMessage(FormatsPacket->Result);
       }
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT:
+
+      EventAndActionPacket =
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                   sizeof(
+                                                       DEBUGGER_REMOTE_PACKET));
+
+      //
+      // Move the buffer to the global variable
+      //
+      memcpy(&g_DebuggeeResultOfRegisteringEvent, EventAndActionPacket,
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // Signal the event relating to receiving result of register event
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT:
+
+      EventAndActionPacket =
+          (DEBUGGER_EVENT_AND_ACTION_REG_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                   sizeof(
+                                                       DEBUGGER_REMOTE_PACKET));
+
+      //
+      // Move the buffer to the global variable
+      //
+      memcpy(&g_DebuggeeResultOfAddingActionsToEvent, EventAndActionPacket,
+             sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
+
+      //
+      // Signal the event relating to receiving result of adding action to event
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT:
+
+      EventModifyAndQueryPacket =
+          (DEBUGGER_MODIFY_EVENTS *)(((CHAR *)TheActualPacket) +
+                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+      //
+      // Set the result of query
+      //
+      if (EventModifyAndQueryPacket->KernelStatus !=
+          DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // There was an error
+        //
+        ShowErrorMessage(EventModifyAndQueryPacket->KernelStatus);
+
+      } else if (EventModifyAndQueryPacket->TypeOfAction ==
+                 DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
+
+        //
+        // Set the global state
+        //
+        g_SharedEventStatus = EventModifyAndQueryPacket->IsEnabled;
+      } else {
+
+        CommandEventsHandleModifiedEvent(EventModifyAndQueryPacket->Tag,
+                                         EventModifyAndQueryPacket);
+      }
+
+      //
+      // Signal the event relating to receiving result of event query and
+      // modification
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]);
 
       break;
 
@@ -403,6 +572,17 @@ StartAgain:
   // ShowMessages("\n");
 
   if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER) {
+
+    //
+    // Check checksum
+    //
+    if (KdComputeDataChecksum((PVOID)&TheActualPacket->Indicator,
+                              Loop - sizeof(BYTE)) !=
+        TheActualPacket->Checksum) {
+
+      ShowMessages("err checksum is invalid\n");
+      goto StartAgain;
+    }
 
     //
     // Check if the packet type is correct

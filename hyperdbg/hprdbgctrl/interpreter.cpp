@@ -96,6 +96,7 @@ int HyperdbgInterpreter(const char *Command) {
     // It's a connection over network (VMI-Mode)
     //
     RemoteConnectionSendCommand(Command, strlen(Command) + 1);
+
     //
     // Indicate that we sent the command to the target system
     //
@@ -198,9 +199,10 @@ UINT64 GetCommandAttributes(string FirstCommand) {
   if (Iterator == g_CommandList.end()) {
 
     //
-    //  Command doesn't exist
+    // Command doesn't exist, if it's not exists then it's better to handle
+    // it locally, instead of sending it to the remote computer
     //
-    return NULL;
+    return DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL;
   } else {
     return Iterator->second.CommandAttrib;
   }
@@ -209,6 +211,13 @@ UINT64 GetCommandAttributes(string FirstCommand) {
 }
 
 VOID InitializeCommandsDictionary() {
+
+  g_CommandList[".help"] = {NULL, &CommandHelpHelp,
+                            DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+  g_CommandList[".hh"] = {NULL, &CommandHelpHelp,
+                          DEBUGGER_COMMAND_HELP_ATTRIBUTES};
+  g_CommandList["help"] = {NULL, &CommandHelpHelp,
+                           DEBUGGER_COMMAND_HELP_ATTRIBUTES};
 
   g_CommandList["clear"] = {&CommandClearScreen, &CommandClearScreenHelp,
                             DEBUGGER_COMMAND_CLEAR_ATTRIBUTES};

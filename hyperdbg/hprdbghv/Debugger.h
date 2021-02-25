@@ -100,6 +100,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                               WaitForStepOnMtf;
     BOOLEAN                               WaitingForNmi;
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
+    BOOLEAN                               IsGuestNeedsToBeHaltedFromVmxRoot;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
@@ -189,6 +190,18 @@ DebuggerTerminateAllEvents();
 
 UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
+
+BOOLEAN
+DebuggerIsTagValid(UINT64 Tag);
+
+BOOLEAN
+DebuggerEnableEvent(UINT64 Tag);
+
+BOOLEAN
+DebuggerQueryStateEvent(UINT64 Tag);
+
+BOOLEAN
+DebuggerDisableEvent(UINT64 Tag);
 
 VOID
 DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context);

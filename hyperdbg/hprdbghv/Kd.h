@@ -21,6 +21,17 @@
  */
 volatile LONG DebuggerResponseLock;
 
+/**
+ * @brief request to pause and halt the system
+ *
+ */
+typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
+{
+    BOOLEAN                                 PauseBreaksUntilASpecialMessageSent;
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse;
+
+} DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
+
 //////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////
@@ -29,8 +40,10 @@ VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
 
 VOID
-KdManageSystemHaltOnVmxRoot(ULONG CurrentCore, PGUEST_REGS GuestRegs, BOOLEAN MainCore);
-
+KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
+                            PGUEST_REGS                       GuestRegs,
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
+                            BOOLEAN                           MainCore);
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
@@ -48,16 +61,19 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
                             PGUEST_REGS GuestRegs);
 
 VOID
-KdHandleBreakpointAndDebugBreakpoints(UINT32                  CurrentProcessorIndex,
-                                      PGUEST_REGS             GuestRegs,
-                                      DEBUGGEE_PAUSING_REASON Reason,
-                                      PVOID                   Context);
+KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentProcessorIndex,
+                                      PGUEST_REGS                       GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 VOID
 KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
                                        PGUEST_REGS             GuestRegs,
                                        DEBUGGEE_PAUSING_REASON Reason,
                                        CR3_TYPE                TargetCr3);
+
+BOOLEAN
+KdNmiCallback(PVOID Context, BOOLEAN Handled);
 
 BOOLEAN
 KdResponsePacketToDebugger(

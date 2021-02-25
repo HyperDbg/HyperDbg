@@ -22,10 +22,11 @@
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    ULONG       ErrorCode = 0;
-    ULONG64     GuestRip;
-    PLIST_ENTRY TempList  = 0;
-    BOOLEAN     IsHandled = FALSE;
+    ULONG                            ErrorCode = 0;
+    ULONG64                          GuestRip;
+    PLIST_ENTRY                      TempList      = 0;
+    BOOLEAN                          IsHandled     = FALSE;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -113,10 +114,11 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
                 //
                 // Kernel debugger is attached, let's halt everything
                 //
+                ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
                 KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                       GuestRegs,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
-                                                      g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+                                                      &ContextAndTag);
 
                 g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
             }
@@ -194,10 +196,11 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         // It's a breakpoint and should be handled by the kernel debugger
         //
+        ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
         KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                               GuestRegs,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                              g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+                                              &ContextAndTag);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {

@@ -90,7 +90,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
  * @brief Different attributes of commands
  *
  */
-#define DEBUGGER_COMMAND_ATTRIBUTE_EVENT 0x1
+#define DEBUGGER_COMMAND_ATTRIBUTE_EVENT                                       \
+  0x1 | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE 0x2
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION 0x4
 
@@ -107,6 +108,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
  *
  */
 #define DEBUGGER_COMMAND_CLEAR_ATTRIBUTES                                      \
+  DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
+
+#define DEBUGGER_COMMAND_HELP_ATTRIBUTES                                       \
   DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
 #define DEBUGGER_COMMAND_CONNECT_ATTRIBUTES                                    \
@@ -149,7 +153,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_EXIT_ATTRIBUTES                                       \
   DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
-#define DEBUGGER_COMMAND_FLUSH_ATTRIBUTES NULL
+#define DEBUGGER_COMMAND_FLUSH_ATTRIBUTES                                      \
+  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
 #define DEBUGGER_COMMAND_PAUSE_ATTRIBUTES                                      \
   DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL

@@ -136,13 +136,32 @@ DEBUGGEE_PAUSING_REASON g_DebuggeeHaltReason;
 PVOID g_DebuggeeHaltContext;
 
 /**
+ * @brief Optional tag as the debuggee is halted
+ * 
+ */
+UINT64 g_DebuggeeHaltTag;
+
+/**
  * @brief Dpc state for debuggee
  * 
  */
 PKDPC g_DebuggeeDpc;
 
 /**
+ * @brief NMI handler pointer for KeDeregisterNmiCallback 
+ * 
+ */
+PVOID g_NmiHandlerForKeDeregisterNmiCallback;
+
+/**
  * @brief check for RTM support
  * 
  */
 BOOLEAN g_RtmSupport;
+
+/**
+ * @brief Holds the requests to pause the break of debuggee until
+ * a special event happens
+ * 
+ */
+DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
