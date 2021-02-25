@@ -23,7 +23,7 @@
 
 
 #include "string.h"
-
+#define _SCRIPT_ENGINE_DBG_EN
 /**
 *
 *
@@ -100,7 +100,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
         if (TopToken->Type == NON_TERMINAL)
         {
             NonTerminalId = GetNonTerminalId(TopToken);
-            if (NonTerminalId == -1)
+            if (NonTerminalId == INVALID)
             {
                 char* Message = HandleError(SYNTAX_ERROR, str);
                 CodeBuffer->Message = Message;
@@ -112,7 +112,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
                 return CodeBuffer;
             }
             TerminalId = GetTerminalId(CurrentIn);
-            if (TerminalId == -1)
+            if (TerminalId == INVALID)
             {
                 char* Message = HandleError(SYNTAX_ERROR, str);
                 CodeBuffer->Message = Message;
@@ -123,8 +123,8 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
                 RemoveToken(CurrentIn);
                 return CodeBuffer;
             }
-            RuleId = ParseTable[NonTerminalId][TerminalId];
-            if (RuleId == -1)
+                RuleId = ParseTable[NonTerminalId][TerminalId];
+            if (RuleId == INVALID)
             {
                 char* Message = HandleError(SYNTAX_ERROR, str);
                 CodeBuffer->Message = Message;
