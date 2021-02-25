@@ -650,33 +650,37 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   HasError = FALSE;
   PSYMBOL Symbol;
 
-  UINT32 ArgCounter = 0;
+  UINT64 i = 0;
 
   char *Str = Format;
 
   do {
     if (!strncmp(Str, "%s", 2)) {
-      Symbol = FirstArg + ArgCounter;
+      Symbol = FirstArg + i;
       Symbol->Type |= SYMBOL_MEM_VALID_CHECK_MASK;
-      ArgCounter++;
-      if (ArgCounter == ArgCount)
+      Symbol->Type |= i << 32;
+      i++;
+      if (ArgCount == i)
         break;
     } else if (!strncmp(Str, "%d", 2) || !strncmp(Str, "%x", 2)) {
-      ArgCounter++;
-      if (ArgCounter == ArgCount)
+      i++;
+      Symbol->Type |= i << 32;
+      if (ArgCount == i)
         break;
     }
     Str++;
   } while (*Str);
 
-  HasError = (ArgCounter != ArgCount);
+  HasError = (i != ArgCount);
   if (HasError)
     return;
 
   UINT64 Val;
-
+  UINT64 Position;
   for (int i = 0; i < ArgCount; i++) {
     Symbol = FirstArg + i;
+
+    
 
     Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
     printf("%d\n", Val);
@@ -684,6 +688,7 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     // Address is either wstring (%ws) or string (%s)
     //
     if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
+        Position = Symobl->Type >> 32;
       if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
         HasError = TRUE;
         return;
