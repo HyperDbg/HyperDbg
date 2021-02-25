@@ -650,21 +650,32 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   HasError = FALSE;
   PSYMBOL Symbol;
 
-  UINT64 i = 0;
+  UINT32 i = 0;
 
   char *Str = Format;
 
   do {
+    
     if (!strncmp(Str, "%s", 2)) {
-      Symbol = FirstArg + i;
+        if (i < ArgCount)
+            Symbol = FirstArg + i;
+        else 
+            break;
       Symbol->Type |= SYMBOL_MEM_VALID_CHECK_MASK;
-      Symbol->Type |= i << 32;
+      Symbol->Type &= 0xffffffff;
+      Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
       i++;
       if (ArgCount == i)
         break;
     } else if (!strncmp(Str, "%d", 2) || !strncmp(Str, "%x", 2)) {
+
+        if (i < ArgCount)
+            Symbol = FirstArg + i;
+        else
+            break;
+      Symbol->Type &= 0xffffffff;
+      Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
       i++;
-      Symbol->Type |= i << 32;
       if (ArgCount == i)
         break;
     }
@@ -688,10 +699,11 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     // Address is either wstring (%ws) or string (%s)
     //
     if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
-        Position = Symobl->Type >> 32;
-      if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
-        HasError = TRUE;
-        return;
+        Position = Symbol->Type >> 32;
+        printf("position = %d\n", Position);
+        if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
+            HasError = TRUE;
+            return;
       }
     }
   }
@@ -713,7 +725,7 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       //
       // It means that it's either string or wstring
       //
-        "salam %d khobi?  %s" => "salam " , "%d", " khobi? ", 
+      //  "salam %d khobi?  %s" => "salam " , "%d", " khobi? ", 
     } else {
       //
       // It's an int or anything else
