@@ -13,26 +13,30 @@
 .Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15
 
 .PseudoRegisters->pid tid proc thread peb teb ip buffer context
-
-S->C ; S'
-S'->C ; S'
+ 
+S->STATEMENT S'
+S'->STATEMENT S'
 S'->eps
-C->@PUSH _id = E0 @MOV C'
-C->.OneOpFunc2 ( E0 @.OneOpFunc2 )
-C->.VarArgFunc1 ( E11 @VARGSTART VA @.VarArgFunc1 )
-C->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
-VA->, E0 VA
+STATEMENT->IF_STATEMENT
+STATEMENT->ASSIGN_STATEMENT ;
+STATEMENT->CALL_FUNC_STATEMENT ;
+
+
+ASSIGN_STATEMENT->@PUSH L_VALUE = EXPRESSION @MOV NULL
+CALL_FUNC_STATEMENT->.OneOpFunc2 ( EXPRESSION @.OneOpFunc2 )
+CALL_FUNC_STATEMENT->.VarArgFunc1 ( STRING @VARGSTART VA @.VarArgFunc1 )
+CALL_FUNC_STATEMENT->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
+VA->, EXPRESSION VA
 VA->eps
 
-
-C'->eps
-
-
+IF_STATEMENT->@IF_EXPRESSION if ( BOOLEAN_EXPRESSION ) { S }
+BOOLEAN_EXPRESSION->eps
 
 
-E0->E1 E0'
-E0'->| E1 @OR E0'
+EXPRESSION->E1 E0'
+E0'->| E1 @OR E0' 
 E0'->eps
+
 
 E1->E2 E1'
 E1'->^ E2 @XOR E1' 
@@ -71,25 +75,40 @@ E9->E10 E9'
 E9'->% E10 @MOD E9'
 E9'->eps 
 
-E10->.OneOpFunc1 ( E0 @.OneOpFunc1 ) 
 
 
 
-E10->( E0 )
+E10->E12
+
+
+
+E12->.OneOpFunc1 ( EXPRESSION @.OneOpFunc1 ) 
+E12->( EXPRESSION )
 
 
 # Types must have '_' at the first 
-E10->@PUSH _register
+E12->@PUSH _register
+
 
 # numbers 
-E10->@PUSH _hex
-E10->@PUSH _decimal
-E10->@PUSH _octal
-E10->@PUSH _binary
+E12->@PUSH _hex
+E12->@PUSH _decimal
+E12->@PUSH _octal
+E12->@PUSH _binary
 
 
+E12->@PUSH _pseudo_register
 
-E10->@PUSH _pseudo_register
+E12->- E12 @NEG E13
+E12->+ E12 E13
+E12->~ E12 @NOT E13
 
-E11->@PUSH _string
+E13->eps
+
+
+STRING->_string
+L_VALUE->_id 
+L_VALUE->_register
+NULL->eps
+
 

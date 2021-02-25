@@ -1,0 +1,45 @@
+# OneOpFunc1 input is a number and returns a number.
+.OneOpFunc1->poi db dd dw dq str wstr sizeof neg hi low not
+
+
+.Operators->or xor and asr asl add sub mul div mod 
+
+.Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15
+
+.PseudoRegisters->pid tid proc thread peb teb ip buffer context
+
+S->( BE ) 
+
+BE->B1
+
+B1->B2 B1'
+B1'->&& B2 B1' 
+B1'->eps
+
+B2->B3 B2'
+B2'->| B3 B2' 
+B2'->eps
+
+
+
+B3->CMP
+B3->EXP
+
+
+CMP->EXP > EXP
+CMP->EXP < EXP
+CMP->( CMP )
+
+EXP->E1
+
+E1->E2 E1'
+E1'->+ E2 E1' 
+E1'->eps
+
+E2->E3 E2'
+E2'->* E3 E2' 
+E2'->eps
+
+
+E3->_id
+E3->( EXP )

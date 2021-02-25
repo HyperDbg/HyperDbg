@@ -182,7 +182,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             if (!IsEqual(TopToken, CurrentIn))
             {
                 char* Message = HandleError(SYNTAX_ERROR, str);
-                CodeBuffer->Message = Message;
+                    CodeBuffer->Message = Message;
 
                 RemoveToken(StartToken);
                 RemoveToken(EndToken);
@@ -310,27 +310,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Free the operand if it is a temp value
         //
         FreeTemp(Op0);
-        
-    }
-    else if (IsType3Func(Operator))
-    {
-        PushSymbol(CodeBuffer, OperatorSymbol);
-        Op0 = Pop(MatchedStack);
-        Op0Symbol = ToSymbol(Op0);
-        PushSymbol(CodeBuffer, Op0Symbol);
-        RemoveSymbol(Op0Symbol);
-
-        Op1 = Pop(MatchedStack);
-        Op1Symbol = ToSymbol(Op1);
-        PushSymbol(CodeBuffer, Op1Symbol);
-        RemoveSymbol(Op1Symbol);
-        
-
-        //
-        // Free the operand if it is a temp value
-        //
-        FreeTemp(Op0);
-        FreeTemp(Op1);
         
     }
     else if (IsType4Func(Operator))

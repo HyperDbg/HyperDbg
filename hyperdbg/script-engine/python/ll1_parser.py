@@ -1,8 +1,8 @@
 """
- * @file parse_table_generator.py
+ * @file ll1_parse_table_generator.py
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
- * @brief Script engine Parse table generator 
- * @details This program reads grammar from Greammer.txt file 
+ * @brief Script engine LL(1) Parse table generator 
+ * @details This program reads grammar from Greammar.txt file 
  *          placed in the same directory of the program 
  *          and creates parse_table.h and parse_table.c which is 
  *          used by the parser of script engine. 
@@ -13,26 +13,18 @@
  
  """
 
+from util import *
+from lalr1_parser import *
 
-# Returns Top of the list L 
-def GetTop(L):
-    return L[len(L)-1]
-
-# Remove first element of list and return it 
-def Read(Tokens):
-    X = Tokens[0]
-    Tokens = Tokens[1:]
-    return Tokens, X 
-
-class Parser:
-    def __init__(self):
+class LL1Parser:
+    def __init__(self, SourceFile, HeaderFile, CommonHeaderFile):
         # The file which contains the grammar of the language 
         self.GrammarFile = open("Grammar.txt", "r")
 
         # The file which is used by parser for parsing the input 
-        self.SourceFile = open("..\\parse_table.c", "w")
-        self.HeaderFile = open("..\\parse_table.h", "w")
-        self.CommonHeaderFile = open("..\..\\include\\ScriptEngineCommonDefinitions.h", "w")
+        self.SourceFile = SourceFile
+        self.HeaderFile = HeaderFile
+        self.CommonHeaderFile = CommonHeaderFile 
         
 
         # Lists which used for storing the rules:
@@ -57,7 +49,7 @@ class Parser:
         self.SPECIAL_TOKENS = ['%', '+', '-', "*", "/", "=", ",", ";", "(", ")", "{", "}", "|", ">>", "<<", "&", "^"]
 
         # INVALID rule indicator
-        self.INVALID = -1 
+        self.INVALID = -99
 
         self.FunctionsDict = dict()
         self.OperatorsList = []
@@ -100,7 +92,7 @@ class Parser:
         # self.PrintParseTable()
         # print()
         
-        # Prints variables that is needed for parser for parsing into the output file 
+        # Prints variables that are needed for parser for parsing into the output file 
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
         self.HeaderFile.write("#define PARSE_TABLE_H\n")
         
@@ -115,7 +107,7 @@ class Parser:
         self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
-        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 2)+ "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 1)+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
@@ -149,65 +141,22 @@ class Parser:
         self.WriteMaps()
         
 
-        self.HeaderFile.write("#endif\n")
+        
 
-        self.CommonHeaderFile.write(
-    """#pragma once
-#ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
-#define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
-
-typedef struct SYMBOL {
-	long long unsigned Type;
-	long long unsigned Value;
-} SYMBOL, * PSYMBOL;
-
-typedef struct SYMBOL_BUFFER {
-	PSYMBOL Head;
-	unsigned int Pointer;
-	unsigned int Size;
-	char* Message;
-} SYMBOL_BUFFER, * PSYMBOL_BUFFER;
-
-typedef struct SYMBOL_MAP
-{
-    char* Name;
-    long long unsigned Type;
-} SYMBOL_MAP, * PSYMBOL_MAP;
-
-typedef struct ACTION_BUFFER {
-  long long unsigned Tag;
-  long long unsigned CurrentAction;
-  char ImmediatelySendTheResults;
-  long long unsigned Context;
-} ACTION_BUFFER, *PACTION_BUFFER;
-
-#define SYMBOL_ID_TYPE 0
-#define SYMBOL_NUM_TYPE 1
-#define SYMBOL_REGISTER_TYPE 2
-#define SYMBOL_PSEUDO_REG_TYPE 3
-#define SYMBOL_SEMANTIC_RULE_TYPE 4
-#define SYMBOL_TEMP_TYPE 5
-#define SYMBOL_STRING_TYPE 6
-#define SYMBOL_VARIABLE_COUNT_TYPE 7
-#define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
-
-#define INVALID -1
-
-\n\n""")
         self.WriteSemanticMaps()
         self.WriteRegisterMaps()
         self.WritePseudoRegMaps()
-        self.CommonHeaderFile.write("#endif\n")
 
 
         # Closes Grammar Input File 
         self.GrammarFile.close()
 
-        # Closes Output Files 
-        self.SourceFile.close()
-        self.HeaderFile.close()
-        self.CommonHeaderFile.close()
+ 
 
+
+    def SetLalr(self, Lalr, LalrParseTable):
+        self.Lalr = Lalr
+        self.LalrParseTable = LalrParseTable
 
     # This function simulates of script engine parser in ScriptEngine.C in
     # order to test the generated "Parse Table"
@@ -238,22 +187,56 @@ typedef struct ACTION_BUFFER {
 
             # Read top of stack 
             Top = GetTop(Stack)
+            # print(Stack)
+            # print("Top:", Top)
+            # print("CurrentIn:", CurrentIn, "\n\n")
+            # x = input()
 
+
+            
             if self.IsNoneTerminal(Top):
-                Id = self.ParseTable[self.GetNoneTerminalId(Top)][self.GetTerminalId(CurrentIn)]
+                if Top == "BOOLEAN_EXPRESSION":
+                    Stack.pop()
+                    Stack.pop()
+                    print("If NonTerminal:")
+                    print(Stack)
+                    print(Tokens)
+                    print("=====================================\n\n")
+                    
+                    # x = input()
+                    Tokens = self.Lalr.Parse(Tokens)
+                    # x = input()
+                    print("after lalr parsing:")
+                    print(Stack)
+                    print(Tokens)
+                    print("=====================================\n\n")
+                    
 
-                # Error Handling 
-                if Id == -1: 
-                    print("1)Error in input!")
-                    exit()
+                    CurrentIn = Tokens[0]
+                    if (len(Tokens) > 1):
+                        Tokens = Tokens[1:]
+                    # x = input()
+                else:
+                    Id = self.ParseTable[self.GetNoneTerminalId(Top)][self.GetTerminalId(CurrentIn)]
 
-                Stack.pop()
-                
+                    # Error Handling 
+                    if Id == -1: 
+                        
+                        print("1)Error in input!")
+                        print(Tokens)
+                        print(Stack)
+                        print("Top: ", Top)
+                        print("CurrentIn: ", CurrentIn)
+                        print("\n\n")
+                        exit()
 
-                Rhs = self.RhsList[Id]
-                if Rhs != ["eps"]:
-                    for Symbol in reversed(Rhs):
-                        Stack.append(Symbol)
+                    Stack.pop()
+                    
+
+                    Rhs = self.RhsList[Id]
+                    if Rhs != ["eps"]:
+                        for Symbol in reversed(Rhs):
+                            Stack.append(Symbol)
 
                 
             elif self.IsSemanticRule(Top):
@@ -266,6 +249,20 @@ typedef struct ACTION_BUFFER {
                     else: 
                         print("2)Error in input!")
                         exit()   
+                elif Top == "@IF_EXPRESSION":
+                    print("If Expression Semantic Rule:")
+                    print(Stack)
+                    print(Tokens)
+                    print("\n\n")
+
+
+
+                    Stack.pop()
+                    Stack.pop()
+                 
+
+                   
+                
                 else:
                     Op0 = MatchedStack.pop()
                     if Top == "@PRINT":
@@ -274,6 +271,7 @@ typedef struct ACTION_BUFFER {
                         Op1 = MatchedStack.pop()
                         print(Top,"\t", Op1, ", ", Op0 )
                     else:
+                        pass
                         Op1 = MatchedStack.pop()
                         MatchedStack.append("t" + str(TempCounter))
                         print(Top, "\t", "t"+ str(TempCounter), ", ", Op1, ",", Op0 )
@@ -282,6 +280,7 @@ typedef struct ACTION_BUFFER {
                 Stack.pop()
 
             else: # Terminal 
+                
                 CurrentIn = Tokens[0]
                 if (len(Tokens) > 1):
                     Tokens = Tokens[1:]
@@ -383,10 +382,7 @@ typedef struct ACTION_BUFFER {
         for X in self.keywordList:
             self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
             Counter += 1
-        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n")
-
-        Counter += 1 
-        self.CommonHeaderFile.write("#define "+ "FUNC_VARGSTART " + str(Counter) + "\n\n")
+        self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n\n")
 
 
         self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")
@@ -398,8 +394,7 @@ typedef struct ACTION_BUFFER {
         for X in self.keywordList:
                 self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
-        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "},\n")
-        self.SourceFile.write("{\"@" + "VARGSTART" + "\", "+ "FUNC_VARGSTART"  + "}\n")
+        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "}\n")
         
 
         self.SourceFile.write("};\n")
@@ -472,6 +467,8 @@ typedef struct ACTION_BUFFER {
 
     def WriteMaps(self):
         for Key in self.FunctionsDict:
+            print(Key)
+
             self.HeaderFile.write("extern const char* "+ Key[1:]+ "[];\n")
             self.SourceFile.write("const char* "+ Key[1:]+ "[] = {\n")
 
@@ -673,6 +670,7 @@ typedef struct ACTION_BUFFER {
                         self.ParseTable[i][j] = RuleId
 
                     else:
+
                         print("Error! Input grammar is not LL1.")
                         exit()
 
@@ -841,9 +839,3 @@ typedef struct ACTION_BUFFER {
             i +=1
                     
         return False
-
-parser = Parser()
-parser.Run()
-Tokens = ['_id', '=', '(', '_hex', ')', ';', '$']
-Stack = parser.Parse(Tokens)
-print(Stack)
