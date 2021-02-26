@@ -26,6 +26,8 @@
 /**
  * @brief Size of each packet
  * @details NOTE : REMEMBER TO CHANGE IT IN USER-MODE APP TOO
+ * @warning we redefine it on ScriptEngineCommon.h change it on
+ * that file too
  */
 #define PacketChunkSize 1000
 

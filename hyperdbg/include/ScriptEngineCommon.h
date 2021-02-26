@@ -13,6 +13,10 @@
 #pragma once
 #include "ScriptEngineCommonDefinitions.h"
 
+#ifndef PacketChunkSize
+#define PacketChunkSize 1000
+#endif // !PacketChunkSize
+
 //
 // Wrapper headers
 //
@@ -26,6 +30,13 @@ ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
 
 BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+
+UINT32
+VmxrootCompatibleStrlen(const CHAR *S);
+
+BOOLEAN
+MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory,
+                           SIZE_T SizeToRead);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -636,7 +647,36 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-BOOLEAN CheckIfStringIsSafe(char *StrAddr, BOOLEAN IsWstring) { return TRUE; }
+UINT32 CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return strlen((const char *)StrAddr);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+BOOLEAN CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring) {
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  return TRUE;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+  //
+  // At least two chars (wchar_t is 4 byte
+  //
+  if (CheckMemoryAccessSafety(StrAddr, IsWstring ? 4 : 2)) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
 
 VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                           PUINT32 CurrentProcessedPositionFromStartOfFormat,
@@ -658,14 +698,49 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   *CurrentPositionInFinalBuffer = *CurrentPositionInFinalBuffer + TempBufferLen;
 }
 
+BOOLEAN
+ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
+                           PUINT32 CurrentProcessedPositionFromStartOfFormat,
+                           PUINT32 CurrentPositionInFinalBuffer, UINT64 Val) {
+  UINT32 StringSize;
+
+  //
+  // First we have to check if string is valid or not
+  //
+  if (!CheckIfStringIsSafe(Val, FALSE)) {
+    return FALSE;
+  }
+  StringSize = CustomStrlen(Val, FALSE);
+
+  //
+  // Move the buffer string into the target buffer
+  //
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+  memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)Val, StringSize);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+  MemoryMapperReadMemorySafe(Val, &FinalBuffer[*CurrentPositionInFinalBuffer],
+                             StringSize);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+  *CurrentPositionInFinalBuffer += StringSize;
+
+  //
+  // Now we get the length of the string
+  //
+  *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
+
+  return TRUE;
+}
+
 VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
                                 ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
                                 UINT64 *g_VariableList, UINT64 Tag,
                                 BOOLEAN ImmediateMessagePassing, char *Format,
                                 UINT64 ArgCount, PSYMBOL FirstArg,
                                 BOOLEAN *HasError) {
-
-#ifdef SCRIPT_ENGINE_USER_MODE
 
   *HasError = FALSE;
   PSYMBOL Symbol;
@@ -697,15 +772,19 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   if (*HasError)
     return;
 
-  //
-  // Call Sprintf
-  //
+    //
+    // Call printf
+    //
 
-  //
-  // When we're here, all the pointers are the pointers including %ws and %s
-  // pointers are checked and are safe to access
-  //
+    //
+    // When we're here, all the pointers are the pointers including %ws and %s
+    // pointers are checked and are safe to access
+    //
+
+#ifdef SCRIPT_ENGINE_USER_MODE
   printf("============================================================\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
   char FinalBuffer[PacketChunkSize] = {0};
   UINT32 CurrentPositionInFinalBuffer = 0;
   UINT32 CurrentProcessedPositionFromStartOfFormat = 0;
@@ -730,8 +809,10 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     CHAR PercentageChar = Format[Position];
     CHAR IndicatorChar1 = Format[Position + 1];
 
+    /*
     printf("position = %d is %c%c \n", Position, PercentageChar,
            IndicatorChar1);
+           */
 
     if (CurrentProcessedPositionFromStartOfFormat != Position) {
 
@@ -750,30 +831,32 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     if (PercentageChar == '%') {
       switch (IndicatorChar1) {
       case 'd':
-        printf("decimal\n");
+        /* printf("decimal\n"); */
         ApplyFormatSpecifier("%d", FinalBuffer,
                              &CurrentProcessedPositionFromStartOfFormat,
                              &CurrentPositionInFinalBuffer, Val);
 
         break;
       case 'x':
-        printf("hex\n");
+        /* printf("hex\n"); */
         ApplyFormatSpecifier("%x", FinalBuffer,
                              &CurrentProcessedPositionFromStartOfFormat,
                              &CurrentPositionInFinalBuffer, Val);
 
         break;
       case 's':
-        printf("string\n");
-        CurrentProcessedPositionFromStartOfFormat += 2;
+        if (!ApplyStringFormatSpecifier(
+                "%s", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
+                &CurrentPositionInFinalBuffer, Val)) {
+          *HasError = TRUE;
+          return;
+        }
+
         break;
+
       default:
         break;
       }
-    }
-    if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
-      *HasError = TRUE;
-      return;
     }
   }
 
@@ -800,14 +883,15 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     }
   }
 
-  //
-  // Print final result
-  //
+//
+// Print final result
+//
+#ifdef SCRIPT_ENGINE_USER_MODE
   printf("Final Buffer : %s\n", FinalBuffer);
-
 #endif // SCRIPT_ENGINE_USER_MODE
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  // LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
+  LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s\n", FinalBuffer);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
