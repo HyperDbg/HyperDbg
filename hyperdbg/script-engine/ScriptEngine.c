@@ -23,7 +23,7 @@
 
 
 #include "string.h"
-#define _SCRIPT_ENGINE_DBG_EN
+//#define _SCRIPT_ENGINE_DBG_EN
 /**
 *
 *

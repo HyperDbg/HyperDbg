@@ -655,12 +655,12 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   char *Str = Format;
 
   do {
-    
+
     if (!strncmp(Str, "%s", 2)) {
-        if (i < ArgCount)
-            Symbol = FirstArg + i;
-        else 
-            break;
+      if (i < ArgCount)
+        Symbol = FirstArg + i;
+      else
+        break;
       Symbol->Type |= SYMBOL_MEM_VALID_CHECK_MASK;
       Symbol->Type &= 0xffffffff;
       Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
@@ -669,10 +669,10 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
         break;
     } else if (!strncmp(Str, "%d", 2) || !strncmp(Str, "%x", 2)) {
 
-        if (i < ArgCount)
-            Symbol = FirstArg + i;
-        else
-            break;
+      if (i < ArgCount)
+        Symbol = FirstArg + i;
+      else
+        break;
       Symbol->Type &= 0xffffffff;
       Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
       i++;
@@ -691,19 +691,19 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   for (int i = 0; i < ArgCount; i++) {
     Symbol = FirstArg + i;
 
-    
-
     Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
     printf("%d\n", Val);
+
     //
     // Address is either wstring (%ws) or string (%s)
     //
     if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
-        Position = Symbol->Type >> 32;
-        printf("position = %d\n", Position);
-        if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
-            HasError = TRUE;
-            return;
+      Position = Symbol->Type >> 32;
+      printf("position = %d\n", Position);
+
+      if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
+        HasError = TRUE;
+        return;
       }
     }
   }
@@ -716,25 +716,112 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
   // When we're here, all the pointers are the pointers including %ws and %s
   // pointers are checked and are safe to access
   //
+  printf("============================================================\n");
   char FinalBuffer[PacketChunkSize] = {0};
+  UINT32 CurrentPositionInFinalBuffer = 0;
+  UINT32 CurrentProcessedPositionFromStartOfFormat = 0;
+  BOOLEAN WithoutAnyFormatSpecifier = TRUE;
+  UINT32 TempBufferLen = 0;
+  UINT32 LenOfFormats = strlen(Format) + 1;
+  CHAR TempBuffer[20 + 1] = {
+      0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
+          // for maximum buffer + 1 end char null
 
   for (int i = 0; i < ArgCount; i++) {
+
+    WithoutAnyFormatSpecifier = FALSE;
     Symbol = FirstArg + i;
 
+    Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
+
+    //
+    // Address is either wstring (%ws) or string (%s)
+    //
     if (Symbol->Type & SYMBOL_MEM_VALID_CHECK_MASK) {
-      //
-      // It means that it's either string or wstring
-      //
-      //  "salam %d khobi?  %s" => "salam " , "%d", " khobi? ", 
-    } else {
-      //
-      // It's an int or anything else
-      //
+
+      Position = Symbol->Type >> 32;
+      CHAR PercentageChar = Format[Position + 1];
+      CHAR IndicatorChar1 = Format[Position + 2];
+
+      printf("position = %d is %c%c \n", Position, PercentageChar,
+             IndicatorChar1);
+
+      if (CurrentProcessedPositionFromStartOfFormat != Position) {
+
+        //
+        // There is some strings before this format specifier
+        // we should move it to the buffer
+        //
+        UINT32 StringLen =
+            Position - CurrentProcessedPositionFromStartOfFormat + 1;
+        memcpy(&FinalBuffer[CurrentPositionInFinalBuffer],
+               &Format[CurrentProcessedPositionFromStartOfFormat], StringLen);
+
+        CurrentProcessedPositionFromStartOfFormat += StringLen;
+        CurrentPositionInFinalBuffer += StringLen;
+      }
+
+      if (PercentageChar == '%') {
+        switch (IndicatorChar1) {
+        case 'd':
+          printf("decimal\n");
+          CurrentProcessedPositionFromStartOfFormat += 2;
+          RtlZeroMemory(TempBuffer, sizeof(TempBuffer));
+          sprintf(TempBuffer, "%d", Val);
+          TempBufferLen = strlen(TempBuffer);
+          memcpy(&FinalBuffer[CurrentPositionInFinalBuffer], TempBuffer,
+                 TempBufferLen);
+          CurrentPositionInFinalBuffer += TempBufferLen;
+
+          break;
+        case 'x':
+          printf("hex\n");
+          CurrentProcessedPositionFromStartOfFormat += 2;
+          break;
+        case 's':
+          printf("string\n");
+          CurrentProcessedPositionFromStartOfFormat += 2;
+          break;
+        default:
+          break;
+        }
+      }
+      if (!CheckIfStringIsSafe((char *)Symbol->Value, FALSE)) {
+        HasError = TRUE;
+        return;
+      }
     }
   }
 
-#endif // SCRIPT_ENGINE_USER_MODE
+  if (WithoutAnyFormatSpecifier) {
+    //
+    // Means that it's just a simple print without any format specifier
+    //
+    if (LenOfFormats < sizeof(FinalBuffer)) {
+      memcpy(FinalBuffer, Format, LenOfFormats);
+    }
+  } else {
+    //
+    // Check if there is anything after the last format specifier
+    //
+    if (LenOfFormats > CurrentProcessedPositionFromStartOfFormat) {
 
+      UINT32 RemainedLen =
+          LenOfFormats - CurrentProcessedPositionFromStartOfFormat;
+
+      if (CurrentPositionInFinalBuffer + RemainedLen < sizeof(FinalBuffer)) {
+        memcpy(&FinalBuffer[CurrentPositionInFinalBuffer],
+               &Format[CurrentProcessedPositionFromStartOfFormat], RemainedLen);
+      }
+    }
+  }
+
+  //
+  // Print final result
+  //
+  printf("Final Buffer : %s\n", FinalBuffer);
+
+#endif // SCRIPT_ENGINE_USER_MODE
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
   // LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s : %d\n", Name, Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
