@@ -680,7 +680,8 @@ BOOLEAN CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring) {
 
 VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                           PUINT32 CurrentProcessedPositionFromStartOfFormat,
-                          PUINT32 CurrentPositionInFinalBuffer, UINT64 Val) {
+                          PUINT32 CurrentPositionInFinalBuffer, UINT64 Val,
+                          UINT32 SizeOfFinalBuffer) {
 
   UINT32 TempBufferLen = 0;
   CHAR TempBuffer[20 + 1] = {
@@ -692,6 +693,17 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   sprintf(TempBuffer, CurrentSpecifier, Val);
   TempBufferLen = strlen(TempBuffer);
 
+  //
+  // Check final buffer capacity
+  //
+  if (*CurrentPositionInFinalBuffer + TempBufferLen > SizeOfFinalBuffer) {
+
+    //
+    // Over passed buffer
+    //
+    return;
+  }
+
   memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], TempBuffer,
          TempBufferLen);
 
@@ -701,21 +713,37 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 BOOLEAN
 ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                            PUINT32 CurrentProcessedPositionFromStartOfFormat,
-                           PUINT32 CurrentPositionInFinalBuffer, UINT64 Val) {
+                           PUINT32 CurrentPositionInFinalBuffer, UINT64 Val,
+                           BOOLEAN IsWstring, UINT32 SizeOfFinalBuffer) {
   UINT32 StringSize;
 
   //
   // First we have to check if string is valid or not
   //
-  if (!CheckIfStringIsSafe(Val, FALSE)) {
+  if (!CheckIfStringIsSafe(Val, IsWstring)) {
     return FALSE;
   }
-  StringSize = CustomStrlen(Val, FALSE);
+  StringSize = CustomStrlen(Val, IsWstring);
+
+  //
+  // get the length of the string (format) identifier
+  //
+  *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
+
+  //
+  // Check final buffer capacity
+  //
+  if (*CurrentPositionInFinalBuffer + StringSize > SizeOfFinalBuffer) {
+
+    //
+    // Over passed buffer
+    //
+    return TRUE;
+  }
 
   //
   // Move the buffer string into the target buffer
   //
-
 #ifdef SCRIPT_ENGINE_USER_MODE
   memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)Val, StringSize);
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -726,11 +754,6 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
   *CurrentPositionInFinalBuffer += StringSize;
-
-  //
-  // Now we get the length of the string
-  //
-  *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
 
   return TRUE;
 }
@@ -821,33 +844,40 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       // we should move it to the buffer
       //
       UINT32 StringLen = Position - CurrentProcessedPositionFromStartOfFormat;
-      memcpy(&FinalBuffer[CurrentPositionInFinalBuffer],
-             &Format[CurrentProcessedPositionFromStartOfFormat], StringLen);
 
-      CurrentProcessedPositionFromStartOfFormat += StringLen;
-      CurrentPositionInFinalBuffer += StringLen;
+      //
+      // Check final buffer capacity
+      //
+      if (CurrentPositionInFinalBuffer + StringLen < sizeof(FinalBuffer)) {
+        memcpy(&FinalBuffer[CurrentPositionInFinalBuffer],
+               &Format[CurrentProcessedPositionFromStartOfFormat], StringLen);
+
+        CurrentProcessedPositionFromStartOfFormat += StringLen;
+        CurrentPositionInFinalBuffer += StringLen;
+      }
     }
 
     if (PercentageChar == '%') {
       switch (IndicatorChar1) {
       case 'd':
         /* printf("decimal\n"); */
-        ApplyFormatSpecifier("%d", FinalBuffer,
-                             &CurrentProcessedPositionFromStartOfFormat,
-                             &CurrentPositionInFinalBuffer, Val);
+        ApplyFormatSpecifier(
+            "%d", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
+            &CurrentPositionInFinalBuffer, Val, sizeof(FinalBuffer));
 
         break;
       case 'x':
         /* printf("hex\n"); */
-        ApplyFormatSpecifier("%x", FinalBuffer,
-                             &CurrentProcessedPositionFromStartOfFormat,
-                             &CurrentPositionInFinalBuffer, Val);
+        ApplyFormatSpecifier(
+            "%x", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
+            &CurrentPositionInFinalBuffer, Val, sizeof(FinalBuffer));
 
         break;
       case 's':
         if (!ApplyStringFormatSpecifier(
                 "%s", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
-                &CurrentPositionInFinalBuffer, Val)) {
+                &CurrentPositionInFinalBuffer, Val, FALSE,
+                sizeof(FinalBuffer))) {
           *HasError = TRUE;
           return;
         }
@@ -868,6 +898,7 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       memcpy(FinalBuffer, Format, LenOfFormats);
     }
   } else {
+
     //
     // Check if there is anything after the last format specifier
     //
