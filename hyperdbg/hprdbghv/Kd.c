@@ -155,17 +155,14 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     // If we're here then it related to us
     // We set a flag to indicate that this core should be halted
     //
-    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi                     = FALSE;
-    g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = TRUE;
+    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
 
     //
-    // Check if the guest needs to be halted
+    // This way of handling has a problem, sometimes the guest is not made the guest
+    // registers available and in those cases we pass null to the debugger, but in order
+    // to avoid complexity we handle it this way
     //
-    if (g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot)
-    {
-        g_GuestState[CurrentCoreIndex].DebuggingState.IsGuestNeedsToBeHaltedFromVmxRoot = FALSE;
-        KdHandleNmi(CurrentCoreIndex, NULL);
-    }
+    KdHandleNmi(CurrentCoreIndex, g_GuestState[CurrentCoreIndex].DebuggingState.GuestRegs);
 
     //
     // Also, return true to show that it's handled

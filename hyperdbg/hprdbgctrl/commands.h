@@ -254,6 +254,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_S_ATTRIBUTES                                          \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_R_ATTRIBUTES                                          \
+  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -374,3 +377,5 @@ VOID CommandCore(vector<string> SplittedCommand, string Command);
 VOID CommandProcess(vector<string> SplittedCommand, string Command);
 
 VOID CommandEval(vector<string> SplittedCommand, string Command);
+
+VOID CommandR(vector<string> SplittedCommand, string Command);

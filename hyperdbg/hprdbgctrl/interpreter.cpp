@@ -488,4 +488,7 @@ VOID InitializeCommandsDictionary() {
                           DEBUGGER_COMMAND_S_ATTRIBUTES};
   g_CommandList["!sq"] = {&CommandSearchMemory, &CommandSearchMemoryHelp,
                           DEBUGGER_COMMAND_S_ATTRIBUTES};
+
+  g_CommandList["r"] = {&CommandR, &CommandRHelp,
+                        DEBUGGER_COMMAND_R_ATTRIBUTES};
 }

@@ -134,3 +134,5 @@ VOID CommandCoreHelp();
 VOID CommandProcessHelp();
 
 VOID CommandEvalHelp();
+
+VOID CommandRHelp();

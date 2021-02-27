@@ -170,6 +170,7 @@
     <ClCompile Include="print.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="pte.cpp" />
+    <ClCompile Include="r.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
     <ClCompile Include="remoteconnection.cpp" />

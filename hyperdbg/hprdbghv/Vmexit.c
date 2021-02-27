@@ -47,6 +47,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
 
     //
+    // Set the registers
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = GuestRegs;
+
+    //
     // read the exit reason and exit qualification
     //
 
@@ -432,6 +437,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     {
         HvResumeToNextInstruction();
     }
+
+    //
+    // Clear the registers
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = NULL;
 
     //
     // Set indicator of Vmx non root mode to false
