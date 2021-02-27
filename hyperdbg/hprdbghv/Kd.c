@@ -742,17 +742,22 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
+    // Lock handling breakpoints
+    //
+    SpinlockLock(&DebuggerHandleBreakpointLock);
+
+    //
     // Check if we should ignore this break request or not
     //
     if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent)
     {
+        //
+        // Unlock the above core
+        //
+        SpinlockUnlock(&DebuggerHandleBreakpointLock);
+
         return;
     }
-
-    //
-    // Lock handling breakpoints
-    //
-    SpinlockLock(&DebuggerHandleBreakpointLock);
 
     //
     // Lock current core
