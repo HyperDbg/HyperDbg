@@ -684,9 +684,9 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                           UINT32 SizeOfFinalBuffer) {
 
   UINT32 TempBufferLen = 0;
-  CHAR TempBuffer[20 + 1] = {
+  CHAR TempBuffer[50 + 1] = {
       0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
-          // for maximum buffer + 1 end char null
+          // for maximum buffer + 1 end char null but we alloc 50 to be sure
 
   *CurrentProcessedPositionFromStartOfFormat =
       *CurrentProcessedPositionFromStartOfFormat + strlen(CurrentSpecifier);
@@ -774,18 +774,43 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
 
   do {
 
-    if (!strncmp(Str, "%s", 2) || !strncmp(Str, "%d", 2) ||
-        !strncmp(Str, "%x", 2)) {
+    //
+    // Not the best way but some how for optimization
+    //
+    if (*Str == '%') {
 
-      if (i < ArgCount)
-        Symbol = FirstArg + i;
-      else {
-        *HasError = TRUE;
-        break;
+      CHAR Temp = *(Str + 1);
+
+      if (Temp == 'd' || Temp == 'i' || Temp == 'u' || Temp == 'o' ||
+          Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' ||
+
+          !strncmp(Str, "%ws", 3) || !strncmp(Str, "%ls", 3) ||
+          !strncmp(Str, "%lc", 3) ||
+
+          !strncmp(Str, "%ld", 3) || !strncmp(Str, "%li", 3) ||
+          !strncmp(Str, "%lu", 3) || !strncmp(Str, "%lo", 3) ||
+          !strncmp(Str, "%lx", 3) ||
+
+          !strncmp(Str, "%hd", 3) || !strncmp(Str, "%hi", 3) ||
+          !strncmp(Str, "%hu", 3) || !strncmp(Str, "%ho", 3) ||
+          !strncmp(Str, "%hx", 3) ||
+
+          !strncmp(Str, "%lld", 4) || !strncmp(Str, "%lli", 4) ||
+          !strncmp(Str, "%llu", 4) || !strncmp(Str, "%llo", 4) ||
+          !strncmp(Str, "%llx", 4)
+
+      ) {
+
+        if (i < ArgCount)
+          Symbol = FirstArg + i;
+        else {
+          *HasError = TRUE;
+          break;
+        }
+        Symbol->Type &= 0xffffffff;
+        Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
+        i++;
       }
-      Symbol->Type &= 0xffffffff;
-      Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
-      i++;
     }
     Str++;
   } while (*Str);
@@ -830,7 +855,6 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
     Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
 
     CHAR PercentageChar = Format[Position];
-    CHAR IndicatorChar1 = Format[Position + 1];
 
     /*
     printf("position = %d is %c%c \n", Position, PercentageChar,
@@ -857,23 +881,64 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       }
     }
 
+    //
+    // Double check and apply
+    //
     if (PercentageChar == '%') {
-      switch (IndicatorChar1) {
-      case 'd':
-        /* printf("decimal\n"); */
-        ApplyFormatSpecifier(
-            "%d", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
-            &CurrentPositionInFinalBuffer, Val, sizeof(FinalBuffer));
 
-        break;
-      case 'x':
-        /* printf("hex\n"); */
-        ApplyFormatSpecifier(
-            "%x", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
-            &CurrentPositionInFinalBuffer, Val, sizeof(FinalBuffer));
+      //
+      // Set first character of specifier
+      //
+      CHAR FormatSpecifier[5] = {0};
+      FormatSpecifier[0] = '%';
 
-        break;
-      case 's':
+      //
+      // Read second char
+      //
+      CHAR IndicatorChar2 = Format[Position + 1];
+
+      //
+      // Check if IndicatorChar2 is 2 character long or more
+      //
+      if (IndicatorChar2 == 'l' || IndicatorChar2 == 'w' ||
+          IndicatorChar2 == 'h') {
+
+        //
+        // Set second char in format specifier
+        //
+        FormatSpecifier[1] = IndicatorChar2;
+
+        if (IndicatorChar2 == 'l' && Format[Position + 2] == 'l') {
+
+          //
+          // Set third character in format specifier "ll"
+          //
+          FormatSpecifier[2] = 'l';
+
+          //
+          // Set last character
+          //
+          FormatSpecifier[3] = Format[Position + 3];
+
+        } else {
+
+          //
+          // Set last character
+          //
+          FormatSpecifier[2] = Format[Position + 2];
+        }
+      } else {
+        //
+        // It's a one char specifier (Set last character)
+        //
+        FormatSpecifier[1] = IndicatorChar2;
+      }
+
+      //
+      // Apply the specifier
+      //
+      if (!strncmp(Str, "%s", 2)) {
+
         if (!ApplyStringFormatSpecifier(
                 "%s", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
                 &CurrentPositionInFinalBuffer, Val, FALSE,
@@ -881,11 +946,16 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
           *HasError = TRUE;
           return;
         }
+      } else if (!strncmp(Str, "%ls", 3) || !strncmp(Str, "%ws", 3)) {
 
-        break;
-
-      default:
-        break;
+        //
+        // To be implemented for wstring
+        //
+      } else {
+        ApplyFormatSpecifier(FormatSpecifier, FinalBuffer,
+                             &CurrentProcessedPositionFromStartOfFormat,
+                             &CurrentPositionInFinalBuffer, Val,
+                             sizeof(FinalBuffer));
       }
     }
   }
