@@ -132,6 +132,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   ReplaceAll(Command, " ", "");
   if (Command.find('=', 0) == string::npos) {
     Reg = RegsMap[Command];
+    Reg = RegsMap[Command.erase(0, 1)];
     if (Reg != 0) {
       RegD->RegisterID = Reg;
       RegD->Modified = FALSE;
@@ -148,10 +149,14 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   else if (Command.find("=", 0)) {
     Tmp = Split(Command, '=');
     if (Tmp.size() == 2) {
-      RegD->RegisterID = RegsMap[Tmp[0]];
-      RegD->Modified = TRUE;
-      RegD->Value = Tmp[1];
-      ShowMessages("Command is : r %d=%s\n", RegD->RegisterID, RegD->Value);
+      Reg = RegsMap[Tmp[0]];
+      Reg = RegsMap[Tmp[0].erase(0, 1)];
+      if (Reg != 0) {
+          RegD->RegisterID = Reg;
+          RegD->Modified = TRUE;
+          RegD->Value = Tmp[1];
+          ShowMessages("Command is : r %d=%s\n", RegD->RegisterID, RegD->Value);
+      }
     }
   }
 
