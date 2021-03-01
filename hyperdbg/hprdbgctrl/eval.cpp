@@ -71,7 +71,7 @@ VOID CommandEval(vector<string> SplittedCommand, string Command) {
   Command.append(" ");
   // Expr = " x = 4 >> 1; ";
 
-  if (g_IsSerialConnectedToRemoteDebuggee) {
+  if (!g_IsSerialConnectedToRemoteDebuggee) {
 
     //
     // Send over serial

@@ -147,7 +147,8 @@ UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer) {
 
 UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer) {
 
-  return (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Size;
+  UINT32 Size = (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Size * sizeof(SYMBOL);
+  return Size;
 }
 
 UINT32 ScriptEngineWrapperGetPointer(PVOID SymbolBuffer) {
