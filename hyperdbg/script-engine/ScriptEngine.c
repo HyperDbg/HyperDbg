@@ -556,6 +556,7 @@ PSYMBOL_BUFFER NewSymbolBuffer(void)
 */
 void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
+    PrintSymbolBuffer(SymbolBuffer);
     free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
     free(SymbolBuffer);
@@ -575,15 +576,10 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
     uintptr_t Head = (uintptr_t)SymbolBuffer->Head;
     uintptr_t Pointer = (uintptr_t)SymbolBuffer->Pointer;
     PSYMBOL WriteAddr = (PSYMBOL)(Head + Pointer * sizeof(SYMBOL));
-
+    
 
     if (Symbol->Type == SYMBOL_STRING_TYPE)
-    {
-        //
-        // Write input to the appropriate address in SymbolBuffer
-        //
-        WriteAddr->Type = Symbol->Type;
-
+    {       
         //
         // Update Pointer
         //
@@ -592,30 +588,42 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
         //
         // Handle Overflow
         //
-        if (Pointer == SymbolBuffer->Size - 1)
+        if (SymbolBuffer->Pointer >= SymbolBuffer->Size - 1)
         {
+            //
+            // Calculate new size for the symbol B
+            //
+            int NewSize = SymbolBuffer->Size;
+            do
+            {
+                NewSize *= 2; 
+            } while (NewSize < SymbolBuffer->Pointer);
+            
+
             //
             // Allocate a new buffer for string list with doubled length
             //
-            PSYMBOL NewHead = (PSYMBOL)malloc(2 * SymbolBuffer->Size * sizeof(SYMBOL));
+            PSYMBOL NewHead = (PSYMBOL)malloc(NewSize * sizeof(SYMBOL));
 
             //
-            // Copy old Buffer to new buffer
+            // Copy old buffer to new buffer
             //
             memcpy(NewHead, SymbolBuffer->Head, SymbolBuffer->Size * sizeof(SYMBOL));
 
             //
-            // Free Old buffer
+            // Free old buffer
             //
             free(SymbolBuffer->Head);
 
             //
             // Upadate Head and size of SymbolBuffer
             //
-            SymbolBuffer->Size *= 2;
+            SymbolBuffer->Size = NewSize;
             SymbolBuffer->Head = NewHead;
-        }
 
+        }
+        WriteAddr = (PSYMBOL)((uintptr_t)SymbolBuffer->Head + (uintptr_t) Pointer * (uintptr_t)sizeof(SYMBOL));
+        WriteAddr->Type = Symbol->Type;
         strcpy((char*)&WriteAddr->Value, (char*)&Symbol->Value);
 
     }
@@ -661,7 +669,6 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
     }
 
     
-
     return SymbolBuffer;
 }
 

@@ -56,7 +56,6 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   // Test Parser
   //
   PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
-  PrintSymbolBuffer(CodeBuffer);
 
   UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
   UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
@@ -95,6 +94,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   } else {
     ShowMessages("%s\n", CodeBuffer->Message);
   }
+
   RemoveSymbolBuffer(CodeBuffer);
 
   return;
@@ -147,7 +147,7 @@ UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer) {
 
 UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer) {
 
-  UINT32 Size = (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Size * sizeof(SYMBOL);
+  UINT32 Size = (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Pointer * sizeof(SYMBOL);
   return Size;
 }
 
