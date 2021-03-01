@@ -785,7 +785,6 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
           Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' ||
 
           !strncmp(Str, "%ws", 3) || !strncmp(Str, "%ls", 3) ||
-          !strncmp(Str, "%lc", 3) ||
 
           !strncmp(Str, "%ld", 3) || !strncmp(Str, "%li", 3) ||
           !strncmp(Str, "%lu", 3) || !strncmp(Str, "%lo", 3) ||
@@ -952,6 +951,7 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
         // To be implemented for wstring
         //
       } else {
+
         ApplyFormatSpecifier(FormatSpecifier, FinalBuffer,
                              &CurrentProcessedPositionFromStartOfFormat,
                              &CurrentPositionInFinalBuffer, Val,
@@ -1720,6 +1720,7 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
     return HasError;
 
   case FUNC_FORMATS:
+
     Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                      (unsigned long long)(*Indx * sizeof(SYMBOL)));
     *Indx = *Indx + 1;
@@ -1761,6 +1762,7 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
       *Indx = *Indx + Src1->Value;
     }
+
     ScriptEngineFunctionPrintf(
         GuestRegs, ActionDetail, g_TempList, g_VariableList, ActionDetail.Tag,
         ActionDetail.ImmediatelySendTheResults, (char *)&Src0->Value,
