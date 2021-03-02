@@ -19,79 +19,15 @@ using namespace std;
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
-//
-// Structure for registers
-//
-struct User_regs_struct {
-  unsigned long r15;
-  unsigned long r14;
-  unsigned long r13;
-  unsigned long r12;
-  unsigned long rbp;
-  unsigned long rbx;
-  unsigned long r11;
-  unsigned long r10;
-  unsigned long r9;
-  unsigned long r8;
-  unsigned long rax;
-  unsigned long rcx;
-  unsigned long rdx;
-  unsigned long rsi;
-  unsigned long rdi;
-  unsigned long rip;
-  unsigned long cs;
-  unsigned long eflags;
-  unsigned long rsp;
-  unsigned long ss;
-  unsigned long fs_base;
-  unsigned long gs_base;
-  unsigned long ds;
-  unsigned long es;
-  unsigned long fs;
-  unsigned long gs;
-};
-
-enum RegsEnum {
-  rax = 1,
-  rbx = 2,
-  rcx = 3,
-  rdx = 4,
-  rsi = 5,
-  rdi = 6,
-  rbp = 7,
-  rsp = 8,
-  r8 = 9,
-  r9 = 10,
-  r10 = 11,
-  r11 = 12,
-  r12 = 13,
-  r13 = 14,
-  r14 = 15,
-  r15 = 16,
-  ds = 17,
-  es = 18,
-  fs = 19,
-  gs = 20,
-  cs = 21,
-  ss = 22,
-  eflags = 23,
-  rip = 24
-};
-map<string, RegsEnum> RegsMap = {
-    {"rax", rax}, {"rbx", rbx}, {"rcx", rcx},       {"rdx", rdx}, {"rsi", rsi},
-    {"rdi", rdi}, {"rbp", rbp}, {"rsp", rsp},       {"r8", r8},   {"r9", r9},
-    {"r10", r10}, {"r11", r11}, {"r12", r12},       {"r13", r13}, {"r14", r14},
-    {"r15", r15}, {"ds", ds},   {"es", es},         {"fs", fs},   {"gs", gs},
-    {"cs", cs},   {"ss", ss},   {"eflags", eflags}, {"rip", rip}};
-
-//
-// Register Descriptor Structure to use in r command.
-//
-typedef struct RegDescStruct {
-  RegsEnum RegisterID;
-  BOOLEAN Modified;
-  string Value;
-} RegDesc;
+map<string, REGS_ENUM> RegistersMap = {
+    {"rax", REGISTER_RAX}, {"rbx", REGISTER_RBX},       {"rcx", REGISTER_RCX},
+    {"rdx", REGISTER_RDX}, {"rsi", REGISTER_RSI},       {"rdi", REGISTER_RDI},
+    {"rbp", REGISTER_RBP}, {"rsp", REGISTER_RSP},       {"r8", REGISTER_R8},
+    {"r9", REGISTER_R9},   {"r10", REGISTER_R10},       {"r11", REGISTER_R11},
+    {"r12", REGISTER_R12}, {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
+    {"r15", REGISTER_R15}, {"ds", REGISTER_DS},         {"es", REGISTER_ES},
+    {"fs", REGISTER_FS},   {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
+    {"ss", REGISTER_SS},   {"eflags", REGISTER_EFLAGS}, {"rip", REGISTER_RIP}};
 
 /**
  * @brief help of r command
@@ -118,44 +54,71 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   //
   // Interpret here
   //
-  RegsEnum Reg;
+  REGS_ENUM Reg;
   vector<string> Tmp;
-  RegDesc *RegD = new RegDesc;
+  PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+      new DEBUGGEE_REGISTER_READ_DESCRIPTION;
 
-  if (SplittedCommand[0] != "r")
+  if (SplittedCommand[0] != "r") {
+
     return;
+  }
 
   //
   // clear additional space of the command string
   //
   Command.erase(0, 1);
   ReplaceAll(Command, " ", "");
+
+  //
+  // if command does not contain a '=' means user wants to read it
+  //
   if (Command.find('=', 0) == string::npos) {
-    Reg = RegsMap[Command];
-    Reg = RegsMap[Command.erase(0, 1)];
+    Reg = RegistersMap[Command];
+    // Reg = RegsMap[Command.erase(0, 1)];
     if (Reg != 0) {
       RegD->RegisterID = Reg;
-      RegD->Modified = FALSE;
-      RegD->Value = "";
+      // RegD->Modified = FALSE;
+      // RegD->Value = "";
+
       ShowMessages("Command is : r %s\n", Command.c_str());
+
+      //
+      // send the request
+      //
+      if (g_IsSerialConnectedToRemoteDebuggee) {
+
+        KdSendReadRegisterPacketToDebuggee(RegD);
+      } else {
+        ShowMessages("err, reading registers (r) is not valid in the current "
+                     "context, you "
+                     "should connect to a debuggee.\n");
+      }
+
     } else {
-      ShowMessages("regvalue %s is invalid\n", Command.c_str());
+      ShowMessages("err, register %s is invalid\n", Command.c_str());
     }
   }
+
   //
   // if command contains a '=' means user wants modify the register
   //
-
   else if (Command.find("=", 0)) {
     Tmp = Split(Command, '=');
     if (Tmp.size() == 2) {
-      Reg = RegsMap[Tmp[0]];
-      Reg = RegsMap[Tmp[0].erase(0, 1)];
+      Reg = RegistersMap[Tmp[0]];
+      // Reg = RegsMap[Command.erase(0, 1)];
       if (Reg != 0) {
-          RegD->RegisterID = Reg;
-          RegD->Modified = TRUE;
-          RegD->Value = Tmp[1];
-          ShowMessages("Command is : r %d=%s\n", RegD->RegisterID, RegD->Value);
+        RegD->RegisterID = Reg;
+        // RegD->Modified = TRUE;
+        // RegD->Value = Tmp[1];
+
+        ShowMessages("Command is : r %s=%s\n", Tmp[0],
+                     Tmp[1]); //, RegD->Value);
+
+        //
+        // send the request
+        //
       }
     }
   }

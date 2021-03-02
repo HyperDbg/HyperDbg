@@ -93,6 +93,8 @@ BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
 
 BOOLEAN KdSendFlushPacketToDebuggee();
 
+BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
+
 PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                                     UINT32 EventBufferLength);
