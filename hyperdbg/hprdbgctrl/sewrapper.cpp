@@ -118,6 +118,7 @@ VOID ScriptEngineWrapperTestParser(string Expr) {
   GUEST_REGS_USER_MODE GuestRegs = {0};
 
   char test[] = "Hello world !";
+  wchar_t testw[] = L"Wide Char Hello world wchar_t !";
 
   GuestRegs.rax = 0x1;
   GuestRegs.rcx = (UINT64)TestStruct;
@@ -133,7 +134,7 @@ VOID ScriptEngineWrapperTestParser(string Expr) {
   GuestRegs.r11 = 0xc;
   GuestRegs.r12 = 0xd;
   GuestRegs.r13 = 0xe;
-  GuestRegs.r14 = 0xf;
+  GuestRegs.r14 = (ULONG64)testw;
   GuestRegs.r15 = (ULONG64)test;
 
   ScriptEngineWrapperTestPerformAction(&GuestRegs, Expr);
@@ -147,7 +148,8 @@ UINT64 ScriptEngineWrapperGetHead(PVOID SymbolBuffer) {
 
 UINT32 ScriptEngineWrapperGetSize(PVOID SymbolBuffer) {
 
-  UINT32 Size = (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Pointer * sizeof(SYMBOL);
+  UINT32 Size =
+      (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Pointer * sizeof(SYMBOL);
   return Size;
 }
 

@@ -790,3 +790,60 @@ VmxrootCompatibleStrlen(const CHAR * S)
         }
     }
 }
+
+/**
+ * @brief implementation of vmx-root mode compatible wcslen
+ * @param S
+ * 
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the 
+ * string
+ */
+UINT32
+VmxrootCompatibleWcslen(const wchar_t * S)
+{
+    wchar_t Temp  = NULL;
+    UINT32  Count = 0;
+    UINT64  AlignedAddress;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // First check
+    //
+    if (!CheckMemoryAccessSafety(AlignedAddress, sizeof(wchar_t)))
+    {
+        //
+        // Error
+        //
+        return 0;
+    }
+
+    while (TRUE)
+    {
+        /*
+        Temp = *S;
+        */
+        MemoryMapperReadMemorySafe(S, &Temp, sizeof(wchar_t));
+
+        if (Temp != '\0\0')
+        {
+            Count++;
+            S++;
+        }
+        else
+        {
+            return Count;
+        }
+
+        if (!((UINT64)S & (PAGE_SIZE - 1)))
+        {
+            if (!CheckMemoryAccessSafety((UINT64)S, sizeof(wchar_t)))
+            {
+                //
+                // Error
+                //
+                return 0;
+            }
+        }
+    }
+}
