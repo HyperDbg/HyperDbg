@@ -810,6 +810,8 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
   // Check if buffer not pass the boundary
   //
   if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize) {
+    ShowMessages("err, buffer is above the maximum buffer size that can be sent to "
+                 "debuggee\n");
     return FALSE;
   }
 

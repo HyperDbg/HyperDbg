@@ -404,6 +404,7 @@ KdRecvBuffer(CHAR *   BufferToSave,
             //
             // Invalid buffer (size of buffer exceeds the limitation)
             //
+            LogError("err, a buffer received in debuggee which exceeds the buffer limitation");
             return FALSE;
         }
 

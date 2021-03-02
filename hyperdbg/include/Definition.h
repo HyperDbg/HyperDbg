@@ -29,7 +29,7 @@
  * @warning we redefine it on ScriptEngineCommon.h change it on
  * that file too
  */
-#define PacketChunkSize 1000
+#define PacketChunkSize 3000
 
 /**
  * @brief size of user-mode buffer

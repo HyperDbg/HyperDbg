@@ -14,7 +14,7 @@
 #include "ScriptEngineCommonDefinitions.h"
 
 #ifndef PacketChunkSize
-#define PacketChunkSize 1000
+#define PacketChunkSize 3000
 #endif // !PacketChunkSize
 
 //
