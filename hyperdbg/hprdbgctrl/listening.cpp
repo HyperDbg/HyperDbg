@@ -46,6 +46,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGER_MODIFY_EVENTS EventModifyAndQueryPacket;
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
+  PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
 
 StartAgain:
 
@@ -456,6 +457,39 @@ StartAgain:
 
       break;
 
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS:
+
+      ReadRegisterPacket =
+          (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) +
+                                                 sizeof(
+                                                     DEBUGGER_REMOTE_PACKET));
+
+      if (ReadRegisterPacket->KernelStatus ==
+          DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // Show the result of reading registers like rax=0000000000018b01
+        //
+
+        ShowMessages(
+            "%s=%016llx",
+            RegistersNames[ReadRegisterPacket->RegisterID -
+                           1 /*this is due to RegistersEnum starts from 1 and
+                                RegistersNames array starts from 0*/
+        ],
+            ReadRegisterPacket->Value);
+
+      } else {
+        ShowErrorMessage(ReadRegisterPacket->KernelStatus);
+      }
+
+      //
+      // Signal the event relating to receiving result of reading registers
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]);
+
+      break;
     default:
       ShowMessages("err, unknown packet action received from the debugger\n");
       break;

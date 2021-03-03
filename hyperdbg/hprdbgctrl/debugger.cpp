@@ -134,6 +134,10 @@ ShowErrorMessage(UINT32 Error) {
     ShowMessages("err, unable to run script on remote debuggee (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
+    ShowMessages("err, invalid register number (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

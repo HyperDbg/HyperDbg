@@ -29,7 +29,7 @@
  * @warning we redefine it on ScriptEngineCommon.h change it on
  * that file too
  */
-#define PacketChunkSize 1000
+#define PacketChunkSize 3000
 
 /**
  * @brief size of user-mode buffer
@@ -204,6 +204,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT 0x9
 #define DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT 0xa
 #define DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT 0xb
+#define DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS 0xc
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -449,6 +450,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
 
   //
   // Debuggee to debugger
@@ -465,6 +467,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -1175,6 +1178,58 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET {
 } DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
 
 /**
+ * @brief Enum for registers
+ *
+ */
+typedef enum REGS_ENUM {
+  REGISTER_RAX = 1,
+  REGISTER_RBX = 2,
+  REGISTER_RCX = 3,
+  REGISTER_RDX = 4,
+  REGISTER_RSI = 5,
+  REGISTER_RDI = 6,
+  REGISTER_RBP = 7,
+  REGISTER_RSP = 8,
+  REGISTER_R8 = 9,
+  REGISTER_R9 = 10,
+  REGISTER_R10 = 11,
+  REGISTER_R11 = 12,
+  REGISTER_R12 = 13,
+  REGISTER_R13 = 14,
+  REGISTER_R14 = 15,
+  REGISTER_R15 = 16,
+  REGISTER_DS = 17,
+  REGISTER_ES = 18,
+  REGISTER_FS = 19,
+  REGISTER_GS = 20,
+  REGISTER_CS = 21,
+  REGISTER_SS = 22,
+  REGISTER_EFLAGS = 23,
+  REGISTER_RIP = 24
+} REGS_ENUM;
+
+/**
+ * @brief map register name to its enum.
+ *
+ */
+static const char *const RegistersNames[] = {
+    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp",    "rsp",
+    "r8",  "r9",  "r10", "r11", "r12", "r13", "r14",    "r15",
+    "ds",  "es",  "fs",  "gs",  "cs",  "ss",  "eflags", "rip"};
+
+/**
+ * @brief Register Descriptor Structure to use in r command.
+ *
+ */
+typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION {
+
+  REGS_ENUM RegisterID;
+  UINT64 Value;
+  UINT32 KernelStatus;
+
+} DEBUGGEE_REGISTER_READ_DESCRIPTION, *PDEBUGGEE_REGISTER_READ_DESCRIPTION;
+
+/**
  * @brief The structure of user-input packet in HyperDbg
  *
  */
@@ -1363,6 +1418,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET {
  *
  */
 #define DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT 0xc0000016
+
+/**
+ * @brief error, invalid register number
+ *
+ */
+#define DEBUGGER_ERROR_INVALID_REGISTER_NUMBER 0xc0000017
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

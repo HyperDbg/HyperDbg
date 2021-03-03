@@ -282,6 +282,33 @@ BOOLEAN KdSendFlushPacketToDebuggee() {
 }
 
 /**
+ * @brief Send a Read register packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes) {
+
+  //
+  // Send r command as read register packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
+          (CHAR *)RegDes, sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of read registers received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS],
+                      INFINITE);
+
+  return TRUE;
+}
+
+/**
  * @brief Send a register event request to the debuggee
  * @details as this command uses one global variable to transfer the buffers
  * so should not be called simultaneously
@@ -810,6 +837,9 @@ BOOLEAN KdSendPacketToDebuggee(const CHAR *Buffer, UINT32 Length,
   // Check if buffer not pass the boundary
   //
   if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize) {
+    ShowMessages(
+        "err, buffer is above the maximum buffer size that can be sent to "
+        "debuggee\n");
     return FALSE;
   }
 

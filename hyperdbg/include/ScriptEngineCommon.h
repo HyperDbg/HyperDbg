@@ -14,7 +14,7 @@
 #include "ScriptEngineCommonDefinitions.h"
 
 #ifndef PacketChunkSize
-#define PacketChunkSize 1000
+#define PacketChunkSize 3000
 #endif // !PacketChunkSize
 
 //
@@ -33,6 +33,9 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
 UINT32
 VmxrootCompatibleStrlen(const CHAR *S);
+
+UINT32
+VmxrootCompatibleWcslen(const wchar_t *S);
 
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory,
@@ -650,11 +653,22 @@ VOID ScriptEngineFunctionJson(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
 UINT32 CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-  return strlen((const char *)StrAddr);
+
+  if (IsWstring) {
+    return wcslen((const wchar_t *)StrAddr);
+
+  } else {
+    return strlen((const char *)StrAddr);
+  }
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+  if (IsWstring) {
+    return VmxrootCompatibleWcslen((const wchar_t *)StrAddr);
+
+  } else {
+    return VmxrootCompatibleStrlen((const CHAR *)StrAddr);
+  }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -667,7 +681,7 @@ BOOLEAN CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring) {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
   //
-  // At least two chars (wchar_t is 4 byte
+  // At least two chars (wchar_t is 4 byte)
   //
   if (CheckMemoryAccessSafety(StrAddr, IsWstring ? 4 : 2)) {
     return TRUE;
@@ -723,12 +737,16 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   if (!CheckIfStringIsSafe(Val, IsWstring)) {
     return FALSE;
   }
-  StringSize = CustomStrlen(Val, IsWstring);
 
   //
   // get the length of the string (format) identifier
   //
   *CurrentProcessedPositionFromStartOfFormat += strlen(CurrentSpecifier);
+
+  //
+  // Get string len
+  //
+  StringSize = CustomStrlen(Val, IsWstring);
 
   //
   // Check final buffer capacity
@@ -936,8 +954,10 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       //
       // Apply the specifier
       //
-      if (!strncmp(Str, "%s", 2)) {
-
+      if (!strncmp(FormatSpecifier, "%s", 2)) {
+        //
+        // for string
+        //
         if (!ApplyStringFormatSpecifier(
                 "%s", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
                 &CurrentPositionInFinalBuffer, Val, FALSE,
@@ -945,12 +965,28 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
           *HasError = TRUE;
           return;
         }
-      } else if (!strncmp(Str, "%ls", 3) || !strncmp(Str, "%ws", 3)) {
+      } else if (!strncmp(FormatSpecifier, "%ls", 3) ||
+                 !strncmp(FormatSpecifier, "%ws", 3)) {
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        DbgBreakPoint();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
         //
-        // To be implemented for wstring
+        // for wide string (not important if %ls or %ws , only the length is
+        // important)
         //
+        if (!ApplyStringFormatSpecifier(
+                "%ws", FinalBuffer, &CurrentProcessedPositionFromStartOfFormat,
+                &CurrentPositionInFinalBuffer, Val, TRUE,
+                sizeof(FinalBuffer))) {
+          *HasError = TRUE;
+          return;
+        }
       } else {
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        DbgBreakPoint();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
         ApplyFormatSpecifier(FormatSpecifier, FinalBuffer,
                              &CurrentProcessedPositionFromStartOfFormat,

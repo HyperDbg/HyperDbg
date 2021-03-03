@@ -556,7 +556,7 @@ PSYMBOL_BUFFER NewSymbolBuffer(void)
 */
 void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-    PrintSymbolBuffer(SymbolBuffer);
+    // PrintSymbolBuffer(SymbolBuffer);
     free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
     free(SymbolBuffer);

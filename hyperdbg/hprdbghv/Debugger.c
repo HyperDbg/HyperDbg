@@ -1027,6 +1027,10 @@ DebuggerPerformRunScript(UINT64                  Tag,
     UINT64 g_TempList[MAX_TEMP_COUNT]    = {0};
     UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
 
+    UINT64  SuperTemp = Regs->r14;
+    wchar_t tem[]     = L"hello wchar world !";
+    Regs->r14         = tem;
+
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
         //
@@ -1046,6 +1050,8 @@ DebuggerPerformRunScript(UINT64                  Tag,
             break;
         }
     }
+
+    Regs->r14 = SuperTemp;
 
     return TRUE;
 }

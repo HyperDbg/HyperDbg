@@ -404,6 +404,7 @@ KdRecvBuffer(CHAR *   BufferToSave,
             //
             // Invalid buffer (size of buffer exceeds the limitation)
             //
+            LogError("err, a buffer received in debuggee which exceeds the buffer limitation");
             return FALSE;
         }
 
@@ -595,6 +596,120 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
                   DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
     }
 
+    return TRUE;
+}
+
+/**
+ * @brief read registers
+ * @param Regs
+ * @param ReadRegisterRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
+{
+    switch (ReadRegisterRequest->RegisterID)
+    {
+    case REGISTER_RAX:
+        ReadRegisterRequest->Value = Regs->rax;
+        break;
+
+    case REGISTER_RBX:
+        ReadRegisterRequest->Value = Regs->rbx;
+        break;
+
+    case REGISTER_RCX:
+        ReadRegisterRequest->Value = Regs->rcx;
+        break;
+
+    case REGISTER_RDX:
+        ReadRegisterRequest->Value = Regs->rdx;
+        break;
+
+    case REGISTER_RSI:
+        ReadRegisterRequest->Value = Regs->rsi;
+        break;
+
+    case REGISTER_RDI:
+        ReadRegisterRequest->Value = Regs->rdi;
+        break;
+
+    case REGISTER_RBP:
+        ReadRegisterRequest->Value = Regs->rbp;
+        break;
+
+    case REGISTER_RSP:
+        ReadRegisterRequest->Value = Regs->rsp;
+        break;
+
+    case REGISTER_R8:
+        ReadRegisterRequest->Value = Regs->r8;
+        break;
+
+    case REGISTER_R9:
+        ReadRegisterRequest->Value = Regs->r9;
+        break;
+
+    case REGISTER_R10:
+        ReadRegisterRequest->Value = Regs->r10;
+        break;
+
+    case REGISTER_R11:
+        ReadRegisterRequest->Value = Regs->r11;
+
+    case REGISTER_R12:
+        ReadRegisterRequest->Value = Regs->r12;
+        break;
+
+    case REGISTER_R13:
+        ReadRegisterRequest->Value = Regs->r13;
+        break;
+
+    case REGISTER_R14:
+        ReadRegisterRequest->Value = Regs->r14;
+        break;
+
+    case REGISTER_R15:
+        ReadRegisterRequest->Value = Regs->r15;
+        break;
+
+    case REGISTER_DS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_ES:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_FS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_GS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_CS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_SS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_EFLAGS:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    case REGISTER_RIP:
+        ReadRegisterRequest->Value = 0;
+        break;
+
+    default:
+        return FALSE;
+        break;
+    }
     return TRUE;
 }
 
@@ -1073,6 +1188,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 {
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
@@ -1255,6 +1371,32 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
                                            FlushPacket,
                                            sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS:
+
+                ReadRegisterPacket = (DEBUGGEE_REGISTER_READ_DESCRIPTION *)(((CHAR *)TheActualPacket) +
+                                                                            sizeof(DEBUGGER_REMOTE_PACKET));
+                //
+                // Read registers
+                //
+                if (KdReadRegisters(GuestRegs, ReadRegisterPacket))
+                {
+                    ReadRegisterPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    ReadRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                }
+
+                //
+                // Send the result of reading registers back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
+                                           ReadRegisterPacket,
+                                           sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
 
                 break;
 
