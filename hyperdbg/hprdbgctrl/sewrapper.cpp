@@ -119,7 +119,11 @@ VOID ScriptEngineWrapperTestParser(string Expr) {
   GUEST_REGS_USER_MODE GuestRegs = {0};
 
   char test[] = "Hello world !";
-  wchar_t testw[] = L"Wide Char Hello world wchar_t !";
+  wchar_t testw[] =
+      L"Wide Char Hello world wchar_t "
+      L"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      L"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+      L"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!B";
 
   GuestRegs.rax = 0x1;
   GuestRegs.rcx = (UINT64)TestStruct;

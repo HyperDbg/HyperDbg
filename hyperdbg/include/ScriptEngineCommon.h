@@ -724,6 +724,31 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   *CurrentPositionInFinalBuffer = *CurrentPositionInFinalBuffer + TempBufferLen;
 }
 
+size_t WcharToChar(const wchar_t *src, char *dest, size_t dest_len) {
+
+  size_t i;
+  wchar_t code;
+
+  i = 0;
+
+  while (src[i] != '\0' && i < (dest_len - 1)) {
+    code = src[i];
+    if (code < 128)
+      dest[i] = (char)code;
+    else {
+      dest[i] = '?';
+      if (code >= 0xD800 && code <= 0xD8FF)
+        //
+        // Lead surrogate, skip the next code unit, which is the trail
+        //
+        i++;
+    }
+    i++;
+  }
+
+  return i - 1;
+}
+
 BOOLEAN
 ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                            PUINT32 CurrentProcessedPositionFromStartOfFormat,
@@ -762,16 +787,108 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   //
   // Move the buffer string into the target buffer
   //
+  if (IsWstring) {
+
+    //
+    // Parse wstring
+    //
+    wchar_t WstrBuffer[50];
+    CHAR AsciiBuffer[sizeof(WstrBuffer) / 2];
+    UINT32 StringSizeInByte = StringSize * 2; /* because of wide-char */
+    UINT32 CountOfBlocks;
+    UINT32 CountOfBytesToRead;
+
+    //
+    // compute the ceiling
+    //
+    if (StringSizeInByte % sizeof(WstrBuffer) == 0) {
+      CountOfBlocks = StringSizeInByte / sizeof(WstrBuffer);
+    } else {
+      CountOfBlocks = (StringSizeInByte / sizeof(WstrBuffer)) + 1;
+    }
+
+    for (size_t i = 0; i < CountOfBlocks; i++) {
+
+      //
+      // Zero the buffers
+      //
+      RtlZeroMemory(WstrBuffer, sizeof(WstrBuffer));
+      RtlZeroMemory(AsciiBuffer, sizeof(AsciiBuffer));
+
+      //
+      // Check for the last block
+      //
+      if (i == CountOfBlocks - 1) {
+
+        //
+        // A portion of block
+        //
+
 #ifdef SCRIPT_ENGINE_USER_MODE
-  memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)Val, StringSize);
+        memcpy(WstrBuffer, (void *)(Val + (i * sizeof(WstrBuffer))),
+               StringSizeInByte % sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-  MemoryMapperReadMemorySafe(Val, &FinalBuffer[*CurrentPositionInFinalBuffer],
-                             StringSize);
+        MemoryMapperReadMemorySafe((void *)(Val + (i * sizeof(WstrBuffer))),
+                                   WstrBuffer,
+                                   StringSizeInByte % sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
-  *CurrentPositionInFinalBuffer += StringSize;
+      } else {
+
+        //
+        // A complete block
+        //
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        memcpy(WstrBuffer, (void *)(Val + (i * sizeof(WstrBuffer))),
+               sizeof(WstrBuffer));
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        MemoryMapperReadMemorySafe((void *)(Val + (i * sizeof(WstrBuffer))),
+                                   WstrBuffer, sizeof(WstrBuffer));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+      }
+
+      //
+      // Here we have the filled WstrBuffer
+      // We should convert WstrBuffer to AsciiBuffer
+      //
+      /*UINT32 CopiedBlockLen =
+          snprintf(AsciiBuffer, sizeof(AsciiBuffer) + 1, "A%ws", WstrBuffer); */
+      UINT32 CopiedBlockLen =
+          WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
+
+      //
+      // Now we should move the AsciiBuffer to the target buffer
+      // (when we filled AsciiBuffer the memory here is safe so we
+      // can use memcpy in both user-mode and vmx-root mode)
+      //
+      memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)AsciiBuffer,
+             CopiedBlockLen);
+
+      *CurrentPositionInFinalBuffer += CopiedBlockLen;
+    }
+
+  } else {
+
+    //
+    // Parse string
+    //
+#ifdef SCRIPT_ENGINE_USER_MODE
+    memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)Val,
+           StringSize);
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperReadMemorySafe(Val, &FinalBuffer[*CurrentPositionInFinalBuffer],
+                               StringSize);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    *CurrentPositionInFinalBuffer += StringSize;
+  }
 
   return TRUE;
 }
@@ -1126,59 +1243,58 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
     return g_TempList[Symbol->Value];
   }
 }
-VOID SetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol, UINT64 Value) {
-    switch (Symbol->Value)
-    {
-        case REGISTER_RAX: 
-            GuestRegs->rax = Value;
-            break;
-        case REGISTER_RCX:
-            GuestRegs->rcx = Value;
-            break;
-        case REGISTER_RDX:
-            GuestRegs->rdx = Value;
-            break;
-        case REGISTER_RBX:
-            GuestRegs->rbx = Value;
-            break;
-        case REGISTER_RSP:
-            GuestRegs->rsp = Value;
-            break;
-        case REGISTER_RBP:
-            GuestRegs->rbp = Value;
-            break;
-        case REGISTER_RSI:
-            GuestRegs->rsi = Value;
-            break;
-        case REGISTER_RDI:
-            GuestRegs->rdi = Value;
-            break;
-        case REGISTER_R8:
-            GuestRegs->r8 = Value;
-            break;
-        case REGISTER_R9:
-            GuestRegs->r9 = Value;
-            break;
-        case REGISTER_R10:
-            GuestRegs->r10 = Value;
-            break;
-        case REGISTER_R11:
-            GuestRegs->r11 = Value;
-            break;
-        case REGISTER_R12:
-            GuestRegs->r12 = Value;
-            break;
-        case REGISTER_R13:
-            GuestRegs->r13 = Value;
-            break;
-        case REGISTER_R14:
-            GuestRegs->r14 = Value;
-            break;
-        case REGISTER_R15:
-            GuestRegs->r15 = Value;
-            break;
-    }
-    
+VOID SetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol,
+                 UINT64 Value) {
+  switch (Symbol->Value) {
+  case REGISTER_RAX:
+    GuestRegs->rax = Value;
+    break;
+  case REGISTER_RCX:
+    GuestRegs->rcx = Value;
+    break;
+  case REGISTER_RDX:
+    GuestRegs->rdx = Value;
+    break;
+  case REGISTER_RBX:
+    GuestRegs->rbx = Value;
+    break;
+  case REGISTER_RSP:
+    GuestRegs->rsp = Value;
+    break;
+  case REGISTER_RBP:
+    GuestRegs->rbp = Value;
+    break;
+  case REGISTER_RSI:
+    GuestRegs->rsi = Value;
+    break;
+  case REGISTER_RDI:
+    GuestRegs->rdi = Value;
+    break;
+  case REGISTER_R8:
+    GuestRegs->r8 = Value;
+    break;
+  case REGISTER_R9:
+    GuestRegs->r9 = Value;
+    break;
+  case REGISTER_R10:
+    GuestRegs->r10 = Value;
+    break;
+  case REGISTER_R11:
+    GuestRegs->r11 = Value;
+    break;
+  case REGISTER_R12:
+    GuestRegs->r12 = Value;
+    break;
+  case REGISTER_R13:
+    GuestRegs->r13 = Value;
+    break;
+  case REGISTER_R14:
+    GuestRegs->r14 = Value;
+    break;
+  case REGISTER_R15:
+    GuestRegs->r15 = Value;
+    break;
+  }
 }
 VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
               UINT64 *g_VariableList, PSYMBOL Symbol, UINT64 Value) {
@@ -1189,11 +1305,10 @@ VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
   case SYMBOL_TEMP_TYPE:
     g_TempList[Symbol->Value] = Value;
   case SYMBOL_REGISTER_TYPE:
-      SetRegValue(GuestRegs, Symbol, Value); 
+    SetRegValue(GuestRegs, Symbol, Value);
     return;
   }
 }
-
 
 VOID ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR *BufferForName) {
 
