@@ -726,22 +726,23 @@ VOID ApplyFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 
 size_t WcharToChar(const wchar_t *src, char *dest, size_t dest_len) {
 
+  wchar_t Code;
   size_t i;
-  wchar_t code;
 
   i = 0;
 
   while (src[i] != '\0' && i < (dest_len - 1)) {
-    code = src[i];
-    if (code < 128)
-      dest[i] = (char)code;
+    Code = src[i];
+    if (Code < 128)
+      dest[i] = (char)Code;
     else {
       dest[i] = '?';
-      if (code >= 0xD800 && code <= 0xD8FF)
+      if (Code >= 0xD800 && Code <= 0xD8FF) {
         //
         // Lead surrogate, skip the next code unit, which is the trail
         //
         i++;
+      }
     }
     i++;
   }
@@ -755,6 +756,12 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
                            PUINT32 CurrentPositionInFinalBuffer, UINT64 Val,
                            BOOLEAN IsWstring, UINT32 SizeOfFinalBuffer) {
   UINT32 StringSize;
+  wchar_t WstrBuffer[50];
+  CHAR AsciiBuffer[sizeof(WstrBuffer) / 2];
+  UINT32 StringSizeInByte; /* because of wide-char */
+  UINT32 CountOfBlocks;
+  UINT32 CountOfBytesToRead;
+  UINT32 CopiedBlockLen;
 
   //
   // First we have to check if string is valid or not
@@ -792,11 +799,7 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
     //
     // Parse wstring
     //
-    wchar_t WstrBuffer[50];
-    CHAR AsciiBuffer[sizeof(WstrBuffer) / 2];
-    UINT32 StringSizeInByte = StringSize * 2; /* because of wide-char */
-    UINT32 CountOfBlocks;
-    UINT32 CountOfBytesToRead;
+    StringSizeInByte = StringSize * 2; /* because of wide-char */
 
     //
     // compute the ceiling
@@ -856,9 +859,7 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
       // Here we have the filled WstrBuffer
       // We should convert WstrBuffer to AsciiBuffer
       //
-      /*UINT32 CopiedBlockLen =
-          snprintf(AsciiBuffer, sizeof(AsciiBuffer) + 1, "A%ws", WstrBuffer); */
-      UINT32 CopiedBlockLen =
+      CopiedBlockLen =
           WcharToChar(WstrBuffer, AsciiBuffer, sizeof(AsciiBuffer) + 1);
 
       //
@@ -867,9 +868,9 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
       // can use memcpy in both user-mode and vmx-root mode)
       //
       memcpy(&FinalBuffer[*CurrentPositionInFinalBuffer], (void *)AsciiBuffer,
-             CopiedBlockLen);
+             CopiedBlockLen + 1);
 
-      *CurrentPositionInFinalBuffer += CopiedBlockLen;
+      *CurrentPositionInFinalBuffer += CopiedBlockLen + 1;
     }
 
   } else {
@@ -1085,10 +1086,6 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
       } else if (!strncmp(FormatSpecifier, "%ls", 3) ||
                  !strncmp(FormatSpecifier, "%ws", 3)) {
 
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-        DbgBreakPoint();
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
         //
         // for wide string (not important if %ls or %ws , only the length is
         // important)
@@ -1101,10 +1098,6 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
           return;
         }
       } else {
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-        DbgBreakPoint();
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
         ApplyFormatSpecifier(FormatSpecifier, FinalBuffer,
                              &CurrentProcessedPositionFromStartOfFormat,
                              &CurrentPositionInFinalBuffer, Val,
@@ -1830,7 +1823,6 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-      DbgBreakPoint();
       LogInfo("Result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
     }
