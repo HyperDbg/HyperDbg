@@ -19,10 +19,8 @@
 #include "parse_table.h"
 #include "ScriptEngine.h"
 #include "ScriptEngineCommonDefinitions.h"
-
-
-
 #include "string.h"
+
 //#define _SCRIPT_ENGINE_DBG_EN
 /**
 *
@@ -33,6 +31,14 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
     TOKEN_LIST Stack = NewTokenList();
     TOKEN_LIST MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer = NewSymbolBuffer();
+
+    static FirstCall = 1; 
+    if (FirstCall)
+    {
+        IdTable = NewTokenList();
+        FirstCall = 0;
+    }
+    
 
     TOKEN CurrentIn;
     TOKEN TopToken;
@@ -484,7 +490,7 @@ PSYMBOL ToSymbol(TOKEN Token)
     switch (Token->Type)
     {
     case ID:
-        Symbol->Value = IdCounter++;
+        Symbol->Value = GetIdentifierVal(Token);
         SetType(&Symbol->Type, SYMBOL_ID_TYPE);
         return Symbol;
     case DECIMAL:
@@ -800,4 +806,25 @@ char* HandleError(unsigned int ErrorType, char* str)
         strcat(Message, "Unkown Error: ");
         return Message;
     }
+}
+
+int GetIdentifierVal(TOKEN Token)
+{
+    TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < IdTable->Pointer; i++)
+    {
+        CurrentToken = *(IdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return (int)i;
+        }
+    }
+    //
+    // if token value is not found push the token to the token list and return corrsponding id
+    //
+    CurrentToken = NewToken();
+    CurrentToken->Type = Token->Type;
+    strcpy(CurrentToken->Value, Token->Value);
+    IdTable = Push(IdTable, Token);
+    return IdTable->Pointer - 1;
 }

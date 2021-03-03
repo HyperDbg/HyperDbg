@@ -88,6 +88,7 @@ E12->( EXPRESSION )
 
 # Types must have '_' at the first 
 E12->@PUSH _register
+E12->@PUSH _id
 
 
 # numbers 

@@ -56,6 +56,7 @@ VOID ScriptEngineWrapperTestPerformAction(PGUEST_REGS_USER_MODE GuestRegs,
   // Test Parser
   //
   PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
+  PrintSymbolBuffer(CodeBuffer);
 
   UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
   UINT64 g_VariableList[MAX_VAR_COUNT] = {0};

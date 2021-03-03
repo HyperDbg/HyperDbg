@@ -1127,7 +1127,7 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
   }
 }
 
-VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
+VOID SetValue   (PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
               UINT64 *g_VariableList, PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:

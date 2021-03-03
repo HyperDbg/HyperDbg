@@ -2,7 +2,7 @@
 #define PARSE_TABLE_H
 #include "common.h"
 #include "ScriptEngineCommonDefinitions.h"
-#define RULES_COUNT 72
+#define RULES_COUNT 73
 #define TERMINAL_COUNT 43
 #define NONETERMINAL_COUNT 34
 #define START_VARIABLE "S"

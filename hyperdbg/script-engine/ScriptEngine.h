@@ -55,5 +55,8 @@ unsigned long long int PseudoRegToInt(char* str);
 unsigned long long int SemanticRuleToInt(char* str);
 
 char* HandleError(unsigned int ErrorType, char* str);
+
+int GetIdentifierVal(TOKEN Token);
+
 #endif
 

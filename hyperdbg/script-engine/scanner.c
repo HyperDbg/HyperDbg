@@ -21,7 +21,6 @@
 
 
 
-
 /**
 * @brief reads a token from the input string
 *
