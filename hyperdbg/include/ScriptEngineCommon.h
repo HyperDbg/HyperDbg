@@ -1126,8 +1126,61 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
     return g_TempList[Symbol->Value];
   }
 }
-
-VOID SetValue   (PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
+VOID SetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol, UINT64 Value) {
+    switch (Symbol->Value)
+    {
+        case REGISTER_RAX: 
+            GuestRegs->rax = Value;
+            break;
+        case REGISTER_RCX:
+            GuestRegs->rcx = Value;
+            break;
+        case REGISTER_RDX:
+            GuestRegs->rdx = Value;
+            break;
+        case REGISTER_RBX:
+            GuestRegs->rbx = Value;
+            break;
+        case REGISTER_RSP:
+            GuestRegs->rsp = Value;
+            break;
+        case REGISTER_RBP:
+            GuestRegs->rbp = Value;
+            break;
+        case REGISTER_RSI:
+            GuestRegs->rsi = Value;
+            break;
+        case REGISTER_RDI:
+            GuestRegs->rdi = Value;
+            break;
+        case REGISTER_R8:
+            GuestRegs->r8 = Value;
+            break;
+        case REGISTER_R9:
+            GuestRegs->r9 = Value;
+            break;
+        case REGISTER_R10:
+            GuestRegs->r10 = Value;
+            break;
+        case REGISTER_R11:
+            GuestRegs->r11 = Value;
+            break;
+        case REGISTER_R12:
+            GuestRegs->r12 = Value;
+            break;
+        case REGISTER_R13:
+            GuestRegs->r13 = Value;
+            break;
+        case REGISTER_R14:
+            GuestRegs->r14 = Value;
+            break;
+        case REGISTER_R15:
+            GuestRegs->r15 = Value;
+            break;
+    }
+    
+}
+VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
               UINT64 *g_VariableList, PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:
@@ -1135,9 +1188,12 @@ VOID SetValue   (PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
     return;
   case SYMBOL_TEMP_TYPE:
     g_TempList[Symbol->Value] = Value;
+  case SYMBOL_REGISTER_TYPE:
+      SetRegValue(GuestRegs, Symbol, Value); 
     return;
   }
 }
+
 
 VOID ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR *BufferForName) {
 
