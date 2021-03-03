@@ -1,5 +1,5 @@
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq str wstr sizeof neg hi low not
+.OneOpFunc1->poi db dd dw dq neg hi low not
 
 
 .Operators->or xor and asr asl add sub mul div mod 

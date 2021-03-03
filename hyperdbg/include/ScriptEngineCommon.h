@@ -1121,12 +1121,6 @@ VOID ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR *BufferForName) {
   case FUNC_DQ:
     memcpy(BufferForName, "dq", 2);
     break;
-  case FUNC_STR:
-    memcpy(BufferForName, "str", 3);
-    break;
-  case FUNC_WSTR:
-    memcpy(BufferForName, "wstr", 4);
-    break;
   case FUNC_HI:
     memcpy(BufferForName, "hi", 2);
     break;
@@ -1524,51 +1518,6 @@ BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
 
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
-
-    return HasError;
-
-  case FUNC_STR:
-    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
-    *Indx = *Indx + 1;
-    SrcVal0 =
-        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
-
-    // TODO: Hanlde str function
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("Error: STR functions is not handled yet.\n");
-#endif // SCRIPT_ENGINE_USER_MODE
-
-    return HasError;
-
-  case FUNC_WSTR:
-    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
-    *Indx = *Indx + 1;
-    SrcVal0 =
-        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
-
-    // TODO: Hanlde wstr function
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("Error: WSTR functions is not handled yet.\n");
-#endif // SCRIPT_ENGINE_USER_MODE
-
-    return HasError;
-
-  case FUNC_SIZEOF:
-    Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                     (unsigned long long)(*Indx * sizeof(SYMBOL)));
-    *Indx = *Indx + 1;
-    SrcVal0 =
-        GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
-
-    // TODO: Hanlde sizeof function because we do not support pdb so
-    // we don't have support this function
-#ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("Error: DB functions is not handled yet.\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
     return HasError;
