@@ -474,21 +474,21 @@ StartAgain:
         if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS) {
 
           Regs = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) +
-                                sizeof(ReadRegisterPacket));
+                                sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
 
-          ShowMessages("rax=%016llx rbx=%016llx rcx=%016llx\n",
-                       "rdx=%016llx rsi = % 016llx rdi =%016llx",
-                       "rsp=%016llx rbp = %016llx r8 =%016llx\n",
-                       "r9=%016llx r10 = %016llx r11 =%016llx\n",
-                       "r12=%016llx r13 = %016llx r14 =%016llx\n",
-                       "r15=%016llx", Regs->rax, Regs->rbx, Regs->rcx,
-                       Regs->rdx, Regs->rsi, Regs->rdi, Regs->rsp, Regs->rbp,
-                       Regs->r8, Regs->r9, Regs->r10, Regs->r11, Regs->r12,
-                       Regs->r13, Regs->r14, Regs->r15);
+          ShowMessages("rax=%016llx rbx=%016llx rcx=%016llx\n"
+                       "rdx=%016llx rsi=% 016llx rdi=%016llx\n"
+                       "rsp=%016llx rbp=%016llx r8=%016llx\n"
+                       "r9=%016llx r10=%016llx r11=%016llx\n"
+                       "r12=%016llx r13=%016llx r14=%016llx\nr15=%016llx\n",
+                       Regs->rax, Regs->rbx, Regs->rcx, Regs->rdx, Regs->rsi,
+                       Regs->rdi, Regs->rsp, Regs->rbp, Regs->r8, Regs->r9,
+                       Regs->r10, Regs->r11, Regs->r12, Regs->r13, Regs->r14,
+                       Regs->r15);
 
         } else {
           ShowMessages(
-              "%s=%016llx",
+              "%s=%016llx\n",
               RegistersNames[ReadRegisterPacket->RegisterID -
                              1 /*this is due to RegistersEnum starts from 1 and
                                   RegistersNames array starts from 0*/

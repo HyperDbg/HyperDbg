@@ -609,11 +609,12 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
 BOOLEAN
 KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
 {
-    DbgBreakPoint();
     switch (ReadRegisterRequest->RegisterID)
     {
     case DEBUGGEE_SHOW_ALL_REGISTERS:
-        memcpy(((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)), Regs, sizeof(GUEST_REGS));
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
+               Regs,
+               sizeof(GUEST_REGS));
         break;
 
     case REGISTER_RAX:
@@ -1200,6 +1201,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
+    UINT32                                              SizeToSend       = 0;
     BOOLEAN                                             UnlockTheNewCore = FALSE;
 
     while (TRUE)
@@ -1395,13 +1397,21 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     ReadRegisterPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
                 }
 
+                if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+                {
+                    SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS);
+                }
+                else
+                {
+                    SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION);
+                }
                 //
                 // Send the result of reading registers back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
                                            ReadRegisterPacket,
-                                           sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION));
+                                           SizeToSend);
 
                 break;
 

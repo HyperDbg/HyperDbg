@@ -109,7 +109,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
     Reg = RegistersMap[Command];
     if (Reg != 0) {
       RegD->RegisterID = Reg;
-      ShowMessages("Command is : r %s\n", Command.c_str());
+
       //
       // send the request
       //
@@ -144,8 +144,6 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
         Reg = RegistersMap[tmp];
       }
       if (Reg != 0) {
-
-        ShowMessages("Command is : r %s=%s\n", Tmp[0].c_str(), Tmp[1].c_str());
 
         //
         // send the request
