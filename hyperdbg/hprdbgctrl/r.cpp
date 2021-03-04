@@ -55,10 +55,15 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   //
   // Interpret here
   //
+  PVOID CodeBuffer;
+  UINT64 BufferAddress;
+  UINT32 BufferLength;
+  UINT32 Pointer;
   REGS_ENUM Reg;
   vector<string> Tmp;
   PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
       new DEBUGGEE_REGISTER_READ_DESCRIPTION;
+  string SetRegValue = "SetRegValue";
 
   if (SplittedCommand[0] != "r") {
 
@@ -69,21 +74,17 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   // clear additional space of the command string
   //
   Command.erase(0, 1);
-  ReplaceAll(Command, " ", "");
 
   //
   // if command does not contain a '=' means user wants to read it
   //
   if (Command.find('=', 0) == string::npos) {
+    ReplaceAll(Command, "@", "");
+    ReplaceAll(Command, " ", "");
     Reg = RegistersMap[Command];
-    // Reg = RegsMap[Command.erase(0, 1)];
     if (Reg != 0) {
       RegD->RegisterID = Reg;
-      // RegD->Modified = FALSE;
-      // RegD->Value = "";
-
       ShowMessages("Command is : r %s\n", Command.c_str());
-
       //
       // send the request
       //
@@ -104,22 +105,73 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   //
   // if command contains a '=' means user wants modify the register
   //
+
   else if (Command.find("=", 0)) {
     Tmp = Split(Command, '=');
     if (Tmp.size() == 2) {
+      ReplaceAll(Tmp[0], " ", "");
+      string tmp = Tmp[0];
       Reg = RegistersMap[Tmp[0]];
-      // Reg = RegsMap[Command.erase(0, 1)];
+      if (Reg == 0) {
+        ReplaceAll(tmp, "@", "");
+        Reg = RegistersMap[tmp];
+      }
       if (Reg != 0) {
-        RegD->RegisterID = Reg;
-        // RegD->Modified = TRUE;
-        // RegD->Value = Tmp[1];
 
-        ShowMessages("Command is : r %s=%s\n", Tmp[0],
-                     Tmp[1]); //, RegD->Value);
+        ShowMessages("Command is : r %s=%s\n", Tmp[0].c_str(), Tmp[1].c_str());
 
         //
         // send the request
         //
+
+        SetRegValue ="@"+tmp + '=' + Tmp[1] + "; ";
+        if (g_IsSerialConnectedToRemoteDebuggee) {
+
+          //
+          // Send over serial
+          //
+
+          //
+          // Run script engine handler
+          //
+          CodeBuffer = ScriptEngineParseWrapper((char *)SetRegValue.c_str());
+          if (CodeBuffer == NULL) {
+
+            //
+            // return to show that this item contains an script
+            //
+            return;
+          }
+
+          //
+          // Print symbols (test)
+          //
+          // PrintSymbolBufferWrapper(CodeBuffer);
+
+          //
+          // Set the buffer and length
+          //
+          BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+          BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
+          Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+          //
+          // Send it to the remote debuggee
+          //
+          KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer,
+                                       FALSE);
+
+          //
+          // Remove the buffer of script engine interpreted code
+          //
+          ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+
+        } else {
+          //
+          // error
+          //
+          ShowMessages("err, you're not connected to any debuggee\n");
+        }
       }
     }
   }
