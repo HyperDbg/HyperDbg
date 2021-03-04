@@ -471,14 +471,15 @@ StartAgain:
         // Show the result of reading registers like rax=0000000000018b01
         //
         if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS) {
-            
+
+          GUEST_REGS p = {0};
+
           ShowMessages("rax=%016llx rbx=%016llx rcx=%016llx\n",
-                        "rdx=%016llx rsi = % 016llx rdi =%016llx",
-              "rsp=%016llx rbp = %016llx r8 =%016llx\n",
-              "r9=%016llx r10 = %016llx r11 =%016llx\n",
-              "r12=%016llx r13 = %016llx r14 =%016llx\n",
-              "r15=%016llx",
-              ReadRegisterPacket);
+                       "rdx=%016llx rsi = % 016llx rdi =%016llx",
+                       "rsp=%016llx rbp = %016llx r8 =%016llx\n",
+                       "r9=%016llx r10 = %016llx r11 =%016llx\n",
+                       "r12=%016llx r13 = %016llx r14 =%016llx\n",
+                       "r15=%016llx", ReadRegisterPacket);
 
         } else {
           ShowMessages(

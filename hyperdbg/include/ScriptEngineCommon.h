@@ -76,7 +76,15 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define FALSE 0
 #define TRUE 1
 
-typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
+/**
+ * @brief Integer gp registers (this structure is defined in
+ * two places, make sure to change it in two places)
+ *
+ */
+#ifndef GUEST_REGS_DEFINED
+#define GUEST_REGS_DEFINED
+
+typedef struct _GUEST_REGS {
   ULONG64 rax; // 0x00
   ULONG64 rcx; // 0x08
   ULONG64 rdx; // 0x10
@@ -93,7 +101,8 @@ typedef struct _GUEST_REGS_USER_MODE_USER_MODE {
   ULONG64 r13; // 0x68
   ULONG64 r14; // 0x70
   ULONG64 r15; // 0x78
-} GUEST_REGS_USER_MODE, *PGUEST_REGS_USER_MODE;
+} GUEST_REGS, *PGUEST_REGS;
+#endif
 
 #define LOWORD(l) ((WORD)(l))
 #define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
@@ -121,7 +130,7 @@ __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
-UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
+UINT64 GetValue(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionBuffer,
                 UINT64 *g_TempList, UINT64 *g_VariableList, PSYMBOL Symbol);
 
 //
@@ -587,8 +596,7 @@ VOID ScriptEngineFunctionEnableEvent(UINT64 Tag,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 VOID ScriptEngineFunctionBreak(UINT64 Tag, BOOLEAN ImmediateMessagePassing,
-                               PGUEST_REGS_USER_MODE GuestRegs,
-                               UINT64 Context) {
+                               PGUEST_REGS GuestRegs, UINT64 Context) {
 
 #ifdef SCRIPT_ENGINE_USER_MODE
   ShowMessages("err, breaking is not possible in user-mode.\n");
@@ -893,7 +901,7 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
   return TRUE;
 }
 
-VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
+VOID ScriptEngineFunctionPrintf(PGUEST_REGS GuestRegs,
                                 ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
                                 UINT64 *g_VariableList, UINT64 Tag,
                                 BOOLEAN ImmediateMessagePassing, char *Format,
@@ -1141,7 +1149,7 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS_USER_MODE GuestRegs,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-UINT64 GetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol) {
+UINT64 GetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol) {
   switch (Symbol->Value) {
   case REGISTER_RAX:
     return GuestRegs->rax;
@@ -1219,7 +1227,7 @@ UINT64 GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer) {
   }
 }
 
-UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
+UINT64 GetValue(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionBuffer,
                 UINT64 *g_TempList, UINT64 *g_VariableList, PSYMBOL Symbol) {
 
   switch (Symbol->Type) {
@@ -1235,8 +1243,7 @@ UINT64 GetValue(PGUEST_REGS_USER_MODE GuestRegs, ACTION_BUFFER ActionBuffer,
     return g_TempList[Symbol->Value];
   }
 }
-VOID SetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol,
-                 UINT64 Value) {
+VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Value) {
   case REGISTER_RAX:
     GuestRegs->rax = Value;
@@ -1288,8 +1295,8 @@ VOID SetRegValue(PGUEST_REGS_USER_MODE GuestRegs, PSYMBOL Symbol,
     break;
   }
 }
-VOID SetValue(PGUEST_REGS_USER_MODE GuestRegs, UINT64 *g_TempList,
-              UINT64 *g_VariableList, PSYMBOL Symbol, UINT64 Value) {
+VOID SetValue(PGUEST_REGS GuestRegs, UINT64 *g_TempList, UINT64 *g_VariableList,
+              PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Type) {
   case SYMBOL_ID_TYPE:
     g_VariableList[Symbol->Value] = Value;
@@ -1332,10 +1339,10 @@ VOID ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR *BufferForName) {
   }
 }
 
-BOOL ScriptEngineExecute(PGUEST_REGS_USER_MODE GuestRegs,
-                         ACTION_BUFFER ActionDetail, UINT64 *g_TempList,
-                         UINT64 *g_VariableList, PSYMBOL_BUFFER CodeBuffer,
-                         int *Indx, PSYMBOL ErrorOperator) {
+BOOL ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail,
+                         UINT64 *g_TempList, UINT64 *g_VariableList,
+                         PSYMBOL_BUFFER CodeBuffer, int *Indx,
+                         PSYMBOL ErrorOperator) {
 
   PSYMBOL Operator;
   PSYMBOL Src0;
