@@ -40,6 +40,7 @@ VOID CommandRHelp() {
   ShowMessages("\t\te.g : r @rax\n");
   ShowMessages("\t\te.g : r rax\n");
   ShowMessages("\t\te.g : r rax = 0x55\n");
+  ShowMessages("\t\te.g : r rax = @rbx + @rcx + 0n10\n");
 }
 
 /**

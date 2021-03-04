@@ -77,6 +77,7 @@
 #include "namedpipe.h"
 #include "forwarding.h"
 #include "kd.h"
+#include "ScriptEngineCommonDefinitions.h"
 
 #endif // PCH_H
 
