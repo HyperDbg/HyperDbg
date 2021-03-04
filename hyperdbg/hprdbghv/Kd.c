@@ -609,6 +609,7 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
 BOOLEAN
 KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
 {
+    DbgBreakPoint();
     switch (ReadRegisterRequest->RegisterID)
     {
     case DEBUGGEE_SHOW_ALL_REGISTERS:

@@ -47,6 +47,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
   PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
+  PGUEST_REGS Regs;
 
 StartAgain:
 
@@ -472,14 +473,18 @@ StartAgain:
         //
         if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS) {
 
-          GUEST_REGS p = {0};
+          Regs = (GUEST_REGS *)(((CHAR *)ReadRegisterPacket) +
+                                sizeof(ReadRegisterPacket));
 
           ShowMessages("rax=%016llx rbx=%016llx rcx=%016llx\n",
                        "rdx=%016llx rsi = % 016llx rdi =%016llx",
                        "rsp=%016llx rbp = %016llx r8 =%016llx\n",
                        "r9=%016llx r10 = %016llx r11 =%016llx\n",
                        "r12=%016llx r13 = %016llx r14 =%016llx\n",
-                       "r15=%016llx", ReadRegisterPacket);
+                       "r15=%016llx", Regs->rax, Regs->rbx, Regs->rcx,
+                       Regs->rdx, Regs->rsi, Regs->rdi, Regs->rsp, Regs->rbp,
+                       Regs->r8, Regs->r9, Regs->r10, Regs->r11, Regs->r12,
+                       Regs->r13, Regs->r14, Regs->r15);
 
         } else {
           ShowMessages(
