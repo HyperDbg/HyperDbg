@@ -61,8 +61,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   UINT32 Pointer;
   REGS_ENUM Reg;
   vector<string> Tmp;
-  PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-      new DEBUGGEE_REGISTER_READ_DESCRIPTION;
+
   string SetRegValue = "SetRegValue";
 
   if (SplittedCommand[0] != "r") {
@@ -79,6 +78,8 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   // if command does not contain a '=' means user wants to read it
   //
   if (Command.find('=', 0) == string::npos) {
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
     ReplaceAll(Command, "@", "");
     ReplaceAll(Command, " ", "");
     Reg = RegistersMap[Command];
@@ -100,6 +101,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
     } else {
       ShowMessages("err, register %s is invalid\n", Command.c_str());
     }
+    delete (RegD);
   }
 
   //
@@ -124,7 +126,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
         // send the request
         //
 
-        SetRegValue ="@"+tmp + '=' + Tmp[1] + "; ";
+        SetRegValue = "@" + tmp + '=' + Tmp[1] + "; ";
         if (g_IsSerialConnectedToRemoteDebuggee) {
 
           //
@@ -174,7 +176,24 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
         }
       }
     }
-  }
+  } else if (SplittedCommand.size() == 1) {
 
-  delete (RegD);
+    //
+    // show all registers
+    //
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
+    RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
+
+    if (g_IsSerialConnectedToRemoteDebuggee) {
+
+      KdSendReadRegisterPacketToDebuggee(RegD);
+    } else {
+      ShowMessages("err, reading registers (r) is not valid in the current "
+                   "context, you "
+                   "should connect to a debuggee.\n");
+    }
+
+    delete (RegD);
+  }
 }

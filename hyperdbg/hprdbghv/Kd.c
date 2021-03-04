@@ -611,6 +611,10 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
 {
     switch (ReadRegisterRequest->RegisterID)
     {
+    case DEBUGGEE_SHOW_ALL_REGISTERS:
+        memcpy(((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)), Regs, sizeof(GUEST_REGS));
+        break;
+
     case REGISTER_RAX:
         ReadRegisterRequest->Value = Regs->rax;
         break;

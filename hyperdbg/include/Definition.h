@@ -1187,6 +1187,12 @@ static const char *const RegistersNames[] = {
     "ds",  "es",  "fs",  "gs",  "cs",  "ss",  "eflags", "rip"};
 
 /**
+ * @brief for reading all regisers in r command.
+ *
+ */
+#define DEBUGGEE_SHOW_ALL_REGISTERS 0xffffffff
+
+/**
  * @brief Register Descriptor Structure to use in r command.
  *
  */
