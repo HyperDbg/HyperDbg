@@ -238,11 +238,42 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         }
     }
     else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
-             InterruptExit.Vector == EXCEPTION_VECTOR_NMI &&
-             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi)
+             InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
-        KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi)
+        {
+            g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
+            KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+        }
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableInterruptFlagOnContinue)
+        {
+            //
+            // Ignore the nmi
+            //
+        }
+        else
+        {
+            //
+            // Re-inject the interrupt/exception
+            //
+            __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+
+            //
+            // re-write error code (if any)
+            //
+            if (InterruptExit.ErrorCodeValid)
+            {
+                //
+                // Read the error code
+                //
+                __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+
+                //
+                // Write the error code
+                //
+                __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+            }
+        }
     }
     else
     {
