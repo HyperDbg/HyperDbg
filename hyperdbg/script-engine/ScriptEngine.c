@@ -825,6 +825,6 @@ int GetIdentifierVal(TOKEN Token)
     CurrentToken = NewToken();
     CurrentToken->Type = Token->Type;
     strcpy(CurrentToken->Value, Token->Value);
-    IdTable = Push(IdTable, Token);
+    IdTable = Push(IdTable, CurrentToken);
     return IdTable->Pointer - 1;
 }

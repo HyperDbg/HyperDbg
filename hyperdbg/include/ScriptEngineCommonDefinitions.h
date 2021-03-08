@@ -2,25 +2,56 @@
 #ifndef SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 #define SCRIPT_ENGINE_COMMON_DEFINITIONS_H
 typedef struct SYMBOL {
-  long long unsigned Type;
-  long long unsigned Value;
-} SYMBOL, *PSYMBOL;
+	long long unsigned Type;
+	long long unsigned Value;
+} SYMBOL, * PSYMBOL;
 typedef struct SYMBOL_BUFFER {
-  PSYMBOL Head;
-  unsigned int Pointer;
-  unsigned int Size;
-  char *Message;
-} SYMBOL_BUFFER, *PSYMBOL_BUFFER;
-typedef struct SYMBOL_MAP {
-  char *Name;
-  long long unsigned Type;
-} SYMBOL_MAP, *PSYMBOL_MAP;
+	PSYMBOL Head;
+	unsigned int Pointer;
+	unsigned int Size;
+	char* Message;
+} SYMBOL_BUFFER, * PSYMBOL_BUFFER;
+typedef struct SYMBOL_MAP
+{
+    char* Name;
+    long long unsigned Type;
+} SYMBOL_MAP, * PSYMBOL_MAP;
 typedef struct ACTION_BUFFER {
   long long unsigned Tag;
   long long unsigned CurrentAction;
   char ImmediatelySendTheResults;
   long long unsigned Context;
 } ACTION_BUFFER, *PACTION_BUFFER;
+
+typedef enum REGS_ENUM {
+  REGISTER_RAX = 1,
+  REGISTER_RBX = 2,
+  REGISTER_RCX = 3,
+  REGISTER_RDX = 4,
+  REGISTER_RSI = 5,
+  REGISTER_RDI = 6,
+  REGISTER_RBP = 7,
+  REGISTER_RSP = 8,
+  REGISTER_R8 = 9,
+  REGISTER_R9 = 10,
+  REGISTER_R10 = 11,
+  REGISTER_R11 = 12,
+  REGISTER_R12 = 13,
+  REGISTER_R13 = 14,
+  REGISTER_R14 = 15,
+  REGISTER_R15 = 16,
+  REGISTER_DS = 17,
+  REGISTER_ES = 18,
+  REGISTER_FS = 19,
+  REGISTER_GS = 20,
+  REGISTER_CS = 21,
+  REGISTER_SS = 22,
+  REGISTER_EFLAGS = 23,
+  REGISTER_RIP = 24,
+  REGISTER_GDTR = 25, 
+  REGISTER_IDTR = 26
+} REGS_ENUM;
+
 #define SYMBOL_ID_TYPE 0
 #define SYMBOL_NUM_TYPE 1
 #define SYMBOL_REGISTER_TYPE 2
@@ -31,6 +62,8 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_VARIABLE_COUNT_TYPE 7
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define INVALID -99
+
+
 
 #define FUNC_OR 0
 #define FUNC_XOR 1
@@ -59,33 +92,6 @@ typedef struct ACTION_BUFFER {
 #define FUNC_NOT 24
 #define FUNC_MOV 25
 #define FUNC_VARGSTART 26
-
-typedef enum REGS_ENUM {
-  REGISTER_RAX = 1,
-  REGISTER_RBX = 2,
-  REGISTER_RCX = 3,
-  REGISTER_RDX = 4,
-  REGISTER_RSI = 5,
-  REGISTER_RDI = 6,
-  REGISTER_RBP = 7,
-  REGISTER_RSP = 8,
-  REGISTER_R8 = 9,
-  REGISTER_R9 = 10,
-  REGISTER_R10 = 11,
-  REGISTER_R11 = 12,
-  REGISTER_R12 = 13,
-  REGISTER_R13 = 14,
-  REGISTER_R14 = 15,
-  REGISTER_R15 = 16,
-  REGISTER_DS = 17,
-  REGISTER_ES = 18,
-  REGISTER_FS = 19,
-  REGISTER_GS = 20,
-  REGISTER_CS = 21,
-  REGISTER_SS = 22,
-  REGISTER_EFLAGS = 23,
-  REGISTER_RIP = 24
-} REGS_ENUM;
 
 #define PSEUDO_REGISTER_PID 0
 #define PSEUDO_REGISTER_TID 1

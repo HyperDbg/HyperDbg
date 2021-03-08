@@ -403,11 +403,11 @@ class LL1Parser:
 
 
     def WriteRegisterMaps(self):
-        Counter = 0          
-        for X in self.RegistersList:
-            self.CommonHeaderFile.write("#define " + "REGISTER_" + X.upper() + " " + str(Counter) + "\n")
-            Counter += 1
-        self.CommonHeaderFile.write("\n")
+        # Counter = 0          
+        # for X in self.RegistersList:
+        #     self.CommonHeaderFile.write("#define " + "REGISTER_" + X.upper() + " " + str(Counter) + "\n")
+        #     Counter += 1
+        # self.CommonHeaderFile.write("\n")
 
         self.SourceFile.write("const SYMBOL_MAP RegisterMapList[]= {\n")
         self.HeaderFile.write("extern const SYMBOL_MAP RegisterMapList[];\n")
