@@ -369,7 +369,7 @@ TOKEN GetToken(char* c, char* str)
 				*c = sgetc(str);
 			} while (IsHex(*c) || *c == '`');
 			Token->Type = HEX;
-			return Token;
+			return Token; 
 		}
 		else
 		{
@@ -419,10 +419,14 @@ TOKEN GetToken(char* c, char* str)
 					if (*c != '`')
 						Append(Token, *c);
 					*c = sgetc(str);
-				} while (IsLetter(*c));
+				} while (IsLetter(*c) || IsHex(*c));
 				if (IsKeyword(Token->Value))
 				{
 					Token->Type = KEYWORD;
+				}
+				else if (IsRegister(Token->Value))
+				{
+					Token->Type = REGISTER;
 				}
 				else
 				{
@@ -435,6 +439,10 @@ TOKEN GetToken(char* c, char* str)
 				if (IsKeyword(Token->Value))
 				{
 					Token->Type = KEYWORD;
+				}
+				if (IsRegister(Token->Value))
+				{
+					Token->Type = REGISTER;
 				}
 				else if (IsId(Token->Value))
 				{
@@ -454,10 +462,14 @@ TOKEN GetToken(char* c, char* str)
 				if (*c != '`')
 					Append(Token, *c);
 				*c = sgetc(str);
-			} while (IsLetter(*c));
+			} while (IsLetter(*c) || IsHex(*c));
 			if (IsKeyword(Token->Value))
 			{
 				Token->Type = KEYWORD;
+			}
+			else if (IsRegister(Token->Value))
+			{
+				Token->Type = REGISTER;
 			}
 			else
 			{
@@ -540,9 +552,25 @@ char IsKeyword(char* str)
 {
 	int n = KEYWORD_LIST_LENGTH;
 	for (int i = 0; i < n; i++)
-	{if (!strcmp(str, KeywordList[i]))
+	{
+		if (!strcmp(str, KeywordList[i]))
 		{
 			return 1; 
+		}
+	}
+	return 0;
+}
+
+char IsRegister(char* str)
+{
+	int n = REGISTER_MAP_LIST_LENGTH;
+	char* name; 
+	for (int i = 0; i < n; i++)
+	{
+		name = RegisterMapList[i].Name;
+		if (!strcmp(str, name))
+		{
+			return 1;
 		}
 	}
 	return 0;

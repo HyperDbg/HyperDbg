@@ -1295,6 +1295,8 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
     break;
   }
 }
+
+
 VOID SetValue(PGUEST_REGS GuestRegs, UINT64 *g_TempList, UINT64 *g_VariableList,
               PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Type) {

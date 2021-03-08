@@ -42,6 +42,7 @@ char IsKeyword(char* str);
 
 char IsId(char* str);	
 
+char IsRegister(char* str);
 #endif // !SCANNER_H
 
 
