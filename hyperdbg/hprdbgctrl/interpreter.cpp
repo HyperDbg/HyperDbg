@@ -425,6 +425,10 @@ VOID InitializeCommandsDictionary() {
                         DEBUGGER_COMMAND_T_ATTRIBUTES};
   g_CommandList["tr"] = {&CommandT, &CommandTHelp,
                          DEBUGGER_COMMAND_T_ATTRIBUTES};
+  g_CommandList["tg"] = {&CommandT, &CommandTHelp,
+                         DEBUGGER_COMMAND_T_ATTRIBUTES};
+  g_CommandList["tgr"] = {&CommandT, &CommandTHelp,
+                          DEBUGGER_COMMAND_T_ATTRIBUTES};
 
   g_CommandList["db"] = {&CommandReadMemoryAndDisassembler,
                          &CommandReadMemoryAndDisassemblerHelp,

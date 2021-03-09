@@ -52,11 +52,10 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
     return;
   }
 
-  if (!SplittedCommand.at(0).compare("pr")) {
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT_WITH_REGS;
-  } else {
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OUT;
-  }
+  //
+  // Set type of request
+  //
+  RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER;
 
   //
   // Check if the command has a counter parameter
@@ -85,10 +84,16 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
          (float)StepCount), i); */
 
       KdSendStepPacketToDebuggee(RequestFormat);
+
+      //
+      // Show registers
+      //
+      if (!SplittedCommand.at(0).compare("pr")) {
+      }
     }
 
   } else {
     ShowMessages("err, stepping (p) is not valid in the current context, you "
-                 "should connect to a debuggee.\n");
+                 "should connect to a debuggee\n");
   }
 }

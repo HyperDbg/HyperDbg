@@ -25,10 +25,13 @@ VOID CommandTHelp() {
   ShowMessages(
       "t : executes a single instruction (step-in) and optionally displays the "
       "resulting values of all registers and flags.\n\n");
-  ShowMessages("syntax : \tt[r] [count]\n");
+  ShowMessages("syntax : \tt[g | r] [count]\n");
   ShowMessages("\t\te.g : t\n");
   ShowMessages("\t\te.g : tr\n");
+  ShowMessages("\t\te.g : tg\n");
   ShowMessages("\t\te.g : tr 1f\n");
+  ShowMessages("\t\te.g : tg 1f\n");
+  ShowMessages("\t\te.g : tgr 1f\n");
 }
 
 /**
@@ -52,8 +55,9 @@ VOID CommandT(vector<string> SplittedCommand, string Command) {
     return;
   }
 
-  if (!SplittedCommand.at(0).compare("tr")) {
-    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_WITH_REGS;
+  if (!SplittedCommand.at(0).compare("tg") ||
+      !SplittedCommand.at(0).compare("tgr")) {
+    RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED;
   } else {
     RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN;
   }
@@ -78,10 +82,17 @@ VOID CommandT(vector<string> SplittedCommand, string Command) {
 
     for (size_t i = 0; i < StepCount; i++) {
       KdSendStepPacketToDebuggee(RequestFormat);
+
+      if (!SplittedCommand.at(0).compare("tr") ||
+          !SplittedCommand.at(0).compare("tgr")) {
+        //
+        // Show registers
+        //
+      }
     }
 
   } else {
     ShowMessages("err, stepping (t) is not valid in the current context, you "
-                 "should connect to a debuggee.\n");
+                 "should connect to a debuggee\n");
   }
 }
