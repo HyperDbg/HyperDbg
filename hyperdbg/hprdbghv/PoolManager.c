@@ -64,6 +64,13 @@ PoolManagerInitialize()
     PoolManagerRequestAllocation(sizeof(DEBUGGER_STEPPING_THREAD_DETAILS), 2, THREAD_STEPPINGS_DETAIIL);
 
     //
+    // Request pages for breakpoint detail
+    //
+    PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),
+                                 MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE,
+                                 BREAKPOINT_DEFINITION_STRUCTURE);
+
+    //
     // Nothing to deallocate
     //
     g_IsNewRequestForDeAllocation = FALSE;

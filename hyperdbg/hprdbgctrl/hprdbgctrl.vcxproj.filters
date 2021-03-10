@@ -350,6 +350,18 @@
     <ClCompile Include="bp.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
+    <ClCompile Include="bd.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="be.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="bc.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="bl.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

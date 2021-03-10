@@ -366,6 +366,18 @@ VOID InitializeCommandsDictionary() {
   g_CommandList["bp"] = {&CommandBp, &CommandBpHelp,
                          DEBUGGER_COMMAND_BP_ATTRIBUTES};
 
+  g_CommandList["bl"] = {&CommandBl, &CommandBlHelp,
+                         DEBUGGER_COMMAND_BD_ATTRIBUTES};
+
+  g_CommandList["be"] = {&CommandBe, &CommandBeHelp,
+                         DEBUGGER_COMMAND_BD_ATTRIBUTES};
+
+  g_CommandList["bd"] = {&CommandBd, &CommandBdHelp,
+                         DEBUGGER_COMMAND_BD_ATTRIBUTES};
+
+  g_CommandList["bc"] = {&CommandBc, &CommandBcHelp,
+                         DEBUGGER_COMMAND_BD_ATTRIBUTES};
+
   g_CommandList["!epthook2"] = {&CommandEptHook2, &CommandEptHook2Help,
                                 DEBUGGER_COMMAND_EPTHOOK2_ATTRIBUTES};
 

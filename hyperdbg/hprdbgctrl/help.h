@@ -138,3 +138,11 @@ VOID CommandEvalHelp();
 VOID CommandRHelp();
 
 VOID CommandBpHelp();
+
+VOID CommandBlHelp();
+
+VOID CommandBeHelp();
+
+VOID CommandBdHelp();
+
+VOID CommandBcHelp();

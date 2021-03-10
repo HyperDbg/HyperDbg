@@ -58,6 +58,11 @@ KdInitializeKernelDebugger()
     RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
     //
+    // Initialize list of breakpoints
+    //
+    InitializeListHead(&g_BreakpointsListHead);
+
+    //
     // Indicate that kernel debugger is active
     //
     g_KernelDebuggerState = TRUE;
@@ -840,6 +845,18 @@ KdApplyBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptor)
 }
 
 /**
+ * @brief List of modify breakpoints 
+ * @param ListOrModifyBreakpoints
+ * 
+ * @return VOID
+ */
+VOID
+KdListOrModifyBreakpoints(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
+{
+    DbgBreakPoint();
+}
+
+/**
  * @brief Notify user-mode to about new user-input buffer
  * @details  
  * @param Buffer
@@ -1270,6 +1287,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
@@ -1684,6 +1702,18 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
                                            BpPacket,
                                            sizeof(DEBUGGEE_BP_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS:
+
+                BpListOrModifyPacket = (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                             sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the action
+                //
+                KdListOrModifyBreakpoints(BpListOrModifyPacket);
 
                 break;
 

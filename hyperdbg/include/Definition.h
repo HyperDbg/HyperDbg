@@ -103,6 +103,16 @@
 #define COMMUNICATION_BUFFER_SIZE PacketChunkSize + 0x100
 
 //////////////////////////////////////////////////
+//            Breakpoint Backup                 //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum number of buffers to be allocated for a single
+ * breakpoint
+ */
+#define MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE 50
+
+//////////////////////////////////////////////////
 //                   Installer                  //
 //////////////////////////////////////////////////
 
@@ -206,6 +216,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT 0xb
 #define DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS 0xc
 #define DEBUGGER_SYNCRONIZATION_OBJECT_BP 0xd
+#define DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS 0xe
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -481,6 +492,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_REGISTERS,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_BP,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS,
 
   //
   // Debuggee to debugger
@@ -1244,6 +1256,54 @@ typedef struct _DEBUGGEE_BP_PACKET {
   UINT32 Result;
 
 } DEBUGGEE_BP_PACKET, *PDEBUGGEE_BP_PACKET;
+
+/**
+ * @brief The structure of storing breakpoints
+ *
+ */
+typedef struct _DEBUGGEE_BP_DESCRIPTOR {
+
+  UINT32 BreakpointId;
+  LIST_ENTRY BreakpointsList;
+  BOOLEAN Enabled;
+  UINT64 Address;
+  UINT32 Pid;
+  UINT32 Tid;
+  UINT32 Core;
+
+} DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
+
+/**
+ * @brief Apply event modifications to all breakpoints
+ *
+ */
+#define APPLY_TO_ALL_BREAKPOINTS 0xffffffff
+
+/**
+ * @brief breakpoint modification types
+ *
+ */
+typedef enum _DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST {
+
+  DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_LIST_BREAKPOINTS,
+  DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE,
+  DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE,
+  DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_CLEAR,
+
+} DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST;
+
+/**
+ * @brief The structure of breakpoint modification requests packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_BP_LIST_OR_MODIFY_PACKET {
+
+  UINT32 BreakpointId;
+  DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST Request;
+  UINT32 CountOfBreakpointForListRequest;
+  UINT32 Result;
+
+} DEBUGGEE_BP_LIST_OR_MODIFY_PACKET, *PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET;
 
 /**
  * @brief The structure of script packet in HyperDbg

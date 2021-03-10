@@ -75,6 +75,12 @@ BOOLEAN g_HandleInUse;
 LIST_ENTRY g_EptHook2sDetourListHead;
 
 /**
+ * @brief List header of breakpoints for debugger-mode
+ * 
+ */
+LIST_ENTRY g_BreakpointsListHead;
+
+/**
  * @brief Shows whether the debugger transparent mode 
  * is enabled (true) or not (false)
  * 

@@ -510,6 +510,38 @@ BOOLEAN KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket) {
 }
 
 /**
+ * @brief Sends a breakpoint list or modification packet to the debuggee
+ * @param ListOrModifyPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendListOrModifyPacketToDebuggee(
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyPacket) {
+
+  //
+  // Send list or modify breakpoint packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS,
+          (CHAR *)ListOrModifyPacket,
+          sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET))) {
+    return FALSE;
+  }
+
+  //
+  // Wait until the result of listing or modifying breakpoints is received
+  //
+  WaitForSingleObject(
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS],
+      INFINITE);
+
+  return TRUE;
+}
+
+/**
  * @brief Sends a script packet to the debuggee
  * @param BufferAddress
  * @param BufferLength

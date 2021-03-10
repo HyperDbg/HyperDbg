@@ -91,6 +91,10 @@ BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
 
 BOOLEAN KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);
 
+BOOLEAN
+KdSendListOrModifyPacketToDebuggee(
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyPacket);
+
 BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
                                      UINT32 Pointer, BOOLEAN IsFormat);
 
