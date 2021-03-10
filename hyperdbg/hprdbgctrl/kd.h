@@ -37,22 +37,6 @@ public:
 };
 
 //////////////////////////////////////////////////
-//			       	 Enums                      //
-//////////////////////////////////////////////////
-
-/**
- * @brief stepping types
- *
- */
-typedef enum _DEBUGGER_REMOTE_STEPPING_REQUEST {
-
-  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER,
-  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN,
-  DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED,
-
-} DEBUGGER_REMOTE_STEPPING_REQUEST;
-
-//////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
@@ -104,6 +88,8 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 
 BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
                                             UINT32 NewPid);
+
+BOOLEAN KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);
 
 BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
                                      UINT32 Pointer, BOOLEAN IsFormat);

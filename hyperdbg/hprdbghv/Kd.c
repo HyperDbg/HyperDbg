@@ -813,7 +813,6 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
 
 /**
  * @brief Notify user-mode to unload the debuggee and close the connections
- * @details  
  * 
  * @return VOID
  */
@@ -826,6 +825,18 @@ KdCloseConnectionAndUnloadDebuggee()
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                   "$",
                   1);
+}
+
+/**
+ * @brief Apply breakpoints 
+ * @param BpDescriptor  
+ * 
+ * @return VOID
+ */
+VOID
+KdApplyBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptor)
+{
+    DbgBreakPoint();
 }
 
 /**
@@ -1045,12 +1056,12 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 }
 
 /**
- * @brief apply step one instruction to the debuggee
+ * @brief apply a guaranteed step one instruction to the debuggee
  * @param CoreId 
  * @return VOID 
  */
 VOID
-KdStepInstruction(ULONG CoreId)
+KdGuranteedStepInstruction(ULONG CoreId)
 {
     RFLAGS Rflags = {0};
 
@@ -1252,11 +1263,13 @@ VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
 {
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
+    PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
+    PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
@@ -1329,20 +1342,47 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_STEP:
 
-                //
-                // Indicate a step
-                //
-                KdStepInstruction(CurrentCore);
+                SteppingPacket = (DEBUGGEE_STEP_PACKET *)(((CHAR *)TheActualPacket) +
+                                                          sizeof(DEBUGGER_REMOTE_PACKET));
 
-                //
-                // Unlock just on core
-                //
-                KdContinueDebuggeeJustCurrentCore(CurrentCore);
+                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED)
+                {
+                    //
+                    // Guaranteed step in
+                    //
 
-                //
-                // No need to wait for new commands
-                //
-                EscapeFromTheLoop = TRUE;
+                    //
+                    // Indicate a step
+                    //
+                    KdGuranteedStepInstruction(CurrentCore);
+
+                    //
+                    // Unlock just on core
+                    //
+                    KdContinueDebuggeeJustCurrentCore(CurrentCore);
+
+                    //
+                    // No need to wait for new commands
+                    //
+                    EscapeFromTheLoop = TRUE;
+                }
+                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN)
+                {
+                    //
+                    // Step in
+                    //
+
+                    //
+                    // To be implemented
+                    //
+                    DbgBreakPoint();
+                }
+                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+                {
+                    //
+                    // Step over
+                    //
+                }
 
                 break;
 
@@ -1624,6 +1664,26 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                QueryAndModifyEventPacket,
                                                sizeof(DEBUGGER_MODIFY_EVENTS));
                 }
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_BP:
+
+                BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) +
+                                                  sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the action
+                //
+                KdApplyBreakpoint(BpPacket);
+
+                //
+                // Send the result of 'bp' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
+                                           BpPacket,
+                                           sizeof(DEBUGGEE_BP_PACKET));
 
                 break;
 

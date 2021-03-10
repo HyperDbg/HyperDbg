@@ -17,8 +17,7 @@
  * @return VOID
  */
 VOID CommandEptHookHelp() {
-  ShowMessages(
-      "!epthook (bp) : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
+  ShowMessages("!epthook : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
   ShowMessages(
       "syntax : \t!epthook [Virtual Address (hex value)] core [core index "
       "(hex value)] pid [process id (hex value)] condition {[assembly "
@@ -26,9 +25,7 @@ VOID CommandEptHookHelp() {
       "value)] \n");
 
   ShowMessages("\t\te.g : !epthook fffff801deadb000\n");
-  ShowMessages("\t\te.g : bp fffff801deadb000\n");
   ShowMessages("\t\te.g : !epthook fffff801deadb000 pid 400\n");
-  ShowMessages("\t\te.g : bp fffff801deadb000 core 2 pid 400\n");
   ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");
 }
 

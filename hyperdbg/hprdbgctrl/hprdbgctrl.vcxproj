@@ -124,6 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="attach.cpp" />
+    <ClCompile Include="bp.cpp" />
     <ClCompile Include="breakcontrol.cpp" />
     <ClCompile Include="cls.cpp" />
     <ClCompile Include="connect.cpp" />

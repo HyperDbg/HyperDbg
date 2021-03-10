@@ -362,8 +362,9 @@ VOID InitializeCommandsDictionary() {
                                DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
   g_CommandList["bh"] = {&CommandEptHook, &CommandEptHookHelp,
                          DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
-  g_CommandList["bp"] = {&CommandEptHook, &CommandEptHookHelp,
-                         DEBUGGER_COMMAND_EPTHOOK_ATTRIBUTES};
+
+  g_CommandList["bp"] = {&CommandBp, &CommandBpHelp,
+                         DEBUGGER_COMMAND_BP_ATTRIBUTES};
 
   g_CommandList["!epthook2"] = {&CommandEptHook2, &CommandEptHook2Help,
                                 DEBUGGER_COMMAND_EPTHOOK2_ATTRIBUTES};

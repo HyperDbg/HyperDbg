@@ -47,6 +47,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGEE_CHANGE_PROCESS_PACKET ChangeProcessPacket;
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
   PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
+  PDEBUGGEE_BP_PACKET BpPacket;
   PGUEST_REGS Regs;
 
 StartAgain:
@@ -507,6 +508,30 @@ StartAgain:
                    [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]);
 
       break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP:
+
+      BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) +
+                                        sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (BpPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // Everything was okay, nothing to do
+        //
+
+      } else {
+        ShowErrorMessage(BpPacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of putting breakpoints
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_BP]);
+
+      break;
+
     default:
       ShowMessages("err, unknown packet action received from the debugger\n");
       break;
