@@ -1,7 +1,7 @@
 /**
  * @file listening.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @author Sina Karvandi (aleeaminiz@gmail.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Listening for remote connections
  * @details
  * @version 0.1
@@ -486,30 +486,29 @@ StartAgain:
           RFLAGS Rflags = {0};
           Rflags.Value = ExtraRegs->RFLAGS;
 
-          ShowMessages("RAX=%016llx RBX=%016llx RCX=%016llx\n"
-                       "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
-                       "RIP=%016llx RSP=%016llx RBP=%016llx\n"
-                       "R08=%016llx  R09=%016llx R10=%016llx\n"
-                       "R11=%016llx R12=%016llx R13=%016llx\n"
-                       "R14=%016llx R15=%016llx IOPL=%02x\n"
-                       "%s  %s  %s  %s\n%s  %s  %s  %s  \n"
-                       "CS=%04x SS=%04x DS=%04x ES=%04x FS=%04x GS=%04x\n"
-                       "RFLAGS=%016llx\n",
-                       Regs->rax, Regs->rbx, Regs->rcx, Regs->rdx, Regs->rsi,
-                       Regs->rdi, ExtraRegs->RIP, Regs->rsp, Regs->rbp,
-                       Regs->r8, Regs->r9, Regs->r10, Regs->r11, Regs->r12,
-                       Regs->r13, Regs->r14, Regs->r15, Rflags.IoPrivilegeLevel,
-                       Rflags.OverflowFlag ? "OF 1" : "OF 0",
-                       Rflags.DirectionFlag ? "DF 1" : "DF 0",
-                       Rflags.InterruptEnableFlag ? "IF 1" : "IF 0",
-                       Rflags.SignFlag ? "SF 1" : "SF 0",
-                       Rflags.ZeroFlag ? "ZF 1" : "ZF 0",
-                       Rflags.ParityFlag ? "PF 1" : "PF 0",
-                       Rflags.CarryFlag ? "CF 1" : "CF 0",
-                       Rflags.AuxiliaryCarryFlag ? "AXF 1" : "AXF 0",
-                       ExtraRegs->CS, ExtraRegs->SS, ExtraRegs->DS,
-                       ExtraRegs->ES, ExtraRegs->FS, ExtraRegs->GS,
-                       ExtraRegs->RFLAGS);
+          ShowMessages(
+              "RAX=%016llx RBX=%016llx RCX=%016llx\n"
+              "RDX=%016llx RSI=% 016llx RDI=%016llx\n"
+              "RIP=%016llx RSP=%016llx RBP=%016llx\n"
+              "R8=%016llx  R9=%016llx  R10=%016llx\n"
+              "R11=%016llx R12=%016llx R13=%016llx\n"
+              "R14=%016llx R15=%016llx IOPL=%02x\n"
+              "%s  %s  %s  %s\n%s  %s  %s  %s  \n"
+              "CS=%04x SS=%04x DS=%04x ES=%04x FS=%04x GS=%04x\n"
+              "RFLAGS=%016llx\n",
+              Regs->rax, Regs->rbx, Regs->rcx, Regs->rdx, Regs->rsi, Regs->rdi,
+              ExtraRegs->RIP, Regs->rsp, Regs->rbp, Regs->r8, Regs->r9,
+              Regs->r10, Regs->r11, Regs->r12, Regs->r13, Regs->r14, Regs->r15,
+              Rflags.IoPrivilegeLevel, Rflags.OverflowFlag ? "OF 1" : "OF 0",
+              Rflags.DirectionFlag ? "DF 1" : "DF 0",
+              Rflags.InterruptEnableFlag ? "IF 1" : "IF 0",
+              Rflags.SignFlag ? "SF  1" : "SF  0",
+              Rflags.ZeroFlag ? "ZF 1" : "ZF 0",
+              Rflags.ParityFlag ? "PF 1" : "PF 0",
+              Rflags.CarryFlag ? "CF 1" : "CF 0",
+              Rflags.AuxiliaryCarryFlag ? "AXF 1" : "AXF 0", ExtraRegs->CS,
+              ExtraRegs->SS, ExtraRegs->DS, ExtraRegs->ES, ExtraRegs->FS,
+              ExtraRegs->GS, ExtraRegs->RFLAGS);
 
         } else {
 
