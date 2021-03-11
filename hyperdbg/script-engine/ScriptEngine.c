@@ -603,7 +603,7 @@ PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
             do
             {
                 NewSize *= 2; 
-            } while (NewSize < SymbolBuffer->Pointer);
+            } while (NewSize <= SymbolBuffer->Pointer);
             
 
             //
