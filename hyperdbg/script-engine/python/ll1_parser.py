@@ -406,12 +406,29 @@ class LL1Parser:
         self.CommonHeaderFile.write("typedef enum REGS_ENUM {\n")
         Counter = 0          
         for X in self.RegistersList:
-            if Counter != len(self.RegistersList)-1:
-                self.CommonHeaderFile.write("\t" + "REGISTER_" + X.upper() + " = " + str(Counter) + ",\n")
-            else:
+            if Counter == len(self.RegistersList)-1:
                 self.CommonHeaderFile.write("\t" + "REGISTER_" + X.upper() + " = " + str(Counter) + "\n")
+            else:
+                self.CommonHeaderFile.write("\t" + "REGISTER_" + X.upper() + " = " + str(Counter) + ",\n")
             Counter += 1
-        self.CommonHeaderFile.write("\n} REGS_ENUM;\n")
+        self.CommonHeaderFile.write("\n} REGS_ENUM;\n\n")
+
+        self.CommonHeaderFile.write("static const char *const RegistersNames[] = {\n")
+        Counter = 0 
+        for X in self.RegistersList:
+            if Counter == len(self.RegistersList)-1:
+                self.CommonHeaderFile.write("\t" + "\"" + X + "\"")
+            else:
+                if (Counter + 1) % 8 == 0:
+                    self.CommonHeaderFile.write("\t" + "\"" + X + "\",\n")
+                else:
+                    self.CommonHeaderFile.write("\t" + "\"" + X + "\", ")
+
+            Counter += 1
+        self.CommonHeaderFile.write("\n};\n\n")
+
+
+
 
         self.SourceFile.write("const SYMBOL_MAP RegisterMapList[]= {\n")
         self.HeaderFile.write("extern const SYMBOL_MAP RegisterMapList[];\n")

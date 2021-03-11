@@ -96,14 +96,11 @@ typedef enum REGS_ENUM {
 
 } REGS_ENUM;
 
-/**
- * @brief map register name to its enum.
- *
- */
 static const char *const RegistersNames[] = {
-    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp",    "rsp",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "r14",    "r15",
-    "ds",  "es",  "fs",  "gs",  "cs",  "ss",  "rflags", "rip"};
+    "rax",  "rcx",  "rdx", "rbx", "rsp", "rbp", "rsi",    "rdi",
+    "r8",   "r9",   "r10", "r11", "r12", "r13", "r14",    "r15",
+    "ds",   "es",   "fs",  "gs",  "cs",  "ss",  "rflags", "rip",
+    "idtr", "gdtr", "cr0", "cr2", "cr3", "cr4", "cr8"};
 
 #define PSEUDO_REGISTER_PID 0
 #define PSEUDO_REGISTER_TID 1
