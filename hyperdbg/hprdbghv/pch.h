@@ -1,6 +1,7 @@
 /**
  * @file pch.h
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Pre-compiled headers 
  * @details 
  *
@@ -53,6 +54,7 @@
 #include "Invept.h"
 #include "Broadcast.h"
 #include "Vmcall.h"
+#include "ManageRegs.h"
 #include "Vmx.h"
 #include "DebuggerCommands.h"
 #include "ExtensionCommands.h"

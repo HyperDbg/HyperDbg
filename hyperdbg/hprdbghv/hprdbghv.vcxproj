@@ -133,7 +133,7 @@
     <ClCompile Include="MemoryManager.c" />
     <ClCompile Include="MemoryMapper.c" />
     <ClCompile Include="PoolManager.c" />
-    <ClCompile Include="SegmentRegs.c" />
+    <ClCompile Include="ManageRegs.c" />
     <ClCompile Include="Spinlock.c" />
     <ClCompile Include="SsdtHook.c" />
     <ClCompile Include="VmxRegions.c" />
@@ -166,6 +166,7 @@
     <ClInclude Include="GdbStub.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Kd.h" />
+    <ClInclude Include="ManageRegs.h" />
     <ClInclude Include="Mtf.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Hooks.h" />

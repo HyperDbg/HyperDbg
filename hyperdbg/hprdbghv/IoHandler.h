@@ -11,7 +11,6 @@
  */
 #pragma once
 
-
 //////////////////////////////////////////////////
 //                 Structures	    			//
 //////////////////////////////////////////////////
@@ -178,7 +177,6 @@ IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
 {
     __outdwordstring(port, (unsigned long *)data, count);
 }
-
 
 //////////////////////////////////////////////////
 //                 Functions	    			//
