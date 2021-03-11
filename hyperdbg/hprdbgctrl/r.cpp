@@ -27,7 +27,7 @@ map<string, REGS_ENUM> RegistersMap = {
     {"r12", REGISTER_R12}, {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
     {"r15", REGISTER_R15}, {"ds", REGISTER_DS},         {"es", REGISTER_ES},
     {"fs", REGISTER_FS},   {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
-    {"ss", REGISTER_SS},   {"eflags", REGISTER_EFLAGS}, {"rip", REGISTER_RIP}};
+    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP}};
 
 /**
  * @brief help of r command

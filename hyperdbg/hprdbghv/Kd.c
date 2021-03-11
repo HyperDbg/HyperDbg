@@ -732,7 +732,7 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
         ReadRegisterRequest->Value = 0;
         break;
 
-    case REGISTER_EFLAGS:
+    case REGISTER_RFLAGS:
         ReadRegisterRequest->Value = 0;
         break;
 
