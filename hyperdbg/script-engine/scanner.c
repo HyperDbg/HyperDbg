@@ -38,19 +38,49 @@ TOKEN GetToken(char* c, char* str)
 	{
 	case '"':
 		do
-		{	if (*c != '"')
-				Append(Token, *c);
+		{	
+				
 			*c = sgetc(str);
 
 			if (*c == '\\')
 			{
-				Append(Token, *c);
 				*c = sgetc(str);
-				Append(Token, *c);
-				*c = sgetc(str);
+				if (*c == 'n')
+				{
+					Append(Token, '\n');
+					continue;
+				}
+				if (*c == '\\')
+				{
+					Append(Token, '\\');
+					continue;
+				}
+				else if (*c == 't')
+				{
+					Append(Token, '\t');
+					continue;
+				}
+				else if (*c == '"')
+				{
+					Append(Token, '"');
+					continue;
+				}
+				else
+				{
+					Token->Type = UNKNOWN;
+					*c = sgetc(str);
+					return Token;
+				}
 			}
-			
-		} while (*c != '"');
+			else if (*c == '"')
+			{
+				break;
+			}
+			else
+			{
+				Append(Token, *c);
+			}
+		} while (1);
 
 		Token->Type = STRING;
 		*c = sgetc(str);
