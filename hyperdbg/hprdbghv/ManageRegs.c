@@ -227,6 +227,7 @@ SetGuestRFlags(UINT64 RFlags)
 {
     __vmx_vmwrite(GUEST_RFLAGS, RFlags);
 }
+
 /**
  * @brief Get the Guest Rflags value
  * 
@@ -240,4 +241,31 @@ GetGuestRFlags()
 
     __vmx_vmread(GUEST_RFLAGS, &RFlags);
     return RFlags;
+}
+
+/**
+ * @brief Set the Guest RIP Register
+ * 
+ * @param RIP The RIP Value for the guest
+ * @return VOID 
+ */
+
+VOID
+SetGuestRIP(UINT64 RIP)
+{
+    __vmx_vmwrite(GUEST_RIP, RIP);
+}
+/**
+ * @brief Get the Guest RIP value
+ * 
+ * @return UINT64
+ */
+
+UINT64
+GetGuestRIP()
+{
+    UINT64 RIP;
+
+    __vmx_vmread(GUEST_RIP, &RIP);
+    return RIP;
 }

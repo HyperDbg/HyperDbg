@@ -47,6 +47,8 @@ typedef struct _DEBUGGING_STATE {
   UINT64 ConnectedThreadId;
 } DEBUGGING_STATE, *PDEBUGGING_STATE;
 
+
+
 //////////////////////////////////////////////////
 //				    Functions                   //
 //////////////////////////////////////////////////

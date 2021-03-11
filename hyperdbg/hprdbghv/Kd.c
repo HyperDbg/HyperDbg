@@ -709,35 +709,35 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
         break;
 
     case REGISTER_DS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestDs().SEL;
         break;
 
     case REGISTER_ES:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestEs().SEL;
         break;
 
     case REGISTER_FS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestFs().SEL;
         break;
 
     case REGISTER_GS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestGs().SEL;
         break;
 
     case REGISTER_CS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestCs().SEL;
         break;
 
     case REGISTER_SS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestSs().SEL;
         break;
 
     case REGISTER_RFLAGS:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestRFlags();
         break;
 
     case REGISTER_RIP:
-        ReadRegisterRequest->Value = 0;
+        ReadRegisterRequest->Value = GetGuestRIP();
         break;
 
     default:

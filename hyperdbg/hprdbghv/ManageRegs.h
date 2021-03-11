@@ -55,3 +55,9 @@ SetGuestRFlags(UINT64 RFlags);
 
 UINT64
 GetGuestRFlags();
+
+VOID
+SetGuestRIP(UINT64 RIP);
+
+UINT64
+GetGuestRIP();

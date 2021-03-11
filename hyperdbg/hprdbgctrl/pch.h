@@ -62,6 +62,7 @@
 //
 // HyperDbg defined headers
 //
+#include "ScriptEngineCommonDefinitions.h"
 #include "Configuration.h"
 #include "Definition.h"
 #include "commands.h"
@@ -77,7 +78,6 @@
 #include "namedpipe.h"
 #include "forwarding.h"
 #include "kd.h"
-#include "ScriptEngineCommonDefinitions.h"
 
 #endif // PCH_H
 

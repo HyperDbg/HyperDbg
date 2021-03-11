@@ -18,7 +18,6 @@ using namespace std;
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-
 map<string, REGS_ENUM> RegistersMap = {
     {"rax", REGISTER_RAX}, {"rbx", REGISTER_RBX},       {"rcx", REGISTER_RCX},
     {"rdx", REGISTER_RDX}, {"rsi", REGISTER_RSI},       {"rdi", REGISTER_RDI},
@@ -27,7 +26,7 @@ map<string, REGS_ENUM> RegistersMap = {
     {"r12", REGISTER_R12}, {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
     {"r15", REGISTER_R15}, {"ds", REGISTER_DS},         {"es", REGISTER_ES},
     {"fs", REGISTER_FS},   {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
-    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP}};
+    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP} };
 
 /**
  * @brief help of r command
@@ -106,8 +105,14 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
         new DEBUGGEE_REGISTER_READ_DESCRIPTION;
     ReplaceAll(Command, "@", "");
     ReplaceAll(Command, " ", "");
-    Reg = RegistersMap[Command];
-    if (Reg != 0) {
+    if (RegistersMap.find(Command) != RegistersMap.end()) {
+        Reg = RegistersMap[Command];
+    }
+    else
+    {
+        Reg = (REGS_ENUM)-1;
+    }
+    if (Reg != -1) {
       RegD->RegisterID = Reg;
 
       //

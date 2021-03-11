@@ -1323,15 +1323,6 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET {
 } DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
 
 /**
- * @brief map register name to its enum.
- *
- */
-static const char *const RegistersNames[] = {
-    "rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp",    "rsp",
-    "r8",  "r9",  "r10", "r11", "r12", "r13", "r14",    "r15",
-    "ds",  "es",  "fs",  "gs",  "cs",  "ss",  "eflags", "rip"};
-
-/**
  * @brief for reading all regisers in r command.
  *
  */

@@ -488,13 +488,9 @@ StartAgain:
                        Regs->r15);
 
         } else {
-          ShowMessages(
-              "%s=%016llx\n",
-              RegistersNames[ReadRegisterPacket->RegisterID -
-                             1 /*this is due to RegistersEnum starts from 1 and
-                                  RegistersNames array starts from 0*/
-          ],
-              ReadRegisterPacket->Value);
+          
+
+          ShowMessages("%s=%016llx\n", RegistersNames[ReadRegisterPacket->RegisterID], ReadRegisterPacket->Value);
         }
 
       } else {
