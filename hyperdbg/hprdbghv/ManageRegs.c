@@ -231,7 +231,6 @@ UINT64
 GetGuestRFlags()
 {
     UINT64 RFlags;
-
     __vmx_vmread(GUEST_RFLAGS, &RFlags);
     return RFlags;
 }

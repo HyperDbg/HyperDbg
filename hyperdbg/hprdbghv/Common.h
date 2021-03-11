@@ -391,39 +391,6 @@ typedef union DEBUG_REGISTER_6
     };
 } DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
 
-/**
- * @brief RFLAGS in structure format
- * 
- */
-typedef union _RFLAGS
-{
-    struct
-    {
-        UINT64 CarryFlag : 1;
-        UINT64 ReadAs1 : 1;
-        UINT64 ParityFlag : 1;
-        UINT64 Reserved1 : 1;
-        UINT64 AuxiliaryCarryFlag : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 ZeroFlag : 1;
-        UINT64 SignFlag : 1;
-        UINT64 TrapFlag : 1;
-        UINT64 InterruptEnableFlag : 1;
-        UINT64 DirectionFlag : 1;
-        UINT64 OverflowFlag : 1;
-        UINT64 IoPrivilegeLevel : 2;
-        UINT64 NestedTaskFlag : 1;
-        UINT64 Reserved3 : 1;
-        UINT64 ResumeFlag : 1;
-        UINT64 Virtual8086ModeFlag : 1;
-        UINT64 AlignmentCheckFlag : 1;
-        UINT64 VirtualInterruptFlag : 1;
-        UINT64 VirtualInterruptPendingFlag : 1;
-        UINT64 IdentificationFlag : 1;
-    };
-
-    UINT64 Value;
-} RFLAGS, *PRFLAGS;
 
 //////////////////////////////////////////////////
 //				 Function Types					//

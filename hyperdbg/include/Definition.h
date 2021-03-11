@@ -301,6 +301,53 @@ typedef struct GUEST_REGS {
 #endif
 
 /**
+ * @brief struct for extra registers
+ *
+ */
+typedef struct GUEST_EXTRA_REGISTERS {
+  USHORT CS;
+  USHORT DS;
+  USHORT FS;
+  USHORT GS;
+  USHORT ES;
+  USHORT SS;
+  UINT64 RFLAGS;
+  UINT64 RIP;
+} GUEST_EXTRA_REGISTERS, *PGUEST_EXTRA_REGISTERS;
+
+/**
+ * @brief RFLAGS in structure format
+ *
+ */
+typedef union _RFLAGS {
+  struct {
+    UINT64 CarryFlag : 1;
+    UINT64 ReadAs1 : 1;
+    UINT64 ParityFlag : 1;
+    UINT64 Reserved1 : 1;
+    UINT64 AuxiliaryCarryFlag : 1;
+    UINT64 Reserved2 : 1;
+    UINT64 ZeroFlag : 1;
+    UINT64 SignFlag : 1;
+    UINT64 TrapFlag : 1;
+    UINT64 InterruptEnableFlag : 1;
+    UINT64 DirectionFlag : 1;
+    UINT64 OverflowFlag : 1;
+    UINT64 IoPrivilegeLevel : 2;
+    UINT64 NestedTaskFlag : 1;
+    UINT64 Reserved3 : 1;
+    UINT64 ResumeFlag : 1;
+    UINT64 Virtual8086ModeFlag : 1;
+    UINT64 AlignmentCheckFlag : 1;
+    UINT64 VirtualInterruptFlag : 1;
+    UINT64 VirtualInterruptPendingFlag : 1;
+    UINT64 IdentificationFlag : 1;
+  };
+
+  UINT64 Value;
+} RFLAGS, *PRFLAGS;
+
+/**
  * @brief enum to show type of all HyperDbg events
  *
  */

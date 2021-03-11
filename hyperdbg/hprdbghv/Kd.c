@@ -637,11 +637,35 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
 BOOLEAN
 KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
 {
+    GUEST_EXTRA_REGISTERS ERegs = {0};
+
     if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
+        //
+        // Add General porpuse registers
+        //
         memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
                Regs,
                sizeof(GUEST_REGS));
+
+        //
+        // Read Extra registers
+        //
+        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
+        ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
+
+        //
+        // copy at the end of ReadRegisterRequest structure
+        //
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
+               &ERegs,
+               sizeof(GUEST_EXTRA_REGISTERS));
     }
     else
     {
@@ -1420,7 +1444,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 if (ReadRegisterPacket->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
                 {
-                    SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS);
+                    SizeToSend = sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS) + sizeof(GUEST_EXTRA_REGISTERS);
                 }
                 else
                 {
