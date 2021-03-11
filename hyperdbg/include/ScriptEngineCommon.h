@@ -1149,45 +1149,176 @@ VOID ScriptEngineFunctionPrintf(PGUEST_REGS GuestRegs,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-UINT64 GetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol) {
-  switch (Symbol->Value) {
+UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
+
+  switch (RegId) {
+
   case REGISTER_RAX:
     return GuestRegs->rax;
+    break;
+
   case REGISTER_RCX:
     return GuestRegs->rcx;
+    break;
+
   case REGISTER_RDX:
     return GuestRegs->rdx;
+    break;
+
   case REGISTER_RBX:
     return GuestRegs->rbx;
+    break;
+
   case REGISTER_RSP:
     return GuestRegs->rsp;
+    break;
+
   case REGISTER_RBP:
     return GuestRegs->rbp;
+    break;
+
   case REGISTER_RSI:
     return GuestRegs->rsi;
+    break;
+
   case REGISTER_RDI:
     return GuestRegs->rdi;
+    break;
+
   case REGISTER_R8:
     return GuestRegs->r8;
+    break;
+
   case REGISTER_R9:
     return GuestRegs->r9;
+    break;
+
   case REGISTER_R10:
     return GuestRegs->r10;
+    break;
+
   case REGISTER_R11:
     return GuestRegs->r11;
+    break;
+
   case REGISTER_R12:
     return GuestRegs->r12;
+    break;
+
   case REGISTER_R13:
     return GuestRegs->r13;
+    break;
+
   case REGISTER_R14:
     return GuestRegs->r14;
+    break;
+
   case REGISTER_R15:
     return GuestRegs->r15;
+    break;
+
+  case REGISTER_DS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestDs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_ES:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestEs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_FS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestFs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_GS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestGs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_SS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestSs().SEL;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_RFLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestRFlags();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_RIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestRIP();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("Error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
     return INVALID;
+    break;
     // TODO: Add all the register
   }
 }
@@ -1236,7 +1367,7 @@ UINT64 GetValue(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionBuffer,
   case SYMBOL_NUM_TYPE:
     return Symbol->Value;
   case SYMBOL_REGISTER_TYPE:
-    return GetRegValue(GuestRegs, Symbol);
+    return GetRegValue(GuestRegs, (REGS_ENUM)Symbol->Value);
   case SYMBOL_PSEUDO_REG_TYPE:
     return GetPseudoRegValue(Symbol, ActionBuffer);
   case SYMBOL_TEMP_TYPE:
@@ -1295,7 +1426,6 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
     break;
   }
 }
-
 
 VOID SetValue(PGUEST_REGS GuestRegs, UINT64 *g_TempList, UINT64 *g_VariableList,
               PSYMBOL Symbol, UINT64 Value) {

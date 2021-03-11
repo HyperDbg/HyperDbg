@@ -19,6 +19,17 @@
 #include "ScriptEngineCommon.h"
 
 /**
+ * @brief A wrapper for GetRegValue() in script-engine
+ * 
+ * @return BOOLEAN Value of register
+ */
+UINT64
+DebuggerGetRegValueWrapper(PGUEST_REGS GuestRegs, UINT32 /* REGS_ENUM */ RegId)
+{
+    return GetRegValue(GuestRegs, RegId);
+}
+
+/**
  * @brief Initialize Debugger Structures and Routines
  * 
  * @return BOOLEAN Shows whether the initialization process was successful 

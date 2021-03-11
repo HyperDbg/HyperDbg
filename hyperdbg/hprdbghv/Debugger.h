@@ -144,6 +144,9 @@ DebuggerRunCustomCodeFunc(PVOID PreAllocatedBufferAddress, PGUEST_REGS Regs, PVO
 //					Functions					//
 //////////////////////////////////////////////////
 
+UINT64
+DebuggerGetRegValueWrapper(PGUEST_REGS GuestRegs, UINT32 /* REGS_ENUM */ RegId);
+
 BOOLEAN
 DebuggerInitialize();
 

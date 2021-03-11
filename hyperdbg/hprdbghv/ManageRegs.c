@@ -32,7 +32,6 @@ SetGuestCs(PSEGMENT_SELECTOR Cs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestCs()
 {
@@ -66,7 +65,6 @@ SetGuestSs(PSEGMENT_SELECTOR Ss)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestSs()
 {
@@ -100,7 +98,6 @@ SetGuestDs(PSEGMENT_SELECTOR Ds)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestDs()
 {
@@ -134,7 +131,6 @@ SetGuestFs(PSEGMENT_SELECTOR Fs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestFs()
 {
@@ -168,7 +164,6 @@ SetGuestGs(PSEGMENT_SELECTOR Gs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestGs()
 {
@@ -202,7 +197,6 @@ SetGuestEs(PSEGMENT_SELECTOR Es)
  * 
  * @return SEGMENT_SELECTOR 
  */
-
 SEGMENT_SELECTOR
 GetGuestEs()
 {
@@ -233,7 +227,6 @@ SetGuestRFlags(UINT64 RFlags)
  * 
  * @return UINT64
  */
-
 UINT64
 GetGuestRFlags()
 {
@@ -249,7 +242,6 @@ GetGuestRFlags()
  * @param RIP The RIP Value for the guest
  * @return VOID 
  */
-
 VOID
 SetGuestRIP(UINT64 RIP)
 {
@@ -260,7 +252,6 @@ SetGuestRIP(UINT64 RIP)
  * 
  * @return UINT64
  */
-
 UINT64
 GetGuestRIP()
 {

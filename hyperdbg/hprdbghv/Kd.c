@@ -637,113 +637,17 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
 BOOLEAN
 KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
 {
-    switch (ReadRegisterRequest->RegisterID)
+    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
     {
-    case DEBUGGEE_SHOW_ALL_REGISTERS:
         memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
                Regs,
                sizeof(GUEST_REGS));
-        break;
-
-    case REGISTER_RAX:
-        ReadRegisterRequest->Value = Regs->rax;
-        break;
-
-    case REGISTER_RBX:
-        ReadRegisterRequest->Value = Regs->rbx;
-        break;
-
-    case REGISTER_RCX:
-        ReadRegisterRequest->Value = Regs->rcx;
-        break;
-
-    case REGISTER_RDX:
-        ReadRegisterRequest->Value = Regs->rdx;
-        break;
-
-    case REGISTER_RSI:
-        ReadRegisterRequest->Value = Regs->rsi;
-        break;
-
-    case REGISTER_RDI:
-        ReadRegisterRequest->Value = Regs->rdi;
-        break;
-
-    case REGISTER_RBP:
-        ReadRegisterRequest->Value = Regs->rbp;
-        break;
-
-    case REGISTER_RSP:
-        ReadRegisterRequest->Value = Regs->rsp;
-        break;
-
-    case REGISTER_R8:
-        ReadRegisterRequest->Value = Regs->r8;
-        break;
-
-    case REGISTER_R9:
-        ReadRegisterRequest->Value = Regs->r9;
-        break;
-
-    case REGISTER_R10:
-        ReadRegisterRequest->Value = Regs->r10;
-        break;
-
-    case REGISTER_R11:
-        ReadRegisterRequest->Value = Regs->r11;
-
-    case REGISTER_R12:
-        ReadRegisterRequest->Value = Regs->r12;
-        break;
-
-    case REGISTER_R13:
-        ReadRegisterRequest->Value = Regs->r13;
-        break;
-
-    case REGISTER_R14:
-        ReadRegisterRequest->Value = Regs->r14;
-        break;
-
-    case REGISTER_R15:
-        ReadRegisterRequest->Value = Regs->r15;
-        break;
-
-    case REGISTER_DS:
-        ReadRegisterRequest->Value = GetGuestDs().SEL;
-        break;
-
-    case REGISTER_ES:
-        ReadRegisterRequest->Value = GetGuestEs().SEL;
-        break;
-
-    case REGISTER_FS:
-        ReadRegisterRequest->Value = GetGuestFs().SEL;
-        break;
-
-    case REGISTER_GS:
-        ReadRegisterRequest->Value = GetGuestGs().SEL;
-        break;
-
-    case REGISTER_CS:
-        ReadRegisterRequest->Value = GetGuestCs().SEL;
-        break;
-
-    case REGISTER_SS:
-        ReadRegisterRequest->Value = GetGuestSs().SEL;
-        break;
-
-    case REGISTER_RFLAGS:
-        ReadRegisterRequest->Value = GetGuestRFlags();
-        break;
-
-    case REGISTER_RIP:
-        ReadRegisterRequest->Value = GetGuestRIP();
-        break;
-
-    default:
-        return FALSE;
-        break;
     }
+    else
+    {
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterID);
+    }
+
     return TRUE;
 }
 
