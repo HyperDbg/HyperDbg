@@ -221,6 +221,9 @@
     <ClCompile Include="ManageRegs.c">
       <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
+    <ClCompile Include="BreakpointCommands.c">
+      <Filter>Source Files\Debugger\Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -333,6 +336,9 @@
     </ClInclude>
     <ClInclude Include="ManageRegs.h">
       <Filter>Header Files\VMM\VMX</Filter>
+    </ClInclude>
+    <ClInclude Include="BreakpointCommands.h">
+      <Filter>Header Files\Debugger\Commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -103,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Apic.c" />
+    <ClCompile Include="BreakpointCommands.c" />
     <ClCompile Include="Broadcast.c" />
     <ClCompile Include="Counters.c" />
     <ClCompile Include="CrossVmexits.c" />
@@ -154,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Apic.h" />
+    <ClInclude Include="BreakpointCommands.h" />
     <ClInclude Include="Broadcast.h" />
     <ClInclude Include="Counters.h" />
     <ClInclude Include="Debugger.h" />
