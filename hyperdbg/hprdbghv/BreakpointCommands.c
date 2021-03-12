@@ -22,15 +22,8 @@
 BOOLEAN
 BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    BYTE     PreviousByte   = NULL;
-    BYTE     BreakpointByte = 0xcc; // int 3
-    CR3_TYPE GuestCr3;
-
-    //
-    // Find the current process cr3
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    BYTE PreviousByte   = NULL;
+    BYTE BreakpointByte = 0xcc; // int 3
 
     //
     // Check if address is safe (only one byte for 0xcc)
@@ -53,7 +46,10 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Apply the breakpoint
     //
-    MemoryMapperWriteMemorySafe(BreakpointDescriptor->Address, &BreakpointByte, sizeof(BYTE), GuestCr3);
+    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                 &BreakpointByte,
+                                                 sizeof(BYTE),
+                                                 PsGetCurrentProcessId());
 
     return TRUE;
 }
@@ -68,14 +64,6 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 BOOLEAN
 BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
-    CR3_TYPE GuestCr3;
-
-    //
-    // Find the current process cr3
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
-
     //
     // Check if address is safe (only one byte for 0xcc)
     //
@@ -87,10 +75,10 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Apply the previous byte
     //
-    MemoryMapperWriteMemorySafe(BreakpointDescriptor->Address,
-                                &BreakpointDescriptor->PreviousByte,
-                                sizeof(BYTE),
-                                GuestCr3);
+    MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
+                                                 &BreakpointDescriptor->PreviousByte,
+                                                 sizeof(BYTE),
+                                                 PsGetCurrentProcessId());
 
     //
     // Set breakpoint to disabled
@@ -98,6 +86,68 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     BreakpointDescriptor->Enabled = FALSE;
 
     return TRUE;
+}
+
+/**
+ * @brief Find entry of breakpoint descriptor from list 
+ * of breakpoints by breakpoint id
+ * @param BreakpointId  
+ * 
+ * @return PDEBUGGEE_BP_DESCRIPTOR
+ */
+PDEBUGGEE_BP_DESCRIPTOR
+BreakpointGetEntryByBreakpointId(UINT64 BreakpointId)
+{
+    PLIST_ENTRY TempList = 0;
+
+    TempList = &g_BreakpointsListHead;
+
+    while (&g_BreakpointsListHead != TempList->Flink)
+    {
+        TempList                                      = TempList->Flink;
+        PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+        if (CurrentBreakpointDesc->BreakpointId == BreakpointId)
+        {
+            return CurrentBreakpointDesc;
+        }
+    }
+
+    //
+    // We didn't find anything, so return null
+    //
+    return NULL;
+}
+
+/**
+ * @brief Find entry of breakpoint descriptor from list 
+ * of breakpoints by address
+ * @param Address  
+ * 
+ * @return PDEBUGGEE_BP_DESCRIPTOR
+ */
+PDEBUGGEE_BP_DESCRIPTOR
+BreakpointGetEntryByAddress(UINT64 Address)
+{
+    PLIST_ENTRY TempList = 0;
+
+    TempList = &g_BreakpointsListHead;
+
+    while (&g_BreakpointsListHead != TempList->Flink)
+    {
+        TempList                                      = TempList->Flink;
+        PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+        if (CurrentBreakpointDesc->Address == Address)
+        {
+            return CurrentBreakpointDesc;
+        }
+    }
+
+    //
+    // We didn't find anything, so return null
+    //
+    return NULL;
 }
 
 /**
@@ -111,6 +161,13 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 {
     PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
     UINT32                  ProcessorCount;
+    CR3_TYPE                GuestCr3;
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
     //
     // *** Validate arguments ***
@@ -130,12 +187,25 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
-    if (BpDescriptorArg->Core >= ProcessorCount)
+    if (BpDescriptorArg->Core != DEBUGGEE_BP_APPLY_TO_ALL_CORES &&
+        BpDescriptorArg->Core >= ProcessorCount)
     {
         //
         // Core is invalid (Set the error)
         //
         BpDescriptorArg->Result = DEBUGEER_ERROR_INVALID_CORE_ID;
+        return FALSE;
+    }
+
+    //
+    // Check if breakpoint already exists on list or not
+    //
+    if (BreakpointGetEntryByAddress(BpDescriptorArg->Address) != NULL)
+    {
+        //
+        // Address is already on the list (Set the error)
+        //
+        BpDescriptorArg->Result = DEBUGGER_ERROR_BREAKPOINT_ALREADY_EXISTS_ON_THE_ADDRESS;
         return FALSE;
     }
 
@@ -171,6 +241,8 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     g_MaximumBreakpointId++;
     BreakpointDescriptor->BreakpointId = g_MaximumBreakpointId;
     BreakpointDescriptor->Address      = BpDescriptorArg->Address;
+    BreakpointDescriptor->PhysAddress  = VirtualAddressToPhysicalAddressByProcessCr3(BpDescriptorArg->Address,
+                                                                                    GuestCr3);
     BreakpointDescriptor->Core         = BpDescriptorArg->Core;
     BreakpointDescriptor->Pid          = BpDescriptorArg->Pid;
     BreakpointDescriptor->Tid          = BpDescriptorArg->Tid;
@@ -202,21 +274,103 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
  * @brief List of modify breakpoints 
  * @param ListOrModifyBreakpoints
  * 
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
 {
+    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
+
     if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_LIST_BREAKPOINTS)
     {
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE)
     {
+        BreakpointDescriptor = BreakpointGetEntryByBreakpointId(ListOrModifyBreakpoints->BreakpointId);
+
+        if (BreakpointDescriptor == NULL)
+        {
+            //
+            // Breakpoint id is invalid
+            //
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND;
+            return FALSE;
+        }
+
+        //
+        // Check to make sure that breakpoint is not already enabled
+        //
+        if (BreakpointDescriptor->Enabled)
+        {
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED;
+            return FALSE;
+        }
+
+        //
+        // Set the breakpoint (without removing from list)
+        //
+        BreakpointWrite(BreakpointDescriptor);
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE)
     {
+        BreakpointDescriptor = BreakpointGetEntryByBreakpointId(ListOrModifyBreakpoints->BreakpointId);
+
+        if (BreakpointDescriptor == NULL)
+        {
+            //
+            // Breakpoint id is invalid
+            //
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND;
+            return FALSE;
+        }
+
+        //
+        // Check to make sure that breakpoint is not already disabled
+        //
+        if (!BreakpointDescriptor->Enabled)
+        {
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED;
+            return FALSE;
+        }
+
+        //
+        // Unset the breakpoint (without removing from list)
+        //
+        BreakpointClear(BreakpointDescriptor);
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_CLEAR)
     {
+        BreakpointDescriptor = BreakpointGetEntryByBreakpointId(ListOrModifyBreakpoints->BreakpointId);
+
+        if (BreakpointDescriptor == NULL)
+        {
+            //
+            // Breakpoint id is invalid
+            //
+            ListOrModifyBreakpoints->Result = DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND;
+            return FALSE;
+        }
+
+        //
+        // Unset the breakpoint
+        //
+        BreakpointClear(BreakpointDescriptor);
+
+        //
+        // Remove breakpoint from the list of breakpoints
+        //
+        RemoveEntryList(&BreakpointDescriptor->BreakpointsList);
+
+        //
+        // Uninitialize the breakpoint descriptor (safely)
+        //
+        PoolManagerFreePool(BreakpointDescriptor);
     }
+
+    //
+    // Operation was successful
+    //
+    ListOrModifyBreakpoints->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
 }

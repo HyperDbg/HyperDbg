@@ -147,6 +147,24 @@ ShowErrorMessage(UINT32 Error) {
                  Error);
     break;
 
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_EXISTS_ON_THE_ADDRESS:
+    ShowMessages("err, breakpoint already exists on target address, you can "
+                 "use 'bl' command to view a list of breakpoints (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND:
+    ShowMessages("err, breakpoint id is invalid (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED:
+    ShowMessages("err, breakpoint already disabled (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED:
+    ShowMessages("err, breakpoint already enabled (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

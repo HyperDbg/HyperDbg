@@ -38,7 +38,7 @@ VOID CommandBeHelp() {
  */
 VOID CommandBe(vector<string> SplittedCommand, string Command) {
 
-  UINT32 BreakpointId;
+  UINT64 BreakpointId;
   DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
   //
@@ -57,7 +57,7 @@ VOID CommandBe(vector<string> SplittedCommand, string Command) {
 
     BreakpointId = APPLY_TO_ALL_BREAKPOINTS;
 
-  } else if (!ConvertStringToUInt32(SplittedCommand.at(1), &BreakpointId)) {
+  } else if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId)) {
 
     ShowMessages("please specify a correct hex value for breakpoint id\n\n");
     CommandBeHelp();
@@ -74,6 +74,11 @@ VOID CommandBe(vector<string> SplittedCommand, string Command) {
     // Perform enabling breakpoint
     //
     Request.Request = DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE;
+
+    //
+    // Set breakpoint id
+    //
+    Request.BreakpointId = BreakpointId;
 
     //
     // Send the request

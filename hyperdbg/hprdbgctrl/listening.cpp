@@ -49,6 +49,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
   PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
   PDEBUGGEE_BP_PACKET BpPacket;
+  PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpointPacket;
   PGUEST_REGS Regs;
   PGUEST_EXTRA_REGISTERS ExtraRegs;
 
@@ -549,6 +550,32 @@ StartAgain:
       //
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_BP]);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS:
+
+      ListOrModifyBreakpointPacket =
+          (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) +
+                                                sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (ListOrModifyBreakpointPacket->Result ==
+          DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
+        //
+        // Everything was okay, nothing to do
+        //
+
+      } else {
+        ShowErrorMessage(ListOrModifyBreakpointPacket->Result);
+      }
+
+      //
+      // Signal the event relating to receiving result of modifying or listing
+      // breakpoints
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]);
 
       break;
 

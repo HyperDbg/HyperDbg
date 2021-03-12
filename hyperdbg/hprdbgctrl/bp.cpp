@@ -53,9 +53,9 @@ VOID CommandBp(vector<string> SplittedCommand, string Command) {
   BOOLEAN SetTid = FALSE;
   BOOLEAN SetAddress = FALSE;
 
-  UINT32 Tid = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
+  UINT32 Tid = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
   UINT32 Pid = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
-  UINT32 CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
+  UINT32 CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
   UINT64 Address = NULL;
 
   DEBUGGEE_BP_PACKET BpPacket = {0};
@@ -159,8 +159,8 @@ VOID CommandBp(vector<string> SplittedCommand, string Command) {
   }
 
   if (!g_IsSerialConnectedToRemoteDebuggee) {
-    ShowMessages(
-        "in order to put breakpoints, you need to connect to a debuggee\n");
+    ShowMessages("err, setting breakpoints is not possible when you're not "
+                 "connected to a debuggee\n");
     return;
   }
 

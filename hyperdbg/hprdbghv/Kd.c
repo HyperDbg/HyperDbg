@@ -1620,6 +1620,14 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 BreakpointListOrModify(BpListOrModifyPacket);
 
+                //
+                // Send the result of modify or list breakpoints to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
+                                           BpListOrModifyPacket,
+                                           sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET));
+
                 break;
 
             default:
