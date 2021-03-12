@@ -226,30 +226,27 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, IO_EXIT_
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
     GuestCr3                     = CurrentProcess->DirectoryTableBase;
 
-    if ((GuestCr3 & PCID_MASK) != PCID_NONE)
-    {
-        OriginalCr3 = __readcr3();
-        __writecr3(GuestCr3);
+    OriginalCr3 = __readcr3();
+    __writecr3(GuestCr3);
 
-        //
-        // Read the memory
-        //
+    //
+    // Read the memory
+    //
 
-        //
-        // Maximum instructions length in AMD64 (16) + Size Of Intruction (4) + RAX (8) + RDX (8)
-        //
-        CHAR * InstructionBuffer[16] = {0};
-        MemoryMapperReadMemorySafe(GuestRip, InstructionBuffer, 16);
-        __writecr3(OriginalCr3);
+    //
+    // Maximum instructions length in AMD64 (16) + Size Of Intruction (4) + RAX (8) + RDX (8)
+    //
+    CHAR * InstructionBuffer[16] = {0};
+    MemoryMapperReadMemorySafe(GuestRip, InstructionBuffer, 16);
+    __writecr3(OriginalCr3);
 
-        //
-        // Detect length of the instruction
-        //
-        InstructionLength = ldisasm(((UINT64)InstructionBuffer), TRUE);
+    //
+    // Detect length of the instruction
+    //
+    InstructionLength = ldisasm(((UINT64)InstructionBuffer), TRUE);
 
-        //
-        // Handle the I/O Instruction
-        //
-        IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
-    }
+    //
+    // Handle the I/O Instruction
+    //
+    IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
 }

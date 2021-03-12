@@ -37,8 +37,9 @@ UINT32
 VmxrootCompatibleWcslen(const wchar_t *S);
 
 BOOLEAN
-MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory,
-                           SIZE_T SizeToRead);
+MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead,
+                                          PVOID BufferToSaveMemory,
+                                          SIZE_T SizeToRead);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -415,6 +416,7 @@ WORD ScriptEngineKeywordHi(PUINT64 Address, BOOL *HasError) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
   QWORD Result = *Address;
+
   return HIWORD(Result);
 }
 
@@ -501,54 +503,6 @@ QWORD ScriptEngineKeywordDq(PUINT64 Address, BOOL *HasError) {
 
   QWORD Result = *Address;
   return Result;
-}
-
-// str
-CHAR *ScriptEngineKeywordStr(CHAR *Address, BOOL *HasError) {
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
-    *HasError = TRUE;
-
-    return NULL;
-  }
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-  UINT64 Len = 0;
-
-  Len = strlen(Address) + 1;
-
-  if (Len == 1) {
-    return NULL;
-  } else {
-    return Address;
-  }
-}
-
-// wstr
-WCHAR *ScriptEngineKeywordWstr(WCHAR *Address, BOOL *HasError) {
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-  if (!CheckMemoryAccessSafety(Address, sizeof(UINT64))) {
-    *HasError = TRUE;
-
-    return NULL;
-  }
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-  UINT64 Len = 0;
-
-  Len = wcslen(Address) + 1;
-
-  if (Len == 1) {
-    return NULL;
-  } else {
-    return Address;
-  }
 }
 
 //
@@ -840,9 +794,9 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        MemoryMapperReadMemorySafe((void *)(Val + (i * sizeof(WstrBuffer))),
-                                   WstrBuffer,
-                                   StringSizeInByte % sizeof(WstrBuffer));
+        MemoryMapperReadMemorySafeOnTargetProcess(
+            (void *)(Val + (i * sizeof(WstrBuffer))), WstrBuffer,
+            StringSizeInByte % sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
       } else {
@@ -857,8 +811,9 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        MemoryMapperReadMemorySafe((void *)(Val + (i * sizeof(WstrBuffer))),
-                                   WstrBuffer, sizeof(WstrBuffer));
+        MemoryMapperReadMemorySafeOnTargetProcess(
+            (void *)(Val + (i * sizeof(WstrBuffer))), WstrBuffer,
+            sizeof(WstrBuffer));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
       }
 
@@ -891,8 +846,8 @@ ApplyStringFormatSpecifier(const CHAR *CurrentSpecifier, CHAR *FinalBuffer,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    MemoryMapperReadMemorySafe(Val, &FinalBuffer[*CurrentPositionInFinalBuffer],
-                               StringSize);
+    MemoryMapperReadMemorySafeOnTargetProcess(
+        Val, &FinalBuffer[*CurrentPositionInFinalBuffer], StringSize);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     *CurrentPositionInFinalBuffer += StringSize;

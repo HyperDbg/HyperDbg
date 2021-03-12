@@ -247,6 +247,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         OriginalCr3 = __readcr3();
 
         __writecr3(GuestCr3.Flags);
+
         //
         // Read the memory
         //

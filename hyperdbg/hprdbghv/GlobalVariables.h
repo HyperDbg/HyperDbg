@@ -81,6 +81,12 @@ LIST_ENTRY g_EptHook2sDetourListHead;
 LIST_ENTRY g_BreakpointsListHead;
 
 /**
+ * @brief Seed for setting id of breakpoints
+ * 
+ */
+UINT32 g_MaximumBreakpointId;
+
+/**
  * @brief Shows whether the debugger transparent mode 
  * is enabled (true) or not (false)
  * 

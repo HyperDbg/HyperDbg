@@ -58,9 +58,10 @@ KdInitializeKernelDebugger()
     RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
     //
-    // Initialize list of breakpoints
+    // Initialize list of breakpoints and breakpoint id
     //
     InitializeListHead(&g_BreakpointsListHead);
+    g_MaximumBreakpointId = 0;
 
     //
     // Indicate that kernel debugger is active
@@ -761,15 +762,135 @@ KdCloseConnectionAndUnloadDebuggee()
 }
 
 /**
- * @brief Apply breakpoints 
+ * @brief writes the 0xcc and applies the breakpoint 
+ * @param AddressBasedOnCurrentProcess  
+ * @param BreakpointDescriptor  
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdWriteBreakpoint(UINT64 AddressBasedOnCurrentProcess, PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
+{
+    BYTE PreviousByte   = NULL;
+    BYTE BreakpointByte = 0xcc; // int 3
+
+    //
+    // Check if address is safe (only one byte for 0xcc)
+    //
+    if (!CheckMemoryAccessSafety(AddressBasedOnCurrentProcess, sizeof(BYTE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Read previous byte and save it to the descriptor
+    //
+    MemoryMapperReadMemorySafeOnTargetProcess(AddressBasedOnCurrentProcess, &PreviousByte, sizeof(BYTE));
+
+    //
+    // Apply the breakpoint
+    //
+    //MemoryMapperWriteMemorySafe(AddressBasedOnCurrentProcess, &BreakpointByte, sizeof(BYTE), );
+
+    return TRUE;
+}
+
+/**
+ * @brief Add new breakpoints 
  * @param BpDescriptor  
  * 
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-KdApplyBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptor)
+BOOLEAN
+KdAddNewBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 {
-    DbgBreakPoint();
+    PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor = NULL;
+    UINT32                  ProcessorCount;
+
+    //
+    // *** Validate arguments ***
+    //
+
+    //
+    // Check if address is safe (only one byte for 0xcc)
+    //
+    if (!CheckMemoryAccessSafety(BpDescriptorArg->Address, sizeof(BYTE)))
+    {
+        BpDescriptorArg->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+        return FALSE;
+    }
+
+    //
+    // Check if the core number is not invalid
+    //
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
+    if (BpDescriptorArg->Core >= ProcessorCount)
+    {
+        //
+        // Core is invalid (Set the error)
+        //
+        BpDescriptorArg->Result = DEBUGEER_ERROR_INVALID_CORE_ID;
+        return FALSE;
+    }
+
+    //
+    // We won't check for process id and thread id, if these arguments are invalid
+    // then the HyperDbg simply ignores the breakpoints but it makes the computer slow
+    // it just won't be triggered
+    //
+
+    //
+    // When we reach here means that the arguments are valid and address is
+    // safe to access (put 0xcc)
+    //
+
+    //
+    // Get the pre-allocated buffer
+    //
+    BreakpointDescriptor = PoolManagerRequestPool(BREAKPOINT_DEFINITION_STRUCTURE, TRUE, sizeof(DEBUGGEE_BP_DESCRIPTOR));
+
+    if (BreakpointDescriptor == NULL)
+    {
+        //
+        // No pool ! Probably the user set more than MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE
+        // pools without IOCTL (continue)
+        //
+        BpDescriptorArg->Result = DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE;
+        return FALSE;
+    }
+
+    //
+    // Copy details of breakpoint to the descriptor structure
+    //
+    g_MaximumBreakpointId++;
+    BreakpointDescriptor->BreakpointId = g_MaximumBreakpointId;
+    BreakpointDescriptor->Address      = BpDescriptorArg->Address;
+    BreakpointDescriptor->Core         = BpDescriptorArg->Core;
+    BreakpointDescriptor->Pid          = BpDescriptorArg->Pid;
+    BreakpointDescriptor->Tid          = BpDescriptorArg->Tid;
+
+    //
+    // Breakpoints are enabled by default
+    //
+    BreakpointDescriptor->Enabled = TRUE;
+
+    //
+    // Now we should add the breakpoint to the list of breakpoints (LIST_ENTRY)
+    //
+    InsertHeadList(&g_BreakpointsListHead, &(BreakpointDescriptor->BreakpointsList));
+
+    //
+    // Apply the breakpoint
+    //
+    KdWriteBreakpoint(BreakpointDescriptor->Address, BreakpointDescriptor);
+
+    //
+    // Show that operation was successful
+    //
+    BpDescriptorArg->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
 }
 
 /**
@@ -781,7 +902,18 @@ KdApplyBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptor)
 VOID
 KdListOrModifyBreakpoints(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
 {
-    DbgBreakPoint();
+    if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_LIST_BREAKPOINTS)
+    {
+    }
+    else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE)
+    {
+    }
+    else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE)
+    {
+    }
+    else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_CLEAR)
+    {
+    }
 }
 
 /**
@@ -1621,7 +1753,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Perform the action
                 //
-                KdApplyBreakpoint(BpPacket);
+                KdAddNewBreakpoint(BpPacket);
 
                 //
                 // Send the result of 'bp' back to the debuggee
@@ -1736,9 +1868,9 @@ StartAgain:
         //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
-                                   &PausePacket.InstructionBytesOnRip,
-                                   ExitInstructionLength);
+        MemoryMapperReadMemorySafeOnTargetProcess(g_GuestState[CurrentCore].LastVmexitRip,
+                                                  &PausePacket.InstructionBytesOnRip,
+                                                  ExitInstructionLength);
 
         //
         // Send the pause packet, along with RIP and an

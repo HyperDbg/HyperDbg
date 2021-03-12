@@ -86,7 +86,8 @@ ShowErrorMessage(UINT32 Error) {
 
   case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS:
     ShowMessages("err, edit memory request has invalid address based on "
-                 "current process layout (%x)\n",
+                 "current process layout, the address might be valid but not "
+                 "present in the ram (%x)\n",
                  Error);
     break;
 
@@ -136,6 +137,14 @@ ShowErrorMessage(UINT32 Error) {
 
   case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
     ShowMessages("err, invalid register number (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE:
+    ShowMessages("err, maximum number of breakpoints are used, you need to "
+                 "send an ioctl to re-allocate new pre-allocated buffers or "
+                 "configure HyperDbg to pre-allocated more buffers by "
+                 "configuring MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE (%x)\n",
+                 Error);
     break;
 
   default:

@@ -18,6 +18,7 @@ using namespace std;
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 map<string, REGS_ENUM> RegistersMap = {
     {"rax", REGISTER_RAX}, {"rbx", REGISTER_RBX},       {"rcx", REGISTER_RCX},
     {"rdx", REGISTER_RDX}, {"rsi", REGISTER_RSI},       {"rdi", REGISTER_RDI},
@@ -26,7 +27,7 @@ map<string, REGS_ENUM> RegistersMap = {
     {"r12", REGISTER_R12}, {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
     {"r15", REGISTER_R15}, {"ds", REGISTER_DS},         {"es", REGISTER_ES},
     {"fs", REGISTER_FS},   {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
-    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP} };
+    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP}};
 
 /**
  * @brief help of r command
@@ -70,47 +71,42 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
 
   if (SplittedCommand.size() == 1) {
 
-      //
-      // show all registers
-      //
-      PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-          new DEBUGGEE_REGISTER_READ_DESCRIPTION;
-      RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
+    //
+    // show all registers
+    //
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
+    RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
 
-      if (g_IsSerialConnectedToRemoteDebuggee) {
+    if (g_IsSerialConnectedToRemoteDebuggee) {
 
-          KdSendReadRegisterPacketToDebuggee(RegD);
-      }
-      else {
-          ShowMessages("err, reading registers (r) is not valid in the current "
-              "context, you "
-              "should connect to a debuggee.\n");
-      }
+      KdSendReadRegisterPacketToDebuggee(RegD);
+    } else {
+      ShowMessages("err, reading registers (r) is not valid in the current "
+                   "context, you should connect to a debuggee.\n");
+    }
 
-      delete (RegD);
-      return;
+    delete (RegD);
+    return;
   }
   //
   // clear additional space of the command string
   //
-  
 
   //
   // if command does not contain a '=' means user wants to read it
   //
   if (Command.find('=', 0) == string::npos) {
 
-      Command.erase(0, 1);
+    Command.erase(0, 1);
     PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
         new DEBUGGEE_REGISTER_READ_DESCRIPTION;
     ReplaceAll(Command, "@", "");
     ReplaceAll(Command, " ", "");
     if (RegistersMap.find(Command) != RegistersMap.end()) {
-        Reg = RegistersMap[Command];
-    }
-    else
-    {
-        Reg = (REGS_ENUM)-1;
+      Reg = RegistersMap[Command];
+    } else {
+      Reg = (REGS_ENUM)-1;
     }
     if (Reg != -1) {
       RegD->RegisterID = Reg;
@@ -123,8 +119,7 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
         KdSendReadRegisterPacketToDebuggee(RegD);
       } else {
         ShowMessages("err, reading registers (r) is not valid in the current "
-                     "context, you "
-                     "should connect to a debuggee.\n");
+                     "context, you should connect to a debuggee.\n");
       }
 
     } else {
