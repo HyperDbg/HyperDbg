@@ -172,6 +172,19 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
                                                   &ContextAndTag);
 
             //
+            // Check if we should re-apply the breakpoint after this instruction
+            // or not (in other words, is breakpoint still valid)
+            //
+            if (!CurrentBreakpointDesc->AvoidReApplyBreakpoint)
+            {
+                //
+                // We should re-apply the breakpoint on next mtf
+                //
+                g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState = CurrentBreakpointDesc;
+                HvSetMonitorTrapFlag(TRUE);
+            }
+
+            //
             // Do not increment rip
             //
             g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
@@ -293,7 +306,8 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Set breakpoint to enabled
     //
-    BreakpointDescriptor->Enabled = TRUE;
+    BreakpointDescriptor->Enabled                = TRUE;
+    BreakpointDescriptor->AvoidReApplyBreakpoint = FALSE;
 
     //
     // Apply the breakpoint
@@ -335,7 +349,8 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     // Set breakpoint to disabled
     //
-    BreakpointDescriptor->Enabled = FALSE;
+    BreakpointDescriptor->Enabled                = FALSE;
+    BreakpointDescriptor->AvoidReApplyBreakpoint = TRUE;
 
     return TRUE;
 }

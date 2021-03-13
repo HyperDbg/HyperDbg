@@ -1333,6 +1333,7 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR {
   UINT32 Tid;
   UINT32 Core;
   BYTE PreviousByte;
+  BOOLEAN AvoidReApplyBreakpoint;
 
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
