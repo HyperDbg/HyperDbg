@@ -103,12 +103,13 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG G
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex, ULONG GuestRip, PGUEST_REGS GuestRegs)
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex, UINT64 GuestRip, PGUEST_REGS GuestRegs)
 {
-    CR3_TYPE    GuestCr3;
-    BOOLEAN     IsHandledByBpRoutines = FALSE;
-    PLIST_ENTRY TempList              = 0;
-    UINT64      GuestRipPhysical      = NULL;
+    CR3_TYPE                         GuestCr3;
+    BOOLEAN                          IsHandledByBpRoutines = FALSE;
+    PLIST_ENTRY                      TempList              = 0;
+    UINT64                           GuestRipPhysical      = NULL;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -142,7 +143,33 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
             //
             IsHandledByBpRoutines = TRUE;
 
-            //////////////////////////////////////////////// Add rest of handler here ////////////////////////////////////////////////
+            //
+            // First, we remove the breakpoint
+            //
+            MemoryMapperWriteMemorySafeByPhysicalAddress(CurrentBreakpointDesc->PhysAddress,
+                                                         &CurrentBreakpointDesc->PreviousByte,
+                                                         sizeof(BYTE),
+                                                         PsGetCurrentProcessId());
+
+            //
+            // Now, halt the debuggee
+            //
+            ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+
+            //
+            // In breakpoints tag is breakpoint id, not event tag
+            //
+            ContextAndTag.Tag = CurrentBreakpointDesc->BreakpointId;
+
+            //
+            // *** It's not safe to access CurrentBreakpointDesc anymore as the
+            // breakpoint might be removed ***
+            //
+
+            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                  GuestRegs,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                  &ContextAndTag);
 
             //
             // Do not increment rip
@@ -258,9 +285,10 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     }
 
     //
-    // Read previous byte and save it to the descriptor
+    // Read and save previous byte and save it to the descriptor
     //
     MemoryMapperReadMemorySafeOnTargetProcess(BreakpointDescriptor->Address, &PreviousByte, sizeof(BYTE));
+    BreakpointDescriptor->PreviousByte = PreviousByte;
 
     //
     // Set breakpoint to enabled
@@ -484,7 +512,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Apply the breakpoint
     //
-    BreakpointWrite(BreakpointDescriptor->Address, BreakpointDescriptor);
+    BreakpointWrite(BreakpointDescriptor);
 
     //
     // Show that operation was successful

@@ -1200,7 +1200,7 @@ typedef struct _DEBUGGER_REMOTE_PACKET {
  */
 typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS {
 
-  UINT64 Tag;
+  UINT64 Tag; /* in breakpoints Tag is breakpoint id, not event tag */
   PVOID Context;
 
 } DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;

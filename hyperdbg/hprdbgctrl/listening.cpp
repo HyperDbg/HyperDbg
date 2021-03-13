@@ -180,8 +180,21 @@ StartAgain:
       // or not
       //
       if (PausePacket->EventTag != NULL) {
-        ShowMessages("event 0x%x triggered\n",
-                     PausePacket->EventTag - DebuggerEventTagStartSeed);
+
+        if (PausePacket->PausingReason ==
+            DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT) {
+          //
+          // It's a breakpoint id
+          //
+          ShowMessages("breakpoint 0x%x hit\n", PausePacket->EventTag);
+
+        } else {
+          //
+          // It's an event tag
+          //
+          ShowMessages("event 0x%x triggered\n",
+                       PausePacket->EventTag - DebuggerEventTagStartSeed);
+        }
       }
 
       if (PausePacket->PausingReason !=
