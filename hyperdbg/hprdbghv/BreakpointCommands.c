@@ -12,6 +12,230 @@
 #include "pch.h"
 
 /**
+ * @brief Check if the breakpoint vm-exit relates to !epthook command or not
+ * 
+ * @param CurrentProcessorIndex  
+ * @param GuestRip  
+ * @param GuestRegs  
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG GuestRip, PGUEST_REGS GuestRegs)
+{
+    PLIST_ENTRY TempList           = 0;
+    BOOLEAN     IsHandledByEptHook = FALSE;
+
+    //
+    // ***** Check breakpoint for !epthook *****
+    //
+
+    //
+    // Check whether the breakpoint was due to a !epthook command or not
+    //
+    TempList = &g_EptState->HookedPagesList;
+
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        if (HookedEntry->IsExecutionHook)
+        {
+            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+            {
+                if (HookedEntry->BreakpointAddresses[i] == GuestRip)
+                {
+                    //
+                    // We found an address that matches the details, let's trigger the event
+                    //
+
+                    //
+                    // As the context to event trigger, we send the rip
+                    // of where triggered this event
+                    //
+                    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
+
+                    //
+                    // Restore to its orginal entry for one instruction
+                    //
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+
+                    //
+                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                    //
+                    g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
+
+                    //
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
+                    //
+                    HvSetMonitorTrapFlag(TRUE);
+
+                    //
+                    // Indicate that we handled the ept violation
+                    //
+                    IsHandledByEptHook = TRUE;
+
+                    //
+                    // Get out of the loop
+                    //
+                    break;
+                }
+            }
+        }
+    }
+
+    //
+    // Don't increment rip
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
+    return IsHandledByEptHook;
+}
+
+/**
+ * @brief Check if the breakpoint vm-exit relates to 'bp' command or not
+ * 
+ * @param CurrentProcessorIndex  
+ * @param GuestRip  
+ * @param GuestRegs  
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex, ULONG GuestRip, PGUEST_REGS GuestRegs)
+{
+    CR3_TYPE    GuestCr3;
+    BOOLEAN     IsHandledByBpRoutines = FALSE;
+    PLIST_ENTRY TempList              = 0;
+    UINT64      GuestRipPhysical      = NULL;
+
+    //
+    // ***** Check breakpoint for 'bp' command *****
+    //
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Convert breakpoint to physical address
+    //
+    GuestRipPhysical = VirtualAddressToPhysicalAddressByProcessCr3(GuestRip, GuestCr3);
+
+    //
+    // Iterate through the list of breakpoints
+    //
+    TempList = &g_BreakpointsListHead;
+
+    while (&g_BreakpointsListHead != TempList->Flink)
+    {
+        TempList                                      = TempList->Flink;
+        PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+        if (CurrentBreakpointDesc->PhysAddress == GuestRipPhysical)
+        {
+            //
+            // It's a breakpoint by 'bp' command
+            //
+            IsHandledByBpRoutines = TRUE;
+
+            //////////////////////////////////////////////// Add rest of handler here ////////////////////////////////////////////////
+
+            //
+            // Do not increment rip
+            //
+            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
+            //
+            // No need to iterate anymore
+            //
+            break;
+        }
+    }
+
+    return IsHandledByBpRoutines;
+}
+
+/**
+ * @brief Handle breakpoint vm-exits (#BP) 
+ * 
+ * @param CurrentProcessorIndex  
+ * @param GuestRegs  
+ * 
+ * @return VOID
+ */
+VOID
+BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    ULONG64                          GuestRip           = NULL;
+    BOOLEAN                          IsHandledByEptHook = FALSE;
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag      = {0};
+
+    //
+    // Reading guest's RIP
+    //
+    __vmx_vmread(GUEST_RIP, &GuestRip);
+
+    //
+    // Check if it relates to !epthook or not
+    //
+    IsHandledByEptHook = BreakpointCheckAndHandleEptHookBreakpoints(CurrentProcessorIndex, GuestRip, GuestRegs);
+
+    //
+    // re-inject #BP back to the guest if not handled by the hidden breakpoint
+    //
+    if (!IsHandledByEptHook)
+    {
+        if (g_KernelDebuggerState)
+        {
+            //
+            // Kernel debugger is attached, let's halt everything
+            //
+
+            //
+            // A breakpoint triggered and two things might be happened,
+            // first, a breakpoint is triggered randomly in the computer and
+            // we shouldn't do anything on it (won't change the instruction)
+            // second, the breakpoint is because of 'bp' command, we should
+            // replace it with exact byte
+            //
+
+            if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex, GuestRip, GuestRegs))
+            {
+                //
+                // It's a random breakpoint byte
+                //
+                ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                      GuestRegs,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                      &ContextAndTag);
+
+                //
+                // Increment rip
+                //
+                g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+            }
+        }
+        else
+        {
+            //
+            // Don't increment rip
+            //
+            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
+            //
+            // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint
+            //
+            EventInjectBreakpoint();
+        }
+    }
+}
+
+/**
  * @brief writes the 0xcc and applies the breakpoint 
  * @detail this function won't remove the descriptor from the list
  * 

@@ -16,3 +16,6 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg);
 
 VOID
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
+
+VOID
+BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
