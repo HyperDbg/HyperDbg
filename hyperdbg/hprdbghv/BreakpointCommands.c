@@ -271,6 +271,57 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 }
 
 /**
+ * @brief List all breakpoints 
+ * 
+ * @return VOID
+ */
+VOID
+BreakpointListAllBreakpoint()
+{
+    BOOLEAN     IsListEmpty = TRUE;
+    PLIST_ENTRY TempList    = 0;
+
+    TempList = &g_BreakpointsListHead;
+
+    while (&g_BreakpointsListHead != TempList->Blink)
+    {
+        TempList                                      = TempList->Blink;
+        PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+        if (IsListEmpty)
+        {
+            Log("id   address\n");
+            Log("--   ---------------");
+
+            IsListEmpty = FALSE;
+        }
+
+        Log("\n%02x   %016llx ", CurrentBreakpointDesc->BreakpointId, CurrentBreakpointDesc->Address);
+
+        if (CurrentBreakpointDesc->Core != DEBUGGEE_BP_APPLY_TO_ALL_CORES)
+        {
+            Log(" core = %x ", CurrentBreakpointDesc->Core);
+        }
+        if (CurrentBreakpointDesc->Pid != DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES)
+        {
+            Log(" pid = %x ", CurrentBreakpointDesc->Pid);
+        }
+        if (CurrentBreakpointDesc->Tid != DEBUGGEE_BP_APPLY_TO_ALL_THREADS)
+        {
+            Log(" tid = %x ", CurrentBreakpointDesc->Tid);
+        }
+    }
+
+    //
+    // Check if the list is empty or not
+    //
+    if (IsListEmpty)
+    {
+        Log("Breakpoints list is empty");
+    }
+}
+
+/**
  * @brief List of modify breakpoints 
  * @param ListOrModifyBreakpoints
  * 
@@ -283,6 +334,7 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
 
     if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_LIST_BREAKPOINTS)
     {
+        BreakpointListAllBreakpoint();
     }
     else if (ListOrModifyBreakpoints->Request == DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE)
     {
