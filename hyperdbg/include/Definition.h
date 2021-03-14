@@ -1338,12 +1338,6 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR {
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
 
 /**
- * @brief Apply event modifications to all breakpoints
- *
- */
-#define APPLY_TO_ALL_BREAKPOINTS 0xffffffff
-
-/**
  * @brief breakpoint modification types
  *
  */

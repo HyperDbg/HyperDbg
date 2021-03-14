@@ -88,12 +88,9 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
         g_GuestState[CurrentProcessorIndex].MtfTest = FALSE;
     }
-    else
+    else if (!IsMtfForReApplySoftwareBreakpoint)
     {
-        if (!IsMtfForReApplySoftwareBreakpoint)
-        {
-            LogError("Why MTF occured ?!");
-        }
+        LogError("Why MTF occured ?!");
     }
 
     //

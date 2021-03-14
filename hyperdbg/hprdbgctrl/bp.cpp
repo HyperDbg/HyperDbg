@@ -27,7 +27,7 @@ VOID CommandBpHelp() {
       "Note : 'bp' is not an event, if you want to use an event version "
       "of breakpoints use !epthook or !epthook2 instead. See "
       "documentation for more inforamtion.\n\n");
-  ShowMessages("syntax : \tbp [address (hex value)] [(pid | tid | core) (hex "
+  ShowMessages("syntax : \tbp [address (hex value)] [pid | tid | core (hex "
                "value - optional)]\n");
   ShowMessages("\t\te.g : bp fffff8077356f010\n");
   ShowMessages("\t\te.g : bp fffff8077356f010 pid 0x4\n");

@@ -146,7 +146,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
             //
             // First, we remove the breakpoint
             //
-            MemoryMapperWriteMemorySafeByPhysicalAddress(CurrentBreakpointDesc->PhysAddress,
+            MemoryMapperWriteMemorySafeByPhysicalAddress(GuestRipPhysical,
                                                          &CurrentBreakpointDesc->PreviousByte,
                                                          sizeof(BYTE),
                                                          PsGetCurrentProcessId());

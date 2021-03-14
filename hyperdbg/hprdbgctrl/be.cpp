@@ -23,10 +23,9 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  */
 VOID CommandBeHelp() {
   ShowMessages("be : enables a breakpoint using breakpoint id.\n\n");
-  ShowMessages("syntax : \tbe [breakpoint id (hex value) | all]\n");
+  ShowMessages("syntax : \tbe [breakpoint id (hex value)]\n");
   ShowMessages("\t\te.g : be 0\n");
   ShowMessages("\t\te.g : be 2\n");
-  ShowMessages("\t\te.g : be all\n");
 }
 
 /**
@@ -51,13 +50,9 @@ VOID CommandBe(vector<string> SplittedCommand, string Command) {
   }
 
   //
-  // Get the breakpoint id (or apply to all breakpoints)
+  // Get the breakpoint id
   //
-  if (!SplittedCommand.at(1).compare("all")) {
-
-    BreakpointId = APPLY_TO_ALL_BREAKPOINTS;
-
-  } else if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId)) {
+  if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId)) {
 
     ShowMessages("please specify a correct hex value for breakpoint id\n\n");
     CommandBeHelp();
