@@ -13,11 +13,24 @@
 #include "pch.h"
 
 /**
- * @brief Set the Guest Cs selector
+ * @brief Set just the Guest Cs selector
  * 
  * @param Cs The CS Selector for the guest
  * @return VOID 
  */
+VOID
+SetGuestCsSel(PSEGMENT_SELECTOR Cs)
+{
+    __vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
+}
+
+/**
+ * @brief Set the Guest Cs  
+ * 
+ * @param Cs The CS Selector for the guest
+ * @return VOID 
+ */
+
 VOID
 SetGuestCs(PSEGMENT_SELECTOR Cs)
 {
@@ -43,6 +56,18 @@ GetGuestCs()
     __vmx_vmread(GUEST_CS_SELECTOR, &Cs.SEL);
 
     return Cs;
+}
+
+/**
+ * @brief Set just the Guest Ss selector
+ * 
+ * @param Ss The SS Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestSsSel(PSEGMENT_SELECTOR Ss)
+{
+    __vmx_vmwrite(GUEST_SS_SELECTOR, Ss->SEL);
 }
 
 /**
@@ -79,6 +104,18 @@ GetGuestSs()
 }
 
 /**
+ * @brief Set just the Guest Ds selector
+ * 
+ * @param Ds The DS Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDsSel(PSEGMENT_SELECTOR Ds)
+{
+    __vmx_vmwrite(GUEST_DS_SELECTOR, Ds->SEL);
+}
+
+/**
  * @brief Set the Guest Ds selector
  * 
  * @param Ds The DS Selector for the guest
@@ -109,6 +146,18 @@ GetGuestDs()
     __vmx_vmread(GUEST_DS_SELECTOR, &Ds.SEL);
 
     return Ds;
+}
+
+/**
+ * @brief Set just the Guest Fs selector
+ * 
+ * @param Fs The FS Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestFsSel(PSEGMENT_SELECTOR Fs)
+{
+    __vmx_vmwrite(GUEST_FS_SELECTOR, Fs->SEL);
 }
 
 /**
@@ -145,6 +194,18 @@ GetGuestFs()
 }
 
 /**
+ * @brief Set just the Guest Gs selector
+ * 
+ * @param Gs The GS Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestGsSel(PSEGMENT_SELECTOR Gs)
+{
+    __vmx_vmwrite(GUEST_GS_SELECTOR, Gs->SEL);
+}
+
+/**
  * @brief Set the Guest Gs selector
  * 
  * @param Gs The GS Selector for the guest
@@ -178,6 +239,17 @@ GetGuestGs()
 }
 
 /**
+ * @brief Set just the Guest Es selector
+ * 
+ * @param Es The ES Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestEsSel(PSEGMENT_SELECTOR Es)
+{
+    __vmx_vmwrite(GUEST_ES_SELECTOR, Es->SEL);
+}
+/**
  * @brief Set the Guest Es selector
  * 
  * @param Es The ES Selector for the guest
@@ -208,6 +280,64 @@ GetGuestEs()
     __vmx_vmread(GUEST_ES_SELECTOR, &Es.SEL);
 
     return Es;
+}
+
+/**
+ * @brief Set the Guest Idtr selector
+ * 
+ * @param Idtr The Idtr Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestIdtr(PSEGMENT_SELECTOR Idtr)
+{
+    __vmx_vmwrite(GUEST_IDTR_BASE, Idtr->BASE);
+    __vmx_vmwrite(GUEST_IDTR_LIMIT, Idtr->LIMIT);
+}
+
+/**
+ * @brief Get the Guest Idtr Selector
+ * 
+ * @return SEGMENT_SELECTOR 
+ */
+SEGMENT_SELECTOR
+GetGuestIdtr()
+{
+    SEGMENT_SELECTOR Idtr;
+
+    __vmx_vmread(GUEST_IDTR_BASE, &Idtr.BASE);
+    __vmx_vmread(GUEST_IDTR_LIMIT, &Idtr.LIMIT);
+
+    return Idtr;
+}
+
+/**
+ * @brief Set the Guest Gdtr selector
+ * 
+ * @param Gdtr The Gdtr Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestGdtr(PSEGMENT_SELECTOR Gdtr)
+{
+    __vmx_vmwrite(GUEST_GDTR_BASE, Gdtr->BASE);
+    __vmx_vmwrite(GUEST_GDTR_LIMIT, Gdtr->LIMIT);
+}
+
+/**
+ * @brief Get the Guest Gdtr Selector
+ * 
+ * @return SEGMENT_SELECTOR 
+ */
+SEGMENT_SELECTOR
+GetGuestGdtr()
+{
+    SEGMENT_SELECTOR Gdtr;
+
+    __vmx_vmread(GUEST_GDTR_BASE, &Gdtr.BASE);
+    __vmx_vmread(GUEST_GDTR_LIMIT, &Gdtr.LIMIT);
+
+    return Gdtr;
 }
 
 /**

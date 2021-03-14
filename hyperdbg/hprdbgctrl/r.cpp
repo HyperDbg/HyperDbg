@@ -20,14 +20,17 @@ using namespace std;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 map<string, REGS_ENUM> RegistersMap = {
-    {"rax", REGISTER_RAX}, {"rbx", REGISTER_RBX},       {"rcx", REGISTER_RCX},
-    {"rdx", REGISTER_RDX}, {"rsi", REGISTER_RSI},       {"rdi", REGISTER_RDI},
-    {"rbp", REGISTER_RBP}, {"rsp", REGISTER_RSP},       {"r8", REGISTER_R8},
-    {"r9", REGISTER_R9},   {"r10", REGISTER_R10},       {"r11", REGISTER_R11},
-    {"r12", REGISTER_R12}, {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
-    {"r15", REGISTER_R15}, {"ds", REGISTER_DS},         {"es", REGISTER_ES},
-    {"fs", REGISTER_FS},   {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
-    {"ss", REGISTER_SS},   {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP}};
+    {"rax", REGISTER_RAX},   {"rbx", REGISTER_RBX},       {"rcx", REGISTER_RCX},
+    {"rdx", REGISTER_RDX},   {"rsi", REGISTER_RSI},       {"rdi", REGISTER_RDI},
+    {"rbp", REGISTER_RBP},   {"rsp", REGISTER_RSP},       {"r8", REGISTER_R8},
+    {"r9", REGISTER_R9},     {"r10", REGISTER_R10},       {"r11", REGISTER_R11},
+    {"r12", REGISTER_R12},   {"r13", REGISTER_R13},       {"r14", REGISTER_R14},
+    {"r15", REGISTER_R15},   {"ds", REGISTER_DS},         {"es", REGISTER_ES},
+    {"fs", REGISTER_FS},     {"gs", REGISTER_GS},         {"cs", REGISTER_CS},
+    {"ss", REGISTER_SS},     {"rflags", REGISTER_RFLAGS}, {"rip", REGISTER_RIP},
+    {"idtr", REGISTER_IDTR}, {"gdtr", REGISTER_GDTR},     {"cr0", REGISTER_CR0},
+    {"cr2", REGISTER_CR2},   {"cr3", REGISTER_CR3},       {"cr4", REGISTER_CR4},
+    {"cr8", REGISTER_CR8}};
 
 /**
  * @brief help of r command
@@ -133,17 +136,25 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
   //
 
   else if (Command.find("=", 0)) {
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
     Command.erase(0, 1);
     Tmp = Split(Command, '=');
     if (Tmp.size() == 2) {
       ReplaceAll(Tmp[0], " ", "");
       string tmp = Tmp[0];
-      Reg = RegistersMap[Tmp[0]];
-      if (Reg == 0) {
+      if (RegistersMap.find(Tmp[0]) != RegistersMap.end()) {
+        Reg = RegistersMap[Tmp[0]];
+      } else {
         ReplaceAll(tmp, "@", "");
-        Reg = RegistersMap[tmp];
+        if (RegistersMap.find(tmp) != RegistersMap.end()) {
+          Reg = RegistersMap[tmp];
+        } else {
+          Reg = (REGS_ENUM)-1;
+        }
       }
-      if (Reg != 0) {
+      if (Reg != -1) {
+        RegD->RegisterID = Reg;
 
         //
         // send the request

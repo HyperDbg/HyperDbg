@@ -2,6 +2,7 @@
  * @file ScriptEngineCommon.h
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Shared Headers for Script engine
  * @details
  * @version 0.1
@@ -1331,6 +1332,30 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+  case REGISTER_IDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    LogInfo("idtr: %032llx,%032llx", GetGuestIdtr().LIMIT, GetGuestIdtr().BASE);
+    return GetGuestIdtr().LIMIT | GetGuestIdtr().BASE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+  case REGISTER_GDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    LogInfo("gdtr: %032llx,%032llx", GetGuestGdtr().LIMIT, GetGuestGdtr().BASE);
+    return GetGuestGdtr().LIMIT | GetGuestGdtr().BASE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
 
   case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1442,6 +1467,130 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
     break;
   case REGISTER_R15:
     GuestRegs->r15 = Value;
+    break;
+  case REGISTER_DS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestDsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_ES:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestEsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_FS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestFsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_GS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestGsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestCsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_SS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestSsSel((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+  case REGISTER_RFLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestRFlags(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_RIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestRIP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+  case REGISTER_IDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    Value = Value & 0x000000000000ffff;
+    SetGuestIdtr((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+  case REGISTER_GDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    SetGuestGdtr((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
     break;
   }
 }
