@@ -1670,7 +1670,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     PDEBUGGER_EVENT Event;
     UINT64          PagesBytes;
     UINT32          TempPid;
-    UINT32          ProcessorCount = KeQueryActiveProcessorCount(0);
+    UINT32          ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
     // ----------------------------------------------------------------------------------

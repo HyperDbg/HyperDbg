@@ -97,6 +97,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     volatile LONG                         Lock;
     volatile BOOLEAN                      CurrentOperatingCore;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
+    PDEBUGGEE_BP_DESCRIPTOR               SoftwareBreakpointState;
     BOOLEAN                               WaitForStepOnMtf;
     BOOLEAN                               EnableInterruptFlagOnContinue;
     BOOLEAN                               WaitingForNmi;

@@ -86,7 +86,8 @@ ShowErrorMessage(UINT32 Error) {
 
   case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS:
     ShowMessages("err, edit memory request has invalid address based on "
-                 "current process layout (%x)\n",
+                 "current process layout, the address might be valid but not "
+                 "present in the ram (%x)\n",
                  Error);
     break;
 
@@ -136,6 +137,32 @@ ShowErrorMessage(UINT32 Error) {
 
   case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
     ShowMessages("err, invalid register number (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE:
+    ShowMessages("err, maximum number of breakpoints are used, you need to "
+                 "send an ioctl to re-allocate new pre-allocated buffers or "
+                 "configure HyperDbg to pre-allocated more buffers by "
+                 "configuring MAXIMUM_BREAKPOINTS_WITHOUT_CONTINUE (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_EXISTS_ON_THE_ADDRESS:
+    ShowMessages("err, breakpoint already exists on target address, you can "
+                 "use 'bl' command to view a list of breakpoints (%x)\n",
+                 Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND:
+    ShowMessages("err, breakpoint id is invalid (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED:
+    ShowMessages("err, breakpoint already disabled (%x)\n", Error);
+    break;
+
+  case DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED:
+    ShowMessages("err, breakpoint already enabled (%x)\n", Error);
     break;
 
   default:

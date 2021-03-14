@@ -58,9 +58,10 @@ KdInitializeKernelDebugger()
     RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
     //
-    // Initialize list of breakpoints
+    // Initialize list of breakpoints and breakpoint id
     //
     InitializeListHead(&g_BreakpointsListHead);
+    g_MaximumBreakpointId = 0;
 
     //
     // Indicate that kernel debugger is active
@@ -758,30 +759,6 @@ KdCloseConnectionAndUnloadDebuggee()
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                   "$",
                   1);
-}
-
-/**
- * @brief Apply breakpoints 
- * @param BpDescriptor  
- * 
- * @return VOID
- */
-VOID
-KdApplyBreakpoint(PDEBUGGEE_BP_PACKET BpDescriptor)
-{
-    DbgBreakPoint();
-}
-
-/**
- * @brief List of modify breakpoints 
- * @param ListOrModifyBreakpoints
- * 
- * @return VOID
- */
-VOID
-KdListOrModifyBreakpoints(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints)
-{
-    DbgBreakPoint();
 }
 
 /**
@@ -1621,7 +1598,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Perform the action
                 //
-                KdApplyBreakpoint(BpPacket);
+                BreakpointAddNew(BpPacket);
 
                 //
                 // Send the result of 'bp' back to the debuggee
@@ -1641,7 +1618,15 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Perform the action
                 //
-                KdListOrModifyBreakpoints(BpListOrModifyPacket);
+                BreakpointListOrModify(BpListOrModifyPacket);
+
+                //
+                // Send the result of modify or list breakpoints to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
+                                           BpListOrModifyPacket,
+                                           sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET));
 
                 break;
 
@@ -1736,9 +1721,9 @@ StartAgain:
         //
         // Find the current instruction
         //
-        MemoryMapperReadMemorySafe(g_GuestState[CurrentCore].LastVmexitRip,
-                                   &PausePacket.InstructionBytesOnRip,
-                                   ExitInstructionLength);
+        MemoryMapperReadMemorySafeOnTargetProcess(g_GuestState[CurrentCore].LastVmexitRip,
+                                                  &PausePacket.InstructionBytesOnRip,
+                                                  ExitInstructionLength);
 
         //
         // Send the pause packet, along with RIP and an

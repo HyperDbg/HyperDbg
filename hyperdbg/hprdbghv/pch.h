@@ -56,6 +56,7 @@
 #include "Vmcall.h"
 #include "ManageRegs.h"
 #include "Vmx.h"
+#include "BreakpointCommands.h"
 #include "DebuggerCommands.h"
 #include "ExtensionCommands.h"
 #include "SerialConnection.h"

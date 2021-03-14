@@ -60,6 +60,7 @@ VOID CommandBl(vector<string> SplittedCommand, string Command) {
     // Send the request
     //
     KdSendListOrModifyPacketToDebuggee(&Request);
+    ShowMessages("\n");
 
   } else {
     ShowMessages("err, listing breakpoints is only valid if you connected to "

@@ -308,6 +308,9 @@ BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
 
 BOOLEAN
+MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+
+BOOLEAN
 MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, CR3_TYPE TargetProcessCr3);
 
 PPAGE_ENTRY

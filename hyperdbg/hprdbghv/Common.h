@@ -391,7 +391,6 @@ typedef union DEBUG_REGISTER_6
     };
 } DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
 
-
 //////////////////////////////////////////////////
 //				 Function Types					//
 //////////////////////////////////////////////////
@@ -448,7 +447,7 @@ typedef enum _LOG_TYPE
  * 
  */
 #    define Log(format, ...) \
-        DbgPrint(format "\n", __VA_ARGS__)
+        DbgPrint(format, __VA_ARGS__)
 
 #else
 
@@ -509,11 +508,11 @@ typedef enum _LOG_TYPE
  * @brief Log without any prefix
  * 
  */
-#    define Log(format, ...)                                 \
-        LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,    \
-                              UseImmediateMessaging,         \
-                              ShowSystemTimeOnDebugMessages, \
-                              format "\n",                   \
+#    define Log(format, ...)                              \
+        LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
+                              TRUE,                       \
+                              FALSE,                      \
+                              format,                     \
                               __VA_ARGS__)
 
 /**

@@ -23,10 +23,9 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  */
 VOID CommandBeHelp() {
   ShowMessages("be : enables a breakpoint using breakpoint id.\n\n");
-  ShowMessages("syntax : \tbe [breakpoint id (hex value) | all]\n");
+  ShowMessages("syntax : \tbe [breakpoint id (hex value)]\n");
   ShowMessages("\t\te.g : be 0\n");
   ShowMessages("\t\te.g : be 2\n");
-  ShowMessages("\t\te.g : be all\n");
 }
 
 /**
@@ -38,7 +37,7 @@ VOID CommandBeHelp() {
  */
 VOID CommandBe(vector<string> SplittedCommand, string Command) {
 
-  UINT32 BreakpointId;
+  UINT64 BreakpointId;
   DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
   //
@@ -51,13 +50,9 @@ VOID CommandBe(vector<string> SplittedCommand, string Command) {
   }
 
   //
-  // Get the breakpoint id (or apply to all breakpoints)
+  // Get the breakpoint id
   //
-  if (!SplittedCommand.at(1).compare("all")) {
-
-    BreakpointId = APPLY_TO_ALL_BREAKPOINTS;
-
-  } else if (!ConvertStringToUInt32(SplittedCommand.at(1), &BreakpointId)) {
+  if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId)) {
 
     ShowMessages("please specify a correct hex value for breakpoint id\n\n");
     CommandBeHelp();
@@ -74,6 +69,11 @@ VOID CommandBe(vector<string> SplittedCommand, string Command) {
     // Perform enabling breakpoint
     //
     Request.Request = DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_ENABLE;
+
+    //
+    // Set breakpoint id
+    //
+    Request.BreakpointId = BreakpointId;
 
     //
     // Send the request

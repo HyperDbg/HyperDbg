@@ -666,6 +666,18 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
 
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3 = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
     if (g_RtmSupport)
     {
         //
@@ -680,8 +692,14 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
             if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
             {
                 //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3);
+
+                //
                 // Access failed and Result = FALSE
                 //
+
                 return FALSE;
             }
         }
@@ -691,19 +709,6 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // The guest not supports Intel TSX
         //
-
-        //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base.
-        //
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
-
-        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
-        {
-            OriginalCr3 = __readcr3();
-            __writecr3(GuestCr3.Flags);
-        }
 
         //
         // Check if memory is safe and present
@@ -716,20 +721,20 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
             UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
             if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
             {
-                if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
-                {
-                    __writecr3(OriginalCr3);
-                }
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3);
 
                 return FALSE;
             }
         }
-
-        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
-        {
-            __writecr3(OriginalCr3);
-        }
     }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3);
 
     return TRUE;
 }
@@ -744,11 +749,25 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 UINT32
 VmxrootCompatibleStrlen(const CHAR * S)
 {
-    CHAR   Temp  = NULL;
-    UINT32 Count = 0;
-    UINT64 AlignedAddress;
+    CHAR     Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
 
     AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
 
     //
     // First check
@@ -758,6 +777,11 @@ VmxrootCompatibleStrlen(const CHAR * S)
         //
         // Error
         //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -775,6 +799,10 @@ VmxrootCompatibleStrlen(const CHAR * S)
         }
         else
         {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
             return Count;
         }
 
@@ -785,10 +813,20 @@ VmxrootCompatibleStrlen(const CHAR * S)
                 //
                 // Error
                 //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
                 return 0;
             }
         }
     }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
 }
 
 /**
@@ -801,9 +839,25 @@ VmxrootCompatibleStrlen(const CHAR * S)
 UINT32
 VmxrootCompatibleWcslen(const wchar_t * S)
 {
-    wchar_t Temp  = NULL;
-    UINT32  Count = 0;
-    UINT64  AlignedAddress;
+    wchar_t  Temp  = NULL;
+    UINT32   Count = 0;
+    UINT64   AlignedAddress;
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+
+    AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
 
     AlignedAddress = (UINT64)PAGE_ALIGN((UINT64)S);
 
@@ -815,6 +869,11 @@ VmxrootCompatibleWcslen(const wchar_t * S)
         //
         // Error
         //
+
+        //
+        // Move back to original cr3
+        //
+        __writecr3(OriginalCr3.Flags);
         return 0;
     }
 
@@ -832,6 +891,10 @@ VmxrootCompatibleWcslen(const wchar_t * S)
         }
         else
         {
+            //
+            // Move back to original cr3
+            //
+            __writecr3(OriginalCr3.Flags);
             return Count;
         }
 
@@ -842,8 +905,18 @@ VmxrootCompatibleWcslen(const wchar_t * S)
                 //
                 // Error
                 //
+
+                //
+                // Move back to original cr3
+                //
+                __writecr3(OriginalCr3.Flags);
                 return 0;
             }
         }
     }
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
 }

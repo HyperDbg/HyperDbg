@@ -571,6 +571,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION {
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_QUERY_AND_MODIFY_EVENT,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
   DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
+  DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -1199,7 +1200,7 @@ typedef struct _DEBUGGER_REMOTE_PACKET {
  */
 typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS {
 
-  UINT64 Tag;
+  UINT64 Tag; /* in breakpoints Tag is breakpoint id, not event tag */
   PVOID Context;
 
 } DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;
@@ -1323,21 +1324,18 @@ typedef struct _DEBUGGEE_BP_PACKET {
  */
 typedef struct _DEBUGGEE_BP_DESCRIPTOR {
 
-  UINT32 BreakpointId;
+  UINT64 BreakpointId;
   LIST_ENTRY BreakpointsList;
   BOOLEAN Enabled;
   UINT64 Address;
+  UINT64 PhysAddress;
   UINT32 Pid;
   UINT32 Tid;
   UINT32 Core;
+  BYTE PreviousByte;
+  BOOLEAN AvoidReApplyBreakpoint;
 
 } DEBUGGEE_BP_DESCRIPTOR, *PDEBUGGEE_BP_DESCRIPTOR;
-
-/**
- * @brief Apply event modifications to all breakpoints
- *
- */
-#define APPLY_TO_ALL_BREAKPOINTS 0xffffffff
 
 /**
  * @brief breakpoint modification types
@@ -1358,9 +1356,8 @@ typedef enum _DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST {
  */
 typedef struct _DEBUGGEE_BP_LIST_OR_MODIFY_PACKET {
 
-  UINT32 BreakpointId;
+  UINT64 BreakpointId;
   DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST Request;
-  UINT32 CountOfBreakpointForListRequest;
   UINT32 Result;
 
 } DEBUGGEE_BP_LIST_OR_MODIFY_PACKET, *PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET;
@@ -1595,6 +1592,36 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET {
  *
  */
 #define DEBUGGER_ERROR_INVALID_REGISTER_NUMBER 0xc0000017
+
+/**
+ * @brief error, maximum pools were used without continueing debuggee
+ *
+ */
+#define DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE 0xc0000018
+
+/**
+ * @brief error, breakpoint already exists on the target address
+ *
+ */
+#define DEBUGGER_ERROR_BREAKPOINT_ALREADY_EXISTS_ON_THE_ADDRESS 0xc0000019
+
+/**
+ * @brief error, breakpoint id not found
+ *
+ */
+#define DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND 0xc000001a
+
+/**
+ * @brief error, breakpoint already disabled
+ *
+ */
+#define DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED 0xc000001b
+
+/**
+ * @brief error, breakpoint already enabled
+ *
+ */
+#define DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED 0xc000001c
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

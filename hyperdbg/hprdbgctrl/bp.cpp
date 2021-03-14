@@ -27,7 +27,7 @@ VOID CommandBpHelp() {
       "Note : 'bp' is not an event, if you want to use an event version "
       "of breakpoints use !epthook or !epthook2 instead. See "
       "documentation for more inforamtion.\n\n");
-  ShowMessages("syntax : \tbp [address (hex value)] [(pid | tid | core) (hex "
+  ShowMessages("syntax : \tbp [address (hex value)] [pid | tid | core (hex "
                "value - optional)]\n");
   ShowMessages("\t\te.g : bp fffff8077356f010\n");
   ShowMessages("\t\te.g : bp fffff8077356f010 pid 0x4\n");
@@ -53,9 +53,9 @@ VOID CommandBp(vector<string> SplittedCommand, string Command) {
   BOOLEAN SetTid = FALSE;
   BOOLEAN SetAddress = FALSE;
 
-  UINT32 Tid = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
+  UINT32 Tid = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
   UINT32 Pid = DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES;
-  UINT32 CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_THREADS;
+  UINT32 CoreNumer = DEBUGGEE_BP_APPLY_TO_ALL_CORES;
   UINT64 Address = NULL;
 
   DEBUGGEE_BP_PACKET BpPacket = {0};
@@ -159,8 +159,8 @@ VOID CommandBp(vector<string> SplittedCommand, string Command) {
   }
 
   if (!g_IsSerialConnectedToRemoteDebuggee) {
-    ShowMessages(
-        "in order to put breakpoints, you need to connect to a debuggee\n");
+    ShowMessages("err, setting breakpoints is not possible when you're not "
+                 "connected to a debuggee\n");
     return;
   }
 

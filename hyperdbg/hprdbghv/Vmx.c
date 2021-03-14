@@ -148,7 +148,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     ProcessorID = KeGetCurrentProcessorNumber();
 
-    Log("Virtualizing Current System (Logical Core : 0x%x)", ProcessorID);
+    LogInfo("Virtualizing Current System (Logical Core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
