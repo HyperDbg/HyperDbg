@@ -557,13 +557,13 @@ BreakpointListAllBreakpoint()
 
         if (IsListEmpty)
         {
-            Log("id   address\n");
-            Log("--   ---------------");
+            Log("id   address           status\n");
+            Log("--   ---------------   --------");
 
             IsListEmpty = FALSE;
         }
 
-        Log("\n%02x   %016llx ", CurrentBreakpointDesc->BreakpointId, CurrentBreakpointDesc->Address);
+        Log("\n%02x   %016llx  %s", CurrentBreakpointDesc->BreakpointId, CurrentBreakpointDesc->Address, CurrentBreakpointDesc->Enabled ? "enabled" : "disabled");
 
         if (CurrentBreakpointDesc->Core != DEBUGGEE_BP_APPLY_TO_ALL_CORES)
         {
