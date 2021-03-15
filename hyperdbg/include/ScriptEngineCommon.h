@@ -1175,66 +1175,82 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 
   case REGISTER_RAX:
     return GuestRegs->rax;
+
     break;
 
   case REGISTER_RCX:
     return GuestRegs->rcx;
+
     break;
 
   case REGISTER_RDX:
     return GuestRegs->rdx;
+
     break;
 
   case REGISTER_RBX:
     return GuestRegs->rbx;
+
     break;
 
   case REGISTER_RSP:
     return GuestRegs->rsp;
+
     break;
 
   case REGISTER_RBP:
     return GuestRegs->rbp;
+
     break;
 
   case REGISTER_RSI:
     return GuestRegs->rsi;
+
     break;
 
   case REGISTER_RDI:
     return GuestRegs->rdi;
+
     break;
 
   case REGISTER_R8:
     return GuestRegs->r8;
+
     break;
 
   case REGISTER_R9:
     return GuestRegs->r9;
+
     break;
 
   case REGISTER_R10:
     return GuestRegs->r10;
+
     break;
 
   case REGISTER_R11:
     return GuestRegs->r11;
+
     break;
 
   case REGISTER_R12:
     return GuestRegs->r12;
+
     break;
 
   case REGISTER_R13:
     return GuestRegs->r13;
+
     break;
 
   case REGISTER_R14:
     return GuestRegs->r14;
+
     break;
 
   case REGISTER_R15:
     return GuestRegs->r15;
+
     break;
 
   case REGISTER_DS:
@@ -1332,6 +1348,7 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+
   case REGISTER_IDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1339,11 +1356,12 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogInfo("idtr: %032llx,%032llx", GetGuestIdtr().LIMIT, GetGuestIdtr().BASE);
+    LogInfo("idtr: %016llx,%016llx", GetGuestIdtr().LIMIT, GetGuestIdtr().BASE);
     return GetGuestIdtr().LIMIT | GetGuestIdtr().BASE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+
   case REGISTER_GDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1351,8 +1369,68 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogInfo("gdtr: %032llx,%032llx", GetGuestGdtr().LIMIT, GetGuestGdtr().BASE);
+    LogInfo("gdtr: %016llx,%016llx", GetGuestGdtr().LIMIT, GetGuestGdtr().BASE);
     return GetGuestGdtr().LIMIT | GetGuestGdtr().BASE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCr0();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCr2();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCr3();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR4:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCr4();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR8:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetGuestCr8();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
@@ -1422,52 +1500,92 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
   switch (Symbol->Value) {
   case REGISTER_RAX:
     GuestRegs->rax = Value;
+
     break;
+
   case REGISTER_RCX:
     GuestRegs->rcx = Value;
+
     break;
+
   case REGISTER_RDX:
     GuestRegs->rdx = Value;
+
     break;
+
   case REGISTER_RBX:
     GuestRegs->rbx = Value;
+
     break;
+
   case REGISTER_RSP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
     GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    GuestRegs->rsp = Value;
+    SetGuestRSP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
     break;
+
   case REGISTER_RBP:
     GuestRegs->rbp = Value;
+
     break;
+
   case REGISTER_RSI:
     GuestRegs->rsi = Value;
+
     break;
+
   case REGISTER_RDI:
     GuestRegs->rdi = Value;
+
     break;
+
   case REGISTER_R8:
     GuestRegs->r8 = Value;
+
     break;
+
   case REGISTER_R9:
     GuestRegs->r9 = Value;
+
     break;
+
   case REGISTER_R10:
     GuestRegs->r10 = Value;
+
     break;
+
   case REGISTER_R11:
     GuestRegs->r11 = Value;
+
     break;
+
   case REGISTER_R12:
     GuestRegs->r12 = Value;
+
     break;
+
   case REGISTER_R13:
     GuestRegs->r13 = Value;
+
     break;
+
   case REGISTER_R14:
     GuestRegs->r14 = Value;
+
     break;
+
   case REGISTER_R15:
     GuestRegs->r15 = Value;
+
     break;
+
   case REGISTER_DS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1545,6 +1663,7 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+
   case REGISTER_RFLAGS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1568,6 +1687,7 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+
   case REGISTER_IDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1580,6 +1700,7 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
+
   case REGISTER_GDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1589,6 +1710,64 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     SetGuestGdtr((PSEGMENT_SELECTOR)&Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+  case REGISTER_CR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestCr0(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestCr2(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestCr3(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR4:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestCr4(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    break;
+
+  case REGISTER_CR8:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    SetGuestCr8(Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;

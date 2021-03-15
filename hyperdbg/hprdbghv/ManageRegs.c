@@ -249,6 +249,7 @@ SetGuestEsSel(PSEGMENT_SELECTOR Es)
 {
     __vmx_vmwrite(GUEST_ES_SELECTOR, Es->SEL);
 }
+
 /**
  * @brief Set the Guest Es selector
  * 
@@ -376,6 +377,19 @@ SetGuestRIP(UINT64 RIP)
 {
     __vmx_vmwrite(GUEST_RIP, RIP);
 }
+
+/**
+ * @brief Set the Guest RSP Register
+ * 
+ * @param RSP The RSP Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestRSP(UINT64 RSP)
+{
+    __vmx_vmwrite(GUEST_RSP, RSP);
+}
+
 /**
  * @brief Get the Guest RIP value
  * 
@@ -388,4 +402,134 @@ GetGuestRIP()
 
     __vmx_vmread(GUEST_RIP, &RIP);
     return RIP;
+}
+
+/**
+ * @brief Get the Guest Cr0 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestCr0()
+{
+    UINT64 Cr0;
+
+    __vmx_vmread(GUEST_CR0, &Cr0);
+    return Cr0;
+}
+
+/**
+ * @brief Get the Guest Cr2 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestCr2()
+{
+    UINT64 Cr2;
+
+    Cr2 = __readcr2();
+    return Cr2;
+}
+
+/**
+ * @brief Get the Guest Cr3 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestCr3()
+{
+    UINT64 Cr3;
+
+    __vmx_vmread(GUEST_CR3, &Cr3);
+    return Cr3;
+}
+
+/**
+ * @brief Get the Guest Cr4 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestCr4()
+{
+    UINT64 Cr4;
+
+    __vmx_vmread(GUEST_CR4, &Cr4);
+    return Cr4;
+}
+
+/**
+ * @brief Get the Guest Cr8 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestCr8()
+{
+    UINT64 Cr8;
+
+    Cr8 = __readcr8();
+    return Cr8;
+}
+
+/**
+ * @brief Set the Guest Cr0 Register
+ * 
+ * @param Cr0 The Cr0 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestCr0(UINT64 Cr0)
+{
+    __vmx_vmwrite(GUEST_CR0, Cr0);
+}
+
+/**
+ * @brief Set the Guest Cr2 Register
+ * 
+ * @param Cr2 The Cr2 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestCr2(UINT64 Cr2)
+{
+    __writecr2(Cr2);
+}
+
+/**
+ * @brief Set the Guest Cr3 Register
+ * 
+ * @param Cr3 The Cr3 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestCr3(UINT64 Cr3)
+{
+    __vmx_vmwrite(GUEST_CR3, Cr3);
+}
+
+/**
+ * @brief Set the Guest Cr4 Register
+ * 
+ * @param Cr4 The Cr4 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestCr4(UINT64 Cr4)
+{
+    __vmx_vmwrite(GUEST_CR4, Cr4);
+}
+
+/**
+ * @brief Set the Guest Cr8 Register
+ * 
+ * @param Cr8 The Cr8 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestCr8(UINT64 Cr8)
+{
+    __writecr8(Cr8);
 }
