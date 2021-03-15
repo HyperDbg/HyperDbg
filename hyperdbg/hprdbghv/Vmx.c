@@ -425,6 +425,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
     __vmx_vmwrite(GUEST_GDTR_BASE, AsmGetGdtBase());
     __vmx_vmwrite(GUEST_IDTR_BASE, AsmGetIdtBase());
+
     __vmx_vmwrite(GUEST_GDTR_LIMIT, AsmGetGdtLimit());
     __vmx_vmwrite(GUEST_IDTR_LIMIT, AsmGetIdtLimit());
 

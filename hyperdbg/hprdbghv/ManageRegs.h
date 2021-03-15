@@ -70,15 +70,15 @@ SEGMENT_SELECTOR
 GetGuestEs();
 
 VOID
-SetGuestIdtr(PSEGMENT_SELECTOR Idtr);
+SetGuestIdtr(UINT64 Idtr);
 
-SEGMENT_SELECTOR
+UINT64
 GetGuestIdtr();
 
 VOID
-SetGuestGdtr(PSEGMENT_SELECTOR Gdtr);
+SetGuestGdtr(UINT64 Gdtr);
 
-SEGMENT_SELECTOR
+UINT64
 GetGuestGdtr();
 
 VOID

@@ -284,59 +284,55 @@ GetGuestEs()
 }
 
 /**
- * @brief Set the Guest Idtr selector
+ * @brief Set the Guest Idtr
  * 
  * @param Idtr The Idtr Selector for the guest
  * @return VOID 
  */
 VOID
-SetGuestIdtr(PSEGMENT_SELECTOR Idtr)
+SetGuestIdtr(UINT64 Idtr)
 {
-    __vmx_vmwrite(GUEST_IDTR_BASE, Idtr->BASE);
-    __vmx_vmwrite(GUEST_IDTR_LIMIT, Idtr->LIMIT);
+    __vmx_vmwrite(GUEST_IDTR_BASE, Idtr);
 }
 
 /**
- * @brief Get the Guest Idtr Selector
+ * @brief Get the Guest Idtr
  * 
- * @return SEGMENT_SELECTOR 
+ * @return UINT64 
  */
-SEGMENT_SELECTOR
+UINT64
 GetGuestIdtr()
 {
-    SEGMENT_SELECTOR Idtr;
+    UINT64 Idtr;
 
-    __vmx_vmread(GUEST_IDTR_BASE, &Idtr.BASE);
-    __vmx_vmread(GUEST_IDTR_LIMIT, &Idtr.LIMIT);
+    __vmx_vmread(GUEST_IDTR_BASE, &Idtr);
 
     return Idtr;
 }
 
 /**
- * @brief Set the Guest Gdtr selector
+ * @brief Set the Guest Gdtr
  * 
  * @param Gdtr The Gdtr Selector for the guest
  * @return VOID 
  */
 VOID
-SetGuestGdtr(PSEGMENT_SELECTOR Gdtr)
+SetGuestGdtr(UINT64 Gdtr)
 {
-    __vmx_vmwrite(GUEST_GDTR_BASE, Gdtr->BASE);
-    __vmx_vmwrite(GUEST_GDTR_LIMIT, Gdtr->LIMIT);
+    __vmx_vmwrite(GUEST_GDTR_BASE, Gdtr);
 }
 
 /**
- * @brief Get the Guest Gdtr Selector
+ * @brief Get the Guest Gdtr
  * 
- * @return SEGMENT_SELECTOR 
+ * @return UINT64 
  */
-SEGMENT_SELECTOR
+UINT64
 GetGuestGdtr()
 {
-    SEGMENT_SELECTOR Gdtr;
+    UINT64 Gdtr;
 
-    __vmx_vmread(GUEST_GDTR_BASE, &Gdtr.BASE);
-    __vmx_vmread(GUEST_GDTR_LIMIT, &Gdtr.LIMIT);
+    __vmx_vmread(GUEST_GDTR_BASE, &Gdtr);
 
     return Gdtr;
 }
