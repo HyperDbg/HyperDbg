@@ -1356,8 +1356,7 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogInfo("idtr: %016llx,%016llx", GetGuestIdtr().LIMIT, GetGuestIdtr().BASE);
-    return GetGuestIdtr().LIMIT | GetGuestIdtr().BASE;
+    return GetGuestIdtr();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
@@ -1369,8 +1368,7 @@ UINT64 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogInfo("gdtr: %016llx,%016llx", GetGuestGdtr().LIMIT, GetGuestGdtr().BASE);
-    return GetGuestGdtr().LIMIT | GetGuestGdtr().BASE;
+    return GetGuestGdtr();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
@@ -1695,8 +1693,7 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    Value = Value & 0x000000000000ffff;
-    SetGuestIdtr((PSEGMENT_SELECTOR)&Value);
+    SetGuestIdtr(Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
     break;
@@ -1708,8 +1705,7 @@ VOID SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value) {
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-    SetGuestGdtr((PSEGMENT_SELECTOR)&Value);
+    SetGuestGdtr(Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
   case REGISTER_CR0:
