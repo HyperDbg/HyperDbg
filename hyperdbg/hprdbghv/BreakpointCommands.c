@@ -103,7 +103,10 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG G
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex, UINT64 GuestRip, PGUEST_REGS GuestRegs)
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  CurrentProcessorIndex,
+                                                   UINT64                  GuestRip,
+                                                   DEBUGGEE_PAUSING_REASON Reason,
+                                                   PGUEST_REGS             GuestRegs)
 {
     CR3_TYPE                         GuestCr3;
     BOOLEAN                          IsHandledByBpRoutines = FALSE;
@@ -111,6 +114,8 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
     UINT64                           GuestRipPhysical      = NULL;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
     RFLAGS                           Rflags                = {0};
+    ULONG                            LengthOfExitInstr     = 0;
+    BYTE                             InstrByte             = NULL;
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -160,7 +165,10 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
             //
             // In breakpoints tag is breakpoint id, not event tag
             //
-            ContextAndTag.Tag = CurrentBreakpointDesc->BreakpointId;
+            if (Reason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT)
+            {
+                ContextAndTag.Tag = CurrentBreakpointDesc->BreakpointId;
+            }
 
             //
             // *** It's not safe to access CurrentBreakpointDesc anymore as the
@@ -169,7 +177,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32 CurrentProcessorIndex,
 
             KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                   GuestRegs,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                  Reason,
                                                   &ContextAndTag);
 
             //
@@ -271,7 +279,10 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             // replace it with exact byte
             //
 
-            if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex, GuestRip, GuestRegs))
+            if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
+                                                                    GuestRip,
+                                                                    DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
+                                                                    GuestRegs))
             {
                 //
                 // It's a random breakpoint byte
