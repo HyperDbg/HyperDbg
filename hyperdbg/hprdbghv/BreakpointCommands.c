@@ -154,8 +154,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             //
             MemoryMapperWriteMemorySafeByPhysicalAddress(GuestRipPhysical,
                                                          &CurrentBreakpointDesc->PreviousByte,
-                                                         sizeof(BYTE),
-                                                         PsGetCurrentProcessId());
+                                                         sizeof(BYTE));
 
             //
             // Now, halt the debuggee
@@ -171,14 +170,22 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             }
 
             //
-            // *** It's not safe to access CurrentBreakpointDesc anymore as the
-            // breakpoint might be removed ***
+            // Check constraints
             //
+            if ((CurrentBreakpointDesc->Pid == DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES || CurrentBreakpointDesc->Pid == PsGetCurrentProcessId()) &&
+                (CurrentBreakpointDesc->Tid == DEBUGGEE_BP_APPLY_TO_ALL_THREADS || CurrentBreakpointDesc->Tid == PsGetCurrentThreadId()) &&
+                (CurrentBreakpointDesc->Core == DEBUGGEE_BP_APPLY_TO_ALL_CORES || CurrentBreakpointDesc->Core == CurrentProcessorIndex))
+            {
+                //
+                // *** It's not safe to access CurrentBreakpointDesc anymore as the
+                // breakpoint might be removed ***
+                //
 
-            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                                  GuestRegs,
-                                                  Reason,
-                                                  &ContextAndTag);
+                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                      GuestRegs,
+                                                      Reason,
+                                                      &ContextAndTag);
+            }
 
             //
             // Check if we should re-apply the breakpoint after this instruction
@@ -353,8 +360,7 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
                                                  &BreakpointByte,
-                                                 sizeof(BYTE),
-                                                 PsGetCurrentProcessId());
+                                                 sizeof(BYTE));
 
     return TRUE;
 }
@@ -369,12 +375,22 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 BOOLEAN
 BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 {
+    BYTE TargetMem = NULL;
+
     //
     // Check if address is safe (only one byte for 0xcc)
     //
     if (!CheckMemoryAccessSafety(BreakpointDescriptor->Address, sizeof(BYTE)))
     {
-        return FALSE;
+        //
+        // Double check if we can access it by physical address
+        //
+        MemoryMapperReadMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress, &TargetMem, sizeof(BYTE));
+
+        if (TargetMem != 0xcc)
+        {
+            return FALSE;
+        }
     }
 
     //
@@ -382,8 +398,7 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     //
     MemoryMapperWriteMemorySafeByPhysicalAddress(BreakpointDescriptor->PhysAddress,
                                                  &BreakpointDescriptor->PreviousByte,
-                                                 sizeof(BYTE),
-                                                 PsGetCurrentProcessId());
+                                                 sizeof(BYTE));
 
     //
     // Set breakpoint to disabled
@@ -392,6 +407,43 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
     BreakpointDescriptor->AvoidReApplyBreakpoint = TRUE;
 
     return TRUE;
+}
+
+/**
+ * @brief Remove all the breakpoints if possible
+ * 
+ * @return VOID
+ */
+VOID
+BreakpointRemoveAllBreakpoints()
+{
+    PLIST_ENTRY TempList = 0;
+
+    //
+    // Iterate through the list of breakpoints
+    //
+    TempList = &g_BreakpointsListHead;
+
+    while (&g_BreakpointsListHead != TempList->Flink)
+    {
+        TempList                                      = TempList->Flink;
+        PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+        //
+        // Clear the breakpoint
+        //
+        BreakpointClear(CurrentBreakpointDesc);
+
+        //
+        // Remove breakpoint from the list of breakpoints
+        //
+        RemoveEntryList(&CurrentBreakpointDesc->BreakpointsList);
+
+        //
+        // Uninitialize the breakpoint descriptor (safely)
+        //
+        PoolManagerFreePool(CurrentBreakpointDesc);
+    }
 }
 
 /**

@@ -92,6 +92,11 @@ KdUninitializeKernelDebugger()
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
 
         //
+        // Remove all active breakpoints
+        //
+        BreakpointRemoveAllBreakpoints();
+
+        //
         // De-register NMI handler
         //
         KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);

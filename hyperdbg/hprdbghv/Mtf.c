@@ -51,8 +51,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         MemoryMapperWriteMemorySafeByPhysicalAddress(
             g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->PhysAddress,
             &BreakpointByte,
-            sizeof(BYTE),
-            PsGetCurrentProcessId());
+            sizeof(BYTE));
 
         //
         // Check if we should re-enabled IF bit of RFLAGS or not

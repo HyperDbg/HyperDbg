@@ -18,6 +18,9 @@ VOID
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
 
 VOID
+BreakpointRemoveAllBreakpoints();
+
+VOID
 BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
 BOOLEAN

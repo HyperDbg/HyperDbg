@@ -509,6 +509,43 @@ MemoryMapperWriteMemorySafeByPte(PVOID SourceVA, PHYSICAL_ADDRESS PaAddressToWri
 }
 
 /**
+ * @brief Read memory safely by mapping the buffer by physical address (It's a wrapper)
+ * 
+ * @param PaAddressToRead Physical Address to read
+ * @param BufferToSaveMemory Destination to save 
+ * @param SizeToRead Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
+ */
+BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
+{
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    PhysicalAddress.QuadPart = PaAddressToRead;
+
+    return MemoryMapperReadMemorySafeByPte(
+        PhysicalAddress,
+        BufferToSaveMemory,
+        SizeToRead,
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
+        g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
+        g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+/**
  * @brief Read memory safely by mapping the buffer (It's a wrapper)
  * 
  * @param VaAddressToRead Virtual Address to read
@@ -698,7 +735,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRea
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
     PHYSICAL_ADDRESS PhysicalAddress;
