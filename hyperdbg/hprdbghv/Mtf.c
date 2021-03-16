@@ -25,6 +25,11 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag                     = {0};
 
     //
+    // Redo the instruction
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
+    //
     // Explicitly say that we want to unset MTFs
     //
     g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
@@ -48,6 +53,20 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             &BreakpointByte,
             sizeof(BYTE),
             PsGetCurrentProcessId());
+
+        //
+        // Check if we should re-enabled IF bit of RFLAGS or not
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf)
+        {
+            RFLAGS Rflags = {0};
+
+            __vmx_vmread(GUEST_RFLAGS, &Rflags);
+            Rflags.InterruptEnableFlag = TRUE;
+            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+
+            g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
+        }
 
         g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState = NULL;
     }
@@ -94,10 +113,8 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     }
 
     //
-    // Redo the instruction
+    // Final check to unset mtf
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-
     if (!g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset)
     {
         //
