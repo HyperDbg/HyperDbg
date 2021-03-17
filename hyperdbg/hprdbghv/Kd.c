@@ -1721,7 +1721,15 @@ StartAgain:
         //
         // Read the instruction len
         //
-        __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+        if (g_GuestState[CurrentCore].DebuggingState.InstructionLengthHint != 0)
+        {
+            //ExitInstructionLength = g_GuestState[CurrentCore].DebuggingState.InstructionLengthHint;
+            __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+        }
+        else
+        {
+            __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+        }
 
         //
         // Find the current instruction

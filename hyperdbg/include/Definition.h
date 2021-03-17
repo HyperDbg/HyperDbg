@@ -1332,6 +1332,7 @@ typedef struct _DEBUGGEE_BP_DESCRIPTOR {
   UINT32 Pid;
   UINT32 Tid;
   UINT32 Core;
+  UINT16 InstructionLength;
   BYTE PreviousByte;
   BOOLEAN SetRflagsIFBitOnMtf;
   BOOLEAN AvoidReApplyBreakpoint;

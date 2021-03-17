@@ -23,6 +23,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     BOOLEAN                          IsMtfForReApplySoftwareBreakpoint = FALSE;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag                     = {0};
+    BOOLEAN                          AvoidUnsetMtf;
 
     //
     // Redo the instruction
@@ -99,7 +100,8 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
                                                                 g_GuestState[CurrentProcessorIndex].LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                GuestRegs))
+                                                                GuestRegs,
+                                                                &AvoidUnsetMtf))
         {
             //
             // Handle the step
@@ -109,6 +111,13 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
                                                   GuestRegs,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                   &ContextAndTag);
+        }
+        else
+        {
+            //
+            // Not unset again (it needs to restore the breakpoint byte)
+            //
+            g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
     else if (g_GuestState[CurrentProcessorIndex].MtfTest)
@@ -130,5 +139,6 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // We don't need MTF anymore if it set to disable MTF
         //
         HvSetMonitorTrapFlag(FALSE);
+        g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
     }
 }

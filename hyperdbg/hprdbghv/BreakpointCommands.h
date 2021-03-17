@@ -27,4 +27,5 @@ BOOLEAN
 BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  CurrentProcessorIndex,
                                                    UINT64                  GuestRip,
                                                    DEBUGGEE_PAUSING_REASON Reason,
-                                                   PGUEST_REGS             GuestRegs);
+                                                   PGUEST_REGS             GuestRegs,
+                                                   PBOOLEAN                AvoidUnsetMtf);

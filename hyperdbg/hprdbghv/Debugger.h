@@ -102,6 +102,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                               EnableInterruptFlagOnContinue;
     BOOLEAN                               WaitingForNmi;
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
+    UINT16                                InstructionLengthHint;
     PGUEST_REGS                           GuestRegs;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
