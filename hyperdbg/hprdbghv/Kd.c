@@ -1723,8 +1723,7 @@ StartAgain:
         //
         if (g_GuestState[CurrentCore].DebuggingState.InstructionLengthHint != 0)
         {
-            //ExitInstructionLength = g_GuestState[CurrentCore].DebuggingState.InstructionLengthHint;
-            __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+            ExitInstructionLength = g_GuestState[CurrentCore].DebuggingState.InstructionLengthHint;
         }
         else
         {

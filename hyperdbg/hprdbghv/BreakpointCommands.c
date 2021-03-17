@@ -169,9 +169,13 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             //
             if (Reason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT)
             {
-                g_GuestState[CurrentProcessorIndex].DebuggingState.InstructionLengthHint = CurrentBreakpointDesc->InstructionLength;
-                ContextAndTag.Tag                                                        = CurrentBreakpointDesc->BreakpointId;
+                ContextAndTag.Tag = CurrentBreakpointDesc->BreakpointId;
             }
+
+            //
+            // Hint debuggee about the length
+            //
+            g_GuestState[CurrentProcessorIndex].DebuggingState.InstructionLengthHint = CurrentBreakpointDesc->InstructionLength;
 
             //
             // Check constraints
