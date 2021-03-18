@@ -11,6 +11,8 @@
  */
 #include "pch.h"
 
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief Read memory and disassembler
  * @details currently, HyperDbg is not support reading memory
@@ -31,21 +33,29 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 
   BOOL Status;
   ULONG ReturnedLength;
-  DEBUGGER_READ_MEMORY ReadMem;
+  DEBUGGER_READ_MEMORY ReadMem = {0};
   UINT32 OperationCode;
   CHAR Character;
-
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
 
   ReadMem.Address = Address;
   ReadMem.Pid = Pid;
   ReadMem.Size = Size;
   ReadMem.MemoryType = MemoryType;
-  ReadMem.ReadingType = ReadingType;
+  ReadMem.ReadingType = ReadingType; 
+  ReadMem.Style = Style;
+
+  //
+  // send the request
+  //
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+
+    KdSendReadMemoryPacketToDebuggee(&ReadMem);
+    return;
+  } else if (!g_DeviceHandle) {
+    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                 "use 'load' command?\n");
+    return;
+  }
 
   //
   // allocate buffer for transfering messages
