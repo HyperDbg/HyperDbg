@@ -682,6 +682,54 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
 }
 
 /**
+ * @brief read registers
+ * @param Regs
+ * @param ReadRegisterRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterRequest)
+{
+    GUEST_EXTRA_REGISTERS ERegs = {0};
+
+    if (ReadRegisterRequest->RegisterID == DEBUGGEE_SHOW_ALL_REGISTERS)
+    {
+        //
+        // Add General porpuse registers
+        //
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION)),
+               Regs,
+               sizeof(GUEST_REGS));
+
+        //
+        // Read Extra registers
+        //
+        ERegs.CS     = DebuggerGetRegValueWrapper(NULL, REGISTER_CS);
+        ERegs.SS     = DebuggerGetRegValueWrapper(NULL, REGISTER_SS);
+        ERegs.DS     = DebuggerGetRegValueWrapper(NULL, REGISTER_DS);
+        ERegs.ES     = DebuggerGetRegValueWrapper(NULL, REGISTER_ES);
+        ERegs.FS     = DebuggerGetRegValueWrapper(NULL, REGISTER_FS);
+        ERegs.GS     = DebuggerGetRegValueWrapper(NULL, REGISTER_GS);
+        ERegs.RFLAGS = DebuggerGetRegValueWrapper(NULL, REGISTER_RFLAGS);
+        ERegs.RIP    = DebuggerGetRegValueWrapper(NULL, REGISTER_RIP);
+
+        //
+        // copy at the end of ReadRegisterRequest structure
+        //
+        memcpy((void *)((CHAR *)ReadRegisterRequest + sizeof(DEBUGGEE_REGISTER_READ_DESCRIPTION) + sizeof(GUEST_REGS)),
+               &ERegs,
+               sizeof(GUEST_EXTRA_REGISTERS));
+    }
+    else
+    {
+        ReadRegisterRequest->Value = DebuggerGetRegValueWrapper(Regs, ReadRegisterRequest->RegisterID);
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief change the current operating core to new core
  * 
  * @param CurrentCore
@@ -1193,6 +1241,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
+    PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
@@ -1203,6 +1252,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
     UINT32                                              SizeToSend       = 0;
     BOOLEAN                                             UnlockTheNewCore = FALSE;
+    size_t                                              ReturnSize       = 0;
 
     while (TRUE)
     {
@@ -1439,6 +1489,36 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_REGISTERS,
                                            ReadRegisterPacket,
                                            SizeToSend);
+
+                break;
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY:
+
+                ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) +
+                                                            sizeof(DEBUGGER_REMOTE_PACKET));
+                //
+                // Read memory
+                //
+                if (DebuggerCommandReadMemoryVmxRoot(ReadMemoryPacket,
+                                              (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
+                                              &ReturnSize))
+                {
+                    ReadMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    
+                }
+                else
+                {
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                }
+
+                ReadMemoryPacket->ReturnLength = ReturnSize;
+
+                //
+                // Send the result of reading registers back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
+                                           (unsigned char *)ReadMemoryPacket,
+                                           sizeof(DEBUGGER_READ_MEMORY) +ReturnSize);
 
                 break;
 

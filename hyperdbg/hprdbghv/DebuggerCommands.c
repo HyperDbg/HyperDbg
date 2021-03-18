@@ -16,7 +16,7 @@
  * 
  * @param ReadMemRequest request structure for reading memory
  * @param UserBuffer user buffer to copy the memory
- * @param ReturnSize size that should be returned to userr mode buffers
+ * @param ReturnSize size that should be returned to user mode buffers
  * @return NTSTATUS 
  */
 NTSTATUS
@@ -40,6 +40,54 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
     {
         return STATUS_UNSUCCESSFUL;
     }
+}
+
+/**
+ * @brief Read memory for different commands from vmxroot mode
+ * 
+ * @param ReadMemRequest request structure for reading memory
+ * @param UserBuffer user buffer to copy the memory
+ * @param ReturnSize size that should be returned to user mode buffers
+ * @return BOOLEAN 
+ */
+BOOLEAN
+DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize)
+{
+    UINT32                    Pid;
+    UINT32                    Size;
+    UINT64                    Address;
+    DEBUGGER_READ_MEMORY_TYPE MemType;
+
+    Pid     = ReadMemRequest->Pid;
+    Size    = ReadMemRequest->Size;
+    Address = ReadMemRequest->Address;
+    MemType = ReadMemRequest->MemoryType;
+
+    if (!CheckMemoryAccessSafety(Address, Size))
+    {
+        ReadMemRequest->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+        return FALSE;
+    }
+
+    //
+    // read memory safe
+    //
+    if (MemType == DEBUGGER_READ_PHYSICAL_ADDRESS)
+    {
+        MemoryMapperReadMemorySafeByPhysicalAddress(Address, UserBuffer, Size);
+    }
+    else if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+    {
+        MemoryMapperReadMemorySafeOnTargetProcess(Address, UserBuffer, Size);
+    }
+    else
+    {
+        ReadMemRequest->KernelStatus = DEBUGGER_ERROR_MEMORY_TYPE_INVALID;
+        return FALSE;
+    }
+    ReadMemRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    *ReturnSize                  = Size;
+    return TRUE;
 }
 
 /**

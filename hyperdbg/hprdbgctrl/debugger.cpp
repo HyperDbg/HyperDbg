@@ -165,6 +165,10 @@ ShowErrorMessage(UINT32 Error) {
     ShowMessages("err, breakpoint already enabled (%x)\n", Error);
     break;
 
+  case DEBUGGER_ERROR_MEMORY_TYPE_INVALID:
+    ShowMessages("err, memory type is invalid (%x)\n", Error);
+    break;
+
   default:
     ShowMessages("err, error not found (%x)\n", Error);
     return FALSE;

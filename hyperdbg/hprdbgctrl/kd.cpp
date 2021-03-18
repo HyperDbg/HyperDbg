@@ -310,6 +310,34 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes) {
 }
 
 /**
+ * @brief Send a Read memory packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem) {
+
+    //
+    // Send d command as read memory packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY,
+        (CHAR*)ReadMem, sizeof(DEBUGGER_READ_MEMORY))) {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of read registers received
+    //
+    WaitForSingleObject(g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY],
+        INFINITE);
+
+    return TRUE;
+}
+
+/**
  * @brief Send a register event request to the debuggee
  * @details as this command uses one global variable to transfer the buffers
  * so should not be called simultaneously
