@@ -423,7 +423,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jno") == 0) {
 
@@ -433,7 +433,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "js") == 0) {
 
@@ -443,7 +443,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.SignFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jns") == 0) {
 
@@ -453,7 +453,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.SignFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "je") == 0 ||
                strcmp(bufferOfMnemonic, "jz") == 0) {
@@ -465,7 +465,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jne") == 0 ||
                strcmp(bufferOfMnemonic, "jnz") == 0) {
@@ -477,7 +477,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jb") == 0 ||
                strcmp(bufferOfMnemonic, "jnae") == 0 ||
@@ -496,7 +496,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.CarryFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jnb") == 0 ||
                strcmp(bufferOfMnemonic, "jae") == 0 ||
@@ -515,7 +515,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.CarryFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jbe") == 0 ||
                strcmp(bufferOfMnemonic, "jna") == 0) {
@@ -532,7 +532,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.CarryFlag || Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "ja") == 0 ||
                strcmp(bufferOfMnemonic, "jnbe") == 0) {
@@ -549,7 +549,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.CarryFlag && !Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jl") == 0 ||
                strcmp(bufferOfMnemonic, "jnge") == 0) {
@@ -566,7 +566,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.SignFlag != Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jge") == 0 ||
                strcmp(bufferOfMnemonic, "jnl") == 0) {
@@ -583,7 +583,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.SignFlag == Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jle") == 0 ||
                strcmp(bufferOfMnemonic, "jng") == 0) {
@@ -600,7 +600,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.ZeroFlag || Rflags.SignFlag != Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jg") == 0 ||
                strcmp(bufferOfMnemonic, "jnle") == 0) {
@@ -617,7 +617,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.ZeroFlag && Rflags.SignFlag == Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jp") == 0 ||
                strcmp(bufferOfMnemonic, "jpe") == 0) {
@@ -630,7 +630,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (Rflags.ParityFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jnp") == 0 ||
                strcmp(bufferOfMnemonic, "jpo") == 0) {
@@ -643,7 +643,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       if (!Rflags.ParityFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
-        DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
+        return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
     } else if (strcmp(bufferOfMnemonic, "jcxz") == 0 ||
                strcmp(bufferOfMnemonic, "jecxz") == 0) {
