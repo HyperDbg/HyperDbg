@@ -40,6 +40,11 @@ int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
                            UINT32 MaximumInstrDecoded);
 
+DEBUGGER_CONDITIONAL_JUMP_STATUS
+HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
+                               UINT64 BuffLength, RFLAGS Rflag,
+                               BOOLEAN Isx86_64);
+
 int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
                            UINT32 MaximumInstrDecoded);

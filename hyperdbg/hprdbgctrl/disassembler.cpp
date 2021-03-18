@@ -43,12 +43,6 @@ all
 //
 extern UINT32 g_DisassemblerSyntax;
 
-/* ==============================================================================================
- */
-/* Enums and Types */
-/* ==============================================================================================
- */
-
 /**
  * @brief   Defines the `ZydisSymbol` struct.
  */
@@ -63,12 +57,6 @@ typedef struct ZydisSymbol_ {
   const char *name;
 } ZydisSymbol;
 
-/* ==============================================================================================
- */
-/* Static data */
-/* ==============================================================================================
- */
-
 /**
  * @brief   A static symbol table with some dummy symbols.
  */
@@ -76,12 +64,6 @@ static const ZydisSymbol SYMBOL_TABLE[3] = {
     {0x007FFFFFFF401000, "SomeModule.EntryPoint"},
     {0x007FFFFFFF530040, "SomeModule.SomeData"},
     {0x007FFFFFFF401100, "SomeModule.SomeFunction"}};
-
-/* ==============================================================================================
- */
-/* Hook callbacks */
-/* ==============================================================================================
- */
 
 ZydisFormatterFunc default_print_address_absolute;
 
@@ -112,12 +94,6 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *formatter,
 
   return default_print_address_absolute(formatter, buffer, context);
 }
-
-/* ==============================================================================================
- */
-/* Helper functions */
-/* ==============================================================================================
- */
 
 /**
  * @brief Disassemble a user-mode buffer
@@ -200,12 +176,6 @@ void DisassembleBuffer(ZydisDecoder *decoder, ZyanU64 runtime_address,
   }
 }
 
-/* ==============================================================================================
- */
-/* Entry point */
-/* ==============================================================================================
- */
-
 /**
  * @brief Zydis test
  *
@@ -238,15 +208,6 @@ int ZydisTest() {
 
   return 0;
 }
-
-/* ==============================================================================================
- */
-
-/* ==============================================================================================
- */
-/* Entry point */
-/* ==============================================================================================
- */
 
 /**
  * @brief Disassemble x64 assemblies
@@ -304,5 +265,85 @@ int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
   return 0;
 }
 
-/* ==============================================================================================
+/**
+ * @brief Check whether the jump is taken or not taken (in debugger)
+ *
+ * @param BufferToDisassemble Current Bytes of assembly
+ * @param BuffLength Length of buffer
+ * @param Rflag The kernel's currnet RFLAG
+ * @param Isx86_64 Whether it's an x86 or x64
+ *
+ * @return DEBUGGER_NEXT_INSTRUCTION_FINDER_STATUS
  */
+DEBUGGER_CONDITIONAL_JUMP_STATUS
+HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
+                               UINT64 BuffLength, RFLAGS Rflag,
+                               BOOLEAN Isx86_64) {
+
+  ZydisDecoder decoder;
+  ZydisFormatter formatter;
+  UINT64 CurrentRip = 0;
+  int instr_decoded = 0;
+  ZydisDecodedInstruction instruction;
+  char buffer[256];
+  UINT32 MaximumInstrDecoded = 1;
+
+  if (ZydisGetVersion() != ZYDIS_VERSION) {
+    ShowMessages("Invalid zydis version\n");
+    return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+  }
+
+  if (Isx86_64) {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64,
+                     ZYDIS_ADDRESS_WIDTH_64);
+  } else {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+                     ZYDIS_ADDRESS_WIDTH_32);
+  }
+
+  ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SEGMENT,
+                            ZYAN_TRUE);
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SIZE,
+                            ZYAN_TRUE);
+
+  //
+  // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that formats
+  // the absolute addresses
+  //
+  default_print_address_absolute =
+      (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+  ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS,
+                        (const void **)&default_print_address_absolute);
+
+  while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble,
+                                               BuffLength, &instruction))) {
+
+    //
+    // We have to pass a `runtime_address` different to
+    // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+    //
+
+    /* ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0],
+                                       sizeof(buffer), (ZyanU64)CurrentRip); */
+
+
+    //
+    // Add padding (we assume that each instruction should be at least 10 bytes)
+    //
+
+    ShowMessages("Buffer is : %s\n", &buffer[0]);
+
+    BufferToDisassemble += instruction.length;
+    BuffLength -= instruction.length;
+    CurrentRip += instruction.length;
+    instr_decoded++;
+
+    if (instr_decoded == MaximumInstrDecoded) {
+      return DEBUGGER_CONDITIONAL_JUMP_STATUS_NOT_CONDITIONAL_JUMP;
+    }
+  }
+
+  return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+}
