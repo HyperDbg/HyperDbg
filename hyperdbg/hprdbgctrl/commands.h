@@ -34,20 +34,23 @@ VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       DEBUGGER_READ_MEMORY_TYPE MemoryType,
                                       DEBUGGER_READ_READING_TYPE ReadingType,
                                       UINT32 Pid, UINT Size);
+
 string SeparateTo64BitValue(UINT64 Value);
 
 int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
-                           UINT32 MaximumInstrDecoded);
+                           UINT32 MaximumInstrDecoded,
+                           BOOLEAN ShowBranchIsTakenOrNot, PRFLAGS Rflags);
 
 DEBUGGER_CONDITIONAL_JUMP_STATUS
 HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
-                               UINT64 BuffLength, RFLAGS Rflag,
+                               UINT64 BuffLength, RFLAGS Rflags,
                                BOOLEAN Isx86_64);
 
 int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
-                           UINT32 MaximumInstrDecoded);
+                           UINT32 MaximumInstrDecoded,
+                           BOOLEAN ShowBranchIsTakenOrNot, PRFLAGS Rflags);
 
 VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
@@ -256,8 +259,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_E_ATTRIBUTES                                          \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
-#define DEBUGGER_COMMAND_S_ATTRIBUTES                                          \
-  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+#define DEBUGGER_COMMAND_S_ATTRIBUTES NULL
 
 #define DEBUGGER_COMMAND_R_ATTRIBUTES                                          \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE

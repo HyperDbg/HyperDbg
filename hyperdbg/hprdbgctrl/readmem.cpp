@@ -41,7 +41,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   ReadMem.Pid = Pid;
   ReadMem.Size = Size;
   ReadMem.MemoryType = MemoryType;
-  ReadMem.ReadingType = ReadingType; 
+  ReadMem.ReadingType = ReadingType;
   ReadMem.Style = Style;
 
   //
@@ -211,9 +211,11 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
       ShowMessages("\n");
     }
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
-    HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0);
+    HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE,
+                           NULL);
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32) {
-    HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0);
+    HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0, FALSE,
+                           NULL);
   }
 
   //

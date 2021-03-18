@@ -35,29 +35,6 @@ VOID CommandBlHelp() {
  */
 VOID CommandBl(vector<string> SplittedCommand, string Command) {
 
-  //////////////////////////////////////////////////////////////////
-  /// test should be removed
-  UINT64 NextRip = 0;
-  RFLAGS Rflags = {0};
-  unsigned char data[] = {
-      0x48, 0x8B, 0x05, 0x39, 0x00,
-      0x13, 0x00, // mov rax, qword ptr ds:[<SomeModule.SomeData>]
-      0x50,       // push rax
-      0xFF, 0x15, 0xF2, 0x10, 0x00,
-      0x00,       // call qword ptr ds:[<SomeModule.SomeFunction>]
-      0x85, 0xC0, // test eax, eax
-      0x0F, 0x84, 0x00, 0x00, 0x00,
-      0x00,                        // jz 0x007FFFFFFF400016
-      0xE9, 0xE5, 0x0F, 0x00, 0x00 // jmp <SomeModule.EntryPoint>
-  };
-
-  HyperDbgFindNextInstruction(DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN, data,
-                              sizeof(data), Rflags, TRUE, 0x10000000, &NextRip);
-
-  return;
-
-  //////////////////////////////////////////////////////////////////
-
   DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
   //

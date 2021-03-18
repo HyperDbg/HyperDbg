@@ -1499,11 +1499,10 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // Read memory
                 //
                 if (DebuggerCommandReadMemoryVmxRoot(ReadMemoryPacket,
-                                              (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
-                                              &ReturnSize))
+                                                     (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
+                                                     &ReturnSize))
                 {
                     ReadMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
-                    
                 }
                 else
                 {
@@ -1518,7 +1517,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
                                            (unsigned char *)ReadMemoryPacket,
-                                           sizeof(DEBUGGER_READ_MEMORY) +ReturnSize);
+                                           sizeof(DEBUGGER_READ_MEMORY) + ReturnSize);
 
                 break;
 
@@ -1756,6 +1755,7 @@ KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
     ULONG                  ExitInstructionLength = 0;
+    RFLAGS                 Rflags                = {0};
 
 StartAgain:
 
@@ -1789,6 +1789,12 @@ StartAgain:
         // Set the RIP
         //
         PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
+
+        //
+        // Set rflags for finding the results of conditional jumps
+        //
+        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        PausePacket.Rflags.Value = Rflags.Value;
 
         //
         // Set the event tag (if it's an event)

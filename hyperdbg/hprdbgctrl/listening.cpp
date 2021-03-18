@@ -201,7 +201,8 @@ StartAgain:
       if (PausePacket->PausingReason !=
           DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM) {
         HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                               PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1);
+                               PausePacket->Rip, MAXIMUM_INSTR_SIZE, 1, TRUE,
+                               &PausePacket->Rflags);
       }
 
       switch (PausePacket->PausingReason) {
@@ -560,12 +561,14 @@ StartAgain:
 
         if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
           HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address,
-                                 ReadMemoryPacket->ReturnLength, 0);
+                                 ReadMemoryPacket->ReturnLength, 0, FALSE,
+                                 NULL);
 
         } else if (ReadMemoryPacket->Style ==
                    DEBUGGER_SHOW_COMMAND_DISASSEMBLE32) {
           HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address,
-                                 ReadMemoryPacket->ReturnLength, 0);
+                                 ReadMemoryPacket->ReturnLength, 0, FALSE,
+                                 NULL);
         }
       } else {
         ShowErrorMessage(ReadMemoryPacket->KernelStatus);
