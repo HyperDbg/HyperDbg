@@ -569,6 +569,23 @@ StartAgain:
           HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address,
                                  ReadMemoryPacket->ReturnLength, 0, FALSE,
                                  NULL);
+        } else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DB) {
+          ShowMemoryCommandDB(
+              MemoryBuffer, ReadMemoryPacket->Size, ReadMemoryPacket->Address,
+              ReadMemoryPacket->MemoryType, ReadMemoryPacket->ReturnLength);
+        } else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DC) {
+          ShowMemoryCommandDC(
+              MemoryBuffer, ReadMemoryPacket->Size, ReadMemoryPacket->Address,
+              ReadMemoryPacket->MemoryType, ReadMemoryPacket->ReturnLength);
+        } else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DD) {
+          ShowMemoryCommandDD(
+              MemoryBuffer, ReadMemoryPacket->Size, ReadMemoryPacket->Address,
+              ReadMemoryPacket->MemoryType, ReadMemoryPacket->ReturnLength);
+
+        } else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DQ) {
+          ShowMemoryCommandDQ(
+              MemoryBuffer, ReadMemoryPacket->Size, ReadMemoryPacket->Address,
+              ReadMemoryPacket->MemoryType, ReadMemoryPacket->ReturnLength);
         }
       } else {
         ShowErrorMessage(ReadMemoryPacket->KernelStatus);
@@ -635,7 +652,6 @@ StartAgain:
       ShowMessages("err, unknown packet action received from the debugger\n");
       break;
     }
-
   } else {
 
     //

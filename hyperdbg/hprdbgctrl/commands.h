@@ -1,6 +1,7 @@
 /**
  * @file commands.h
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief The hyperdbg command interpreter and driver connector
  * @details
  * @version 0.1
@@ -41,6 +42,19 @@ int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
                            UINT32 MaximumInstrDecoded,
                            BOOLEAN ShowBranchIsTakenOrNot, PRFLAGS Rflags);
+
+void ShowMemoryCommandDB(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
+    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
+void ShowMemoryCommandDD(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
+    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
+void ShowMemoryCommandDC(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
+    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
+void ShowMemoryCommandDQ(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
+    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+
 
 DEBUGGER_CONDITIONAL_JUMP_STATUS
 HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
