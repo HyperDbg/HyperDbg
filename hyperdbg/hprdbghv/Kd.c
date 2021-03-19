@@ -1037,7 +1037,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
  * @return VOID 
  */
 VOID
-KdGuranteedStepInstruction(ULONG CoreId)
+KdGuaranteedStepInstruction(ULONG CoreId)
 {
     RFLAGS Rflags = {0};
 
@@ -1072,6 +1072,29 @@ KdGuranteedStepInstruction(ULONG CoreId)
     // Set the MTF flag
     //
     HvSetMonitorTrapFlag(TRUE);
+}
+
+/**
+ * @brief Regualar step-in | step one instruction to the debuggee
+* 
+ * @return VOID 
+ */
+VOID
+KdRegularStepInInstruction()
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // We're waiting for an step
+    //
+    g_WaitForAnStepTrap = TRUE;
+
+    //
+    // Set trap flag
+    //
+    __vmx_vmread(GUEST_RFLAGS, &Rflags);
+    Rflags.TrapFlag = TRUE;
+    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
 }
 
 /**
@@ -1327,13 +1350,13 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED)
                 {
                     //
-                    // Guaranteed step in
+                    // Guaranteed step in (i command)
                     //
 
                     //
                     // Indicate a step
                     //
-                    KdGuranteedStepInstruction(CurrentCore);
+                    KdGuaranteedStepInstruction(CurrentCore);
 
                     //
                     // Unlock just on core
@@ -1348,19 +1371,34 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN)
                 {
                     //
-                    // Step in
+                    // Step in (t command)
+                    //
+
+                    //
+                    // Indicate a step
+                    //
+                    KdRegularStepInInstruction(CurrentCore);
+
+                    //
+                    // Unlock other cores
+                    //
+                    KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+
+                    //
+                    // Continue to the debuggee
+                    //
+                    EscapeFromTheLoop = TRUE;
+                }
+                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
+                {
+                    //
+                    // Step over (p command)
                     //
 
                     //
                     // To be implemented
                     //
                     DbgBreakPoint();
-                }
-                else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
-                {
-                    //
-                    // Step over
-                    //
                 }
 
                 break;
@@ -1815,6 +1853,18 @@ StartAgain:
         else
         {
             __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+        }
+
+        //
+        // Sometime instruction length is 0, e.g., in Trap #DB therefore we
+        // use maximum length for an instruction
+        //
+        if (ExitInstructionLength == 0)
+        {
+            if (CheckMemoryAccessSafety(g_GuestState[CurrentCore].LastVmexitRip, MAXIMUM_INSTR_SIZE))
+            {
+                ExitInstructionLength = MAXIMUM_INSTR_SIZE;
+            }
         }
 
         //
