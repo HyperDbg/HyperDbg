@@ -1507,13 +1507,13 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 }
                 else
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                    ReadMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
                 }
 
                 ReadMemoryPacket->ReturnLength = ReturnSize;
 
                 //
-                // Send the result of reading registers back to the debuggee
+                // Send the result of reading memory back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
