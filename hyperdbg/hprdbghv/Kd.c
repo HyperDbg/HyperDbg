@@ -1,6 +1,7 @@
 /**
  * @file Kd.c
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Routines related to kernel debugging
  * @details 
  * @version 0.1

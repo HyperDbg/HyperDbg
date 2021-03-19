@@ -47,6 +47,19 @@ VOID CommandRHelp() {
 }
 
 /**
+ * @brief handler of r show all registers command
+ *
+ * @return BOOLEAN
+ */
+
+VOID ShowAllRegisters() {
+  PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+      new DEBUGGEE_REGISTER_READ_DESCRIPTION;
+  RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
+  KdSendReadRegisterPacketToDebuggee(RegD);
+  delete (RegD);
+}
+/**
  * @brief handler of r command
  *
  * @param SplittedCommand
@@ -77,19 +90,13 @@ VOID CommandR(vector<string> SplittedCommand, string Command) {
     //
     // show all registers
     //
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
-    RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
-
     if (g_IsSerialConnectedToRemoteDebuggee) {
-
-      KdSendReadRegisterPacketToDebuggee(RegD);
+      ShowAllRegisters();
     } else {
       ShowMessages("err, reading registers (r) is not valid in the current "
                    "context, you should connect to a debuggee.\n");
     }
 
-    delete (RegD);
     return;
   }
   //

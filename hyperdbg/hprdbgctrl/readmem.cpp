@@ -1,6 +1,7 @@
 /**
  * @file readmem.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeamini@gmail.com)
  * @brief HyperDbg command for u and d*
  * @details
  * @version 0.1
@@ -15,8 +16,6 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief Read memory and disassembler
- * @details currently, HyperDbg is not support reading memory
- * from vmx-root
  *
  * @param Style style of show memory (as byte, dwrod, qword)
  * @param Address location of where to read the memory
@@ -81,135 +80,18 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   }
 
   if (Style == DEBUGGER_SHOW_COMMAND_DB) {
-    for (int i = 0; i < Size; i += 16) {
+    ShowMemoryCommandDB(OutputBuffer, Size, Address, MemoryType,
+                        ReturnedLength);
+  } else if (Style == DEBUGGER_SHOW_COMMAND_DC) {
+    ShowMemoryCommandDC(OutputBuffer, Size, Address, MemoryType,
+                        ReturnedLength);
+  } else if (Style == DEBUGGER_SHOW_COMMAND_DD) {
+    ShowMemoryCommandDD(OutputBuffer, Size, Address, MemoryType,
+                        ReturnedLength);
 
-      if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
-        ShowMessages("#\t");
-      }
-
-      //
-      // Print address
-      //
-      ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
-
-      //
-      // Print the hex code
-      //
-      for (size_t j = 0; j < 16; j++) {
-
-        //
-        // check to see if the address is valid or not
-        //
-        if (i + j >= ReturnedLength) {
-          ShowMessages("?? ");
-        } else {
-          ShowMessages("%02X ", OutputBuffer[i + j]);
-        }
-      }
-
-      //
-      // Print the character
-      //
-      ShowMessages(" ");
-      for (size_t j = 0; j < 16; j++) {
-        Character = (OutputBuffer[i + j]);
-        if (isprint(Character)) {
-          ShowMessages("%c", Character);
-        } else {
-          ShowMessages(".");
-        }
-      }
-
-      //
-      // Go to new line
-      //
-      ShowMessages("\n");
-    }
-  } else if (Style == DEBUGGER_SHOW_COMMAND_DC ||
-             Style == DEBUGGER_SHOW_COMMAND_DD) {
-    for (int i = 0; i < Size; i += 16) {
-
-      if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
-        ShowMessages("#\t");
-      }
-
-      //
-      // Print address
-      //
-      ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
-
-      //
-      // Print the hex code
-      //
-      for (size_t j = 0; j < 16; j += 4) {
-        //
-        // check to see if the address is valid or not
-        //
-        if (i + j >= ReturnedLength) {
-          ShowMessages("???????? ");
-        } else {
-          UINT32 OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j]);
-          ShowMessages("%08X ", OutputBufferVar);
-        }
-      }
-
-      //
-      // Print the character
-      //
-      if (Style != DEBUGGER_SHOW_COMMAND_DD) {
-        ShowMessages(" ");
-
-        for (size_t j = 0; j < 16; j++) {
-          Character = (OutputBuffer[i + j]);
-          if (isprint(Character)) {
-            ShowMessages("%c", Character);
-          } else {
-            ShowMessages(".");
-          }
-        }
-      }
-
-      //
-      // Go to new line
-      //
-      ShowMessages("\n");
-    }
   } else if (Style == DEBUGGER_SHOW_COMMAND_DQ) {
-    for (int i = 0; i < Size; i += 16) {
-
-      if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
-        ShowMessages("#\t");
-      }
-
-      //
-      // Print address
-      //
-      ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
-
-      //
-      // Print the hex code
-      //
-      for (size_t j = 0; j < 16; j += 8) {
-
-        //
-        // check to see if the address is valid or not
-        //
-        if (i + j >= ReturnedLength) {
-          ShowMessages("???????? ");
-        } else {
-          UINT32 OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j + 4]);
-          ShowMessages("%08X`", OutputBufferVar);
-
-          OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j]);
-          ShowMessages("%08X ", OutputBufferVar);
-        }
-      }
-
-      //
-      // Go to new line
-      //
-      ShowMessages("\n");
-    }
+      ShowMemoryCommandDQ(OutputBuffer, Size, Address, MemoryType,
+          ReturnedLength);
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
     HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE,
                            NULL);
@@ -224,4 +106,216 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
   free(OutputBuffer);
 
   ShowMessages("\n");
+}
+
+/**
+ * @brief Show memory in bytes (DB)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ */
+void ShowMemoryCommandDB(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+  CHAR Character;
+
+  for (int i = 0; i < Size; i += 16) {
+
+    if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
+      ShowMessages("#\t");
+    }
+
+    //
+    // Print address
+    //
+    ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+    //
+    // Print the hex code
+    //
+    for (size_t j = 0; j < 16; j++) {
+
+      //
+      // check to see if the address is valid or not
+      //
+      if (i + j >= Length) {
+        ShowMessages("?? ");
+      } else {
+        ShowMessages("%02X ", OutputBuffer[i + j]);
+      }
+    }
+
+    //
+    // Print the character
+    //
+    ShowMessages(" ");
+    for (size_t j = 0; j < 16; j++) {
+      Character = (OutputBuffer[i + j]);
+      if (isprint(Character)) {
+        ShowMessages("%c", Character);
+      } else {
+        ShowMessages(".");
+      }
+    }
+
+    //
+    // Go to new line
+    //
+    ShowMessages("\n");
+  }
+}
+
+/**
+ * @brief Show memory in dword format (DD)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ */
+void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+  CHAR Character;
+  for (int i = 0; i < Size; i += 16) {
+
+    if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
+      ShowMessages("#\t");
+    }
+
+    //
+    // Print address
+    //
+    ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+    //
+    // Print the hex code
+    //
+    for (size_t j = 0; j < 16; j += 4) {
+      //
+      // check to see if the address is valid or not
+      //
+      if (i + j >= Length) {
+        ShowMessages("???????? ");
+      } else {
+        UINT32 OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j]);
+        ShowMessages("%08X ", OutputBufferVar);
+      }
+    }
+
+    //
+    // Print the character
+    //
+
+    ShowMessages(" ");
+    for (size_t j = 0; j < 16; j++) {
+      Character = (OutputBuffer[i + j]);
+      if (isprint(Character)) {
+        ShowMessages("%c", Character);
+      } else {
+        ShowMessages(".");
+      }
+    }
+
+    //
+    // Go to new line
+    //
+    ShowMessages("\n");
+  }
+}
+
+/**
+ * @brief Show memory in dword format (DC)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ */
+void ShowMemoryCommandDC(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+
+  CHAR Character;
+  for (int i = 0; i < Size; i += 16) {
+
+    if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
+      ShowMessages("#\t");
+    }
+
+    //
+    // Print address
+    //
+    ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+    //
+    // Print the hex code
+    //
+    for (size_t j = 0; j < 16; j += 4) {
+      //
+      // check to see if the address is valid or not
+      //
+      if (i + j >= Length) {
+        ShowMessages("???????? ");
+      } else {
+        UINT32 OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j]);
+        ShowMessages("%08X ", OutputBufferVar);
+      }
+    }
+    //
+    // Go to new line
+    //
+    ShowMessages("\n");
+  }
+}
+
+/**
+ * @brief Show memory in qword format (DQ)
+ *
+ * @param OutputBuffer the buffer to show
+ * @param Size size of memory to read
+ * @param Address location of where to read the memory
+ * @param MemoryType type of memory (phyical or virtual)
+ * @param Length Length of memory to show
+ */
+void ShowMemoryCommandDQ(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+
+  for (int i = 0; i < Size; i += 16) {
+
+    if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS) {
+      ShowMessages("#\t");
+    }
+
+    //
+    // Print address
+    //
+    ShowMessages("%s  ", SeparateTo64BitValue((UINT64)(Address + i)).c_str());
+
+    //
+    // Print the hex code
+    //
+    for (size_t j = 0; j < 16; j += 8) {
+
+      //
+      // check to see if the address is valid or not
+      //
+      if (i + j >= Length) {
+        ShowMessages("???????? ");
+      } else {
+        UINT32 OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j + 4]);
+        ShowMessages("%08X`", OutputBufferVar);
+
+        OutputBufferVar = *((UINT32 *)&OutputBuffer[i + j]);
+        ShowMessages("%08X ", OutputBufferVar);
+      }
+    }
+
+    //
+    // Go to new line
+    //
+    ShowMessages("\n");
+  }
 }
