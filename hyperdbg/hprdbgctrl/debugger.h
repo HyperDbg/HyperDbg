@@ -47,8 +47,6 @@ typedef struct _DEBUGGING_STATE {
   UINT64 ConnectedThreadId;
 } DEBUGGING_STATE, *PDEBUGGING_STATE;
 
-
-
 //////////////////////////////////////////////////
 //				    Functions                   //
 //////////////////////////////////////////////////
@@ -116,3 +114,5 @@ VOID DetachFromProcess();
 BOOLEAN CommandLoadVmmModule();
 
 VOID CommandFormatsShowResults(UINT64 U64Value);
+
+VOID ShowAllRegisters();

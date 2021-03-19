@@ -87,6 +87,10 @@ VOID CommandI(vector<string> SplittedCommand, string Command) {
         //
         // Show registers
         //
+        ShowAllRegisters();
+        if (i != StepCount - 1) {
+          ShowMessages("\n");
+        }
       }
     }
 
