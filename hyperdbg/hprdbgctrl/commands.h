@@ -253,6 +253,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_T_ATTRIBUTES                                          \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_I_ATTRIBUTES                                          \
+  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES                                    \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
@@ -385,6 +388,8 @@ VOID CommandAttach(vector<string> SplittedCommand, string Command);
 VOID CommandDetach(vector<string> SplittedCommand, string Command);
 
 VOID CommandT(vector<string> SplittedCommand, string Command);
+
+VOID CommandI(vector<string> SplittedCommand, string Command);
 
 VOID CommandPrint(vector<string> SplittedCommand, string Command);
 

@@ -121,6 +121,8 @@ VOID CommandDetachHelp();
 
 VOID CommandTHelp();
 
+VOID CommandIHelp();
+
 VOID CommandPrintHelp();
 
 VOID CommandOutputHelp();

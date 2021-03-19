@@ -85,10 +85,11 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
 
       KdSendStepPacketToDebuggee(RequestFormat);
 
-      //
-      // Show registers
-      //
       if (!SplittedCommand.at(0).compare("pr")) {
+
+        //
+        // Show registers
+        //
       }
     }
 

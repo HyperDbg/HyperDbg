@@ -153,6 +153,7 @@
     <ClCompile Include="gaussian-rng.cpp" />
     <ClCompile Include="help.cpp" />
     <ClCompile Include="hide.cpp" />
+    <ClCompile Include="i.cpp" />
     <ClCompile Include="interrupt.cpp" />
     <ClCompile Include="ioin.cpp" />
     <ClCompile Include="ioout.cpp" />
