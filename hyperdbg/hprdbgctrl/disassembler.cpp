@@ -673,3 +673,126 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
     return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
   }
 }
+
+/**
+ * @brief Check whether the current instructio is a 'call' or not
+ *
+ * @param BufferToDisassemble Current Bytes of assembly
+ * @param BuffLength Length of buffer
+ * @param Isx86_64 Whether it's an x86 or x64
+ * @param Length of call (if return value is TRUE)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+    unsigned char *BufferToDisassemble, UINT64 BuffLength, BOOLEAN Isx86_64,
+    PUINT32 CallLength) {
+
+  ZydisDecoder decoder;
+  ZydisFormatter formatter;
+  UINT64 CurrentRip = 0;
+  int instr_decoded = 0;
+  ZydisDecodedInstruction instruction;
+  char buffer[256];
+  char bufferOfMnemonic[20] = {0};
+  UINT32 MaximumInstrDecoded = 1;
+  UINT32 MnemonicCountOfByte = 0xffffffff;
+
+  //
+  // Default length
+  //
+  *CallLength = 0;
+
+  if (ZydisGetVersion() != ZYDIS_VERSION) {
+    ShowMessages("Invalid zydis version\n");
+    return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+  }
+
+  if (Isx86_64) {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64,
+                     ZYDIS_ADDRESS_WIDTH_64);
+  } else {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+                     ZYDIS_ADDRESS_WIDTH_32);
+  }
+
+  ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SEGMENT,
+                            ZYAN_TRUE);
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SIZE,
+                            ZYAN_TRUE);
+
+  //
+  // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that
+  // formats the absolute addresses
+  //
+  default_print_address_absolute =
+      (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+  ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS,
+                        (const void **)&default_print_address_absolute);
+
+  while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble,
+                                               BuffLength, &instruction))) {
+
+    //
+    // We have to pass a `runtime_address` different to
+    // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+    //
+
+    ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0],
+                                    sizeof(buffer), (ZyanU64)CurrentRip);
+
+    //
+    // Find the first space location to extract mnemonic
+    //
+    for (size_t i = 0; i < sizeof(buffer); i++) {
+
+      if (buffer[i] == ' ') {
+        MnemonicCountOfByte = i;
+        break;
+      }
+    }
+
+    if (MnemonicCountOfByte == 0xffffffff ||
+        sizeof(bufferOfMnemonic) - 1 < MnemonicCountOfByte) {
+      //
+      // There was an error
+      //
+      return FALSE;
+    }
+
+    //
+    // Get the mnemonic
+    //
+    memcpy(&bufferOfMnemonic[0], &buffer[0], MnemonicCountOfByte);
+
+    /*
+    ShowMessages("Instruction mnemonic is : %s\n", bufferOfMnemonic);
+    */
+
+    if (strcmp(bufferOfMnemonic, "call") == 0) {
+
+      //
+      // It's a call
+      //
+
+      //
+      // Log call
+      //
+      // ShowMessages("Call length : %d\n", instruction.length);
+
+      //
+      // Set the length
+      //
+      *CallLength = instruction.length;
+      return TRUE;
+    } else {
+      //
+      // It's not call
+      //
+      return FALSE;
+    }
+  }
+}

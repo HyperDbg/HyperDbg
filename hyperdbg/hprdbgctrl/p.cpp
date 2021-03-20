@@ -80,8 +80,9 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
       //
       // For logging purpose
       //
-      /* ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
-         (float)StepCount), i); */
+      // ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
+      //   (float)StepCount), i);
+      //
 
       KdSendStepPacketToDebuggee(RequestFormat);
 

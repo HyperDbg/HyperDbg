@@ -19,6 +19,7 @@ extern HANDLE g_SerialRemoteComPortHandle;
 extern HANDLE g_DebuggeeStopCommandEventHandle;
 extern HANDLE
     g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
+extern BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
@@ -317,24 +318,24 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes) {
 BOOLEAN
 KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem) {
 
-    //
-    // Send d command as read memory packet
-    //
-    if (!KdCommandPacketAndBufferToDebuggee(
-        DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
-        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY,
-        (CHAR*)ReadMem, sizeof(DEBUGGER_READ_MEMORY))) {
-        return FALSE;
-    }
+  //
+  // Send d command as read memory packet
+  //
+  if (!KdCommandPacketAndBufferToDebuggee(
+          DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+          DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY,
+          (CHAR *)ReadMem, sizeof(DEBUGGER_READ_MEMORY))) {
+    return FALSE;
+  }
 
-    //
-    // Wait until the result of read registers received
-    //
-    WaitForSingleObject(g_SyncronizationObjectsHandleTable
-        [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY],
-        INFINITE);
+  //
+  // Wait until the result of read registers received
+  //
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY],
+                      INFINITE);
 
-    return TRUE;
+  return TRUE;
 }
 
 /**
@@ -701,11 +702,32 @@ BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType) {
 
   DEBUGGEE_STEP_PACKET StepPacket = {0};
+  UINT32 CallInstructionSize;
 
   //
   // Set the type of step packet
   //
   StepPacket.StepType = StepRequestType;
+
+  //
+  // Check if it's a step-over
+  //
+  if (StepRequestType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER) {
+
+    //
+    // We should check whether the current instruction is a 'call'
+    // instruction or not, if yes we have to compute the length of call
+    //
+    if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+            g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE, TRUE,
+            &CallInstructionSize)) {
+      //
+      // It's a call in step-over
+      //
+      StepPacket.IsCurrentInstructionACall = TRUE;
+      StepPacket.CallLength = CallInstructionSize;
+    }
+  }
 
   //
   // Send step packet to the serial

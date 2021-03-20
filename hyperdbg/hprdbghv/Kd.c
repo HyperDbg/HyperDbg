@@ -1377,7 +1377,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Indicate a step
                     //
-                    KdRegularStepInInstruction(CurrentCore);
+                    KdRegularStepInInstruction();
 
                     //
                     // Unlock other cores
@@ -1395,10 +1395,37 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     // Step over (p command)
                     //
 
+                    if (SteppingPacket->IsCurrentInstructionACall)
+                    {
+                        //
+                        // It's a call, we should put a hardware debug register breakpoint
+                        // on the next instruction
+                        //
+                        LogInfo("Next instruction is at : %llx\n",
+                                g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength);
+
+                        SteppingsSetDebugRegister(0,
+                                                  BREAK_ON_INSTRUCTION_FETCH,
+                                                  TRUE,
+                                                  g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength);
+                    }
+                    else
+                    {
+                        //
+                        // Any instruction other than call (regular step)
+                        //
+                        KdRegularStepInInstruction();
+                    }
+
                     //
-                    // To be implemented
+                    // Unlock other cores
                     //
-                    DbgBreakPoint();
+                    KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+
+                    //
+                    // Continue to the debuggee
+                    //
+                    EscapeFromTheLoop = TRUE;
                 }
 
                 break;
