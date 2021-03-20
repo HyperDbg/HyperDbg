@@ -104,6 +104,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
     UINT16                                InstructionLengthHint;
     PGUEST_REGS                           GuestRegs;
+    UINT64                                HardwareDebugRegisterForStepping;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

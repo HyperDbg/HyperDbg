@@ -439,6 +439,32 @@ KdRecvBuffer(CHAR *   BufferToSave,
 }
 
 /**
+ * @brief before continue any core, all the tasks will be applied to all
+ * cores including the main core
+ * @details these tasks will be applied in vmx-root
+ * 
+ * @param CurrentCore
+ * 
+ * @return VOID 
+ */
+VOID
+KdApplyTasksPostContinueCore(UINT32 CurrentCore)
+{
+    //
+    // Check to apply hardware debug register breakpoints for step-over
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping != NULL)
+    {
+        SteppingsSetDebugRegister(0,
+                                  BREAK_ON_INSTRUCTION_FETCH,
+                                  TRUE,
+                                  g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
+
+        g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
+    }
+}
+
+/**
  * @brief continue the debuggee, this function gurantees that all other cores
  * are continued (except current core)
  * @param CurrentCore
@@ -482,6 +508,11 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
     }
 
     //
+    // Apply the basic task for the core before continue
+    //
+    KdApplyTasksPostContinueCore(CurrentCore);
+
+    //
     // Unlock all the cores
     //
     for (size_t i = 0; i < CoreCount; i++)
@@ -503,6 +534,11 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
     // to other cores if this field is set
     //
     g_GuestState[CurrentCore].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = TRUE;
+
+    //
+    // Apply the basic task for the core before continue
+    //
+    KdApplyTasksPostContinueCore(CurrentCore);
 
     //
     // Unlock the current core
@@ -1274,7 +1310,9 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
-    UINT32                                              SizeToSend       = 0;
+    UINT64                                              NextAddressForHardwareDebugBp = 0;
+    UINT32                                              SizeToSend                    = 0;
+    ULONG                                               CoreCount;
     BOOLEAN                                             UnlockTheNewCore = FALSE;
     size_t                                              ReturnSize       = 0;
 
@@ -1401,13 +1439,14 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                         // It's a call, we should put a hardware debug register breakpoint
                         // on the next instruction
                         //
-                        LogInfo("Next instruction is at : %llx\n",
-                                g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength);
+                        NextAddressForHardwareDebugBp = g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength;
 
-                        SteppingsSetDebugRegister(0,
-                                                  BREAK_ON_INSTRUCTION_FETCH,
-                                                  TRUE,
-                                                  g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength);
+                        CoreCount = KeQueryActiveProcessorCount(0);
+
+                        for (size_t i = 0; i < CoreCount; i++)
+                        {
+                            g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
+                        }
                     }
                     else
                     {
@@ -1959,6 +1998,11 @@ StartAgain:
 
             goto StartAgain;
         }
+
+        //
+        // Apply the basic task for the core before continue
+        //
+        KdApplyTasksPostContinueCore(CurrentCore);
 
         SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
     }
