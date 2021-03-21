@@ -176,7 +176,7 @@ BOOLEAN g_RtmSupport;
  * trap step or not
  * 
  */
-BOOLEAN g_WaitForAnStepTrap;
+BOOLEAN g_WaitForStepTrap;
 
 /**
  * @brief Holds the requests to pause the break of debuggee until

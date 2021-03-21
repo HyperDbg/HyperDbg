@@ -24,6 +24,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
 {
     ULONG                            ErrorCode     = 0;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    RFLAGS                           Rflags        = {0};
     BOOLEAN                          AvoidUnsetMtf;
 
     //
@@ -112,7 +113,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
 
-        if (g_WaitForAnStepTrap)
+        if (g_WaitForStepTrap)
         {
             //
             // *** Handle a regular step
@@ -121,7 +122,21 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             //
             // Unset to show that we're no longer looking for a trap
             //
-            g_WaitForAnStepTrap = FALSE;
+            g_WaitForStepTrap = FALSE;
+
+            //
+            // Check if we should disable RFLAGS.TF in this core or not
+            //
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue)
+            {
+                __vmx_vmread(GUEST_RFLAGS, &Rflags);
+
+                Rflags.TrapFlag = FALSE;
+
+                __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+
+                g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue = FALSE;
+            }
 
             //
             // Check and handle if there is a software defined breakpoint
