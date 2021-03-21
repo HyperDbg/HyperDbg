@@ -439,6 +439,120 @@ KdRecvBuffer(CHAR *   BufferToSave,
 }
 
 /**
+ * @brief Handles debug events when kernel-debugger is attached
+ * 
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ * 
+ * @return VOID 
+ */
+VOID
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag    = {0};
+    RFLAGS                           Rflags           = {0};
+    BOOLEAN                          IgnoreDebugEvent = FALSE;
+    BOOLEAN                          AvoidUnsetMtf;
+
+    //
+    // It's a breakpoint and should be handled by the kernel debugger
+    //
+    ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+
+    if (g_WaitForStepTrap)
+    {
+        //
+        // *** Handle a regular step
+        //
+
+        //
+        // Unset to show that we're no longer looking for a trap
+        //
+        g_WaitForStepTrap = FALSE;
+
+        //
+        // Check if we should disable RFLAGS.TF in this core or not
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue)
+        {
+            __vmx_vmread(GUEST_RFLAGS, &Rflags);
+
+            Rflags.TrapFlag = FALSE;
+
+            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+
+            g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue = FALSE;
+        }
+
+        //
+        // Check and handle if there is a software defined breakpoint
+        //
+        if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
+                                                                g_GuestState[CurrentProcessorIndex].LastVmexitRip,
+                                                                DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                                GuestRegs,
+                                                                &AvoidUnsetMtf))
+        {
+            if (g_HardwareDebugRegisterDetailsForStepOver.Address != NULL)
+            {
+                //
+                // Check if it's caused by a step-over hardware debug breakpoint or not
+                //
+                if (g_GuestState[CurrentProcessorIndex].LastVmexitRip == g_HardwareDebugRegisterDetailsForStepOver.Address)
+                {
+                    if (g_HardwareDebugRegisterDetailsForStepOver.ProcessId == PsGetCurrentProcessId() &&
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId == PsGetCurrentThreadId())
+                    {
+                        //
+                        // It's a step caused by a debug register breakpoint step-over
+                        //
+                        RtlZeroMemory(&g_HardwareDebugRegisterDetailsForStepOver, sizeof(HARDWARE_DEBUG_REGISTER_DETAILS));
+                    }
+                    else
+                    {
+                        //
+                        // Should be ignored because it's a hardware debug register that is
+                        // likely triggered by other thread
+                        //
+                        IgnoreDebugEvent = TRUE;
+
+                        //
+                        // Also, we should re-apply the hardware debug breakpoint on this thread
+                        //
+                        SteppingsSetDebugRegister(0,
+                                                  BREAK_ON_INSTRUCTION_FETCH,
+                                                  FALSE,
+                                                  g_HardwareDebugRegisterDetailsForStepOver.Address);
+                    }
+                }
+            }
+
+            if (!IgnoreDebugEvent)
+            {
+                //
+                // Handle a regular step
+                //
+                ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                      GuestRegs,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                      &ContextAndTag);
+            }
+        }
+    }
+    else
+    {
+        //
+        // It's a regular breakpoint
+        //
+        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                              GuestRegs,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
+                                              &ContextAndTag);
+    }
+}
+
+/**
  * @brief before halting any core, all the tasks will be applied to all
  * cores including the main core
  * @details these tasks will be applied in vmx-root
@@ -1456,6 +1570,17 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                         CoreCount = KeQueryActiveProcessorCount(0);
 
+                        //
+                        // Store the detail of the hardware debug register to avoid trigger
+                        // in other processes
+                        //
+                        g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
+                        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = PsGetCurrentProcessId();
+                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = PsGetCurrentThreadId();
+
+                        //
+                        // Add hardware debug breakpoints on all core on vm-entry
+                        //
                         for (size_t i = 0; i < CoreCount; i++)
                         {
                             g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;

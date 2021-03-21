@@ -184,3 +184,9 @@ BOOLEAN g_WaitForStepTrap;
  * 
  */
 DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
+
+/**
+ * @brief Holds the state of hardware debug register for step-over
+ * 
+ */
+HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
