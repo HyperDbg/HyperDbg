@@ -1,10 +1,10 @@
 /**
- * @file p.cpp
+ * @file i.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief p command
+ * @brief i command
  * @details
  * @version 0.1
- * @date 2020-12-29
+ * @date 2021-03-19
  *
  * @copyright This project is released under the GNU Public License v3.
  *
@@ -17,28 +17,32 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of p command
+ * @brief help of i command
  *
  * @return VOID
  */
-VOID CommandPHelp() {
+VOID CommandIHelp() {
   ShowMessages(
-      "p : executes a single instruction (step) and optionally displays the "
-      "resulting values of all registers and flags.\n\n");
-  ShowMessages("syntax : \tp[r] [count]\n");
-  ShowMessages("\t\te.g : p\n");
-  ShowMessages("\t\te.g : pr\n");
-  ShowMessages("\t\te.g : pr 1f\n");
+      "i : executes a single instruction (step-in) and guarantees that no "
+      "other instruction is executed other than the displayed instruction "
+      "including user to the kernel (syscalls) and kernel to the user "
+      "(sysrets) and exceptions and page-faults and optionally displays all "
+      "registers and flags' resulting values.\n\n");
+
+  ShowMessages("syntax : \ti[r] [count]\n");
+  ShowMessages("\t\te.g : i\n");
+  ShowMessages("\t\te.g : ir\n");
+  ShowMessages("\t\te.g : ir 1f\n");
 }
 
 /**
- * @brief handler of p command
+ * @brief handler of i command
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
-VOID CommandP(vector<string> SplittedCommand, string Command) {
+VOID CommandI(vector<string> SplittedCommand, string Command) {
 
   UINT32 StepCount;
   DEBUGGER_REMOTE_STEPPING_REQUEST RequestFormat;
@@ -47,15 +51,15 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
   // Validate the commands
   //
   if (SplittedCommand.size() != 1 && SplittedCommand.size() != 2) {
-    ShowMessages("incorrect use of 'p'\n\n");
-    CommandPHelp();
+    ShowMessages("incorrect use of 'i'\n\n");
+    CommandIHelp();
     return;
   }
 
   //
-  // Set type of request
+  // Set type of step
   //
-  RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER;
+  RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED;
 
   //
   // Check if the command has a counter parameter
@@ -63,7 +67,7 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
   if (SplittedCommand.size() == 2) {
     if (!ConvertStringToUInt32(SplittedCommand.at(1), &StepCount)) {
       ShowMessages("please specify a correct hex value for [count]\n\n");
-      CommandPHelp();
+      CommandIHelp();
       return;
     }
   } else {
@@ -76,17 +80,9 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
   if (g_IsSerialConnectedToRemoteDebuggee) {
 
     for (size_t i = 0; i < StepCount; i++) {
-
-      //
-      // For logging purpose
-      //
-      // ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
-      //   (float)StepCount), i);
-      //
-
       KdSendStepPacketToDebuggee(RequestFormat);
 
-      if (!SplittedCommand.at(0).compare("pr")) {
+      if (!SplittedCommand.at(0).compare("ir")) {
 
         //
         // Show registers
@@ -99,7 +95,7 @@ VOID CommandP(vector<string> SplittedCommand, string Command) {
     }
 
   } else {
-    ShowMessages("err, stepping (p) is not valid in the current context, you "
+    ShowMessages("err, stepping (t) is not valid in the current context, you "
                  "should connect to a debuggee\n");
   }
 }

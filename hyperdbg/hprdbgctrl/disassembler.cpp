@@ -343,9 +343,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
   int instr_decoded = 0;
   ZydisDecodedInstruction instruction;
   char buffer[256];
-  char bufferOfMnemonic[20] = {0};
   UINT32 MaximumInstrDecoded = 1;
-  UINT32 MnemonicCountOfByte = 0xffffffff;
 
   if (ZydisGetVersion() != ZYDIS_VERSION) {
     ShowMessages("Invalid zydis version\n");
@@ -387,55 +385,33 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
     ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0],
                                     sizeof(buffer), (ZyanU64)CurrentRip);
 
-    //
-    // Find the first space location to extract mnemonic
-    //
-    for (size_t i = 0; i < sizeof(buffer); i++) {
+    switch (instruction.mnemonic) {
 
-      if (buffer[i] == ' ') {
-        MnemonicCountOfByte = i;
-        break;
-      }
-    }
-
-    if (MnemonicCountOfByte == 0xffffffff ||
-        sizeof(bufferOfMnemonic) - 1 < MnemonicCountOfByte) {
-      //
-      // There was an error
-      //
-      return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
-    }
-
-    //
-    // Get the mnemonic
-    //
-    memcpy(&bufferOfMnemonic[0], &buffer[0], MnemonicCountOfByte);
-
-    /*
-    ShowMessages("Instruction mnemonic is : %s\n", bufferOfMnemonic);
-    */
-
-    if (strcmp(bufferOfMnemonic, "jo") == 0) {
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JO:
 
       //
-      // Jump if overflow
+      // Jump if overflow (jo)
       //
       if (Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jno") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNO:
 
       //
-      // Jump if not overflow
+      // Jump if not overflow (jno)
       //
       if (!Rflags.OverflowFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "js") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JS:
 
       //
       // Jump if sign
@@ -445,7 +421,9 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jns") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNS:
 
       //
       // Jump if not sign
@@ -455,38 +433,40 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "je") == 0 ||
-               strcmp(bufferOfMnemonic, "jz") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JZ:
 
       //
-      // Jump if equal,
-      // Jump if zero
+      // Jump if equal (je),
+      // Jump if zero (jz)
       //
       if (Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jne") == 0 ||
-               strcmp(bufferOfMnemonic, "jnz") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNZ:
 
       //
-      // Jump if not equal,
-      // Jump if not zero
+      // Jump if not equal (jne),
+      // Jump if not zero (jnz)
       //
       if (!Rflags.ZeroFlag)
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_TAKEN;
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jb") == 0 ||
-               strcmp(bufferOfMnemonic, "jnae") == 0 ||
-               strcmp(bufferOfMnemonic, "jc") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JB:
 
       //
-      // Jump if below,
-      // Jump if not above or equal,
-      // Jump if carry
+      // Jump if below (jb),
+      // Jump if not above or equal (jnae),
+      // Jump if carry (jc)
       //
 
       //
@@ -498,14 +478,14 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jnb") == 0 ||
-               strcmp(bufferOfMnemonic, "jae") == 0 ||
-               strcmp(bufferOfMnemonic, "jnc") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNB:
 
       //
-      // Jump if not below,
-      // Jump if above or equal,
-      // Jump if not carry
+      // Jump if not below (jnb),
+      // Jump if above or equal (jae),
+      // Jump if not carry (jnc)
       //
 
       //
@@ -517,12 +497,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jbe") == 0 ||
-               strcmp(bufferOfMnemonic, "jna") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JBE:
 
       //
-      // Jump if below or equal,
-      // Jump if not above
+      // Jump if below or equal (jbe),
+      // Jump if not above (jna)
       //
 
       //
@@ -534,12 +515,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "ja") == 0 ||
-               strcmp(bufferOfMnemonic, "jnbe") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNBE:
 
       //
-      // Jump if above,
-      // Jump if not below or equal
+      // Jump if above (ja),
+      // Jump if not below or equal (jnbe)
       //
 
       //
@@ -551,12 +533,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jl") == 0 ||
-               strcmp(bufferOfMnemonic, "jnge") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JL:
 
       //
-      // Jump if less,
-      // Jump if not greater or equal
+      // Jump if less (jl),
+      // Jump if not greater or equal (jnge)
       //
 
       //
@@ -568,12 +551,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jge") == 0 ||
-               strcmp(bufferOfMnemonic, "jnl") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNL:
 
       //
-      // Jump if greater or equal
-      // Jump if not less
+      // Jump if greater or equal (jge),
+      // Jump if not less (jnl)
       //
 
       //
@@ -585,12 +569,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jle") == 0 ||
-               strcmp(bufferOfMnemonic, "jng") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JLE:
 
       //
-      // Jump if less or equal,
-      // Jump if not greater
+      // Jump if less or equal (jle),
+      // Jump if not greater (jng)
       //
 
       //
@@ -602,12 +587,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jg") == 0 ||
-               strcmp(bufferOfMnemonic, "jnle") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNLE:
 
       //
-      // Jump if greater
-      // Jump if not less or equal
+      // Jump if greater (jg),
+      // Jump if not less or equal (jnle)
       //
 
       //
@@ -619,12 +605,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jp") == 0 ||
-               strcmp(bufferOfMnemonic, "jpe") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JP:
 
       //
-      // Jump if parity
-      // Jump if parity even
+      // Jump if parity (jp),
+      // Jump if parity even (jpe)
       //
 
       if (Rflags.ParityFlag)
@@ -632,12 +619,13 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jnp") == 0 ||
-               strcmp(bufferOfMnemonic, "jpo") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JNP:
 
       //
-      // Jump if not parity
-      // Jump if parity odd
+      // Jump if not parity (jnp),
+      // Jump if parity odd (jpo)
       //
 
       if (!Rflags.ParityFlag)
@@ -645,12 +633,14 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       else
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_JUMP_IS_NOT_TAKEN;
 
-    } else if (strcmp(bufferOfMnemonic, "jcxz") == 0 ||
-               strcmp(bufferOfMnemonic, "jecxz") == 0) {
+      break;
+
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JCXZ:
+    case ZydisMnemonic::ZYDIS_MNEMONIC_JECXZ:
 
       //
-      // Jump if %CX register is 0
-      // Jump if% ECX register is 0
+      // Jump if %CX register is 0 (jcxz),
+      // Jump if% ECX register is 0 (jecxz)
       //
 
       //
@@ -662,14 +652,110 @@ HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
       //
       return DEBUGGER_CONDITIONAL_JUMP_STATUS_NOT_CONDITIONAL_JUMP;
 
-    } else {
+    default:
 
       //
       // It's not a jump
       //
       return DEBUGGER_CONDITIONAL_JUMP_STATUS_NOT_CONDITIONAL_JUMP;
+      break;
     }
 
     return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+  }
+}
+
+/**
+ * @brief Check whether the current instructio is a 'call' or not
+ *
+ * @param BufferToDisassemble Current Bytes of assembly
+ * @param BuffLength Length of buffer
+ * @param Isx86_64 Whether it's an x86 or x64
+ * @param Length of call (if return value is TRUE)
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+    unsigned char *BufferToDisassemble, UINT64 BuffLength, BOOLEAN Isx86_64,
+    PUINT32 CallLength) {
+
+  ZydisDecoder decoder;
+  ZydisFormatter formatter;
+  UINT64 CurrentRip = 0;
+  int instr_decoded = 0;
+  ZydisDecodedInstruction instruction;
+  char buffer[256];
+  UINT32 MaximumInstrDecoded = 1;
+
+  //
+  // Default length
+  //
+  *CallLength = 0;
+
+  if (ZydisGetVersion() != ZYDIS_VERSION) {
+    ShowMessages("Invalid zydis version\n");
+    return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
+  }
+
+  if (Isx86_64) {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64,
+                     ZYDIS_ADDRESS_WIDTH_64);
+  } else {
+    ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32,
+                     ZYDIS_ADDRESS_WIDTH_32);
+  }
+
+  ZydisFormatterInit(&formatter, ZYDIS_FORMATTER_STYLE_INTEL);
+
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SEGMENT,
+                            ZYAN_TRUE);
+  ZydisFormatterSetProperty(&formatter, ZYDIS_FORMATTER_PROP_FORCE_SIZE,
+                            ZYAN_TRUE);
+
+  //
+  // Replace the `ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS` function that
+  // formats the absolute addresses
+  //
+  default_print_address_absolute =
+      (ZydisFormatterFunc)&ZydisFormatterPrintAddressAbsolute;
+  ZydisFormatterSetHook(&formatter, ZYDIS_FORMATTER_FUNC_PRINT_ADDRESS_ABS,
+                        (const void **)&default_print_address_absolute);
+
+  while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, BufferToDisassemble,
+                                               BuffLength, &instruction))) {
+
+    //
+    // We have to pass a `runtime_address` different to
+    // `ZYDIS_RUNTIME_ADDRESS_NONE` to enable printing of absolute addresses
+    //
+
+    ZydisFormatterFormatInstruction(&formatter, &instruction, &buffer[0],
+                                    sizeof(buffer), (ZyanU64)CurrentRip);
+
+    if (instruction.mnemonic == ZydisMnemonic::ZYDIS_MNEMONIC_CALL) {
+
+      //
+      // It's a call
+      //
+
+      //
+      // Log call
+      //
+      // ShowMessages("Call length : %d\n", instruction.length);
+
+      //
+      // Set the length
+      //
+      *CallLength = instruction.length;
+
+      return TRUE;
+
+    } else {
+      //
+      // It's not call
+      //
+      return FALSE;
+    }
   }
 }

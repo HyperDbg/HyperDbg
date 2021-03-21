@@ -362,6 +362,9 @@
     <ClCompile Include="bl.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
+    <ClCompile Include="i.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

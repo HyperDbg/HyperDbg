@@ -43,18 +43,17 @@ int HyperDbgDisassembler64(unsigned char *BufferToDisassemble,
                            UINT32 MaximumInstrDecoded,
                            BOOLEAN ShowBranchIsTakenOrNot, PRFLAGS Rflags);
 
-void ShowMemoryCommandDB(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
-    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+void ShowMemoryCommandDB(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void ShowMemoryCommandDD(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
-    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void ShowMemoryCommandDC(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
-    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
+void ShowMemoryCommandDC(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
-void ShowMemoryCommandDQ(unsigned char* OutputBuffer, UINT Size, UINT64 Address,
-    DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
-
+void ShowMemoryCommandDQ(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
 DEBUGGER_CONDITIONAL_JUMP_STATUS
 HyperDbgIsConditionalJumpTaken(unsigned char *BufferToDisassemble,
@@ -65,6 +64,11 @@ int HyperDbgDisassembler32(unsigned char *BufferToDisassemble,
                            UINT64 BaseAddress, UINT64 Size,
                            UINT32 MaximumInstrDecoded,
                            BOOLEAN ShowBranchIsTakenOrNot, PRFLAGS Rflags);
+
+BOOLEAN
+HyperDbgCheckWhetherTheCurrentInstructionIsCall(
+    unsigned char *BufferToDisassemble, UINT64 BuffLength, BOOLEAN Isx86_64,
+    PUINT32 CallLength);
 
 VOID HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                                       UINT64 Address,
@@ -267,6 +271,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_T_ATTRIBUTES                                          \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_I_ATTRIBUTES                                          \
+  DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES                                    \
   DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
@@ -399,6 +406,8 @@ VOID CommandAttach(vector<string> SplittedCommand, string Command);
 VOID CommandDetach(vector<string> SplittedCommand, string Command);
 
 VOID CommandT(vector<string> SplittedCommand, string Command);
+
+VOID CommandI(vector<string> SplittedCommand, string Command);
 
 VOID CommandPrint(vector<string> SplittedCommand, string Command);
 

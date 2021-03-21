@@ -114,6 +114,12 @@ HANDLE g_SyncronizationObjectsHandleTable
     [DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS] = {0};
 
 /**
+ * @brief Current executing instructions
+ *
+ */
+BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE] = {0};
+
+/**
  * @brief In debuggee and debugger, we save the handle
  * of the user-mode listening thread for pauses here
  *

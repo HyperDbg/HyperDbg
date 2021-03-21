@@ -1280,6 +1280,13 @@ typedef struct _DEBUGGEE_STEP_PACKET {
 
   DEBUGGER_REMOTE_STEPPING_REQUEST StepType;
 
+  //
+  // Only in the case of call instructions
+  // the 'p' command
+  //
+  BOOLEAN IsCurrentInstructionACall;
+  UINT32 CallLength;
+
 } DEBUGGEE_STEP_PACKET, *PDEBUGGEE_STEP_PACKET;
 
 /**

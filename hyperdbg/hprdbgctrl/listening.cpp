@@ -17,6 +17,7 @@
 //
 extern HANDLE
     g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
+extern BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED g_OverlappedIoStructureForWriteDebugger;
 extern HANDLE g_SerialRemoteComPortHandle;
@@ -175,6 +176,13 @@ StartAgain:
       // Set the current core
       //
       g_CurrentRemoteCore = PausePacket->CurrentCore;
+
+      //
+      // Save the current operating instruction
+      //
+      RtlZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
+      memcpy(g_CurrentRunningInstruction, &PausePacket->InstructionBytesOnRip,
+             MAXIMUM_INSTR_SIZE);
 
       //
       // Check whether the pausing was because of triggering an event
