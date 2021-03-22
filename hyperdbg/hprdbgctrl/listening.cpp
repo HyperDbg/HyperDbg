@@ -688,8 +688,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of reading registers
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY]
+                       .EventHandle);
 
       break;
 
