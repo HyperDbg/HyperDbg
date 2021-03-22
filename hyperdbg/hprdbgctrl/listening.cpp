@@ -235,10 +235,11 @@ StartAgain:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED:
 
                 //
                 // Unpause the debugger to get commands
-                //
+                //s
                 g_SyncronizationObjectsHandleTable
                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                         .IsOnWaitingState = FALSE;

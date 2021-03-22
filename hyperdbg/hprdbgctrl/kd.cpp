@@ -874,9 +874,16 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
     }
 
     //
-    // Handle the paused state (show rip, instructions, etc.)
+    // Wait until the result of user-input received
     //
-    KdInterpretPausedDebuggee();
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+            .IsOnWaitingState = TRUE;
+    WaitForSingleObject(
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                .EventHandle,
+        INFINITE);
 
     return TRUE;
 }
