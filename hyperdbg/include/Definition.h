@@ -1250,7 +1250,11 @@ typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS
  */
 typedef struct _DEBUGGEE_PAUSED_PACKET
 {
-    UINT64                  Rip;
+    UINT64 Rip;
+    //
+    // if true shows that the address should be interpreted in 32-bit mode
+    //
+    BOOLEAN                 Is32BitAddress;
     DEBUGGEE_PAUSING_REASON PausingReason;
     ULONG                   CurrentCore;
     UINT64                  EventTag;

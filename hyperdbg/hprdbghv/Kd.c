@@ -2009,6 +2009,54 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 }
 
 /**
+ * @brief determines if the guest was in 32-bit user-mode or 64-bit (long mode) 
+ * @details this function should be called from vmx-root
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdIsGuestOnUsermode32Bit()
+{
+    UINT16 CsSel;
+
+    //
+    // Read guest's cs selector
+    //
+    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+
+    if (CsSel == KGDT64_R0_CODE)
+    {
+        //
+        // 64-bit kernel-mode
+        //
+        return FALSE;
+    }
+    else if ((CsSel & ~3) == KGDT64_R3_CODE)
+    {
+        //
+        // 64-bit user-mode
+        //
+        return FALSE;
+    }
+    else if ((CsSel & ~3) == KGDT64_R3_CMCODE)
+    {
+        //
+        // 32-bit user-mode
+        //
+        return TRUE;
+    }
+    else
+    {
+        LogError("unknown value for cs, cannot determine wow64 mode.");
+    }
+
+    //
+    // By default, 64-bit
+    //
+    return FALSE;
+}
+
+/**
  * @brief manage system halt on vmx-root mode 
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
  * @param CurrentCore  
@@ -2062,9 +2110,10 @@ StartAgain:
         PausePacket.CurrentCore = CurrentCore;
 
         //
-        // Set the RIP
+        // Set the RIP and mode of execution
         //
-        PausePacket.Rip = g_GuestState[CurrentCore].LastVmexitRip;
+        PausePacket.Rip            = g_GuestState[CurrentCore].LastVmexitRip;
+        PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
 
         //
         // Set rflags for finding the results of conditional jumps

@@ -25,6 +25,7 @@ extern BOOLEAN                              g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN                              g_IsDebuggeeRunning;
 extern BOOLEAN                              g_IgnoreNewLoggingMessages;
 extern BOOLEAN                              g_SharedEventStatus;
+extern BOOLEAN                              g_IsRunningInstruction32Bit;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
@@ -189,10 +190,12 @@ StartAgain:
             g_CurrentRemoteCore = PausePacket->CurrentCore;
 
             //
-            // Save the current operating instruction
+            // Save the current operating instruction and operating mode
             //
             RtlZeroMemory(g_CurrentRunningInstruction, MAXIMUM_INSTR_SIZE);
             memcpy(g_CurrentRunningInstruction, &PausePacket->InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
+
+            g_IsRunningInstruction32Bit = PausePacket->Is32BitAddress;
 
             //
             // Check whether the pausing was because of triggering an event
@@ -221,12 +224,24 @@ StartAgain:
             if (PausePacket->PausingReason !=
                 DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
             {
-                HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
-                                       PausePacket->Rip,
-                                       MAXIMUM_INSTR_SIZE,
-                                       1,
-                                       TRUE,
-                                       &PausePacket->Rflags);
+                if (!PausePacket->Is32BitAddress)
+                {
+                    HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                                           PausePacket->Rip,
+                                           MAXIMUM_INSTR_SIZE,
+                                           1,
+                                           TRUE,
+                                           &PausePacket->Rflags);
+                }
+                else
+                {
+                    HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
+                                           PausePacket->Rip,
+                                           MAXIMUM_INSTR_SIZE,
+                                           1,
+                                           TRUE,
+                                           &PausePacket->Rflags);
+                }
             }
 
             switch (PausePacket->PausingReason)
@@ -239,7 +254,7 @@ StartAgain:
 
                 //
                 // Unpause the debugger to get commands
-                //s
+                //
                 g_SyncronizationObjectsHandleTable
                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                         .IsOnWaitingState = FALSE;

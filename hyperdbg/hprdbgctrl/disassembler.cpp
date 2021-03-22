@@ -111,7 +111,14 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
  * @param rflags just used in the case show_of_branch_is_taken is true
  */
 VOID
-DisassembleBuffer(ZydisDecoder * decoder, ZyanU64 runtime_address, ZyanU8 * data, ZyanUSize length, uint32_t maximum_instr, BOOLEAN is_x86_64, BOOLEAN show_of_branch_is_taken, PRFLAGS rflags)
+DisassembleBuffer(ZydisDecoder * decoder,
+                  ZyanU64        runtime_address,
+                  ZyanU8 *       data,
+                  ZyanUSize      length,
+                  uint32_t       maximum_instr,
+                  BOOLEAN        is_x86_64,
+                  BOOLEAN        show_of_branch_is_taken,
+                  PRFLAGS        rflags)
 {
     ZydisFormatter formatter;
     int            instr_decoded = 0;
@@ -352,7 +359,7 @@ HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
     ZydisDecoder decoder;
     ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
 
-    DisassembleBuffer(&decoder, (UINT32)BaseAddress, &BufferToDisassemble[0], Size, MaximumInstrDecoded, TRUE, ShowBranchIsTakenOrNot, Rflags);
+    DisassembleBuffer(&decoder, (UINT32)BaseAddress, &BufferToDisassemble[0], Size, MaximumInstrDecoded, FALSE, ShowBranchIsTakenOrNot, Rflags);
 
     return 0;
 }

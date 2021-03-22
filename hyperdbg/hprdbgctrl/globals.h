@@ -123,6 +123,12 @@ DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_SyncronizationObjectsHandleTable
 BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE] = {0};
 
 /**
+ * @brief whether the Current executing instructions is 32-bit or 64 bit
+ *
+ */
+BOOLEAN g_IsRunningInstruction32Bit = FALSE;
+
+/**
  * @brief In debuggee and debugger, we save the handle
  * of the user-mode listening thread for pauses here
  *

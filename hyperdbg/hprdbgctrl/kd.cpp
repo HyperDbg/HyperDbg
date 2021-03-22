@@ -34,6 +34,7 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
+extern BOOLEAN g_IsRunningInstruction32Bit;
 extern BYTE    g_EndOfBufferCheck[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -850,7 +851,7 @@ KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType)
         if (HyperDbgCheckWhetherTheCurrentInstructionIsCall(
                 g_CurrentRunningInstruction,
                 MAXIMUM_INSTR_SIZE,
-                TRUE,
+                g_IsRunningInstruction32Bit ? FALSE : TRUE, // equals to !g_IsRunningInstruction32Bit
                 &CallInstructionSize))
         {
             //
