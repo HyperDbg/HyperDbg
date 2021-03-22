@@ -50,6 +50,7 @@ BOOLEAN ListeningSerialPortInDebugger() {
   PDEBUGGER_FLUSH_LOGGING_BUFFERS FlushPacket;
   PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterPacket;
   PDEBUGGER_READ_MEMORY ReadMemoryPacket;
+  PDEBUGGER_EDIT_MEMORY EditMemoryPacket;
   PDEBUGGEE_BP_PACKET BpPacket;
   PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpointPacket;
   PGUEST_REGS Regs;
@@ -665,6 +666,30 @@ StartAgain:
       SetEvent(g_SyncronizationObjectsHandleTable
                    [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]
                        .EventHandle);
+
+      break;
+
+    case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY:
+
+      EditMemoryPacket =
+          (DEBUGGER_EDIT_MEMORY *)(((CHAR *)TheActualPacket) +
+                                   sizeof(DEBUGGER_REMOTE_PACKET));
+
+      if (EditMemoryPacket->KernelStatus ==
+          DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+        //
+        // Show the result of reading memory like mem=0000000000018b01
+        //
+        ShowMessages("ok");
+      } else {
+        ShowErrorMessage(EditMemoryPacket->KernelStatus);
+      }
+
+      //
+      // Signal the event relating to receiving result of reading registers
+      //
+      SetEvent(g_SyncronizationObjectsHandleTable
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY]);
 
       break;
 

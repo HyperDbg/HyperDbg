@@ -1429,6 +1429,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
+    PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
@@ -1749,18 +1750,45 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 }
                 else
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_REGISTER_NUMBER;
+                    ReadMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
                 }
 
                 ReadMemoryPacket->ReturnLength = ReturnSize;
 
                 //
-                // Send the result of reading registers back to the debuggee
+                // Send the result of reading memory back to the debuggee
                 //
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY,
                                            (unsigned char *)ReadMemoryPacket,
                                            sizeof(DEBUGGER_READ_MEMORY) + ReturnSize);
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY:
+
+                EditMemoryPacket = (PDEBUGGER_EDIT_MEMORY)(((CHAR *)TheActualPacket) +
+                                                            sizeof(DEBUGGER_REMOTE_PACKET));
+                //
+                // Edit memory
+                //
+
+                if (DebuggerCommandEditMemory(EditMemoryPacket))
+                {
+                    EditMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    EditMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                }
+
+                //
+                // Send the result of reading memory back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY,
+                                           (unsigned char *)EditMemoryPacket,
+                                           sizeof(DEBUGGER_EDIT_MEMORY) + ReturnSize);
 
                 break;
 
