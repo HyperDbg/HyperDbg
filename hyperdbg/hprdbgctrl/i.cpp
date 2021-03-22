@@ -59,7 +59,7 @@ VOID CommandI(vector<string> SplittedCommand, string Command) {
   //
   // Set type of step
   //
-  RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_GUARANTEED;
+  RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_INSTRUMENT;
 
   //
   // Check if the command has a counter parameter

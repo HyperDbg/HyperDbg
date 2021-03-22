@@ -560,6 +560,7 @@ StartAgain:
 
       if (ReadMemoryPacket->KernelStatus ==
           DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+
         //
         // Show the result of reading memory like mem=0000000000018b01
         //
