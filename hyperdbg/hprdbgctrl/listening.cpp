@@ -15,7 +15,7 @@
 //
 // Global Variables
 //
-extern HANDLE
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
 extern BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern OVERLAPPED g_OverlappedIoStructureForReadDebugger;
@@ -136,8 +136,12 @@ StartAgain:
       //
       // Signal the event that the debugger started
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+                       .EventHandle);
 
       break;
 
@@ -223,8 +227,12 @@ StartAgain:
         //
         // Unpause the debugger to get commands
         //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                .IsOnWaitingState = FALSE;
         SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                         .EventHandle);
 
         break;
 
@@ -240,8 +248,12 @@ StartAgain:
         //
         // Signal the event relating to receiving result of core change
         //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+                .IsOnWaitingState = FALSE;
         SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+                         .EventHandle);
 
         break;
 
@@ -251,9 +263,13 @@ StartAgain:
         // Signal the event relating to result of command execution finished
         //
         ShowMessages("\n");
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
+                .IsOnWaitingState = FALSE;
         SetEvent(
             g_SyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]);
+                [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
+                    .EventHandle);
 
         break;
 
@@ -263,8 +279,12 @@ StartAgain:
         // Signal the event relating to commands that are waiting for
         // the details of a halted debuggeee
         //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                .IsOnWaitingState = FALSE;
         SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]);
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                         .EventHandle);
 
         break;
       }
@@ -288,8 +308,12 @@ StartAgain:
         //
         // Signal the event relating to receiving result of core change
         //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+                .IsOnWaitingState = FALSE;
         SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]);
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+                         .EventHandle);
       }
 
       break;
@@ -319,8 +343,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of process change
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+                       .EventHandle);
 
       break;
 
@@ -348,8 +376,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of flushing
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]
+                       .EventHandle);
 
       break;
 
@@ -372,15 +404,23 @@ StartAgain:
         //
         // Signal the event relating to receiving result of .formats command
         //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]
+                .IsOnWaitingState = FALSE;
         SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]);
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]
+                         .EventHandle);
       }
 
       //
       // Signal the event relating to receiving result of running script
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]
+                       .EventHandle);
 
       break;
 
@@ -420,8 +460,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of register event
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+                       .EventHandle);
 
       break;
 
@@ -441,8 +485,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of adding action to event
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+                       .EventHandle);
 
       break;
 
@@ -480,8 +528,12 @@ StartAgain:
       // Signal the event relating to receiving result of event query and
       // modification
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]
+                       .EventHandle);
 
       break;
 
@@ -548,8 +600,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of reading registers
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]
+                       .EventHandle);
 
       break;
     case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
@@ -603,8 +659,12 @@ StartAgain:
       //
       // Signal the event relating to receiving result of reading registers
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]
+                       .EventHandle);
 
       break;
 
@@ -626,8 +686,11 @@ StartAgain:
       //
       // Signal the event relating to receiving result of putting breakpoints
       //
-      SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_BP]);
+      g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_BP]
+          .IsOnWaitingState = FALSE;
+      SetEvent(
+          g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_BP]
+              .EventHandle);
 
       break;
 
@@ -652,8 +715,12 @@ StartAgain:
       // Signal the event relating to receiving result of modifying or listing
       // breakpoints
       //
+      g_SyncronizationObjectsHandleTable
+          [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]
+              .IsOnWaitingState = FALSE;
       SetEvent(g_SyncronizationObjectsHandleTable
-                   [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]);
+                   [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]
+                       .EventHandle);
 
       break;
 

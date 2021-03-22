@@ -17,7 +17,7 @@
 extern HANDLE g_SerialListeningThreadHandle;
 extern HANDLE g_SerialRemoteComPortHandle;
 extern HANDLE g_DebuggeeStopCommandEventHandle;
-extern HANDLE
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_SyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS];
 extern BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
@@ -129,9 +129,13 @@ VOID KdInterpretPausedDebuggee() {
   // Wait for handshake to complete or in other words
   // get the receive packet
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+              .EventHandle,
       INFINITE);
 }
 
@@ -194,10 +198,13 @@ BOOLEAN KdSendSwitchCorePacketToDebuggee(UINT32 NewCore) {
   //
   // Wait until the result of core change received
   //
-  WaitForSingleObject(
-      g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT],
-      INFINITE);
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+          .IsOnWaitingState = TRUE;
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT]
+                              .EventHandle,
+                      INFINITE);
 
   return TRUE;
 }
@@ -237,9 +244,13 @@ BOOLEAN KdSendEventQueryAndModifyPacketToDebuggee(
   //
   // Wait until the result of query and modify event is received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]
+              .EventHandle,
       INFINITE);
 
   if (TypeOfAction == DEBUGGER_MODIFY_EVENTS_QUERY_STATE) {
@@ -275,8 +286,12 @@ BOOLEAN KdSendFlushPacketToDebuggee() {
   //
   // Wait until the result of flushing received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]
+                              .EventHandle,
                       INFINITE);
 
   return TRUE;
@@ -303,8 +318,12 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes) {
   //
   // Wait until the result of read registers received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS]
+                              .EventHandle,
                       INFINITE);
 
   return TRUE;
@@ -331,8 +350,11 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem) {
   //
   // Wait until the result of read registers received
   //
+  g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]
+      .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY]
+                              .EventHandle,
                       INFINITE);
 
   return TRUE;
@@ -395,8 +417,12 @@ KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
   //
   // Wait until the result of registering received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+                              .EventHandle,
                       INFINITE);
 
   free(Header);
@@ -461,8 +487,12 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
   //
   // Wait until the result of adding action to event received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]
+                              .EventHandle,
                       INFINITE);
 
   free(Header);
@@ -502,9 +532,13 @@ BOOLEAN KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
   //
   // Wait until the result of process change received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+              .EventHandle,
       INFINITE);
 
   return TRUE;
@@ -531,8 +565,11 @@ BOOLEAN KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket) {
   //
   // Wait until the result of putting breakpoint is received
   //
+  g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_BP]
+      .IsOnWaitingState = TRUE;
   WaitForSingleObject(
-      g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_BP],
+      g_SyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_BP]
+          .EventHandle,
       INFINITE);
 
   return TRUE;
@@ -562,9 +599,13 @@ KdSendListOrModifyPacketToDebuggee(
   //
   // Wait until the result of listing or modifying breakpoints is received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]
+              .EventHandle,
       INFINITE);
 
   return TRUE;
@@ -621,19 +662,26 @@ BOOLEAN KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength,
     //
     // Wait for formats results too
     //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]
+            .IsOnWaitingState = TRUE;
     WaitForSingleObject(
         g_SyncronizationObjectsHandleTable
-            [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT],
+            [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT]
+                .EventHandle,
         INFINITE);
   }
 
   //
   // Wait until the result of script engine received
   //
-  WaitForSingleObject(
-      g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT],
-      INFINITE);
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]
+          .IsOnWaitingState = TRUE;
+  WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT]
+                              .EventHandle,
+                      INFINITE);
 
   free(ScriptPacket);
   return TRUE;
@@ -683,9 +731,13 @@ BOOLEAN KdSendUserInputPacketToDebuggee(const char *Sendbuf, int Len) {
   //
   // Wait until the result of user-input received
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
+              .EventHandle,
       INFINITE);
 
   free(UserInputPacket);
@@ -1162,8 +1214,12 @@ VOID KdBreakControlCheckAndPauseDebugger() {
     //
     // Signal the event
     //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+            .IsOnWaitingState = FALSE;
     SetEvent(g_SyncronizationObjectsHandleTable
-                 [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
+                 [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                     .EventHandle);
   }
 }
 
@@ -1216,8 +1272,12 @@ VOID KdTheRemoteSystemIsRunning() {
   //
   // Wait until the users press CTRL+C
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(g_SyncronizationObjectsHandleTable
-                          [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING],
+                          [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                              .EventHandle,
                       INFINITE);
 }
 
@@ -1268,7 +1328,8 @@ StartAgain:
   // Initialize the handle table
   //
   for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS; i++) {
-    g_SyncronizationObjectsHandleTable[i] =
+    g_SyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
+    g_SyncronizationObjectsHandleTable[i].EventHandle =
         CreateEvent(NULL, FALSE, FALSE, NULL);
   }
 
@@ -1287,9 +1348,13 @@ StartAgain:
   //
   // Wait for the 'Start' packet on the listener side
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+          .IsOnWaitingState = TRUE;
   WaitForSingleObject(
       g_SyncronizationObjectsHandleTable
-          [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED],
+          [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+              .EventHandle,
       INFINITE);
 
   //
@@ -1840,8 +1905,12 @@ BOOLEAN KdCloseConnection() {
     //
     // Not waiting for start packet
     //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+            .IsOnWaitingState = FALSE;
     SetEvent(g_SyncronizationObjectsHandleTable
-                 [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]);
+                 [DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED]
+                     .EventHandle);
   }
 
   //
@@ -2146,17 +2215,27 @@ VOID KdUninitializeConnection() {
   //
   // Unpause the debugger to get commands
   //
+  g_SyncronizationObjectsHandleTable
+      [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+          .IsOnWaitingState = FALSE;
   SetEvent(g_SyncronizationObjectsHandleTable
-               [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]);
+               [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                   .EventHandle);
 
   //
   // Close synchronization objects
   //
   for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS; i++) {
 
-    if (g_SyncronizationObjectsHandleTable[i] != NULL) {
-      CloseHandle(g_SyncronizationObjectsHandleTable[i]);
-      g_SyncronizationObjectsHandleTable[i] = NULL;
+    if (g_SyncronizationObjectsHandleTable[i].EventHandle != NULL) {
+
+      if (g_SyncronizationObjectsHandleTable[i].IsOnWaitingState) {
+        g_SyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
+        SetEvent(g_SyncronizationObjectsHandleTable[i].EventHandle);
+      }
+
+      CloseHandle(g_SyncronizationObjectsHandleTable[i].EventHandle);
+      g_SyncronizationObjectsHandleTable[i].EventHandle = NULL;
     }
   }
 

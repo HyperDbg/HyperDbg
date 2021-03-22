@@ -106,11 +106,12 @@ BYTE g_EndOfBufferCheck[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
     SERIAL_END_OF_BUFFER_CHAR_3, SERIAL_END_OF_BUFFER_CHAR_4};
 
 /**
- * @brief In debuggee (not debugger), we save the handle
+ * @brief In debugger (not debuggee), we save the handle
  * of the user-mode listening thread for pauses here
  *
  */
-HANDLE g_SyncronizationObjectsHandleTable
+
+DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_SyncronizationObjectsHandleTable
     [DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS] = {0};
 
 /**

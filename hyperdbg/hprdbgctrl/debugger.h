@@ -47,6 +47,15 @@ typedef struct _DEBUGGING_STATE {
   UINT64 ConnectedThreadId;
 } DEBUGGING_STATE, *PDEBUGGING_STATE;
 
+/**
+ * @brief In debugger holds the state of events
+ *
+ */
+typedef struct _DEBUGGER_SYNCRONIZATION_EVENTS_STATE {
+  HANDLE EventHandle;
+  BOOLEAN IsOnWaitingState;
+} DEBUGGER_SYNCRONIZATION_EVENTS_STATE, *PDEBUGGER_SYNCRONIZATION_EVENTS_STATE;
+
 //////////////////////////////////////////////////
 //				    Functions                   //
 //////////////////////////////////////////////////
