@@ -11,6 +11,7 @@
  */
 #include "pch.h"
 
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 /**
  * @brief help of !e* and e* commands
  *
@@ -191,7 +192,7 @@ VOID CommandEditMemory(vector<string> SplittedCommand, string Command) {
 
         if (!SetValue) {
           //
-          // At least on walue is there
+          // At least on value is there
           //
           SetValue = TRUE;
         }
@@ -224,12 +225,6 @@ VOID CommandEditMemory(vector<string> SplittedCommand, string Command) {
   if (NextIsProcId) {
     ShowMessages("please specify a correct hex value as the process id\n\n");
     CommandEditMemoryHelp();
-    return;
-  }
-
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
     return;
   }
 
@@ -268,6 +263,20 @@ VOID CommandEditMemory(vector<string> SplittedCommand, string Command) {
   //
   std::copy(ValuesToEdit.begin(), ValuesToEdit.end(),
             (UINT64 *)((UINT64)FinalBuffer + SIZEOF_DEBUGGER_EDIT_MEMORY));
+
+//
+// send the request
+//
+  if (g_IsSerialConnectedToRemoteDebuggee) {
+
+      KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY*)FinalBuffer);
+      return;
+  }
+  else if (!g_DeviceHandle) {
+      ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+          "use 'load' command?\n");
+      return;
+  }
 
   Status = DeviceIoControl(
       g_DeviceHandle,              // Handle to device

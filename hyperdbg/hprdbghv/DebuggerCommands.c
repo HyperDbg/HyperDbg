@@ -260,7 +260,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     PVOID    DestinationAddress = 0;
     PVOID    SourceAddress      = 0;
     CR3_TYPE CurrentProcessCr3;
-
+    DbgBreakPoint();
     //
     // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
     //
