@@ -23,11 +23,13 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  *
  * @return VOID
  */
-VOID CommandEvalHelp() {
-  ShowMessages("? : evaluate and execute expressions in debuggee.\n\n");
-  ShowMessages("syntax : \t? [expression]\n");
-  ShowMessages("\t\te.g : ? print(dq(poi(@rcx)))\n");
-  ShowMessages("\t\te.g : ? json(dq(poi(@rcx)))\n");
+VOID
+CommandEvalHelp()
+{
+    ShowMessages("? : evaluate and execute expressions in debuggee.\n\n");
+    ShowMessages("syntax : \t? [expression]\n");
+    ShowMessages("\t\te.g : ? print(dq(poi(@rcx)))\n");
+    ShowMessages("\t\te.g : ? json(dq(poi(@rcx)))\n");
 }
 
 /**
@@ -37,87 +39,89 @@ VOID CommandEvalHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandEval(vector<string> SplittedCommand, string Command) {
+VOID
+CommandEval(vector<string> SplittedCommand, string Command)
+{
+    PVOID  CodeBuffer;
+    UINT64 BufferAddress;
+    UINT32 BufferLength;
+    UINT32 Pointer;
 
-  PVOID CodeBuffer;
-  UINT64 BufferAddress;
-  UINT32 BufferLength;
-  UINT32 Pointer;
-
-  if (SplittedCommand.size() == 1) {
-    ShowMessages("incorrect use of '?'\n\n");
-    CommandEvalHelp();
-    return;
-  }
-
-  //
-  // Trim the command
-  //
-  Trim(Command);
-
-  //
-  // Remove first command from it
-  //
-  Command.erase(0, SplittedCommand.at(0).size());
-
-  //
-  // Trim it again
-  //
-  Trim(Command);
-
-  //
-  // TODO: end of string must have a whitspace. fix it.
-  //
-  Command.append(" ");
-  // Expr = " x = 4 >> 1; ";
-
-  if (g_IsSerialConnectedToRemoteDebuggee) {
-
-    //
-    // Send over serial
-    //
-
-    //
-    // Run script engine handler
-    //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
-
-    if (CodeBuffer == NULL) {
-
-      //
-      // return to show that this item contains an script
-      //
-      return;
+    if (SplittedCommand.size() == 1)
+    {
+        ShowMessages("incorrect use of '?'\n\n");
+        CommandEvalHelp();
+        return;
     }
 
     //
-    // Print symbols (test)
+    // Trim the command
     //
-    // PrintSymbolBufferWrapper(CodeBuffer);
+    Trim(Command);
 
     //
-    // Set the buffer and length
+    // Remove first command from it
     //
-    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-    BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
-    Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
-    // Send it to the remote debuggee
+    // Trim it again
     //
-    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
+    Trim(Command);
 
     //
-    // Remove the buffer of script engine interpreted code
+    // TODO: end of string must have a whitspace. fix it.
     //
-    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+    Command.append(" ");
+    // Expr = " x = 4 >> 1; ";
 
-  } else {
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Send over serial
+        //
 
-    //
-    // It's a test
-    //
-    ShowMessages("Test Expression : %s \n", Command.c_str());
-    ScriptEngineWrapperTestParser(Command);
-  }
+        //
+        // Run script engine handler
+        //
+        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
+
+        if (CodeBuffer == NULL)
+        {
+            //
+            // return to show that this item contains an script
+            //
+            return;
+        }
+
+        //
+        // Print symbols (test)
+        //
+        // PrintSymbolBufferWrapper(CodeBuffer);
+
+        //
+        // Set the buffer and length
+        //
+        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
+        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+        //
+        // Send it to the remote debuggee
+        //
+        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
+
+        //
+        // Remove the buffer of script engine interpreted code
+        //
+        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+    }
+    else
+    {
+        //
+        // It's a test
+        //
+        ShowMessages("Test Expression : %s \n", Command.c_str());
+        ScriptEngineWrapperTestParser(Command);
+    }
 }

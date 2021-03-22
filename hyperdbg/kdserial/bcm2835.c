@@ -19,13 +19,13 @@ Abstract:
 
 // ---------------------------------------------------------------- Definitions
 
-#define AUX_MU_IO_REG       0x40        // Data register
-#define AUX_MU_IER_REG      0x44        // Interrupt Enable register
-#define AUX_MU_LCR_REG      0x4C        // Line Control register
-#define AUX_MU_STAT_REG     0x64        // Line status register
+#define AUX_MU_IO_REG   0x40 // Data register
+#define AUX_MU_IER_REG  0x44 // Interrupt Enable register
+#define AUX_MU_LCR_REG  0x4C // Line Control register
+#define AUX_MU_STAT_REG 0x64 // Line status register
 
-#define AUX_MU_IER_TXE      0x00000001  // TX FIFO empty interrupt
-#define AUX_MU_IER_RXNE     0x00000002  // RX FIFO not empty interrupt
+#define AUX_MU_IER_TXE  0x00000001 // TX FIFO empty interrupt
+#define AUX_MU_IER_RXNE 0x00000002 // RX FIFO not empty interrupt
 
 //
 // 8-bit mode: There is BCM2635 datasheet errata:
@@ -33,28 +33,26 @@ Abstract:
 // To get 8 bits we need to set the value of 0x03, not 0x01.
 //
 
-#define AUX_MU_LCR_8BIT     0x00000003
+#define AUX_MU_LCR_8BIT 0x00000003
 
-#define AUX_MU_STAT_RXNE    0x00000001  // RX FIFO not empty
-#define AUX_MU_STAT_TXNF    0x00000002  // TX FIFO not full
+#define AUX_MU_STAT_RXNE 0x00000001 // RX FIFO not empty
+#define AUX_MU_STAT_TXNF 0x00000002 // TX FIFO not full
 
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN
-Bcm2835RxReady (
-    _Inout_ PCPPORT Port
-    );
+Bcm2835RxReady(
+    _Inout_ PCPPORT Port);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-Bcm2835InitializePort (
+Bcm2835InitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -84,14 +82,14 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(LoadOptions);
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
 
     ULONG IntEnable;
 
-    if (MemoryMapped == FALSE) {
+    if (MemoryMapped == FALSE)
+    {
         return FALSE;
     }
 
@@ -128,10 +126,9 @@ Return Value:
 }
 
 BOOLEAN
-Bcm2835SetBaud (
+Bcm2835SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -153,8 +150,8 @@ Return Value:
 --*/
 
 {
-
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -167,10 +164,9 @@ Return Value:
 }
 
 UART_STATUS
-Bcm2835GetByte (
+Bcm2835GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    )
+    _Out_ PUCHAR    Byte)
 
 /*++
 
@@ -191,10 +187,10 @@ Return Value:
 --*/
 
 {
-
     ULONG Value;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -202,8 +198,8 @@ Return Value:
     // Check to see if a byte is available.
     //
 
-    if (Bcm2835RxReady(Port) != FALSE) {
-
+    if (Bcm2835RxReady(Port) != FALSE)
+    {
         //
         // Fetch the data byte and associated error information.
         //
@@ -223,11 +219,10 @@ Return Value:
 }
 
 UART_STATUS
-Bcm2835PutByte (
+Bcm2835PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    )
+    UCHAR           Byte,
+    BOOLEAN         BusyWait)
 
 /*++
 
@@ -251,10 +246,10 @@ Return Value:
 --*/
 
 {
-
     ULONG StatusReg;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -263,18 +258,22 @@ Return Value:
     // one time.
     //
 
-    if (BusyWait != FALSE) {
-        do {
+    if (BusyWait != FALSE)
+    {
+        do
+        {
             StatusReg =
                 READ_REGISTER_ULONG((PULONG)(Port->Address + AUX_MU_STAT_REG));
 
         } while ((StatusReg & AUX_MU_STAT_TXNF) == 0);
-
-    } else {
+    }
+    else
+    {
         StatusReg =
             READ_REGISTER_ULONG((PULONG)(Port->Address + AUX_MU_STAT_REG));
 
-        if ((StatusReg & AUX_MU_STAT_TXNF) == 0) {
+        if ((StatusReg & AUX_MU_STAT_TXNF) == 0)
+        {
             return UartNotReady;
         }
     }
@@ -288,9 +287,8 @@ Return Value:
 }
 
 BOOLEAN
-Bcm2835RxReady (
-    _Inout_ PCPPORT Port
-    )
+Bcm2835RxReady(
+    _Inout_ PCPPORT Port)
 
 /*++
 
@@ -309,10 +307,10 @@ Return Value:
 --*/
 
 {
-
     ULONG StatusReg;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -328,7 +326,8 @@ Return Value:
     // one byte is available.
     //
 
-    if ((StatusReg & AUX_MU_STAT_RXNE) != 0) {
+    if ((StatusReg & AUX_MU_STAT_RXNE) != 0)
+    {
         return TRUE;
     }
 
@@ -342,5 +341,4 @@ UART_HARDWARE_DRIVER Bcm2835HardwareDriver = {
     Bcm2835SetBaud,
     Bcm2835GetByte,
     Bcm2835PutByte,
-    Bcm2835RxReady
-};
+    Bcm2835RxReady};

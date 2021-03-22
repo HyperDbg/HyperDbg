@@ -25,4 +25,5 @@
 //					Functions                   //
 //////////////////////////////////////////////////
 
-BOOLEAN TestInfiniteLoop();
+BOOLEAN
+TestInfiniteLoop();

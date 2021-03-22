@@ -1768,7 +1768,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY:
 
                 EditMemoryPacket = (PDEBUGGER_EDIT_MEMORY)(((CHAR *)TheActualPacket) +
-                                                            sizeof(DEBUGGER_REMOTE_PACKET));
+                                                           sizeof(DEBUGGER_REMOTE_PACKET));
                 //
                 // Edit memory
                 //

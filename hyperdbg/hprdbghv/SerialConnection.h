@@ -51,11 +51,11 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
 
 BOOLEAN
 SerialConnectionSendThreeBuffers(CHAR * Buffer1,
-                                    UINT32 Length1,
-                                    CHAR * Buffer2,
-                                    UINT32 Length2,
-                                    CHAR * Buffer3,
-                                    UINT32 Length3);
+                                 UINT32 Length1,
+                                 CHAR * Buffer2,
+                                 UINT32 Length2,
+                                 CHAR * Buffer3,
+                                 UINT32 Length3);
 
 //////////////////////////////////////////////////
 //					 Constants					//

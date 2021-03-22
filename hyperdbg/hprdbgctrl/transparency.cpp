@@ -18,46 +18,48 @@ using namespace std;
  *
  * @return unsigned long long
  */
-unsigned long long TransparentModeRdtscDiffVmexit() {
-  unsigned long long ret, ret2;
-  unsigned eax, edx;
-  int cpuid_result[4] = {0};
+unsigned long long
+TransparentModeRdtscDiffVmexit()
+{
+    unsigned long long ret, ret2;
+    unsigned           eax, edx;
+    int                cpuid_result[4] = {0};
 
-  //
-  // GCC
-  //
-  // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
-  // ret = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    //
+    // GCC
+    //
+    // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
+    // ret = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
 
-  //
-  // Win32
-  //
-  ret = __rdtsc();
+    //
+    // Win32
+    //
+    ret = __rdtsc();
 
-  /* vm exit forced here. it uses: eax = 0; cpuid; */
+    /* vm exit forced here. it uses: eax = 0; cpuid; */
 
-  //
-  // GCC
-  //
-  //__asm__ volatile("cpuid" : /* no output */ : "a"(0x00));
+    //
+    // GCC
+    //
+    //__asm__ volatile("cpuid" : /* no output */ : "a"(0x00));
 
-  //
-  // WIN32
-  //
-  __cpuid(cpuid_result, 0);
+    //
+    // WIN32
+    //
+    __cpuid(cpuid_result, 0);
 
-  //
-  // GCC
-  //
-  // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
-  // ret2 = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    //
+    // GCC
+    //
+    // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
+    // ret2 = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
 
-  //
-  // WIN32
-  //
-  ret2 = __rdtsc();
+    //
+    // WIN32
+    //
+    ret2 = __rdtsc();
 
-  return ret2 - ret;
+    return ret2 - ret;
 }
 
 /**
@@ -65,33 +67,35 @@ unsigned long long TransparentModeRdtscDiffVmexit() {
  *
  * @return unsigned long long
  */
-unsigned long long TransparentModeRdtscVmexitTracing() {
-  unsigned long long ret, ret2;
-  unsigned eax, edx;
+unsigned long long
+TransparentModeRdtscVmexitTracing()
+{
+    unsigned long long ret, ret2;
+    unsigned           eax, edx;
 
-  //
-  // GCC
-  //
-  // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
-  // ret = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    //
+    // GCC
+    //
+    // __asm__ volatile("rdtsc" : "=a" (eax), "=d" (edx));
+    // ret = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
 
-  //
-  // WIN32
-  //
-  ret = __rdtsc();
+    //
+    // WIN32
+    //
+    ret = __rdtsc();
 
-  //
-  // GCC
-  //
-  // __asm__ volatile("rdtsc" : "=a"(eax), "=d"(edx));
-  // ret2 = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
+    //
+    // GCC
+    //
+    // __asm__ volatile("rdtsc" : "=a"(eax), "=d"(edx));
+    // ret2 = ((unsigned long long)eax) | (((unsigned long long)edx) << 32);
 
-  //
-  // WIN32
-  //
-  ret2 = __rdtsc();
+    //
+    // WIN32
+    //
+    ret2 = __rdtsc();
 
-  return ret2 - ret;
+    return ret2 - ret;
 }
 
 /**
@@ -103,34 +107,37 @@ unsigned long long TransparentModeRdtscVmexitTracing() {
  * @param Median a pointer to save median on it
  * @return int
  */
-int TransparentModeCpuidTimeStampCounter(UINT64 *Average,
-                                         UINT64 *StandardDeviation,
-                                         UINT64 *Median) {
+int
+TransparentModeCpuidTimeStampCounter(UINT64 * Average,
+                                     UINT64 * StandardDeviation,
+                                     UINT64 * Median)
+{
+    unsigned long long Avg          = 0;
+    unsigned long long MeasuredTime = 0;
+    vector<double>     Results;
 
-  unsigned long long Avg = 0;
-  unsigned long long MeasuredTime = 0;
-  vector<double> Results;
+    for (int i = 0; i < TestCount; i++)
+    {
+        MeasuredTime = TransparentModeRdtscDiffVmexit();
+        Avg          = Avg + MeasuredTime;
 
-  for (int i = 0; i < TestCount; i++) {
-    MeasuredTime = TransparentModeRdtscDiffVmexit();
-    Avg = Avg + MeasuredTime;
+        Results.push_back(MeasuredTime);
 
-    Results.push_back(MeasuredTime);
-
-    /*
+        /*
     ShowMessages("(%d) Measured time : %d\n", i, MeasuredTime);
     */
-  }
+    }
 
-  if (Average != NULL && StandardDeviation != NULL && Median != NULL) {
-    //
-    // Compute the average and variance
-    //
-    GuassianGenerateRandom(Results, Average, StandardDeviation, Median);
-  }
+    if (Average != NULL && StandardDeviation != NULL && Median != NULL)
+    {
+        //
+        // Compute the average and variance
+        //
+        GuassianGenerateRandom(Results, Average, StandardDeviation, Median);
+    }
 
-  Avg = Avg / TestCount;
-  return (Avg < 1000 && Avg > 0) ? FALSE : TRUE;
+    Avg = Avg / TestCount;
+    return (Avg < 1000 && Avg > 0) ? FALSE : TRUE;
 }
 
 /**
@@ -142,34 +149,37 @@ int TransparentModeCpuidTimeStampCounter(UINT64 *Average,
  * @param Median a pointer to save median on it
  * @return int
  */
-int TransparentModeRdtscEmulationDetection(UINT64 *Average,
-                                           UINT64 *StandardDeviation,
-                                           UINT64 *Median) {
+int
+TransparentModeRdtscEmulationDetection(UINT64 * Average,
+                                       UINT64 * StandardDeviation,
+                                       UINT64 * Median)
+{
+    unsigned long long Avg          = 0;
+    unsigned long long MeasuredTime = 0;
+    vector<double>     Results;
 
-  unsigned long long Avg = 0;
-  unsigned long long MeasuredTime = 0;
-  vector<double> Results;
+    for (int i = 0; i < TestCount; i++)
+    {
+        MeasuredTime = TransparentModeRdtscVmexitTracing();
+        Avg          = Avg + MeasuredTime;
 
-  for (int i = 0; i < TestCount; i++) {
-    MeasuredTime = TransparentModeRdtscVmexitTracing();
-    Avg = Avg + MeasuredTime;
+        Results.push_back(MeasuredTime);
 
-    Results.push_back(MeasuredTime);
-
-    /*
+        /*
     ShowMessages("(%d) Measured time : %d\n", i, MeasuredTime);
     */
-  }
+    }
 
-  if (Average != NULL && StandardDeviation != NULL && Median != NULL) {
-    //
-    // Compute the average and variance
-    //
-    GuassianGenerateRandom(Results, Average, StandardDeviation, Median);
-  }
+    if (Average != NULL && StandardDeviation != NULL && Median != NULL)
+    {
+        //
+        // Compute the average and variance
+        //
+        GuassianGenerateRandom(Results, Average, StandardDeviation, Median);
+    }
 
-  Avg = Avg / TestCount;
-  return (Avg < 750 && Avg > 0) ? FALSE : TRUE;
+    Avg = Avg / TestCount;
+    return (Avg < 750 && Avg > 0) ? FALSE : TRUE;
 }
 
 /**
@@ -182,21 +192,24 @@ int TransparentModeRdtscEmulationDetection(UINT64 *Average,
  * @param Median a pointer to save median on it
  * @return int
  */
-BOOLEAN TransparentModeCheckHypervisorPresence(UINT64 *Average,
-                                               UINT64 *StandardDeviation,
-                                               UINT64 *Median) {
-
-  //
-  // Check whether the hypervisor is detected or not
-  //
-  if (TransparentModeCpuidTimeStampCounter(Average, StandardDeviation,
-                                           Median)) {
-    ShowMessages("hypervisor detected\n");
-    return TRUE;
-  } else {
-    ShowMessages("hypervisor not detected\n");
-    return FALSE;
-  }
+BOOLEAN
+TransparentModeCheckHypervisorPresence(UINT64 * Average,
+                                       UINT64 * StandardDeviation,
+                                       UINT64 * Median)
+{
+    //
+    // Check whether the hypervisor is detected or not
+    //
+    if (TransparentModeCpuidTimeStampCounter(Average, StandardDeviation, Median))
+    {
+        ShowMessages("hypervisor detected\n");
+        return TRUE;
+    }
+    else
+    {
+        ShowMessages("hypervisor not detected\n");
+        return FALSE;
+    }
 }
 
 /**
@@ -209,19 +222,22 @@ BOOLEAN TransparentModeCheckHypervisorPresence(UINT64 *Average,
  * @param Median a pointer to save median on it
  * @return int
  */
-BOOLEAN TransparentModeCheckRdtscpVmexit(UINT64 *Average,
-                                         UINT64 *StandardDeviation,
-                                         UINT64 *Median) {
-
-  //
-  // Check whether the system emulating rdtsc/p or not
-  //
-  if (TransparentModeRdtscEmulationDetection(Average, StandardDeviation,
-                                             Median)) {
-    ShowMessages("rdtsc/p emulation detected\n");
-    return TRUE;
-  } else {
-    ShowMessages("rdtsc/p emulation not detected\n");
-    return FALSE;
-  }
+BOOLEAN
+TransparentModeCheckRdtscpVmexit(UINT64 * Average,
+                                 UINT64 * StandardDeviation,
+                                 UINT64 * Median)
+{
+    //
+    // Check whether the system emulating rdtsc/p or not
+    //
+    if (TransparentModeRdtscEmulationDetection(Average, StandardDeviation, Median))
+    {
+        ShowMessages("rdtsc/p emulation detected\n");
+        return TRUE;
+    }
+    else
+    {
+        ShowMessages("rdtsc/p emulation not detected\n");
+        return FALSE;
+    }
 }

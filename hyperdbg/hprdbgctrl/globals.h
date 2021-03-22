@@ -102,8 +102,10 @@ BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
  * @brief the buffer that we set at the end of buffers for serial
  */
 BYTE g_EndOfBufferCheck[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
-    SERIAL_END_OF_BUFFER_CHAR_1, SERIAL_END_OF_BUFFER_CHAR_2,
-    SERIAL_END_OF_BUFFER_CHAR_3, SERIAL_END_OF_BUFFER_CHAR_4};
+    SERIAL_END_OF_BUFFER_CHAR_1,
+    SERIAL_END_OF_BUFFER_CHAR_2,
+    SERIAL_END_OF_BUFFER_CHAR_3,
+    SERIAL_END_OF_BUFFER_CHAR_4};
 
 /**
  * @brief In debugger (not debuggee), we save the handle
@@ -200,7 +202,7 @@ DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
  * to read and write simultaneously)
  *
  */
-OVERLAPPED g_OverlappedIoStructureForReadDebugger = {0};
+OVERLAPPED g_OverlappedIoStructureForReadDebugger  = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 
 /**

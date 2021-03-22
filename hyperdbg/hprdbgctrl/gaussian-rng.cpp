@@ -17,19 +17,27 @@
  * @param Cases all the elements
  * @return double median of elements
  */
-double Median(vector<double> Cases) {
-  size_t Size = Cases.size();
+double
+Median(vector<double> Cases)
+{
+    size_t Size = Cases.size();
 
-  if (Size == 0) {
-    return 0; // Undefined, really
-  } else {
-    sort(Cases.begin(), Cases.end());
-    if (Size % 2 == 0) {
-      return (Cases[Size / 2 - 1] + Cases[Size / 2]) / 2;
-    } else {
-      return Cases[Size / 2];
+    if (Size == 0)
+    {
+        return 0; // Undefined, really
     }
-  }
+    else
+    {
+        sort(Cases.begin(), Cases.end());
+        if (Size % 2 == 0)
+        {
+            return (Cases[Size / 2 - 1] + Cases[Size / 2]) / 2;
+        }
+        else
+        {
+            return Cases[Size / 2];
+        }
+    }
 }
 
 /**
@@ -39,19 +47,22 @@ double Median(vector<double> Cases) {
  * @param vec all the elements
  * @return T the average of elements
  */
-template <typename T> T Average(const vector<T> &vec) {
-  size_t Sz;
-  T Mean;
-  Sz = vec.size();
-  if (Sz == 1)
-    return 0.0;
+template <typename T>
+T
+Average(const vector<T> & vec)
+{
+    size_t Sz;
+    T      Mean;
+    Sz = vec.size();
+    if (Sz == 1)
+        return 0.0;
 
-  //
-  // Calculate the mean
-  //
-  Mean = std::accumulate(vec.begin(), vec.end(), 0.0) / Sz;
+    //
+    // Calculate the mean
+    //
+    Mean = std::accumulate(vec.begin(), vec.end(), 0.0) / Sz;
 
-  return Mean;
+    return Mean;
 }
 
 /**
@@ -61,15 +72,18 @@ template <typename T> T Average(const vector<T> &vec) {
  * @param v all the elements
  * @return T the standard deviation of elements
  */
-template <typename T> T CalculateStandardDeviation(const std::vector<T> &v) {
-  double Sum, Mean, SqSum, Stdev;
+template <typename T>
+T
+CalculateStandardDeviation(const std::vector<T> & v)
+{
+    double Sum, Mean, SqSum, Stdev;
 
-  Sum = std::accumulate(v.begin(), v.end(), 0.0);
-  Mean = Sum / v.size();
+    Sum  = std::accumulate(v.begin(), v.end(), 0.0);
+    Mean = Sum / v.size();
 
-  SqSum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
-  Stdev = std::sqrt(SqSum / v.size() - Mean * Mean);
-  return Stdev;
+    SqSum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
+    Stdev = std::sqrt(SqSum / v.size() - Mean * Mean);
+    return Stdev;
 }
 
 /**
@@ -78,18 +92,21 @@ template <typename T> T CalculateStandardDeviation(const std::vector<T> &v) {
  * @param Data all the elements
  * @return double result of MAD test
  */
-double MedianAbsoluteDeviationTest(vector<double> Data) {
-  double MedianData;
-  double Mad;
+double
+MedianAbsoluteDeviationTest(vector<double> Data)
+{
+    double MedianData;
+    double Mad;
 
-  MedianData = Median(Data);
+    MedianData = Median(Data);
 
-  for (int i = 0; i < Data.size(); i++) {
-    Data[i] = abs(Data[i] - MedianData);
-  }
-  Mad = 1.4826 * Median(Data);
+    for (int i = 0; i < Data.size(); i++)
+    {
+        Data[i] = abs(Data[i] - MedianData);
+    }
+    Mad = 1.4826 * Median(Data);
 
-  return Mad;
+    return Mad;
 }
 
 /**
@@ -99,29 +116,33 @@ double MedianAbsoluteDeviationTest(vector<double> Data) {
  * @param sigma 
  * @return double random number in the range of gaussian curve
  */
-double Randn(double mu, double sigma) {
-  double U1, U2, W, mult;
-  static double X1, X2;
-  static int call = 0;
+double
+Randn(double mu, double sigma)
+{
+    double        U1, U2, W, mult;
+    static double X1, X2;
+    static int    call = 0;
 
-  if (call == 1) {
+    if (call == 1)
+    {
+        call = !call;
+        return (mu + sigma * (double)X2);
+    }
+
+    do
+    {
+        U1 = -1 + ((double)rand() / RAND_MAX) * 2;
+        U2 = -1 + ((double)rand() / RAND_MAX) * 2;
+        W  = pow(U1, 2) + pow(U2, 2);
+    } while (W >= 1 || W == 0);
+
+    mult = sqrt((-2 * log(W)) / W);
+    X1   = U1 * mult;
+    X2   = U2 * mult;
+
     call = !call;
-    return (mu + sigma * (double)X2);
-  }
 
-  do {
-    U1 = -1 + ((double)rand() / RAND_MAX) * 2;
-    U2 = -1 + ((double)rand() / RAND_MAX) * 2;
-    W = pow(U1, 2) + pow(U2, 2);
-  } while (W >= 1 || W == 0);
-
-  mult = sqrt((-2 * log(W)) / W);
-  X1 = U1 * mult;
-  X2 = U2 * mult;
-
-  call = !call;
-
-  return (mu + sigma * (double)X1);
+    return (mu + sigma * (double)X1);
 }
 
 /**
@@ -132,61 +153,64 @@ double Randn(double mu, double sigma) {
  * @param StandardDeviationOfData 
  * @param MedianOfData 
  */
-VOID GuassianGenerateRandom(vector<double> Data, UINT64 *AverageOfData,
-                            UINT64 *StandardDeviationOfData,
-                            UINT64 *MedianOfData) {
-  vector<double> FinalData;
-  int CountOfOutliers = 0;
-  double Medians;
-  double Mad;
-  double StandardDeviation;
-  double DataAverage;
-  double DataMedian;
+VOID
+GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * StandardDeviationOfData, UINT64 * MedianOfData)
+{
+    vector<double> FinalData;
+    int            CountOfOutliers = 0;
+    double         Medians;
+    double         Mad;
+    double         StandardDeviation;
+    double         DataAverage;
+    double         DataMedian;
 
-  vector<double> OriginalData = Data;
-  vector<double> ChangableData = Data;
+    vector<double> OriginalData  = Data;
+    vector<double> ChangableData = Data;
 
-  Mad = MedianAbsoluteDeviationTest(ChangableData);
-  Medians = Median(OriginalData);
+    Mad     = MedianAbsoluteDeviationTest(ChangableData);
+    Medians = Median(OriginalData);
 
-  for (auto item : OriginalData) {
-
-    if (item > (3 * Mad) + Medians || item < -(3 * Mad) + Medians) {
-      CountOfOutliers++;
-    } else {
-      FinalData.push_back(item);
+    for (auto item : OriginalData)
+    {
+        if (item > (3 * Mad) + Medians || item < -(3 * Mad) + Medians)
+        {
+            CountOfOutliers++;
+        }
+        else
+        {
+            FinalData.push_back(item);
+        }
     }
-  }
 
-  StandardDeviation = CalculateStandardDeviation(FinalData);
-  DataAverage = Average(FinalData);
-  DataMedian = Median(FinalData);
+    StandardDeviation = CalculateStandardDeviation(FinalData);
+    DataAverage       = Average(FinalData);
+    DataMedian        = Median(FinalData);
 
-  //
-  // Set the values to return
-  //
-  *AverageOfData = (UINT64)DataAverage;
+    //
+    // Set the values to return
+    //
+    *AverageOfData = (UINT64)DataAverage;
 
-  //
-  // We add 5 to the standard deviation because this value might be
-  // 0 or 1 so we need more variance
-  //
-  *StandardDeviationOfData = (UINT64)StandardDeviation + 5;
-  *MedianOfData = (UINT64)DataMedian;
+    //
+    // We add 5 to the standard deviation because this value might be
+    // 0 or 1 so we need more variance
+    //
+    *StandardDeviationOfData = (UINT64)StandardDeviation + 5;
+    *MedianOfData            = (UINT64)DataMedian;
 
-  //
-  // ShowMessages("Varience : %f\n", StandardDeviation);
-  // ShowMessages("Mean : %f\n", DataAverage);
-  // ShowMessages("Count of outliers : %d\n", CountOfOutliers);
-  //
-  //
-  // for (int i = 0; i < 10000; i++)
-  // {
-  // 	ShowMessages("Final Random Time Stamp : %d\n", (int) Randn(DataAverage,
-  // StandardDeviation));
-  // _getch();
-  // }
-  //
+    //
+    // ShowMessages("Varience : %f\n", StandardDeviation);
+    // ShowMessages("Mean : %f\n", DataAverage);
+    // ShowMessages("Count of outliers : %d\n", CountOfOutliers);
+    //
+    //
+    // for (int i = 0; i < 10000; i++)
+    // {
+    // 	ShowMessages("Final Random Time Stamp : %d\n", (int) Randn(DataAverage,
+    // StandardDeviation));
+    // _getch();
+    // }
+    //
 }
 
 /**
@@ -195,22 +219,24 @@ VOID GuassianGenerateRandom(vector<double> Data, UINT64 *AverageOfData,
  * 
  * @return VOID 
  */
-VOID TestGaussianFromFile() {
+VOID
+TestGaussianFromFile()
+{
+    vector<double> MyVector;
+    UINT64         AverageOfData;
+    UINT64         StandardDeviationOfData;
+    UINT64         MedianOfData;
 
-  vector<double> MyVector;
-  UINT64 AverageOfData;
-  UINT64 StandardDeviationOfData;
-  UINT64 MedianOfData;
+    std::ifstream file("C:\\Users\\sina\\Desktop\\r.txt");
+    if (file.is_open())
+    {
+        std::string line;
+        while (std::getline(file, line))
+        {
+            MyVector.push_back(stod(line.c_str()));
+        }
+        file.close();
 
-  std::ifstream file("C:\\Users\\sina\\Desktop\\r.txt");
-  if (file.is_open()) {
-    std::string line;
-    while (std::getline(file, line)) {
-      MyVector.push_back(stod(line.c_str()));
+        GuassianGenerateRandom(MyVector, &AverageOfData, &StandardDeviationOfData, &MedianOfData);
     }
-    file.close();
-
-    GuassianGenerateRandom(MyVector, &AverageOfData, &StandardDeviationOfData,
-                           &MedianOfData);
-  }
 }

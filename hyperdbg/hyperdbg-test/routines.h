@@ -15,7 +15,8 @@
 //					 Functions                  //
 //////////////////////////////////////////////////
 
-VOID TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
+VOID
+TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
 
 //////////////////////////////////////////////////
 //		     Assembly Functions                 //
@@ -29,4 +30,5 @@ extern void inline XorSledFunction();
 //				Test Case Routines              //
 //////////////////////////////////////////////////
 
-VOID AttachDetachTest(HANDLE PipeHandle);
+VOID
+AttachDetachTest(HANDLE PipeHandle);

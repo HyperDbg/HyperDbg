@@ -21,11 +21,13 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  *
  * @return VOID
  */
-VOID CommandBdHelp() {
-  ShowMessages("bd : disables a breakpoint using breakpoint id.\n\n");
-  ShowMessages("syntax : \tbd [breakpoint id (hex value)]\n");
-  ShowMessages("\t\te.g : bd 0\n");
-  ShowMessages("\t\te.g : bd 2\n");
+VOID
+CommandBdHelp()
+{
+    ShowMessages("bd : disables a breakpoint using breakpoint id.\n\n");
+    ShowMessages("syntax : \tbd [breakpoint id (hex value)]\n");
+    ShowMessages("\t\te.g : bd 0\n");
+    ShowMessages("\t\te.g : bd 2\n");
 }
 
 /**
@@ -35,53 +37,56 @@ VOID CommandBdHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandBd(vector<string> SplittedCommand, string Command) {
-
-  UINT64 BreakpointId;
-  DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
-
-  //
-  // Validate the commands
-  //
-  if (SplittedCommand.size() != 2) {
-    ShowMessages("incorrect use of 'bd'\n\n");
-    CommandBdHelp();
-    return;
-  }
-
-  //
-  // Get the breakpoint id
-  //
-  if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId)) {
-
-    ShowMessages("please specify a correct hex value for breakpoint id\n\n");
-    CommandBdHelp();
-
-    return;
-  }
-
-  //
-  // Check if the remote serial debuggee is paused or not (connected or not)
-  //
-  if (g_IsSerialConnectedToRemoteDebuggee) {
+VOID
+CommandBd(vector<string> SplittedCommand, string Command)
+{
+    UINT64                            BreakpointId;
+    DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 
     //
-    // Perform disabling breakpoint
+    // Validate the commands
     //
-    Request.Request = DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE;
+    if (SplittedCommand.size() != 2)
+    {
+        ShowMessages("incorrect use of 'bd'\n\n");
+        CommandBdHelp();
+        return;
+    }
 
     //
-    // Set breakpoint id
+    // Get the breakpoint id
     //
-    Request.BreakpointId = BreakpointId;
+    if (!ConvertStringToUInt64(SplittedCommand.at(1), &BreakpointId))
+    {
+        ShowMessages("please specify a correct hex value for breakpoint id\n\n");
+        CommandBdHelp();
+
+        return;
+    }
 
     //
-    // Send the request
+    // Check if the remote serial debuggee is paused or not (connected or not)
     //
-    KdSendListOrModifyPacketToDebuggee(&Request);
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Perform disabling breakpoint
+        //
+        Request.Request = DEBUGGEE_BREAKPOINT_MODIFICATION_REQUEST_DISABLE;
 
-  } else {
-    ShowMessages("err, disabling breakpoints is only valid if you connected to "
-                 "a debuggee in debugger-mode\n");
-  }
+        //
+        // Set breakpoint id
+        //
+        Request.BreakpointId = BreakpointId;
+
+        //
+        // Send the request
+        //
+        KdSendListOrModifyPacketToDebuggee(&Request);
+    }
+    else
+    {
+        ShowMessages("err, disabling breakpoints is only valid if you connected to "
+                     "a debuggee in debugger-mode\n");
+    }
 }

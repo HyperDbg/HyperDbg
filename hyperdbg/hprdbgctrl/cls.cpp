@@ -16,9 +16,11 @@
  *
  * @return VOID
  */
-VOID CommandClearScreenHelp() {
-  ShowMessages(".cls : clears the screen.\n\n");
-  ShowMessages("syntax : \t.cls\n");
+VOID
+CommandClearScreenHelp()
+{
+    ShowMessages(".cls : clears the screen.\n\n");
+    ShowMessages("syntax : \t.cls\n");
 }
 
 /**
@@ -28,6 +30,8 @@ VOID CommandClearScreenHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandClearScreen(vector<string> SplittedCommand, string Command) {
-  system("cls");
+VOID
+CommandClearScreen(vector<string> SplittedCommand, string Command)
+{
+    system("cls");
 }

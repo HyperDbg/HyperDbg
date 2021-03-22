@@ -22,48 +22,42 @@ Abstract:
 // ----------------------------------------------------------------- Prototypes
 
 BOOLEAN
-Uart16550InitializePortCommon (
+Uart16550InitializePortCommon(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    );
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth);
 
 BOOLEAN
-Uart16550SetBaud (
+Uart16550SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    );
+    ULONG           Rate);
 
 UART_STATUS
-Uart16550GetByte (
+Uart16550GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    );
+    _Out_ PUCHAR    Byte);
 
 UART_STATUS
-Uart16550PutByte (
+Uart16550PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    );
+    UCHAR           Byte,
+    BOOLEAN         BusyWait);
 
 BOOLEAN
-Uart16550RxReady (
-    _Inout_ PCPPORT Port
-    );
+Uart16550RxReady(
+    _Inout_ PCPPORT Port);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-NvidiaInitializePort (
+NvidiaInitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -91,11 +85,11 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
 
-    if (MemoryMapped == FALSE) {
+    if (MemoryMapped == FALSE)
+    {
         return FALSE;
     }
 
@@ -118,5 +112,4 @@ UART_HARDWARE_DRIVER NvidiaHardwareDriver = {
     Uart16550SetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};

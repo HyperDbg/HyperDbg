@@ -22,7 +22,7 @@ Abstract:
 //
 // Global Variables
 //
-CPPORT g_PortDetails = { 0 };
+CPPORT g_PortDetails = {0};
 
 /*
 
@@ -31,52 +31,46 @@ F8 02 00 00 00 00 00 00  00 C2 01 00 00 00 01 00  ................
 
 */
 
-static
-VOID
+static VOID
 WritePortWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-)
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PUCHAR Pointer;
-   
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
     WRITE_PORT_UCHAR(Pointer, Value);
     return;
 }
 
-static
-UCHAR
+static UCHAR
 ReadPortWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index
-)
+    const UCHAR  Index)
 {
-
     PUCHAR Pointer;
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
     return (UCHAR)READ_PORT_UCHAR(Pointer);
 }
 
-UINT64 KdHyperDbgTest(UINT16 Byte)
+UINT64
+KdHyperDbgTest(UINT16 Byte)
 {
     //
     // *** This function is for internal use and test
     // don't use it ***
     //
 
-    CPPORT TempPort = { 0 };
-    TempPort.Address = 0x2f8;
-    TempPort.BaudRate = 0x01c200; //115200
-    TempPort.Flags = 0;
+    CPPORT TempPort    = {0};
+    TempPort.Address   = 0x2f8;
+    TempPort.BaudRate  = 0x01c200; //115200
+    TempPort.Flags     = 0;
     TempPort.ByteWidth = 1;
 
     TempPort.Write = WritePortWithIndex8;
-    TempPort.Read = ReadPortWithIndex8;
+    TempPort.Read  = ReadPortWithIndex8;
 
     Uart16550PutByte(&TempPort, 0x42, TRUE);
 
@@ -85,52 +79,52 @@ UINT64 KdHyperDbgTest(UINT16 Byte)
         char RecvByte = 0;
         // Uart16550GetByte(&TempPort,&RecvByte);
     }
-
 }
 
-VOID KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
+VOID
+KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
 {
-    g_PortDetails.Address = PortAddress;
-    g_PortDetails.BaudRate = Baudrate;
-    g_PortDetails.Flags = 0;
+    g_PortDetails.Address   = PortAddress;
+    g_PortDetails.BaudRate  = Baudrate;
+    g_PortDetails.Flags     = 0;
     g_PortDetails.ByteWidth = 1;
 
     g_PortDetails.Write = WritePortWithIndex8;
-    g_PortDetails.Read = ReadPortWithIndex8;
+    g_PortDetails.Read  = ReadPortWithIndex8;
 }
 
-VOID KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
+VOID
+KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
 {
     Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
 }
 
-BOOLEAN KdHyperDbgRecvByte(PUCHAR RecvByte)
+BOOLEAN
+KdHyperDbgRecvByte(PUCHAR RecvByte)
 {
     if (Uart16550GetByte(&g_PortDetails, RecvByte) == UartSuccess)
     {
         return TRUE;
-    } 
+    }
     return FALSE;
 }
 
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN
-Uart16550SetBaud (
+Uart16550SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    );
+    ULONG           Rate);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-Uart16550InitializePortCommon (
+Uart16550InitializePortCommon(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -160,7 +154,6 @@ Return Value:
 --*/
 
 {
-
     UCHAR RegisterValue;
 
     UNREFERENCED_PARAMETER(LoadOptions);
@@ -219,7 +212,8 @@ Return Value:
     //
 
     RegisterValue = Port->Read(Port, COM_MSR);
-    if (CHECK_FLAG(RegisterValue, SERIAL_MSR_RI)) {
+    if (CHECK_FLAG(RegisterValue, SERIAL_MSR_RI))
+    {
         Port->Flags |= PORT_RING_INDICATOR;
     }
 
@@ -227,13 +221,12 @@ Return Value:
 }
 
 BOOLEAN
-Uart16550LegacyInitializePort (
+Uart16550LegacyInitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -265,12 +258,12 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
     UNREFERENCED_PARAMETER(MemoryMapped);
 
-    switch ((ULONG_PTR)Port->Address) {
+    switch ((ULONG_PTR)Port->Address)
+    {
     case 1:
         Port->Address = (PUCHAR)COM1_PORT;
         break;
@@ -300,13 +293,12 @@ Return Value:
 }
 
 BOOLEAN
-Uart16550InitializePort (
+Uart16550InitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -337,7 +329,6 @@ Return Value:
 --*/
 
 {
-
     UCHAR RegisterBitWidth;
 
     UNREFERENCED_PARAMETER(AccessSize);
@@ -351,7 +342,8 @@ Return Value:
     //
 
     RegisterBitWidth = 32;
-    if (MemoryMapped == FALSE) {
+    if (MemoryMapped == FALSE)
+    {
         return FALSE;
     }
 
@@ -367,7 +359,7 @@ Return Value:
 #else
 
     RegisterBitWidth = 8;
-    Port->Flags = 0;
+    Port->Flags      = 0;
 
 #endif
 
@@ -379,13 +371,12 @@ Return Value:
 }
 
 BOOLEAN
-Uart16550MmInitializePort (
+Uart16550MmInitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -418,7 +409,6 @@ Return Value:
 --*/
 
 {
-
     Port->Flags = PORT_DEFAULT_RATE;
     return Uart16550InitializePortCommon(LoadOptions,
                                          Port,
@@ -428,11 +418,10 @@ Return Value:
 }
 
 BOOLEAN
-Uart16550SetBaudCommon (
+Uart16550SetBaudCommon(
     _Inout_ PCPPORT Port,
-    ULONG Rate,
-    ULONG Clock
-    )
+    ULONG           Rate,
+    ULONG           Clock)
 
 /*++
 
@@ -455,14 +444,15 @@ Return Value:
 --*/
 
 {
-
     UCHAR Lcr;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
-    if ((Rate == 0) || (Clock == 0)) {
+    if ((Rate == 0) || (Clock == 0))
+    {
         return FALSE;
     }
 
@@ -506,10 +496,9 @@ Return Value:
 }
 
 BOOLEAN
-Uart16550SetBaud (
+Uart16550SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -530,8 +519,8 @@ Return Value:
 --*/
 
 {
-
-    if (CHECK_FLAG(Port->Flags, PORT_DEFAULT_RATE)) {
+    if (CHECK_FLAG(Port->Flags, PORT_DEFAULT_RATE))
+    {
         return FALSE;
     }
 
@@ -539,10 +528,9 @@ Return Value:
 }
 
 UART_STATUS
-Uart16550GetByte (
+Uart16550GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    )
+    _Out_ PUCHAR    Byte)
 
 /*++
 
@@ -563,12 +551,12 @@ Return Value:
 --*/
 
 {
-
     UCHAR Data;
     UCHAR Lsr;
     UCHAR Msr;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -578,12 +566,13 @@ Return Value:
     //
 
     Lsr = Port->Read(Port, COM_LSR);
-    if (Lsr == SERIAL_LSR_NOT_PRESENT) {
+    if (Lsr == SERIAL_LSR_NOT_PRESENT)
+    {
         return UartNotReady;
     }
 
-    if (CHECK_FLAG(Lsr, COM_DATRDY)) {
-
+    if (CHECK_FLAG(Lsr, COM_DATRDY))
+    {
         //
         // Return unsuccessfully if any errors are indicated by the
         // LSR.
@@ -591,8 +580,8 @@ Return Value:
 
         if (CHECK_FLAG(Lsr, COM_PE) ||
             CHECK_FLAG(Lsr, COM_FE) ||
-            CHECK_FLAG(Lsr, COM_OE)) {
-
+            CHECK_FLAG(Lsr, COM_OE))
+        {
             return UartError;
         }
 
@@ -603,18 +592,20 @@ Return Value:
         // the carrier detect flag set.
         //
 
-        if (CHECK_FLAG(Port->Flags, PORT_MODEM_CONTROL)) {
+        if (CHECK_FLAG(Port->Flags, PORT_MODEM_CONTROL))
+        {
             Msr = Port->Read(Port, COM_MSR);
-            if (CHECK_FLAG(Msr, MS_CD) == FALSE) {
+            if (CHECK_FLAG(Msr, MS_CD) == FALSE)
+            {
                 return UartNoData;
             }
         }
 
         *Byte = Data;
         return UartSuccess;
-
-    } else {
-
+    }
+    else
+    {
         //
         // Data is not available. Determine if the ring indicator has toggled.
         // If so, enable modem control.
@@ -624,8 +615,8 @@ Return Value:
         if ((CHECK_FLAG(Port->Flags, PORT_RING_INDICATOR) &&
              !CHECK_FLAG(Msr, SERIAL_MSR_RI)) ||
             (!CHECK_FLAG(Port->Flags, PORT_RING_INDICATOR) &&
-             CHECK_FLAG(Msr, SERIAL_MSR_RI))) {
-
+             CHECK_FLAG(Msr, SERIAL_MSR_RI)))
+        {
             Port->Flags |= PORT_MODEM_CONTROL;
         }
 
@@ -634,11 +625,10 @@ Return Value:
 }
 
 UART_STATUS
-Uart16550PutByte (
+Uart16550PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    )
+    UCHAR           Byte,
+    BOOLEAN         BusyWait)
 
 /*++
 
@@ -658,11 +648,11 @@ Arguments:
 --*/
 
 {
-
     UCHAR Lsr;
     UCHAR Msr;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -671,17 +661,20 @@ Arguments:
     // sending any data.
     //
 
-    if (CHECK_FLAG(Port->Flags, PORT_MODEM_CONTROL)) {
+    if (CHECK_FLAG(Port->Flags, PORT_MODEM_CONTROL))
+    {
         Msr = Port->Read(Port, COM_MSR);
-        while ((Msr & MS_DSRCTSCD) != MS_DSRCTSCD) {
-
+        while ((Msr & MS_DSRCTSCD) != MS_DSRCTSCD)
+        {
             //
             // If there's a byte ready, discard it from the input queue.
             //
 
-            if (!CHECK_FLAG(Msr, MS_CD)) {
+            if (!CHECK_FLAG(Msr, MS_CD))
+            {
                 Lsr = Port->Read(Port, COM_LSR);
-                if (CHECK_FLAG(Port->Flags, COM_DATRDY)) {
+                if (CHECK_FLAG(Port->Flags, COM_DATRDY))
+                {
                     Port->Read(Port, COM_DAT);
                 }
             }
@@ -697,7 +690,8 @@ Arguments:
     //
 
     Lsr = Port->Read(Port, COM_LSR);
-    if (Lsr == SERIAL_LSR_NOT_PRESENT) {
+    if (Lsr == SERIAL_LSR_NOT_PRESENT)
+    {
         return UartNotReady;
     }
 
@@ -705,8 +699,8 @@ Arguments:
     // The port must be ready to accept a byte for output before continuing.
     //
 
-    while (!CHECK_FLAG(Lsr, COM_OUTRDY)) {
-
+    while (!CHECK_FLAG(Lsr, COM_OUTRDY))
+    {
         //
         // Determine if the ring indicator has toggled.
         // If so, enable modem control.
@@ -716,12 +710,13 @@ Arguments:
         if ((CHECK_FLAG(Port->Flags, PORT_RING_INDICATOR) &&
              !CHECK_FLAG(Msr, SERIAL_MSR_RI)) ||
             (!CHECK_FLAG(Port->Flags, PORT_RING_INDICATOR) &&
-             CHECK_FLAG(Msr, SERIAL_MSR_RI))) {
-
+             CHECK_FLAG(Msr, SERIAL_MSR_RI)))
+        {
             Port->Flags |= PORT_MODEM_CONTROL;
         }
 
-        if (BusyWait == FALSE) {
+        if (BusyWait == FALSE)
+        {
             return UartNotReady;
         }
 
@@ -737,9 +732,8 @@ Arguments:
 }
 
 BOOLEAN
-Uart16550RxReady (
-    _Inout_ PCPPORT Port
-    )
+Uart16550RxReady(
+    _Inout_ PCPPORT Port)
 
 /*++
 
@@ -758,10 +752,10 @@ Return Value:
 --*/
 
 {
-
     UCHAR Lsr;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -774,8 +768,8 @@ Return Value:
     //
 
     Lsr = Port->Read(Port, COM_LSR);
-    if (Lsr == SERIAL_LSR_NOT_PRESENT) {
-
+    if (Lsr == SERIAL_LSR_NOT_PRESENT)
+    {
         return FALSE;
     }
 
@@ -783,7 +777,8 @@ Return Value:
     // Look at the Line Status Register to determine if there is pending data.
     //
 
-    if (CHECK_FLAG(Lsr, COM_DATRDY)) {
+    if (CHECK_FLAG(Lsr, COM_DATRDY))
+    {
         return TRUE;
     }
 
@@ -797,21 +792,18 @@ UART_HARDWARE_DRIVER Legacy16550HardwareDriver = {
     Uart16550SetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};
 
 UART_HARDWARE_DRIVER Uart16550HardwareDriver = {
     Uart16550InitializePort,
     Uart16550SetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};
 
 UART_HARDWARE_DRIVER MM16550HardwareDriver = {
     Uart16550MmInitializePort,
     Uart16550SetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};

@@ -1,8 +1,8 @@
 #pragma once
 
 #ifndef SCANNER_H
-#define SCANNER_H 
-#include "common.h"
+#    define SCANNER_H
+#    include "common.h"
 /**
 * @brief lookup table for storing Ids
 */
@@ -28,21 +28,24 @@ unsigned int CurrentLineIdx;
 */
 unsigned int CurrentTokenIdx;
 
-
 ////////////////////////////////////////////////////
-// Interfacing functions						  // 
+// Interfacing functions						  //
 ////////////////////////////////////////////////////
-TOKEN GetToken(char* c, char* str);
+TOKEN
+GetToken(char * c, char * str);
 
-TOKEN Scan(char* str, char* c);
+TOKEN
+Scan(char * str, char * c);
 
-char sgetc(char* str);
+char
+sgetc(char * str);
 
-char IsKeyword(char* str);
+char
+IsKeyword(char * str);
 
-char IsId(char* str);	
+char
+IsId(char * str);
 
-char IsRegister(char* str);
+char
+IsRegister(char * str);
 #endif // !SCANNER_H
-
-

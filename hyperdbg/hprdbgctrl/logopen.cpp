@@ -16,7 +16,7 @@ using namespace std;
 //
 // Global Variables
 //
-extern BOOLEAN g_LogOpened;
+extern BOOLEAN  g_LogOpened;
 extern ofstream g_LogOpenFile;
 
 /**
@@ -24,9 +24,11 @@ extern ofstream g_LogOpenFile;
  *
  * @return VOID
  */
-VOID CommandLogopenHelp() {
-  ShowMessages(".logopen : save commands and results in a file.\n\n");
-  ShowMessages("syntax : \.logopen [FilePath]\n");
+VOID
+CommandLogopenHelp()
+{
+    ShowMessages(".logopen : save commands and results in a file.\n\n");
+    ShowMessages("syntax : \.logopen [FilePath]\n");
 }
 
 /**
@@ -36,65 +38,74 @@ VOID CommandLogopenHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
+VOID
+CommandLogopen(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() == 1)
+    {
+        ShowMessages("please specify a file.\n");
+        CommandLogopenHelp();
+        return;
+    }
 
-  if (SplittedCommand.size() == 1) {
-    ShowMessages("please specify a file.\n");
-    CommandLogopenHelp();
-    return;
-  }
-
-  if (g_LogOpened) {
-    ShowMessages("log was opened previously, you have the close it first "
-                 "(using .logclose).\n");
-    return;
-  }
-
-  //
-  // Trim the command
-  //
-  Trim(Command);
-
-  //
-  // Remove .logopen from it
-  //
-  Command.erase(0, 8);
-
-  //
-  // Trim it again
-  //
-  Trim(Command);
-
-  //
-  // Try to open it as file
-  //
-  g_LogOpenFile.open(Command.c_str());
-
-  //
-  // Check if it's okay
-  //
-  if (g_LogOpenFile.is_open()) {
+    if (g_LogOpened)
+    {
+        ShowMessages("log was opened previously, you have the close it first "
+                     "(using .logclose).\n");
+        return;
+    }
 
     //
-    // Start intercepting logs
+    // Trim the command
     //
-    g_LogOpened = TRUE;
+    Trim(Command);
 
     //
-    // Enable save to the file (Message + time)
+    // Remove .logopen from it
     //
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
+    Command.erase(0, 8);
 
-    ShowMessages("Save commands and results into file : %s (%d-%02d-%02d "
-                 "%02d:%02d:%02d)\n",
-                 Command.c_str(), tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-                 tm.tm_hour, tm.tm_min, tm.tm_sec);
+    //
+    // Trim it again
+    //
+    Trim(Command);
 
-  } else {
-    ShowMessages("enable to open file : %s\n", Command.c_str());
-    return;
-  }
+    //
+    // Try to open it as file
+    //
+    g_LogOpenFile.open(Command.c_str());
+
+    //
+    // Check if it's okay
+    //
+    if (g_LogOpenFile.is_open())
+    {
+        //
+        // Start intercepting logs
+        //
+        g_LogOpened = TRUE;
+
+        //
+        // Enable save to the file (Message + time)
+        //
+        time_t    t  = time(NULL);
+        struct tm tm = *localtime(&t);
+
+        ShowMessages("Save commands and results into file : %s (%d-%02d-%02d "
+                     "%02d:%02d:%02d)\n",
+                     Command.c_str(),
+                     tm.tm_year + 1900,
+                     tm.tm_mon + 1,
+                     tm.tm_mday,
+                     tm.tm_hour,
+                     tm.tm_min,
+                     tm.tm_sec);
+    }
+    else
+    {
+        ShowMessages("enable to open file : %s\n", Command.c_str());
+        return;
+    }
 }
 
 /**
@@ -103,4 +114,8 @@ VOID CommandLogopen(vector<string> SplittedCommand, string Command) {
  * @param Text
  * @return VOID
  */
-VOID LogopenSaveToFile(const char *Text) { g_LogOpenFile << Text; }
+VOID
+LogopenSaveToFile(const char * Text)
+{
+    g_LogOpenFile << Text;
+}

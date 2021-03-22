@@ -18,43 +18,41 @@ Abstract:
 
 // ---------------------------------------------------------------- Definitions
 
-#define ULCON           0x00
-#define UCON            0x04
-#define UFCON           0x08
-#define UTRSTAT         0x10
-#define UERSTAT         0x14
-#define UFSTAT          0x18
-#define UTXH            0x20
-#define URXH            0x24
-#define UINTP           0x30
-#define UINTM           0x38
+#define ULCON   0x00
+#define UCON    0x04
+#define UFCON   0x08
+#define UTRSTAT 0x10
+#define UERSTAT 0x14
+#define UFSTAT  0x18
+#define UTXH    0x20
+#define URXH    0x24
+#define UINTP   0x30
+#define UINTM   0x38
 
-#define UFSTAT_TXFE     (1 << 24)
-#define UTRSTAT_RXFE    (1 <<  0)
+#define UFSTAT_TXFE  (1 << 24)
+#define UTRSTAT_RXFE (1 << 0)
 
-#define UERSTAT_OE      (1 << 0)
-#define UERSTAT_PE      (1 << 1)
-#define UERSTAT_FE      (1 << 2)
-#define UERSTAT_BE      (1 << 3)
+#define UERSTAT_OE (1 << 0)
+#define UERSTAT_PE (1 << 1)
+#define UERSTAT_FE (1 << 2)
+#define UERSTAT_BE (1 << 3)
 
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN
-Sam5250SetBaud (
+Sam5250SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    );
+    ULONG           Rate);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-Sam5250InitializePort (
+Sam5250InitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -84,12 +82,12 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(LoadOptions);
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
 
-    if (MemoryMapped == FALSE) {
+    if (MemoryMapped == FALSE)
+    {
         return FALSE;
     }
 
@@ -134,10 +132,9 @@ Return Value:
 }
 
 BOOLEAN
-Sam5250SetBaud (
+Sam5250SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -157,8 +154,8 @@ Return Value:
 --*/
 
 {
-
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -172,10 +169,9 @@ Return Value:
 }
 
 UART_STATUS
-Sam5250GetByte (
+Sam5250GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    )
+    _Out_ PUCHAR    Byte)
 
 /*++
 
@@ -196,12 +192,12 @@ Return Value:
 --*/
 
 {
-
     ULONG Fsr;
     ULONG Error;
     ULONG Value;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -215,8 +211,8 @@ Return Value:
     // Is at least one character available?
     //
 
-    if ((Fsr & UTRSTAT_RXFE) != 0) {
-
+    if ((Fsr & UTRSTAT_RXFE) != 0)
+    {
         //
         // Fetch the data byte and associated error information.
         //
@@ -228,7 +224,8 @@ Return Value:
         //
 
         Error = READ_REGISTER_ULONG((PULONG)(Port->Address + UERSTAT));
-        if ((Error & (UERSTAT_PE | UERSTAT_FE | UERSTAT_BE)) != 0) {
+        if ((Error & (UERSTAT_PE | UERSTAT_FE | UERSTAT_BE)) != 0)
+        {
             *Byte = 0;
             return UartError;
         }
@@ -241,11 +238,10 @@ Return Value:
 }
 
 UART_STATUS
-Sam5250PutByte (
+Sam5250PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    )
+    UCHAR           Byte,
+    BOOLEAN         BusyWait)
 
 /*++
 
@@ -269,7 +265,8 @@ Return Value:
 --*/
 
 {
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -279,11 +276,15 @@ Return Value:
     // _ARM_WORKAROUND_ Modem control is not supported.
     //
 
-    if (BusyWait != FALSE) {
-        while (READ_REGISTER_ULONG((PULONG)(Port->Address + UFSTAT)) & (UFSTAT_TXFE));
-
-    } else {
-        if (READ_REGISTER_ULONG((PULONG)(Port->Address + UFSTAT)) & (UFSTAT_TXFE)) {
+    if (BusyWait != FALSE)
+    {
+        while (READ_REGISTER_ULONG((PULONG)(Port->Address + UFSTAT)) & (UFSTAT_TXFE))
+            ;
+    }
+    else
+    {
+        if (READ_REGISTER_ULONG((PULONG)(Port->Address + UFSTAT)) & (UFSTAT_TXFE))
+        {
             return UartNotReady;
         }
     }
@@ -297,9 +298,8 @@ Return Value:
 }
 
 BOOLEAN
-Sam5250RxReady (
-    _Inout_ PCPPORT Port
-    )
+Sam5250RxReady(
+    _Inout_ PCPPORT Port)
 
 /*++
 
@@ -318,10 +318,10 @@ Return Value:
 --*/
 
 {
-
     ULONG Flags;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -330,7 +330,8 @@ Return Value:
     //
 
     Flags = READ_REGISTER_ULONG((PULONG)(Port->Address + UTRSTAT));
-    if ((Flags & UTRSTAT_RXFE) != 0) {
+    if ((Flags & UTRSTAT_RXFE) != 0)
+    {
         return TRUE;
     }
 
@@ -344,5 +345,4 @@ UART_HARDWARE_DRIVER Sam5250HardwareDriver = {
     Sam5250SetBaud,
     Sam5250GetByte,
     Sam5250PutByte,
-    Sam5250RxReady
-};
+    Sam5250RxReady};

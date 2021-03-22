@@ -25,6 +25,6 @@ __declspec(dllexport) int HyperdbgUnload();
 __declspec(dllexport) int HyperdbgInstallVmmDriver();
 __declspec(dllexport) int HyperdbgUninstallDriver();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
-__declspec(dllexport) int HyperdbgInterpreter(const char *Command);
+__declspec(dllexport) int HyperdbgInterpreter(const char * Command);
 __declspec(dllexport) void HyperdbgShowSignature();
 }

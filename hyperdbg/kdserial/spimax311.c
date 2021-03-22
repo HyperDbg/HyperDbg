@@ -23,153 +23,153 @@ Abstract:
 // SPI Control bits.
 //
 
-#define CRTLR0_SLV_OE       (1 << 10) // 1 = Slave TXD disabled
-#define CTRLR0_TMOD_TX_RX   0
-#define CTRLR0_TMOD_TX      (1 << 8)
-#define CTRLR0_TMOD_RX      (2 << 8)
-#define CTRLR0_TMOD_EEPROM  (3 << 8)
-#define CTRLR0_SCPOL        (1 << 7)  // Serial Clock Polarity (inactive state)
-#define CTRLR0_SCPH         (1 << 6)  // Serial Clock Phase (1=Start, 0=Middle)
-                                      // of data bit
-#define CTRLR0_FRF_MOTOROLA_SPI     0
-#define CTRLR0_FRF_TEXAS_INSTRUMENTS_SSP    (1 << 4)
-#define CTRLR0_FRF_NATIONAL_SEMICONDUCTORS_MICROWIRE    (2 << 4)
-#define CTRLR0_DFS          15        // Data frame size mask in bits
+#define CRTLR0_SLV_OE      (1 << 10) // 1 = Slave TXD disabled
+#define CTRLR0_TMOD_TX_RX  0
+#define CTRLR0_TMOD_TX     (1 << 8)
+#define CTRLR0_TMOD_RX     (2 << 8)
+#define CTRLR0_TMOD_EEPROM (3 << 8)
+#define CTRLR0_SCPOL       (1 << 7) // Serial Clock Polarity (inactive state)
+#define CTRLR0_SCPH        (1 << 6) // Serial Clock Phase (1=Start, 0=Middle) \
+                                    // of data bit
+#define CTRLR0_FRF_MOTOROLA_SPI                      0
+#define CTRLR0_FRF_TEXAS_INSTRUMENTS_SSP             (1 << 4)
+#define CTRLR0_FRF_NATIONAL_SEMICONDUCTORS_MICROWIRE (2 << 4)
+#define CTRLR0_DFS                                   15 // Data frame size mask in bits
 
-#define SSIENR_SSI_EN       1         // 1=Enabled
+#define SSIENR_SSI_EN 1 // 1=Enabled
 
 //
 // SPI baud rate.
 //
 
-#define BAUDR_MAX_RATE      2
-#define BAUDR_OFF           0
+#define BAUDR_MAX_RATE 2
+#define BAUDR_OFF      0
 
 //
 // Define the SPI status register.
 //
 
-#define SR_DCOL             (1 << 6)  // 1 = Transmit data collision error
-#define SR_TXE              (1 << 5)  // 1 = Transmission error
-#define SR_RFF              (1 << 4)  // 1 = Receive FIFO is full
-#define SR_RFNE             (1 << 3)  // 1 = Receive FIFO is not empty
-#define SR_TFE              (1 << 2)  // 1 = Transmit FIFO is empty
-#define SR_TFNF             (1 << 1)  // 1 = Transmit FIFO is not full
-#define SR_BUSY             (1 << 0)  // 1 = SPI unit is transferring data
+#define SR_DCOL (1 << 6) // 1 = Transmit data collision error
+#define SR_TXE  (1 << 5) // 1 = Transmission error
+#define SR_RFF  (1 << 4) // 1 = Receive FIFO is full
+#define SR_RFNE (1 << 3) // 1 = Receive FIFO is not empty
+#define SR_TFE  (1 << 2) // 1 = Transmit FIFO is empty
+#define SR_TFNF (1 << 1) // 1 = Transmit FIFO is not full
+#define SR_BUSY (1 << 0) // 1 = SPI unit is transferring data
 
 //
 // UART commands. The first two bits sent to the UART determine whether the UART
 // is reading or writing, and whether the next byte is data or configuration.
 //
 
-#define MAX311XE_WRITE_CONFIG   (3 << 14)
-#define MAX311XE_READ_CONFIG    (1 << 14)
-#define MAX311XE_WRITE_DATA     (2 << 14)
-#define MAX311XE_READ_DATA      0
+#define MAX311XE_WRITE_CONFIG (3 << 14)
+#define MAX311XE_READ_CONFIG  (1 << 14)
+#define MAX311XE_WRITE_DATA   (2 << 14)
+#define MAX311XE_READ_DATA    0
 
 //
 // Configuration register bits.
 //
 
-#define MAX311XE_WC_FEN_BAR     (1 << 13) //  1 = FIFO Disable
-#define MAX311XE_WC_SHDNI       (1 << 12) //  1 = Enter shutdown
-#define MAX311XE_WC_TM_BAR      (1 << 11) //  1 = Transmit buffer empty
-                                          //      interrupt enabled
-#define MAX311XE_WC_RM_BAR      (1 << 10) //  1 = Data available interrupt
-                                          //      Enable
-#define MAX311XE_WC_PM_BAR      (1 << 9)  //  1 = Parity bit high received
-                                          //      interrupt enabled
-#define MAX311XE_WC_RAM_BAR     (1 << 8)  //  1 = Receiver-activity (shutdown
-                                          //      mode)/Framming-error (normal
-                                          //      operation) interrupt enabled
-#define MAX311XE_WC_IRDA        (1 << 7)  //  1 = IrDA mode is enabled
-#define MAX311XE_WC_ST          (1 << 6)  //  1 = Transmit two stop bits
-#define MAX311XE_WC_PE          (1 << 5)  //  1 = Parity enabled
-#define MAX311XE_WC_L           (1 << 4)  //  1 = 7 bits, 0 = 8 Bits
-#define MAX311XE_WC_DIV_1       0         //  Clock divider for baud-rate
-#define MAX311XE_WC_DIV_2       1
-#define MAX311XE_WC_DIV_4       2
-#define MAX311XE_WC_DIV_8       3
-#define MAX311XE_WC_DIV_16      4
-#define MAX311XE_WC_DIV_32      5
-#define MAX311XE_WC_DIV_64      6
-#define MAX311XE_WC_DIV_128     7
-#define MAX311XE_WC_DIV_3       8
-#define MAX311XE_WC_DIV_6       9
-#define MAX311XE_WC_DIV_12      10
-#define MAX311XE_WC_DIV_24      11
-#define MAX311XE_WC_DIV_48      12
-#define MAX311XE_WC_DIV_96      13
-#define MAX311XE_WC_DIV_192     14
-#define MAX311XE_WC_DIV_384     15
+#define MAX311XE_WC_FEN_BAR (1 << 13) //  1 = FIFO Disable
+#define MAX311XE_WC_SHDNI   (1 << 12) //  1 = Enter shutdown
+#define MAX311XE_WC_TM_BAR  (1 << 11) //  1 = Transmit buffer empty \
+                                      //      interrupt enabled
+#define MAX311XE_WC_RM_BAR (1 << 10)  //  1 = Data available interrupt \
+                                      //      Enable
+#define MAX311XE_WC_PM_BAR (1 << 9)   //  1 = Parity bit high received \
+                                      //      interrupt enabled
+#define MAX311XE_WC_RAM_BAR (1 << 8)  //  1 = Receiver-activity (shutdown  \
+                                      //      mode)/Framming-error (normal \
+                                      //      operation) interrupt enabled
+#define MAX311XE_WC_IRDA    (1 << 7)  //  1 = IrDA mode is enabled
+#define MAX311XE_WC_ST      (1 << 6)  //  1 = Transmit two stop bits
+#define MAX311XE_WC_PE      (1 << 5)  //  1 = Parity enabled
+#define MAX311XE_WC_L       (1 << 4)  //  1 = 7 bits, 0 = 8 Bits
+#define MAX311XE_WC_DIV_1   0         //  Clock divider for baud-rate
+#define MAX311XE_WC_DIV_2   1
+#define MAX311XE_WC_DIV_4   2
+#define MAX311XE_WC_DIV_8   3
+#define MAX311XE_WC_DIV_16  4
+#define MAX311XE_WC_DIV_32  5
+#define MAX311XE_WC_DIV_64  6
+#define MAX311XE_WC_DIV_128 7
+#define MAX311XE_WC_DIV_3   8
+#define MAX311XE_WC_DIV_6   9
+#define MAX311XE_WC_DIV_12  10
+#define MAX311XE_WC_DIV_24  11
+#define MAX311XE_WC_DIV_48  12
+#define MAX311XE_WC_DIV_96  13
+#define MAX311XE_WC_DIV_192 14
+#define MAX311XE_WC_DIV_384 15
 
 //
 // Read configuration register bits.
 //
 
-#define MAX311XE_RC_R           (1 << 15) //  1 = Receive data available
-#define MAX311XE_RC_T           (1 << 14) //  1 = Transmit buffer empty
-#define MAX311XE_RC_FEN_BAR     (1 << 13) //  1 = FIFO Disable
-#define MAX311XE_RC_SHDNI       (1 << 12) //  1 = Enter shutdown
-#define MAX311XE_RC_TM_BAR      (1 << 11) //  1 = Transmit buffer empty
-                                          //      interrupt enabled
-#define MAX311XE_RC_RM_BAR      (1 << 10) //  1 = Data available interrupt
-                                          //      enable
-#define MAX311XE_RC_PM_BAR      (1 << 9)  //  1 = Parity bit high received
-                                          //      interrupt enabled
-#define MAX311XE_RC_RAM_BAR     (1 << 8)  //  1 = Receiver Activity (shutdown
-                                          //      mode) or Framing Error (normal
-                                          //      operation) interrupt enabled
-#define MAX311XE_RC_IRDA        (1 << 7)  //  1 = IrDA mode is enabled
-#define MAX311XE_RC_ST          (1 << 6)  //  1 = Transmit two stop bits
-#define MAX311XE_RC_PE          (1 << 5)  //  1 = Parity enabled
-#define MAX311XE_RC_L           (1 << 4)  //  1 = 7 bits, 0 = 8 Bits
-#define MAX311XE_RC_DIV_1       0         //  Clock divider for baud-rate
-#define MAX311XE_RC_DIV_2       1
-#define MAX311XE_RC_DIV_4       2
-#define MAX311XE_RC_DIV_8       3
-#define MAX311XE_RC_DIV_16      4
-#define MAX311XE_RC_DIV_32      5
-#define MAX311XE_RC_DIV_64      6
-#define MAX311XE_RC_DIV_128     7
-#define MAX311XE_RC_DIV_3       8
-#define MAX311XE_RC_DIV_6       9
-#define MAX311XE_RC_DIV_12      10
-#define MAX311XE_RC_DIV_24      11
-#define MAX311XE_RC_DIV_48      12
-#define MAX311XE_RC_DIV_96      13
-#define MAX311XE_RC_DIV_192     14
-#define MAX311XE_RC_DIV_384     15
+#define MAX311XE_RC_R       (1 << 15) //  1 = Receive data available
+#define MAX311XE_RC_T       (1 << 14) //  1 = Transmit buffer empty
+#define MAX311XE_RC_FEN_BAR (1 << 13) //  1 = FIFO Disable
+#define MAX311XE_RC_SHDNI   (1 << 12) //  1 = Enter shutdown
+#define MAX311XE_RC_TM_BAR  (1 << 11) //  1 = Transmit buffer empty \
+                                      //      interrupt enabled
+#define MAX311XE_RC_RM_BAR (1 << 10)  //  1 = Data available interrupt \
+                                      //      enable
+#define MAX311XE_RC_PM_BAR (1 << 9)   //  1 = Parity bit high received \
+                                      //      interrupt enabled
+#define MAX311XE_RC_RAM_BAR (1 << 8)  //  1 = Receiver Activity (shutdown    \
+                                      //      mode) or Framing Error (normal \
+                                      //      operation) interrupt enabled
+#define MAX311XE_RC_IRDA    (1 << 7)  //  1 = IrDA mode is enabled
+#define MAX311XE_RC_ST      (1 << 6)  //  1 = Transmit two stop bits
+#define MAX311XE_RC_PE      (1 << 5)  //  1 = Parity enabled
+#define MAX311XE_RC_L       (1 << 4)  //  1 = 7 bits, 0 = 8 Bits
+#define MAX311XE_RC_DIV_1   0         //  Clock divider for baud-rate
+#define MAX311XE_RC_DIV_2   1
+#define MAX311XE_RC_DIV_4   2
+#define MAX311XE_RC_DIV_8   3
+#define MAX311XE_RC_DIV_16  4
+#define MAX311XE_RC_DIV_32  5
+#define MAX311XE_RC_DIV_64  6
+#define MAX311XE_RC_DIV_128 7
+#define MAX311XE_RC_DIV_3   8
+#define MAX311XE_RC_DIV_6   9
+#define MAX311XE_RC_DIV_12  10
+#define MAX311XE_RC_DIV_24  11
+#define MAX311XE_RC_DIV_48  12
+#define MAX311XE_RC_DIV_96  13
+#define MAX311XE_RC_DIV_192 14
+#define MAX311XE_RC_DIV_384 15
 
 //
 // Write data register bits.
 //
 
-#define MAX311XE_WD_TE_BAR      (1 << 10) //  1 = Disable transmit
-#define MAX311XE_WD_RTS_BAR     (1 << 9)  //  1 = RTS active
-#define MAX311XE_WD_PT          (1 << 8)  //  1 = Parity bit to transmit
-#define MAX311XE_WD_DATA        0xFF      //  Transmit data byte
+#define MAX311XE_WD_TE_BAR  (1 << 10) //  1 = Disable transmit
+#define MAX311XE_WD_RTS_BAR (1 << 9)  //  1 = RTS active
+#define MAX311XE_WD_PT      (1 << 8)  //  1 = Parity bit to transmit
+#define MAX311XE_WD_DATA    0xFF      //  Transmit data byte
 
 //
 // Read data register bits.
 //
 
-#define MAX311XE_RD_R           (1 << 15) //  1 = Receive data available
-#define MAX311XE_RD_T           (1 << 14) //  1 = Transmit buffer is empty
-#define MAX311XE_RD_RA_FE       (1 << 10) //  1 = Receive Activity (UART
-                                          //      Shutdown) or Framing-Error
-                                          //      (normal operation)
-#define MAX311XE_RD_CTS         (1 << 9)  //  1 = CTS active
-#define MAX311XE_RD_PR          (1 << 8)  //  Received parity bit
-#define MAX311XE_RD_DATA        0xFF      //  Received data byte
+#define MAX311XE_RD_R     (1 << 15) //  1 = Receive data available
+#define MAX311XE_RD_T     (1 << 14) //  1 = Transmit buffer is empty
+#define MAX311XE_RD_RA_FE (1 << 10) //  1 = Receive Activity (UART     \
+                                    //      Shutdown) or Framing-Error \
+                                    //      (normal operation)
+#define MAX311XE_RD_CTS  (1 << 9)   //  1 = CTS active
+#define MAX311XE_RD_PR   (1 << 8)   //  Received parity bit
+#define MAX311XE_RD_DATA 0xFF       //  Received data byte
 
 //
 // Define the device select bits.
 //
 
-#define SELECTOR_LED             1
-#define SELECTOR_UART            2
-#define SELECTOR_2MB_FLASH       4
+#define SELECTOR_LED       1
+#define SELECTOR_UART      2
+#define SELECTOR_2MB_FLASH 4
 
 #define RECEIVE_BUFFER_SIZE 1024
 
@@ -179,7 +179,8 @@ Abstract:
 // Declare the SPI device registers.
 //
 
-typedef struct _DW_APB_SSI_REGISTERS {
+typedef struct _DW_APB_SSI_REGISTERS
+{
     ULONG Ctrlr0;           //  00  Control Register 0
     ULONG Ctrlr1;           //  04  Control Register 1
     ULONG Ssienr;           //  08  SSI Enable Register
@@ -214,9 +215,10 @@ typedef struct _DW_APB_SSI_REGISTERS {
 // Internal data for this driver.
 //
 
-typedef struct _SERIAL_PORT_MAX311XE {
-    ULONG RxBufferFill;
-    ULONG RxBufferDrain;
+typedef struct _SERIAL_PORT_MAX311XE
+{
+    ULONG  RxBufferFill;
+    ULONG  RxBufferDrain;
     UINT16 SpiBaudRate;
     UINT16 RxBuffer[RECEIVE_BUFFER_SIZE];
 } SERIAL_PORT_MAX311XE, *PSERIAL_PORT_MAX311XE;
@@ -228,20 +230,18 @@ static SERIAL_PORT_MAX311XE Max311;
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN
-SpiMax311SetBaud (
+SpiMax311SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    );
+    ULONG           Rate);
 
 // --------------------------------------------------------- Internal Functions
 
 VOID
-SpiInit (
+SpiInit(
     _Inout_ PDW_APB_SSI_REGISTERS Spi,
-    UINT16 ControlRegister0,
-    UINT16 ControlRegister1,
-    UINT16 BaudRateRegister
-    )
+    UINT16                        ControlRegister0,
+    UINT16                        ControlRegister1,
+    UINT16                        BaudRateRegister)
 
 /*++
 
@@ -267,16 +267,16 @@ Return Value:
 --*/
 
 {
-
     UINT16 Isr;
     UINT16 Risr;
-    ULONG SpiStatus;
+    ULONG  SpiStatus;
 
     //
     // Wait until the SPI is idle.
     //
 
-    do {
+    do
+    {
         SpiStatus = READ_REGISTER_ULONG(&(Spi->Sr));
         SpiStatus &= SR_BUSY | SR_TFE;
     } while (SpiStatus != SR_TFE);
@@ -286,8 +286,8 @@ Return Value:
     //
 
     SpiStatus = READ_REGISTER_ULONG(&(Spi->Sr)) & SR_RFNE;
-    while (SpiStatus != 0) {
-
+    while (SpiStatus != 0)
+    {
         //
         // Discard the previous transaction's data.
         //
@@ -323,9 +323,10 @@ Return Value:
     // Clear any pending interrupts in the SPI controller.
     //
 
-    do {
+    do
+    {
         Risr = (UINT16)READ_REGISTER_ULONG(&(Spi->Risr));
-        Isr = (UINT16)READ_REGISTER_ULONG(&(Spi->Isr));
+        Isr  = (UINT16)READ_REGISTER_ULONG(&(Spi->Isr));
     } while ((Risr != 0) || (Isr != 0));
 
     //
@@ -336,10 +337,9 @@ Return Value:
 }
 
 UINT16
-SpiSend16 (
+SpiSend16(
     _In_ PCPPORT Port,
-    UINT16 Value
-    )
+    UINT16       Value)
 
 /*++
 
@@ -361,10 +361,9 @@ Arguments:
 --*/
 
 {
-
-    UINT32 Data;
+    UINT32                Data;
     PDW_APB_SSI_REGISTERS Spi;
-    ULONG SpiStatus;
+    ULONG                 SpiStatus;
 
     //
     // Locate the SPI controller.
@@ -399,7 +398,8 @@ Arguments:
     // Wait until the SPI operation is complete.
     //
 
-    do {
+    do
+    {
         SpiStatus = READ_REGISTER_ULONG(&(Spi->Sr));
         SpiStatus &= SR_BUSY | SR_TFE | SR_RFNE;
 
@@ -414,9 +414,8 @@ Arguments:
 }
 
 VOID
-SpiMax311BufferRxData (
-    UINT16 Value
-    )
+SpiMax311BufferRxData(
+    UINT16 Value)
 
 /*++
 
@@ -435,8 +434,7 @@ Return Value:
 --*/
 
 {
-
-    ULONG NextHead;
+    ULONG   NextHead;
     PUINT16 RxBufferHead;
 
     //
@@ -445,17 +443,17 @@ Return Value:
     //
 
     RxBufferHead = Max311.RxBuffer + Max311.RxBufferFill;
-    NextHead = (Max311.RxBufferFill + 1) % RECEIVE_BUFFER_SIZE;
-    if (NextHead != Max311.RxBufferDrain) {
-        *RxBufferHead = Value;
+    NextHead     = (Max311.RxBufferFill + 1) % RECEIVE_BUFFER_SIZE;
+    if (NextHead != Max311.RxBufferDrain)
+    {
+        *RxBufferHead       = Value;
         Max311.RxBufferFill = NextHead;
     }
 }
 
 BOOLEAN
-SpiMax311TxEmpty (
-    _In_ PCPPORT Port
-    )
+SpiMax311TxEmpty(
+    _In_ PCPPORT Port)
 
 /*++
 
@@ -474,15 +472,14 @@ Return Value:
 --*/
 
 {
-
     UINT16 Value;
 
     //
     // Buffer any receive data.
     //
 
-    while (TRUE) {
-
+    while (TRUE)
+    {
         //
         // Get the transmit buffer status from the UART.
         //
@@ -493,7 +490,8 @@ Return Value:
         // Exit the loop if no receive data.
         //
 
-        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0) {
+        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0)
+        {
             break;
         }
 
@@ -508,7 +506,8 @@ Return Value:
     // Determine if there is space in the transmit buffer.
     //
 
-    if (CHECK_FLAG(Value, MAX311XE_RD_T) != 0) {
+    if (CHECK_FLAG(Value, MAX311XE_RD_T) != 0)
+    {
         return TRUE;
     }
 
@@ -518,13 +517,12 @@ Return Value:
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-SpiMax311InitializePort (
+SpiMax311InitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -555,7 +553,6 @@ Return Value:
 --*/
 
 {
-
     PDW_APB_SSI_REGISTERS Spi;
 
     UNREFERENCED_PARAMETER(LoadOptions);
@@ -570,14 +567,14 @@ Return Value:
     //
 
     Max311.RxBufferDrain = 0;
-    Max311.RxBufferFill = 0;
+    Max311.RxBufferFill  = 0;
 
     //
     // Store the current SPI Baud Rate register value. It is assumed that the
     // firmware set this up to work correctly with the debugging device.
     //
 
-    Spi = (PDW_APB_SSI_REGISTERS)Port->Address;
+    Spi                = (PDW_APB_SSI_REGISTERS)Port->Address;
     Max311.SpiBaudRate = (UINT16)Spi->Baudr;
 
     //
@@ -589,10 +586,9 @@ Return Value:
 }
 
 BOOLEAN
-SpiMax311SetBaud (
+SpiMax311SetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -613,10 +609,10 @@ Return Value:
 --*/
 
 {
-
     UINT16 ConfigValue;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -624,7 +620,8 @@ Return Value:
     // Select the baud rate
     //
 
-    switch (Rate) {
+    switch (Rate)
+    {
     case 230400:
         ConfigValue = MAX311XE_WC_DIV_1;
         break;
@@ -704,10 +701,9 @@ Return Value:
 }
 
 UART_STATUS
-SpiMax311GetByte (
+SpiMax311GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    )
+    _Out_ PUCHAR    Byte)
 
 /*++
 
@@ -728,11 +724,11 @@ Return Value:
 --*/
 
 {
-
     PUINT16 RxBufferTail;
-    UINT16 Value;
+    UINT16  Value;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -740,23 +736,24 @@ Return Value:
     // Empty the receive buffer first.
     //
 
-    if (Max311.RxBufferDrain != Max311.RxBufferFill) {
-
+    if (Max311.RxBufferDrain != Max311.RxBufferFill)
+    {
         //
         // Get the next value from the receive buffer, and move the buffer
         // pointer.
         //
 
-        RxBufferTail = Max311.RxBuffer + Max311.RxBufferDrain;
-        Value = *RxBufferTail;
-        *Byte = (UCHAR)Value;
+        RxBufferTail         = Max311.RxBuffer + Max311.RxBufferDrain;
+        Value                = *RxBufferTail;
+        *Byte                = (UCHAR)Value;
         Max311.RxBufferDrain = (Max311.RxBufferDrain + 1) % RECEIVE_BUFFER_SIZE;
 
         //
         // Return unsuccessfully if any errors are indicated.
         //
 
-        if (CHECK_FLAG(Value, MAX311XE_RD_RA_FE) != FALSE) {
+        if (CHECK_FLAG(Value, MAX311XE_RD_RA_FE) != FALSE)
+        {
             return UartError;
         }
 
@@ -769,14 +766,15 @@ Return Value:
     //
 
     Value = SpiSend16(Port, MAX311XE_READ_DATA);
-    if (CHECK_FLAG(Value, MAX311XE_RD_R) != 0) {
-
+    if (CHECK_FLAG(Value, MAX311XE_RD_R) != 0)
+    {
         //
         // Return unsuccessfully if any errors are indicated.
         //
 
         *Byte = (UCHAR)Value;
-        if (CHECK_FLAG(Value, MAX311XE_RD_RA_FE) != FALSE) {
+        if (CHECK_FLAG(Value, MAX311XE_RD_RA_FE) != FALSE)
+        {
             return UartError;
         }
 
@@ -787,11 +785,10 @@ Return Value:
 }
 
 UART_STATUS
-SpiMax311PutByte (
+SpiMax311PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    )
+    UCHAR           Byte,
+    BOOLEAN         BusyWait)
 
 /*++
 
@@ -815,10 +812,10 @@ Return Value:
 --*/
 
 {
-
     UINT16 Value;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return UartNotReady;
     }
 
@@ -826,10 +823,13 @@ Return Value:
     // Wait for the port to be not busy.
     //
 
-    if (BusyWait != FALSE) {
-        while (!SpiMax311TxEmpty(Port));
-
-    } else if (!SpiMax311TxEmpty(Port)) {
+    if (BusyWait != FALSE)
+    {
+        while (!SpiMax311TxEmpty(Port))
+            ;
+    }
+    else if (!SpiMax311TxEmpty(Port))
+    {
         return UartNotReady;
     }
 
@@ -843,13 +843,14 @@ Return Value:
     // Buffer any receive data.
     //
 
-    while (TRUE) {
-
+    while (TRUE)
+    {
         //
         // Exit the loop if no receive data came through.
         //
 
-        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0) {
+        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0)
+        {
             break;
         }
 
@@ -870,9 +871,8 @@ Return Value:
 }
 
 BOOLEAN
-SpiMax311RxReady (
-    _In_ PCPPORT Port
-    )
+SpiMax311RxReady(
+    _In_ PCPPORT Port)
 
 /*++
 
@@ -891,10 +891,10 @@ Return Value:
 --*/
 
 {
-
     UINT16 Value;
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -902,8 +902,8 @@ Return Value:
     // Buffer any receive data.
     //
 
-    while(TRUE) {
-
+    while (TRUE)
+    {
         //
         // Get the receive buffer status from the UART.
         //
@@ -914,7 +914,8 @@ Return Value:
         // Exit the loop if no receive data came through.
         //
 
-        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0) {
+        if (CHECK_FLAG(Value, MAX311XE_RD_R) == 0)
+        {
             break;
         }
 
@@ -929,7 +930,8 @@ Return Value:
     // Determine if there is a received character waiting in the buffer.
     //
 
-    if (Max311.RxBufferFill != Max311.RxBufferDrain) {
+    if (Max311.RxBufferFill != Max311.RxBufferDrain)
+    {
         return TRUE;
     }
 
@@ -943,5 +945,4 @@ UART_HARDWARE_DRIVER SpiMax311HardwareDriver = {
     SpiMax311SetBaud,
     SpiMax311GetByte,
     SpiMax311PutByte,
-    SpiMax311RxReady
-};
+    SpiMax311RxReady};

@@ -12,51 +12,61 @@
 
 #pragma once
 #ifndef SCRIPT_ENGINE_H
-#define SCRIPT_ENGINE_H
+#    define SCRIPT_ENGINE_H
 
+#    include <stdio.h>
+#    include "ScriptEngineCommon.h"
+#    include "scanner.h"
+#    include "common.h"
 
+#    define SYNTAX_ERROR 0
+#    define UNKOWN_TOKEN 1
 
-#include <stdio.h>
-#include "ScriptEngineCommon.h"
-#include "scanner.h"
-#include "common.h"
+PSYMBOL
+NewSymbol(void);
 
-#define SYNTAX_ERROR 0 
-#define UNKOWN_TOKEN 1
+PSYMBOL
+NewStringSymbol(char * value);
 
-PSYMBOL NewSymbol(void);
+unsigned int
+GetStringSymbolSize(PSYMBOL Symbol);
 
-PSYMBOL NewStringSymbol(char* value);
-
-unsigned int GetStringSymbolSize(PSYMBOL Symbol);
-
-void RemoveSymbol(PSYMBOL Symbol);
+void
+RemoveSymbol(PSYMBOL Symbol);
 
 __declspec(dllexport) void PrintSymbol(PSYMBOL Symbol);
 
-PSYMBOL_BUFFER NewSymbolBuffer(void);
+PSYMBOL_BUFFER
+NewSymbolBuffer(void);
 
 __declspec(dllexport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 
-PSYMBOL_BUFFER PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
+PSYMBOL_BUFFER
+PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 
 __declspec(dllexport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 
-PSYMBOL ToSymbol(TOKEN Token);
+PSYMBOL
+ToSymbol(TOKEN Token);
 
-__declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char* str);
+__declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
-void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
+void
+CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
 
-unsigned long long int RegisterToInt(char* str);
+unsigned long long int
+RegisterToInt(char * str);
 
-unsigned long long int PseudoRegToInt(char* str);
+unsigned long long int
+PseudoRegToInt(char * str);
 
-unsigned long long int SemanticRuleToInt(char* str);
+unsigned long long int
+SemanticRuleToInt(char * str);
 
-char* HandleError(unsigned int ErrorType, char* str);
+char *
+HandleError(unsigned int ErrorType, char * str);
 
-int GetIdentifierVal(TOKEN Token);
+int
+GetIdentifierVal(TOKEN Token);
 
 #endif
-
