@@ -90,8 +90,8 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
                         ReturnedLength);
 
   } else if (Style == DEBUGGER_SHOW_COMMAND_DQ) {
-      ShowMemoryCommandDQ(OutputBuffer, Size, Address, MemoryType,
-          ReturnedLength);
+    ShowMemoryCommandDQ(OutputBuffer, Size, Address, MemoryType,
+                        ReturnedLength);
   } else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64) {
     HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE,
                            NULL);
@@ -118,7 +118,7 @@ void HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
  * @param Length Length of memory to show
  */
 void ShowMemoryCommandDB(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
-                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
   CHAR Character;
 
   for (int i = 0; i < Size; i += 16) {
@@ -168,7 +168,7 @@ void ShowMemoryCommandDB(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
 }
 
 /**
- * @brief Show memory in dword format (DD)
+ * @brief Show memory in dword format (DC)
  *
  * @param OutputBuffer the buffer to show
  * @param Size size of memory to read
@@ -176,8 +176,8 @@ void ShowMemoryCommandDB(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
  */
-void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
-                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+void ShowMemoryCommandDC(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
   CHAR Character;
   for (int i = 0; i < Size; i += 16) {
 
@@ -227,7 +227,7 @@ void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
 }
 
 /**
- * @brief Show memory in dword format (DC)
+ * @brief Show memory in dword format (DD)
  *
  * @param OutputBuffer the buffer to show
  * @param Size size of memory to read
@@ -235,8 +235,8 @@ void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
  * @param MemoryType type of memory (phyical or virtual)
  * @param Length Length of memory to show
  */
-void ShowMemoryCommandDC(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
-                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+void ShowMemoryCommandDD(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
 
   CHAR Character;
   for (int i = 0; i < Size; i += 16) {
@@ -281,7 +281,7 @@ void ShowMemoryCommandDC(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
  * @param Length Length of memory to show
  */
 void ShowMemoryCommandDQ(unsigned char *OutputBuffer, UINT Size, UINT64 Address,
-                        DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
+                         DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length) {
 
   for (int i = 0; i < Size; i += 16) {
 

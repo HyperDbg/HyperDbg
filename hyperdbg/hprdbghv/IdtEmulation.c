@@ -22,9 +22,7 @@
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    ULONG                            ErrorCode     = 0;
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
-    BOOLEAN                          AvoidUnsetMtf;
+    ULONG ErrorCode = 0;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -108,50 +106,10 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
              InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //
-        // It's a breakpoint and should be handled by the kernel debugger
+        // Handle debug events (breakpoint, traps, hardware debug register when kernel
+        // debugger is attached.)
         //
-        ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
-
-        if (g_WaitForAnStepTrap)
-        {
-            //
-            // *** Handle a regular step
-            //
-
-            //
-            // Unset to show that we're no longer looking for a trap
-            //
-            g_WaitForAnStepTrap = FALSE;
-
-            //
-            // Check and handle if there is a software defined breakpoint
-            //
-            if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
-                                                                    g_GuestState[CurrentProcessorIndex].LastVmexitRip,
-                                                                    DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                                    GuestRegs,
-                                                                    &AvoidUnsetMtf))
-            {
-                //
-                // Handle the step
-                //
-                ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
-                KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                                      GuestRegs,
-                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
-                                                      &ContextAndTag);
-            }
-        }
-        else
-        {
-            //
-            // It's a breakpoint
-            //
-            KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                                  GuestRegs,
-                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                                  &ContextAndTag);
-        }
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {

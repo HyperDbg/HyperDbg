@@ -38,12 +38,28 @@ typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
 
 } DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
 
+/**
+ * @brief store the details of a hardware debug register to ignore any 
+ * trigger for other threads
+ *
+ */
+typedef struct _HARDWARE_DEBUG_REGISTER_DETAILS
+{
+    UINT64 Address;
+    UINT32 ProcessId;
+    UINT32 ThreadId;
+
+} HARDWARE_DEBUG_REGISTER_DETAILS, *PHARDWARE_DEBUG_REGISTER_DETAILS;
+
 //////////////////////////////////////////////////
 //				   Functions 	    			//
 //////////////////////////////////////////////////
 
 VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket);
+
+VOID
+KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,

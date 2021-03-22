@@ -114,6 +114,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         return;
       }
     } else {
+
       //
       // User inserts two address
       //
@@ -125,6 +126,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
     }
   }
   if (!TargetAddress) {
+
     //
     // User inserts two address
     //
@@ -133,6 +135,7 @@ VOID CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
     return;
   }
   if (Length == 0) {
+
     //
     // Default length (user doesn't specified)
     //

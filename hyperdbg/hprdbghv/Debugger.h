@@ -100,6 +100,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PDEBUGGEE_BP_DESCRIPTOR               SoftwareBreakpointState;
     BOOLEAN                               WaitForStepOnMtf;
     BOOLEAN                               EnableInterruptFlagOnContinue;
+    BOOLEAN                               DisableTrapFlagOnContinue;
     BOOLEAN                               WaitingForNmi;
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
     UINT16                                InstructionLengthHint;
