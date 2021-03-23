@@ -306,7 +306,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY *)FinalBuffer);
+        KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY *)FinalBuffer,FinalSize);
         return;
     }
     else if (!g_DeviceHandle)

@@ -1773,7 +1773,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // Edit memory
                 //
 
-                if (DebuggerCommandEditMemory(EditMemoryPacket))
+                if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
                 {
                     EditMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
                 }

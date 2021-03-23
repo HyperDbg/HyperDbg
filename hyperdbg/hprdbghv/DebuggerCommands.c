@@ -1,6 +1,7 @@
 /**
  * @file DebuggerCommands.c
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Implementation of Debugger Commands 
  * 
  * @version 0.1
@@ -261,10 +262,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     PVOID    SourceAddress      = 0;
     CR3_TYPE CurrentProcessCr3;
     DbgBreakPoint();
-    //
-    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
-    //
-
+    
     //
     // set chunk size in each modification
     //
@@ -355,6 +353,97 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             return;
         }
 
+        //
+        // Edit the memory
+        //
+        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        {
+            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
+            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+
+            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+        }
+    }
+    else
+    {
+        //
+        // Invalid parameter
+        //
+        EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
+        return;
+    }
+
+    //
+    // Set the resutls
+    //
+    EditMemRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+}
+
+/**
+ * @brief Edit physical and virtual memory on vmxroot mode
+ * 
+ * @param EditMemRequest edit memory request
+ * @return NTSTATUS 
+ */
+BOOLEAN
+DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
+{
+    UINT32   LengthOfEachChunk  = 0;
+    PVOID    DestinationAddress = 0;
+    PVOID    SourceAddress      = 0;
+    CR3_TYPE CurrentProcessCr3;
+    //
+    // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
+    //
+
+    //
+    // set chunk size in each modification
+    //
+    if (EditMemRequest->ByteSize == EDIT_BYTE)
+    {
+        LengthOfEachChunk = 1;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_DWORD)
+    {
+        LengthOfEachChunk = 4;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_QWORD)
+    {
+        LengthOfEachChunk = 8;
+    }
+    else
+    {
+        //
+        // Invalid parameter
+        //
+        EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
+        return;
+    }
+
+    //
+    // Check if address is valid or not valid (virtual address)
+    //
+    if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
+    {
+        //
+        // Edit the memory
+        //
+        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        {
+            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
+            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+
+            //
+            // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
+            // It is because the target page might be read-only so we can make it writable
+            //
+            // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemorySafeOnTargetProcess(DestinationAddress, SourceAddress, LengthOfEachChunk);
+        }
+    }
+    else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
+    {
+        
         //
         // Edit the memory
         //
