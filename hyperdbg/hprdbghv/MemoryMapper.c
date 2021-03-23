@@ -629,6 +629,51 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
 }
 
 /**
+ * @brief Write memory safely by mapping the buffer on the target process memory (It's a wrapper)
+ * 
+ * @param Destination Virtual Address to write
+ * @param Source value to write 
+ * @param Size Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size)
+{
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+    BOOLEAN  Result;
+
+    //
+    // Move to guest process
+    //
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // Write target memory
+    //
+    Result = MemoryMapperWriteMemorySafe(Destination, Source, Size,GuestCr3);
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+
+    return Result;
+}
+
+/**
  * @brief Write memory by mapping the buffer (It's a wrapper)
  *
  * @details this function CAN be called from vmx-root mode

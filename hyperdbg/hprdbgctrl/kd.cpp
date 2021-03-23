@@ -391,7 +391,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem)
+KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem,UINT32 Size)
 {
     //
     // Send d command as read memory packet
@@ -400,7 +400,7 @@ KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem)
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY,
             (CHAR *)EditMem,
-            sizeof(DEBUGGER_EDIT_MEMORY)))
+            Size))
     {
         return FALSE;
     }
