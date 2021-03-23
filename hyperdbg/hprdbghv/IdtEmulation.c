@@ -152,7 +152,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
             KdHandleNmi(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableInterruptFlagOnContinue)
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
         {
             //
             // Ignore the nmi
@@ -239,7 +239,13 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     // the interrupt into the guest
     //
 
-    if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
+    {
+        //
+        // Ignore the interrupt as it's suppressed supressed because of instrument step-in
+        //
+    }
+    else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
         __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
         __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityState);

@@ -93,15 +93,12 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Check if the cs selector changed or not, which indicates that the
         // execution changed from user-mode to kernel-mode or kernel-mode to
-        // user-mode, if it changed, we have to make sure set the RFLAGS.IF bit
-        // as we previously disabled it, this way we can avoid crashes
+        // user-mode
         //
         __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
 
-        KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(CurrentProcessorIndex,
-                                                          GuestRegs,
-                                                          g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel,
-                                                          CsSel);
+        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel,
+                                         CsSel);
 
         //
         //  Unset the MTF flag and previous cs selector

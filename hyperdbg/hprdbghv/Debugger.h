@@ -111,7 +111,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
     PDEBUGGEE_BP_DESCRIPTOR               SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENT_IN_TRACE          InstrumentInTrace;
-    BOOLEAN                               EnableInterruptFlagOnContinue;
+    BOOLEAN                               EnableExternalInterruptsOnContinue;
     BOOLEAN                               PassErrorsToWindbg;
     BOOLEAN                               DisableTrapFlagOnContinue;
     BOOLEAN                               WaitingForNmi;

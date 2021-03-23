@@ -641,8 +641,7 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
                    BOOLEAN                                 PauseBreaksUntilASpecialMessageSent,
                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse)
 {
-    ULONG  CoreCount;
-    RFLAGS Rflags = {0};
+    ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
 
@@ -653,18 +652,14 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
     }
 
     //
-    // Check if we should enable RFLAGS.IF in this core or not,
+    // Check if we should enable interrupts in this core or not,
     // we have another same check in SWITCHING CORES too
     //
-    if (g_GuestState[CurrentCore].DebuggingState.EnableInterruptFlagOnContinue)
+    if (g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue)
     {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        HvSetExternalInterruptExiting(FALSE);
 
-        Rflags.InterruptEnableFlag = TRUE;
-
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
-
-        g_GuestState[CurrentCore].DebuggingState.EnableInterruptFlagOnContinue = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
     //
@@ -926,8 +921,7 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 BOOLEAN
 KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
 {
-    ULONG  CoreCount;
-    RFLAGS Rflags = {0};
+    ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
 
@@ -947,17 +941,13 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     //
 
     //
-    // Check if we should enable RFLAGS.IF in this core or not
+    // Check if we should enable interrupts in this core or not
     //
-    if (g_GuestState[CurrentCore].DebuggingState.EnableInterruptFlagOnContinue)
+    if (g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue)
     {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        HvSetExternalInterruptExiting(FALSE);
 
-        Rflags.InterruptEnableFlag = TRUE;
-
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
-
-        g_GuestState[CurrentCore].DebuggingState.EnableInterruptFlagOnContinue = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
     //
@@ -1223,8 +1213,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 VOID
 KdGuaranteedStepInstruction(ULONG CoreId)
 {
-    UINT16 CsSel  = 0;
-    RFLAGS Rflags = {0};
+    UINT16 CsSel = 0;
 
     //
     // Read cs to have a trace of the execution mode of running application
@@ -1244,21 +1233,10 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     g_GuestState[CoreId].IgnoreMtfUnset = TRUE;
 
     //
-    // Change guest rflags if needed to avoid interrupts on intr pin
+    // Change guest interrupt-state
     //
-    if (!g_GuestState[CoreId].DebuggingState.EnableInterruptFlagOnContinue)
-    {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
-
-        if (Rflags.InterruptEnableFlag == TRUE)
-        {
-            Rflags.InterruptEnableFlag = FALSE;
-
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
-
-            g_GuestState[CoreId].DebuggingState.EnableInterruptFlagOnContinue = TRUE;
-        }
-    }
+    HvSetExternalInterruptExiting(TRUE);
+    g_GuestState[CoreId].DebuggingState.EnableExternalInterruptsOnContinue = TRUE;
 
     //
     // Set the MTF flag
@@ -1268,25 +1246,16 @@ KdGuaranteedStepInstruction(ULONG CoreId)
 
 /**
  * @brief Check if the execution mode (kernel-mode to user-mode or user-mode
- * to kernel-mode) changed, if it changed then we have to find the saved rflags
- * and set the RFLAGS.IF bit to enable the interrupt-state if the the debuggee
- * is continued
+ * to kernel-mode) changed
  * 
- * @param CurrentCoreIndex 
  * @param PreviousCsSelector 
  * @param CurrentCsSelector
  *
  * @return BOOLEAN 
  */
 BOOLEAN
-KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(UINT32      CurrentCoreIndex,
-                                                  PGUEST_REGS GuestRegs,
-                                                  UINT16      PreviousCsSelector,
-                                                  UINT16      CurrentCsSelector)
+KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector)
 {
-    UINT64 MsrValue;
-    RFLAGS Rflags = {0};
-
     PreviousCsSelector = PreviousCsSelector & ~3;
     CurrentCsSelector  = CurrentCsSelector & ~3;
 
@@ -1306,44 +1275,14 @@ KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(UINT32      CurrentCoreIndex,
         //
         // User-mode -> Kernel-mode
         //
-
-        //
-        // Check if it's a syscall, or an exception
-        //
-        MsrValue = __readmsr(MSR_LSTAR);
-
-        if (g_GuestState[CurrentCoreIndex].LastVmexitRip == MsrValue)
-        {
-            //
-            // It's syscall, RFLAGS is saved into R11
-            //
-            Rflags.Value               = GuestRegs->r11;
-            Rflags.InterruptEnableFlag = TRUE;
-            GuestRegs->r11             = Rflags.Value;
-        }
-        else
-        {
-            //
-            // It's an exception, we have to find rflags at top of stack
-            //
-            Rflags.Value                = *((UINT64 *)GuestRegs->rsp);
-            Rflags.InterruptEnableFlag  = TRUE;
-            *((UINT64 *)GuestRegs->rsp) = Rflags.Value;
-
-            //
-            // In IA32_FMASK, interrupt enable flag is masked by default
-            // by using the following code, we will be sure that it won't
-            // set the RFLAGS.IF flag, otherwise, a triple-fault will occur
-            //
-            g_GuestState[CurrentCoreIndex].DebuggingState.EnableInterruptFlagOnContinue = FALSE;
-            KdPassErrorsToWindbg();
-        }
+        LogInfo("User-mode -> Kernel-mode");
     }
     else if ((CurrentCsSelector == KGDT64_R3_CODE || CurrentCsSelector == KGDT64_R3_CMCODE) && PreviousCsSelector == KGDT64_R0_CODE)
     {
         //
         // Kernel-mode to user-mode
         //
+        LogInfo("Kernel-mode -> User-mode");
 
         //
         // Nothing to do !
@@ -1355,6 +1294,7 @@ KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(UINT32      CurrentCoreIndex,
         //
         // Probably a heaven's gate
         //
+        LogInfo("Heaven's gate");
 
         //
         // Nothing to do !

@@ -108,7 +108,4 @@ BOOLEAN
 KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLength, UINT32 OperationCode);
 
 BOOLEAN
-KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(UINT32      CurrentCoreIndex,
-                                                  PGUEST_REGS GuestRegs,
-                                                  UINT16      PreviousCsSelector,
-                                                  UINT16      CurrentCsSelector);
+KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);
