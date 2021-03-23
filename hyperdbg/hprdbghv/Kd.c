@@ -126,6 +126,24 @@ KdUninitializeKernelDebugger()
 }
 
 /**
+ * @brief For debugging purpose, passes the errors to Windbg
+ *
+ * @return BOOLEAN
+ */
+VOID
+KdPassErrorsToWindbg()
+{
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        g_GuestState[i].DebuggingState.PassErrorsToWindbg = TRUE;
+    }
+}
+
+/**
  * @brief Handles NMIs in kernel-mode
  *
  * @param Context
@@ -592,6 +610,20 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
                                   g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
 
         g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
+    }
+
+    //
+    // Check to apply error passing to Windbg (for debugging purpose)
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.PassErrorsToWindbg)
+    {
+        //
+        // Disable hooking of breakpoint exceptions
+        //
+        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
+        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+
+        g_GuestState[CurrentCore].DebuggingState.PassErrorsToWindbg = FALSE;
     }
 }
 
@@ -1191,12 +1223,20 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 VOID
 KdGuaranteedStepInstruction(ULONG CoreId)
 {
+    UINT16 CsSel  = 0;
     RFLAGS Rflags = {0};
+
+    //
+    // Read cs to have a trace of the execution mode of running application
+    // in the debuggee
+    //
+    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.CsSel = CsSel;
 
     //
     // Set an indicator of wait for MTF
     //
-    g_GuestState[CoreId].DebuggingState.WaitForStepOnMtf = TRUE;
+    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = TRUE;
 
     //
     // Not unset again
@@ -1224,6 +1264,111 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Set the MTF flag
     //
     HvSetMonitorTrapFlag(TRUE);
+}
+
+/**
+ * @brief Check if the execution mode (kernel-mode to user-mode or user-mode
+ * to kernel-mode) changed, if it changed then we have to find the saved rflags
+ * and set the RFLAGS.IF bit to enable the interrupt-state if the the debuggee
+ * is continued
+ * 
+ * @param CurrentCoreIndex 
+ * @param PreviousCsSelector 
+ * @param CurrentCsSelector
+ *
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(UINT32      CurrentCoreIndex,
+                                                  PGUEST_REGS GuestRegs,
+                                                  UINT16      PreviousCsSelector,
+                                                  UINT16      CurrentCsSelector)
+{
+    UINT64 MsrValue;
+    RFLAGS Rflags = {0};
+
+    PreviousCsSelector = PreviousCsSelector & ~3;
+    CurrentCsSelector  = CurrentCsSelector & ~3;
+
+    //
+    // Check if the execution modes are the same or not
+    //
+    if (PreviousCsSelector == CurrentCsSelector)
+    {
+        //
+        // Execution modes are not changed
+        //
+        return FALSE;
+    }
+
+    if ((PreviousCsSelector == KGDT64_R3_CODE || PreviousCsSelector == KGDT64_R3_CMCODE) && CurrentCsSelector == KGDT64_R0_CODE)
+    {
+        //
+        // User-mode -> Kernel-mode
+        //
+
+        //
+        // Check if it's a syscall, or an exception
+        //
+        MsrValue = __readmsr(MSR_LSTAR);
+
+        if (g_GuestState[CurrentCoreIndex].LastVmexitRip == MsrValue)
+        {
+            //
+            // It's syscall, RFLAGS is saved into R11
+            //
+            Rflags.Value               = GuestRegs->r11;
+            Rflags.InterruptEnableFlag = TRUE;
+            GuestRegs->r11             = Rflags.Value;
+        }
+        else
+        {
+            //
+            // It's an exception, we have to find rflags at top of stack
+            //
+            Rflags.Value                = *((UINT64 *)GuestRegs->rsp);
+            Rflags.InterruptEnableFlag  = TRUE;
+            *((UINT64 *)GuestRegs->rsp) = Rflags.Value;
+
+            //
+            // In IA32_FMASK, interrupt enable flag is masked by default
+            // by using the following code, we will be sure that it won't
+            // set the RFLAGS.IF flag, otherwise, a triple-fault will occur
+            //
+            g_GuestState[CurrentCoreIndex].DebuggingState.EnableInterruptFlagOnContinue = FALSE;
+            KdPassErrorsToWindbg();
+        }
+    }
+    else if ((CurrentCsSelector == KGDT64_R3_CODE || CurrentCsSelector == KGDT64_R3_CMCODE) && PreviousCsSelector == KGDT64_R0_CODE)
+    {
+        //
+        // Kernel-mode to user-mode
+        //
+
+        //
+        // Nothing to do !
+        //
+    }
+    else if ((CurrentCsSelector == KGDT64_R3_CODE && PreviousCsSelector == KGDT64_R3_CMCODE) ||
+             (PreviousCsSelector == KGDT64_R3_CODE && CurrentCsSelector == KGDT64_R3_CMCODE))
+    {
+        //
+        // Probably a heaven's gate
+        //
+
+        //
+        // Nothing to do !
+        //
+    }
+    else
+    {
+        LogError("Unknwn changes in cs selectro during the instrument step-in");
+    }
+
+    //
+    // Execution modes are changed
+    //
+    return TRUE;
 }
 
 /**

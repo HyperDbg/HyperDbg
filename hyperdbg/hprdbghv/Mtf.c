@@ -24,6 +24,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     BOOLEAN                          IsMtfForReApplySoftwareBreakpoint = FALSE;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag                     = {0};
     BOOLEAN                          AvoidUnsetMtf;
+    UINT16                           CsSel;
 
     //
     // Redo the instruction
@@ -87,12 +88,26 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
     }
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf)
+    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf)
     {
         //
-        //  Unset the MTF flag
+        // Check if the cs selector changed or not, which indicates that the
+        // execution changed from user-mode to kernel-mode or kernel-mode to
+        // user-mode, if it changed, we have to make sure set the RFLAGS.IF bit
+        // as we previously disabled it, this way we can avoid crashes
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepOnMtf = FALSE;
+        __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+
+        KdCheckGuestOperatingModeAndSetIfBitOfSavedRflags(CurrentProcessorIndex,
+                                                          GuestRegs,
+                                                          g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel,
+                                                          CsSel);
+
+        //
+        //  Unset the MTF flag and previous cs selector
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel            = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
