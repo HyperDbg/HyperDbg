@@ -47,18 +47,18 @@ VOID
 CommandEditMemory(vector<string> SplittedCommand, string Command)
 {
     BOOL                 Status;
+    UINT64               Address;
+    UINT64 *             FinalBuffer;
+    vector<UINT64>       ValuesToEdit;
     BOOL                 SetAddress        = FALSE;
     BOOL                 SetValue          = FALSE;
     BOOL                 SetProcId         = FALSE;
     BOOL                 NextIsProcId      = FALSE;
     DEBUGGER_EDIT_MEMORY EditMemoryRequest = {0};
-    UINT64               Address;
-    UINT64               Value         = 0;
-    UINT32               ProcId        = GetCurrentProcessId();
-    UINT32               CountOfValues = 0;
-    UINT32               FinalSize     = 0;
-    UINT64 *             FinalBuffer;
-    vector<UINT64>       ValuesToEdit;
+    UINT64               Value             = 0;
+    UINT32               ProcId            = GetCurrentProcessId();
+    UINT32               CountOfValues     = 0;
+    UINT32               FinalSize         = 0;
 
     if (SplittedCommand.size() <= 2)
     {
@@ -306,7 +306,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY *)FinalBuffer,FinalSize);
+        KdSendEditMemoryPacketToDebuggee((DEBUGGER_EDIT_MEMORY *)FinalBuffer, FinalSize);
         return;
     }
     else if (!g_DeviceHandle)
@@ -359,7 +359,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("unknown response from driver\n");
+        ShowErrorMessage(EditMemoryRequest.Result);
     }
 
     //

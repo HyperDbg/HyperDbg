@@ -354,7 +354,8 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
 
 /**
  * @brief Send a Read memory packet to the debuggee
- *
+ * @param ReadMem
+ * 
  * @return BOOLEAN
  */
 BOOLEAN
@@ -387,11 +388,13 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
 
 /**
  * @brief Send an Edit memory packet to the debuggee
- *
+ * @param EditMem
+ * @param Size
+ * 
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem,UINT32 Size)
+KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size)
 {
     //
     // Send d command as read memory packet

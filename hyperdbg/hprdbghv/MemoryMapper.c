@@ -600,7 +600,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     BOOLEAN  Result;
 
     //
-    // Move to guest process
+    // Move to guest process as we're currently in system cr3
     //
 
     //
@@ -663,7 +663,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Write target memory
     //
-    Result = MemoryMapperWriteMemorySafe(Destination, Source, Size,GuestCr3);
+    Result = MemoryMapperWriteMemorySafe(Destination, Source, Size, GuestCr3);
 
     //
     // Move back to original cr3

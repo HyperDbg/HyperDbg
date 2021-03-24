@@ -176,35 +176,75 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
 
     if (!FirstCommand.compare("db"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB, TargetAddress, DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB,
+                                         TargetAddress,
+                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("dc"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC, TargetAddress, DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC,
+                                         TargetAddress,
+                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("dd"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD, TargetAddress, DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD,
+                                         TargetAddress,
+                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("dq"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ, TargetAddress, DEBUGGER_READ_VIRTUAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
+                                         TargetAddress,
+                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("!db"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB, TargetAddress, DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DB,
+                                         TargetAddress,
+                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("!dc"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC, TargetAddress, DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DC,
+                                         TargetAddress,
+                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("!dd"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD, TargetAddress, DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DD,
+                                         TargetAddress,
+                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
     else if (!FirstCommand.compare("!dq"))
     {
-        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ, TargetAddress, DEBUGGER_READ_PHYSICAL_ADDRESS, READ_FROM_KERNEL, Pid, Length);
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DQ,
+                                         TargetAddress,
+                                         DEBUGGER_READ_PHYSICAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         Pid,
+                                         Length);
     }
 
     //

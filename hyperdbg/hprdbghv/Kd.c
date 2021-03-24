@@ -1857,7 +1857,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Edit memory
                 //
-
                 if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
                 {
                     EditMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
@@ -1873,7 +1872,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY,
                                            (unsigned char *)EditMemoryPacket,
-                                           sizeof(DEBUGGER_EDIT_MEMORY) + ReturnSize);
+                                           sizeof(DEBUGGER_EDIT_MEMORY));
 
                 break;
 
