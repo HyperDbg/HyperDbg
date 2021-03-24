@@ -52,12 +52,14 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
  * @return BOOLEAN 
  */
 BOOLEAN
-DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize)
+DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, PSIZE_T ReturnSize)
 {
     UINT32                    Pid;
     UINT32                    Size;
     UINT64                    Address;
+    UINT64                    OffsetInUserBuffer;
     DEBUGGER_READ_MEMORY_TYPE MemType;
+    PLIST_ENTRY               TempList = 0;
 
     Pid     = ReadMemRequest->Pid;
     Size    = ReadMemRequest->Size;
@@ -87,6 +89,41 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID Use
         // Read memory safely
         //
         MemoryMapperReadMemorySafeOnTargetProcess(Address, UserBuffer, Size);
+
+        //
+        // Check if the target memory is filled with breakpoint of 'bp' commands
+        // if the memory is changed due to this command, then we'll changes it to
+        // the previous byte
+        //
+
+        //
+        // Iterate through the breakpoint list
+        //
+        TempList = &g_BreakpointsListHead;
+
+        while (&g_BreakpointsListHead != TempList->Flink)
+        {
+            TempList                                      = TempList->Flink;
+            PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+            if (CurrentBreakpointDesc->Address >= Address && CurrentBreakpointDesc->Address <= Address + Size)
+            {
+                //
+                // The address is found, we have to swap the byte if the target
+                // byte is 0xcc
+                //
+
+                //
+                // Find the address location at user buffer
+                //
+                OffsetInUserBuffer = CurrentBreakpointDesc->Address - Address;
+
+                if (UserBuffer[OffsetInUserBuffer] == 0xcc)
+                {
+                    UserBuffer[OffsetInUserBuffer] = CurrentBreakpointDesc->PreviousByte;
+                }
+            }
+        }
     }
     else
     {
