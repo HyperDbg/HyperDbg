@@ -88,6 +88,12 @@ string g_ServerIp = "";
 HANDLE g_RemoteDebuggeeListeningThread = NULL;
 
 /**
+ * @brief Handle to show that if the debugger is loaded successfully
+ *
+ */
+HANDLE g_IsDriverLoadedSuccessfully = NULL;
+
+/**
  * @brief In both debuggee and debugger we save the state of
  * the closed connection to avoid double close
  *

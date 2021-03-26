@@ -459,7 +459,13 @@ VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
                  Param2,
                  Param3);
 
-    Log("HyperDbg hypervisor is loaded successfully!\n");
+    //
+    // Send one byte buffer to show that Hypervisor
+    // is successfully loaded
+    //
+    LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
+                  "$",
+                  1);
 
     return STATUS_SUCCESS;
 }

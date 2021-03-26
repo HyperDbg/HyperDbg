@@ -14,6 +14,7 @@
 //
 // Global Variables
 //
+extern HANDLE  g_IsDriverLoadedSuccessfully;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 
@@ -64,15 +65,38 @@ CommandLoadVmmModule()
         return FALSE;
     }
 
-    if (HyperdbgLoadVmm())
+    //
+    // Create event to show if the hypervisor is loaded or not
+    //
+    g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if (HyperdbgLoadVmm() == 1)
     {
+        //
+        // No need to handle anymore
+        //
+        CloseHandle(g_IsDriverLoadedSuccessfully);
         return FALSE;
     }
+
+    //
+    // We wait for the first message from the kernel debugger to continue
+    //
+    WaitForSingleObject(
+        g_IsDriverLoadedSuccessfully,
+        INFINITE);
+
+    //
+    // No need to handle anymore
+    //
+    CloseHandle(g_IsDriverLoadedSuccessfully);
 
     //
     // If we reach here so the module are loaded
     //
     g_IsDebuggerModulesLoaded = TRUE;
+
+    ShowMessages("HyperDbg hypervisor is loaded successfully !\n");
 
     return TRUE;
 }
@@ -109,7 +133,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // Load VMM Module
         //
-        ShowMessages("try to install and load the VMM driver...\n");
+        ShowMessages("Try to install and load the VMM driver...\n");
 
         if (!CommandLoadVmmModule())
         {

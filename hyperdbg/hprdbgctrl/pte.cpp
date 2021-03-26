@@ -39,7 +39,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
     UINT64                                   TargetVa;
     DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead = {0};
 
-    if (SplittedCommand.size() > 2)
+    if (SplittedCommand.size() != 2)
     {
         ShowMessages("incorrect use of '!pte'\n\n");
         CommandPteHelp();

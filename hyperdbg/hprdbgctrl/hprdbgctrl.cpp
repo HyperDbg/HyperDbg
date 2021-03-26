@@ -17,6 +17,7 @@ using namespace std;
 // Global Variables
 //
 extern HANDLE     g_DeviceHandle;
+extern HANDLE     g_IsDriverLoadedSuccessfully;
 extern BOOLEAN    g_IsVmxOffProcessStart;
 extern Callback   g_MessageHandler;
 extern TCHAR      g_DriverLocation[MAX_PATH];
@@ -281,6 +282,15 @@ ReadIrpBasedBuffer()
 
                     break;
 
+                case OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED:
+
+                    //
+                    // Indicate that driver (Hypervisor) is loaded successfully
+                    //
+                    SetEvent(g_IsDriverLoadedSuccessfully);
+
+                    break;
+
                 default:
                     /*
         ShowMessages("Message From Debugger :\n");
@@ -458,11 +468,11 @@ HyperdbgLoadVmm()
 
     CpuID = ReadVendorString();
 
-    ShowMessages("The CPU Vendor is : %s\n", CpuID.c_str());
+    ShowMessages("Current processor vendor is : %s\n", CpuID.c_str());
 
     if (CpuID == "GenuineIntel")
     {
-        ShowMessages("The Processor virtualization technology is VT-x.\n");
+        ShowMessages("The Processor virtualization technology is VT-x\n");
     }
     else
     {
@@ -473,11 +483,11 @@ HyperdbgLoadVmm()
 
     if (VmxSupportDetection())
     {
-        ShowMessages("VMX Operation is supported by your processor .\n");
+        ShowMessages("VMX Operation is supported by your processor\n");
     }
     else
     {
-        ShowMessages("VMX Operation is not supported by your processor .\n");
+        ShowMessages("VMX Operation is not supported by your processor\n");
         return 1;
     }
 
@@ -514,7 +524,7 @@ HyperdbgLoadVmm()
     HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
     if (Thread)
     {
-        ShowMessages("Thread Created successfully\n");
+        // ShowMessages("Thread Created successfully\n");
     }
 #endif
 
@@ -549,7 +559,7 @@ HyperdbgUnload()
         return 1;
     }
 
-    ShowMessages("Terminating VMX !\n");
+    ShowMessages("Start terminating VMX\n");
 
     //
     // Send IOCTL to mark complete all IRP Pending
@@ -619,5 +629,5 @@ HyperdbgUnload()
     //
     g_DeviceHandle = NULL;
 
-    ShowMessages("You're not on hypervisor anymore !\n");
+    ShowMessages("You're not on HyperDbg's hypervisor anymore !\n");
 }
