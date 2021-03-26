@@ -514,7 +514,7 @@ HyperdbgLoadVmm()
     HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
     if (Thread)
     {
-        ShowMessages("Thread Created successfully !!!\n");
+        ShowMessages("Thread Created successfully\n");
     }
 #endif
 

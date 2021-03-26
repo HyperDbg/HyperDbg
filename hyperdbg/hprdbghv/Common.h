@@ -437,7 +437,7 @@ typedef enum _LOG_TYPE
  */
 #if UseDbgPrintInsteadOfUsermodeMessageTracking
 /* Use DbgPrint */
-#    define LogInfo(format, ...)                           \
+#    define Logformat, ...)                           \
         DbgPrint("[+] Information (%s:%d) | " format "\n", \
                  __func__,                                 \
                  __LINE__,                                 \
@@ -516,6 +516,7 @@ typedef enum _LOG_TYPE
                               __func__,                           \
                               __LINE__,                           \
                               __VA_ARGS__);                       \
+        if (DebugMode)                                            \
         DbgBreakPoint()
 
 /**
@@ -541,6 +542,20 @@ typedef enum _LOG_TYPE
                               __VA_ARGS__)
 
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
+
+/**
+ * @brief Log, initilize boot information and debug information
+ * 
+ */
+#define LogDebugInfo(format, ...)                                   \
+    if (DebugMode)                                                  \
+    LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                          UseImmediateMessaging,                    \
+                          ShowSystemTimeOnDebugMessages,            \
+                          "[+] Information (%s:%d) | " format "\n", \
+                          __func__,                                 \
+                          __LINE__,                                 \
+                          __VA_ARGS__)
 
 //////////////////////////////////////////////////
 //				External Functions				//

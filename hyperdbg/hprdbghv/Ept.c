@@ -32,13 +32,13 @@ EptCheckFeatures()
 
     if (!VpidRegister.AdvancedVmexitEptViolationsInformation)
     {
-        LogWarning("The processor doesn't report advanced VM-exit information for EPT violations");
+        LogDebugInfo("The processor doesn't report advanced VM-exit information for EPT violations");
     }
 
     if (!VpidRegister.ExecuteOnlyPages)
     {
         g_ExecuteOnlySupport = FALSE;
-        LogWarning("The processor doesn't support execute-only pages, execute hooks won't work as they're on this feature in our design");
+        LogDebugInfo("The processor doesn't support execute-only pages, execute hooks won't work as they're on this feature in our design");
     }
     else
     {
@@ -51,7 +51,7 @@ EptCheckFeatures()
         return FALSE;
     }
 
-    LogInfo(" *** All EPT features are present *** ");
+    LogDebugInfo(" *** All EPT features are present *** ");
 
     return TRUE;
 }
@@ -121,11 +121,11 @@ EptBuildMtrrMap()
                 //
                 g_EptState->NumberOfEnabledMemoryRanges--;
             }
-            LogInfo("MTRR Range: Base=0x%llx End=0x%llx Type=0x%x", Descriptor->PhysicalBaseAddress, Descriptor->PhysicalEndAddress, Descriptor->MemoryType);
+            LogDebugInfo("MTRR Range: Base=0x%llx End=0x%llx Type=0x%x", Descriptor->PhysicalBaseAddress, Descriptor->PhysicalEndAddress, Descriptor->MemoryType);
         }
     }
 
-    LogInfo("Total MTRR Ranges Committed: %d", g_EptState->NumberOfEnabledMemoryRanges);
+    LogDebugInfo("Total MTRR Ranges Committed: %d", g_EptState->NumberOfEnabledMemoryRanges);
 
     return TRUE;
 }

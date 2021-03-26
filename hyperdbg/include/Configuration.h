@@ -55,3 +55,10 @@
  * case of events
  */
 #define UseImmediateMessagingByDefaultOnEvents TRUE
+
+/**
+ * @brief Shows whether to show or not show the drivers debugging infomation
+ * and also enters debugger in debugging section to break the debugger in the
+ * case of errors
+ */
+#define DebugMode FALSE
