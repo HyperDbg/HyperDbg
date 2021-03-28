@@ -68,6 +68,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
         //
         // Address is not valid (doesn't have Physical Address)
         //
+        PteDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
         return FALSE;
     }
 
@@ -111,6 +112,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
         PteDetails->PteValue          = Pte->Flags;
     }
 
+    PteDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
     return TRUE;
 }
 

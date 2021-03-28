@@ -84,7 +84,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    ShowMessages("start\t\t\tsize\tname\t\tpath\n\n");
+    ShowMessages("start\t\t\tsize\tname\t\t\t\tpath\n\n");
 
     for (i = 0; i < ModuleInfo->NumberOfModules; i++)
     {
@@ -104,10 +104,30 @@ CommandLm(vector<string> SplittedCommand, string Command)
             }
         }
 
-        ShowMessages("%016llx\t", ModuleInfo->Modules[i].ImageBase);
-        ShowMessages("%d\t", ModuleInfo->Modules[i].ImageSize);
+        ShowMessages("%s\t", SeparateTo64BitValue((UINT64)ModuleInfo->Modules[i].ImageBase).c_str());
+        ShowMessages("%x\t", ModuleInfo->Modules[i].ImageSize);
 
-        ShowMessages("%s\t", ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName);
+        auto   PathName    = ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName;
+        UINT32 PathNameLen = strlen((const char *)PathName);
+
+        ShowMessages("%s\t", PathName);
+
+        if (PathNameLen >= 24)
+        {
+        }
+        else if (PathNameLen >= 16)
+        {
+            ShowMessages("\t");
+        }
+        else if (PathNameLen >= 8)
+        {
+            ShowMessages("\t\t");
+        }
+        else
+        {
+            ShowMessages("\t\t\t");
+        }
+
         ShowMessages("%s\n", ModuleInfo->Modules[i].FullPathName);
     }
 

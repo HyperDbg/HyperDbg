@@ -28,8 +28,8 @@ CommandEvalHelp()
 {
     ShowMessages("? : evaluate and execute expressions in debuggee.\n\n");
     ShowMessages("syntax : \t? [expression]\n");
-    ShowMessages("\t\te.g : ? print(dq(poi(@rcx)))\n");
-    ShowMessages("\t\te.g : ? json(dq(poi(@rcx)))\n");
+    ShowMessages("\t\te.g : ? print(dq(poi(@rcx)));\n");
+    ShowMessages("\t\te.g : ? json(dq(poi(@rcx)));\n");
 }
 
 /**

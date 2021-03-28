@@ -251,24 +251,15 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            if (ExtensionCommandPte(DebuggerPteRequest))
-            {
-                Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
-                Status                    = STATUS_SUCCESS;
-                //
-                // Avoid zeroing it
-                //
-                DoNotChangeInformation = TRUE;
-            }
-            else
-            {
-                Irp->IoStatus.Information = 0;
-                Status                    = STATUS_UNSUCCESSFUL;
-                //
-                // Avoid zeroing it
-                //
-                DoNotChangeInformation = TRUE;
-            }
+            ExtensionCommandPte(DebuggerPteRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
 
             break;
 
