@@ -160,6 +160,8 @@ ReadIrpBasedBuffer()
         {
             ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
         }
+
+        g_DeviceHandle = NULL;
         return;
     }
 
@@ -289,6 +291,13 @@ ReadIrpBasedBuffer()
                     //
                     SetEvent(g_IsDriverLoadedSuccessfully);
 
+                    break;
+
+                case OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS:
+
+                    //
+                    // End of receiving messages (IRPs), nothing to do
+                    //
                     break;
 
                 default:
@@ -423,11 +432,31 @@ HyperdbgInstallVmmDriver()
 
         return 1;
     }
+
     return 0;
 }
 
 /**
- * @brief Uninstall the driver
+ * @brief Stop the driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperdbgStopDriver()
+{
+    //
+    // Unload the driver if loaded.  Ignore any errors.
+    //
+    if (g_DriverLocation[0] != (TCHAR)0)
+    {
+        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_STOP);
+    }
+    return 0;
+}
+
+/**
+ * @brief Remove the driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
@@ -491,6 +520,15 @@ HyperdbgLoadVmm()
         return 1;
     }
 
+    //
+    // Make sure that this variable is false, because it might be set to
+    // true as the result of a previous load
+    //
+    g_IsVmxOffProcessStart = FALSE;
+
+    //
+    // Init entering vmx
+    //
     g_DeviceHandle = CreateFileA(
         "\\\\.\\HyperdbgHypervisorDevice",
         GENERIC_READ | GENERIC_WRITE,
@@ -512,6 +550,8 @@ HyperdbgLoadVmm()
         {
             ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
         }
+
+        g_DeviceHandle = NULL;
         return 1;
     }
 
@@ -561,7 +601,7 @@ HyperdbgUnload()
         return 1;
     }
 
-    ShowMessages("Start terminating VMX\n");
+    ShowMessages("Start terminating VMX...\n");
 
     //
     // Send IOCTL to mark complete all IRP Pending

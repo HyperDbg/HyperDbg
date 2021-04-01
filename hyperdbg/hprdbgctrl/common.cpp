@@ -248,6 +248,8 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
     {
         return TRUE;
     }
+
+    return TRUE;
 }
 
 /**
@@ -286,6 +288,8 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
     // Apply the results
     //
     *Result = TempResult;
+
+    return TRUE;
 }
 
 /**

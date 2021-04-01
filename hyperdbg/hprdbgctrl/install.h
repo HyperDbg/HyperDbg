@@ -50,7 +50,8 @@ fnhprdbgctrl(void);
 //////////////////////////////////////////////////
 
 #define DRIVER_FUNC_INSTALL 0x01
-#define DRIVER_FUNC_REMOVE  0x02
+#define DRIVER_FUNC_STOP    0x02
+#define DRIVER_FUNC_REMOVE  0x03
 
 BOOLEAN
 ManageDriver(_In_ LPCTSTR DriverName, _In_ LPCTSTR ServiceName, _In_ USHORT Function);

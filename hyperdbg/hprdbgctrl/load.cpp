@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern HANDLE  g_IsDriverLoadedSuccessfully;
+extern HANDLE  g_DeviceHandle;
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 
@@ -60,7 +61,7 @@ CommandLoadVmmModule()
         return FALSE;
     }
 
-    if (HyperdbgInstallVmmDriver())
+    if (HyperdbgInstallVmmDriver() == 1)
     {
         return FALSE;
     }
@@ -131,6 +132,16 @@ CommandLoad(vector<string> SplittedCommand, string Command)
     if (!SplittedCommand.at(1).compare("vmm"))
     {
         //
+        // Check to make sure that the driver is not already loaded
+        //
+        if (g_DeviceHandle)
+        {
+            ShowMessages("Handle of driver found, if you use 'load' before, please "
+                         "first unload it then call 'unload'.\n");
+            return;
+        }
+
+        //
         // Load VMM Module
         //
         ShowMessages("Try to install and load the VMM driver...\n");
@@ -146,7 +157,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // Module not found
         //
-        ShowMessages("module not found, currently, 'vmm' is the only available "
+        ShowMessages("module not found, currently 'vmm' is the only available "
                      "module for HyperDbg.\n");
     }
 }

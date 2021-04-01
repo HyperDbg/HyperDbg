@@ -27,8 +27,9 @@ CommandUnloadHelp()
 {
     ShowMessages(
         "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
-    ShowMessages("syntax : \tunload [Module Name]\n");
+    ShowMessages("syntax : \tunload [remove] [Module Name]\n");
     ShowMessages("\t\te.g : unload vmm\n");
+    ShowMessages("\t\te.g : unload remove vmm\n");
 }
 
 /**
@@ -41,7 +42,7 @@ CommandUnloadHelp()
 VOID
 CommandUnload(vector<string> SplittedCommand, string Command)
 {
-    if (SplittedCommand.size() != 2)
+    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
     {
         ShowMessages("incorrect use of 'unload'\n\n");
         CommandUnloadHelp();
@@ -51,7 +52,8 @@ CommandUnload(vector<string> SplittedCommand, string Command)
     //
     // Check for the module
     //
-    if (!SplittedCommand.at(1).compare("vmm"))
+    if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("vmm")) ||
+        (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") && !SplittedCommand.at(1).compare("remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -64,12 +66,23 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         {
             HyperdbgUnload();
 
-            //
-            // Uninstalling Driver
-            //
-            if (HyperdbgUninstallDriver())
+            if (!SplittedCommand.at(1).compare("remove"))
             {
-                ShowMessages("Failed to uninstall driver\n");
+                //
+                // Stop the driver
+                //
+                if (HyperdbgStopDriver())
+                {
+                    ShowMessages("Failed to stop driver\n");
+                }
+
+                //
+                // Uninstall the driver
+                //
+                if (HyperdbgUninstallDriver())
+                {
+                    ShowMessages("Failed to uninstall the driver\n");
+                }
             }
         }
         else
@@ -82,7 +95,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         //
         // Module not found
         //
-        ShowMessages("module not found, currently, 'vmm' is the only available "
+        ShowMessages("module not found, currently 'vmm' is the only available "
                      "module for HyperDbg.\n");
     }
 }

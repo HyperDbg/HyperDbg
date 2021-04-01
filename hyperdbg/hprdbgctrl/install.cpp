@@ -159,6 +159,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         //
         // Install the driver service.
         //
+
         if (InstallDriver(schSCManager, DriverName, ServiceName))
         {
             //
@@ -176,12 +177,21 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 
         break;
 
-    case DRIVER_FUNC_REMOVE:
+    case DRIVER_FUNC_STOP:
 
         //
         // Stop the driver.
         //
         StopDriver(schSCManager, DriverName);
+
+        //
+        // Ignore all errors.
+        //
+        rCode = TRUE;
+
+        break;
+
+    case DRIVER_FUNC_REMOVE:
 
         //
         // Remove the driver service.
@@ -229,7 +239,7 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     BOOLEAN   rCode;
 
     //
-    // Open the handle to the existing service.
+    // Open the handle to the existing service
     //
     schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
@@ -238,18 +248,18 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
 
         //
-        // Indicate error.
+        // Indicate error
         //
         return FALSE;
     }
 
     //
-    // Mark the service for deletion from the service control manager database.
+    // Mark the service for deletion from the service control manager database
     //
     if (DeleteService(schService))
     {
         //
-        // Indicate success.
+        // Indicate success
         //
         rCode = TRUE;
     }
@@ -258,13 +268,13 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         ShowMessages("DeleteService failed!  Error = %d \n", GetLastError());
 
         //
-        // Indicate failure.  Fall through to properly close the service handle.
+        // Indicate failure.  Fall through to properly close the service handle
         //
         rCode = FALSE;
     }
 
     //
-    // Close the service object.
+    // Close the service object
     //
     if (schService)
     {
@@ -284,8 +294,10 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 BOOLEAN
 StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
-    SC_HANDLE schService;
-    DWORD     err;
+    SC_HANDLE      schService;
+    DWORD          err;
+    SERVICE_STATUS serviceStatus;
+    UINT64         Status = TRUE;
 
     //
     // Open the handle to the existing service.
@@ -297,7 +309,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
 
         //
-        // Indicate failure.
+        // Indicate failure
         //
         return FALSE;
     }
@@ -315,42 +327,41 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         if (err == ERROR_SERVICE_ALREADY_RUNNING)
         {
             //
-            // Ignore this error.
+            // Ignore this error
             //
-            return TRUE;
         }
         else if (err == 577)
         {
             ShowMessages(
                 "Err 577, it's because you driver signature enforcement is enabled. "
                 "You should disable driver signature enforcement by attaching Windbg "
-                "or from the boot menu.");
+                "or from the boot menu\n");
 
             //
-            // Indicate failure.  Fall through to properly close the service handle.
+            // Indicate failure.  Fall through to properly close the service handle
             //
-            return FALSE;
+            Status = FALSE;
         }
         else
         {
             ShowMessages("StartService failure! Error = %d \n", err);
 
             //
-            // Indicate failure.  Fall through to properly close the service handle.
+            // Indicate failure.  Fall through to properly close the service handle
             //
-            return FALSE;
+            Status = FALSE;
         }
     }
 
     //
-    // Close the service object.
+    // Close the service object
     //
     if (schService)
     {
         CloseServiceHandle(schService);
     }
 
-    return TRUE;
+    return Status;
 }
 
 /**

@@ -2018,14 +2018,6 @@ KdCloseConnection()
         if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
         {
             HyperdbgUnload();
-
-            //
-            // Uninstalling Driver
-            //
-            if (HyperdbgUninstallDriver())
-            {
-                ShowMessages("Failed to uninstall driver\n");
-            }
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)

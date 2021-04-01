@@ -53,14 +53,6 @@ CommandExit(vector<string> SplittedCommand, string Command)
     if (g_IsDebuggerModulesLoaded)
     {
         HyperdbgUnload();
-
-        //
-        // Uninstalling Driver
-        //
-        if (HyperdbgUninstallDriver())
-        {
-            ShowMessages("Failed to uninstall driver\n");
-        }
     }
 
     exit(0);

@@ -106,7 +106,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Send an immediate message, and we're no longer get new IRP
             //
-            LogInfoImmediate("An immediate message recieved, we no longer recieve IRPs from user-mode ");
+            LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
+                          "$",
+                          1);
+
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_TERMINATE_VMX:

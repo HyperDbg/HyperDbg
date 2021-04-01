@@ -30,6 +30,7 @@ __declspec(dllimport) int HyperdbgLoadVmm();
 __declspec(dllimport) int HyperdbgUnload();
 __declspec(dllimport) int HyperdbgInstallVmmDriver();
 __declspec(dllimport) int HyperdbgUninstallDriver();
+__declspec(dllimport) int HyperdbgStopDriver();
 __declspec(dllimport) int HyperdbgInterpreter(const char * Command);
 __declspec(dllexport) void HyperdbgShowSignature();
 __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
