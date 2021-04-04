@@ -14,6 +14,18 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				Delay Speeds                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The speed delay for showing messages from kernel-mode 
+ * to user-mode in  VMI-mode, using a lower value causes the 
+ * HyperDbg to show messages faster but you should keep in mind,
+ *  not to eat all of the CPU
+ */
+#define DefaultSpeedOfReadingKernelMessages 30
+
+//////////////////////////////////////////////////
 //				Message Tracing                 //
 //////////////////////////////////////////////////
 

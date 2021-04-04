@@ -23,13 +23,13 @@ Abstract:
 // SPI Control bits.
 //
 
-#define CRTLR0_SLV_OE      (1 << 10) // 1 = Slave TXD disabled
-#define CTRLR0_TMOD_TX_RX  0
-#define CTRLR0_TMOD_TX     (1 << 8)
-#define CTRLR0_TMOD_RX     (2 << 8)
-#define CTRLR0_TMOD_EEPROM (3 << 8)
-#define CTRLR0_SCPOL       (1 << 7) // Serial Clock Polarity (inactive state)
-#define CTRLR0_SCPH        (1 << 6) // Serial Clock Phase (1=Start, 0=Middle) \
+#define CRTLR0_SLV_OE                                (1 << 10) // 1 = Slave TXD disabled
+#define CTRLR0_TMOD_TX_RX                            0
+#define CTRLR0_TMOD_TX                               (1 << 8)
+#define CTRLR0_TMOD_RX                               (2 << 8)
+#define CTRLR0_TMOD_EEPROM                           (3 << 8)
+#define CTRLR0_SCPOL                                 (1 << 7) // Serial Clock Polarity (inactive state)
+#define CTRLR0_SCPH                                  (1 << 6) // Serial Clock Phase (1=Start, 0=Middle) \
                                     // of data bit
 #define CTRLR0_FRF_MOTOROLA_SPI                      0
 #define CTRLR0_FRF_TEXAS_INSTRUMENTS_SSP             (1 << 4)
@@ -75,9 +75,9 @@ Abstract:
 #define MAX311XE_WC_SHDNI   (1 << 12) //  1 = Enter shutdown
 #define MAX311XE_WC_TM_BAR  (1 << 11) //  1 = Transmit buffer empty \
                                       //      interrupt enabled
-#define MAX311XE_WC_RM_BAR (1 << 10)  //  1 = Data available interrupt \
+#define MAX311XE_WC_RM_BAR  (1 << 10) //  1 = Data available interrupt \
                                       //      Enable
-#define MAX311XE_WC_PM_BAR (1 << 9)   //  1 = Parity bit high received \
+#define MAX311XE_WC_PM_BAR  (1 << 9)  //  1 = Parity bit high received \
                                       //      interrupt enabled
 #define MAX311XE_WC_RAM_BAR (1 << 8)  //  1 = Receiver-activity (shutdown  \
                                       //      mode)/Framming-error (normal \
@@ -113,9 +113,9 @@ Abstract:
 #define MAX311XE_RC_SHDNI   (1 << 12) //  1 = Enter shutdown
 #define MAX311XE_RC_TM_BAR  (1 << 11) //  1 = Transmit buffer empty \
                                       //      interrupt enabled
-#define MAX311XE_RC_RM_BAR (1 << 10)  //  1 = Data available interrupt \
+#define MAX311XE_RC_RM_BAR  (1 << 10) //  1 = Data available interrupt \
                                       //      enable
-#define MAX311XE_RC_PM_BAR (1 << 9)   //  1 = Parity bit high received \
+#define MAX311XE_RC_PM_BAR  (1 << 9)  //  1 = Parity bit high received \
                                       //      interrupt enabled
 #define MAX311XE_RC_RAM_BAR (1 << 8)  //  1 = Receiver Activity (shutdown    \
                                       //      mode) or Framing Error (normal \
@@ -159,9 +159,9 @@ Abstract:
 #define MAX311XE_RD_RA_FE (1 << 10) //  1 = Receive Activity (UART     \
                                     //      Shutdown) or Framing-Error \
                                     //      (normal operation)
-#define MAX311XE_RD_CTS  (1 << 9)   //  1 = CTS active
-#define MAX311XE_RD_PR   (1 << 8)   //  Received parity bit
-#define MAX311XE_RD_DATA 0xFF       //  Received data byte
+#define MAX311XE_RD_CTS   (1 << 9)  //  1 = CTS active
+#define MAX311XE_RD_PR    (1 << 8)  //  Received parity bit
+#define MAX311XE_RD_DATA  0xFF      //  Received data byte
 
 //
 // Define the device select bits.

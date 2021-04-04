@@ -181,7 +181,7 @@ ReadIrpBasedBuffer()
                 //
                 ZeroMemory(OutputBuffer, UsermodeBufferSize);
 
-                Sleep(200); // we're not trying to eat all of the CPU ;)
+                Sleep(DefaultSpeedOfReadingKernelMessages); // we're not trying to eat all of the CPU ;)
 
                 Status = DeviceIoControl(
                     Handle,               // Handle to device
@@ -491,7 +491,7 @@ HyperdbgLoadVmm()
     if (g_DeviceHandle)
     {
         ShowMessages("Handle of driver found, if you use 'load' before, please "
-                     "first unload it then call 'unload'.\n");
+                     "first unload it then call 'unload'\n");
         return 1;
     }
 

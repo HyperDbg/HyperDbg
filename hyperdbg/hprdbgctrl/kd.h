@@ -97,7 +97,7 @@ BOOLEAN
 KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY);
 
 BOOLEAN
-KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem,UINT32 Size);
+KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size);
 
 PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 KdSendRegisterEventPacketToDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL Event,

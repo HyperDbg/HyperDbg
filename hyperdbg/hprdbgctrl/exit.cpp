@@ -14,8 +14,7 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern HANDLE g_DeviceHandle;
 
 /**
  * @brief help of exit command
@@ -48,9 +47,9 @@ CommandExit(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // unload and exit
+    // unload and exit if the vmm module is loaded
     //
-    if (g_IsDebuggerModulesLoaded)
+    if (g_DeviceHandle)
     {
         HyperdbgUnload();
     }

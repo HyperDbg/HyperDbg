@@ -100,6 +100,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
 {
     PVOID  CodeBuffer;
     UINT64 BufferAddress;
+    UINT64 ConstantValue = 0;
     UINT32 BufferLength;
     UINT32 Pointer;
 
@@ -125,23 +126,22 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     //
     Trim(Command);
 
-    //
-    // Prepend and append 'print(' and ')'
-    //
-    Command.insert(0, "formats(");
-    Command.append(");");
-
-    //
-    // TODO: end of string must have a whitspace. fix it.
-    //
-    Command.append(" ");
-    // Expr = " x = 4 >> 1; ";
-
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
         // Send over serial
         //
+        //
+        // Prepend and append 'print(' and ')'
+        //
+        Command.insert(0, "formats(");
+        Command.append(");");
+
+        //
+        // TODO: end of string must have a whitspace. fix it.
+        //
+        Command.append(" ");
+        // Expr = " x = 4 >> 1; ";
 
         //
         // Run script engine handler
@@ -181,8 +181,32 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     else
     {
         //
-        // error
+        // The user is either in VMI-mode or not connected to debuggee,
+        // in this state, we will support .formats for constant values
+        // not register, or expression
         //
-        ShowMessages("err, you're not connected to any debuggee\n");
+        if (SplittedCommand.size() != 2)
+        {
+            ShowMessages("err, only one constant value is allowed when you're not connected to a debuggee\n\n");
+            CommandFormatsHelp();
+            return;
+        }
+
+        if (!ConvertStringToUInt64(SplittedCommand.at(1), &ConstantValue))
+        {
+            //
+            // Unkonwn parameter
+            //
+            ShowMessages("err, unknown parameter '%s'\nwhile you're not connected to any debuggee (Debugger Mode), "
+                         "you can only use a constant value in the '.formats' and you're not allowed to use registers "
+                         "or expressions\n\n",
+                         SplittedCommand.at(1).c_str());
+            return;
+        }
+
+        //
+        // Show formats results for a constant
+        //
+        CommandFormatsShowResults(ConstantValue);
     }
 }

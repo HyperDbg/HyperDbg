@@ -754,7 +754,6 @@ StartAgain:
                 //
                 // Show the result of reading memory like mem=0000000000018b01
                 //
-                
             }
             else
             {
