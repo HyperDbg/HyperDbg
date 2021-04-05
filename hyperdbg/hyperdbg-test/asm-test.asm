@@ -1,4 +1,4 @@
-PUBLIC XorSledFunction
+PUBLIC AsmTest
 
 .code _text
 
@@ -7,30 +7,12 @@ PUBLIC XorSledFunction
 ; "Microsoft Macro Assembler" if it didn't compile
 ;------------------------------------------------------------------------
 
-XorSledFunction PROC
-here :
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
-	xor rax,rax
+AsmTest PROC
+
+	nop
 	ret
-XorSledFunction ENDP
+
+AsmTest ENDP
 
 ;------------------------------------------------------------------------
 

@@ -161,11 +161,11 @@ TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle)
     //
     switch (TestCase)
     {
-    case DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD:
-        AttachDetachTest(PipeHandle);
+    case DEBUGGER_TEST_EPTHOOK_COMMAND:
+        TestEpthook(PipeHandle);
         break;
     default:
-        printf("err, test-process called with a wrong test case number.\n");
+        printf("err, test-process called with a wrong test case number\n");
         break;
     }
 }

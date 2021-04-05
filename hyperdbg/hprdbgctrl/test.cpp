@@ -40,22 +40,59 @@ CommandTestHelp()
 BOOLEAN
 CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase)
 {
-    BOOLEAN ResultOfTest = FALSE;
-    *InvalidTestCase     = FALSE;
+    BOOLEAN   ResultOfTest = FALSE;
+    HANDLE    PipeHandle;
+    HANDLE    ThreadHandle;
+    HANDLE    ProcessHandle;
+    UINT32    ReadBytes;
+    const int BufferSize         = 1024 / sizeof(UINT64);
+    UINT64    Buffer[BufferSize] = {0};
 
-    switch (TestCaseNum)
+    *InvalidTestCase = FALSE;
+
+    //
+    // Create tests process to create a thread for us
+    //
+    if (!CreateProcessAndOpenPipeConnection(
+            TestCaseNum,
+            &PipeHandle,
+            &ThreadHandle,
+            &ProcessHandle))
     {
-    case DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD:
+        ShowMessages("err, enable to connect to the test process\n");
+        return FALSE;
+    }
+
+    //
+    // ***** Perform test specific routines *****
+    //
+
+    //
+    // Wait for process id and thread id
+    //
+    ReadBytes =
+        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, BufferSize);
+
+    if (!ReadBytes)
     {
-        ShowMessages("[*] Test attaching to threads, stepping, detaching...\n");
-        ResultOfTest = TestInfiniteLoop();
-        break;
+        //
+        // Nothing to read
+        //
+        return FALSE;
     }
-    default:
-        *InvalidTestCase = TRUE;
-        ResultOfTest     = FALSE;
-        break;
-    }
+
+    //
+    // Execute command from test process
+    //
+    ShowMessages("I received the following command : %s\n", Buffer);
+    *InvalidTestCase = TRUE;
+
+    //
+    // Close connection and remote process
+    //
+    CloseProcessAndClosePipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
+
+    return FALSE;
 
     return ResultOfTest;
 }

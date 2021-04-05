@@ -23,7 +23,7 @@ TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
 //////////////////////////////////////////////////
 
 extern "C" {
-extern void inline XorSledFunction();
+extern void inline AsmTest();
 }
 
 //////////////////////////////////////////////////
@@ -31,4 +31,4 @@ extern void inline XorSledFunction();
 //////////////////////////////////////////////////
 
 VOID
-AttachDetachTest(HANDLE PipeHandle);
+TestEpthook(HANDLE PipeHandle);

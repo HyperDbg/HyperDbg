@@ -92,7 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="attachdetach.cpp" />
+    <ClCompile Include="test-epthook.cpp" />
     <ClCompile Include="hyperdbg-test.cpp" />
     <ClCompile Include="namedpipe.cpp" />
   </ItemGroup>
@@ -102,7 +102,7 @@
     <ClInclude Include="routines.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="infinitethreads.asm">
+    <MASM Include="asm-test.asm">
       <FileType>Document</FileType>
     </MASM>
   </ItemGroup>

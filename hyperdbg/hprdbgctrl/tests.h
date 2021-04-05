@@ -26,4 +26,11 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-TestInfiniteLoop();
+CreateProcessAndOpenPipeConnection(UINT32  TestCase,
+                                   PHANDLE ConnectionPipeHandle,
+                                   PHANDLE ThreadHandle,
+                                   PHANDLE ProcessHandle);
+VOID
+CloseProcessAndClosePipeConnection(HANDLE ConnectionPipeHandle,
+                                   HANDLE ThreadHandle,
+                                   HANDLE ProcessHandle);

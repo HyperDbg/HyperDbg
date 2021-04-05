@@ -662,7 +662,7 @@ HyperdbgUnload()
     //
     if (!CloseHandle(g_DeviceHandle))
     {
-        ShowMessages("Error : 0x%x\n", GetLastError());
+        ShowMessages("err, closing handle 0x%x\n", GetLastError());
     };
 
     //

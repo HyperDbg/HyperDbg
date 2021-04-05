@@ -195,9 +195,9 @@
 #define DEBUGGER_TEST_ALL_COMMANDS 0x0
 
 /**
- * @brief Test case number, test attaching and detaching to processes
+ * @brief Test case number, test !epthook
  */
-#define DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD 0x1
+#define DEBUGGER_TEST_EPTHOOK_COMMAND 0x1
 
 //////////////////////////////////////////////////
 //		Debugger Synchronization Objects        //

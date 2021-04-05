@@ -269,9 +269,9 @@ CreateProcessAndOpenPipeConnection(UINT32  TestCase,
  * @return VOID
  */
 VOID
-CloseProcessAndOpenPipeConnection(HANDLE ConnectionPipeHandle,
-                                  HANDLE ThreadHandle,
-                                  HANDLE ProcessHandle)
+CloseProcessAndClosePipeConnection(HANDLE ConnectionPipeHandle,
+                                   HANDLE ThreadHandle,
+                                   HANDLE ProcessHandle)
 {
     //
     // Close the connection and handles
@@ -279,79 +279,4 @@ CloseProcessAndOpenPipeConnection(HANDLE ConnectionPipeHandle,
     NamedPipeServerCloseHandle(ConnectionPipeHandle);
     CloseHandle(ThreadHandle);
     CloseHandle(ProcessHandle);
-}
-
-/**
- * @brief perform test on attaching, stepping and detaching threads
- *
- * @return BOOLEAN returns true if the results was true and false if the
- * results was not ok
- */
-BOOLEAN
-TestInfiniteLoop()
-{
-    HANDLE    PipeHandle;
-    HANDLE    ThreadHandle;
-    HANDLE    ProcessHandle;
-    UINT32    ReadBytes;
-    UINT32    TestProcessId;
-    UINT32    TestThreadId;
-    const int BufferSize         = 1024 / sizeof(UINT64);
-    UINT64    Buffer[BufferSize] = {0};
-
-    //
-    // Create tests process to create a thread for us
-    //
-    if (!CreateProcessAndOpenPipeConnection(
-            DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD,
-            &PipeHandle,
-            &ThreadHandle,
-            &ProcessHandle))
-    {
-        ShowMessages("err, enable to connect to the test process\n");
-        return FALSE;
-    }
-
-    //
-    // ***** Perform test specific routines *****
-    //
-
-    //
-    // Wait for process id and thread id
-    //
-    ReadBytes =
-        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, BufferSize);
-
-    if (!ReadBytes)
-    {
-        //
-        // Nothing to read
-        //
-        return FALSE;
-    }
-
-    //
-    // Read the received buffer into process id and thread id
-    //
-    TestProcessId = Buffer[0];
-    TestThreadId  = Buffer[1];
-
-    ShowMessages("Received Process Id : 0x%x  |  Thread Id : 0x%x \n",
-                 TestProcessId,
-                 TestThreadId);
-
-    //
-    // Attach to the target process (thread)
-    //
-    Sleep(5000);
-    AttachToProcess(TestProcessId, TestThreadId);
-    Sleep(10000);
-    DetachFromProcess();
-
-    //
-    // Close connection and remote process
-    //
-    CloseProcessAndOpenPipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
-
-    return FALSE;
 }

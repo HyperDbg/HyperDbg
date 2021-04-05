@@ -27,7 +27,7 @@
     <ClCompile Include="namedpipe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="attachdetach.cpp">
+    <ClCompile Include="test-epthook.cpp">
       <Filter>Source Files\TestCaseRoutines</Filter>
     </ClCompile>
   </ItemGroup>
@@ -43,7 +43,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="infinitethreads.asm">
+    <MASM Include="asm-test.asm">
       <Filter>Source Files\Assembly</Filter>
     </MASM>
   </ItemGroup>

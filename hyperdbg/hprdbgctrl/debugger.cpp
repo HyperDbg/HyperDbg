@@ -2544,7 +2544,7 @@ InterpretGeneralEventAndActionsFields(
     //
     if (IsNextCommandCoreId)
     {
-        ShowMessages("error : please specify a value for 'core'\n\n");
+        ShowMessages("err, please specify a value for 'core'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2565,7 +2565,7 @@ InterpretGeneralEventAndActionsFields(
 
     if (IsNextCommandPid)
     {
-        ShowMessages("error : please specify a value for 'pid'\n\n");
+        ShowMessages("err, please specify a value for 'pid'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2586,7 +2586,7 @@ InterpretGeneralEventAndActionsFields(
 
     if (IsNextCommandBufferSize)
     {
-        ShowMessages("error : please specify a value for 'buffer'\n\n");
+        ShowMessages("err, please specify a value for 'buffer'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2611,7 +2611,7 @@ InterpretGeneralEventAndActionsFields(
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
         ShowMessages(
-            "error : it's not possible to break to the debugger in VMI Mode. "
+            "err, it's not possible to break to the debugger in VMI Mode. "
             "You should operate in Debugger Mode to break and get the "
             "full control of the system. Still, you can use 'script' and run "
             "'custom code' in your local debugging (VMI Mode).\n\n");
@@ -2639,7 +2639,7 @@ InterpretGeneralEventAndActionsFields(
     //
     if (!ImmediateMessagePassing && HasOutputPath)
     {
-        ShowMessages("error : non-immediate message passing is not supported in "
+        ShowMessages("err, non-immediate message passing is not supported in "
                      "'output-forwarding mode'.\n\n");
 
         free(BufferOfCommandString);
