@@ -837,6 +837,24 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION \
+    sizeof(DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)
+
+/**
+ * @brief request for collecting debuggee's kernel-side test information
+ *
+ */
+typedef struct _DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
+{
+    UINT64 AddressOfExAllocatePoolWithTag;
+    UINT32 KernelResult;
+
+} DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION,
+    *PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER \
     sizeof(DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER)
 
@@ -1880,3 +1898,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, collects a buffer from kernel-side testing informations
+ *
+ */
+#define IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)

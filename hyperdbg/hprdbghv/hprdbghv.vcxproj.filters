@@ -94,6 +94,12 @@
     <Filter Include="Source Files\VMM\EPT">
       <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Debugger\Tests">
+      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Debugger\Tests">
+      <UniqueIdentifier>{c36ade71-0389-4c2f-b18e-ba18e6fe7e69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -224,6 +230,9 @@
     <ClCompile Include="BreakpointCommands.c">
       <Filter>Source Files\Debugger\Commands</Filter>
     </ClCompile>
+    <ClCompile Include="KernelTests.c">
+      <Filter>Source Files\Debugger\Tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DebuggerCommands.h">
@@ -339,6 +348,9 @@
     </ClInclude>
     <ClInclude Include="BreakpointCommands.h">
       <Filter>Header Files\Debugger\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="KernelTests.h">
+      <Filter>Header Files\Debugger\Tests</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -119,6 +119,7 @@
     <ClCompile Include="Events.c" />
     <ClCompile Include="GdbStub.c" />
     <ClCompile Include="Kd.c" />
+    <ClCompile Include="KernelTests.c" />
     <ClCompile Include="Mtf.c" />
     <ClCompile Include="ScriptEngine.c" />
     <ClCompile Include="SerialConnection.c" />
@@ -170,6 +171,7 @@
     <ClInclude Include="GdbStub.h" />
     <ClInclude Include="GlobalVariables.h" />
     <ClInclude Include="Kd.h" />
+    <ClInclude Include="KernelTests.h" />
     <ClInclude Include="ManageRegs.h" />
     <ClInclude Include="Mtf.h" />
     <ClInclude Include="pch.h" />

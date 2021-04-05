@@ -33,6 +33,7 @@
 #include "Logging.h"
 #include "MemoryMapper.h"
 #include "Msr.h"
+#include "KernelTests.h"
 #include "PoolManager.h"
 #include "Trace.h"
 #include "DpcRoutines.h"

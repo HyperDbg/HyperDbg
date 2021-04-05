@@ -38,7 +38,9 @@ CommandTestHelp()
  * was not ok
  */
 BOOLEAN
-CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase)
+CommandTestPerformTest(UINT32                                 TestCaseNum,
+                       PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformation,
+                       PBOOLEAN                               InvalidTestCase)
 {
     BOOLEAN   ResultOfTest = FALSE;
     HANDLE    PipeHandle;
@@ -85,6 +87,8 @@ CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase)
     // Execute command from test process
     //
     ShowMessages("I received the following command : %s\n", Buffer);
+    ShowMessages("ExAllocatePoolWithTag Address : %llx\n", KernelSideInformation->AddressOfExAllocatePoolWithTag);
+
     *InvalidTestCase = TRUE;
 
     //
@@ -107,6 +111,11 @@ CommandTestPerformTest(UINT32 TestCaseNum, PBOOLEAN InvalidTestCase)
 VOID
 CommandTest(vector<string> SplittedCommand, string Command)
 {
+    BOOL  Status;
+    ULONG ReturnedLength;
+    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
+    KernelSideTestInformationRequest;
+
     BOOLEAN GetTestCase     = FALSE;
     BOOLEAN TestEverything  = FALSE;
     BOOLEAN WrongTestCase   = FALSE;
@@ -173,6 +182,51 @@ CommandTest(vector<string> SplittedCommand, string Command)
     ShowMessages("---------------------------------------------------------\n");
 
     //
+    // *** Read kernel-side debugging information ***
+    //
+    KernelSideTestInformationRequest = (DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION *)malloc(SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION);
+
+    RtlZeroMemory(KernelSideTestInformationRequest, SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION);
+
+    //
+    // Send Ioctl to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                               // Handle to device
+        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,  // IO Control code
+        KernelSideTestInformationRequest,             // Input Buffer to driver.
+        SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION, // Input buffer
+                                                      // length
+        KernelSideTestInformationRequest,             // Output Buffer from driver.
+        SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION, // Length
+                                                      // of
+                                                      // output
+                                                      // buffer
+                                                      // in
+                                                      // bytes.
+        &ReturnedLength,                              // Bytes placed in buffer.
+        NULL                                          // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return;
+    }
+
+    if (KernelSideTestInformationRequest->KernelResult !=
+        DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    {
+        ShowErrorMessage(KernelSideTestInformationRequest->KernelResult);
+
+        //
+        // Free the buffer
+        //
+        free(KernelSideTestInformationRequest);
+        return;
+    }
+
+    //
     // Means to check just one command
     //
     for (size_t i = 1; i < MAXLONG; i++)
@@ -180,7 +234,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
         if (TestEverything)
             SpecialTestCase = i;
 
-        Result = CommandTestPerformTest(SpecialTestCase, &WrongTestCase);
+        Result = CommandTestPerformTest(SpecialTestCase, KernelSideTestInformationRequest, &WrongTestCase);
 
         if (WrongTestCase)
         {
@@ -217,4 +271,9 @@ CommandTest(vector<string> SplittedCommand, string Command)
     }
 
     ShowMessages("---------------------------------------------------------\n");
+
+    //
+    // Free the kernel-side buffer
+    //
+    free(KernelSideTestInformationRequest);
 }

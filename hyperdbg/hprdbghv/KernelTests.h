@@ -1,0 +1,20 @@
+/**
+ * @file KernelTests.h
+ * @author Sina Karvandi (sina@rayanfam.com)
+ * @brief Kernel Test headers
+ * @details 
+ * @version 0.1
+ * @date 2021-04-06
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
+
+#pragma once
+
+//////////////////////////////////////////////////
+//				   Functions					//
+//////////////////////////////////////////////////
+
+VOID
+TestKernelGetInformation(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION InfoRequest);
