@@ -44,7 +44,13 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
     HANDLE  ProcessHandle;
     UINT32  ReadBytes;
     BOOLEAN SentMessageResult;
-    CHAR    Buffer[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = {0};
+    CHAR *  Buffer = {0};
+
+    //
+    // Allocate memory
+    //
+    Buffer = (CHAR *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     //
     // Create tests process to create a thread for us
@@ -57,6 +63,9 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
             &ProcessHandle))
     {
         ShowMessages("err, enable to connect to the test process\n");
+
+        free(Buffer);
+
         return FALSE;
     }
 
@@ -75,6 +84,8 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
         //
         // Nothing to read
         //
+        free(Buffer);
+
         return FALSE;
     }
 
@@ -91,6 +102,8 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
     // Close connection and remote process
     //
     CloseProcessAndClosePipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
+
+    free(Buffer);
 
     return ResultOfTest;
 }

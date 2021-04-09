@@ -190,9 +190,14 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief Maximum test cases to communicate between debugger and debuggee process
+ */
+#define TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES 200
+
+/**
  * @brief Maximum buffer to communicate between debugger and debuggee process
  */
-#define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE 2048
+#define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE sizeof(DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION) * TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES
 
 //////////////////////////////////////////////////
 //		Debugger Synchronization Objects        //
@@ -841,8 +846,8 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL
  */
 typedef struct _DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
 {
-    UINT64 Address1;
-    UINT64 Tag;
+    UINT64 Address;
+    char   Tag[32];
 
 } DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION,
     *PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;

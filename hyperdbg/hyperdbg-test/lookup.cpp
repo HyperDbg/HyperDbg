@@ -20,17 +20,20 @@
 VOID
 TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize)
 {
-    BOOLEAN SentMessageResult;
-    UINT64  Buffer[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = {0};
-    char    SuccessMessage[]                                 = "success";
+    BOOLEAN                                SentMessageResult;
+    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelInfoArray;
+    char                                   SuccessMessage[] = "success";
 
     printf("start testing event commands...\n");
 
-    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION Test = (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)KernelInformation;
+    KernelInfoArray = (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)KernelInformation;
 
-    printf("heeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrreeee\n");
-    printf("Ex : %llx\n", Test->Address1);
-    printf("Tag : %llx\n", Test->Tag);
+    for (size_t i = 0; i < KernelInformationSize / sizeof(DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION); i++)
+    {
+        printf("Address : %llx\n", KernelInfoArray[i].Address);
+        printf("Tag : %s\n", KernelInfoArray[i].Tag);
+    }
+
     _getch();
 
     //

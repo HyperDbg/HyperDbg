@@ -16,5 +16,5 @@
 //				   Functions					//
 //////////////////////////////////////////////////
 
-VOID
+UINT32
 TestKernelGetInformation(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION InfoRequest);

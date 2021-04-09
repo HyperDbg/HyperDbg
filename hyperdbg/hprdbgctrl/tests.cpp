@@ -116,12 +116,12 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle)
 {
-    HANDLE  PipeHandle;
-    BOOLEAN SentMessageResult;
-    UINT32  ReadBytes;
-    char    BufferToRead[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = {0};
-    char    BufferToSend[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] =
-        "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
+    HANDLE              PipeHandle;
+    BOOLEAN             SentMessageResult;
+    UINT32              ReadBytes;
+    char *              BufferToRead;
+    char *              BufferToSend;
+    char                HandshakeBuffer[] = "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
     PROCESS_INFORMATION ProcessInfo;
     STARTUPINFO         StartupInfo;
     char                CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
@@ -136,6 +136,14 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
         //
         return FALSE;
     }
+
+    BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    BufferToSend = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    RtlZeroMemory(BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    RtlZeroMemory(BufferToSend, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    strcpy(BufferToSend, HandshakeBuffer);
 
     //
     // Create the Test Process
@@ -156,6 +164,10 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
         //
         // Test process not found
         //
+
+        free(BufferToRead);
+        free(BufferToSend);
+
         return FALSE;
     }
 
@@ -169,17 +181,24 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
             //
             // Error in connection
             //
+            free(BufferToRead);
+            free(BufferToSend);
+
             return FALSE;
         }
 
         ReadBytes =
-            NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, sizeof(BufferToRead));
+            NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
         if (!ReadBytes)
         {
             //
             // Nothing to read
             //
+
+            free(BufferToRead);
+            free(BufferToSend);
+
             return FALSE;
         }
 
@@ -202,21 +221,29 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
                 //
                 // error in sending
                 //
+
+                free(BufferToRead);
+                free(BufferToSend);
+
                 return FALSE;
             }
 
             //
             // Receive the request for the test case number
             //
-            RtlZeroMemory(BufferToRead, sizeof(BufferToRead));
+            RtlZeroMemory(BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
-            ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, sizeof(BufferToRead));
+            ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
             if (!ReadBytes)
             {
                 //
                 // Nothing to read
                 //
+
+                free(BufferToRead);
+                free(BufferToSend);
+
                 return FALSE;
             }
 
@@ -237,6 +264,10 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
                         //
                         // error in sending
                         //
+
+                        free(BufferToRead);
+                        free(BufferToSend);
+
                         return FALSE;
                     }
                 }
@@ -249,14 +280,25 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
             *ThreadHandle         = ProcessInfo.hThread;
             *ProcessHandle        = ProcessInfo.hProcess;
 
+            free(BufferToRead);
+            free(BufferToSend);
+
             return TRUE;
         }
         else
         {
             ShowMessages("The process could not be started...\n");
+
+            free(BufferToRead);
+            free(BufferToSend);
+
             return FALSE;
         }
     }
+
+    free(BufferToRead);
+    free(BufferToSend);
+
     return FALSE;
 }
 

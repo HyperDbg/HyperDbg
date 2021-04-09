@@ -50,6 +50,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     SIZE_T                                                  ReturnSize;
     BOOLEAN                                                 DoNotChangeInformation = FALSE;
     UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode;
+    UINT32                                                  FilledEntriesInKernelInfo;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -1050,9 +1051,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform collecting kernel-side debug information
             //
-            TestKernelGetInformation(DebuggerKernelSideTestInformationRequest);
+            FilledEntriesInKernelInfo = TestKernelGetInformation(DebuggerKernelSideTestInformationRequest);
 
-            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
+            Irp->IoStatus.Information = FilledEntriesInKernelInfo * SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
             Status                    = STATUS_SUCCESS;
 
             //

@@ -26,7 +26,7 @@ main(int argc, char * argv[])
     HANDLE  PipeHandle;
     BOOLEAN SentMessageResult;
     UINT32  ReadBytes;
-    char    Buffer[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = "Hey there, Are you HyperDbg?";
+    char *  Buffer;
 
     if (argc != 2)
     {
@@ -34,6 +34,10 @@ main(int argc, char * argv[])
                "command from HyperDbg...\n");
         return 1;
     }
+
+    Buffer = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    strcpy_s(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE, "Hey there, Are you HyperDbg?");
 
     if (!strcmp(argv[1], "im-hyperdbg"))
     {
@@ -51,6 +55,7 @@ main(int argc, char * argv[])
             //
             // Unable to create handle
             //
+            free(Buffer);
             return 1;
         }
 
@@ -62,16 +67,18 @@ main(int argc, char * argv[])
             //
             // Sending error
             //
+            free(Buffer);
             return 1;
         }
 
-        ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, sizeof(Buffer));
+        ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
         if (!ReadBytes)
         {
             //
             // Nothing to read
             //
+            free(Buffer);
             return 1;
         }
 
@@ -86,10 +93,11 @@ main(int argc, char * argv[])
             //
             // Now we should request the test case number from the HyperDbg Debugger
             //
-            RtlZeroMemory(Buffer, sizeof(Buffer));
+            RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
             strcpy_s(
                 Buffer,
+                TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
                 "Wow! I miss you... Would you plz send me the kernel information?");
 
             SentMessageResult =
@@ -100,20 +108,22 @@ main(int argc, char * argv[])
                 //
                 // Sending error
                 //
+                free(Buffer);
                 return 1;
             }
 
             //
             // Read the test case number
             //
-            RtlZeroMemory(Buffer, sizeof(Buffer));
-            ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, sizeof(Buffer));
+            RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+            ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
             if (!ReadBytes)
             {
                 //
                 // Nothing to read
                 //
+                free(Buffer);
                 return 1;
             }
 
@@ -137,7 +147,11 @@ main(int argc, char * argv[])
     {
         printf("you should not test functionalities directly, instead use 'test' "
                "command from HyperDbg...\n");
+
+        free(Buffer);
         return 1;
     }
+
+    free(Buffer);
     return 0;
 }
