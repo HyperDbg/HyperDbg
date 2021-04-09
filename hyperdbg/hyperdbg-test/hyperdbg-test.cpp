@@ -23,12 +23,10 @@ using namespace std;
 int
 main(int argc, char * argv[])
 {
-    HANDLE    PipeHandle;
-    BOOLEAN   SentMessageResult;
-    UINT32    ReadBytes;
-    UINT32    TestCaseNumber;
-    const int BufferSize         = 1024;
-    char      Buffer[BufferSize] = "Hey there, Are you HyperDbg?";
+    HANDLE  PipeHandle;
+    BOOLEAN SentMessageResult;
+    UINT32  ReadBytes;
+    char    Buffer[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = "Hey there, Are you HyperDbg?";
 
     if (argc != 2)
     {
@@ -67,7 +65,7 @@ main(int argc, char * argv[])
             return 1;
         }
 
-        ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, BufferSize);
+        ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, sizeof(Buffer));
 
         if (!ReadBytes)
         {
@@ -88,11 +86,11 @@ main(int argc, char * argv[])
             //
             // Now we should request the test case number from the HyperDbg Debugger
             //
-            RtlZeroMemory(Buffer, BufferSize);
+            RtlZeroMemory(Buffer, sizeof(Buffer));
 
             strcpy_s(
                 Buffer,
-                "Wow! I miss you... Would you plz send me the test case number?");
+                "Wow! I miss you... Would you plz send me the kernel information?");
 
             SentMessageResult =
                 NamedPipeClientSendMessage(PipeHandle, Buffer, strlen(Buffer) + 1);
@@ -108,8 +106,8 @@ main(int argc, char * argv[])
             //
             // Read the test case number
             //
-            RtlZeroMemory(Buffer, BufferSize);
-            ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, BufferSize);
+            RtlZeroMemory(Buffer, sizeof(Buffer));
+            ReadBytes = NamedPipeClientReadMessage(PipeHandle, Buffer, sizeof(Buffer));
 
             if (!ReadBytes)
             {
@@ -119,12 +117,10 @@ main(int argc, char * argv[])
                 return 1;
             }
 
-            TestCaseNumber = *(UINT32 *)Buffer;
-
             //
             // Dispatch the test case number
             //
-            TestCaseDispatcher(TestCaseNumber, PipeHandle);
+            TestCreateLookupTable(PipeHandle, (PVOID)Buffer, ReadBytes);
 
             //
             // Close the pipe connection
@@ -144,28 +140,4 @@ main(int argc, char * argv[])
         return 1;
     }
     return 0;
-}
-
-/**
- * @brief Dispatcher to test case numbers on test process
- *
- * @param TestCase Test case number
- * @param PipeHandle Handle of client's pipe connection
- * @return VOID
- */
-VOID
-TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle)
-{
-    //
-    // Dispatch the Test Case Number
-    //
-    switch (TestCase)
-    {
-    case DEBUGGER_TEST_EPTHOOK_COMMAND:
-        TestEpthook(PipeHandle);
-        break;
-    default:
-        printf("err, test-process called with a wrong test case number\n");
-        break;
-    }
 }

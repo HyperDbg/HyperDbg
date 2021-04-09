@@ -117,8 +117,8 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
 
     if ((!bResult) || (0 == cbBytes))
     {
-        ShowMessages("\nError occurred while reading "
-                     "from the client: %d",
+        ShowMessages("Error occurred while reading "
+                     "from the client: %d\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return 0;
@@ -149,8 +149,8 @@ NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
 
     if ((!bResult) || (BufferSize != cbBytes))
     {
-        ShowMessages("\nError occurred while writing"
-                     " to the client: %d",
+        ShowMessages("Error occurred while writing"
+                     " to the client: %d\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -354,8 +354,8 @@ NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSi
 
     if ((!bResult) || (0 == cbBytes))
     {
-        ShowMessages("\nError occurred while reading"
-                     " from the server: %d",
+        ShowMessages("Error occurred while reading"
+                     " from the server: %d\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return NULL; // Error

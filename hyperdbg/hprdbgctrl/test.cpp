@@ -21,42 +21,37 @@ CommandTestHelp()
 {
     ShowMessages(
         "test : Test essential features of HyperDbg in current machine.\n");
-    ShowMessages("syntax : \ttest [test case (hex value)\n");
+    ShowMessages("syntax : \ttest\n");
 
     ShowMessages("\t\te.g : test\n");
-    ShowMessages("\t\te.g : test 0x3\n");
 }
 
 /**
  * @brief perform test on the remote process
  *
- * @param TestCaseNum Number of test case
- * @param InvalidTestCase if true then command is invalid, if false then test
- * case is valid
+ * @param KernelSideInformation Information from kernel
+ * @param KernelSideInformationSize Information from kernel ()
  *
  * @return BOOLEAN returns true if the results was true and false if the results
  * was not ok
  */
 BOOLEAN
-CommandTestPerformTest(UINT32                                 TestCaseNum,
-                       PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformation,
-                       PBOOLEAN                               InvalidTestCase)
+CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformation, UINT32 KernelSideInformationSize)
 {
-    BOOLEAN   ResultOfTest = FALSE;
-    HANDLE    PipeHandle;
-    HANDLE    ThreadHandle;
-    HANDLE    ProcessHandle;
-    UINT32    ReadBytes;
-    const int BufferSize         = 1024 / sizeof(UINT64);
-    UINT64    Buffer[BufferSize] = {0};
-
-    *InvalidTestCase = FALSE;
+    BOOLEAN ResultOfTest = FALSE;
+    HANDLE  PipeHandle;
+    HANDLE  ThreadHandle;
+    HANDLE  ProcessHandle;
+    UINT32  ReadBytes;
+    BOOLEAN SentMessageResult;
+    CHAR    Buffer[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = {0};
 
     //
     // Create tests process to create a thread for us
     //
     if (!CreateProcessAndOpenPipeConnection(
-            TestCaseNum,
+            KernelSideInformation,
+            KernelSideInformationSize,
             &PipeHandle,
             &ThreadHandle,
             &ProcessHandle))
@@ -70,10 +65,10 @@ CommandTestPerformTest(UINT32                                 TestCaseNum,
     //
 
     //
-    // Wait for process id and thread id
+    // Wait for the result of test to be received
     //
     ReadBytes =
-        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, BufferSize);
+        NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     if (!ReadBytes)
     {
@@ -83,20 +78,19 @@ CommandTestPerformTest(UINT32                                 TestCaseNum,
         return FALSE;
     }
 
-    //
-    // Execute command from test process
-    //
-    ShowMessages("I received the following command : %s\n", Buffer);
-    ShowMessages("ExAllocatePoolWithTag Address : %llx\n", KernelSideInformation->AddressOfExAllocatePoolWithTag);
-
-    *InvalidTestCase = TRUE;
+    if (strcmp(Buffer, "success") == 0)
+    {
+        ResultOfTest = TRUE;
+    }
+    else
+    {
+        ResultOfTest = FALSE;
+    }
 
     //
     // Close connection and remote process
     //
     CloseProcessAndClosePipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
-
-    return FALSE;
 
     return ResultOfTest;
 }
@@ -114,79 +108,28 @@ CommandTest(vector<string> SplittedCommand, string Command)
     BOOL  Status;
     ULONG ReturnedLength;
     PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
-    KernelSideTestInformationRequest;
+    KernelSideTestInformationRequestArray;
 
-    BOOLEAN GetTestCase     = FALSE;
-    BOOLEAN TestEverything  = FALSE;
-    BOOLEAN WrongTestCase   = FALSE;
-    BOOLEAN Result          = FALSE;
-    UINT64  SpecialTestCase = 0;
-
-    if (SplittedCommand.size() > 2)
+    if (SplittedCommand.size() != 1)
     {
         ShowMessages("incorrect use of 'test'\n\n");
         CommandTestHelp();
         return;
     }
 
-    //
-    // Interpret command specific details (if any)
-    //
-    for (auto Section : SplittedCommand)
+    else if (!g_DeviceHandle)
     {
-        if (!Section.compare("test"))
-        {
-            continue;
-        }
-        else if (!GetTestCase)
-        {
-            //
-            // It's probably a test case number
-            //
-            if (!ConvertStringToUInt64(Section, &SpecialTestCase))
-            {
-                //
-                // Unkonwn parameter
-                //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-                CommandTestHelp();
-                return;
-            }
-            else
-            {
-                GetTestCase = TRUE;
-            }
-        }
-        else
-        {
-            //
-            // Unkonwn parameter
-            //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
-            CommandTestHelp();
-            return;
-        }
+        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return;
     }
-
-    //
-    // Perform the test case
-    //
-    if (SpecialTestCase == DEBUGGER_TEST_ALL_COMMANDS)
-    {
-        //
-        // Means to check everything
-        //
-        TestEverything = TRUE;
-    }
-
-    ShowMessages("---------------------------------------------------------\n");
 
     //
     // *** Read kernel-side debugging information ***
     //
-    KernelSideTestInformationRequest = (DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION *)malloc(SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION);
+    KernelSideTestInformationRequestArray = (DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
-    RtlZeroMemory(KernelSideTestInformationRequest, SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION);
+    RtlZeroMemory(KernelSideTestInformationRequestArray, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     //
     // Send Ioctl to the kernel
@@ -194,11 +137,11 @@ CommandTest(vector<string> SplittedCommand, string Command)
     Status = DeviceIoControl(
         g_DeviceHandle,                               // Handle to device
         IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,  // IO Control code
-        KernelSideTestInformationRequest,             // Input Buffer to driver.
+        KernelSideTestInformationRequestArray,        // Input Buffer to driver.
         SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION, // Input buffer
                                                       // length
-        KernelSideTestInformationRequest,             // Output Buffer from driver.
-        SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION, // Length
+        KernelSideTestInformationRequestArray,        // Output Buffer from driver.
+        TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,     // Length
                                                       // of
                                                       // output
                                                       // buffer
@@ -214,66 +157,20 @@ CommandTest(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (KernelSideTestInformationRequest->KernelResult !=
-        DEBUGEER_OPERATION_WAS_SUCCESSFULL)
-    {
-        ShowErrorMessage(KernelSideTestInformationRequest->KernelResult);
-
-        //
-        // Free the buffer
-        //
-        free(KernelSideTestInformationRequest);
-        return;
-    }
-
     //
     // Means to check just one command
     //
-    for (size_t i = 1; i < MAXLONG; i++)
+    if (CommandTestPerformTest(KernelSideTestInformationRequestArray, ReturnedLength))
     {
-        if (TestEverything)
-            SpecialTestCase = i;
-
-        Result = CommandTestPerformTest(SpecialTestCase, KernelSideTestInformationRequest, &WrongTestCase);
-
-        if (WrongTestCase)
-        {
-            //
-            // Wrong test case
-            //
-            if (TestEverything)
-            {
-                break;
-            }
-            else
-            {
-                ShowMessages("Wrong test-case.\n");
-            }
-        }
-        else
-        {
-            //
-            // Check if this is wrong command or not
-            //
-            if (Result)
-            {
-                ShowMessages("\t[+] Successful\n");
-            }
-            else
-            {
-                ShowMessages("\t[-] Unsuccessful\n");
-            }
-        }
-        if (!TestEverything)
-        {
-            break;
-        }
+        ShowMessages("All the test were successful :)\n");
     }
-
-    ShowMessages("---------------------------------------------------------\n");
+    else
+    {
+        ShowMessages("At least one tests failed :(\n");
+    }
 
     //
     // Free the kernel-side buffer
     //
-    free(KernelSideTestInformationRequest);
+    free(KernelSideTestInformationRequestArray);
 }

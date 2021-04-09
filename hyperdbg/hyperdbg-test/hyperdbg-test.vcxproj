@@ -92,7 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="test-epthook.cpp" />
+    <ClCompile Include="lookup.cpp" />
     <ClCompile Include="hyperdbg-test.cpp" />
     <ClCompile Include="namedpipe.cpp" />
   </ItemGroup>

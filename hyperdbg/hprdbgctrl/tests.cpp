@@ -35,11 +35,12 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
     // Get the current directory.
     //
 
+    //
+    // We use the location of running exe instead of
+    // finding driver based on current directory
+    //
+
     /*
-  //
-  // We use the location of running exe instead of
-  // finding driver based on current directory
-  //
   driverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
 
   if (driverLocLen == 0) {
@@ -101,32 +102,33 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
 /**
  * @brief Create a Process And Open Pipe Connection object
  *
- * @param TestCase Test Case Number
+ * @param KernelInformation Details from kernel to create lookup table
+ * @param KernelInformationSize Size of KernelInformation
  * @param ConnectionPipeHandle Pointer to receive Pipe Handle
  * @param ThreadHandle Pointer to receive Thread Handle
  * @param ProcessHandle Pointer to receive Process Handle
  * @return BOOLEAN
  */
 BOOLEAN
-CreateProcessAndOpenPipeConnection(UINT32  TestCase,
+CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
+                                   UINT32  KernelInformationSize,
                                    PHANDLE ConnectionPipeHandle,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle)
 {
-    HANDLE    PipeHandle;
-    BOOLEAN   SentMessageResult;
-    UINT32    ReadBytes;
-    const int BufferSize               = 1024;
-    char      BufferToRead[BufferSize] = {0};
-    char      BufferToSend[BufferSize] =
+    HANDLE  PipeHandle;
+    BOOLEAN SentMessageResult;
+    UINT32  ReadBytes;
+    char    BufferToRead[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] = {0};
+    char    BufferToSend[TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE] =
         "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
     PROCESS_INFORMATION ProcessInfo;
     STARTUPINFO         StartupInfo;
     char                CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
 
     PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
-                                           BufferSize,
-                                           BufferSize);
+                                           TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
+                                           TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     if (!PipeHandle)
     {
         //
@@ -171,7 +173,7 @@ CreateProcessAndOpenPipeConnection(UINT32  TestCase,
         }
 
         ReadBytes =
-            NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
+            NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, sizeof(BufferToRead));
 
         if (!ReadBytes)
         {
@@ -206,9 +208,9 @@ CreateProcessAndOpenPipeConnection(UINT32  TestCase,
             //
             // Receive the request for the test case number
             //
-            RtlZeroMemory(BufferToRead, BufferSize);
+            RtlZeroMemory(BufferToRead, sizeof(BufferToRead));
 
-            ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
+            ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, sizeof(BufferToRead));
 
             if (!ReadBytes)
             {
@@ -219,18 +221,16 @@ CreateProcessAndOpenPipeConnection(UINT32  TestCase,
             }
 
             if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send me the "
-                                     "test case number?") == 0)
+                                     "kernel information?") == 0)
             {
                 {
                     //
-                    // Send the test case number
+                    // Send the kernel information
                     //
-                    RtlZeroMemory(BufferToSend, BufferSize);
-                    *(UINT32 *)BufferToSend = TestCase;
-                    SentMessageResult       = NamedPipeServerSendMessageToClient(
+                    SentMessageResult = NamedPipeServerSendMessageToClient(
                         PipeHandle,
-                        BufferToSend,
-                        strlen(BufferToSend) + 1);
+                        (char *)KernelInformation,
+                        KernelInformationSize);
 
                     if (!SentMessageResult)
                     {

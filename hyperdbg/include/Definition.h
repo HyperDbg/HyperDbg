@@ -190,14 +190,9 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Test case number, perform all the tests
+ * @brief Maximum buffer to communicate between debugger and debuggee process
  */
-#define DEBUGGER_TEST_ALL_COMMANDS 0x0
-
-/**
- * @brief Test case number, test !epthook
- */
-#define DEBUGGER_TEST_EPTHOOK_COMMAND 0x1
+#define TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE 2048
 
 //////////////////////////////////////////////////
 //		Debugger Synchronization Objects        //
@@ -846,8 +841,8 @@ typedef struct _DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL
  */
 typedef struct _DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
 {
-    UINT64 AddressOfExAllocatePoolWithTag;
-    UINT32 KernelResult;
+    UINT64 Address1;
+    UINT64 Tag;
 
 } DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION,
     *PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;

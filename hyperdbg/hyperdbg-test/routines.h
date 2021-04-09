@@ -15,9 +15,6 @@
 //					 Functions                  //
 //////////////////////////////////////////////////
 
-VOID
-TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
-
 //////////////////////////////////////////////////
 //		     Assembly Functions                 //
 //////////////////////////////////////////////////
@@ -31,4 +28,4 @@ extern void inline AsmTest();
 //////////////////////////////////////////////////
 
 VOID
-TestEpthook(HANDLE PipeHandle);
+TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize);

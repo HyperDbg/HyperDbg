@@ -13,22 +13,19 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\TestCaseRoutines">
-      <UniqueIdentifier>{76cc362c-ef8b-4f8e-be51-fb3ed6a44fa2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Assembly">
       <UniqueIdentifier>{52b6834d-060a-49d8-a91a-548633cbe5ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hyperdbg-test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="namedpipe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test-epthook.cpp">
-      <Filter>Source Files\TestCaseRoutines</Filter>
+    <ClCompile Include="hyperdbg-test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lookup.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

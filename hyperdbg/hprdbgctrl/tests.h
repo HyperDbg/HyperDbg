@@ -26,7 +26,8 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-CreateProcessAndOpenPipeConnection(UINT32  TestCase,
+CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
+                                   UINT32  KernelInformationSize,
                                    PHANDLE ConnectionPipeHandle,
                                    PHANDLE ThreadHandle,
                                    PHANDLE ProcessHandle);

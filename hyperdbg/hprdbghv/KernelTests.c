@@ -24,10 +24,6 @@ TestKernelGetInformation(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION InfoRequest)
     //
     // Fill kernel functions information
     //
-    InfoRequest->AddressOfExAllocatePoolWithTag = ExAllocatePoolWithTag;
-
-    //
-    // Indicate that it's successful
-    //
-    InfoRequest->KernelResult = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    InfoRequest->Address1 = ExAllocatePoolWithTag;
+    InfoRequest->Tag      = 'A';
 }
