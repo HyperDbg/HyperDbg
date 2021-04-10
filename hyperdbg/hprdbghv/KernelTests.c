@@ -34,20 +34,20 @@ TestKernelGetInformation(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION InfoRequest)
 
     // ------------------------------------------------------
 
-    Index                      = 0;
-    InfoRequest[Index].Address = ExAllocatePoolWithTag;
+    Index                    = 0;
+    InfoRequest[Index].Value = ExAllocatePoolWithTag;
     memcpy(&InfoRequest[Index].Tag, "ExAllocatePoolWithTag", strlen("ExAllocatePoolWithTag") + 1);
 
     // ------------------------------------------------------
 
-    Index                      = 1;
-    InfoRequest[Index].Address = NtReadFile;
+    Index                    = 1;
+    InfoRequest[Index].Value = NtReadFile;
     memcpy(&InfoRequest[Index].Tag, "NtReadFile", strlen("NtReadFile") + 1);
 
     // ------------------------------------------------------
 
-    Index                      = 2;
-    InfoRequest[Index].Address = NtWriteFile;
+    Index                    = 2;
+    InfoRequest[Index].Value = NtWriteFile;
     memcpy(&InfoRequest[Index].Tag, "NtWriteFile", strlen("NtWriteFile") + 1);
 
     // ------------------------------------------------------

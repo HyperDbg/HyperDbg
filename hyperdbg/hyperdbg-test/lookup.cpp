@@ -12,27 +12,81 @@
 #include "pch.h"
 
 /**
- * @brief Test Test epthook on test process
+ * @brief Create lookup table for test
  *
  * @param PipeHandle
+ * @param KernelInformation
+ * @param KernelInformationSize
+ * 
  * @return VOID
  */
 VOID
 TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize)
 {
-    BOOLEAN                                SentMessageResult;
-    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelInfoArray;
-    char                                   SuccessMessage[] = "success";
+    BOOLEAN                                       SentMessageResult;
+    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION        KernelInfoArray;
+    char                                          SuccessMessage[] = "success";
+    vector<DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION> LookupTable;
+    vector<string>                                TestCases;
 
     printf("start testing event commands...\n");
 
     KernelInfoArray = (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)KernelInformation;
 
+    //
+    // Add kernel-mode details to lookup table
+    //
     for (size_t i = 0; i < KernelInformationSize / sizeof(DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION); i++)
     {
-        printf("Address : %llx\n", KernelInfoArray[i].Address);
-        printf("Tag : %s\n", KernelInfoArray[i].Tag);
+        LookupTable.push_back(KernelInfoArray[i]);
     }
+
+    //
+    // Add user-mode details to lookup table
+    //
+
+    // TODO
+
+    //
+    // Read test-cases
+    //
+    TestCase(TestCases);
+
+    //
+    // Replace tags with addresses
+    //
+    for (auto CurrentCase : TestCases)
+    {
+        //
+        // Template instantiations for
+        // extracting the matching pattern
+        //
+        smatch match;
+        regex  r("\\[(.*?)\\]");
+        string subject = CurrentCase;
+        int    i       = 1;
+
+        while (regex_search(subject, match, r))
+        {
+            printf("Matched string : %s\n", match.str(0).c_str());
+
+            i++;
+
+            //
+            // suffix to find the rest of the string
+            //
+            subject = match.suffix().str();
+        }
+        printf("\n\n");
+    }
+
+    /*
+    for (auto item : LookupTable)
+    {
+        printf("Address : %llx\n", item.Value);
+        printf("Tag : %s\n", item.Tag);
+    }
+    */
 
     _getch();
 

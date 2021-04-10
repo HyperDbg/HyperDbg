@@ -16,8 +16,10 @@
 //
 #include <Windows.h>
 #include <iostream>
-#include <string.h>
+#include <string>
 #include <conio.h>
+#include <vector>
+#include <regex>
 
 //
 // Program Defined Headers
@@ -25,3 +27,5 @@
 #include "Definition.h"
 #include "namedpipe.h"
 #include "routines.h"
+
+using namespace std;
