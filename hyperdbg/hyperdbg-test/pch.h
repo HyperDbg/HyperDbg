@@ -17,6 +17,7 @@
 #include <Windows.h>
 #include <iostream>
 #include <string.h>
+#include <conio.h>
 
 //
 // Program Defined Headers

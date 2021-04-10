@@ -25,4 +25,13 @@
 //					Functions                   //
 //////////////////////////////////////////////////
 
-BOOLEAN TestInfiniteLoop();
+BOOLEAN
+CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
+                                   UINT32  KernelInformationSize,
+                                   PHANDLE ConnectionPipeHandle,
+                                   PHANDLE ThreadHandle,
+                                   PHANDLE ProcessHandle);
+VOID
+CloseProcessAndClosePipeConnection(HANDLE ConnectionPipeHandle,
+                                   HANDLE ThreadHandle,
+                                   HANDLE ProcessHandle);

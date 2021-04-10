@@ -88,6 +88,12 @@ string g_ServerIp = "";
 HANDLE g_RemoteDebuggeeListeningThread = NULL;
 
 /**
+ * @brief Handle to show that if the debugger is loaded successfully
+ *
+ */
+HANDLE g_IsDriverLoadedSuccessfully = NULL;
+
+/**
  * @brief In both debuggee and debugger we save the state of
  * the closed connection to avoid double close
  *
@@ -102,16 +108,31 @@ BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
  * @brief the buffer that we set at the end of buffers for serial
  */
 BYTE g_EndOfBufferCheck[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
-    SERIAL_END_OF_BUFFER_CHAR_1, SERIAL_END_OF_BUFFER_CHAR_2,
-    SERIAL_END_OF_BUFFER_CHAR_3, SERIAL_END_OF_BUFFER_CHAR_4};
+    SERIAL_END_OF_BUFFER_CHAR_1,
+    SERIAL_END_OF_BUFFER_CHAR_2,
+    SERIAL_END_OF_BUFFER_CHAR_3,
+    SERIAL_END_OF_BUFFER_CHAR_4};
 
 /**
- * @brief In debuggee (not debugger), we save the handle
+ * @brief In debugger (not debuggee), we save the handle
  * of the user-mode listening thread for pauses here
  *
  */
-HANDLE g_SyncronizationObjectsHandleTable
+
+DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_SyncronizationObjectsHandleTable
     [DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS] = {0};
+
+/**
+ * @brief Current executing instructions
+ *
+ */
+BYTE g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE] = {0};
+
+/**
+ * @brief whether the Current executing instructions is 32-bit or 64 bit
+ *
+ */
+BOOLEAN g_IsRunningInstruction32Bit = FALSE;
 
 /**
  * @brief In debuggee and debugger, we save the handle
@@ -193,7 +214,7 @@ DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfAddingActionsToEvent = {
  * to read and write simultaneously)
  *
  */
-OVERLAPPED g_OverlappedIoStructureForReadDebugger = {0};
+OVERLAPPED g_OverlappedIoStructureForReadDebugger  = {0};
 OVERLAPPED g_OverlappedIoStructureForWriteDebugger = {0};
 
 /**

@@ -24,10 +24,12 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  *
  * @return VOID
  */
-VOID CommandPrintHelp() {
-  ShowMessages("print : evaluate expressions.\n\n");
-  ShowMessages("syntax : \tprint [expression]\n");
-  ShowMessages("\t\te.g : print dq(poi(@rcx))\n");
+VOID
+CommandPrintHelp()
+{
+    ShowMessages("print : evaluate expressions.\n\n");
+    ShowMessages("syntax : \tprint [expression]\n");
+    ShowMessages("\t\te.g : print dq(poi(@rcx))\n");
 }
 
 /**
@@ -37,91 +39,94 @@ VOID CommandPrintHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandPrint(vector<string> SplittedCommand, string Command) {
+VOID
+CommandPrint(vector<string> SplittedCommand, string Command)
+{
+    PVOID  CodeBuffer;
+    UINT64 BufferAddress;
+    UINT32 BufferLength;
+    UINT32 Pointer;
 
-  PVOID CodeBuffer;
-  UINT64 BufferAddress;
-  UINT32 BufferLength;
-  UINT32 Pointer;
-
-  if (SplittedCommand.size() == 1) {
-    ShowMessages("incorrect use of 'print'\n\n");
-    CommandPrintHelp();
-    return;
-  }
-
-  //
-  // Trim the command
-  //
-  Trim(Command);
-
-  //
-  // Remove print from it
-  //
-  Command.erase(0, 5);
-
-  //
-  // Trim it again
-  //
-  Trim(Command);
-
-  //
-  // Prepend and append 'print(' and ')'
-  //
-  Command.insert(0, "print(");
-  Command.append(");");
-
-  //
-  // TODO: end of string must have a whitspace. fix it.
-  //
-  Command.append(" ");
-  // Command = " x = 4 >> 1; ";
-
-  if (g_IsSerialConnectedToRemoteDebuggee) {
-
-    //
-    // Send over serial
-    //
-
-    //
-    // Run script engine handler
-    //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
-
-    if (CodeBuffer == NULL) {
-
-      //
-      // return to show that this item contains an script
-      //
-      return;
+    if (SplittedCommand.size() == 1)
+    {
+        ShowMessages("incorrect use of 'print'\n\n");
+        CommandPrintHelp();
+        return;
     }
 
     //
-    // Print symbols (test)
+    // Trim the command
     //
-    // PrintSymbolBufferWrapper(CodeBuffer);
+    Trim(Command);
 
     //
-    // Set the buffer and length
+    // Remove print from it
     //
-    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-    BufferLength = ScriptEngineWrapperGetSize(CodeBuffer);
-    Pointer = ScriptEngineWrapperGetPointer(CodeBuffer);
+    Command.erase(0, 5);
 
     //
-    // Send it to the remote debuggee
+    // Trim it again
     //
-    KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
+    Trim(Command);
 
     //
-    // Remove the buffer of script engine interpreted code
+    // Prepend and append 'print(' and ')'
     //
-    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+    Command.insert(0, "print(");
+    Command.append(");");
 
-  } else {
     //
-    // error
+    // TODO: end of string must have a whitspace. fix it.
     //
-    ShowMessages("err, you're not connected to any debuggee\n");
-  }
+    Command.append(" ");
+    // Command = " x = 4 >> 1; ";
+
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Send over serial
+        //
+
+        //
+        // Run script engine handler
+        //
+        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
+
+        if (CodeBuffer == NULL)
+        {
+            //
+            // return to show that this item contains an script
+            //
+            return;
+        }
+
+        //
+        // Print symbols (test)
+        //
+        // PrintSymbolBufferWrapper(CodeBuffer);
+
+        //
+        // Set the buffer and length
+        //
+        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
+        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+        //
+        // Send it to the remote debuggee
+        //
+        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, FALSE);
+
+        //
+        // Remove the buffer of script engine interpreted code
+        //
+        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+    }
+    else
+    {
+        //
+        // error
+        //
+        ShowMessages("err, you're not connected to any debuggee\n");
+    }
 }

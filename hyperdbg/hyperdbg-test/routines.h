@@ -15,18 +15,17 @@
 //					 Functions                  //
 //////////////////////////////////////////////////
 
-VOID TestCaseDispatcher(UINT32 TestCase, HANDLE PipeHandle);
-
 //////////////////////////////////////////////////
 //		     Assembly Functions                 //
 //////////////////////////////////////////////////
 
 extern "C" {
-extern void inline XorSledFunction();
+extern void inline AsmTest();
 }
 
 //////////////////////////////////////////////////
 //				Test Case Routines              //
 //////////////////////////////////////////////////
 
-VOID AttachDetachTest(HANDLE PipeHandle);
+VOID
+TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize);

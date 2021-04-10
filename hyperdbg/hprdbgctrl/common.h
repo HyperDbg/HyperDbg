@@ -16,38 +16,53 @@
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
-VOID PrintBits(size_t const size, void const *const ptr);
+VOID
+PrintBits(size_t const size, void const * const ptr);
 
-VOID ReplaceAll(string &str, const string &from, const string &to);
+VOID
+ReplaceAll(string & str, const string & from, const string & to);
 
-const vector<string> Split(const string &s, const char &c);
+const vector<string>
+Split(const string & s, const char & c);
 
-BOOLEAN IsNumber(const string &str);
+BOOLEAN
+IsNumber(const string & str);
 
-vector<string> SplitIp(const string &str, char delim);
+vector<string>
+SplitIp(const string & str, char delim);
 
-BOOLEAN IsHexNotation(string s);
+BOOLEAN
+IsHexNotation(string s);
 
-vector<char> HexToBytes(const string &hex);
+vector<char>
+HexToBytes(const string & hex);
 
-BOOLEAN ConvertStringToUInt64(string TextToConvert, PUINT64 Result);
+BOOLEAN
+ConvertStringToUInt64(string TextToConvert, PUINT64 Result);
 
-BOOLEAN ConvertStringToUInt32(string TextToConvert, PUINT32 Result);
+BOOLEAN
+ConvertStringToUInt32(string TextToConvert, PUINT32 Result);
 
-BOOLEAN HasEnding(string const &fullString, string const &ending);
+BOOLEAN
+HasEnding(string const & fullString, string const & ending);
 
-BOOLEAN ValidateIP(string ip);
+BOOLEAN
+ValidateIP(string ip);
 
-BOOLEAN VmxSupportDetection();
+BOOLEAN
+VmxSupportDetection();
 
-BOOL SetPrivilege(HANDLE hToken,         // access token handle
-                  LPCTSTR lpszPrivilege, // name of privilege to enable/disable
-                  BOOL bEnablePrivilege  // to enable or disable privilege
+BOOL
+SetPrivilege(HANDLE  hToken,          // access token handle
+             LPCTSTR lpszPrivilege,   // name of privilege to enable/disable
+             BOOL    bEnablePrivilege // to enable or disable privilege
 );
 
-void Trim(std::string &s);
+void
+Trim(std::string & s);
 
-std::string RemoveSpaces(std::string str);
+std::string
+RemoveSpaces(std::string str);
 
 //////////////////////////////////////////////////
 //            	    Structures                  //
@@ -57,24 +72,26 @@ std::string RemoveSpaces(std::string str);
  * @brief this structure is copied from Process Hacker source code (ntldr.h)
  *
  */
-typedef struct _RTL_PROCESS_MODULE_INFORMATION {
-  HANDLE Section;
-  PVOID MappedBase;
-  PVOID ImageBase;
-  ULONG ImageSize;
-  ULONG Flags;
-  USHORT LoadOrderIndex;
-  USHORT InitOrderIndex;
-  USHORT LoadCount;
-  USHORT OffsetToFileName;
-  UCHAR FullPathName[256];
+typedef struct _RTL_PROCESS_MODULE_INFORMATION
+{
+    HANDLE Section;
+    PVOID  MappedBase;
+    PVOID  ImageBase;
+    ULONG  ImageSize;
+    ULONG  Flags;
+    USHORT LoadOrderIndex;
+    USHORT InitOrderIndex;
+    USHORT LoadCount;
+    USHORT OffsetToFileName;
+    UCHAR  FullPathName[256];
 } RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 
 /**
  * @brief this structure is copied from Process Hacker source code (ntldr.h)
  *
  */
-typedef struct _RTL_PROCESS_MODULES {
-  ULONG NumberOfModules;
-  RTL_PROCESS_MODULE_INFORMATION Modules[1];
+typedef struct _RTL_PROCESS_MODULES
+{
+    ULONG                          NumberOfModules;
+    RTL_PROCESS_MODULE_INFORMATION Modules[1];
 } RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;

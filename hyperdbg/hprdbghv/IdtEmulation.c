@@ -22,8 +22,7 @@
 VOID
 IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    ULONG                            ErrorCode     = 0;
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
+    ULONG ErrorCode = 0;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -107,13 +106,10 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
              InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //
-        // It's a breakpoint and should be handled by the kernel debugger
+        // Handle debug events (breakpoint, traps, hardware debug register when kernel
+        // debugger is attached.)
         //
-        ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
-        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                              GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-                                              &ContextAndTag);
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
     }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
@@ -123,8 +119,6 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         if (g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState)
         {
             SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
-            // HvSetMonitorTrapFlag(TRUE);
-            //g_GuestState[CurrentProcessorIndex].MtfTest = TRUE;
         }
         else
         {
@@ -158,7 +152,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
             KdHandleNmi(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableInterruptFlagOnContinue)
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
         {
             //
             // Ignore the nmi
@@ -245,7 +239,13 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     // the interrupt into the guest
     //
 
-    if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
+    {
+        //
+        // Ignore the interrupt as it's suppressed supressed because of instrument step-in
+        //
+    }
+    else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
         __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
         __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityState);

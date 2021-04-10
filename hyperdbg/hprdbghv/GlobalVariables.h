@@ -172,8 +172,21 @@ PVOID g_NmiHandlerForKeDeregisterNmiCallback;
 BOOLEAN g_RtmSupport;
 
 /**
+ * @brief Shows whether the debuggee is waiting for an 
+ * trap step or not
+ * 
+ */
+BOOLEAN g_WaitForStepTrap;
+
+/**
  * @brief Holds the requests to pause the break of debuggee until
  * a special event happens
  * 
  */
 DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
+
+/**
+ * @brief Holds the state of hardware debug register for step-over
+ * 
+ */
+HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;

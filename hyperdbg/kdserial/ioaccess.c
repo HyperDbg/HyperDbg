@@ -18,103 +18,91 @@ Abstract:
 #if defined(_X86_)
 
 UCHAR
-ReadPort8 (
-    PUCHAR Port
-    )
+ReadPort8(
+    PUCHAR Port)
 {
     return READ_PORT_UCHAR(Port);
 }
 
 USHORT
-ReadPort16 (
-    PUSHORT Port
-    )
+ReadPort16(
+    PUSHORT Port)
 {
     return READ_PORT_USHORT(Port);
 }
 
 ULONG
-ReadPort32 (
-    PULONG Port
-    )
+ReadPort32(
+    PULONG Port)
 {
     return READ_PORT_ULONG(Port);
 }
 
 VOID
-WritePort8 (
-    PUCHAR Port,
-    const UCHAR Value
-    )
+WritePort8(
+    PUCHAR      Port,
+    const UCHAR Value)
 {
     WRITE_PORT_UCHAR(Port, Value);
 }
 
 VOID
-WritePort16 (
-    PUSHORT Port,
-    const USHORT Value
-    )
+WritePort16(
+    PUSHORT      Port,
+    const USHORT Value)
 {
     WRITE_PORT_USHORT(Port, Value);
 }
 
 VOID
-WritePort32 (
-    PULONG Port,
-    const ULONG Value
-    )
+WritePort32(
+    PULONG      Port,
+    const ULONG Value)
 {
     WRITE_PORT_ULONG(Port, Value);
 }
 
 UCHAR
-ReadRegister8 (
-    PUCHAR Register
-    )
+ReadRegister8(
+    PUCHAR Register)
 {
     return READ_REGISTER_UCHAR(Register);
 }
 
 USHORT
-ReadRegister16 (
-    PUSHORT Register
-    )
+ReadRegister16(
+    PUSHORT Register)
 {
     return READ_REGISTER_USHORT(Register);
 }
 
 ULONG
-ReadRegister32 (
-    PULONG Register
-    )
+ReadRegister32(
+    PULONG Register)
 {
     return READ_REGISTER_ULONG(Register);
 }
 
 VOID
-WriteRegister8 (
-    PUCHAR Register,
-    const UCHAR Value
-    )
+WriteRegister8(
+    PUCHAR      Register,
+    const UCHAR Value)
 {
     WRITE_REGISTER_UCHAR(Register, Value);
 }
 
 VOID
-WriteRegister16 (
-    PUSHORT Register,
-    const USHORT Value
-    )
+WriteRegister16(
+    PUSHORT      Register,
+    const USHORT Value)
 {
     WRITE_REGISTER_USHORT(Register, Value);
 }
 
 VOID
-WriteRegister32 (
-    PULONG Register,
-    const ULONG Value
-    )
+WriteRegister32(
+    PULONG      Register,
+    const ULONG Value)
 {
     WRITE_REGISTER_ULONG(Register, Value);
 }

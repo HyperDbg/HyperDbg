@@ -21,9 +21,11 @@ extern BOOLEAN g_BreakPrintingOutput;
  *
  * @return VOID
  */
-VOID CommandPauseHelp() {
-  ShowMessages("pause : pauses the kernel events.\n\n");
-  ShowMessages("syntax : \tpause\n");
+VOID
+CommandPauseHelp()
+{
+    ShowMessages("pause : pauses the kernel events.\n\n");
+    ShowMessages("syntax : \tpause\n");
 }
 
 /**
@@ -33,23 +35,25 @@ VOID CommandPauseHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandPause(vector<string> SplittedCommand, string Command) {
+VOID
+CommandPause(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() != 1)
+    {
+        ShowMessages("incorrect use of 'pause'\n\n");
+        CommandPauseHelp();
+        return;
+    }
 
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'pause'\n\n");
-    CommandPauseHelp();
-    return;
-  }
+    //
+    // Sleep because the other thread that shows must be stopped
+    //
+    Sleep(500);
 
-  //
-  // Sleep because the other thread that shows must be stopped
-  //
-  Sleep(500);
+    //
+    // Set the g_BreakPrintingOutput to TRUE
+    //
+    g_BreakPrintingOutput = TRUE;
 
-  //
-  // Set the g_BreakPrintingOutput to TRUE
-  //
-  g_BreakPrintingOutput = TRUE;
-
-  ShowMessages("\npause\npausing debugger...\n");
+    ShowMessages("\npause\npausing debugger...\n");
 }

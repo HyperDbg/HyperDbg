@@ -16,8 +16,10 @@
  * 
  * @param ListHead 
  */
-void InitializeListHead(PLIST_ENTRY ListHead) {
-  ListHead->Flink = ListHead->Blink = ListHead;
+void
+InitializeListHead(PLIST_ENTRY ListHead)
+{
+    ListHead->Flink = ListHead->Blink = ListHead;
 }
 
 /**
@@ -26,15 +28,16 @@ void InitializeListHead(PLIST_ENTRY ListHead) {
  * @param ListHead 
  * @param Entry 
  */
-void InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry) {
+void
+InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
+{
+    PLIST_ENTRY Flink;
 
-  PLIST_ENTRY Flink;
-
-  Flink = ListHead->Flink;
-  Entry->Flink = Flink;
-  Entry->Blink = ListHead;
-  Flink->Blink = Entry;
-  ListHead->Flink = Entry;
+    Flink           = ListHead->Flink;
+    Entry->Flink    = Flink;
+    Entry->Blink    = ListHead;
+    Flink->Blink    = Entry;
+    ListHead->Flink = Entry;
 }
 
 /**
@@ -44,22 +47,22 @@ void InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry) {
  * @return BOOLEAN 
  */
 BOOLEAN
-RemoveEntryList(PLIST_ENTRY Entry) {
+RemoveEntryList(PLIST_ENTRY Entry)
+{
+    PLIST_ENTRY PrevEntry;
+    PLIST_ENTRY NextEntry;
 
-  PLIST_ENTRY PrevEntry;
-  PLIST_ENTRY NextEntry;
+    NextEntry = Entry->Flink;
+    PrevEntry = Entry->Blink;
+    if ((NextEntry->Blink != Entry) || (PrevEntry->Flink != Entry))
+    {
+        //
+        // Error
+        //
+        _CrtDbgBreak();
+    }
 
-  NextEntry = Entry->Flink;
-  PrevEntry = Entry->Blink;
-  if ((NextEntry->Blink != Entry) || (PrevEntry->Flink != Entry)) {
-
-    //
-    // Error
-    //
-    _CrtDbgBreak();
-  }
-
-  PrevEntry->Flink = NextEntry;
-  NextEntry->Blink = PrevEntry;
-  return (BOOLEAN)(PrevEntry == NextEntry);
+    PrevEntry->Flink = NextEntry;
+    NextEntry->Blink = PrevEntry;
+    return (BOOLEAN)(PrevEntry == NextEntry);
 }

@@ -454,7 +454,18 @@ VmxVmcallHandler(UINT64      VmcallNumber,
 NTSTATUS
 VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
 {
-    LogInfo("VmcallTest called with @Param1 = 0x%llx , @Param2 = 0x%llx , @Param3 = 0x%llx", Param1, Param2, Param3);
+    LogDebugInfo("VmcallTest called with @Param1 = 0x%llx , @Param2 = 0x%llx , @Param3 = 0x%llx",
+                 Param1,
+                 Param2,
+                 Param3);
+
+    //
+    // Send one byte buffer to show that Hypervisor
+    // is successfully loaded
+    //
+    LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
+                  "$",
+                  1);
 
     return STATUS_SUCCESS;
 }

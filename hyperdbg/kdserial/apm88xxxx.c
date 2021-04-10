@@ -26,49 +26,43 @@ Abstract:
 // ----------------------------------------------------------------- Prototypes
 
 BOOLEAN
-Uart16550InitializePortCommon (
+Uart16550InitializePortCommon(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    );
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth);
 
 BOOLEAN
-Uart16550SetBaudCommon (
+Uart16550SetBaudCommon(
     _Inout_ PCPPORT Port,
-    ULONG Rate,
-    ULONG Clock
-    );
+    ULONG           Rate,
+    ULONG           Clock);
 
 UART_STATUS
-Uart16550GetByte (
+Uart16550GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    );
+    _Out_ PUCHAR    Byte);
 
 UART_STATUS
-Uart16550PutByte (
+Uart16550PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    );
+    UCHAR           Byte,
+    BOOLEAN         BusyWait);
 
 BOOLEAN
-Uart16550RxReady (
-    _Inout_ PCPPORT Port
-    );
+Uart16550RxReady(
+    _Inout_ PCPPORT Port);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-Apm88xxxxInitializePort (
+Apm88xxxxInitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -97,7 +91,6 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
 
@@ -110,10 +103,9 @@ Return Value:
 }
 
 BOOLEAN
-Apm88xxxxSetBaud (
+Apm88xxxxSetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -134,8 +126,8 @@ Return Value:
 --*/
 
 {
-
-    if (CHECK_FLAG(Port->Flags, PORT_DEFAULT_RATE)) {
+    if (CHECK_FLAG(Port->Flags, PORT_DEFAULT_RATE))
+    {
         return FALSE;
     }
 
@@ -154,5 +146,4 @@ UART_HARDWARE_DRIVER Apm88xxxxHardwareDriver = {
     Apm88xxxxSetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};

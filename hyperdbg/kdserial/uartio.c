@@ -25,11 +25,11 @@ Abstract:
 
 #if defined(_WIN64)
 
-#define MAX_REGISTER_WIDTH 64
+#    define MAX_REGISTER_WIDTH 64
 
 #else
 
-#define MAX_REGISTER_WIDTH 32
+#    define MAX_REGISTER_WIDTH 32
 
 #endif
 
@@ -41,15 +41,12 @@ Abstract:
 // Memory-mapped I/O Routines.
 //
 
-static
-VOID
-WriteRegisterWithIndex8 (
+static VOID
+WriteRegisterWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PUCHAR Pointer;
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
@@ -57,29 +54,23 @@ WriteRegisterWithIndex8 (
     return;
 }
 
-static
-UCHAR
-ReadRegisterWithIndex8 (
+static UCHAR
+ReadRegisterWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PUCHAR Pointer;
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
     return READ_REGISTER_UCHAR(Pointer);
 }
 
-static
-VOID
-WriteRegisterWithIndex16 (
+static VOID
+WriteRegisterWithIndex16(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PUSHORT Pointer;
 
     Pointer = (PUSHORT)(Port->Address + Index * Port->ByteWidth);
@@ -87,29 +78,23 @@ WriteRegisterWithIndex16 (
     return;
 }
 
-static
-UCHAR
-ReadRegisterWithIndex16 (
+static UCHAR
+ReadRegisterWithIndex16(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PUSHORT Pointer;
 
     Pointer = (PUSHORT)(Port->Address + Index * Port->ByteWidth);
     return (UCHAR)READ_REGISTER_USHORT(Pointer);
 }
 
-static
-VOID
-WriteRegisterWithIndex32 (
+static VOID
+WriteRegisterWithIndex32(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PULONG Pointer;
 
     Pointer = (PULONG)(Port->Address + Index * Port->ByteWidth);
@@ -117,14 +102,11 @@ WriteRegisterWithIndex32 (
     return;
 }
 
-static
-UCHAR
-ReadRegisterWithIndex32 (
+static UCHAR
+ReadRegisterWithIndex32(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PULONG Pointer;
 
     Pointer = (PULONG)(Port->Address + Index * Port->ByteWidth);
@@ -133,15 +115,12 @@ ReadRegisterWithIndex32 (
 
 #if defined(_WIN64)
 
-static
-VOID
-WriteRegisterWithIndex64 (
+static VOID
+WriteRegisterWithIndex64(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PULONG64 Pointer;
 
     Pointer = (PULONG64)(Port->Address + Index * Port->ByteWidth);
@@ -149,14 +128,11 @@ WriteRegisterWithIndex64 (
     return;
 }
 
-static
-UCHAR
-ReadRegisterWithIndex64 (
+static UCHAR
+ReadRegisterWithIndex64(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PULONG64 Pointer;
 
     Pointer = (PULONG64)(Port->Address + Index * Port->ByteWidth);
@@ -171,15 +147,12 @@ ReadRegisterWithIndex64 (
 
 #if defined(_X86_) || defined(_AMD64_)
 
-static
-VOID
-WritePortWithIndex8 (
+static VOID
+WritePortWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PUCHAR Pointer;
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
@@ -187,29 +160,23 @@ WritePortWithIndex8 (
     return;
 }
 
-static
-UCHAR
-ReadPortWithIndex8 (
+static UCHAR
+ReadPortWithIndex8(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PUCHAR Pointer;
 
     Pointer = (PUCHAR)(Port->Address + Index * Port->ByteWidth);
     return (UCHAR)READ_PORT_UCHAR(Pointer);
 }
 
-static
-VOID
-WritePortWithIndex16 (
+static VOID
+WritePortWithIndex16(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PUSHORT Pointer;
 
     Pointer = (PUSHORT)(Port->Address + Index * Port->ByteWidth);
@@ -217,29 +184,23 @@ WritePortWithIndex16 (
     return;
 }
 
-static
-UCHAR
-ReadPortWithIndex16 (
+static UCHAR
+ReadPortWithIndex16(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PUSHORT Pointer;
 
     Pointer = (PUSHORT)(Port->Address + Index * Port->ByteWidth);
     return (UCHAR)READ_PORT_USHORT(Pointer);
 }
 
-static
-VOID
-WritePortWithIndex32 (
+static VOID
+WritePortWithIndex32(
     _In_ PCPPORT Port,
-    const UCHAR Index,
-    const UCHAR Value
-    )
+    const UCHAR  Index,
+    const UCHAR  Value)
 {
-
     PULONG Pointer;
 
     Pointer = (PULONG)(Port->Address + Index * Port->ByteWidth);
@@ -247,14 +208,11 @@ WritePortWithIndex32 (
     return;
 }
 
-static
-UCHAR
-ReadPortWithIndex32 (
+static UCHAR
+ReadPortWithIndex32(
     _In_ PCPPORT Port,
-    const UCHAR Index
-    )
+    const UCHAR  Index)
 {
-
     PULONG Pointer;
 
     Pointer = (PULONG)(Port->Address + Index * Port->ByteWidth);
@@ -264,12 +222,11 @@ ReadPortWithIndex32 (
 #endif
 
 BOOLEAN
-UartpSetAccess (
+UartpSetAccess(
     _Inout_ PCPPORT Port,
-    const BOOLEAN MemoryMapped,
-    const UCHAR AccessSize,
-    const UCHAR BitWidth
-    )
+    const BOOLEAN   MemoryMapped,
+    const UCHAR     AccessSize,
+    const UCHAR     BitWidth)
 
 /*++
 
@@ -296,10 +253,9 @@ Return value:
 --*/
 
 {
-
-    UCHAR MinRegisterWidth;
-    BOOLEAN PowerOfTwo;
-    UART_HARDWARE_READ_INDEXED_UCHAR ReadFunction;
+    UCHAR                             MinRegisterWidth;
+    BOOLEAN                           PowerOfTwo;
+    UART_HARDWARE_READ_INDEXED_UCHAR  ReadFunction;
     UART_HARDWARE_WRITE_INDEXED_UCHAR WriteFunction;
 
     MinRegisterWidth = 8;
@@ -309,9 +265,10 @@ Return value:
     // serial port is mapped into memory or I/O space.
     //
 
-    if (MemoryMapped == FALSE) {
-        switch ((ACPI_GENERIC_ACCESS_SIZE)AccessSize) {
-
+    if (MemoryMapped == FALSE)
+    {
+        switch ((ACPI_GENERIC_ACCESS_SIZE)AccessSize)
+        {
 #if defined(_X86_) || defined(_AMD64_)
 
         case AcpiGenericAccessSizeLegacy:
@@ -319,58 +276,60 @@ Return value:
 
         case AcpiGenericAccessSizeByte:
             WriteFunction = WritePortWithIndex8;
-            ReadFunction = ReadPortWithIndex8;
+            ReadFunction  = ReadPortWithIndex8;
             break;
 
         case AcpiGenericAccessSizeWord:
-            WriteFunction = WritePortWithIndex16;
-            ReadFunction = ReadPortWithIndex16;
+            WriteFunction    = WritePortWithIndex16;
+            ReadFunction     = ReadPortWithIndex16;
             MinRegisterWidth = 16;
             break;
 
         case AcpiGenericAccessSizeDWord:
-            WriteFunction = WritePortWithIndex32;
-            ReadFunction = ReadPortWithIndex32;
+            WriteFunction    = WritePortWithIndex32;
+            ReadFunction     = ReadPortWithIndex32;
             MinRegisterWidth = 32;
             break;
 
-        //
-        // The quad word access size isn't supported for port based I/O.
-        //
+            //
+            // The quad word access size isn't supported for port based I/O.
+            //
 
 #endif
 
         default:
             return FALSE;
         }
-
-    } else {
-        switch ((ACPI_GENERIC_ACCESS_SIZE)AccessSize) {
+    }
+    else
+    {
+        switch ((ACPI_GENERIC_ACCESS_SIZE)AccessSize)
+        {
         case AcpiGenericAccessSizeLegacy:
             __fallthrough;
 
         case AcpiGenericAccessSizeByte:
             WriteFunction = WriteRegisterWithIndex8;
-            ReadFunction = ReadRegisterWithIndex8;
+            ReadFunction  = ReadRegisterWithIndex8;
             break;
 
         case AcpiGenericAccessSizeWord:
-            WriteFunction = WriteRegisterWithIndex16;
-            ReadFunction = ReadRegisterWithIndex16;
+            WriteFunction    = WriteRegisterWithIndex16;
+            ReadFunction     = ReadRegisterWithIndex16;
             MinRegisterWidth = 16;
             break;
 
         case AcpiGenericAccessSizeDWord:
-            WriteFunction = WriteRegisterWithIndex32;
-            ReadFunction = ReadRegisterWithIndex32;
+            WriteFunction    = WriteRegisterWithIndex32;
+            ReadFunction     = ReadRegisterWithIndex32;
             MinRegisterWidth = 32;
             break;
 
 #if defined(_WIN64)
 
         case AcpiGenericAccessSizeQWord:
-            WriteFunction = WriteRegisterWithIndex64;
-            ReadFunction = ReadRegisterWithIndex64;
+            WriteFunction    = WriteRegisterWithIndex64;
+            ReadFunction     = ReadRegisterWithIndex64;
             MinRegisterWidth = 64;
             break;
 
@@ -388,13 +347,13 @@ Return value:
     PowerOfTwo = ((BitWidth & (BitWidth - 1)) == 0);
     if ((PowerOfTwo == FALSE) ||
         (BitWidth < MinRegisterWidth) ||
-        (BitWidth > MAX_REGISTER_WIDTH)) {
-
+        (BitWidth > MAX_REGISTER_WIDTH))
+    {
         return FALSE;
     }
 
     Port->ByteWidth = BitWidth / 8;
-    Port->Write = WriteFunction;
-    Port->Read = ReadFunction;
+    Port->Write     = WriteFunction;
+    Port->Read      = ReadFunction;
     return TRUE;
 }

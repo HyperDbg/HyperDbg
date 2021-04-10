@@ -509,6 +509,43 @@ MemoryMapperWriteMemorySafeByPte(PVOID SourceVA, PHYSICAL_ADDRESS PaAddressToWri
 }
 
 /**
+ * @brief Read memory safely by mapping the buffer by physical address (It's a wrapper)
+ * 
+ * @param PaAddressToRead Physical Address to read
+ * @param BufferToSaveMemory Destination to save 
+ * @param SizeToRead Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
+ */
+BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
+{
+    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
+    PHYSICAL_ADDRESS PhysicalAddress;
+
+    //
+    // Check to see if PTE and Reserved VA already initialized
+    //
+    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    {
+        //
+        // Not initialized
+        //
+        return FALSE;
+    }
+
+    PhysicalAddress.QuadPart = PaAddressToRead;
+
+    return MemoryMapperReadMemorySafeByPte(
+        PhysicalAddress,
+        BufferToSaveMemory,
+        SizeToRead,
+        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
+        g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
+        g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+}
+/**
  * @brief Read memory safely by mapping the buffer (It's a wrapper)
  * 
  * @param VaAddressToRead Virtual Address to read
@@ -563,7 +600,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     BOOLEAN  Result;
 
     //
-    // Move to guest process
+    // Move to guest process as we're currently in system cr3
     //
 
     //
@@ -582,6 +619,51 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     // Read target memory
     //
     Result = MemoryMapperReadMemorySafe(VaAddressToRead, BufferToSaveMemory, SizeToRead);
+
+    //
+    // Move back to original cr3
+    //
+    __writecr3(OriginalCr3.Flags);
+
+    return Result;
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer on the target process memory (It's a wrapper)
+ * 
+ * @param Destination Virtual Address to write
+ * @param Source value to write 
+ * @param Size Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size)
+{
+    CR3_TYPE GuestCr3;
+    CR3_TYPE OriginalCr3;
+    BOOLEAN  Result;
+
+    //
+    // Move to guest process
+    //
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Move to new cr3
+    //
+    OriginalCr3.Flags = __readcr3();
+    __writecr3(GuestCr3.Flags);
+
+    //
+    // Write target memory
+    //
+    Result = MemoryMapperWriteMemorySafe(Destination, Source, Size, GuestCr3);
 
     //
     // Move back to original cr3
@@ -698,7 +780,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRea
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId)
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
     PHYSICAL_ADDRESS PhysicalAddress;

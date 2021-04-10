@@ -713,7 +713,7 @@ HvDpcBroadcastInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
 VOID
 HvTerminateVmx()
 {
-    LogInfo("Terminating VMX...\n");
+    LogDebugInfo("Terminating VMX...\n");
 
     //
     // ******* Terminating Vmx *******
@@ -753,7 +753,7 @@ HvTerminateVmx()
     //
     PoolManagerUninitialize();
 
-    LogInfo("VMX Operation turned off successfully :)\n");
+    LogDebugInfo("VMX Operation turned off successfully");
 }
 
 /**

@@ -21,9 +21,11 @@ extern DEBUGGING_STATE g_DebuggingState;
  *
  * @return VOID
  */
-VOID CommandDetachHelp() {
-  ShowMessages(".detach : detach from debugging a user-mode process.\n\n");
-  ShowMessages("syntax : \t.detach\n");
+VOID
+CommandDetachHelp()
+{
+    ShowMessages(".detach : detach from debugging a user-mode process.\n\n");
+    ShowMessages("syntax : \t.detach\n");
 }
 
 /**
@@ -31,70 +33,74 @@ VOID CommandDetachHelp() {
  *
  * @return VOID
  */
-VOID DetachFromProcess() {
+VOID
+DetachFromProcess()
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
-  BOOLEAN Status;
-  ULONG ReturnedLength;
-  DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
-
-  ShowMessages("This command is not supported on this version.\n");
-  return;
-
-  //
-  // Check if we attached to a process or not
-  //
-  if (!g_DebuggingState.IsAttachedToUsermodeProcess) {
-    ShowMessages("you're not attached to any thread.\n");
+    ShowMessages("This command is not supported on this version.\n");
     return;
-  }
 
-  //
-  // Check if debugger is loaded or not
-  //
-  if (!g_DeviceHandle) {
-    ShowMessages("Handle not found, probably the driver is not loaded. Did you "
-                 "use 'load' command?\n");
-    return;
-  }
+    //
+    // Check if we attached to a process or not
+    //
+    if (!g_DebuggingState.IsAttachedToUsermodeProcess)
+    {
+        ShowMessages("you're not attached to any thread.\n");
+        return;
+    }
 
-  //
-  // We wanna detach from a process
-  //
-  DetachRequest.IsAttach = FALSE;
-  DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
-  DetachRequest.ThreadId = g_DebuggingState.ConnectedThreadId;
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return;
+    }
 
-  //
-  // Send the request to the kernel
-  //
+    //
+    // We wanna detach from a process
+    //
+    DetachRequest.IsAttach  = FALSE;
+    DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
+    DetachRequest.ThreadId  = g_DebuggingState.ConnectedThreadId;
 
-  Status = DeviceIoControl(
-      g_DeviceHandle,                                 // Handle to device
-      IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // IO Control
-                                                      // code
-      &DetachRequest,                                 // Input Buffer to driver.
-      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-      &DetachRequest, // Output Buffer from driver.
-      SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
-                                                       // buffer in bytes.
-      &ReturnedLength, // Bytes placed in buffer.
-      NULL             // synchronous call
-  );
+    //
+    // Send the request to the kernel
+    //
 
-  if (!Status) {
-    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-    return;
-  }
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &DetachRequest,                                  // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &DetachRequest,                                  // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
 
-  //
-  // Check if attaching was successful then we can set the attached to true
-  //
-  if (DetachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL) {
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return;
+    }
 
-    g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
-    g_DebuggingState.ConnectedProcessId = NULL;
-    g_DebuggingState.ConnectedThreadId = NULL;
-  }
+    //
+    // Check if attaching was successful then we can set the attached to true
+    //
+    if (DetachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    {
+        g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
+        g_DebuggingState.ConnectedProcessId          = NULL;
+        g_DebuggingState.ConnectedThreadId           = NULL;
+    }
 }
 
 /**
@@ -104,16 +110,18 @@ VOID DetachFromProcess() {
  * @param Command
  * @return VOID
  */
-VOID CommandDetach(vector<string> SplittedCommand, string Command) {
+VOID
+CommandDetach(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() >= 2)
+    {
+        ShowMessages("incorrect use of '.detach'\n\n");
+        CommandDetachHelp();
+        return;
+    }
 
-  if (SplittedCommand.size() >= 2) {
-    ShowMessages("incorrect use of '.detach'\n\n");
-    CommandDetachHelp();
-    return;
-  }
-
-  //
-  // Perform detach from the process
-  //
-  DetachFromProcess();
+    //
+    // Perform detach from the process
+    //
+    DetachFromProcess();
 }

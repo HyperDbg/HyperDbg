@@ -15,134 +15,203 @@
 //					Help commands               //
 //////////////////////////////////////////////////
 
-VOID CommandHelpHelp();
+VOID
+CommandHelpHelp();
 
-VOID CommandReadMemoryAndDisassemblerHelp();
+VOID
+CommandReadMemoryAndDisassemblerHelp();
 
-VOID CommandConnectHelp();
+VOID
+CommandConnectHelp();
 
-VOID CommandDisconnectHelp();
+VOID
+CommandDisconnectHelp();
 
-VOID CommandExitHelp();
+VOID
+CommandExitHelp();
 
-VOID CommandCpuHelp();
+VOID
+CommandCpuHelp();
 
-VOID CommandUnloadHelp();
+VOID
+CommandUnloadHelp();
 
-VOID CommandLoadHelp();
+VOID
+CommandLoadHelp();
 
-VOID CommandConnectHelp();
+VOID
+CommandConnectHelp();
 
-VOID CommandScriptHelp();
+VOID
+CommandScriptHelp();
 
-VOID CommandFormatsHelp();
+VOID
+CommandFormatsHelp();
 
-VOID CommandRdmsrHelp();
+VOID
+CommandRdmsrHelp();
 
-VOID CommandWrmsrHelp();
+VOID
+CommandWrmsrHelp();
 
-VOID CommandPteHelp();
+VOID
+CommandPteHelp();
 
-VOID CommandMonitorHelp();
+VOID
+CommandMonitorHelp();
 
-VOID CommandSyscallHelp();
+VOID
+CommandSyscallHelp();
 
-VOID CommandSysretHelp();
+VOID
+CommandSysretHelp();
 
-VOID CommandEptHookHelp();
+VOID
+CommandEptHookHelp();
 
-VOID CommandEptHook2Help();
+VOID
+CommandEptHook2Help();
 
-VOID CommandCpuidHelp();
+VOID
+CommandCpuidHelp();
 
-VOID CommandMsrreadHelp();
+VOID
+CommandMsrreadHelp();
 
-VOID CommandMsrwriteHelp();
+VOID
+CommandMsrwriteHelp();
 
-VOID CommandTscHelp();
+VOID
+CommandTscHelp();
 
-VOID CommandPmcHelp();
+VOID
+CommandPmcHelp();
 
-VOID CommandExceptionHelp();
+VOID
+CommandExceptionHelp();
 
-VOID CommandDrHelp();
+VOID
+CommandDrHelp();
 
-VOID CommandInterruptHelp();
+VOID
+CommandInterruptHelp();
 
-VOID CommandIooutHelp();
+VOID
+CommandIooutHelp();
 
-VOID CommandIoinHelp();
+VOID
+CommandIoinHelp();
 
-VOID CommandVmcallHelp();
+VOID
+CommandVmcallHelp();
 
-VOID CommandHideHelp();
+VOID
+CommandHideHelp();
 
-VOID CommandUnhideHelp();
+VOID
+CommandUnhideHelp();
 
-VOID CommandTestHelp();
+VOID
+CommandTestHelp();
 
-VOID CommandLogopenHelp();
+VOID
+CommandLogopenHelp();
 
-VOID CommandLogcloseHelp();
+VOID
+CommandLogcloseHelp();
 
-VOID CommandVa2paHelp();
+VOID
+CommandVa2paHelp();
 
-VOID CommandPa2vaHelp();
+VOID
+CommandPa2vaHelp();
 
-VOID CommandEventsHelp();
+VOID
+CommandEventsHelp();
 
-VOID CommandGHelp();
+VOID
+CommandGHelp();
 
-VOID CommandClearScreenHelp();
+VOID
+CommandClearScreenHelp();
 
-VOID CommandSleepHelp();
+VOID
+CommandSleepHelp();
 
-VOID CommandEditMemoryHelp();
+VOID
+CommandEditMemoryHelp();
 
-VOID CommandSearchMemoryHelp();
+VOID
+CommandSearchMemoryHelp();
 
-VOID CommandMeasureHelp();
+VOID
+CommandMeasureHelp();
 
-VOID CommandLmHelp();
+VOID
+CommandLmHelp();
 
-VOID CommandSettingsHelp();
+VOID
+CommandSettingsHelp();
 
-VOID CommandFlushHelp();
+VOID
+CommandFlushHelp();
 
-VOID CommandPauseHelp();
+VOID
+CommandPauseHelp();
 
-VOID CommandListenHelp();
+VOID
+CommandListenHelp();
 
-VOID CommandStatusHelp();
+VOID
+CommandStatusHelp();
 
-VOID CommandAttachHelp();
+VOID
+CommandAttachHelp();
 
-VOID CommandDetachHelp();
+VOID
+CommandDetachHelp();
 
-VOID CommandTHelp();
+VOID
+CommandTHelp();
 
-VOID CommandPrintHelp();
+VOID
+CommandIHelp();
 
-VOID CommandOutputHelp();
+VOID
+CommandPrintHelp();
 
-VOID CommandDebugHelp();
+VOID
+CommandOutputHelp();
 
-VOID CommandPHelp();
+VOID
+CommandDebugHelp();
 
-VOID CommandCoreHelp();
+VOID
+CommandPHelp();
 
-VOID CommandProcessHelp();
+VOID
+CommandCoreHelp();
 
-VOID CommandEvalHelp();
+VOID
+CommandProcessHelp();
 
-VOID CommandRHelp();
+VOID
+CommandEvalHelp();
 
-VOID CommandBpHelp();
+VOID
+CommandRHelp();
 
-VOID CommandBlHelp();
+VOID
+CommandBpHelp();
 
-VOID CommandBeHelp();
+VOID
+CommandBlHelp();
 
-VOID CommandBdHelp();
+VOID
+CommandBeHelp();
 
-VOID CommandBcHelp();
+VOID
+CommandBdHelp();
+
+VOID
+CommandBcHelp();

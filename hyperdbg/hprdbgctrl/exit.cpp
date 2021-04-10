@@ -14,18 +14,19 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern HANDLE g_DeviceHandle;
 
 /**
  * @brief help of exit command
  *
  * @return VOID
  */
-VOID CommandExitHelp() {
-  ShowMessages(
-      "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
-  ShowMessages("syntax : \texit\n");
+VOID
+CommandExitHelp()
+{
+    ShowMessages(
+        "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
+    ShowMessages("syntax : \texit\n");
 }
 
 /**
@@ -35,27 +36,23 @@ VOID CommandExitHelp() {
  * @param Command
  * @return VOID
  */
-VOID CommandExit(vector<string> SplittedCommand, string Command) {
-
-  if (SplittedCommand.size() != 1) {
-    ShowMessages("incorrect use of 'exit'\n\n");
-    CommandExitHelp();
-    return;
-  }
-
-  //
-  // unload and exit
-  //
-  if (g_IsDebuggerModulesLoaded) {
-    HyperdbgUnload();
-
-    //
-    // Uninstalling Driver
-    //
-    if (HyperdbgUninstallDriver()) {
-      ShowMessages("Failed to uninstall driver\n");
+VOID
+CommandExit(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() != 1)
+    {
+        ShowMessages("incorrect use of 'exit'\n\n");
+        CommandExitHelp();
+        return;
     }
-  }
 
-  exit(0);
+    //
+    // unload and exit if the vmm module is loaded
+    //
+    if (g_DeviceHandle)
+    {
+        HyperdbgUnload();
+    }
+
+    exit(0);
 }

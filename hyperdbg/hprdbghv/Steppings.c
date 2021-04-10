@@ -314,7 +314,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail == NULL)
         {
-            LogError("Forgot to set the restoration part of the thread !!!");
+            LogError("Forgot to set the restoration part of the thread");
         }
         else
         {

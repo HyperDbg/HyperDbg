@@ -84,7 +84,19 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
     UINT64 Msr;   // Msr (ecx)
     UINT64 Value; // the value to write on msr
 
-} PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE, PPROCESSOR_DEBUGGING_MSR_READ_OR_WRITE;
+} PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE, *PPROCESSOR_DEBUGGING_MSR_READ_OR_WRITE;
+
+/**
+ * @brief Use to trace the execution in the case of instrument in
+ * command (i command)
+ * 
+ */
+typedef struct _DEBUGGEE_INSTRUMENT_IN_TRACE
+{
+    BOOLEAN WaitForStepOnMtf;
+    UINT16  CsSel; // the cs value to trace execution modes
+
+} DEBUGGEE_INSTRUMENT_IN_TRACE, *PDEBUGGEE_INSTRUMENT_IN_TRACE;
 
 /**
  * @brief Saves the debugger state
@@ -98,11 +110,15 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     volatile BOOLEAN                      CurrentOperatingCore;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE MsrState;
     PDEBUGGEE_BP_DESCRIPTOR               SoftwareBreakpointState;
-    BOOLEAN                               WaitForStepOnMtf;
-    BOOLEAN                               EnableInterruptFlagOnContinue;
+    DEBUGGEE_INSTRUMENT_IN_TRACE          InstrumentInTrace;
+    BOOLEAN                               EnableExternalInterruptsOnContinue;
+    BOOLEAN                               PassErrorsToWindbg;
+    BOOLEAN                               DisableTrapFlagOnContinue;
     BOOLEAN                               WaitingForNmi;
     BOOLEAN                               DoNotNmiNotifyOtherCoresByThisCore;
+    UINT16                                InstructionLengthHint;
     PGUEST_REGS                           GuestRegs;
+    UINT64                                HardwareDebugRegisterForStepping;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

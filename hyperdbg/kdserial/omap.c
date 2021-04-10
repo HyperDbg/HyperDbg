@@ -20,49 +20,44 @@ Abstract:
 // ---------------------------------------------------------------- Definitions
 
 #undef CLOCK_RATE
-#define CLOCK_RATE 2995200ul
-#define COM_EFR 0x2
-#define COM_MDR1 0x8
+#define CLOCK_RATE   2995200ul
+#define COM_EFR      0x2
+#define COM_MDR1     0x8
 #define LC_DATA_SIZE 0x03
 
 // ----------------------------------------------------------------- Prototypes
 
 UART_STATUS
-Uart16550GetByte (
+Uart16550GetByte(
     _Inout_ PCPPORT Port,
-    _Out_ PUCHAR Byte
-    );
+    _Out_ PUCHAR    Byte);
 
 UART_STATUS
-Uart16550PutByte (
+Uart16550PutByte(
     _Inout_ PCPPORT Port,
-    UCHAR Byte,
-    BOOLEAN BusyWait
-    );
+    UCHAR           Byte,
+    BOOLEAN         BusyWait);
 
 BOOLEAN
-Uart16550RxReady (
-    _Inout_ PCPPORT Port
-    );
+Uart16550RxReady(
+    _Inout_ PCPPORT Port);
 
 // ----------------------------------------------- Internal Function Prototypes
 
 BOOLEAN
-OmapSetBaud (
+OmapSetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    );
+    ULONG           Rate);
 
 // ------------------------------------------------------------------ Functions
 
 BOOLEAN
-OmapInitializePort (
+OmapInitializePort(
     _In_opt_ _Null_terminated_ PCHAR LoadOptions,
-    _Inout_ PCPPORT Port,
-    BOOLEAN MemoryMapped,
-    UCHAR AccessSize,
-    UCHAR BitWidth
-    )
+    _Inout_ PCPPORT                  Port,
+    BOOLEAN                          MemoryMapped,
+    UCHAR                            AccessSize,
+    UCHAR                            BitWidth)
 
 /*++
 
@@ -92,7 +87,6 @@ Return Value:
 --*/
 
 {
-
     UNREFERENCED_PARAMETER(LoadOptions);
     UNREFERENCED_PARAMETER(AccessSize);
     UNREFERENCED_PARAMETER(BitWidth);
@@ -152,10 +146,9 @@ Return Value:
 }
 
 BOOLEAN
-OmapSetBaud (
+OmapSetBaud(
     _Inout_ PCPPORT Port,
-    ULONG Rate
-    )
+    ULONG           Rate)
 
 /*++
 
@@ -176,13 +169,13 @@ Return Value:
 --*/
 
 {
-
     ULONG DivisorLatch;
     UCHAR Enhanced;
 
     UNREFERENCED_PARAMETER(Rate);
 
-    if ((Port == NULL) || (Port->Address == NULL)) {
+    if ((Port == NULL) || (Port->Address == NULL))
+    {
         return FALSE;
     }
 
@@ -263,5 +256,4 @@ UART_HARDWARE_DRIVER OmapHardwareDriver = {
     OmapSetBaud,
     Uart16550GetByte,
     Uart16550PutByte,
-    Uart16550RxReady
-};
+    Uart16550RxReady};

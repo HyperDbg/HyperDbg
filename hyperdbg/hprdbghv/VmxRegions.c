@@ -25,14 +25,14 @@ VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
 {
     int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
 
-    LogInfo("Allocating Vmx Regions for logical core %d", CurrentProcessorNumber);
+    LogDebugInfo("Allocating Vmx Regions for logical core %d", CurrentProcessorNumber);
 
     //
     // Enabling VMX Operation
     //
     AsmEnableVmxOperation();
 
-    LogInfo("VMX-Operation Enabled Successfully");
+    LogDebugInfo("VMX-Operation Enabled Successfully");
 
     if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
     {
@@ -106,19 +106,19 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     RtlSecureZeroMemory(VmxonRegion, VmxonSize + ALIGNMENT_PAGE_SIZE);
 
     AlignedVmxonRegion = (BYTE *)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogInfo("VMXON Region Address : %llx", AlignedVmxonRegion);
+    LogDebugInfo("VMXON Region Address : %llx", AlignedVmxonRegion);
 
     //
     // 4 kb >= buffers are aligned, just a double check to ensure if it's aligned
     //
     AlignedVmxonRegionPhysicalAddr = (BYTE *)((ULONG_PTR)(VmxonRegionPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogInfo("VMXON Region Physical Address : %llx", AlignedVmxonRegionPhysicalAddr);
+    LogDebugInfo("VMXON Region Physical Address : %llx", AlignedVmxonRegionPhysicalAddr);
 
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
     VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
-    LogInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    LogDebugInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
 
     //
     //Changing Revision Identifier
@@ -184,16 +184,16 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     VmcsPhysicalAddr = VirtualAddressToPhysicalAddress(VmcsRegion);
 
     AlignedVmcsRegion = (BYTE *)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogInfo("VMCS Region Address : %llx", AlignedVmcsRegion);
+    LogDebugInfo("VMCS Region Address : %llx", AlignedVmcsRegion);
 
     AlignedVmcsRegionPhysicalAddr = (BYTE *)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogInfo("VMCS Region Physical Address : %llx", AlignedVmcsRegionPhysicalAddr);
+    LogDebugInfo("VMCS Region Physical Address : %llx", AlignedVmcsRegionPhysicalAddr);
 
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
     VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
-    LogInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    LogDebugInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
 
     //
     //Changing Revision Identifier
@@ -234,7 +234,7 @@ VmxAllocateVmmStack(INT ProcessorID)
     }
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
-    LogInfo("Vmm Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
+    LogDebugInfo("Vmm Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
 
     return TRUE;
 }
@@ -262,8 +262,8 @@ VmxAllocateMsrBitmap(INT ProcessorID)
 
     g_GuestState[ProcessorID].MsrBitmapPhysicalAddress = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
 
-    LogInfo("Msr Bitmap Virtual Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
-    LogInfo("Msr Bitmap Physical Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
+    LogDebugInfo("Msr Bitmap Virtual Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+    LogDebugInfo("Msr Bitmap Physical Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
 
     return TRUE;
 }
@@ -291,8 +291,8 @@ VmxAllocateIoBitmaps(INT ProcessorID)
 
     g_GuestState[ProcessorID].IoBitmapPhysicalAddressA = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
 
-    LogInfo("I/O Bitmap A Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
-    LogInfo("I/O Bitmap A Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressA);
+    LogDebugInfo("I/O Bitmap A Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+    LogDebugInfo("I/O Bitmap A Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressA);
 
     //
     // Allocate memory for I/O Bitmap (B)
@@ -308,8 +308,8 @@ VmxAllocateIoBitmaps(INT ProcessorID)
 
     g_GuestState[ProcessorID].IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
 
-    LogInfo("I/O Bitmap B Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
-    LogInfo("I/O Bitmap B Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
+    LogDebugInfo("I/O Bitmap B Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+    LogDebugInfo("I/O Bitmap B Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
 
     return TRUE;
 }

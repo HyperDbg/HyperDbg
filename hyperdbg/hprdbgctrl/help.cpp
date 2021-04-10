@@ -18,10 +18,12 @@
  * @param Command
  * @return VOID 
  */
-VOID CommandHelpHelp() {
-  ShowMessages(".help : Show help and example(s) of a specific command.\n\n");
-  ShowMessages("syntax : \t.help [command (string)]\n");
-  ShowMessages("\t\te.g : .help !monitor\n");
+VOID
+CommandHelpHelp()
+{
+    ShowMessages(".help : Show help and example(s) of a specific command.\n\n");
+    ShowMessages("syntax : \t.help [command (string)]\n");
+    ShowMessages("\t\te.g : .help !monitor\n");
 }
 
 //

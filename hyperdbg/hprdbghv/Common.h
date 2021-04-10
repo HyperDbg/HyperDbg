@@ -51,6 +51,20 @@ SpinlockUnlock(volatile LONG * Lock);
 //					Constants					//
 //////////////////////////////////////////////////
 
+/*
+* @brief Segment register and corresponding GDT meaning in Windows
+*/
+#define KGDT64_NULL      (0 * 16) // NULL descriptor
+#define KGDT64_R0_CODE   (1 * 16) // kernel mode 64-bit code
+#define KGDT64_R0_DATA   (1 * 16) + 8 // kernel mode 64-bit data (stack)
+#define KGDT64_R3_CMCODE (2 * 16) // user mode 32-bit code
+#define KGDT64_R3_DATA   (2 * 16) + 8 // user mode 32-bit data
+#define KGDT64_R3_CODE   (3 * 16) // user mode 64-bit code
+#define KGDT64_SYS_TSS   (4 * 16) // kernel mode system task state
+#define KGDT64_R3_CMTEB  (5 * 16) // user mode 32-bit TEB
+#define KGDT64_R0_CMCODE (6 * 16) // kernel mode 32-bit code
+#define KGDT64_LAST      (7 * 16) // last entry
+
 /** 
  * @brief Intel CPU flags in CR0 
  */
@@ -423,7 +437,7 @@ typedef enum _LOG_TYPE
  */
 #if UseDbgPrintInsteadOfUsermodeMessageTracking
 /* Use DbgPrint */
-#    define LogInfo(format, ...)                           \
+#    define Logformat, ...)                           \
         DbgPrint("[+] Information (%s:%d) | " format "\n", \
                  __func__,                                 \
                  __LINE__,                                 \
@@ -502,6 +516,7 @@ typedef enum _LOG_TYPE
                               __func__,                           \
                               __LINE__,                           \
                               __VA_ARGS__);                       \
+        if (DebugMode)                                            \
         DbgBreakPoint()
 
 /**
@@ -527,6 +542,20 @@ typedef enum _LOG_TYPE
                               __VA_ARGS__)
 
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
+
+/**
+ * @brief Log, initilize boot information and debug information
+ * 
+ */
+#define LogDebugInfo(format, ...)                                   \
+    if (DebugMode)                                                  \
+    LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                          UseImmediateMessaging,                    \
+                          ShowSystemTimeOnDebugMessages,            \
+                          "[+] Information (%s:%d) | " format "\n", \
+                          __func__,                                 \
+                          __LINE__,                                 \
+                          __VA_ARGS__)
 
 //////////////////////////////////////////////////
 //				External Functions				//

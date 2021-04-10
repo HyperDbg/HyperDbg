@@ -24,21 +24,23 @@ extern TCHAR g_TestLocation[MAX_PATH];
  */
 BOOLEAN
 SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
-              ULONG BufferLength) {
-  HANDLE fileHandle;
-  DWORD driverLocLen = 0;
-  HMODULE ProcHandle = GetModuleHandle(NULL);
-  char *Pos;
+              ULONG                                         BufferLength)
+{
+    HANDLE  fileHandle;
+    DWORD   driverLocLen = 0;
+    HMODULE ProcHandle   = GetModuleHandle(NULL);
+    char *  Pos;
 
-  //
-  // Get the current directory.
-  //
+    //
+    // Get the current directory.
+    //
 
-  /*
-  //
-  // We use the location of running exe instead of
-  // finding driver based on current directory
-  //
+    //
+    // We use the location of running exe instead of
+    // finding driver based on current directory
+    //
+
+    /*
   driverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
 
   if (driverLocLen == 0) {
@@ -49,206 +51,255 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
   }
   */
 
-  GetModuleFileName(ProcHandle, TestLocation, BufferLength);
+    GetModuleFileName(ProcHandle, TestLocation, BufferLength);
 
-  Pos = strrchr(TestLocation, '\\');
-  if (Pos != NULL) {
-    //
-    // this will put the null terminator here. you can also copy to
-    // another string if you want, we can also use PathCchRemoveFileSpec
-    //
-    *Pos = '\0';
-  }
-
-  //
-  // Setup path name to driver file.
-  //
-  if (FAILED(StringCbCat(TestLocation, BufferLength, "\\" TEST_PROCESS_NAME))) {
-    return FALSE;
-  }
-
-  //
-  // Insure driver file is in the specified directory.
-  //
-  if ((fileHandle = CreateFile(TestLocation, GENERIC_READ, 0, NULL,
-                               OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
-      INVALID_HANDLE_VALUE) {
-
-    ShowMessages("%s.exe is not loaded.\n", TEST_PROCESS_NAME);
+    Pos = strrchr(TestLocation, '\\');
+    if (Pos != NULL)
+    {
+        //
+        // this will put the null terminator here. you can also copy to
+        // another string if you want, we can also use PathCchRemoveFileSpec
+        //
+        *Pos = '\0';
+    }
 
     //
-    // Indicate failure.
+    // Setup path name to driver file.
     //
-    return FALSE;
-  }
+    if (FAILED(StringCbCat(TestLocation, BufferLength, "\\" TEST_PROCESS_NAME)))
+    {
+        return FALSE;
+    }
 
-  //
-  // Close open file handle.
-  //
-  if (fileHandle) {
+    //
+    // Insure driver file is in the specified directory.
+    //
+    if ((fileHandle = CreateFile(TestLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
+        INVALID_HANDLE_VALUE)
+    {
+        ShowMessages("%s.exe is not loaded.\n", TEST_PROCESS_NAME);
 
-    CloseHandle(fileHandle);
-  }
+        //
+        // Indicate failure.
+        //
+        return FALSE;
+    }
 
-  //
-  // Indicate success.
-  //
-  return TRUE;
+    //
+    // Close open file handle.
+    //
+    if (fileHandle)
+    {
+        CloseHandle(fileHandle);
+    }
+
+    //
+    // Indicate success.
+    //
+    return TRUE;
 }
 
 /**
  * @brief Create a Process And Open Pipe Connection object
  *
- * @param TestCase Test Case Number
+ * @param KernelInformation Details from kernel to create lookup table
+ * @param KernelInformationSize Size of KernelInformation
  * @param ConnectionPipeHandle Pointer to receive Pipe Handle
  * @param ThreadHandle Pointer to receive Thread Handle
  * @param ProcessHandle Pointer to receive Process Handle
  * @return BOOLEAN
  */
-BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
-                                           PHANDLE ConnectionPipeHandle,
-                                           PHANDLE ThreadHandle,
-                                           PHANDLE ProcessHandle) {
+BOOLEAN
+CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
+                                   UINT32  KernelInformationSize,
+                                   PHANDLE ConnectionPipeHandle,
+                                   PHANDLE ThreadHandle,
+                                   PHANDLE ProcessHandle)
+{
+    HANDLE              PipeHandle;
+    BOOLEAN             SentMessageResult;
+    UINT32              ReadBytes;
+    char *              BufferToRead;
+    char *              BufferToSend;
+    char                HandshakeBuffer[] = "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
+    PROCESS_INFORMATION ProcessInfo;
+    STARTUPINFO         StartupInfo;
+    char                CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
 
-  HANDLE PipeHandle;
-  BOOLEAN SentMessageResult;
-  UINT32 ReadBytes;
-  const int BufferSize = 1024;
-  char BufferToRead[BufferSize] = {0};
-  char BufferToSend[BufferSize] =
-      "Hello, Dear Test Process... Yes, I'm HyperDbg Debugger :)";
-  PROCESS_INFORMATION ProcessInfo;
-  STARTUPINFO StartupInfo;
-  char CmdArgs[] = TEST_PROCESS_NAME " im-hyperdbg";
-
-  PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
-                                         BufferSize, BufferSize);
-  if (!PipeHandle) {
-
-    //
-    // Error in creating handle
-    //
-    return FALSE;
-  }
-
-  //
-  // Create the Test Process
-  //
-
-  ZeroMemory(&StartupInfo, sizeof(StartupInfo));
-
-  //
-  // the only compulsory field
-  //
-  StartupInfo.cb = sizeof StartupInfo;
-
-  //
-  // Set-up path
-  //
-  if (!SetupTestName(g_TestLocation, sizeof(g_TestLocation))) {
-
-    //
-    // Test process not found
-    //
-    return FALSE;
-  }
-
-  if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE,
-                    CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo,
-                    &ProcessInfo)) {
-
-    //
-    // Wait for message from the target processs
-    //
-    if (!NamedPipeServerWaitForClientConntection(PipeHandle)) {
-      //
-      // Error in connection
-      //
-      return FALSE;
-    }
-
-    ReadBytes =
-        NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, BufferSize);
-
-    if (!ReadBytes) {
-
-      //
-      // Nothing to read
-      //
-      return FALSE;
-    }
-
-    if (strcmp(BufferToRead, "Hey there, Are you HyperDbg?") == 0) {
-
-      //
-      // *** Connected to the remote process ***
-      //
-
-      //
-      // Send the hand shake message
-      //
-      SentMessageResult = NamedPipeServerSendMessageToClient(
-          PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
-
-      if (!SentMessageResult) {
-
+    PipeHandle = NamedPipeServerCreatePipe("\\\\.\\Pipe\\HyperDbgTests",
+                                           TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
+                                           TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    if (!PipeHandle)
+    {
         //
-        // error in sending
+        // Error in creating handle
         //
         return FALSE;
-      }
+    }
 
-      //
-      // Receive the request for the test case number
-      //
-      RtlZeroMemory(BufferToRead, BufferSize);
+    BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    BufferToSend = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
-      ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead,
-                                                   BufferSize);
+    RtlZeroMemory(BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    RtlZeroMemory(BufferToSend, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
-      if (!ReadBytes) {
+    strcpy(BufferToSend, HandshakeBuffer);
 
+    //
+    // Create the Test Process
+    //
+
+    ZeroMemory(&StartupInfo, sizeof(StartupInfo));
+
+    //
+    // the only compulsory field
+    //
+    StartupInfo.cb = sizeof StartupInfo;
+
+    //
+    // Set-up path
+    //
+    if (!SetupTestName(g_TestLocation, sizeof(g_TestLocation)))
+    {
         //
-        // Nothing to read
+        // Test process not found
         //
+
+        free(BufferToRead);
+        free(BufferToSend);
+
         return FALSE;
-      }
+    }
 
-      if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send me the "
-                               "test case number?") == 0) {
+    if (CreateProcess(g_TestLocation, CmdArgs, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, NULL, &StartupInfo, &ProcessInfo))
+    {
+        //
+        // Wait for message from the target processs
+        //
+        if (!NamedPipeServerWaitForClientConntection(PipeHandle))
         {
-          //
-          // Send the test case number
-          //
-          RtlZeroMemory(BufferToSend, BufferSize);
-          *(UINT32 *)BufferToSend = TestCase;
-          SentMessageResult = NamedPipeServerSendMessageToClient(
-              PipeHandle, BufferToSend, strlen(BufferToSend) + 1);
-
-          if (!SentMessageResult) {
-
             //
-            // error in sending
+            // Error in connection
             //
+            free(BufferToRead);
+            free(BufferToSend);
+
             return FALSE;
-          }
         }
-      }
 
-      //
-      // Set the output handles
-      //
-      *ConnectionPipeHandle = PipeHandle;
-      *ThreadHandle = ProcessInfo.hThread;
-      *ProcessHandle = ProcessInfo.hProcess;
+        ReadBytes =
+            NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
-      return TRUE;
-    } else {
-      ShowMessages("The process could not be started...\n");
-      return FALSE;
+        if (!ReadBytes)
+        {
+            //
+            // Nothing to read
+            //
+
+            free(BufferToRead);
+            free(BufferToSend);
+
+            return FALSE;
+        }
+
+        if (strcmp(BufferToRead, "Hey there, Are you HyperDbg?") == 0)
+        {
+            //
+            // *** Connected to the remote process ***
+            //
+
+            //
+            // Send the hand shake message
+            //
+            SentMessageResult = NamedPipeServerSendMessageToClient(
+                PipeHandle,
+                BufferToSend,
+                strlen(BufferToSend) + 1);
+
+            if (!SentMessageResult)
+            {
+                //
+                // error in sending
+                //
+
+                free(BufferToRead);
+                free(BufferToSend);
+
+                return FALSE;
+            }
+
+            //
+            // Receive the request for the test case number
+            //
+            RtlZeroMemory(BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+            ReadBytes = NamedPipeServerReadClientMessage(PipeHandle, BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+            if (!ReadBytes)
+            {
+                //
+                // Nothing to read
+                //
+
+                free(BufferToRead);
+                free(BufferToSend);
+
+                return FALSE;
+            }
+
+            if (strcmp(BufferToRead, "Wow! I miss you... Would you plz send me the "
+                                     "kernel information?") == 0)
+            {
+                {
+                    //
+                    // Send the kernel information
+                    //
+                    SentMessageResult = NamedPipeServerSendMessageToClient(
+                        PipeHandle,
+                        (char *)KernelInformation,
+                        KernelInformationSize);
+
+                    if (!SentMessageResult)
+                    {
+                        //
+                        // error in sending
+                        //
+
+                        free(BufferToRead);
+                        free(BufferToSend);
+
+                        return FALSE;
+                    }
+                }
+            }
+
+            //
+            // Set the output handles
+            //
+            *ConnectionPipeHandle = PipeHandle;
+            *ThreadHandle         = ProcessInfo.hThread;
+            *ProcessHandle        = ProcessInfo.hProcess;
+
+            free(BufferToRead);
+            free(BufferToSend);
+
+            return TRUE;
+        }
+        else
+        {
+            ShowMessages("The process could not be started...\n");
+
+            free(BufferToRead);
+            free(BufferToSend);
+
+            return FALSE;
+        }
     }
-  }
-  return FALSE;
+
+    free(BufferToRead);
+    free(BufferToSend);
+
+    return FALSE;
 }
 
 /**
@@ -259,84 +310,15 @@ BOOLEAN CreateProcessAndOpenPipeConnection(UINT32 TestCase,
  * @param ProcessHandle Handle of test process
  * @return VOID
  */
-VOID CloseProcessAndOpenPipeConnection(HANDLE ConnectionPipeHandle,
-                                       HANDLE ThreadHandle,
-                                       HANDLE ProcessHandle) {
-
-  //
-  // Close the connection and handles
-  //
-  NamedPipeServerCloseHandle(ConnectionPipeHandle);
-  CloseHandle(ThreadHandle);
-  CloseHandle(ProcessHandle);
-}
-
-/**
- * @brief perform test on attaching, stepping and detaching threads
- *
- * @return BOOLEAN returns true if the results was true and false if the
- * results was not ok
- */
-BOOLEAN TestInfiniteLoop() {
-
-  HANDLE PipeHandle;
-  HANDLE ThreadHandle;
-  HANDLE ProcessHandle;
-  UINT32 ReadBytes;
-  UINT32 TestProcessId;
-  UINT32 TestThreadId;
-  const int BufferSize = 1024 / sizeof(UINT64);
-  UINT64 Buffer[BufferSize] = {0};
-
-  //
-  // Create tests process to create a thread for us
-  //
-  if (!CreateProcessAndOpenPipeConnection(
-          DEBUGGER_TEST_USER_MODE_INFINITE_LOOP_THREAD, &PipeHandle,
-          &ThreadHandle, &ProcessHandle)) {
-    ShowMessages("err, enable to connect to the test process\n");
-    return FALSE;
-  }
-
-  //
-  // ***** Perform test specific routines *****
-  //
-
-  //
-  // Wait for process id and thread id
-  //
-  ReadBytes =
-      NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, BufferSize);
-
-  if (!ReadBytes) {
-
+VOID
+CloseProcessAndClosePipeConnection(HANDLE ConnectionPipeHandle,
+                                   HANDLE ThreadHandle,
+                                   HANDLE ProcessHandle)
+{
     //
-    // Nothing to read
+    // Close the connection and handles
     //
-    return FALSE;
-  }
-
-  //
-  // Read the received buffer into process id and thread id
-  //
-  TestProcessId = Buffer[0];
-  TestThreadId = Buffer[1];
-
-  ShowMessages("Received Process Id : 0x%x  |  Thread Id : 0x%x \n",
-               TestProcessId, TestThreadId);
-
-  //
-  // Attach to the target process (thread)
-  //
-  Sleep(5000);
-  AttachToProcess(TestProcessId, TestThreadId);
-  Sleep(10000);
-  DetachFromProcess();
-
-  //
-  // Close connection and remote process
-  //
-  CloseProcessAndOpenPipeConnection(PipeHandle, ThreadHandle, ProcessHandle);
-
-  return FALSE;
+    NamedPipeServerCloseHandle(ConnectionPipeHandle);
+    CloseHandle(ThreadHandle);
+    CloseHandle(ProcessHandle);
 }

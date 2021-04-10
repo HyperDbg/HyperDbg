@@ -32,38 +32,48 @@ PUART_HARDWARE_DRIVER UartHardwareDrivers[] = {
     &Legacy16550HardwareDriver, // 0x0
     &Uart16550HardwareDriver,   // 0x1
     &SpiMax311HardwareDriver,   // 0x2
-    NULL, NULL, NULL, NULL,     // 0x3-0x6
-    NULL,                       // 0x7 = UEFI debug protocol
-    NULL, NULL, NULL,           // 0x8-0xA
-    &UsifHardwareDriver,        // 0xB
-    NULL, NULL, NULL, NULL, NULL, NULL, // 0xC-0x11
-    &MM16550HardwareDriver      // 0x12
+    NULL,
+    NULL,
+    NULL,
+    NULL, // 0x3-0x6
+    NULL, // 0x7 = UEFI debug protocol
+    NULL,
+    NULL,
+    NULL,                // 0x8-0xA
+    &UsifHardwareDriver, // 0xB
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,                  // 0xC-0x11
+    &MM16550HardwareDriver // 0x12
 
 #elif defined(_ARM_) || defined(_ARM64_)
 
-    NULL,                       // 0x0
-    &Uart16550HardwareDriver,   // 0x1
-    NULL,                       // 0x2
-    &PL011HardwareDriver,       // 0x3
-    &MSM8x60HardwareDriver,     // 0x4
-    &NvidiaHardwareDriver,      // 0x5
-    &OmapHardwareDriver,        // 0x6
-    NULL,                       // 0x7 = UEFI debug protocol
-    &Apm88xxxxHardwareDriver,   // 0x8
-    &MSM8974HardwareDriver,     // 0x9
-    &Sam5250HardwareDriver,     // 0xA
-    NULL,                       // 0xB
-    &MX6HardwareDriver,         // 0xC
-    &SBSA32HardwareDriver,      // 0xD
-    &SBSAHardwareDriver,        // 0xE
-    NULL,                       // 0xF = ARM DCC
-    &Bcm2835HardwareDriver,     // 0x10
-    &SDM845HardwareDriver,      // 0x11
-    &MM16550HardwareDriver      // 0x12
+    NULL,                     // 0x0
+    &Uart16550HardwareDriver, // 0x1
+    NULL,                     // 0x2
+    &PL011HardwareDriver,     // 0x3
+    &MSM8x60HardwareDriver,   // 0x4
+    &NvidiaHardwareDriver,    // 0x5
+    &OmapHardwareDriver,      // 0x6
+    NULL,                     // 0x7 = UEFI debug protocol
+    &Apm88xxxxHardwareDriver, // 0x8
+    &MSM8974HardwareDriver,   // 0x9
+    &Sam5250HardwareDriver,   // 0xA
+    NULL,                     // 0xB
+    &MX6HardwareDriver,       // 0xC
+    &SBSA32HardwareDriver,    // 0xD
+    &SBSAHardwareDriver,      // 0xE
+    NULL,                     // 0xF = ARM DCC
+    &Bcm2835HardwareDriver,   // 0x10
+    &SDM845HardwareDriver,    // 0x11
+    &MM16550HardwareDriver    // 0x12
 
 #else
 
-#error "Unknown Processor Architecture"
+#    error "Unknown Processor Architecture"
 
 #endif
 

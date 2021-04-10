@@ -1,5 +1,4 @@
 #include "globals.h"
 #include "common.h"
 
-char TempMap[MAX_TEMP_COUNT] = { 0 };
-
+char TempMap[MAX_TEMP_COUNT] = {0};

@@ -1,6 +1,7 @@
 /**
  * @file DebuggerCommands.c
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Implementation of Debugger Commands 
  * 
  * @version 0.1
@@ -16,7 +17,7 @@
  * 
  * @param ReadMemRequest request structure for reading memory
  * @param UserBuffer user buffer to copy the memory
- * @param ReturnSize size that should be returned to userr mode buffers
+ * @param ReturnSize size that should be returned to user mode buffers
  * @return NTSTATUS 
  */
 NTSTATUS
@@ -40,6 +41,99 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
     {
         return STATUS_UNSUCCESSFUL;
     }
+}
+
+/**
+ * @brief Read memory for different commands from vmxroot mode
+ * 
+ * @param ReadMemRequest request structure for reading memory
+ * @param UserBuffer user buffer to copy the memory
+ * @param ReturnSize size that should be returned to user mode buffers
+ * @return BOOLEAN 
+ */
+BOOLEAN
+DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, PSIZE_T ReturnSize)
+{
+    UINT32                    Pid;
+    UINT32                    Size;
+    UINT64                    Address;
+    UINT64                    OffsetInUserBuffer;
+    DEBUGGER_READ_MEMORY_TYPE MemType;
+    PLIST_ENTRY               TempList = 0;
+
+    Pid     = ReadMemRequest->Pid;
+    Size    = ReadMemRequest->Size;
+    Address = ReadMemRequest->Address;
+    MemType = ReadMemRequest->MemoryType;
+
+    //
+    // read memory safe
+    //
+    if (MemType == DEBUGGER_READ_PHYSICAL_ADDRESS)
+    {
+        MemoryMapperReadMemorySafeByPhysicalAddress(Address, UserBuffer, Size);
+    }
+    else if (MemType == DEBUGGER_READ_VIRTUAL_ADDRESS)
+    {
+        //
+        // Check whether the virtual memory is available in the current
+        // memory layout and also is present in the RAM
+        //
+        if (!CheckMemoryAccessSafety(Address, Size))
+        {
+            ReadMemRequest->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+
+        //
+        // Read memory safely
+        //
+        MemoryMapperReadMemorySafeOnTargetProcess(Address, UserBuffer, Size);
+
+        //
+        // Check if the target memory is filled with breakpoint of 'bp' commands
+        // if the memory is changed due to this command, then we'll changes it to
+        // the previous byte
+        //
+
+        //
+        // Iterate through the breakpoint list
+        //
+        TempList = &g_BreakpointsListHead;
+
+        while (&g_BreakpointsListHead != TempList->Flink)
+        {
+            TempList                                      = TempList->Flink;
+            PDEBUGGEE_BP_DESCRIPTOR CurrentBreakpointDesc = CONTAINING_RECORD(TempList, DEBUGGEE_BP_DESCRIPTOR, BreakpointsList);
+
+            if (CurrentBreakpointDesc->Address >= Address && CurrentBreakpointDesc->Address <= Address + Size)
+            {
+                //
+                // The address is found, we have to swap the byte if the target
+                // byte is 0xcc
+                //
+
+                //
+                // Find the address location at user buffer
+                //
+                OffsetInUserBuffer = CurrentBreakpointDesc->Address - Address;
+
+                if (UserBuffer[OffsetInUserBuffer] == 0xcc)
+                {
+                    UserBuffer[OffsetInUserBuffer] = CurrentBreakpointDesc->PreviousByte;
+                }
+            }
+        }
+    }
+    else
+    {
+        ReadMemRequest->KernelStatus = DEBUGGER_ERROR_MEMORY_TYPE_INVALID;
+        return FALSE;
+    }
+    ReadMemRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    *ReturnSize                  = Size;
+
+    return TRUE;
 }
 
 /**
@@ -214,6 +308,111 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     CR3_TYPE CurrentProcessCr3;
 
     //
+    // set chunk size in each modification
+    //
+    if (EditMemRequest->ByteSize == EDIT_BYTE)
+    {
+        LengthOfEachChunk = 1;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_DWORD)
+    {
+        LengthOfEachChunk = 4;
+    }
+    else if (EditMemRequest->ByteSize == EDIT_QWORD)
+    {
+        LengthOfEachChunk = 8;
+    }
+    else
+    {
+        //
+        // Invalid parameter
+        //
+        EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    //
+    // Check if address is valid or not valid (virtual address)
+    //
+    if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
+    {
+        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        {
+            //
+            // It's an invalid address in current process
+            //
+            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
+            return STATUS_UNSUCCESSFUL;
+        }
+        else if (VirtualAddressToPhysicalAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
+        {
+            //
+            // It's an invalid address in another process
+            //
+            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS;
+            return STATUS_UNSUCCESSFUL;
+        }
+
+        //
+        // Edit the memory
+        //
+        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        {
+            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
+            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+
+            //
+            // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
+            // It is because the target page might be read-only so we can make it writable
+            //
+            // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
+            MemoryMapperWriteMemoryUnsafe(DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
+        }
+    }
+    else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
+    {
+        //
+        // Edit the physical memory
+        //
+        for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
+        {
+            DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
+            SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
+
+            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
+        }
+    }
+    else
+    {
+        //
+        // Invalid parameter
+        //
+        EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    //
+    // Set the resutls
+    //
+    EditMemRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return STATUS_SUCCESS;
+}
+
+/**
+ * @brief Edit physical and virtual memory on vmxroot mode
+ * 
+ * @param EditMemRequest edit memory request
+ * @return NTSTATUS 
+ */
+BOOLEAN
+DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
+{
+    UINT32   LengthOfEachChunk  = 0;
+    PVOID    DestinationAddress = 0;
+    PVOID    SourceAddress      = 0;
+    CR3_TYPE CurrentProcessCr3;
+    //
     // THIS FUNCTION IS SAFE TO BE CALLED FROM VMX ROOT
     //
 
@@ -238,29 +437,20 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         // Invalid parameter
         //
         EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
-        return;
+        return FALSE;
     }
 
-    //
-    // Check if address is valid or not valid (virtual address)
-    //
     if (EditMemRequest->MemoryType == EDIT_VIRTUAL_MEMORY)
     {
-        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && VirtualAddressToPhysicalAddress(EditMemRequest->Address) == 0)
+        //
+        // Check whether the virtual memory is available in the current
+        // memory layout and also is present in the RAM
+        //
+        if (!CheckMemoryAccessSafety(EditMemRequest->Address,
+                                     EditMemRequest->ByteSize * EditMemRequest->CountOf64Chunks))
         {
-            //
-            // It's an invalid address in current process
-            //
-            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
-            return;
-        }
-        else if (VirtualAddressToPhysicalAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
-        {
-            //
-            // It's an invalid address in another process
-            //
-            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS;
-            return;
+            EditMemRequest->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            return FALSE;
         }
 
         //
@@ -272,50 +462,25 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
             SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
 
             //
-            // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafe
+            // Instead of directly accessing the memory we use the MemoryMapperWriteMemorySafeOnTargetProcess
             // It is because the target page might be read-only so we can make it writable
             //
+
             // RtlCopyBytes(DestinationAddress, SourceAddress, LengthOfEachChunk);
-            MemoryMapperWriteMemoryUnsafe(DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
+            MemoryMapperWriteMemorySafeOnTargetProcess(DestinationAddress, SourceAddress, LengthOfEachChunk);
         }
     }
     else if (EditMemRequest->MemoryType == EDIT_PHYSICAL_MEMORY)
     {
         //
-        // It's a physical address so let's check if it's valid or not
-        // honestly, I don't know if it's a good way to check whether the
-        // physical address is valid or not by converting it to virtual address
-        // there might be address which are not mapped to a virtual address but
-        // we nedd to modify them, so it might be wrong to check it this way but
-        // let's implement it like this for now, if you know a better way to check
-        // please ping me (@Sinaei)
-        //
-        if (EditMemRequest->ProcessId == PsGetCurrentProcessId() && PhysicalAddressToVirtualAddress(EditMemRequest->Address) == 0)
-        {
-            //
-            // It's an invalid address in current process
-            //
-            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS;
-            return;
-        }
-        else if (PhysicalAddressToVirtualAddressByProcessId(EditMemRequest->Address, EditMemRequest->ProcessId) == 0)
-        {
-            //
-            // It's an invalid address in another process
-            //
-            EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS;
-            return;
-        }
-
-        //
-        // Edit the memory
+        // Edit the physical memory
         //
         for (size_t i = 0; i < EditMemRequest->CountOf64Chunks; i++)
         {
             DestinationAddress = (UINT64)EditMemRequest->Address + (i * LengthOfEachChunk);
             SourceAddress      = (UINT64)EditMemRequest + SIZEOF_DEBUGGER_EDIT_MEMORY + (i * sizeof(UINT64));
 
-            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk, EditMemRequest->ProcessId);
+            MemoryMapperWriteMemorySafeByPhysicalAddress(DestinationAddress, SourceAddress, LengthOfEachChunk);
         }
     }
     else
@@ -324,13 +489,15 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         // Invalid parameter
         //
         EditMemRequest->Result = DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER;
-        return;
+        return FALSE;
     }
 
     //
     // Set the resutls
     //
     EditMemRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
 }
 
 /**
@@ -609,35 +776,6 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
     }
     else if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_MEMORY)
     {
-        //
-        // It's a physical address search
-        //
-        // It's a physical address so let's check if it's valid or not
-        // honestly, I don't know if it's a good way to check whether the
-        // physical address is valid or not by converting it to virtual address
-        // there might be address which are not mapped to a virtual address but
-        // we nedd to modify them, so it might be wrong to check it this way but
-        // let's implement it like this for now, if you know a better way to check
-        // please ping me (@Sinaei)
-        //
-        if (SearchMemRequest->ProcessId == PsGetCurrentProcessId() &&
-            (PhysicalAddressToVirtualAddress(StartAddress) == 0 ||
-             PhysicalAddressToVirtualAddress(EndAddress) == 0))
-        {
-            //
-            // It's an invalid address in current process
-            //
-            return;
-        }
-        else if (PhysicalAddressToVirtualAddressByProcessId(StartAddress, SearchMemRequest->ProcessId) == 0 ||
-                 PhysicalAddressToVirtualAddressByProcessId(EndAddress, SearchMemRequest->ProcessId) == 0)
-        {
-            //
-            // It's an invalid address in another process
-            //
-            return;
-        }
-
         //
         // when we reached here, we know that it's a valid physical memory,
         // so we change the structure and pass it as a virtual address to

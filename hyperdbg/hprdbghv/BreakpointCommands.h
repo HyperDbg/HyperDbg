@@ -18,4 +18,14 @@ VOID
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
 
 VOID
+BreakpointRemoveAllBreakpoints();
+
+VOID
 BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
+BOOLEAN
+BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  CurrentProcessorIndex,
+                                                   UINT64                  GuestRip,
+                                                   DEBUGGEE_PAUSING_REASON Reason,
+                                                   PGUEST_REGS             GuestRegs,
+                                                   PBOOLEAN                AvoidUnsetMtf);

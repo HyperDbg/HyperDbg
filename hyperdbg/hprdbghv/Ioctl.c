@@ -36,6 +36,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
+    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION                  DebuggerKernelSideTestInformationRequest;
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
     PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
@@ -49,6 +50,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     SIZE_T                                                  ReturnSize;
     BOOLEAN                                                 DoNotChangeInformation = FALSE;
     UINT32                                                  SizeOfPrintRequestToBeDeliveredToUsermode;
+    UINT32                                                  FilledEntriesInKernelInfo;
 
     //
     // Here's the best place to see if there is any allocation pending
@@ -106,7 +108,10 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Send an immediate message, and we're no longer get new IRP
             //
-            LogInfoImmediate("An immediate message recieved, we no longer recieve IRPs from user-mode ");
+            LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
+                          "$",
+                          1);
+
             Status = STATUS_SUCCESS;
             break;
         case IOCTL_TERMINATE_VMX:
@@ -251,24 +256,15 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Both usermode and to send to usermode and the comming buffer are
             // at the same place
             //
-            if (ExtensionCommandPte(DebuggerPteRequest))
-            {
-                Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
-                Status                    = STATUS_SUCCESS;
-                //
-                // Avoid zeroing it
-                //
-                DoNotChangeInformation = TRUE;
-            }
-            else
-            {
-                Irp->IoStatus.Information = 0;
-                Status                    = STATUS_UNSUCCESSFUL;
-                //
-                // Avoid zeroing it
-                //
-                DoNotChangeInformation = TRUE;
-            }
+            ExtensionCommandPte(DebuggerPteRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
 
             break;
 
@@ -1014,6 +1010,50 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandSendGeneralBufferToDebugger(DebuggerSendBufferFromDebuggeeToDebuggerRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerKernelSideTestInformationRequest =
+                (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform collecting kernel-side debug information
+            //
+            FilledEntriesInKernelInfo = TestKernelGetInformation(DebuggerKernelSideTestInformationRequest);
+
+            Irp->IoStatus.Information = FilledEntriesInKernelInfo * SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
             Status                    = STATUS_SUCCESS;
 
             //

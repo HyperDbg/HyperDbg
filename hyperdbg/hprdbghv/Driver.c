@@ -85,7 +85,7 @@ DriverEntry(
     //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
-    LogInfo("Hyperdbg is Loaded :)");
+    LogDebugInfo("Hyperdbg is Loaded :)");
 
     Ntstatus = IoCreateDevice(DriverObject,
                               0,
@@ -100,7 +100,7 @@ DriverEntry(
         for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
             DriverObject->MajorFunction[Index] = DrvUnsupported;
 
-        LogInfo("Setting device major functions");
+        LogDebugInfo("Setting device major functions");
         DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
         DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
         DriverObject->MajorFunction[IRP_MJ_READ]           = DrvRead;
@@ -215,7 +215,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     g_AllowIOCTLFromUsermode = TRUE;
 
-    LogInfo("Hyperdbg's hypervisor Started...");
+    LogDebugInfo("Hyperdbg's hypervisor Started...");
     //
     // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
     //
@@ -241,7 +241,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     if (HvVmxInitialize())
     {
-        LogInfo("Hyperdbg's hypervisor loaded successfully :)");
+        LogDebugInfo("Hyperdbg's hypervisor loaded successfully :)");
 
         //
         // Initialize the debugger
@@ -249,7 +249,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         if (DebuggerInitialize())
         {
-            LogInfo("Hyperdbg's debugger loaded successfully");
+            LogDebugInfo("Hyperdbg's debugger loaded successfully");
 
             //
             // Set the variable so no one else can get a handle anymore

@@ -308,7 +308,13 @@ BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
 
 BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+
+BOOLEAN
 MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+
+BOOLEAN
+MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size);
 
 BOOLEAN
 MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, CR3_TYPE TargetProcessCr3);
@@ -335,4 +341,4 @@ BOOLEAN
 MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);
 
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead, UINT32 TargetProcessId);
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, PVOID Source, SIZE_T SizeToRead);
