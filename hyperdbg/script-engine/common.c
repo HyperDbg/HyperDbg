@@ -633,6 +633,96 @@ int GetTerminalId(TOKEN Token)
 *
 *
 */
+int LalrGetNonTerminalId(TOKEN Token)
+{
+	for (int i = 0; i < LALR_NONTERMINAL_COUNT; i++) 
+	{
+		if (!strcmp(Token->Value, LalrNoneTerminalMap[i]))
+			return i;
+	}
+	return -1;
+}
+
+/**
+*
+*
+*
+*/
+int LalrGetTerminalId(TOKEN Token)
+{
+
+	for (int i = 0; i < LALR_TERMINAL_COUNT; i++)
+	{
+		if (Token->Type == HEX)
+		{
+			if (!strcmp("_hex", LalrTerminalMap[i]))
+				return i;
+		}
+		else if (Token->Type == ID)
+		{
+			if (!strcmp("_id", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == REGISTER)
+		{
+			if (!strcmp("_register", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == PSEUDO_REGISTER)
+		{
+			if (!strcmp("_pseudo_register", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == DECIMAL)
+		{
+			if (!strcmp("_decimal", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == BINARY)
+		{
+			if (!strcmp("_binary", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == OCTAL)
+		{
+			if (!strcmp("_octal", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+		else if (Token->Type == STRING)
+		{
+			if (!strcmp("_string", LalrTerminalMap[i]))
+			{
+				return i;
+			}
+		}
+
+		else // Keyword
+		{
+			if (!strcmp(Token->Value, LalrTerminalMap[i]))
+				return i;
+		}
+	}
+	return -1;
+
+}
+
+/**
+*
+*
+*
+*/
 char IsEqual(const TOKEN Token1, const TOKEN Token2)
 {
 	if (Token1->Type == Token2->Type)

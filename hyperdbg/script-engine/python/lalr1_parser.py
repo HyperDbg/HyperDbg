@@ -29,6 +29,8 @@ class LALR1Parser:
         # Right Hand Side(Rhs)
         self.RhsList = []
 
+        self.SemanticList = []
+
         # Left Hand Side(Lhs)
         self.LhsList = []
 
@@ -253,6 +255,15 @@ class LALR1Parser:
             self.MAXIMUM_RHS_LEN = max(self.MAXIMUM_RHS_LEN, len(Rhs))
 
 
+        ii = 0
+        for Rhs in self.RhsList:
+            if self.IsSemanticRule(Rhs[len(Rhs)-1]):
+                self.SemanticList.append(Rhs[len(Rhs)-1])
+            else:
+                self.SemanticList.append(None)
+            ii += 1
+
+        print(self.SemanticList)
         self.TerminalSet.add("$")
         
         self.NonTerminalList = list(self.NonTerminalSet)
@@ -348,37 +359,34 @@ class LALR1Parser:
 
         
     
-    # This function simulates of script engine parser in ScriptEngine.C in
+    # This function simulates of script engine parser in ScriptEngine.c in
     # order to test the generated "Parse Table"
-    def Parse(self, Tokens):
+    def Parse(self, Tokens, InputSize):
         print("Lalr parser called...\n")
-        
-        OpenParenthesesCount = 0
+        print("Tokens : ", end = "")
+        print(Tokens)
+
+        ReadCount = 0
+
         Stack = [ 0 ]
+        MatchedStack = []
         
-        Tokens, CurrentIn = Read(Tokens)
-        CurrentIn = "'" + CurrentIn + "'"
-        if (CurrentIn == "'('"):
-            OpenParenthesesCount +=1
-        if (CurrentIn == "')'"):
-            OpenParenthesesCount -=1
+        if ReadCount < InputSize:
+            Tokens, CurrentIn = Read(Tokens)
+            CurrentIn = "'" + CurrentIn + "'"
+            ReadCount +=1
+        else:
+            CurrentIn = "'$end'"
 
         # print("OpenParanthesisCount = ", OpenParenthesesCount)
-        
-
-        if OpenParenthesesCount == 0: 
-            print("0) LALR Rturned ...\n")
-            return Tokens
-
-       
-
-        
-
+      
         
         while True:
             # Read top of stack 
             Top = GetTop(Stack)
-
+            # for key, value in self.ParseTable.action.items() :
+            #     print (key, value)
+            print("CurrentIn: ", CurrentIn)
             Action = self.ParseTable.action[Top][CurrentIn] 
             # print("Action:",Action)
             # print()
@@ -387,16 +395,18 @@ class LALR1Parser:
             for Element in Action:
                 Type = Element[0]
                 StateId = Element[1]
-            # print("Stack:", end =" ")
-            # print(Stack)
+            print("Stack:", end =" ")
+            print(Stack)
 
-            # print("Tokens:", end =" ")
-            # print(Tokens)
+            print("Tokens:", end =" ")
+            print(Tokens)
             
-            # print("CurrentIn: ", CurrentIn)
+            print("CurrentIn: ", CurrentIn)
             
-            # print("Action : ", Action,'\n\n')
+            print("Action : ", Action,'\n\n')
             
+            print("Matched Stack:", end = " ")
+            print(MatchedStack)
         
 
             
@@ -405,14 +415,14 @@ class LALR1Parser:
                 Stack.append(CurrentIn)
                 Stack.append(StateId)
 
-                Tokens, CurrentIn = Read(Tokens)
-                CurrentIn = "'" + CurrentIn + "'"
+                if ReadCount < InputSize:
+                    Tokens, CurrentIn = Read(Tokens)
+                    CurrentIn = "'" + CurrentIn + "'"
+                    ReadCount += 1
+                else:
+                    CurrentIn = "'$end'"
                 # print("CurrentIn = ", CurrentIn)
 
-                if (CurrentIn == "'('"):
-                    OpenParenthesesCount +=1
-                if (CurrentIn == "')'"):
-                    OpenParenthesesCount -=1
 
                 # print("Stack:", end =" ")
                 # print(Stack)
@@ -426,9 +436,9 @@ class LALR1Parser:
 
                 # print("OpenParanthesisCount = ", OpenParenthesesCount, end = "\n\n")
 
-                if OpenParenthesesCount == 0: 
-                    print("1) LALR Rturned...\n")
-                    return Tokens
+                # if OpenParenthesesCount == 0: 
+                #     print("1) LALR Rturned...\n")
+                #     return Tokens
 
                 # print("Shift ", StateId, ": ")
                 # print(Stack) 
@@ -454,11 +464,45 @@ class LALR1Parser:
                 Lhs = self.LhsList[StateId - 1]
                 Rhs = self.RhsList[StateId - 1]
                 RhsLen = get_length(Rhs)
+
+                SemanticRule = self.SemanticList[StateId - 1]
+                print("Semantic Rule :", SemanticRule)
                 # print("Rhs : ", Rhs)
+                Operand = None 
                 for i in range(RhsLen * 2):
                     Temp = Stack.pop()
-                    # if self.IsSemanticRule(Temp):
-                    # print("SemanticRule : ", Temp)
+                    # print("Temp : ", Temp)
+                    if type(Temp) == str:
+                        print("Temp : ", Temp)
+                        Operand = Temp
+                if SemanticRule == "@PUSH":
+                    MatchedStack.append(Operand)
+                if SemanticRule == "@GT":
+                    print("Matched Stack:", end = " ")
+                    print(MatchedStack)
+
+                    Operand0 = MatchedStack.pop()
+                    Operand1 = MatchedStack.pop()
+                    print("GT ", Operand0, " ", Operand1)   
+                    MatchedStack.append(Operand0)    
+                
+                if SemanticRule == "@LT":
+                    print("Matched Stack:", end = " ")
+                    print(MatchedStack)
+
+                    Operand0 = MatchedStack.pop()
+                    Operand1 = MatchedStack.pop()
+                    print("LT ", Operand0, " ", Operand1)   
+                    MatchedStack.append(Operand0)
+
+                elif SemanticRule == "@AND":
+                    print("Matched Stack:", end = " ")
+                    print(MatchedStack)
+
+                    Operand0 = MatchedStack.pop()
+                    Operand1 = MatchedStack.pop()
+                    print("AND ", Operand0, " ", Operand1)   
+                    MatchedStack.append(Operand0)    
                 # x = input()
                 # print("\n\n")
 

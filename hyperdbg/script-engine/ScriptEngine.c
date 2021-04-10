@@ -21,7 +21,7 @@
 #include "ScriptEngineCommonDefinitions.h"
 #include "string.h"
 
-//#define _SCRIPT_ENGINE_DBG_EN
+#define _SCRIPT_ENGINE_DBG_EN
 /**
 *
 *
@@ -29,6 +29,8 @@
 PSYMBOL_BUFFER ScriptEngineParse(char* str)
 {
     TOKEN_LIST Stack = NewTokenList();
+    TOKEN_LIST LALRInputTokens;
+
     TOKEN_LIST MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer = NewSymbolBuffer();
 
@@ -105,54 +107,108 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
 
         if (TopToken->Type == NON_TERMINAL)
         {
-            NonTerminalId = GetNonTerminalId(TopToken);
-            if (NonTerminalId == INVALID)
+            if (TopToken->Value == "BOOLEAN_EXPRESSION")
             {
-                char* Message = HandleError(SYNTAX_ERROR, str);
-                CodeBuffer->Message = Message;
+                LALRInputTokens = NewTokenList();
+                Push(LALRInputTokens, CurrentIn);
+                
+                int OpenParanthesesCount = 1; 
+                if (!strcmp(CurrentIn->Value, "("))
+                {
+                    OpenParanthesesCount++;
+                }
+                
+                while (1)
+                {
+                    CurrentIn = Scan(str, &c);
+                    
+                    if (!strcmp(CurrentIn->Value, "("))
+                    {
+                        OpenParanthesesCount++;
+                        Push(LALRInputTokens, CurrentIn);
+                    }
+                    else if (!strcmp(CurrentIn->Value, ")"))
+                    {
+                        OpenParanthesesCount--;
+                        if (OpenParanthesesCount <= 0)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            Push(LALRInputTokens, CurrentIn);
+                        }
 
-                RemoveToken(StartToken);
-                RemoveToken(EndToken);
-                RemoveTokenList(MatchedStack);
-                RemoveToken(CurrentIn);
-                return CodeBuffer;
+                    }
+                    else
+                    {
+                        Push(LALRInputTokens, CurrentIn);
+                    }
+
+                }
+
+
+                Push(LALRInputTokens, EndToken);
+                ScriptEngineBooleanExpresssionParse(LALRInputTokens, MatchedStack, CodeBuffer);
+ 
+                CurrentIn = Scan(str, &c);
+                TopToken = Pop(Stack);
+
+
+
             }
-            TerminalId = GetTerminalId(CurrentIn);
-            if (TerminalId == INVALID)
+            else
             {
-                char* Message = HandleError(SYNTAX_ERROR, str);
-                CodeBuffer->Message = Message;
+                NonTerminalId = GetNonTerminalId(TopToken);
+                if (NonTerminalId == INVALID)
+                {
+                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    CodeBuffer->Message = Message;
 
-                RemoveToken(StartToken);
-                RemoveToken(EndToken);
-                RemoveTokenList(MatchedStack);
-                RemoveToken(CurrentIn);
-                return CodeBuffer;
-            }
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
+                    RemoveToken(CurrentIn);
+                    return CodeBuffer;
+                }
+                TerminalId = GetTerminalId(CurrentIn);
+                if (TerminalId == INVALID)
+                {
+                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    CodeBuffer->Message = Message;
+
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
+                    RemoveToken(CurrentIn);
+                    return CodeBuffer;
+                }
                 RuleId = ParseTable[NonTerminalId][TerminalId];
-            if (RuleId == INVALID)
-            {
-                char* Message = HandleError(SYNTAX_ERROR, str);
-                CodeBuffer->Message = Message;
+                if (RuleId == INVALID)
+                {
+                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    CodeBuffer->Message = Message;
 
-                RemoveToken(StartToken);
-                RemoveToken(EndToken);
-                RemoveTokenList(MatchedStack);
-                RemoveToken(CurrentIn);
-                return CodeBuffer;
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
+                    RemoveToken(CurrentIn);
+                    return CodeBuffer;
+                }
+
+                //
+                // Push RHS Reversely into stack
+                //
+                for (int i = RhsSize[RuleId] - 1; i >= 0; i--)
+                {
+                    TOKEN Token = &Rhs[RuleId][i];
+
+                    if (Token->Type == EPSILON)
+                        break;
+                    Push(Stack, Token);
+                }
             }
-
-            //
-            // Push RHS Reversely into stack
-            //
-            for (int i = RhsSize[RuleId] - 1; i >= 0; i--)
-            {
-                TOKEN Token = &Rhs[RuleId][i];
-
-                if (Token->Type == EPSILON)
-                    break;
-                Push(Stack, Token);
-            }
+            
         }
         else if (TopToken->Type == SEMANTIC_RULE)
         {
@@ -225,6 +281,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
             }
         }
 #ifdef _SCRIPT_ENGINE_DBG_EN
+            printf("Stack: \n");
             PrintTokenList(Stack);
             printf("\n");
 #endif
@@ -233,6 +290,7 @@ PSYMBOL_BUFFER ScriptEngineParse(char* str)
 
 
         RemoveTokenList(Stack);
+        //RemoveTokenList(LALRInputTokens);
         RemoveTokenList(MatchedStack);
         RemoveToken(StartToken);
         RemoveToken(EndToken);
@@ -421,6 +479,93 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     return;
 }
 
+/**
+*
+*
+*/
+void ScriptEngineBooleanExpresssionParse
+(
+    TOKEN_LIST InputTokens,
+    TOKEN_LIST MatchedStack,
+    PSYMBOL_BUFFER CodeBuffer
+)
+{
+    TOKEN_LIST Stack = NewTokenList();
+
+    TOKEN State = NewToken();
+    State->Type = DECIMAL;
+    State->Value = malloc(strlen("0") + 1);
+    strcpy(State->Value, "0");
+    
+    
+    Push(Stack, State);
+
+    printf("----------------------------------------\n");
+    PrintTokenList(InputTokens);
+    printf("----------------------------------------\n");
+
+    TOKEN CurrentIn;
+    TOKEN TopToken;
+    TOKEN Lhs;
+    TOKEN Temp;
+
+    int Action = INVALID;
+    int StateId = 0;
+    int Goto = 0;
+    int InputPointer = 0;
+    int RhsSize = 0;
+
+    CurrentIn = InputTokens->Head[InputPointer++];
+    while (1)
+    {
+        TopToken = Pop(Stack);
+        int TerminalId = LalrGetTerminalId(CurrentIn);
+        StateId = DecimalToInt(TopToken->Value);
+        Action = LalrActionTable[StateId][TerminalId];
+        if (Action == LALR_ACCEPT)
+        {
+            return;
+        }
+        if (Action == INVALID)
+        {
+            return;
+        }
+        if (Action > 0) // Shift
+        {
+            StateId = Action;
+            Push(Stack, CurrentIn);
+
+
+            free(State->Value);
+            State->Value = malloc(4);
+            sprintf(State->Value, "%d", StateId);
+            Push(Stack, State);
+            CurrentIn = InputTokens->Head[InputPointer++];
+
+        }
+        else if (Action < 0) // Reduce
+        {
+            StateId = -Action;
+            Lhs = &LalrLhs[StateId - 1];
+            RhsSize = LalrRhsSize[StateId - 1];
+            for (int i = 0; i < 2 * RhsSize; i++)
+            {
+                Temp = Pop(Stack);
+            }
+            Temp = Pop(Stack);
+            StateId = DecimalToInt(Temp->Value);
+            TopToken = Pop(Stack);
+            Push(Stack, Lhs);
+            Goto = LalrGotoTable[StateId][LalrGetTerminalId(Lhs)];
+            free(State->Value);
+            State->Value = malloc(4);
+            sprintf(State->Value, "%d", Goto);
+            Push(Stack, State);
+        }
+
+    }
+
+}
 
 /**
 *

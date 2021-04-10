@@ -6,7 +6,7 @@
 #define TERMINAL_COUNT 43
 #define NONETERMINAL_COUNT 34
 #define START_VARIABLE "S"
-#define MAX_RHS_LEN 8
+#define MAX_RHS_LEN 7
 #define KEYWORD_LIST_LENGTH 15
 #define OPERATORS_LIST_LENGTH 10
 #define REGISTER_MAP_LIST_LENGTH 31
@@ -36,8 +36,8 @@ extern const SYMBOL_MAP PseudoRegisterMapList[];
 #define LALR_RULES_COUNT 22
 #define LALR_TERMINAL_COUNT 10
 #define LALR_NONTERMINAL_COUNT 14
-#define LALR_MAX_RHS_LEN 3
-#define LALR_STATE_COUNT 41
+#define LALR_MAX_RHS_LEN 4
+#define LALR_STATE_COUNT 39
 extern const struct _TOKEN LalrLhs[RULES_COUNT];
 extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];

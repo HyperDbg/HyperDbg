@@ -71,6 +71,7 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_VARIABLE_COUNT_TYPE 7
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define INVALID -99
+#define LALR_ACCEPT 99
 
 \n\n""")
 
@@ -87,5 +88,5 @@ if __name__ == "__main__":
     gen.Run()
 
 
-    Tokens = ['if', '(','_id', '<', '_id', '&&', '_id', '>', '_id', ')', '{', 'print', '(', '+', '_hex',  ')', ';', '}', '$']
+    Tokens = ['if', '(', '_id', '>', '_id', ')', '{', 'print', '(', '+', '_hex',  ')', ';', '}', '$']
     gen.Parse(Tokens)

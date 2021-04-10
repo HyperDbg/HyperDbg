@@ -196,15 +196,50 @@ class LL1Parser:
             
             if self.IsNoneTerminal(Top):
                 if Top == "BOOLEAN_EXPRESSION":
-                    Stack.pop()
-                    Stack.pop()
-                    print("If NonTerminal:")
+                    print("Top == BOOLEAN_EXPRESSION:")
                     print(Stack)
                     print(Tokens)
+                    print(CurrentIn)
                     print("=====================================\n\n")
+
+                    Stack.pop()
                     
-                    # x = input()
-                    Tokens = self.Lalr.Parse(Tokens)
+                    #------------------------------------------------------
+                    # Get BE Tokens 
+                    BETokensSize = 0
+                    OpenParanthesesCount = 1 
+
+                    i = 0
+                    while True:
+                        TempToken = Tokens[i]
+                       
+                        i +=1
+                        if TempToken == '(' :
+                            OpenParanthesesCount += 1
+                            BETokensSize += 1
+                        elif TempToken == ')':
+                            OpenParanthesesCount -= 1
+                            if OpenParanthesesCount == 0:
+                                break 
+                            else:
+                                BETokensSize +=1
+                        else:
+                            BETokensSize +=1
+                        print("TempToken: ", end = "")
+                        print(TempToken)
+                        print("BETokensSize: ", end = "")
+                        print(BETokensSize)
+
+
+                    # BETokens.append("$end")
+                    print("BETokensSize: ", end = "")
+                    print(BETokensSize)
+                    y = input()
+                    NewTokens = [CurrentIn]
+                    for x in Tokens:
+                        NewTokens.append(x)
+                    #------------------------------------------------------
+                    Tokens = self.Lalr.Parse(NewTokens, BETokensSize + 1)
                     # x = input()
                     print("after lalr parsing:")
                     print(Stack)
@@ -212,7 +247,7 @@ class LL1Parser:
                     print("=====================================\n\n")
                     
 
-                    CurrentIn = Tokens[0]
+                    CurrentIn = Tokens[0]   
                     if (len(Tokens) > 1):
                         Tokens = Tokens[1:]
                     # x = input()
@@ -249,17 +284,20 @@ class LL1Parser:
                     else: 
                         print("2)Error in input!")
                         exit()   
-                elif Top == "@IF_EXPRESSION":
-                    print("If Expression Semantic Rule:")
+                elif Top == "@JZ":
+                    print("JZ:")
                     print(Stack)
                     print(Tokens)
                     print("\n\n")
+                    y = input()
 
-
-
-                    Stack.pop()
-                    Stack.pop()
-                 
+                elif Top == "@JZCMPL":
+                    print("JZCMPL:")
+                    print(Stack)
+                    print(Tokens)
+                    print("\n\n")
+                    y = input()
+                    
 
                    
                 
@@ -420,9 +458,9 @@ class LL1Parser:
                 self.CommonHeaderFile.write("\t" + "\"" + X + "\"")
             else:
                 if (Counter + 1) % 8 == 0:
-                    self.CommonHeaderFile.write("\t" + "\"" + X + "\",\n")
+                    self.CommonHeaderFile.write("" + "\"" + X + "\",\n")
                 else:
-                    self.CommonHeaderFile.write("\t" + "\"" + X + "\", ")
+                    self.CommonHeaderFile.write("" + "\"" + X + "\", ")
 
             Counter += 1
         self.CommonHeaderFile.write("\n};\n\n")

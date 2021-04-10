@@ -8,16 +8,16 @@
 
 .PseudoRegisters->pid tid proc thread peb teb ip buffer context
 
-S->( BE ) 
+S->BE
 
 BE->B1
 
 B1->B2 B1'
-B1'->&& B2 B1' 
+B1'->&& B2 B1' @AND
 B1'->eps
 
 B2->B3 B2'
-B2'->| B3 B2' 
+B2'->|| B3 B2' @OR
 B2'->eps
 
 
@@ -26,20 +26,20 @@ B3->CMP
 B3->EXP
 
 
-CMP->EXP > EXP
-CMP->EXP < EXP
+CMP->EXP > EXP @GT
+CMP->EXP < EXP @LT
 CMP->( CMP )
 
 EXP->E1
 
 E1->E2 E1'
-E1'->+ E2 E1' 
+E1'->+ E2 E1' @ADD
 E1'->eps
 
 E2->E3 E2'
-E2'->* E3 E2' 
+E2'->* E3 E2' @MUL
 E2'->eps
 
 
-E3->_id
+E3->_id @PUSH
 E3->( EXP )

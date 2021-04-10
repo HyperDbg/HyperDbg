@@ -585,9 +585,18 @@ char IsKeyword(char* str)
 	{
 		if (!strcmp(str, KeywordList[i]))
 		{
+			return 1;
+		}
+	}
+	n = TERMINAL_COUNT;
+	for (int i = 0; i < n; i++)
+	{
+		if (!strcmp(str, TerminalMap[i]))
+		{
 			return 1; 
 		}
 	}
+
 	return 0;
 }
 
