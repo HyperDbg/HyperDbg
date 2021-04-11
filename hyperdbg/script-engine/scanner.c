@@ -150,6 +150,13 @@ GetToken(char * c, char * str)
             *c          = sgetc(str);
             return Token;
         }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, ">=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
         else
         {
             strcpy(Token->Value, ">");
@@ -161,6 +168,13 @@ GetToken(char * c, char * str)
         if (*c == '<')
         {
             strcpy(Token->Value, "<<");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else if (*c == '=')
+        {
+            strcpy(Token->Value, "<=");
             Token->Type = SPECIAL_TOKEN;
             *c          = sgetc(str);
             return Token;
@@ -223,10 +237,35 @@ GetToken(char * c, char * str)
         }
 
     case '=':
-        strcpy(Token->Value, "=");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
-        return Token;
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "==");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "=");
+            Token->Type = SPECIAL_TOKEN;
+            return Token;
+        }
+    case '!':
+        *c = sgetc(str);
+        if (*c == '=')
+        {
+            strcpy(Token->Value, "!=");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "!");
+            Token->Type = UNKNOWN;
+            return Token;
+        }
     case '%':
         strcpy(Token->Value, "%");
         Token->Type = SPECIAL_TOKEN;
@@ -272,15 +311,36 @@ GetToken(char * c, char * str)
         *c          = sgetc(str);
         return Token;
     case '|':
-        strcpy(Token->Value, "|");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
-        return Token;
+        *c = sgetc(str);
+        if (*c == '|')
+        {
+            strcpy(Token->Value, "||");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "|");
+            Token->Type = SPECIAL_TOKEN;
+            return Token;
+        }
     case '&':
-        strcpy(Token->Value, "&");
-        Token->Type = SPECIAL_TOKEN;
-        *c          = sgetc(str);
-        return Token;
+        *c = sgetc(str);
+        if (*c == '&')
+        {
+            strcpy(Token->Value, "&&");
+            Token->Type = SPECIAL_TOKEN;
+            *c          = sgetc(str);
+            return Token;
+        }
+        else
+        {
+            strcpy(Token->Value, "&");
+            Token->Type = SPECIAL_TOKEN;
+            return Token;
+        }
+      
     case '^':
         strcpy(Token->Value, "^");
         Token->Type = SPECIAL_TOKEN;
@@ -577,25 +637,24 @@ sgetc(char * str)
 char
 IsKeyword(char * str)
 {
+    int n = KEYWORD_LIST_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(str, KeywordList[i]))
+        {
+            return 1;
+        }
+    }
+    n = TERMINAL_COUNT;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(str, TerminalMap[i]))
+        {
+            return 1;
+        }
+    }
 
-	int n = KEYWORD_LIST_LENGTH;
-	for (int i = 0; i < n; i++)
-	{
-		if (!strcmp(str, KeywordList[i]))
-		{
-			return 1;
-		}
-	}
-	n = TERMINAL_COUNT;
-	for (int i = 0; i < n; i++)
-	{
-		if (!strcmp(str, TerminalMap[i]))
-		{
-			return 1; 
-		}
-	}
-
-	return 0;
+    return 0;
 }
 
 char

@@ -44,7 +44,9 @@ class LALR1Parser:
         # maximum of "Right Hand Side(Rhs)" length
         self.MAXIMUM_RHS_LEN = 0
 
-        self.SPECIAL_TOKENS = ['%', '+', '-', "*", "/", "=", ",", ";", "(", ")", "{", "}", "|", ">>", "<<", "&", "^"]
+        self.SPECIAL_TOKENS = ['%', '+', '-', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^"]
+
+
 
         # INVALID rule indicator
         self.INVALID = -99 
@@ -239,6 +241,7 @@ class LALR1Parser:
             MapKeywordIdx1 = 0
             MapKeywordIdx2 = 0
             Idx = 0
+   
             for X in Rhs:
                 if X[0] == ".":
                     HasMapKeyword = True
@@ -341,8 +344,8 @@ class LALR1Parser:
 
 
     def WriteActionTable(self):
-        self.SourceFile.write("const int LalrActionTable[LALR_STATE_COUNT][LALR_NONTERMINAL_COUNT]= \n{\n")
-        self.HeaderFile.write("extern const int LalrActionTable[LALR_STATE_COUNT][LALR_NONTERMINAL_COUNT];\n")
+        self.SourceFile.write("const int LalrActionTable[LALR_STATE_COUNT][LALR_TERMINAL_COUNT]= \n{\n")
+        self.HeaderFile.write("extern const int LalrActionTable[LALR_STATE_COUNT][LALR_TERMINAL_COUNT];\n")
         i = 0
         for Row in self.ActionTable:
             j = 0
@@ -560,8 +563,9 @@ class LALR1Parser:
                 
                 # print("Error")
                 # print(Stack)
-                print()
+                # print()
                 # x = input()
+                pass
 
 
             

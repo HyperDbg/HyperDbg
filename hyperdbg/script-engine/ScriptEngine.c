@@ -593,13 +593,11 @@ ScriptEngineBooleanExpresssionParse(
                 if (!strcmp(SemanticRule->Value, "@PUSH"))
                 {
                     Push(MatchedStack, Operand);
-                    PrintToken(Operand);
-                    printf("\n");
+
                 }
                 else
                 {
-                    printf("Semantic Rule : %s\n", SemanticRule->Value);
-                    printf("\n");
+                    CodeGen(MatchedStack, CodeBuffer, SemanticRule);
                 }
             }
 
