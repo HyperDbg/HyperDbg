@@ -21,7 +21,7 @@
 #include "ScriptEngineCommonDefinitions.h"
 #include "string.h"
 
-#define _SCRIPT_ENGINE_DBG_EN
+//#define _SCRIPT_ENGINE_DBG_EN
 /**
 *
 *
@@ -29,13 +29,11 @@
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
 {
-
     TOKEN_LIST Stack = NewTokenList();
     TOKEN_LIST LALRInputTokens;
 
-    TOKEN_LIST MatchedStack = NewTokenList();
-    PSYMBOL_BUFFER CodeBuffer = NewSymbolBuffer();
-
+    TOKEN_LIST     MatchedStack = NewTokenList();
+    PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
     static FirstCall = 1;
     if (FirstCall)
@@ -108,17 +106,17 @@ ScriptEngineParse(char * str)
             {
                 LALRInputTokens = NewTokenList();
                 Push(LALRInputTokens, CurrentIn);
-                
-                int OpenParanthesesCount = 1; 
+
+                int OpenParanthesesCount = 1;
                 if (!strcmp(CurrentIn->Value, "("))
                 {
                     OpenParanthesesCount++;
                 }
-                
+
                 while (1)
                 {
                     CurrentIn = Scan(str, &c);
-                    
+
                     if (!strcmp(CurrentIn->Value, "("))
                     {
                         OpenParanthesesCount++;
@@ -135,31 +133,35 @@ ScriptEngineParse(char * str)
                         {
                             Push(LALRInputTokens, CurrentIn);
                         }
-
                     }
                     else
                     {
                         Push(LALRInputTokens, CurrentIn);
                     }
-
                 }
 
-
                 Push(LALRInputTokens, EndToken);
-                ScriptEngineBooleanExpresssionParse(LALRInputTokens, MatchedStack, CodeBuffer);
- 
+                char * Message = ScriptEngineBooleanExpresssionParse(LALRInputTokens, MatchedStack, CodeBuffer, str);
+                if (Message != NULL)
+                {
+                    CodeBuffer->Message = Message;
+
+                    RemoveToken(StartToken);
+                    RemoveToken(EndToken);
+                    RemoveTokenList(MatchedStack);
+                    RemoveToken(CurrentIn);
+                    return CodeBuffer;
+                }
+
                 CurrentIn = Scan(str, &c);
-                TopToken = Pop(Stack);
-
-
+                TopToken  = Pop(Stack);
             }
             else
             {
-
                 NonTerminalId = GetNonTerminalId(TopToken);
                 if (NonTerminalId == INVALID)
                 {
-                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    char * Message      = HandleError(SYNTAX_ERROR, str);
                     CodeBuffer->Message = Message;
 
                     RemoveToken(StartToken);
@@ -171,7 +173,7 @@ ScriptEngineParse(char * str)
                 TerminalId = GetTerminalId(CurrentIn);
                 if (TerminalId == INVALID)
                 {
-                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    char * Message      = HandleError(SYNTAX_ERROR, str);
                     CodeBuffer->Message = Message;
 
                     RemoveToken(StartToken);
@@ -183,7 +185,7 @@ ScriptEngineParse(char * str)
                 RuleId = ParseTable[NonTerminalId][TerminalId];
                 if (RuleId == INVALID)
                 {
-                    char* Message = HandleError(SYNTAX_ERROR, str);
+                    char * Message      = HandleError(SYNTAX_ERROR, str);
                     CodeBuffer->Message = Message;
 
                     RemoveToken(StartToken);
@@ -205,7 +207,6 @@ ScriptEngineParse(char * str)
                     Push(Stack, Token);
                 }
             }
-            
         }
         else if (TopToken->Type == SEMANTIC_RULE)
         {
@@ -292,8 +293,8 @@ ScriptEngineParse(char * str)
     return CodeBuffer;
 }
 
-
-void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
+void
+CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 {
     TOKEN Op0;
     TOKEN Op1;
@@ -384,7 +385,6 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, Op0Symbol);
         RemoveSymbol(Op0Symbol);
 
-        // TODO: Push OperandCount
         PSYMBOL OperandCountSymbol = NewSymbol();
         OperandCountSymbol->Type   = SYMBOL_VARIABLE_COUNT_TYPE;
         OperandCountSymbol->Value  = OperandCount;
@@ -441,6 +441,42 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         OperatorCopy->Type = Operator->Type;
         Push(MatchedStack, OperatorCopy);
     }
+    else if (!strcmp(Operator->Value, "@JZ"))
+    {
+        UINT64 CurrentPointer = CodeBuffer->Pointer;
+        PushSymbol(CodeBuffer, OperatorSymbol);
+
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+
+        PSYMBOL JumpAddressSymbol = NewSymbol();
+        JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+        JumpAddressSymbol->Value  = 0xffffffffffffffff;
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+        TOKEN CurrentAddressToken = NewToken();
+        CurrentAddressToken->Type = DECIMAL;
+
+        char * str = malloc(16);
+        sprintf(str, "%llu", CurrentPointer);
+        CurrentAddressToken->Value = str;
+        Push(MatchedStack, CurrentAddressToken);
+
+        FreeTemp(Op0);
+    }
+    else if (!strcmp(Operator->Value, "@JZCOMPLETED"))
+    {
+        UINT64  CurrentPointer           = CodeBuffer->Pointer;
+        TOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
+        UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
+        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 2);
+
+        JumpAddressSymbol->Value         = CurrentPointer;
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+    }
 
     else
     {
@@ -450,26 +486,24 @@ void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     return;
 }
 
-
 /**
 *
 *
 */
-void ScriptEngineBooleanExpresssionParse
-(
-    TOKEN_LIST InputTokens,
-    TOKEN_LIST MatchedStack,
-    PSYMBOL_BUFFER CodeBuffer
-)
+char *
+ScriptEngineBooleanExpresssionParse(
+    TOKEN_LIST     InputTokens,
+    TOKEN_LIST     MatchedStack,
+    PSYMBOL_BUFFER CodeBuffer,
+    char *         str)
 {
     TOKEN_LIST Stack = NewTokenList();
 
-    TOKEN State = NewToken();
-    State->Type = DECIMAL;
+    TOKEN State  = NewToken();
+    State->Type  = DECIMAL;
     State->Value = malloc(strlen("0") + 1);
     strcpy(State->Value, "0");
-    
-    
+
     Push(Stack, State);
 
     printf("----------------------------------------\n");
@@ -480,63 +514,109 @@ void ScriptEngineBooleanExpresssionParse
     TOKEN TopToken;
     TOKEN Lhs;
     TOKEN Temp;
+    TOKEN Operand = NewToken();
+    TOKEN SemanticRule;
 
-    int Action = INVALID;
-    int StateId = 0;
-    int Goto = 0;
+    int Action       = INVALID;
+    int StateId      = 0;
+    int Goto         = 0;
     int InputPointer = 0;
-    int RhsSize = 0;
+    int RhsSize      = 0;
 
     CurrentIn = InputTokens->Head[InputPointer++];
     while (1)
     {
-        TopToken = Pop(Stack);
+        TopToken       = Top(Stack);
         int TerminalId = LalrGetTerminalId(CurrentIn);
-        StateId = DecimalToInt(TopToken->Value);
-        Action = LalrActionTable[StateId][TerminalId];
-        if (Action == LALR_ACCEPT)
+        StateId        = DecimalToSignedInt(TopToken->Value);
+        if (StateId == INVALID)
         {
             return;
+        }
+        Action = LalrActionTable[StateId][TerminalId];
+
+#ifdef _SCRIPT_ENGINE_DBG_EN
+        printf("Stack :\n");
+        PrintTokenList(Stack);
+        printf("Action : %d\n", Action);
+#endif
+        if (Action == LALR_ACCEPT)
+        {
+            printf("Matched Stack : \n");
+            PrintTokenList(MatchedStack);
+            return NULL;
         }
         if (Action == INVALID)
         {
-            return;
+            char * Message      = HandleError(UNKOWN_TOKEN, str);
+            CodeBuffer->Message = Message;
+            return Message;
         }
+
         if (Action > 0) // Shift
         {
             StateId = Action;
             Push(Stack, CurrentIn);
 
-
-            free(State->Value);
+            State        = NewToken();
+            State->Type  = DECIMAL;
             State->Value = malloc(4);
             sprintf(State->Value, "%d", StateId);
             Push(Stack, State);
-            CurrentIn = InputTokens->Head[InputPointer++];
 
+            CurrentIn = InputTokens->Head[InputPointer++];
         }
         else if (Action < 0) // Reduce
         {
-            StateId = -Action;
-            Lhs = &LalrLhs[StateId - 1];
-            RhsSize = LalrRhsSize[StateId - 1];
+            StateId      = -Action;
+            Lhs          = &LalrLhs[StateId - 1];
+            RhsSize      = LalrGetRhsSize(StateId - 1);
+            SemanticRule = &LalrSemanticRules[StateId - 1];
+
             for (int i = 0; i < 2 * RhsSize; i++)
             {
                 Temp = Pop(Stack);
+                if (SemanticRule->Type == SEMANTIC_RULE && !strcmp(SemanticRule->Value, "@PUSH"))
+                {
+                    if (LalrIsOperandType(Temp))
+                    {
+                        if (Operand->Type == UNKNOWN)
+                        {
+                            RemoveToken(Operand);
+                        }
+                        Operand = Temp;
+                    }
+                }
             }
-            Temp = Pop(Stack);
-            StateId = DecimalToInt(Temp->Value);
-            TopToken = Pop(Stack);
-            Push(Stack, Lhs);
-            Goto = LalrGotoTable[StateId][LalrGetTerminalId(Lhs)];
-            free(State->Value);
+            if (SemanticRule->Type == SEMANTIC_RULE)
+            {
+                if (!strcmp(SemanticRule->Value, "@PUSH"))
+                {
+                    Push(MatchedStack, Operand);
+                    PrintToken(Operand);
+                    printf("\n");
+                }
+                else
+                {
+                    printf("Semantic Rule : %s\n", SemanticRule->Value);
+                    printf("\n");
+                }
+            }
+
+            Temp    = Top(Stack);
+            StateId = DecimalToSignedInt(Temp->Value);
+
+            Goto = LalrGotoTable[StateId][LalrGetNonTerminalId(Lhs)];
+
+            State        = NewToken();
+            State->Type  = DECIMAL;
             State->Value = malloc(4);
             sprintf(State->Value, "%d", Goto);
+            Push(Stack, Lhs);
             Push(Stack, State);
         }
-
     }
-
+    return NULL;
 }
 /**
 *
@@ -932,12 +1012,67 @@ GetIdentifierVal(TOKEN Token)
             return (int)i;
         }
     }
+
     //
-    // if token value is not found push the token to the token list and return corrsponding id
+    // if token value is not found, push the token to the token list and return corresponding id
     //
     CurrentToken       = NewToken();
     CurrentToken->Type = Token->Type;
     strcpy(CurrentToken->Value, Token->Value);
     IdTable = Push(IdTable, CurrentToken);
     return IdTable->Pointer - 1;
+}
+
+int
+LalrGetRhsSize(int RuleId)
+{
+    int Counter = 0;
+    int N       = LalrRhsSize[RuleId];
+    for (int i = 0; i < N; i++)
+    {
+        if (LalrRhs[RuleId][i].Type != EPSILON && LalrRhs[RuleId][i].Type != SEMANTIC_RULE)
+        {
+            Counter++;
+        }
+    }
+    return Counter;
+}
+
+BOOL
+LalrIsOperandType(TOKEN Token)
+{
+    if (Token->Type == ID)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == DECIMAL)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == HEX)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == OCTAL)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == BINARY)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == REGISTER)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == PSEUDO_REGISTER)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == TEMP)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
 }

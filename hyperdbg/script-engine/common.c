@@ -637,14 +637,15 @@ GetTerminalId(TOKEN Token)
 *
 *
 */
-int LalrGetNonTerminalId(TOKEN Token)
+int
+LalrGetNonTerminalId(TOKEN Token)
 {
-	for (int i = 0; i < LALR_NONTERMINAL_COUNT; i++) 
-	{
-		if (!strcmp(Token->Value, LalrNoneTerminalMap[i]))
-			return i;
-	}
-	return -1;
+    for (int i = 0; i < LALR_NONTERMINAL_COUNT; i++)
+    {
+        if (!strcmp(Token->Value, LalrNoneTerminalMap[i]))
+            return i;
+    }
+    return -1;
 }
 
 /**
@@ -652,74 +653,73 @@ int LalrGetNonTerminalId(TOKEN Token)
 *
 *
 */
-int LalrGetTerminalId(TOKEN Token)
+int
+LalrGetTerminalId(TOKEN Token)
 {
+    for (int i = 0; i < LALR_TERMINAL_COUNT; i++)
+    {
+        if (Token->Type == HEX)
+        {
+            if (!strcmp("_hex", LalrTerminalMap[i]))
+                return i;
+        }
+        else if (Token->Type == ID)
+        {
+            if (!strcmp("_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == REGISTER)
+        {
+            if (!strcmp("_register", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == PSEUDO_REGISTER)
+        {
+            if (!strcmp("_pseudo_register", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == DECIMAL)
+        {
+            if (!strcmp("_decimal", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == BINARY)
+        {
+            if (!strcmp("_binary", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == OCTAL)
+        {
+            if (!strcmp("_octal", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == STRING)
+        {
+            if (!strcmp("_string", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
 
-	for (int i = 0; i < LALR_TERMINAL_COUNT; i++)
-	{
-		if (Token->Type == HEX)
-		{
-			if (!strcmp("_hex", LalrTerminalMap[i]))
-				return i;
-		}
-		else if (Token->Type == ID)
-		{
-			if (!strcmp("_id", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == REGISTER)
-		{
-			if (!strcmp("_register", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == PSEUDO_REGISTER)
-		{
-			if (!strcmp("_pseudo_register", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == DECIMAL)
-		{
-			if (!strcmp("_decimal", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == BINARY)
-		{
-			if (!strcmp("_binary", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == OCTAL)
-		{
-			if (!strcmp("_octal", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-		else if (Token->Type == STRING)
-		{
-			if (!strcmp("_string", LalrTerminalMap[i]))
-			{
-				return i;
-			}
-		}
-
-		else // Keyword
-		{
-			if (!strcmp(Token->Value, LalrTerminalMap[i]))
-				return i;
-		}
-	}
-	return -1;
-
+        else // Keyword
+        {
+            if (!strcmp(Token->Value, LalrTerminalMap[i]))
+                return i;
+        }
+    }
+    return -1;
 }
 
 /**
@@ -727,74 +727,103 @@ int LalrGetTerminalId(TOKEN Token)
 *
 *
 */
-char IsEqual(const TOKEN Token1, const TOKEN Token2)
+char
+IsEqual(const TOKEN Token1, const TOKEN Token2)
 {
-	if (Token1->Type == Token2->Type)
-	{
-		if (Token1->Type == SPECIAL_TOKEN)
-		{
-			if (!strcmp(Token1->Value, Token2->Value))
-			{
-				return 1;
-			}
-		}
-		else
-		{
-			return 1;
-		}
-	}
-	return 0;
+    if (Token1->Type == Token2->Type)
+    {
+        if (Token1->Type == SPECIAL_TOKEN)
+        {
+            if (!strcmp(Token1->Value, Token2->Value))
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            return 1;
+        }
+    }
+    return 0;
 }
 
-
-void SetType(unsigned long long* Val, unsigned char Type)
+void
+SetType(unsigned long long * Val, unsigned char Type)
 {
-	*Val = (unsigned long long int)Type;
+    *Val = (unsigned long long int)Type;
 }
 
-unsigned long long int DecimalToInt(char* str)
+unsigned long long int
+DecimalToInt(char * str)
 {
-	unsigned long long int acc = 0;
-	for (int i = 0; i < strlen(str); i++)
-	{
-		acc *= 10;
-		acc += (str[i] - '0');
-	}
-	return acc;
+    unsigned long long int acc = 0;
+    for (int i = 0; i < strlen(str); i++)
+    {
+        acc *= 10;
+        acc += (str[i] - '0');
+    }
+    return acc;
 }
-unsigned long long int HexToInt(char* str)
-{
-	char temp;
-	unsigned long long int acc = 0;
-	for (int i = 0; i < strlen(str); i++)
-	{
-		acc <<= 4;
-		if (str[i] >= '0' && str[i] <= '9')
-		{
-			temp = str[i] - '0';
-		}
-		else if (str[i] >= 'a' && str[i] <= 'f')
-		{
-			temp = str[i] - 'a' + 10;
-		}
-		else
-		{
-			temp = str[i] - 'A' + 10;
-		}
-		acc += temp;
-	}
 
-	return acc;
-}
-unsigned long long int OctalToInt(char* str)
+unsigned long long int
+DecimalToSignedInt(char * str)
 {
-	unsigned long long int acc = 0;
-	for (int i = 0; i < strlen(str); i++)
-	{
-		acc <<= 3;
-		acc += (str[i] - '0');
-	}
-	return acc;
+    long long int acc = 0;
+    if (str[0] == '-')
+    {
+        for (int i = 1; i < strlen(str); i++)
+        {
+            acc *= 10;
+            acc += (str[i] - '0');
+        }
+        return -acc;
+    }
+    else
+    {
+        for (int i = 0; i < strlen(str); i++)
+        {
+            acc *= 10;
+            acc += (str[i] - '0');
+        }
+        return acc;
+    }
+}
+
+unsigned long long int
+HexToInt(char * str)
+{
+    char                   temp;
+    unsigned long long int acc = 0;
+    for (int i = 0; i < strlen(str); i++)
+    {
+        acc <<= 4;
+        if (str[i] >= '0' && str[i] <= '9')
+        {
+            temp = str[i] - '0';
+        }
+        else if (str[i] >= 'a' && str[i] <= 'f')
+        {
+            temp = str[i] - 'a' + 10;
+        }
+        else
+        {
+            temp = str[i] - 'A' + 10;
+        }
+        acc += temp;
+    }
+
+    return acc;
+}
+unsigned long long int
+OctalToInt(char * str)
+{
+    unsigned long long int acc = 0;
+    for (int i = 0; i < strlen(str); i++)
+    {
+        acc <<= 3;
+        acc += (str[i] - '0');
+    }
+    return acc;
 }
 unsigned long long int
 BinaryToInt(char * str)

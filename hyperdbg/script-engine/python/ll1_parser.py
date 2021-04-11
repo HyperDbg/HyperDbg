@@ -107,7 +107,7 @@ class LL1Parser:
         self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
-        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 1)+ "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + 3)+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
@@ -292,7 +292,7 @@ class LL1Parser:
                     y = input()
 
                 elif Top == "@JZCMPL":
-                    print("JZCMPL:")
+                    print("JZCOMPELETED:")
                     print(Stack)
                     print(Tokens)
                     print("\n\n")
@@ -369,6 +369,8 @@ class LL1Parser:
                 elif X[0] == "@":
                     if X[1] == ".":
                         MapKeywordIdx2 = Idx
+                   
+
                 Idx += 1
 
             if not HasMapKeyword:
@@ -421,7 +423,15 @@ class LL1Parser:
             self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
             Counter += 1
         self.CommonHeaderFile.write("#define "+ "FUNC_MOV " + str(Counter) + "\n")
-        self.CommonHeaderFile.write("#define "+ "FUNC_VARGSTART " + str(Counter+1) + "\n\n")
+        Counter += 1
+
+        self.CommonHeaderFile.write("#define "+ "FUNC_JZCOMPLETED " + str(Counter) + "\n")
+        Counter += 1
+
+        self.CommonHeaderFile.write("#define "+ "FUNC_JZ " + str(Counter) + "\n")
+        Counter += 1
+
+        self.CommonHeaderFile.write("#define "+ "FUNC_VARGSTART " + str(Counter) + "\n\n")
 
 
 
@@ -434,7 +444,9 @@ class LL1Parser:
         for X in self.keywordList:
                 self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
-        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "}\n")
+        self.SourceFile.write("{\"@" + "MOV" + "\", "+ "FUNC_MOV"  + "},\n")
+        self.SourceFile.write("{\"@" + "JZCOMPLETED" + "\", "+ "FUNC_JZCOMPLETED"  + "},\n")
+        self.SourceFile.write("{\"@" + "JZ" + "\", "+ "FUNC_JZ"  + "}\n")
         
 
         self.SourceFile.write("};\n")

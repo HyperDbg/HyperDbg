@@ -1441,7 +1441,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return GetGuestIdtr();
+        return GetGuestIdtr();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1788,7 +1788,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    SetGuestIdtr(Value);
+        SetGuestIdtr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -1802,7 +1802,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    SetGuestGdtr(Value);
+        SetGuestGdtr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2458,6 +2458,26 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
             ActionDetail.Tag,
             ActionDetail.ImmediatelySendTheResults,
             SrcVal0);
+        return HasError;
+
+    case (FUNC_JZ):
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        if (SrcVal0 == 0)
+        {
+            *Indx = SrcVal1;
+        }
+
         return HasError;
 
     case FUNC_PRINTF:
