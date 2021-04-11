@@ -142,7 +142,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                     //
                     // Unkonwn parameter
                     //
-                    ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                     if (!SplittedCommand.at(0).compare("!syscall"))
                     {
                         CommandSyscallHelp();
@@ -163,7 +163,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 if (!SplittedCommand.at(0).compare("!syscall"))
                 {
                     CommandSyscallHelp();

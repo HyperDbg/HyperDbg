@@ -96,6 +96,7 @@
     <ClCompile Include="hyperdbg-test.cpp" />
     <ClCompile Include="namedpipe.cpp" />
     <ClCompile Include="test-cases.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="namedpipe.h" />

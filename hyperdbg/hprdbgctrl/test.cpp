@@ -132,7 +132,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
 
     else if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }
@@ -175,11 +175,11 @@ CommandTest(vector<string> SplittedCommand, string Command)
     //
     if (CommandTestPerformTest(KernelSideTestInformationRequestArray, ReturnedLength))
     {
-        ShowMessages("All the test were successful :)\n");
+        ShowMessages("all the tests were successful :)\n");
     }
     else
     {
-        ShowMessages("At least one tests failed :(\n");
+        ShowMessages("all or at least one of the tests failed :(\n");
     }
 
     //

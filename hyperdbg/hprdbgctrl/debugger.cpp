@@ -1111,7 +1111,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
 
         if (!IsHexNotation(Temp))
         {
-            ShowMessages("Please enter condition code in a hex notation.\n");
+            ShowMessages("please enter condition code in a hex notation.\n");
             return FALSE;
         }
         AppendedFinalBuffer.append(Temp);
@@ -1430,24 +1430,6 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     ULONG                                 ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_REG_BUFFER  ReturnedBuffer = {0};
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER TempRegResult;
-
-    //
-    // Test
-    //
-
-    /*
-  ShowMessages("Tag : %llx\n", Event->Tag);
-  ShowMessages("Command String : %s\n", Event->CommandStringBuffer);
-  ShowMessages("CoreId : 0x%x\n", Event->CoreId);
-  ShowMessages("Pid : 0x%x\n", Event->ProcessId);
-  ShowMessages("Optional Param 1 : %llx\n", Event->OptionalParam1);
-  ShowMessages("Optional Param 2 : %llx\n", Event->OptionalParam2);
-  ShowMessages("Optional Param 3 : %llx\n", Event->OptionalParam3);
-  ShowMessages("Optional Param 4 : %llx\n", Event->OptionalParam4);
-  ShowMessages("Count of Actions : %d\n", Event->CountOfActions);
-  ShowMessages("Event Type : %d\n", Event->EventType);
-  return TRUE;
-  */
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -1982,7 +1964,7 @@ InterpretGeneralEventAndActionsFields(
         //
         if (HasScriptSyntaxError)
         {
-            ShowMessages("Syntax error in parsing script.\n\n");
+            ShowMessages("syntax error in parsing script\n\n");
             return FALSE;
         }
 

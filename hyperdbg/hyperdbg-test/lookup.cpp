@@ -28,6 +28,7 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     char                                          SuccessMessage[] = "success";
     vector<DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION> LookupTable;
     vector<string>                                TestCases;
+    int                                           IndexOfTestCasesVector = 0;
 
     printf("start testing event commands...\n");
 
@@ -55,38 +56,45 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     //
     // Replace tags with addresses
     //
+
     for (auto CurrentCase : TestCases)
     {
         //
         // Template instantiations for
         // extracting the matching pattern
         //
-        smatch match;
+        smatch Match;
         regex  r("\\[(.*?)\\]");
-        string subject = CurrentCase;
-        int    i       = 1;
+        string Subject = CurrentCase;
 
-        while (regex_search(subject, match, r))
+        int i = 1;
+        while (regex_search(Subject, Match, r))
         {
-            printf("Matched string : %s\n", match.str(0).c_str());
+            for (auto item : LookupTable)
+            {
+                string Temp = ConvertToString(item.Tag);
+                Temp        = "[" + Temp + "]";
 
-            i++;
+                if (!Temp.compare(Match.str(0)))
+                {
+                    StringReplace(TestCases[IndexOfTestCasesVector], Temp, Uint64ToString(item.Value));
+                }
+            }
 
             //
             // suffix to find the rest of the string
             //
-            subject = match.suffix().str();
+            Subject = Match.suffix().str();
+            i++;
         }
-        printf("\n\n");
+        printf("\n");
+        IndexOfTestCasesVector++;
     }
 
-    /*
-    for (auto item : LookupTable)
+    for (auto NewCase : TestCases)
     {
-        printf("Address : %llx\n", item.Value);
-        printf("Tag : %s\n", item.Tag);
+        printf("new cases : %s\n", NewCase.c_str());
     }
-    */
 
     _getch();
 

@@ -96,7 +96,7 @@ CommandException(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandExceptionHelp();
                 return;
             }
@@ -111,8 +111,8 @@ CommandException(vector<string> SplittedCommand, string Command)
                     // Entry is invalid (this command is designed for just first 32
                     // entries)
                     //
-                    ShowMessages("The entry should be between 0x0 to 0x1f or first 32 "
-                                 "entries.'\n\n");
+                    ShowMessages("the entry should be between 0x0 to 0x1f or first 32 "
+                                 "entries'\n\n");
                     CommandExceptionHelp();
                     return;
                 }
@@ -124,7 +124,7 @@ CommandException(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandExceptionHelp();
             return;
         }

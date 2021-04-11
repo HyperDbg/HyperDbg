@@ -57,7 +57,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
-            ShowMessages("You're not connected to any instance of HyperDbg, did you "
+            ShowMessages("you're not connected to any instance of HyperDbg, did you "
                          "use '.connect'? \n");
             return;
         }
@@ -73,7 +73,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
                 //
                 if (HyperdbgStopDriver())
                 {
-                    ShowMessages("Failed to stop driver\n");
+                    ShowMessages("failed to stop driver\n");
                 }
 
                 //
@@ -81,7 +81,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
                 //
                 if (HyperdbgUninstallDriver())
                 {
-                    ShowMessages("Failed to uninstall the driver\n");
+                    ShowMessages("failed to uninstall the driver\n");
                 }
             }
         }

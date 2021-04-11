@@ -161,7 +161,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n",
+                ShowMessages("unknown parameter '%s'\n\n",
                              SplittedCommand.at(3).c_str());
                 CommandDebugHelp();
                 return;
@@ -220,7 +220,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", SplittedCommand.at(2).c_str());
+            ShowMessages("unknown parameter '%s'\n\n", SplittedCommand.at(2).c_str());
             CommandDebugHelp();
             return;
         }
@@ -248,7 +248,7 @@ CommandDebug(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n",
+                ShowMessages("unknown parameter '%s'\n\n",
                              SplittedCommand.at(3).c_str());
                 CommandDebugHelp();
                 return;

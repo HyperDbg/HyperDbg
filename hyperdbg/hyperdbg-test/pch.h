@@ -20,6 +20,8 @@
 #include <conio.h>
 #include <vector>
 #include <regex>
+#include <sstream>
+#include <iomanip>
 
 //
 // Program Defined Headers

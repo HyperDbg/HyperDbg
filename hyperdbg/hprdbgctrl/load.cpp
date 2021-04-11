@@ -81,6 +81,10 @@ CommandLoadVmmModule()
     }
 
     //
+    // Vmm module (Hypervisor) is loaded
+    //
+
+    //
     // We wait for the first message from the kernel debugger to continue
     //
     WaitForSingleObject(
@@ -97,7 +101,7 @@ CommandLoadVmmModule()
     //
     g_IsDebuggerModulesLoaded = TRUE;
 
-    ShowMessages("HyperDbg hypervisor is loaded successfully !\n");
+    ShowMessages("hyperdbg is loaded !\n");
 
     return TRUE;
 }
@@ -121,7 +125,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
 
     if (!g_IsConnectedToHyperDbgLocally)
     {
-        ShowMessages("You're not connected to any instance of HyperDbg, did you "
+        ShowMessages("you're not connected to any instance of HyperDbg, did you "
                      "use '.connect'? \n");
         return;
     }
@@ -136,7 +140,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         if (g_DeviceHandle)
         {
-            ShowMessages("Handle of driver found, if you use 'load' before, please "
+            ShowMessages("handle of driver found, if you use 'load' before, please "
                          "first unload it then call 'unload'.\n");
             return;
         }
@@ -144,11 +148,11 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // Load VMM Module
         //
-        ShowMessages("Try to install and load the VMM driver...\n");
+        ShowMessages("try to install and load the vmm driver...\n");
 
         if (!CommandLoadVmmModule())
         {
-            ShowMessages("Failed to install or load the driver\n");
+            ShowMessages("failed to install or load the driver\n");
             return;
         }
     }

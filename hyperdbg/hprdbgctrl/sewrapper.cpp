@@ -90,7 +90,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
 
                 ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
-                ShowMessages("Invalid returning address for operator: %s",
+                ShowMessages("invalid returning address for operator: %s",
                              NameOfOperator);
 
                 break;

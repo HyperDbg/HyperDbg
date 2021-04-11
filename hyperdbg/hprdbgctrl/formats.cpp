@@ -57,7 +57,7 @@ CommandFormatsShowResults(UINT64 U64Value)
     //
     strftime(MY_TIME, sizeof(MY_TIME), "%x - %I:%M%p", tmp);
 
-    ShowMessages("Evaluate expression:\n");
+    ShowMessages("evaluate expression:\n");
     ShowMessages("Hex :        %s\n", SeparateTo64BitValue(U64Value).c_str());
     ShowMessages("Decimal :    %d\n", U64Value);
     ShowMessages("Octal :      %o\n", U64Value);

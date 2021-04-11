@@ -94,7 +94,7 @@ CommandIoout(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandIooutHelp();
                 return;
             }
@@ -108,7 +108,7 @@ CommandIoout(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandIooutHelp();
             return;
         }

@@ -29,7 +29,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("u2  Disassembler at the target address (x86) \n");
     ShowMessages("\n If you want to read physical memory then add '!' at the "
                  "start of the command\n");
-    ShowMessages("You can also disassemble physical memory using '!u'\n");
+    ShowMessages("you can also disassemble physical memory using '!u'\n");
 
     ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                  "[process id (hex)]\n");
@@ -80,7 +80,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         {
             if (!ConvertStringToUInt32(Section, &Pid))
             {
-                ShowMessages("Err, you should enter a valid proc id\n\n");
+                ShowMessages("err, you should enter a valid proc id\n\n");
                 return;
             }
             IsNextProcessId = FALSE;
@@ -91,7 +91,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         {
             if (!ConvertStringToUInt32(Section, &Length))
             {
-                ShowMessages("Err, you should enter a valid length\n\n");
+                ShowMessages("err, you should enter a valid length\n\n");
                 return;
             }
             IsNextLength = FALSE;
@@ -121,7 +121,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
 
             if (!ConvertStringToUInt64(TempAddress, &TargetAddress))
             {
-                ShowMessages("Err, you should enter a valid address\n\n");
+                ShowMessages("err, you should enter a valid address\n\n");
                 return;
             }
         }
@@ -130,7 +130,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
             //
             // User inserts two address
             //
-            ShowMessages("Err, incorrect use of '%s' command\n\n",
+            ShowMessages("err, incorrect use of '%s' command\n\n",
                          FirstCommand.c_str());
             CommandReadMemoryAndDisassemblerHelp();
 
@@ -142,7 +142,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         //
         // User inserts two address
         //
-        ShowMessages("Err, Please enter a valid address.\n\n");
+        ShowMessages("err, Please enter a valid address.\n\n");
 
         return;
     }

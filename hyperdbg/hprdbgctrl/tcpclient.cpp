@@ -33,7 +33,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0)
     {
-        ShowMessages("WSAStartup failed with error: %d\n", iResult);
+        ShowMessages("err, WSAStartup failed with (%d)\n", iResult);
         return 1;
     }
 
@@ -86,7 +86,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
 
     if (ConnectSocket == INVALID_SOCKET)
     {
-        ShowMessages("Unable to connect to server!\n");
+        ShowMessages("unable to connect to server\n");
         WSACleanup();
         return 1;
     }
@@ -180,7 +180,7 @@ CommunicationClientReceiveMessage(SOCKET ConnectSocket, char * recvbuf, int recv
     if (iResult > 0)
     {
         /*
-    ShowMessages("Bytes received: %d\n", iResult);
+    ShowMessages("bytes received: %d\n", iResult);
     */
     }
     else if (iResult == 0)
