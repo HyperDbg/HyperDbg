@@ -34,7 +34,7 @@ CommandEventsHelp()
     ShowMessages("e : enable\n");
     ShowMessages("d : disable\n");
     ShowMessages("c : clear\n");
-    ShowMessages("Note : If you specify 'all' then [e|d|c] will be applied to "
+    ShowMessages("note : If you specify 'all' then [e|d|c] will be applied to "
                  "all of the events.\n\n");
 
     ShowMessages("\te.g : events \n");
@@ -413,7 +413,7 @@ CommandEventsHandleModifiedEvent(
         {
             if (!CommandEventEnableEvent(Tag))
             {
-                ShowMessages("error, the event was successfully, "
+                ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
                              "can't apply it to the user-mode structures.\n");
             }
@@ -423,7 +423,7 @@ CommandEventsHandleModifiedEvent(
         {
             if (!CommandEventDisableEvent(Tag))
             {
-                ShowMessages("error, the event was successfully, "
+                ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
                              "can't apply it to the user-mode structures.\n");
             }
@@ -466,7 +466,7 @@ CommandEventsHandleModifiedEvent(
         {
             if (!CommandEventClearEvent(Tag))
             {
-                ShowMessages("error, the event was successfully, "
+                ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
                              "can't apply it to the user-mode structures.\n");
             }
@@ -514,7 +514,7 @@ CommandEventsHandleModifiedEvent(
         else
         {
             ShowMessages(
-                "error, the event was successfully, (enabled|disabled|cleared) but "
+                "err the event was successfully, (enabled|disabled|cleared) but "
                 "can't apply it to the user-mode structures.\n");
         }
     }
@@ -588,7 +588,7 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
         if (!g_DeviceHandle)
         {
             ShowMessages(
-                "Handle not found, probably the driver is not loaded. Did you "
+                "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
             return FALSE;
         }

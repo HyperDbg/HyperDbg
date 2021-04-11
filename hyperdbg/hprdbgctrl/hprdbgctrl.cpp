@@ -153,12 +153,12 @@ ReadIrpBasedBuffer()
         ErrorNum = GetLastError();
         if (ErrorNum == 5)
         {
-            ShowMessages("Error: Access denied! Are you sure you have administrator "
+            ShowMessages("err, access denied! are you sure you have administrator "
                          "rights?\n");
         }
         else
         {
-            ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
+            ShowMessages("err, CreateFile failed with (0x%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;
@@ -211,7 +211,7 @@ ReadIrpBasedBuffer()
                     continue;
                 }
 
-                /*
+                /*  
         ShowMessages("========================= Kernel Mode (Buffer) "
                      "=========================\n");
                      */
@@ -220,8 +220,8 @@ ReadIrpBasedBuffer()
                 memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
                 /*
-        ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
-        ShowMessages("Operation Code : 0x%x \n", OperationCode);
+        ShowMessages("returned Length : 0x%x \n", ReturnedLength);
+        ShowMessages(operation Code : 0x%x \n", OperationCode);
         */
 
                 switch (OperationCode)
@@ -229,28 +229,28 @@ ReadIrpBasedBuffer()
                 case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
 
                     /*
-          ShowMessages(
-              "A buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-              */
+                    ShowMessages(
+                    "a buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
+                    */
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     break;
                 case OPERATION_LOG_INFO_MESSAGE:
 
                     /*
-           ShowMessages("Information log (OPERATION_LOG_INFO_MESSAGE) :\n");
-           */
+                    ShowMessages("information log (OPERATION_LOG_INFO_MESSAGE) :\n");
+                    */
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     break;
                 case OPERATION_LOG_ERROR_MESSAGE:
                     /*
-        ShowMessages("Error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
-        */
+                    ShowMessages("error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
+                    */
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     break;
                 case OPERATION_LOG_WARNING_MESSAGE:
                     /*
-        ShowMessages("Warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
-        */
+                    ShowMessages("warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
+                    */
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
                     break;
 
@@ -302,8 +302,8 @@ ReadIrpBasedBuffer()
 
                 default:
                     /*
-        ShowMessages("Message From Debugger :\n");
-        */
+                    ShowMessages("message From Debugger :\n");
+                    */
 
                     //
                     // Set output source to not found
@@ -423,7 +423,7 @@ HyperdbgInstallVmmDriver()
 
     if (!ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
-        ShowMessages("Unable to install driver\n");
+        ShowMessages("unable to install driver\n");
 
         //
         // Error - remove driver.
@@ -490,33 +490,33 @@ HyperdbgLoadVmm()
 
     if (g_DeviceHandle)
     {
-        ShowMessages("Handle of driver found, if you use 'load' before, please "
+        ShowMessages("handle of driver found, if you use 'load' before, please "
                      "first unload it then call 'unload'\n");
         return 1;
     }
 
     CpuID = ReadVendorString();
 
-    ShowMessages("Current processor vendor is : %s\n", CpuID.c_str());
+    ShowMessages("current processor vendor is : %s\n", CpuID.c_str());
 
     if (CpuID == "GenuineIntel")
     {
-        ShowMessages("The Processor virtualization technology is VT-x\n");
+        ShowMessages("virtualization technology is vt-x\n");
     }
     else
     {
-        ShowMessages("This program is not designed to run in a non-VT-x "
+        ShowMessages("this program is not designed to run in a non-VT-x "
                      "environemnt !\n");
         return 1;
     }
 
     if (VmxSupportDetection())
     {
-        ShowMessages("VMX Operation is supported by your processor\n");
+        ShowMessages("vmx operation is supported by your processor\n");
     }
     else
     {
-        ShowMessages("VMX Operation is not supported by your processor\n");
+        ShowMessages("vmx operation is not supported by your processor\n");
         return 1;
     }
 
@@ -543,12 +543,12 @@ HyperdbgLoadVmm()
         ErrorNum = GetLastError();
         if (ErrorNum == 5)
         {
-            ShowMessages("Error: Access denied! Are you sure you have administrator "
+            ShowMessages("err, Access denied! Are you sure you have administrator "
                          "rights?\n");
         }
         else
         {
-            ShowMessages("CreateFile failed with error: 0x%x\n", ErrorNum);
+            ShowMessages("err, CreateFile failed (0x%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;
@@ -565,7 +565,7 @@ HyperdbgLoadVmm()
 
     if (Thread)
     {
-        // ShowMessages("Thread Created successfully\n");
+        // ShowMessages("thread Created successfully\n");
     }
 
 #endif
@@ -575,7 +575,7 @@ HyperdbgLoadVmm()
     //
     if (!SetConsoleCtrlHandler(BreakController, TRUE))
     {
-        ShowMessages("Error in registering CTRL+C and CTRL+BREAK Signals "
+        ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
                      "handler\n");
         return 1;
     }
@@ -596,12 +596,12 @@ HyperdbgUnload()
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not "
+        ShowMessages("err, handle not found, probably the driver is not "
                      "initialized.\n");
         return 1;
     }
 
-    ShowMessages("Start terminating VMX...\n");
+    ShowMessages("start terminating vmx...\n");
 
     //
     // Send IOCTL to mark complete all IRP Pending
@@ -671,5 +671,5 @@ HyperdbgUnload()
     //
     g_DeviceHandle = NULL;
 
-    ShowMessages("You're not on HyperDbg's hypervisor anymore !\n");
+    ShowMessages("you're not on HyperDbg's hypervisor anymore !\n");
 }

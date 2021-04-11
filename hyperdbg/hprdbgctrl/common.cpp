@@ -388,7 +388,7 @@ SetPrivilege(HANDLE  hToken,          // access token handle
                               lpszPrivilege, // privilege to lookup
                               &luid))        // receives LUID of privilege
     {
-        ShowMessages("LookupPrivilegeValue error: %u\n", GetLastError());
+        ShowMessages("err, in LookupPrivilegeValue (%u)\n", GetLastError());
         return FALSE;
     }
 
@@ -404,13 +404,13 @@ SetPrivilege(HANDLE  hToken,          // access token handle
     //
     if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL))
     {
-        ShowMessages("AdjustTokenPrivileges error: %u\n", GetLastError());
+        ShowMessages("err, in AdjustTokenPrivileges (%u)\n", GetLastError());
         return FALSE;
     }
 
     if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
     {
-        ShowMessages("The token does not have the specified privilege. \n");
+        ShowMessages("err, the token does not have the specified privilege. \n");
         return FALSE;
     }
 

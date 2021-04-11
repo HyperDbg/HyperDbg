@@ -1390,7 +1390,7 @@ KdTheRemoteSystemIsRunning()
     //
     // Indicate that the debuggee is running
     //
-    ShowMessages("Debuggee is running...\n");
+    ShowMessages("debuggee is running...\n");
 
     //
     // Wait until the users press CTRL+C
@@ -1423,7 +1423,7 @@ StartAgain:
     //
     // Show an indication to connect the debugger
     //
-    ShowMessages("Waiting for debuggee to connect ...\n");
+    ShowMessages("waiting for debuggee to connect ...\n");
 
     if (!IsNamedPipe)
     {
@@ -1690,7 +1690,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             // Unable to create handle
             //
-            ShowMessages("Is virtual machine running ?!\n");
+            ShowMessages("is virtual machine running?\n");
             return FALSE;
         }
     }
@@ -1712,7 +1712,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         if (!CommandLoadVmmModule())
         {
-            ShowMessages("Failed to install or load the driver\n");
+            ShowMessages("failed to install or load the driver\n");
             return FALSE;
         }
 
@@ -1723,7 +1723,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!g_DeviceHandle)
         {
             ShowMessages(
-                "Handle not found, probably the driver is not loaded. Did you "
+                "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
             return FALSE;
         }
@@ -1788,7 +1788,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (DebuggeeRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
         {
-            ShowMessages("The operation was successful\n");
+            ShowMessages("the operation was successful\n");
         }
         else
         {
@@ -2088,7 +2088,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }
@@ -2147,7 +2147,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }
@@ -2208,7 +2208,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }

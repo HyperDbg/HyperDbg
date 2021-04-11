@@ -81,13 +81,13 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
             // Previous instance of the service is not fully deleted so sleep
             // and try again.
             //
-            ShowMessages("Previous instance of the service is not fully deleted. Try "
+            ShowMessages("previous instance of the service is not fully deleted. Try "
                          "again...\n");
             return FALSE;
         }
         else
         {
-            ShowMessages("CreateService failed!  Error = %d \n", err);
+            ShowMessages("err, CreateService failed!  Error = %d \n", err);
 
             //
             // Indicate an error.
@@ -129,7 +129,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
     //
     if (!DriverName || !ServiceName)
     {
-        ShowMessages("Invalid Driver or Service provided to ManageDriver() \n");
+        ShowMessages("invalid Driver or Service provided to ManageDriver() \n");
 
         return FALSE;
     }
@@ -144,7 +144,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 
     if (!schSCManager)
     {
-        ShowMessages("Open SC Manager failed! Error = %d \n", GetLastError());
+        ShowMessages("err, OpenSCManager failed (%d)\n", GetLastError());
 
         return FALSE;
     }
@@ -207,7 +207,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 
     default:
 
-        ShowMessages("Unknown ManageDriver() function. \n");
+        ShowMessages("unknown ManageDriver() function. \n");
 
         rCode = FALSE;
 
@@ -245,7 +245,7 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
 
         //
         // Indicate error
@@ -265,7 +265,7 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("DeleteService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, DeleteService failed (%d)\n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle
@@ -306,7 +306,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
 
         //
         // Indicate failure
@@ -344,7 +344,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         }
         else
         {
-            ShowMessages("StartService failure! Error = %d \n", err);
+            ShowMessages("err, StartService failure (%d)\n", err);
 
             //
             // Indicate failure.  Fall through to properly close the service handle
@@ -385,7 +385,7 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("OpenService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
 
         return FALSE;
     }
@@ -402,7 +402,7 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("ControlService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, ControlService failed!  Error = %d \n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle.
@@ -449,7 +449,7 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
 
   if (driverLocLen == 0) {
 
-    ShowMessages("GetCurrentDirectory failed!  Error = %d \n", GetLastError());
+    ShowMessages("err, GetCurrentDirectory failed (%d)\n", GetLastError());
 
     return FALSE;
   }

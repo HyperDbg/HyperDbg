@@ -47,7 +47,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0)
     {
-        ShowMessages("WSAStartup failed with error: %d\n", iResult);
+        ShowMessages("err, WSAStartup failed with (%d)\n", iResult);
         return 1;
     }
 
@@ -63,7 +63,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = getaddrinfo(NULL, Port, &hints, &result);
     if (iResult != 0)
     {
-        ShowMessages("getaddrinfo failed with error: %d\n", iResult);
+        ShowMessages("err, getaddrinfo failed (%d)\n", iResult);
         WSACleanup();
         return 1;
     }
@@ -155,13 +155,13 @@ CommunicationServerReceiveMessage(SOCKET ClientSocket, char * recvbuf, int recvb
     if (iResult > 0)
     {
         //
-        // ShowMessages("Bytes received: %d\n", iResult);
+        // ShowMessages("bytes received: %d\n", iResult);
         //
     }
     else if (iResult == 0)
     {
         //
-        // ShowMessages("Connection closing...\n");
+        // ShowMessages("connection closing...\n");
         //
     }
     else

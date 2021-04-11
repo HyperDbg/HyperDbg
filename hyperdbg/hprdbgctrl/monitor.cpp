@@ -120,7 +120,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                     //
                     // Unkonwn parameter
                     //
-                    ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                     CommandMonitorHelp();
                     return;
                 }
@@ -133,7 +133,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                     //
                     // Unkonwn parameter
                     //
-                    ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                     CommandMonitorHelp();
                     return;
                 }
@@ -144,7 +144,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandMonitorHelp();
                 return;
             }
@@ -155,7 +155,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         //
         // 'from' is greater than 'to'
         //
-        ShowMessages("Please choose the 'from' value first, then choose the 'to' "
+        ShowMessages("please choose the 'from' value first, then choose the 'to' "
                      "value.\n");
         return;
     }

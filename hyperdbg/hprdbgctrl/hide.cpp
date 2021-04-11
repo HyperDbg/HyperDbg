@@ -36,7 +36,7 @@ CommandHideHelp()
                  "and anti-hypervisor methods.\n\n");
     ShowMessages(
         "syntax : \t!hide [pid|name] [process id (hex) | process name]\n");
-    ShowMessages("Note : \tprocess names are case sensitive and you can use "
+    ShowMessages("note : \tprocess names are case sensitive and you can use "
                  "this command multiple times.\n");
     ShowMessages("\t\te.g : !hide pid b60 \n");
     ShowMessages("\t\te.g : !hide name procexp.exe\n");
@@ -133,7 +133,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     if (!g_TransparentResultsMeasured || !g_CpuidAverage ||
         !g_CpuidStandardDeviation || !g_CpuidMedian)
     {
-        ShowMessages("The average, median and standard deviation is not measured. "
+        ShowMessages("the average, median and standard deviation is not measured. "
                      "Did you use '!measure' command?\n");
         return;
     }
@@ -143,7 +143,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     //
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }
@@ -255,18 +255,6 @@ CommandHide(vector<string> SplittedCommand, string Command)
         free(FinalRequestBuffer);
         return;
     }
-
-    /*
-  UINT64 RealTime = 0;
-  UINT64 RealCpuid = Randn(g_CpuidAverage, g_CpuidStandardDeviation);
-  for (size_t i = 0; i < 10; i++) {
-
-    RealTime = TransparentModeRdtscDiffVmexit();
-
-    ShowMessages("Time of VM-exit : %d\n", RealTime);
-    _getch();
-  }
-  */
 
     //
     // free the buffer

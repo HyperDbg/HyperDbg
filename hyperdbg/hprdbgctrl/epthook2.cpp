@@ -97,7 +97,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandEptHook2Help();
                 return;
             }
@@ -111,14 +111,14 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandEptHook2Help();
             return;
         }
     }
     if (OptionalParam1 == 0)
     {
-        ShowMessages("Please choose an address to put the hook on it.\n");
+        ShowMessages("please choose an address to put the hook on it.\n");
         return;
     }
 

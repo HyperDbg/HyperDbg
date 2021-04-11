@@ -305,8 +305,6 @@ ScriptEnginePseudoRegGetPeb()
     //
     PebPtr = (struct PEB *)BasicInfo.PebBaseAddress;
 
-    /* ShowMessages("PEB : %p\n", PebPtr); */
-
     return (UINT64)PebPtr;
 
 #endif // SCRIPT_ENGINE_USER_MODE
@@ -1441,7 +1439,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    return GetGuestIdtr();
+        return GetGuestIdtr();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1521,7 +1519,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("Error in reading regesiter");
+        ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
         break;
@@ -1561,7 +1559,7 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
         return ActionBuffer.Context;
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("Error in reading regesiter");
+        ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
         // TODO: Add all the register
@@ -1788,7 +1786,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    SetGuestIdtr(Value);
+        SetGuestIdtr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -1802,7 +1800,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    SetGuestGdtr(Value);
+        SetGuestGdtr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -1937,7 +1935,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
     if (Operator->Type != SYMBOL_SEMANTIC_RULE_TYPE)
     {
 #ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("Error:Expecting Operator Type.\n");
+        ShowMessages("err, expecting operator type\n");
         return HasError;
 #endif // SCRIPT_ENGINE_USER_MODE
     }
@@ -2390,11 +2388,11 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         if (Des->Type == SYMBOL_ID_TYPE)
         {
 #ifdef SCRIPT_ENGINE_USER_MODE
-            ShowMessages("Result is %llx\n", DesVal);
+            ShowMessages("result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-            LogInfo("Result is %llx\n", DesVal);
+            LogInfo("result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
         }
 

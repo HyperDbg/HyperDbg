@@ -311,7 +311,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     }
     else if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }

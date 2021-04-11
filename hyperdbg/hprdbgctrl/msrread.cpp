@@ -93,7 +93,7 @@ CommandMsrread(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandMsrreadHelp();
                 return;
             }
@@ -107,7 +107,7 @@ CommandMsrread(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandMsrreadHelp();
             return;
         }

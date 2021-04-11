@@ -92,7 +92,7 @@ CommandIoin(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandIoinHelp();
                 return;
             }
@@ -106,7 +106,7 @@ CommandIoin(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandIoinHelp();
             return;
         }

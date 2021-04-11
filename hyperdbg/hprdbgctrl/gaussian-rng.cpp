@@ -199,14 +199,14 @@ GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * Sta
     *MedianOfData            = (UINT64)DataMedian;
 
     //
-    // ShowMessages("Varience : %f\n", StandardDeviation);
-    // ShowMessages("Mean : %f\n", DataAverage);
-    // ShowMessages("Count of outliers : %d\n", CountOfOutliers);
+    // ShowMessages("varience : %f\n", StandardDeviation);
+    // ShowMessages("mean : %f\n", DataAverage);
+    // ShowMessages("count of outliers : %d\n", CountOfOutliers);
     //
     //
     // for (int i = 0; i < 10000; i++)
     // {
-    // 	ShowMessages("Final Random Time Stamp : %d\n", (int) Randn(DataAverage,
+    // 	ShowMessages("final Random Time Stamp : %d\n", (int) Randn(DataAverage,
     // StandardDeviation));
     // _getch();
     // }

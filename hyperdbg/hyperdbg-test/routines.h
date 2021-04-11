@@ -31,3 +31,16 @@ extern void inline AsmTest();
 
 VOID
 TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize);
+
+//////////////////////////////////////////////////
+//				General Functions               //
+//////////////////////////////////////////////////
+
+std::string
+Uint64ToString(UINT64 value);
+
+BOOLEAN
+StringReplace(std::string & str, const std::string & from, const std::string & to);
+
+std::string
+ConvertToString(char * Str);

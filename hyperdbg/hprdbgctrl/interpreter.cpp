@@ -134,7 +134,7 @@ HyperdbgInterpreter(const char * Command)
         }
         else
         {
-            ShowMessages("Incorrect use of '%s'\n", FirstCommand.c_str());
+            ShowMessages("incorrect use of '%s'\n", FirstCommand.c_str());
             CommandHelpHelp();
             return 0;
         }
@@ -150,7 +150,7 @@ HyperdbgInterpreter(const char * Command)
         //
         //  Command doesn't exist
         //
-        ShowMessages("Couldn't resolve error at '%s'\n", FirstCommand.c_str());
+        ShowMessages("err, couldn't resolve error at '%s'\n", FirstCommand.c_str());
     }
     else
     {

@@ -185,7 +185,7 @@ CommandAttachHelp()
     ShowMessages(".attach : attach to debug a user-mode process.\n\n");
     ShowMessages(
         "syntax : \t.attach pid [process id (hex)] tid [thread id (hex)]\n");
-    ShowMessages("Note : if you don't specify the thread id (id), then it shows "
+    ShowMessages("note : if you don't specify the thread id (id), then it shows "
                  "the list of active threads on the target process (it won't "
                  "attach to the target thread).\n");
     ShowMessages("\t\te.g : .attach pid b60 \n");
@@ -208,7 +208,7 @@ AttachToProcess(UINT32 TargetPid, UINT32 TargetTid)
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
 
-    ShowMessages("This command is not supported on this version.\n");
+    ShowMessages("this command is not supported on this version\n");
     return;
 
     //
@@ -216,7 +216,7 @@ AttachToProcess(UINT32 TargetPid, UINT32 TargetTid)
     //
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }

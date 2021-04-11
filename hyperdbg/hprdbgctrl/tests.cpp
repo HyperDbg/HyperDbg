@@ -45,7 +45,7 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
 
   if (driverLocLen == 0) {
 
-    ShowMessages("GetCurrentDirectory failed!  Error = %d \n", GetLastError());
+    ShowMessages("err, GetCurrentDirectory failed (%d)\n", GetLastError());
 
     return FALSE;
   }
@@ -287,7 +287,7 @@ CreateProcessAndOpenPipeConnection(PVOID   KernelInformation,
         }
         else
         {
-            ShowMessages("The process could not be started...\n");
+            ShowMessages("the process could not be started\n");
 
             free(BufferToRead);
             free(BufferToSend);

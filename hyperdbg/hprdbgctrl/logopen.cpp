@@ -91,7 +91,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
         time_t    t  = time(NULL);
         struct tm tm = *localtime(&t);
 
-        ShowMessages("Save commands and results into file : %s (%d-%02d-%02d "
+        ShowMessages("save commands and results into file : %s (%d-%02d-%02d "
                      "%02d:%02d:%02d)\n",
                      Command.c_str(),
                      tm.tm_year + 1900,

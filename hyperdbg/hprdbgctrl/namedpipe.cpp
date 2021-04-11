@@ -49,8 +49,7 @@ NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 Input
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        ShowMessages("Error occurred while "
-                     "creating the pipe: %d\n",
+        ShowMessages("err, rror occurred while creating the pipe (%d)\n",
                      GetLastError());
         return NULL;
     }
@@ -73,8 +72,7 @@ NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
 
     if (FALSE == bClientConnected)
     {
-        ShowMessages("Error occurred while connecting"
-                     " to the client: %d\n",
+        ShowMessages("err, occurred while connecting to the client (%d)\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -117,8 +115,7 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
 
     if ((!bResult) || (0 == cbBytes))
     {
-        ShowMessages("Error occurred while reading "
-                     "from the client: %d\n",
+        ShowMessages("err, occurred while reading from the client (%d)\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return 0;
@@ -149,8 +146,7 @@ NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
 
     if ((!bResult) || (BufferSize != cbBytes))
     {
-        ShowMessages("Error occurred while writing"
-                     " to the client: %d\n",
+        ShowMessages("err, occurred while writing to the client (%d)\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -206,8 +202,7 @@ NamedPipeClientCreatePipe(LPCSTR PipeName)
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        ShowMessages("Error occurred while connecting"
-                     " to the server: %d\n",
+        ShowMessages("err, occurred while connecting to the server (%d)\n",
                      GetLastError());
         //
         // One might want to check whether the server pipe is busy
@@ -254,8 +249,7 @@ NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName)
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        ShowMessages("Error occurred while connecting"
-                     " to the server: %d\n",
+        ShowMessages("err, occurred while connecting to the server: %d\n",
                      GetLastError());
         //
         // One might want to check whether the server pipe is busy
@@ -318,8 +312,7 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
 
     if ((!bResult) || (BufferSize != cbBytes))
     {
-        ShowMessages("Error occurred while writing"
-                     " to the server: %d\n",
+        ShowMessages("err, occurred while writing to the server (%d)\n",
                      GetLastError());
         CloseHandle(PipeHandle);
 
@@ -354,8 +347,7 @@ NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSi
 
     if ((!bResult) || (0 == cbBytes))
     {
-        ShowMessages("Error occurred while reading"
-                     " from the server: %d\n",
+        ShowMessages("err, occurred while reading from the server (%d)\n",
                      GetLastError());
         CloseHandle(PipeHandle);
         return NULL; // Error
@@ -430,7 +422,7 @@ NamedPipeServerExample()
         return 1;
     }
 
-    ShowMessages("Message from client : %s\n", BufferToRead);
+    ShowMessages("message from client : %s\n", BufferToRead);
 
     SentMessageResult = NamedPipeServerSendMessageToClient(
         PipeHandle,
@@ -501,7 +493,7 @@ NamedPipeClientExample()
         return 1;
     }
 
-    ShowMessages("Server sent the following message: %s\n", Buffer);
+    ShowMessages("server sent the following message: %s\n", Buffer);
 
     NamedPipeClientClosePipe(PipeHandle);
 

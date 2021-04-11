@@ -92,7 +92,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
                 //
                 // Unkonwn parameter
                 //
-                ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandInterruptHelp();
                 return;
             }
@@ -107,8 +107,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
                     // Entry is invalid (this command is designed for just entries
                     // between 32 to 255)
                     //
-                    ShowMessages("The entry should be between 0x20 to 0xFF or the "
-                                 "entries between 32 to 255.\n\n");
+                    ShowMessages("the entry should be between 0x20 to 0xFF or the "
+                                 "entries between 32 to 255\n\n");
                     CommandInterruptHelp();
                     return;
                 }
@@ -120,7 +120,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
             //
             // Unkonwn parameter
             //
-            ShowMessages("Unknown parameter '%s'\n\n", Section.c_str());
+            ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandInterruptHelp();
             return;
         }
@@ -133,7 +133,7 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
         // get all interrupts but it makes the system not resposive so it's wrong
         // to trigger event on all interrupts and we're not going to support it
         //
-        ShowMessages("Please specify an interrupt index to monitor, HyperDbg "
+        ShowMessages("please specify an interrupt index to monitor, HyperDbg "
                      "doesn't support to trigger events on all interrupts because "
                      "it's not reasonable and make the system unresponsive\n");
         CommandInterruptHelp();

@@ -40,7 +40,7 @@ DetachFromProcess()
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
-    ShowMessages("This command is not supported on this version.\n");
+    ShowMessages("this command is not supported on this version\n");
     return;
 
     //
@@ -57,7 +57,7 @@ DetachFromProcess()
     //
     if (!g_DeviceHandle)
     {
-        ShowMessages("Handle not found, probably the driver is not loaded. Did you "
+        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }

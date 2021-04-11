@@ -392,7 +392,7 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        ShowMessages("Invalid zydis version\n");
+        ShowMessages("invalid zydis version\n");
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
 
@@ -739,7 +739,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
 
     if (ZydisGetVersion() != ZYDIS_VERSION)
     {
-        ShowMessages("Invalid zydis version\n");
+        ShowMessages("invalid zydis version\n");
         return DEBUGGER_CONDITIONAL_JUMP_STATUS_ERROR;
     }
 
@@ -783,7 +783,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
             //
             // Log call
             //
-            // ShowMessages("Call length : %d\n", instruction.length);
+            // ShowMessages("call length : %d\n", instruction.length);
 
             //
             // Set the length
