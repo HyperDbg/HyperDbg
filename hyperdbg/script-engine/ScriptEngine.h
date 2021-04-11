@@ -51,15 +51,15 @@ ToSymbol(TOKEN Token);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
-void ScriptEngineBooleanExpresssionParse
-(
-	TOKEN_LIST InputTokens,
-	TOKEN_LIST MatchedStack, 
-	PSYMBOL_BUFFER CodeBuffer
-);
+char *
+ScriptEngineBooleanExpresssionParse(
+    TOKEN_LIST     InputTokens,
+    TOKEN_LIST     MatchedStack,
+    PSYMBOL_BUFFER CodeBuffer,
+    char *         str);
 
-
-void CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
+void
+CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
 
 unsigned long long int
 RegisterToInt(char * str);
@@ -75,5 +75,11 @@ HandleError(unsigned int ErrorType, char * str);
 
 int
 GetIdentifierVal(TOKEN Token);
+
+int
+LalrGetRhsSize(int RuleId);
+
+BOOL
+LalrIsOperandType(TOKEN Token);
 
 #endif

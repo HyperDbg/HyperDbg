@@ -64,7 +64,9 @@ typedef struct ACTION_BUFFER {
 #define FUNC_LOW 23
 #define FUNC_NOT 24
 #define FUNC_MOV 25
-#define FUNC_VARGSTART 26
+#define FUNC_JZCOMPLETED 26
+#define FUNC_JZ 27
+#define FUNC_VARGSTART 28
 
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,

@@ -88,5 +88,5 @@ if __name__ == "__main__":
     gen.Run()
 
 
-    Tokens = ['if', '(', '_id', '>', '_id', ')', '{', 'print', '(', '+', '_hex',  ')', ';', '}', '$']
+    Tokens = ['print', '(', '+', '_hex',  ')', ';', '$']
     gen.Parse(Tokens)

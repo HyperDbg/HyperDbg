@@ -13,11 +13,11 @@ S->BE
 BE->B1
 
 B1->B2 B1'
-B1'->&& B2 B1' @AND
+B1'->& B2 B1' @AND
 B1'->eps
 
 B2->B3 B2'
-B2'->|| B3 B2' @OR
+B2'->| B3 B2' @OR
 B2'->eps
 
 
@@ -42,4 +42,10 @@ E2'->eps
 
 
 E3->_id @PUSH
+# numbers 
+E3->_hex @PUSH
+E3->_decimal @PUSH
+E3->_octal @PUSH
+E3->_binary @PUSH
+
 E3->( EXP )

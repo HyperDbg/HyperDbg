@@ -156,6 +156,9 @@ unsigned long long int
 DecimalToInt(char * str);
 
 unsigned long long int
+DecimalToSignedInt(char * str);
+
+unsigned long long int
 HexToInt(char * str);
 
 unsigned long long int

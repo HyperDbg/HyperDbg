@@ -2458,6 +2458,26 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
             SrcVal0);
         return HasError;
 
+    case (FUNC_JZ):
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        if (SrcVal0 == 0)
+        {
+            *Indx = SrcVal1;
+        }
+
+        return HasError;
+
     case FUNC_PRINTF:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
