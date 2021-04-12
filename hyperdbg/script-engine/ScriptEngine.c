@@ -461,6 +461,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         Op0       = Pop(MatchedStack);
         Op0Symbol = ToSymbol(Op0);
         PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
 
         PSYMBOL JumpAddressSymbol = NewSymbol();
         JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -572,6 +573,48 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         JumpAddressSymbol = ToSymbol(JumpSemanticAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
+    }
+    else if (!strcmp(Operator->Value, "@START_OF_DO_WHILE"))
+    {
+        UINT64 CurrentPointer      = CodeBuffer->Pointer;
+        TOKEN  CurrentAddressToken = NewToken();
+        CurrentAddressToken->Type  = DECIMAL;
+
+        char * str = malloc(16);
+        sprintf(str, "%llu", CurrentPointer);
+        CurrentAddressToken->Value = str;
+        Push(MatchedStack, CurrentAddressToken);
+    }
+    else if (!strcmp(Operator->Value, "@END_OF_DO_WHILE"))
+    {
+        //
+        // Add jmp instruction to Code Buffer
+        //
+        PSYMBOL JumpInstruction = NewSymbol();
+        JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+        JumpInstruction->Value  = FUNC_JNZ;
+        PushSymbol(CodeBuffer, JumpInstruction);
+        RemoveSymbol(JumpInstruction);
+
+        //
+        // Add Op0 to CodeBuffer
+        //
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        //
+        // Add jmp address to Code buffer
+        //
+        TOKEN  JumpAddressToken = Pop(MatchedStack);
+        UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
+        printf("While start address : %x\n", JumpAddress);
+        PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+        FreeTemp(Op0);
     }
 
     else
