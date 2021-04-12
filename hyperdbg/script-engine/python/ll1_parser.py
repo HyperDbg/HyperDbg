@@ -416,7 +416,6 @@ class LL1Parser:
         self.NonTerminalList = list(self.NonTerminalSet)
         
         self.TerminalList = list(self.TerminalSet)
-        print(self.keywordList)
 
         
     def WriteSemanticMaps(self):

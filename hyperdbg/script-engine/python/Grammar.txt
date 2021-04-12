@@ -8,17 +8,17 @@
 
 .VarArgFunc1->printf 
 
-.Operators->or xor and asr asl add sub mul div mod gt lt egt elt eq neq
+.Operators->or xor and asr asl add sub mul div mod gt lt egt elt eq neq 
 
-.SemantiRules->jz jzcompleted vargstart mov
+.SemantiRules->start_of_if jmp jz jmp_to_end_and_jzcompleted end_of_if vargstart mov
 
 .Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 ds es fs gs cs ss rflags rip idtr gdtr cr0 cr2 cr3 cr4 cr8
 
 .PseudoRegisters->pid tid proc thread peb teb ip buffer context
  
-S->STATEMENT S'
-S'->STATEMENT S'
-S'->eps
+S->STATEMENT S
+S->eps
+
 STATEMENT->IF_STATEMENT
 STATEMENT->ASSIGN_STATEMENT ;
 STATEMENT->CALL_FUNC_STATEMENT ;
@@ -31,7 +31,14 @@ CALL_FUNC_STATEMENT->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
 VA->, EXPRESSION VA
 VA->eps
 
-IF_STATEMENT->if ( BOOLEAN_EXPRESSION ) @JZ { S @JZCOMPLETED }
+IF_STATEMENT->if @START_OF_IF ( BOOLEAN_EXPRESSION ) @JZ { S } ELSIF_STATEMENT ELSE_STATEMENT @END_OF_IF END_OF_IF
+ELSIF_STATEMENT->elsif @JMP_TO_END_AND_JZCOMPLETED ( BOOLEAN_EXPRESSION ) @JZ { S } @JMP_TO_END_AND_JZCOMPLETED ELSIF_STATEMENT
+ELSIF_STATEMENT->@JMP_TO_END_AND_JZCOMPLETED eps
+ELSE_STATEMENT->else { S } 
+ELSE_STATEMENT->eps
+END_OF_IF->eps
+
+
 BOOLEAN_EXPRESSION->eps
 
 

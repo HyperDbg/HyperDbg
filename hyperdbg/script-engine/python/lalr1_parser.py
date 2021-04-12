@@ -170,8 +170,6 @@ class LALR1Parser:
         
         self.SourceFile.write("const struct _TOKEN LalrSemanticRules[RULES_COUNT]= \n{\n")
         self.HeaderFile.write("extern const struct _TOKEN LalrSemanticRules[RULES_COUNT];\n") 
-        for rule in self.SemanticList:
-            print(rule)
 
         Counter = 0 
         for SemanticRule in self.SemanticList:
@@ -290,7 +288,6 @@ class LALR1Parser:
                 self.SemanticList.append(None)
             ii += 1
 
-        print(self.SemanticList)
         self.TerminalSet.add("$")
         
         self.NonTerminalList = list(self.NonTerminalSet)
