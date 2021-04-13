@@ -602,8 +602,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         TOKEN  JumpAddressToken = Pop(MatchedStack);
         UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
-        printf("While start address : %x\n", JumpAddress);
-        JumpAddressSymbol = ToSymbol(JumpSemanticAddressToken);
+        JumpAddressSymbol = ToSymbol(JumpAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
     }
@@ -773,10 +772,9 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 1);
         JumpAddressSymbol->Value = CurrentPointer;
 
-
-        // 
-        // Push start of inc_dec address to mathced stack 
-        // 
+        //
+        // Push start of inc_dec address to mathced stack
+        //
         Push(MatchedStack, JumpAddressToken);
     }
     else if (!strcmp(Operator->Value, "@END_OF_FOR"))
@@ -800,18 +798,14 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         TOKEN  JumpAddressToken = Pop(MatchedStack);
         UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
 
-
         PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
-
 
         //
         // Set jz address
         //
         PUINT64 CurrentPointer   = CodeBuffer->Pointer;
-        JumpAddressToken         = Pop(MatchedStack);
-        JumpAddress              = DecimalToInt(JumpAddressToken->Value);
         JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 3);
         JumpAddressSymbol->Value = CurrentPointer;
     }
