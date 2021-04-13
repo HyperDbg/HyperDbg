@@ -180,6 +180,10 @@ char
 IsType3Func(TOKEN Operator);
 
 char
-IsNaiveOperator(TOKEN Operator);
+IsTwoOperandOperator(TOKEN Operator);
+
+
+char
+IsOneOperandOperator(TOKEN Operator);
 
 #endif // !COMMON_H

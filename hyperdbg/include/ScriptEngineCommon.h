@@ -1976,6 +1976,36 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
 
+    case FUNC_INC:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        DesVal = SrcVal0 + 1;
+
+        Des = Src0;
+
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_DEC:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        DesVal = SrcVal0 - 1;
+
+        Des = Src0;
+
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
     case FUNC_XOR:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));

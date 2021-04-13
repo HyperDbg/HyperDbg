@@ -473,12 +473,26 @@ IsType2Func(TOKEN Operator)
 }
 
 char
-IsNaiveOperator(TOKEN Operator)
+IsTwoOperandOperator(TOKEN Operator)
 {
-    unsigned int n = OPERATORS_LIST_LENGTH;
+    unsigned int n = OPERATORS_TWO_OPERAND_LIST_LENGTH;
     for (int i = 0; i < n; i++)
     {
-        if (!strcmp(Operator->Value, OperatorsList[i]))
+        if (!strcmp(Operator->Value, OperatorsTwoOperandList[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+char
+IsOneOperandOperator(TOKEN Operator)
+{
+    unsigned int n = OPERATORS_ONE_OPERAND_LIST_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, OperatorsOneOperandList[i]))
         {
             return 1;
         }

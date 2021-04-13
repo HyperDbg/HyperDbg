@@ -46,13 +46,14 @@ class LL1Parser:
         self.MAXIMUM_RHS_LEN = 0
 
 
-        self.SPECIAL_TOKENS = ['%', '+', '-', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^"]
+        self.SPECIAL_TOKENS = ['%', '+', '++', '-', '--', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^"]
 
         # INVALID rule indicator
         self.INVALID = -99
 
         self.FunctionsDict = dict()
-        self.OperatorsList = []
+        self.OperatorsTwoOperand = []
+        self.OperatorsOneOperand = []
         self.RegistersList = []
         self.PseudoRegistersList = []
         self.keywordList = []
@@ -105,10 +106,11 @@ class LL1Parser:
         self.HeaderFile.write("#define START_VARIABLE " + "\"" + self.Start +"\"\n")
         self.HeaderFile.write("#define MAX_RHS_LEN "  + str(self.MAXIMUM_RHS_LEN) +"\n")
         self.HeaderFile.write("#define KEYWORD_LIST_LENGTH "  + str(len(self.keywordList)) +"\n")
-        self.HeaderFile.write("#define OPERATORS_LIST_LENGTH " + str(len(self.OperatorsList)) + "\n")
+        self.HeaderFile.write("#define OPERATORS_ONE_OPERAND_LIST_LENGTH " + str(len(self.OperatorsOneOperand)) + "\n")
+        self.HeaderFile.write("#define OPERATORS_TWO_OPERAND_LIST_LENGTH " + str(len(self.OperatorsTwoOperand)) + "\n")
         self.HeaderFile.write("#define REGISTER_MAP_LIST_LENGTH " + str(len(self.RegistersList))+ "\n")
         self.HeaderFile.write("#define PSEUDO_REGISTER_MAP_LIST_LENGTH " + str(len(self.PseudoRegistersList))+ "\n")
-        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsList) + len(self.SemantiRulesList))+ "\n")
+        self.HeaderFile.write("#define SEMANTIC_RULES_MAP_LIST_LENGTH " + str(len(self.keywordList) + len(self.OperatorsOneOperand) + len(self.OperatorsTwoOperand) + len(self.SemantiRulesList))+ "\n")
         for Key in self.FunctionsDict:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
@@ -342,8 +344,11 @@ class LL1Parser:
             elif Line[0] == ".":
                 L = Line.split("->")
                 Elements = L[1].split(" ")
-                if L[0][1:] == "Operators":
-                    self.OperatorsList += Elements
+                if L[0][1:] == "OperatorsTwoOperand":
+                    self.OperatorsTwoOperand += Elements
+                    continue
+                if L[0][1:] == "OperatorsOneOperand":
+                    self.OperatorsOneOperand += Elements
                     continue
                 elif L[0][1:] == "SemantiRules":
                     self.SemantiRulesList += Elements
@@ -421,7 +426,11 @@ class LL1Parser:
     def WriteSemanticMaps(self):
 
         Counter = 0                
-        for X in self.OperatorsList:
+        for X in self.OperatorsOneOperand:
+            self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
+            Counter += 1
+
+        for X in self.OperatorsTwoOperand:
             self.CommonHeaderFile.write("#define " + "FUNC_" + X.upper() + " " + str(Counter) + "\n")
             Counter += 1
         
@@ -438,7 +447,10 @@ class LL1Parser:
         self.SourceFile.write("const SYMBOL_MAP SemanticRulesMapList[]= {\n")
         self.HeaderFile.write("extern const SYMBOL_MAP SemanticRulesMapList[];\n")
 
-        for X in self.OperatorsList:
+        for X in self.OperatorsOneOperand:
+            self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
+
+        for X in self.OperatorsTwoOperand:
             self.SourceFile.write("{\"@" + X.upper() + "\", "+ "FUNC_" + X.upper()   + "},\n")
 
         for X in self.SemantiRulesList:
@@ -526,12 +538,24 @@ class LL1Parser:
         self.SourceFile.write("};\n")
 
     def WriteOperatorsList(self):
-        self.SourceFile.write("const char* OperatorsList[]= {\n")
-        self.HeaderFile.write("extern const char* OperatorsList[];\n")
+        self.SourceFile.write("const char* OperatorsTwoOperandList[]= {\n")
+        self.HeaderFile.write("extern const char* OperatorsTwoOperandList[];\n")
 
         Counter = 0
-        for X in self.OperatorsList:
-            if Counter == len(self.OperatorsList)-1:
+        for X in self.OperatorsTwoOperand:
+            if Counter == len(self.OperatorsTwoOperand)-1:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
+            else:
+                self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + ",\n")
+            Counter +=1
+        self.SourceFile.write("};\n")
+
+        self.SourceFile.write("const char* OperatorsOneOperandList[]= {\n")
+        self.HeaderFile.write("extern const char* OperatorsOneOperandList[];\n")
+
+        Counter = 0
+        for X in self.OperatorsOneOperand:
+            if Counter == len(self.OperatorsOneOperand)-1:
                 self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + "\n")
             else:
                 self.SourceFile.write("\"" + "@"+ X.upper() + "\"" + ",\n")

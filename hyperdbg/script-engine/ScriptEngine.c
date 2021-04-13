@@ -49,6 +49,7 @@ ScriptEngineParse(char * str)
     int  TerminalId;
     int  RuleId;
     char c;
+    BOOL WaitForWaitStatementBooleanExpression = FALSE;
 
     //
     // Initialize Scanner
@@ -106,26 +107,13 @@ ScriptEngineParse(char * str)
             {
                 LALRInputTokens = NewTokenList();
                 Push(LALRInputTokens, CurrentIn);
-
-                int OpenParanthesesCount = 1;
-                if (!strcmp(CurrentIn->Value, "("))
+                if (WaitForWaitStatementBooleanExpression)
                 {
-                    OpenParanthesesCount++;
-                }
-
-                while (1)
-                {
-                    CurrentIn = Scan(str, &c);
-
-                    if (!strcmp(CurrentIn->Value, "("))
+                    while (1)
                     {
-                        OpenParanthesesCount++;
-                        Push(LALRInputTokens, CurrentIn);
-                    }
-                    else if (!strcmp(CurrentIn->Value, ")"))
-                    {
-                        OpenParanthesesCount--;
-                        if (OpenParanthesesCount <= 0)
+                        CurrentIn = Scan(str, &c);
+
+                        if (!strcmp(CurrentIn->Value, ";"))
                         {
                             break;
                         }
@@ -134,9 +122,36 @@ ScriptEngineParse(char * str)
                             Push(LALRInputTokens, CurrentIn);
                         }
                     }
-                    else
+                    WaitForWaitStatementBooleanExpression = FALSE;
+                }
+                else
+                {
+                    int OpenParanthesesCount = 1;
+                    while (1)
                     {
-                        Push(LALRInputTokens, CurrentIn);
+                        CurrentIn = Scan(str, &c);
+
+                        if (!strcmp(CurrentIn->Value, "("))
+                        {
+                            OpenParanthesesCount++;
+                            Push(LALRInputTokens, CurrentIn);
+                        }
+                        else if (!strcmp(CurrentIn->Value, ")"))
+                        {
+                            OpenParanthesesCount--;
+                            if (OpenParanthesesCount <= 0)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                Push(LALRInputTokens, CurrentIn);
+                            }
+                        }
+                        else
+                        {
+                            Push(LALRInputTokens, CurrentIn);
+                        }
                     }
                 }
 
@@ -242,8 +257,13 @@ ScriptEngineParse(char * str)
 
                 // char t = getchar();
             }
+
             else
             {
+                if (!strcmp(TopToken->Value, "@START_OF_FOR"))
+                {
+                    WaitForWaitStatementBooleanExpression = TRUE;
+                }
                 CodeGen(MatchedStack, CodeBuffer, TopToken);
             }
         }
@@ -416,7 +436,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     {
         PushSymbol(CodeBuffer, OperatorSymbol);
     }
-    else if (IsNaiveOperator(Operator))
+    else if (IsTwoOperandOperator(Operator))
     {
         PushSymbol(CodeBuffer, OperatorSymbol);
         Op0       = Pop(MatchedStack);
@@ -440,6 +460,19 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
+    }
+    else if (IsOneOperandOperator(Operator))
+    {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        //
+        // Free the operand if it is a temp value
+        //
+        FreeTemp(Op0);
     }
     else if (!strcmp(Operator->Value, "@VARGSTART"))
     {
@@ -609,14 +642,179 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         TOKEN  JumpAddressToken = Pop(MatchedStack);
         UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
-        printf("While start address : %x\n", JumpAddress);
+
         PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
 
         FreeTemp(Op0);
     }
+    else if (!strcmp(Operator->Value, "@START_OF_FOR"))
+    {
+        //
+        // Push current pointer into matched stack
+        //
+        UINT64 CurrentPointer      = CodeBuffer->Pointer;
+        TOKEN  CurrentAddressToken = NewToken();
+        CurrentAddressToken->Type  = DECIMAL;
 
+        char * str = malloc(16);
+        sprintf(str, "%llu", CurrentPointer);
+        CurrentAddressToken->Value = str;
+        Push(MatchedStack, CurrentAddressToken);
+    }
+    else if (!strcmp(Operator->Value, "@FOR_INC_DEC"))
+    {
+        //
+        // JZ
+        //
+
+        //
+        // Add jz instruction to Code Buffer
+        //
+        PSYMBOL JnzInstruction = NewSymbol();
+        JnzInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+        JnzInstruction->Value  = FUNC_JZ;
+        PushSymbol(CodeBuffer, JnzInstruction);
+        RemoveSymbol(JnzInstruction);
+
+        //
+        // Add Op0 to CodeBuffer
+        //
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        //
+        // Add JZ addresss to Code CodeBuffer
+        //
+        PSYMBOL JnzAddressSymbol = NewSymbol();
+        JnzAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+        JnzAddressSymbol->Value  = 0xffffffffffffffff;
+        PushSymbol(CodeBuffer, JnzAddressSymbol);
+        RemoveSymbol(JnzAddressSymbol);
+
+        //
+        // JMP
+        //
+
+        //
+        // Add jmp instruction to Code Buffer
+        //
+        PSYMBOL JumpInstruction = NewSymbol();
+        JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+        JumpInstruction->Value  = FUNC_JMP;
+        PushSymbol(CodeBuffer, JumpInstruction);
+        RemoveSymbol(JumpInstruction);
+
+        //
+        // Add jmp addresss to Code CodeBuffer
+        //
+        PSYMBOL JumpAddressSymbol = NewSymbol();
+        JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+        JumpAddressSymbol->Value  = 0xffffffffffffffff;
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+        //
+        // Pop start_of_for address
+        //
+        TOKEN StartOfForToken = Pop(MatchedStack);
+
+        //
+        // Push current pointer into matched stack
+        //
+        UINT64 CurrentPointer      = CodeBuffer->Pointer;
+        TOKEN  CurrentAddressToken = NewToken();
+        CurrentAddressToken->Type  = DECIMAL;
+
+        char * str = malloc(16);
+        sprintf(str, "%llu", CurrentPointer);
+        CurrentAddressToken->Value = str;
+        Push(MatchedStack, CurrentAddressToken);
+
+        //
+        // Push start_of_for address to matched stack
+        //
+        Push(MatchedStack, StartOfForToken);
+    }
+    else if (!strcmp(Operator->Value, "@START_OF_FOR_COMMANDS"))
+    {
+        //
+        // JMP
+        //
+
+        //
+        // Add jmp instruction to Code Buffer
+        //
+        PSYMBOL JumpInstruction = NewSymbol();
+        JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+        JumpInstruction->Value  = FUNC_JMP;
+        PushSymbol(CodeBuffer, JumpInstruction);
+        RemoveSymbol(JumpInstruction);
+
+        //
+        // Add jmp address to Code buffer
+        //
+        TOKEN  JumpAddressToken = Pop(MatchedStack);
+        UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
+
+        PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+        //
+        // Set jmp address
+        //
+        PUINT64 CurrentPointer   = CodeBuffer->Pointer;
+        JumpAddressToken         = Pop(MatchedStack);
+        JumpAddress              = DecimalToInt(JumpAddressToken->Value);
+        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 1);
+        JumpAddressSymbol->Value = CurrentPointer;
+
+
+        // 
+        // Push start of inc_dec address to mathced stack 
+        // 
+        Push(MatchedStack, JumpAddressToken);
+    }
+    else if (!strcmp(Operator->Value, "@END_OF_FOR"))
+    {
+        //
+        // JMP
+        //
+
+        //
+        // Add jmp instruction to Code Buffer
+        //
+        PSYMBOL JumpInstruction = NewSymbol();
+        JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+        JumpInstruction->Value  = FUNC_JMP;
+        PushSymbol(CodeBuffer, JumpInstruction);
+        RemoveSymbol(JumpInstruction);
+
+        //
+        // Add jmp address to Code buffer
+        //
+        TOKEN  JumpAddressToken = Pop(MatchedStack);
+        UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
+
+
+        PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+
+        //
+        // Set jz address
+        //
+        PUINT64 CurrentPointer   = CodeBuffer->Pointer;
+        JumpAddressToken         = Pop(MatchedStack);
+        JumpAddress              = DecimalToInt(JumpAddressToken->Value);
+        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 3);
+        JumpAddressSymbol->Value = CurrentPointer;
+    }
     else
     {
         printf("Internal Error: Unhandled semantic ruls.\n");
