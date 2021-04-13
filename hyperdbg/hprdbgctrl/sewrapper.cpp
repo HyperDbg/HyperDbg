@@ -63,7 +63,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
     // Test Parser
     //
     PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
-
+  
     UINT64        g_TempList[MAX_TEMP_COUNT]    = {0};
     UINT64        g_VariableList[MAX_VAR_COUNT] = {0};
     ACTION_BUFFER ActionBuffer                  = {0};

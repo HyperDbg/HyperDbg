@@ -53,10 +53,15 @@ __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
 char *
 ScriptEngineBooleanExpresssionParse(
-    TOKEN_LIST     InputTokens,
+    UINT64         BooleanExpressionSize,
+    TOKEN          FirstToken,
     TOKEN_LIST     MatchedStack,
     PSYMBOL_BUFFER CodeBuffer,
-    char *         str);
+    char *         str,
+    char *         c);
+
+UINT64
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression);
 
 void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);

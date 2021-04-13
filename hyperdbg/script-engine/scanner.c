@@ -623,6 +623,7 @@ char
 sgetc(char * str)
 {
     char c = str[InputIdx];
+
     if (c)
     {
         InputIdx++;

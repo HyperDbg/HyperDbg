@@ -105,58 +105,9 @@ ScriptEngineParse(char * str)
         {
             if (TopToken->Value == "BOOLEAN_EXPRESSION")
             {
-                LALRInputTokens = NewTokenList();
-                Push(LALRInputTokens, CurrentIn);
-                if (WaitForWaitStatementBooleanExpression)
-                {
-                    while (1)
-                    {
-                        CurrentIn = Scan(str, &c);
+                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
 
-                        if (!strcmp(CurrentIn->Value, ";"))
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            Push(LALRInputTokens, CurrentIn);
-                        }
-                    }
-                    WaitForWaitStatementBooleanExpression = FALSE;
-                }
-                else
-                {
-                    int OpenParanthesesCount = 1;
-                    while (1)
-                    {
-                        CurrentIn = Scan(str, &c);
-
-                        if (!strcmp(CurrentIn->Value, "("))
-                        {
-                            OpenParanthesesCount++;
-                            Push(LALRInputTokens, CurrentIn);
-                        }
-                        else if (!strcmp(CurrentIn->Value, ")"))
-                        {
-                            OpenParanthesesCount--;
-                            if (OpenParanthesesCount <= 0)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                Push(LALRInputTokens, CurrentIn);
-                            }
-                        }
-                        else
-                        {
-                            Push(LALRInputTokens, CurrentIn);
-                        }
-                    }
-                }
-
-                Push(LALRInputTokens, EndToken);
-                char * Message = ScriptEngineBooleanExpresssionParse(LALRInputTokens, MatchedStack, CodeBuffer, str);
+                char * Message = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c);
                 if (Message != NULL)
                 {
                     CodeBuffer->Message = Message;
@@ -168,6 +119,7 @@ ScriptEngineParse(char * str)
                     return CodeBuffer;
                 }
 
+                CurrentIn = Scan(str, &c);
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -602,7 +554,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         TOKEN  JumpAddressToken = Pop(MatchedStack);
         UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
-        JumpAddressSymbol = ToSymbol(JumpAddressToken);
+        JumpAddressSymbol       = ToSymbol(JumpAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
     }
@@ -817,16 +769,54 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     return;
 }
 
+UINT64
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression)
+{
+    UINT64 BooleanExpressionSize = 0;
+    if (*WaitForWaitStatementBooleanExpression)
+    {
+        while (str[InputIdx + BooleanExpressionSize - 1] != ';')
+        {
+            BooleanExpressionSize += 1;
+        }
+        *WaitForWaitStatementBooleanExpression = FALSE;
+        return InputIdx + BooleanExpressionSize - 1;
+    }
+    else
+    {
+        int OpenParanthesesCount = 1;
+        while (str[InputIdx + BooleanExpressionSize - 1] != '\0')
+        {
+            if (str[InputIdx + BooleanExpressionSize - 1] == ')')
+            {
+                OpenParanthesesCount--;
+                if (OpenParanthesesCount == 0)
+                {
+                    return InputIdx + BooleanExpressionSize - 1;
+                }
+            }
+            else if (str[InputIdx + BooleanExpressionSize - 1] == '(')
+            {
+                OpenParanthesesCount++;
+            }
+            BooleanExpressionSize++;
+        }
+    }
+    return -1;
+}
+
 /**
 *
 *
 */
 char *
 ScriptEngineBooleanExpresssionParse(
-    TOKEN_LIST     InputTokens,
+    UINT64         BooleanExpressionSize,
+    TOKEN          FirstToken,
     TOKEN_LIST     MatchedStack,
     PSYMBOL_BUFFER CodeBuffer,
-    char *         str)
+    char *         str,
+    char *         c)
 {
     TOKEN_LIST Stack = NewTokenList();
 
@@ -837,26 +827,28 @@ ScriptEngineBooleanExpresssionParse(
 
     Push(Stack, State);
 
-#ifdef _SCRIPT_ENGINE_DBG_EN
-    printf("----------------------------------------\n");
-    PrintTokenList(InputTokens);
-    printf("----------------------------------------\n");
-#endif //  _SCRIPT_ENGINE_DBG_EN
+    //
+    // End of File Token
+    //
+    TOKEN EndToken = NewToken();
+    EndToken->Type = END_OF_STACK;
+    strcpy(EndToken->Value, "$");
 
-    TOKEN CurrentIn;
+    TOKEN CurrentIn = FirstToken;
     TOKEN TopToken;
     TOKEN Lhs;
     TOKEN Temp;
     TOKEN Operand = NewToken();
     TOKEN SemanticRule;
 
-    int Action       = INVALID;
-    int StateId      = 0;
-    int Goto         = 0;
-    int InputPointer = 0;
-    int RhsSize      = 0;
+    int          Action       = INVALID;
+    int          StateId      = 0;
+    int          Goto         = 0;
+    int          InputPointer = 0;
+    int          RhsSize      = 0;
+    unsigned int InputIdxTemp;
+    char         Ctemp;
 
-    CurrentIn = InputTokens->Head[InputPointer++];
     while (1)
     {
         TopToken       = Top(Stack);
@@ -895,7 +887,15 @@ ScriptEngineBooleanExpresssionParse(
             sprintf(State->Value, "%d", StateId);
             Push(Stack, State);
 
-            CurrentIn = InputTokens->Head[InputPointer++];
+            InputIdxTemp = InputIdx;
+            Ctemp        = *c;
+            CurrentIn    = Scan(str, c);
+            if (InputIdx - 1 > BooleanExpressionSize)
+            {
+                InputIdx  = InputIdxTemp;
+                *c        = Ctemp;
+                CurrentIn = EndToken;
+            }
         }
         else if (Action < 0) // Reduce
         {
