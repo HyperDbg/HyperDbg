@@ -15,12 +15,36 @@
  * @brief Create test cases
  * @param std::vector<std::string> &
  * 
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
-TestCase(std::vector<std::string> & TestCase)
+BOOLEAN
+TestCase(std::vector<std::string> & TestCases)
 {
-    TestCase.push_back("!epthook [ExAllocatePoolWithTag] script { print(@rax); }");
-    TestCase.push_back("!epthook2 [NtWriteFile] script { print(@rax); }");
-    TestCase.push_back("!syscall script { print(@rax); }");
+    string Line;
+
+    //
+    // Read the test case files
+    //
+    std::ifstream File(TEST_CASE_FILE_NAME);
+
+    if (File.is_open())
+    {
+        while (std::getline(File, Line))
+        {
+            TestCases.push_back(Line);
+        }
+        File.close();
+    }
+    else
+    {
+        //
+        // The file can't be opened
+        //
+        printf("err, test case file not found (%s) \npress enter to continue", TEST_CASE_FILE_NAME);
+        _getch();
+
+        return FALSE;
+    }
+
+    return TRUE;
 }

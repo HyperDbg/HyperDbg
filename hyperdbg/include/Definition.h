@@ -190,6 +190,11 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief Test cases file name
+ */
+#define TEST_CASE_FILE_NAME "test-cases.txt"
+
+/**
  * @brief Maximum test cases to communicate between debugger and debuggee process
  */
 #define TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES 200

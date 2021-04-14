@@ -1514,7 +1514,7 @@ StartAgain:
         if (!SetConsoleCtrlHandler(BreakController, TRUE))
         {
             ShowMessages(
-                "Error in registering CTRL+C and CTRL+BREAK Signals handler\n");
+                "err, in registering CTRL+C and CTRL+BREAK Signals handler\n");
             return FALSE;
         }
 

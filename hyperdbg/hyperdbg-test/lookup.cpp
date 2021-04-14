@@ -51,7 +51,13 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     //
     // Read test-cases
     //
-    TestCase(TestCases);
+    if (!TestCase(TestCases))
+    {
+        //
+        // There was an error
+        //
+        return;
+    }
 
     //
     // Replace tags with addresses
@@ -87,7 +93,6 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
             Subject = Match.suffix().str();
             i++;
         }
-        printf("\n");
         IndexOfTestCasesVector++;
     }
 
