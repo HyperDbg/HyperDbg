@@ -27,6 +27,67 @@ CommandTestHelp()
 }
 
 /**
+ * @brief Send an IOCTL to the kernel to run the 
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandTestPerformKernelTestsIoctl()
+{
+    BOOL                          Status;
+    ULONG                         ReturnedLength;
+    DEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest = {0};
+
+    if (!g_DeviceHandle)
+    {
+        ShowMessages(
+            "handle not found, probably the driver is not loaded. Did you "
+            "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // By the way, we don't need to send an input buffer
+    // to the kernel, but let's keep it like this, if we
+    // want to pass some other aguments to the kernel in
+    // the future
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                       // Handle to device
+        IOCTL_PERFROM_KERNEL_SIDE_TESTS,      // IO Control code
+        &KernelTestRequest,                   // Input Buffer to driver.
+        SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, // Input buffer length
+        &KernelTestRequest,                   // Output Buffer from driver.
+        SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS, // Length of output buffer in
+                                              // bytes.
+        &ReturnedLength,                      // Bytes placed in buffer.
+        NULL                                  // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    if (KernelTestRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // Nothing to show
+        //
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Show err message
+        //
+        ShowErrorMessage(KernelTestRequest.KernelStatus);
+        return FALSE;
+    }
+}
+
+/**
  * @brief perform test on the remote process
  *
  * @param KernelSideInformation Information from kernel
@@ -76,6 +137,10 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
     //
     // Wait for the result of test to be received
     //
+
+WaitForResponse:
+
+    RtlZeroMemory(Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
     ReadBytes =
         NamedPipeServerReadClientMessage(PipeHandle, (char *)Buffer, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
@@ -89,7 +154,16 @@ CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformat
         return FALSE;
     }
 
-    if (strcmp(Buffer, "success") == 0)
+    if (strcmp(Buffer, "perform-kernel-test") == 0)
+    {
+        //
+        // Send IOCTL to perform kernel tasks
+        //
+        CommandTestPerformKernelTestsIoctl();
+
+        goto WaitForResponse;
+    }
+    else if (strcmp(Buffer, "success") == 0)
     {
         ResultOfTest = TRUE;
     }

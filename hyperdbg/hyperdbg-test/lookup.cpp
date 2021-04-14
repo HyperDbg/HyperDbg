@@ -25,7 +25,8 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
 {
     BOOLEAN                                       SentMessageResult;
     PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION        KernelInfoArray;
-    char                                          SuccessMessage[] = "success";
+    char                                          SuccessMessage[]    = "success";
+    char                                          KernelTestMessage[] = "perform-kernel-test";
     vector<DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION> LookupTable;
     vector<string>                                TestCases;
     int                                           IndexOfTestCasesVector = 0;
@@ -99,6 +100,21 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     for (auto NewCase : TestCases)
     {
         printf("new cases : %s\n", NewCase.c_str());
+    }
+
+    _getch();
+
+    //
+    // Send test kernel message to the HyperDbg
+    //
+    SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)KernelTestMessage, sizeof(KernelTestMessage));
+
+    if (!SentMessageResult)
+    {
+        //
+        // Sending error
+        //
+        return;
     }
 
     _getch();

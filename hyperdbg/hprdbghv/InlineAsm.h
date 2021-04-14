@@ -300,3 +300,14 @@ AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Pa
  */
 extern void
 AsmDebuggerSpinOnThread();
+//
+// ====================  Kernel Test Functions ====================
+// File : AsmKernelSideTests.asm
+//
+
+/**
+ * @brief Tests for ExAllocatePoolWithTag
+ * 
+ */
+extern unsigned long long
+AsmTestExAllocatePoolWithTag(unsigned long long PoolType, unsigned long long NumberOfBytes, unsigned long long Tag);

@@ -52,6 +52,9 @@
     <Filter Include="Resource Files\Source Files\Common">
       <UniqueIdentifier>{f2afff38-c518-4252-bd1d-7573d4190f44}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Source Files\App">
+      <UniqueIdentifier>{c34ee59d-d780-4ffd-bfc0-2e6017257f88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -104,15 +107,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hprdbgctrl.cpp">
-      <Filter>Resource Files\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dllmain.cpp">
-      <Filter>Resource Files\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Resource Files\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="readmem.cpp">
       <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
     </ClCompile>
@@ -364,6 +358,15 @@
     </ClCompile>
     <ClCompile Include="i.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Resource Files\Source Files\App</Filter>
+    </ClCompile>
+    <ClCompile Include="hprdbgctrl.cpp">
+      <Filter>Resource Files\Source Files\App</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Resource Files\Source Files\App</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

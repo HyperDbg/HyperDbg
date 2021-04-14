@@ -822,6 +822,23 @@ typedef struct _DEBUGGER_FLUSH_LOGGING_BUFFERS
     UINT32 CountOfMessagesThatSetAsReadFromVmxNonRoot;
 
 } DEBUGGER_FLUSH_LOGGING_BUFFERS, *PDEBUGGER_FLUSH_LOGGING_BUFFERS;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS \
+    sizeof(DEBUGGER_PERFORM_KERNEL_TESTS)
+
+/**
+ * @brief request performing kernel tests
+ *
+ */
+typedef struct _DEBUGGER_PERFORM_KERNEL_TESTS
+{
+    UINT32 KernelStatus;
+
+} DEBUGGER_PERFORM_KERNEL_TESTS, *PDEBUGGER_PERFORM_KERNEL_TESTS;
+
 /* ==============================================================================================
  */
 
@@ -1910,3 +1927,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to perform kernel-side tests
+ *
+ */
+#define IOCTL_PERFROM_KERNEL_SIDE_TESTS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)

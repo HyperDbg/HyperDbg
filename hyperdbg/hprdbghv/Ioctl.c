@@ -35,6 +35,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION                  DebuggerKernelSideTestInformationRequest;
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
@@ -1054,6 +1055,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             FilledEntriesInKernelInfo = TestKernelGetInformation(DebuggerKernelSideTestInformationRequest);
 
             Irp->IoStatus.Information = FilledEntriesInKernelInfo * SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_PERFROM_KERNEL_SIDE_TESTS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Invalid parameter to IOCTL Dispatcher.");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerKernelTestRequest = (PDEBUGGER_PERFORM_KERNEL_TESTS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the kernel-side tests
+            //
+            TestKernelPerformTests(DebuggerKernelTestRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS;
             Status                    = STATUS_SUCCESS;
 
             //

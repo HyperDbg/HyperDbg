@@ -1458,7 +1458,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         if (!g_DeviceHandle)
         {
             ShowMessages(
-                "Handle not found, probably the driver is not loaded. Did you "
+                "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
             return FALSE;
         }
@@ -1641,7 +1641,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
         if (!g_DeviceHandle)
         {
             ShowMessages(
-                "Handle not found, probably the driver is not loaded. Did you "
+                "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
             return FALSE;
         }

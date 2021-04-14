@@ -53,11 +53,10 @@ CommandFlushRequestFlush()
         //
         // It's a vmi-mode
         //
-
         if (!g_DeviceHandle)
         {
             ShowMessages(
-                "Handle not found, probably the driver is not loaded. Did you "
+                "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
             return;
         }

@@ -100,6 +100,9 @@
     <Filter Include="Header Files\Debugger\Tests">
       <UniqueIdentifier>{c36ade71-0389-4c2f-b18e-ba18e6fe7e69}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Driver">
+      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -107,9 +110,6 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vmcall.c">
       <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
@@ -173,9 +173,6 @@
     <ClCompile Include="DebuggerEvents.c">
       <Filter>Source Files\Debugger\Essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Ioctl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="IoHandler.c">
       <Filter>Source Files\VMM\VMX</Filter>
     </ClCompile>
@@ -232,6 +229,12 @@
     </ClCompile>
     <ClCompile Include="KernelTests.c">
       <Filter>Source Files\Debugger\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="Driver.c">
+      <Filter>Source Files\Driver</Filter>
+    </ClCompile>
+    <ClCompile Include="Ioctl.c">
+      <Filter>Source Files\Driver</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -373,6 +376,9 @@
       <Filter>Source Files\Assembly</Filter>
     </MASM>
     <MASM Include="AsmDebugger.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+    <MASM Include="AsmKernelSideTests.asm">
       <Filter>Source Files\Assembly</Filter>
     </MASM>
   </ItemGroup>

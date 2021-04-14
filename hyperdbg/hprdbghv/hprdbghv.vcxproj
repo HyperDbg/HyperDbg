@@ -151,6 +151,7 @@
     <MASM Include="AsmDebugger.asm" />
     <MASM Include="AsmEpt.asm" />
     <MASM Include="AsmCommon.asm" />
+    <MASM Include="AsmKernelSideTests.asm" />
     <MASM Include="AsmSegmentRegs.asm" />
     <MASM Include="AsmVmexitHandler.asm" />
     <MASM Include="AsmVmxOperation.asm" />
