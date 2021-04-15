@@ -1,46 +1,60 @@
-PUBLIC AsmTestExAllocatePoolWithTag
+PUBLIC AsmTestWrapperWithTestTags
 
-EXTERN ExAllocatePoolWithTag:PROC
+EXTERN g_KernelTestTargetFunction:QWORD
+EXTERN g_KernelTestTag1:QWORD
+EXTERN g_KernelTestTag2:QWORD
+
+EXTERN g_KernelTestR15:QWORD
+EXTERN g_KernelTestR14:QWORD
+EXTERN g_KernelTestR13:QWORD
+EXTERN g_KernelTestR12:QWORD
+
 
 .code _text
 
 ;------------------------------------------------------------------------
 
-AsmTestExAllocatePoolWithTag PROC PUBLIC
+AsmTestWrapperWithTestTags PROC PUBLIC
+
+    ; rcx, rdx, r8, r9 should not be changed due to the fast calling conventions
+
+    ; Generally, The registers RAX, RCX, RDX, R8, R9, R10, R11 are
+    ; considered volatile (caller-saved) and registers RBX, RBP, RDI, 
+    ; RSI, RSP, R12, R13, R14, and R15 are considered non-volatile (callee-saved)
+
+    ; save registers 
+    mov g_KernelTestR12, r12       ; save r12
+    mov g_KernelTestR13, r13       ; save r13
+    mov g_KernelTestR14, r14       ; save r14
+    mov g_KernelTestR15, r15       ; save r15
+
+    ; apply tags to r15, and r14
+    mov r14, g_KernelTestTag1
+    mov r15, g_KernelTestTag2
 
 
-    push r15			; Save the register we want to change
-    push r14
+    pop r12                        ; r12 is not changed (non-volatile)
+                                   ; we save it so we can restore to 
+                                   ; TestKernelConfigureTagsAndCallTargetFunction
+
+    mov r13, RestoreState          ; use r13 to simulate the return point
     push r13
-    push r12
-    push r11
-    push r10            ; rcx, rdx, r8, r9 should not be changed
-                        ; due to the fast calling conventions
-
-    mov r15, 0123h      ; Move new values to the registers
-    mov r14, 0123h
-    mov r13, 0123h
-    mov r12, 0123h
-    mov r11, 0123h
-    mov r10, 0123h
-
-    sub rsp, 040h       ; Shadow space
     
-    ;call ExAllocatePoolWithTag      ; Call target function (we didn't change it's parameters)
+    jmp g_KernelTestTargetFunction      ; jump target function (we didn't change its parameters)
 
-    add rsp, 040h       ; Shadow space
-
-    pop r10             ; Restore previous state
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
+    RestoreState :
+    push r12                       ; Restore to the previous function address to return
+                                   ; TestKernelConfigureTagsAndCallTargetFunction
+    
+    ; restore registers 
+    mov r12, g_KernelTestR12        ; restore r12
+    mov r13, g_KernelTestR13        ; restore r13
+    mov r14, g_KernelTestR14        ; restore r14
+    mov r15, g_KernelTestR15        ; restore r15
 
     ret
 
-AsmTestExAllocatePoolWithTag ENDP
-
+AsmTestWrapperWithTestTags ENDP
 
 ;------------------------------------------------------------------------
 

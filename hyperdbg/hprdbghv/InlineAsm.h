@@ -306,8 +306,8 @@ AsmDebuggerSpinOnThread();
 //
 
 /**
- * @brief Tests for ExAllocatePoolWithTag
+ * @brief Tests with test tags wrapper
  * 
  */
 extern unsigned long long
-AsmTestExAllocatePoolWithTag(unsigned long long PoolType, unsigned long long NumberOfBytes, unsigned long long Tag);
+AsmTestWrapperWithTestTags(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3, unsigned long long Param4);

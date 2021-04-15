@@ -190,3 +190,30 @@ DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT g_IgnoreBreaksToDebugger;
  * 
  */
 HARDWARE_DEBUG_REGISTER_DETAILS g_HardwareDebugRegisterDetailsForStepOver;
+
+/**
+ * @brief Target function for kernel tests
+ * 
+ */
+PVOID g_KernelTestTargetFunction;
+
+/**
+ * @brief Tag1 for kernel tests
+ * 
+ */
+UINT64 g_KernelTestTag1;
+
+/**
+ * @brief Tag2 for kernel tests
+ * 
+ */
+UINT64 g_KernelTestTag2;
+
+/**
+ * @brief Temp registers for kernel tests
+ * 
+ */
+UINT64 g_KernelTestR15;
+UINT64 g_KernelTestR14;
+UINT64 g_KernelTestR13;
+UINT64 g_KernelTestR12;

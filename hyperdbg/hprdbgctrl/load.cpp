@@ -101,7 +101,7 @@ CommandLoadVmmModule()
     //
     g_IsDebuggerModulesLoaded = TRUE;
 
-    ShowMessages("hyperdbg is loaded !\n");
+    ShowMessages("vmm module is running...\n");
 
     return TRUE;
 }
@@ -148,7 +148,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // Load VMM Module
         //
-        ShowMessages("try to install and load the vmm driver...\n");
+        ShowMessages("try to install and load the vmm driver\n");
 
         if (!CommandLoadVmmModule())
         {

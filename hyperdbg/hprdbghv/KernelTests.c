@@ -13,6 +13,65 @@
 #include "pch.h"
 
 /**
+ * @brief Configures tags and calls target functions
+ * 
+ * @details This function should not be called simultaneously
+ * and only functions with at most 4 parameters should be called
+ * the target function should be fast call
+ * Note : Target test function should check r14 for Tag1 and r15 for Tag2
+ * 
+ * @param Tag1 the first tag
+ * @param Tag2 the second tag
+ * @param TargetFunction function that needs to be called
+ * @param Param1 parameter to the target function
+ * @param Param2 parameter to the target function
+ * @param Param3 parameter to the target function
+ * @param Param4 parameter to the target function
+ * 
+ * @return UINT64 Target function return result 
+ */
+UINT64
+TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
+                                             UINT64 Tag2,
+                                             PVOID  TargetFunction,
+                                             UINT64 Param1,
+                                             UINT64 Param2,
+                                             UINT64 Param3,
+                                             UINT64 Param4)
+{
+    UINT64 TargetFuncResult = NULL;
+
+    //
+    // Configure tags and target functions (export them to assembly)
+    //
+    g_KernelTestTargetFunction = TargetFunction;
+    g_KernelTestTag1           = Tag1;
+    g_KernelTestTag2           = Tag2;
+    g_KernelTestR15            = NULL;
+    g_KernelTestR14            = NULL;
+    g_KernelTestR13            = NULL;
+    g_KernelTestR12            = NULL;
+
+    //
+    // Call the target function
+    //
+    TargetFuncResult = AsmTestWrapperWithTestTags(Param1, Param2, Param3, Param4);
+
+    //
+    // Null the exports
+    //
+    g_KernelTestTargetFunction = NULL;
+    g_KernelTestTag1           = NULL;
+    g_KernelTestTag2           = NULL;
+    g_KernelTestR15            = NULL;
+    g_KernelTestR14            = NULL;
+    g_KernelTestR13            = NULL;
+    g_KernelTestR12            = NULL;
+
+    return TargetFuncResult;
+}
+
+/**
  * @brief Perform the kernel-side tests
  * 
  * @param KernelTestRequest user-mode buffer to fill kernel test information
@@ -26,7 +85,15 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
     //
     // Call wrapper for ExAllocatePoolWithTag
     //
-    TempPool = AsmTestExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    DbgBreakPoint();
+    TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,                     // Tag1 = r14
+                                                            2,                     // Tag2 = r15
+                                                            ExAllocatePoolWithTag, // Target function
+                                                            NonPagedPool,          // PoolType
+                                                            PAGE_SIZE,             // NumberOfBytes
+                                                            POOLTAG,               // Tag
+                                                            NULL);
+    DbgBreakPoint();
 
     if (TempPool != NULL)
     {
