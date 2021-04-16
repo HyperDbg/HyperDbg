@@ -21,7 +21,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG GuestRip, PGUEST_REGS GuestRegs)
+BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64 GuestRip, PGUEST_REGS GuestRegs)
 {
     PLIST_ENTRY TempList           = 0;
     BOOLEAN     IsHandledByEptHook = FALSE;

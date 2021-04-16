@@ -6,7 +6,7 @@
 <a href="https://twitter.com/HyperDbg"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-HyperDbg-Twitter-skyblue.svg" alt="Twitter"></a>
 </p>
 
-<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Art%20Board/HyperDbg-Cat.Circle.jpg" alt="HyperDbg Debugger"></a></br>
+<a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://github.com/HyperDbg/graphics/raw/master/Art%20Board/HyperDbg-Cat.Circle.Compressed.png" alt="HyperDbg Debugger"></a></br>
 
 # HyperDbg Debugger 
 

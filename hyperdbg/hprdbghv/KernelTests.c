@@ -80,7 +80,7 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
 VOID
 TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 {
-    UINT64 TempPool = 0;
+    UINT64 TempPool = NULL;
 
     //
     // Call wrapper for ExAllocatePoolWithTag
@@ -100,7 +100,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         //
         // Free the previous pool
         //
-        //ExFreePoolWithTag(TempPool, POOLTAG);
+        ExFreePoolWithTag(TempPool, POOLTAG);
     }
 
     LogInfo("hello test");
