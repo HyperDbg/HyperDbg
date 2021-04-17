@@ -1,6 +1,3 @@
-!epthook [ExAllocatePoolWithTag] [NtWriteFile] [NtWriteFile] script { print(@rax); }
-!epthook [ExAllocatePoolWithTag] [NtWriteFile] [NtWriteFile] script { print(@rax); }
-!epthook [ExAllocatePoolWithTag] [NtWriteFile] [NtWriteFile] script { print(@rax); }
-!epthook2 [NtWriteFile] [ExAllocatePoolWithTag] [NtWriteFile] script { print(@rax); }
-!syscall script { print(@rax); }
-!syscall script { print(@rax); } [NtWriteFile] [NtWriteFile]  [NtWriteFile] [NtWriteFile]
+output create TestOutputName namedpipe \\\\.\\Pipe\\HyperDbgOutputTest
+output open TestOutputName
+!epthook [ExAllocatePoolWithTag] script { print(@rax); } output {TestOutputName}

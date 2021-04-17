@@ -82,10 +82,11 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 {
     UINT64 TempPool = NULL;
 
+    LogInfo("starting kernel-test process...");
+
     //
     // Call wrapper for ExAllocatePoolWithTag
     //
-    DbgBreakPoint();
     TempPool = TestKernelConfigureTagsAndCallTargetFunction(1,                     // Tag1 = r14
                                                             2,                     // Tag2 = r15
                                                             ExAllocatePoolWithTag, // Target function
@@ -93,7 +94,6 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
                                                             PAGE_SIZE,             // NumberOfBytes
                                                             POOLTAG,               // Tag
                                                             NULL);
-    DbgBreakPoint();
 
     if (TempPool != NULL)
     {
@@ -103,7 +103,8 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         ExFreePoolWithTag(TempPool, POOLTAG);
     }
 
-    LogInfo("hello test");
+    LogInfo("all kernel events are triggered");
+
     KernelTestRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 }
 
@@ -114,7 +115,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
  * @return UINT32 Filled entries 
  */
 UINT32
-TestKernelGetInformation(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION InfoRequest)
+TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest)
 {
     UINT32 Index = 0;
 

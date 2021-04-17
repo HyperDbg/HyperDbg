@@ -97,7 +97,7 @@ CommandTestPerformKernelTestsIoctl()
  * was not ok
  */
 BOOLEAN
-CommandTestPerformTest(PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION KernelSideInformation, UINT32 KernelSideInformationSize)
+CommandTestPerformTest(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION KernelSideInformation, UINT32 KernelSideInformationSize)
 {
     BOOLEAN ResultOfTest = FALSE;
     HANDLE  PipeHandle;
@@ -167,6 +167,18 @@ WaitForResponse:
     {
         ResultOfTest = TRUE;
     }
+    else if (Buffer[0] == 'c' &&
+             Buffer[1] == 'm' &&
+             Buffer[2] == 'd' &&
+             Buffer[3] == ':')
+    {
+        //
+        // It's a command as it starts with "cmd:"
+        //
+        ShowMessages("command is : %s\n", &Buffer[4]);
+        HyperdbgInterpreter(&Buffer[4]);
+        goto WaitForResponse;
+    }
     else
     {
         ResultOfTest = FALSE;
@@ -194,7 +206,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
 {
     BOOL  Status;
     ULONG ReturnedLength;
-    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION
+    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION
     KernelSideTestInformationRequestArray;
 
     if (SplittedCommand.size() != 1)
@@ -214,7 +226,7 @@ CommandTest(vector<string> SplittedCommand, string Command)
     //
     // *** Read kernel-side debugging information ***
     //
-    KernelSideTestInformationRequestArray = (DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    KernelSideTestInformationRequestArray = (DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
     RtlZeroMemory(KernelSideTestInformationRequestArray, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
 
@@ -222,20 +234,20 @@ CommandTest(vector<string> SplittedCommand, string Command)
     // Send Ioctl to the kernel
     //
     Status = DeviceIoControl(
-        g_DeviceHandle,                               // Handle to device
-        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,  // IO Control code
-        KernelSideTestInformationRequestArray,        // Input Buffer to driver.
-        SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION, // Input buffer
-                                                      // length
-        KernelSideTestInformationRequestArray,        // Output Buffer from driver.
-        TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,     // Length
-                                                      // of
-                                                      // output
-                                                      // buffer
-                                                      // in
-                                                      // bytes.
-        &ReturnedLength,                              // Bytes placed in buffer.
-        NULL                                          // synchronous call
+        g_DeviceHandle,                                   // Handle to device
+        IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION,      // IO Control code
+        KernelSideTestInformationRequestArray,            // Input Buffer to driver.
+        SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION, // Input buffer
+                                                          // length
+        KernelSideTestInformationRequestArray,            // Output Buffer from driver.
+        TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,         // Length
+                                                          // of
+                                                          // output
+                                                          // buffer
+                                                          // in
+                                                          // bytes.
+        &ReturnedLength,                                  // Bytes placed in buffer.
+        NULL                                              // synchronous call
     );
 
     if (!Status)

@@ -12,6 +12,75 @@
 #include "pch.h"
 
 /**
+ * @brief Thread for listening for results 
+ *
+ * @param Data
+ * @return DWORD Device Handle
+ */
+DWORD WINAPI
+TestListenerForResultsThread(void * data)
+{
+    HANDLE OutputPipeHandle;
+    UINT32 ReadBytes;
+    char * BufferToRead;
+    char   TestPipe[] = "\\\\.\\Pipe\\HyperDbgOutputTest";
+
+    //
+    // Create server pipe for outputs ******** Thread ********
+    //
+    OutputPipeHandle = NamedPipeServerCreatePipe(TestPipe,
+                                                 TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE,
+                                                 TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+    if (!OutputPipeHandle)
+    {
+        //
+        // Error in creating handle
+        //
+        return FALSE;
+    }
+
+    BufferToRead = (char *)malloc(TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    //
+    // Wait for message from the target processs
+    //
+    if (!NamedPipeServerWaitForClientConntection(OutputPipeHandle))
+    {
+        //
+        // Error in connection
+        //
+        free(BufferToRead);
+        return FALSE;
+    }
+
+ReadAgain:
+    ReadBytes =
+        NamedPipeServerReadClientMessage(OutputPipeHandle, BufferToRead, TEST_CASE_MAXIMUM_BUFFERS_TO_COMMUNICATE);
+
+    if (!ReadBytes)
+    {
+        //
+        // Nothing to read
+        //
+
+        free(BufferToRead);
+        return FALSE;
+    }
+
+    //
+    // parse results from debugger
+    //
+    printf("Test from debugger : %s\n", BufferToRead);
+
+    //
+    // Stuck on a loop
+    //
+    goto ReadAgain;
+
+    return TRUE;
+}
+
+/**
  * @brief Create lookup table for test
  *
  * @param PipeHandle
@@ -23,31 +92,37 @@
 VOID
 TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelInformationSize)
 {
-    BOOLEAN                                       SentMessageResult;
-    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION        KernelInfoArray;
-    char                                          SuccessMessage[]    = "success";
-    char                                          KernelTestMessage[] = "perform-kernel-test";
-    vector<DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION> LookupTable;
-    vector<string>                                TestCases;
-    int                                           IndexOfTestCasesVector = 0;
+    BOOLEAN                                           SentMessageResult;
+    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION        KernelInfoArray;
+    char                                              SuccessMessage[]    = "success";
+    char                                              KernelTestMessage[] = "perform-kernel-test";
+    vector<DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION> LookupTable;
+    vector<string>                                    TestCases;
+    int                                               IndexOfTestCasesVector = 0;
+    DWORD                                             ThreadId;
 
     printf("start testing event commands...\n");
 
-    KernelInfoArray = (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)KernelInformation;
+    KernelInfoArray = (PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION)KernelInformation;
 
     //
     // Add kernel-mode details to lookup table
     //
-    for (size_t i = 0; i < KernelInformationSize / sizeof(DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION); i++)
+    for (size_t i = 0; i < KernelInformationSize / sizeof(DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION); i++)
     {
         LookupTable.push_back(KernelInfoArray[i]);
     }
 
     //
-    // Add user-mode details to lookup table
+    //  Add user-mode details to lookup table
     //
 
-    // TODO
+    // Todo
+
+    //
+    // Create thread for listening results
+    //
+    HANDLE Thread = CreateThread(NULL, 0, TestListenerForResultsThread, NULL, 0, &ThreadId);
 
     //
     // Read test-cases
@@ -63,7 +138,6 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     //
     // Replace tags with addresses
     //
-
     for (auto CurrentCase : TestCases)
     {
         //
@@ -97,9 +171,25 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
         IndexOfTestCasesVector++;
     }
 
+    _getch();
+
+    //
+    // Execute commands in debugger
+    //
     for (auto NewCase : TestCases)
     {
         printf("new cases : %s\n", NewCase.c_str());
+
+        string OutputCommand = "cmd:" + NewCase;
+
+        SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)OutputCommand.c_str(), strlen(OutputCommand.c_str()) + 1);
+        if (!SentMessageResult)
+        {
+            //
+            // Sending error
+            //
+            return;
+        }
     }
 
     _getch();

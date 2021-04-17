@@ -37,7 +37,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
-    PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION                  DebuggerKernelSideTestInformationRequest;
+    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION                  DebuggerKernelSideTestInformationRequest;
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
     PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
@@ -1025,7 +1025,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // First validate the parameters.
             //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION ||
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION ||
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
@@ -1047,14 +1047,14 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // at the same place
             //
             DebuggerKernelSideTestInformationRequest =
-                (PDEBUGGEE_KERNEL_SIDE_TEST_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
+                (PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION)Irp->AssociatedIrp.SystemBuffer;
 
             //
             // Perform collecting kernel-side debug information
             //
             FilledEntriesInKernelInfo = TestKernelGetInformation(DebuggerKernelSideTestInformationRequest);
 
-            Irp->IoStatus.Information = FilledEntriesInKernelInfo * SIZEOF_DEBUGGEE_KERNEL_SIDE_TEST_INFORMATION;
+            Irp->IoStatus.Information = FilledEntriesInKernelInfo * SIZEOF_DEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION;
             Status                    = STATUS_SUCCESS;
 
             //

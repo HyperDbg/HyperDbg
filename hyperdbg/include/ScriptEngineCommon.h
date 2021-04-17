@@ -614,7 +614,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx", Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -1246,7 +1246,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s\n", FinalBuffer);
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s", FinalBuffer);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
