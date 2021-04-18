@@ -624,7 +624,7 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
                                  UINT64  Value)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, disabling events is not possible in user-mode.\n");
+    ShowMessages("err, disabling events is not possible in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -640,7 +640,7 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
                                 UINT64  Value)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, enabling events is not possible in user-mode.\n");
+    ShowMessages("err, enabling events is not possible in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -654,7 +654,7 @@ VOID
 ScriptEngineFunctionBreak(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_REGS GuestRegs, UINT64 Context)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, breaking is not possible in user-mode.\n");
+    ShowMessages("err, breaking is not possible in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE

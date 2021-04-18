@@ -60,7 +60,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         g_IsConnectedToRemoteDebugger)
     {
         ShowMessages("you're connected to a debugger, please use '.disconnect' "
-                     "command.\n");
+                     "command\n");
         return;
     }
 
@@ -68,7 +68,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         g_IsSerialConnectedToRemoteDebugger)
     {
         ShowMessages("you're connected to a an instance of HyperDbg, please use "
-                     "'.debug close' command.\n");
+                     "'.debug close' command\n");
         return;
     }
 

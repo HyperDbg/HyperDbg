@@ -43,7 +43,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
 {
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("please specify a file.\n");
+        ShowMessages("please specify a file\n");
         CommandLogopenHelp();
         return;
     }
@@ -51,7 +51,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
     if (g_LogOpened)
     {
         ShowMessages("log was opened previously, you have the close it first "
-                     "(using .logclose).\n");
+                     "(using .logclose)\n");
         return;
     }
 

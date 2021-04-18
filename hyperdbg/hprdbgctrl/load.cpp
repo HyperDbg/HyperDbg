@@ -141,7 +141,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         if (g_DeviceHandle)
         {
             ShowMessages("handle of driver found, if you use 'load' before, please "
-                         "first unload it then call 'unload'.\n");
+                         "first unload it then call 'unload'\n");
             return;
         }
 
@@ -162,6 +162,6 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         // Module not found
         //
         ShowMessages("module not found, currently 'vmm' is the only available "
-                     "module for HyperDbg.\n");
+                     "module for HyperDbg\n");
     }
 }

@@ -156,7 +156,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         // 'from' is greater than 'to'
         //
         ShowMessages("please choose the 'from' value first, then choose the 'to' "
-                     "value.\n");
+                     "value\n");
         return;
     }
 

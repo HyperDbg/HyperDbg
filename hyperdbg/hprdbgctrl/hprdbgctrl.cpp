@@ -346,7 +346,7 @@ ReadIrpBasedBuffer()
                                         ReturnedLength - sizeof(UINT32) + 1))
                                 {
                                     ShowMessages("err, there was an error transferring the "
-                                                 "message to the remote sources.\n");
+                                                 "message to the remote sources\n");
                                 }
 
                                 break;
@@ -597,7 +597,7 @@ HyperdbgUnload()
     if (!g_DeviceHandle)
     {
         ShowMessages("err, handle not found, probably the driver is not "
-                     "initialized.\n");
+                     "initialized\n");
         return 1;
     }
 

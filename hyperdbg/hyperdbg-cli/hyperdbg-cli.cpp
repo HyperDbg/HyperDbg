@@ -71,26 +71,6 @@ main(int argc, char * argv[])
         }
     }
 
-    //
-    // Put to ease the test, it will be removed
-    //
-    /* 
-	if (HyperdbgInstallVmmDriver()) {
-		return 1;
-	}
-
-	if (HyperdbgLoadVmm()) {
-		return 1;
-	}
-	_getch();
-	_getch();
-	return 0;
-	*/
-
-    //
-    // ---------------------------------------------------------
-    //
-
     printf("HyperDbg Debugger [core version: v%s]\n", Version);
     printf("Please visit https://docs.hyperdbg.com for more information...\n");
     printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");

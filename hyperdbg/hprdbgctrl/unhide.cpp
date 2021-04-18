@@ -89,7 +89,7 @@ CommandUnhide(vector<string> SplittedCommand, string Command)
     else if (UnhideRequest.KernelStatus ==
              DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE)
     {
-        ShowMessages("debugger is not in transparent-mode.\n");
+        ShowMessages("debugger is not in transparent-mode\n");
     }
     else
     {

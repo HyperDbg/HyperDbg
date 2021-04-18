@@ -1063,7 +1063,7 @@ KdReceivePacketFromDebuggee(CHAR *   BufferToSave,
             // Invalid buffer
             //
             ShowMessages("err, a buffer received in which exceeds the "
-                         "buffer limitation.\n");
+                         "buffer limitation\n");
             return FALSE;
         }
 
@@ -1121,7 +1121,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     //
     if (g_SerialRemoteComPortHandle == NULL)
     {
-        ShowMessages("err, handle to remote debuggee's com port is not found.\n");
+        ShowMessages("err, handle to remote debuggee's com port is not found\n");
         return FALSE;
     }
 
@@ -1423,7 +1423,7 @@ StartAgain:
     //
     // Show an indication to connect the debugger
     //
-    ShowMessages("waiting for debuggee to connect ...\n");
+    ShowMessages("waiting for debuggee to connect...\n");
 
     if (!IsNamedPipe)
     {
@@ -1620,7 +1620,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (Comm == INVALID_HANDLE_VALUE)
         {
-            ShowMessages("err, port can't be opened.\n");
+            ShowMessages("err, port can't be opened\n");
             return FALSE;
         }
 

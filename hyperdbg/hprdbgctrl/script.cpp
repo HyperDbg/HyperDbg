@@ -47,7 +47,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("please specify a file.\n");
+        ShowMessages("please specify a file\n");
         CommandScriptHelp();
         return;
     }
@@ -108,6 +108,6 @@ CommandScript(vector<string> SplittedCommand, string Command)
 
     if (!IsOpened)
     {
-        ShowMessages("invalid file specified for .script command.\n");
+        ShowMessages("err, invalid file specified for .script command\n");
     }
 }

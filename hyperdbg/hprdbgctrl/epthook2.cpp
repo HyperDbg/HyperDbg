@@ -118,7 +118,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     }
     if (OptionalParam1 == 0)
     {
-        ShowMessages("please choose an address to put the hook on it.\n");
+        ShowMessages("please choose an address to put the hook on it\n");
         return;
     }
 

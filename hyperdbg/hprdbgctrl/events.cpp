@@ -415,7 +415,7 @@ CommandEventsHandleModifiedEvent(
             {
                 ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
-                             "can't apply it to the user-mode structures.\n");
+                             "can't apply it to the user-mode structures\n");
             }
         }
         else if (ModifyEventRequest->TypeOfAction ==
@@ -425,7 +425,7 @@ CommandEventsHandleModifiedEvent(
             {
                 ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
-                             "can't apply it to the user-mode structures.\n");
+                             "can't apply it to the user-mode structures\n");
             }
             else
             {
@@ -448,7 +448,7 @@ CommandEventsHandleModifiedEvent(
                                 "the messages when you run 'g' until the kernel "
                                 "buffers are empty. you can run 'settings autoflush "
                                 "on' and after disabling and clearing events, "
-                                "kernel buffers will be flushed automatically.\n");
+                                "kernel buffers will be flushed automatically\n");
                         }
                         else
                         {
@@ -468,7 +468,7 @@ CommandEventsHandleModifiedEvent(
             {
                 ShowMessages("err, the event was successfully, "
                              "(enabled|disabled|cleared) but "
-                             "can't apply it to the user-mode structures.\n");
+                             "can't apply it to the user-mode structures\n");
             }
             else
             {
@@ -491,7 +491,7 @@ CommandEventsHandleModifiedEvent(
                                 "the messages when you run 'g' until the kernel "
                                 "buffers are empty. you can run 'settings autoflush "
                                 "on' and after disabling and clearing events, "
-                                "kernel buffers will be flushed automatically.\n");
+                                "kernel buffers will be flushed automatically\n");
                         }
                         else
                         {
@@ -514,8 +514,8 @@ CommandEventsHandleModifiedEvent(
         else
         {
             ShowMessages(
-                "err the event was successfully, (enabled|disabled|cleared) but "
-                "can't apply it to the user-mode structures.\n");
+                "err, the event was successfully, (enabled|disabled|cleared) but "
+                "can't apply it to the user-mode structures\n");
         }
     }
     else

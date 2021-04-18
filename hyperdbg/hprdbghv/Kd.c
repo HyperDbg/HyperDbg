@@ -2090,7 +2090,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 break;
 
             default:
-                LogError("err, unknown packet action received from the debugger.\n");
+                LogError("err, unknown packet action received from the debugger\n");
                 break;
             }
         }

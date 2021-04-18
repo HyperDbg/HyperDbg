@@ -92,6 +92,6 @@ CommandStatus(vector<string> SplittedCommand, string Command)
         //
         // we never should see this message
         //
-        ShowMessages("not connected to any instance of HyperDbg.\n");
+        ShowMessages("err, you're not connected to any instance of HyperDbg\n");
     }
 }

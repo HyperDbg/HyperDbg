@@ -54,7 +54,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
     //
     if (!g_IsSerialConnectedToRemoteDebuggee)
     {
-        ShowMessages("err, you're not connected to any debuggee.\n");
+        ShowMessages("err, you're not connected to any debuggee\n");
         return;
     }
 

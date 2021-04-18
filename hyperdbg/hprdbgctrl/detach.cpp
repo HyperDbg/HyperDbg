@@ -48,7 +48,7 @@ DetachFromProcess()
     //
     if (!g_DebuggingState.IsAttachedToUsermodeProcess)
     {
-        ShowMessages("you're not attached to any thread.\n");
+        ShowMessages("you're not attached to any thread\n");
         return;
     }
 

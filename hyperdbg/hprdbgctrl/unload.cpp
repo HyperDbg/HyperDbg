@@ -96,6 +96,6 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         // Module not found
         //
         ShowMessages("module not found, currently 'vmm' is the only available "
-                     "module for HyperDbg.\n");
+                     "module for HyperDbg\n");
     }
 }

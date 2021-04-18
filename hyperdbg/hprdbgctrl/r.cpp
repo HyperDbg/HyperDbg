@@ -122,7 +122,7 @@ CommandR(vector<string> SplittedCommand, string Command)
         else
         {
             ShowMessages("err, reading registers (r) is not valid in the current "
-                         "context, you should connect to a debuggee.\n");
+                         "context, you should connect to a debuggee\n");
         }
 
         return;
@@ -163,7 +163,7 @@ CommandR(vector<string> SplittedCommand, string Command)
             else
             {
                 ShowMessages("err, reading registers (r) is not valid in the current "
-                             "context, you should connect to a debuggee.\n");
+                             "context, you should connect to a debuggee\n");
             }
         }
         else

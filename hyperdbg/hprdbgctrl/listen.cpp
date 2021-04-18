@@ -64,7 +64,7 @@ CommandListen(vector<string> SplittedCommand, string Command)
         g_IsConnectedToRemoteDebugger)
     {
         ShowMessages("you're connected to a debugger, please use '.disconnect' "
-                     "command.\n");
+                     "command\n");
         return;
     }
 

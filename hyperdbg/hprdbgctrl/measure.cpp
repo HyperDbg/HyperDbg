@@ -79,7 +79,7 @@ CommandMeasure(vector<string> SplittedCommand, string Command)
             "Debugger is loaded and your machine is already in a hypervisor, you "
             "should measure the times before 'load'-ing the debugger, please "
             "'unload' the debugger and use '!measure' again or use '!measure "
-            "default' to use hardcoded measurements.\n");
+            "default' to use hardcoded measurements\n");
         return;
     }
 

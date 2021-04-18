@@ -358,7 +358,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         if (!CheckThreadByProcessId(TargetPid, TargetTid))
         {
             ShowMessages("err, the thread or the process not found or the thread not "
-                         "belongs to the process.\n");
+                         "belongs to the process\n");
             return;
         }
     }

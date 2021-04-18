@@ -85,7 +85,7 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
             // Sth is incorrect
             //
             ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                         "for more details.\n");
+                         "for more details\n");
             return;
         }
     }
@@ -95,7 +95,7 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
         // Sth is incorrect
         //
         ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                     "for more details.\n");
+                     "for more details\n");
         return;
     }
 }
@@ -144,7 +144,7 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
             // Sth is incorrect
             //
             ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                         "for more details.\n");
+                         "for more details\n");
             return;
         }
     }
@@ -154,7 +154,7 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
         // Sth is incorrect
         //
         ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                     "for more details.\n");
+                     "for more details\n");
         return;
     }
 }
@@ -217,7 +217,7 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
             // Sth is incorrect
             //
             ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                         "for more details.\n");
+                         "for more details\n");
             return;
         }
     }
@@ -227,7 +227,7 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
         // Sth is incorrect
         //
         ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                     "for more details.\n");
+                     "for more details\n");
         return;
     }
 }
@@ -270,7 +270,7 @@ CommandSettings(vector<string> SplittedCommand, string Command)
         // optionm not found
         //
         ShowMessages("incorrect use of 'settings', please use 'help settings' "
-                     "for more details.\n");
+                     "for more details\n");
         return;
     }
 }
