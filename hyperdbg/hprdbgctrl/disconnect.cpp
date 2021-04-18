@@ -56,6 +56,18 @@ CommandDisconnect(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // Check if it's local debugger and the driver is still
+    // loading (not unloaded)
+    //
+    if (g_IsConnectedToHyperDbgLocally && g_DeviceHandle)
+    {
+        ShowMessages("you cannot disconnect in local debugging while the "
+                     "driver is still loaded. please use 'unload' command before "
+                     "disconnecting from the current instance of debugger\n");
+        return;
+    }
+
+    //
     // Disconnect the session
     //
     g_IsConnectedToHyperDbgLocally = FALSE;
@@ -77,5 +89,5 @@ CommandDisconnect(vector<string> SplittedCommand, string Command)
         g_IsConnectedToRemoteDebuggee = FALSE;
     }
 
-    ShowMessages("successfully disconnected\n");
+    ShowMessages("disconnected successfully\n");
 }

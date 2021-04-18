@@ -213,7 +213,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
             else
             {
                 //
-                // It's either not a conditional jump or an error occured
+                // It's either not a conditional jump or an error occurred
                 //
                 ShowMessages(" %s\n", &buffer[0]);
             }

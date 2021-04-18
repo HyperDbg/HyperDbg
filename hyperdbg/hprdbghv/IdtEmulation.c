@@ -29,7 +29,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
     //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception's vector was set to 1
     //	2: An NMI was delivered to the logical processor and the "NMI exiting" VM-execution control was 1.
     //
-    // VM_EXIT_INTR_INFO shows the exit infromation about event that occured and causes this exit
+    // VM_EXIT_INTR_INFO shows the exit infromation about event that occurred and causes this exit
     // Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
     //
 

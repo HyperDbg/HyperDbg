@@ -139,8 +139,18 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    //
-    // Show the results
-    //
-    ShowMessages("%llx\n", AddressDetails.PhysicalAddress);
+    if (AddressDetails.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // Show the results
+        //
+        ShowMessages("%llx\n", AddressDetails.PhysicalAddress);
+    }
+    else
+    {
+        //
+        // An err occurred, no results
+        //
+        ShowErrorMessage(AddressDetails.KernelStatus);
+    }
 }

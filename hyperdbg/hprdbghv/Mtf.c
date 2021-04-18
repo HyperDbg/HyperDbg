@@ -139,7 +139,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     }
     else if (!IsMtfForReApplySoftwareBreakpoint)
     {
-        LogError("Why MTF occured ?!");
+        LogError("Why MTF occurred?!");
     }
 
     //

@@ -172,6 +172,10 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, memory type is invalid (%x)\n", Error);
         break;
 
+    case DEBUGEER_ERROR_INVALID_PROCESS_ID:
+        ShowMessages("err, process id is invalid (%x)\n", Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n", Error);
         return FALSE;

@@ -469,7 +469,7 @@ Return Value:
 
             //
             // Read only if there are more than 4 bytes in the FIFO or RX Stale
-            // occured.
+            // occurred
             //
 
             if ((UART_DM_READ_REG(Address, UART_DM_RXFS_ADDR) &

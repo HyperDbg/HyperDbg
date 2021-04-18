@@ -251,7 +251,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("unknown error occured :(\n");
+        ShowMessages("unknown error occurred :(\n");
         free(FinalRequestBuffer);
         return;
     }

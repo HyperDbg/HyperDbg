@@ -24,15 +24,39 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
     if (AddressDetails->ProcessId == PsGetCurrentProcessId())
     {
         //
-        // It's on current process address space
+        // It's on current process address space (we process the request
+        // based on system process layout (pid = 4))
         //
         if (AddressDetails->IsVirtual2Physical)
         {
             AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+
+            //
+            // Check if address is valid or invalid
+            //
+            if (AddressDetails->PhysicalAddress == NULL)
+            {
+                //
+                // Invalid address
+                //
+                AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            }
+            else
+            {
+                //
+                // Operation was successful
+                //
+                AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            }
         }
         else
         {
             AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddress(AddressDetails->PhysicalAddress);
+
+            //
+            // We don't know a way for checking physical address validity
+            //
+            AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
         }
     }
     else
@@ -40,13 +64,49 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
         //
         // It's on another process address space
         //
+
+        //
+        // Check if pid is valid
+        //
+        if (!IsProcessExist(AddressDetails->ProcessId))
+        {
+            //
+            // Process id is invalid
+            //
+            AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_PROCESS_ID;
+            return;
+        }
+
         if (AddressDetails->IsVirtual2Physical)
         {
             AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
+
+            //
+            // Check if address is valid or invalid
+            //
+            if (AddressDetails->PhysicalAddress == NULL)
+            {
+                //
+                // Invalid address
+                //
+                AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            }
+            else
+            {
+                //
+                // Operation was successful
+                //
+                AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            }
         }
         else
         {
             AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressByProcessId(AddressDetails->PhysicalAddress, AddressDetails->ProcessId);
+
+            //
+            // We don't know a way for checking physical address validity
+            //
+            AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
         }
     }
 }

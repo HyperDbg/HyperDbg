@@ -1706,7 +1706,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Check if the exception entry doesn't exceed the first 32 entry (start from zero)
         //
-        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES && EventDetails->OptionalParam1 >= 31)
+        if (EventDetails->OptionalParam1 != DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES &&
+            EventDetails->OptionalParam1 >= 31)
         {
             //
             // We don't support entries other than first 32 IDT indexes,
@@ -1735,7 +1736,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             return FALSE;
         }
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS || EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS ||
+             EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
     {
         //
         // First check if the address are valid
@@ -1764,7 +1766,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // First check if the address are valid
         //
-        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL || VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2) == NULL)
+        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL ||
+            VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2) == NULL)
         {
             //
             // Address is invalid (Set the error)

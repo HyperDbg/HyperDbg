@@ -101,7 +101,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     {
     case EXIT_REASON_TRIPLE_FAULT:
     {
-        LogError("Triple fault error occured.");
+        LogError("Triple fault error occurred");
 
         break;
     }

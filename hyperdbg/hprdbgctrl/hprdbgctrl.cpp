@@ -490,7 +490,7 @@ HyperdbgLoadVmm()
 
     if (g_DeviceHandle)
     {
-        ShowMessages("handle of driver found, if you use 'load' before, please "
+        ShowMessages("handle of the driver found, if you use 'load' before, please "
                      "first unload it then call 'unload'\n");
         return 1;
     }
@@ -671,5 +671,5 @@ HyperdbgUnload()
     //
     g_DeviceHandle = NULL;
 
-    ShowMessages("you're not on HyperDbg's hypervisor anymore !\n");
+    ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
 }
