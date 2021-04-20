@@ -2088,7 +2088,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }
@@ -2147,7 +2147,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }
@@ -2208,7 +2208,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
     if (!g_DeviceHandle)
     {
-        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return FALSE;
     }

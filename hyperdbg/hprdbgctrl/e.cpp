@@ -311,7 +311,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     }
     else if (!g_DeviceHandle)
     {
-        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }
@@ -344,13 +344,13 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
         EditMemoryRequest.Result ==
         DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_CURRENT_PROCESS)
     {
-        ShowMessages("the address is invalid in current process id\n");
+        ShowMessages("err, the address is invalid in system process layout\n");
     }
     else if (
         EditMemoryRequest.Result ==
         DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_ADDRESS_BASED_ON_OTHER_PROCESS)
     {
-        ShowMessages("the address is invalid based on your specific process id\n");
+        ShowMessages("err, the address is invalid based on your specific process id\n");
     }
     else if (EditMemoryRequest.Result ==
              DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER)

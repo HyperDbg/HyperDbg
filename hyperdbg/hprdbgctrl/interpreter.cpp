@@ -150,7 +150,7 @@ HyperdbgInterpreter(const char * Command)
         //
         //  Command doesn't exist
         //
-        ShowMessages("err, couldn't resolve error at '%s'\n", FirstCommand.c_str());
+        ShowMessages("err, couldn't resolve command at '%s'\n", FirstCommand.c_str());
     }
     else
     {

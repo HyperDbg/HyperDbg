@@ -27,9 +27,9 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("d[q]  Quad-word values (8 bytes). \n");
     ShowMessages("u  Disassembler at the target address (x64) \n");
     ShowMessages("u2  Disassembler at the target address (x86) \n");
-    ShowMessages("\n If you want to read physical memory then add '!' at the "
+    ShowMessages("\nIf you want to read physical memory then add '!' at the "
                  "start of the command\n");
-    ShowMessages("you can also disassemble physical memory using '!u'\n");
+    ShowMessages("you can also disassemble physical memory using '!u'\n\n");
 
     ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                  "[process id (hex)]\n");

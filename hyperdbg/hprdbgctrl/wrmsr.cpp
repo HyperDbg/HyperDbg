@@ -136,7 +136,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     if (!g_DeviceHandle)
     {
-        ShowMessages("handle of driver , probably the driver is not loaded. Did you "
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
     }
@@ -159,7 +159,8 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        ShowMessages("ioctl failed with code (0x%x), either msr index or core id is invalid\n",
+                     GetLastError());
         return;
     }
 
