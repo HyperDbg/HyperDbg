@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 
 /**
  * @brief help of pause command
@@ -54,6 +55,14 @@ CommandPause(vector<string> SplittedCommand, string Command)
     // Set the g_BreakPrintingOutput to TRUE
     //
     g_BreakPrintingOutput = TRUE;
+
+    //
+    // If it's a remote debugger then we send the remote debuggee a 'g'
+    //
+    if (g_IsConnectedToRemoteDebuggee)
+    {
+        RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+    }
 
     ShowMessages("\npause\npausing debugger...\n");
 }

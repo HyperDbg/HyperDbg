@@ -85,6 +85,7 @@ CommandDisconnect(vector<string> SplittedCommand, string Command)
         TerminateThread(g_RemoteDebuggeeListeningThread, 0);
         CloseHandle(g_RemoteDebuggeeListeningThread);
         CloseHandle(g_EndOfMessageReceivedEvent);
+        g_EndOfMessageReceivedEvent = NULL;
 
         RemoteConnectionCloseTheConnectionWithDebuggee();
 

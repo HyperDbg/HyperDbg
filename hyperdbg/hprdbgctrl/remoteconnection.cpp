@@ -154,49 +154,52 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
             break;
         }
 
+        //
+        // Check if it's end of the buffer
+        //
+        for (size_t i = 0; i < BuffLenReceived; i++)
+        {
+            if (recvbuf[i] == g_EndOfBufferCheckTcp[0] &&
+                recvbuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
+                recvbuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
+                recvbuf[i + 3] == g_EndOfBufferCheckTcp[3])
+            {
+                g_IsEndOfMessageReceived = TRUE;
+
+                //
+                // Cut the last string using \x00 \x00
+                //
+                recvbuf[i]     = '\x00';
+                recvbuf[i + 1] = '\x00';
+                break;
+            }
+        }
+
+        //
+        // This is just because we want to show a correct signature
+        //
         if (!g_BreakPrintingOutput)
         {
-            //
-            // Check if it's end of the buffer
-            //
-            for (size_t i = 0; i < BuffLenReceived; i++)
-            {
-                if (recvbuf[i] == g_EndOfBufferCheckTcp[0] &&
-                    recvbuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
-                    recvbuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
-                    recvbuf[i + 3] == g_EndOfBufferCheckTcp[3])
-                {
-                    g_IsEndOfMessageReceived = TRUE;
-
-                    //
-                    // Cut the last string using \x00 \x00
-                    //
-                    recvbuf[i]     = '\x00';
-                    recvbuf[i + 1] = '\x00';
-                    break;
-                }
-            }
-
             //
             // Show message from remote debuggee
             //
             ShowMessages("%s", recvbuf);
+        }
+
+        //
+        // Show the signature
+        //
+        if (g_IsEndOfMessageReceived)
+        {
+            //
+            // it's not end of message anymore
+            //
+            g_IsEndOfMessageReceived = FALSE;
 
             //
-            // Show the signature
+            // Trigger the event
             //
-            if (g_IsEndOfMessageReceived)
-            {
-                //
-                // it's not end of message anymore
-                //
-                g_IsEndOfMessageReceived = FALSE;
-
-                //
-                // Trigger the event
-                //
-                SetEvent(g_EndOfMessageReceivedEvent);
-            }
+            SetEvent(g_EndOfMessageReceivedEvent);
         }
 
         //
@@ -360,8 +363,6 @@ RemoteConnectionSendCommand(const char * sendbuf, int len)
     WaitForSingleObject(
         g_EndOfMessageReceivedEvent,
         INFINITE);
-
-    ShowMessages("\n");
 
     //
     // Successful
