@@ -164,26 +164,32 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
  * @brief Receive message as a client
  * 
  * @param ConnectSocket 
- * @param recvbuf 
- * @param recvbuflen 
+ * @param RecvBuf 
+ * @param MaxBuffLen 
+ * @param BuffLenRecvd 
  * @return int 
  */
 int
-CommunicationClientReceiveMessage(SOCKET ConnectSocket, char * recvbuf, int recvbuflen)
+CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 MaxBuffLen, PUINT32 BuffLenRecvd)
 {
-    int iResult;
+    int Result;
 
     //
     // Receive until the peer closes the connection
     //
-    iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-    if (iResult > 0)
+    Result = recv(ConnectSocket, RecvBuf, MaxBuffLen, 0);
+    if (Result > 0)
     {
+        //
+        // Set recvd buff len
+        //
+        *BuffLenRecvd = Result;
+
         /*
     ShowMessages("bytes received: %d\n", iResult);
-    */
+        */
     }
-    else if (iResult == 0)
+    else if (Result == 0)
     {
         //
         // Last packet
@@ -224,6 +230,7 @@ CommunicationClientCleanup(SOCKET ConnectSocket)
 //   SOCKET ConnectSocket;
 //   char sendbuf[DEFAULT_BUFLEN] = "I am sinaei";
 //   char recvbuf[DEFAULT_BUFLEN] = {0};
+//   UINT32 RecvdBuff = 0;
 //
 //   //
 //   // Connect to server
@@ -247,7 +254,7 @@ CommunicationClientCleanup(SOCKET ConnectSocket)
 //     // Receive final message
 //     //
 //     if (CommunicationClientReceiveMessage(ConnectSocket, recvbuf,
-//                                           DEFAULT_BUFLEN) != 0) {
+//                                           DEFAULT_BUFLEN,&RecvdBuff) != 0) {
 //       //
 //       // Failed, break
 //       //

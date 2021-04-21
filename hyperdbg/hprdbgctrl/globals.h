@@ -16,6 +16,15 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief the buffer that we set at the end of buffers for tcp connection
+ */
+BYTE g_EndOfBufferCheckTcp[TCP_END_OF_BUFFER_CHARS_COUNT] = {
+    TCP_END_OF_BUFFER_CHAR_1,
+    TCP_END_OF_BUFFER_CHAR_2,
+    TCP_END_OF_BUFFER_CHAR_3,
+    TCP_END_OF_BUFFER_CHAR_4};
+
+/**
  * @brief Shows whether the user is allowed to use 'load' command
  * to load modules locally in VMI (virtual machine introspection) mode
  *
@@ -35,14 +44,6 @@ BOOLEAN g_IsConnectedToRemoteDebuggee = FALSE;
  *
  */
 BOOLEAN g_IsConnectedToRemoteDebugger = FALSE;
-
-/**
- * @brief We use this variable because this causes to not show
- * the debugger signature immediately and wait for the remote
- * deubgee to send its message then we can show the signature
- *
- */
-BOOLEAN g_IsRemoteDebuggerMessageReceived = TRUE;
 
 /**
  * @brief The socket object of host debugger (not debuggee)
@@ -94,6 +95,20 @@ HANDLE g_RemoteDebuggeeListeningThread = NULL;
 HANDLE g_IsDriverLoadedSuccessfully = NULL;
 
 /**
+ * @brief Handle to if the end of the message received (for showing
+ * signature)
+ *
+ */
+HANDLE g_EndOfMessageReceivedEvent = NULL;
+
+/**
+ * @brief variable to keep track if the end of the message received 
+ * (for showing signature)
+ *
+ */
+BOOLEAN g_IsEndOfMessageReceived = FALSE;
+
+/**
  * @brief In both debuggee and debugger we save the state of
  * the closed connection to avoid double close
  *
@@ -107,7 +122,7 @@ BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
 /**
  * @brief the buffer that we set at the end of buffers for serial
  */
-BYTE g_EndOfBufferCheck[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
+BYTE g_EndOfBufferCheckSerial[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
     SERIAL_END_OF_BUFFER_CHAR_1,
     SERIAL_END_OF_BUFFER_CHAR_2,
     SERIAL_END_OF_BUFFER_CHAR_3,

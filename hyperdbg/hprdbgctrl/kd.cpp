@@ -35,7 +35,7 @@ extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
-extern BYTE    g_EndOfBufferCheck[4];
+extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
 /**
@@ -1197,8 +1197,8 @@ Out:
         //
         // Send End of Buffer Packet
         //
-        if (!KdSendPacketToDebuggee((const CHAR *)g_EndOfBufferCheck,
-                                    sizeof(g_EndOfBufferCheck),
+        if (!KdSendPacketToDebuggee((const CHAR *)g_EndOfBufferCheckSerial,
+                                    sizeof(g_EndOfBufferCheckSerial),
                                     FALSE))
         {
             return FALSE;

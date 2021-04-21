@@ -198,8 +198,8 @@ CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int le
         /*
     ShowMessages("send failed with error: %d\n", WSAGetLastError());
     closesocket(ClientSocket);
-    WSACleanup();
-    */
+    WSACleanup();   
+        */
         return 1;
     }
     return 0;

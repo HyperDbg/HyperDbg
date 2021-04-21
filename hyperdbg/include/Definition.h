@@ -244,6 +244,7 @@
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
 //////////////////////////////////////////////////
+
 /**
  * @brief count of characters for serial end of buffer
  */
@@ -257,6 +258,20 @@
 #define SERIAL_END_OF_BUFFER_CHAR_2 0x80
 #define SERIAL_END_OF_BUFFER_CHAR_3 0xEE
 #define SERIAL_END_OF_BUFFER_CHAR_4 0xFF
+
+/**
+ * @brief count of characters for tcp end of buffer
+ */
+#define TCP_END_OF_BUFFER_CHARS_COUNT 0x4
+
+/**
+ * @brief characters of the buffer that we set at the end of
+ * buffers for tcp
+ */
+#define TCP_END_OF_BUFFER_CHAR_1 0x10
+#define TCP_END_OF_BUFFER_CHAR_2 0x20
+#define TCP_END_OF_BUFFER_CHAR_3 0x33
+#define TCP_END_OF_BUFFER_CHAR_4 0x44
 
 //////////////////////////////////////////////////
 //              Processor Details               //

@@ -17,6 +17,7 @@
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern HANDLE  g_RemoteDebuggeeListeningThread;
+extern HANDLE  g_EndOfMessageReceivedEvent;
 
 /**
  * @brief help of .disconnect command
@@ -83,6 +84,7 @@ CommandDisconnect(vector<string> SplittedCommand, string Command)
         //
         TerminateThread(g_RemoteDebuggeeListeningThread, 0);
         CloseHandle(g_RemoteDebuggeeListeningThread);
+        CloseHandle(g_EndOfMessageReceivedEvent);
 
         RemoteConnectionCloseTheConnectionWithDebuggee();
 

@@ -14,18 +14,20 @@
 //
 // Global Variables
 //
+extern BYTE g_EndOfBufferCheckTcp[TCP_END_OF_BUFFER_CHARS_COUNT];
+
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
-extern BOOLEAN g_IsRemoteDebuggerMessageReceived;
-
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_IsEndOfMessageReceived;
 
 extern SOCKET g_SeverSocket;
 extern SOCKET g_ServerListenSocket;
 extern SOCKET g_ClientConnectSocket;
 
 extern HANDLE g_RemoteDebuggeeListeningThread;
+extern HANDLE g_EndOfMessageReceivedEvent;
 
 /**
  * @brief Listen of a port and wait for a client connection
@@ -83,6 +85,11 @@ RemoteConnectionListen(PCSTR Port)
         int CommandExecutionResult = HyperdbgInterpreter(recvbuf);
 
         //
+        // Send end of buffer
+        //
+        RemoteConnectionSendResultsToHost((const char *)g_EndOfBufferCheckTcp, sizeof(g_EndOfBufferCheckTcp));
+
+        //
         // if the debugger encounters an exit state then the return will be 1
         //
         if (CommandExecutionResult == 1)
@@ -131,37 +138,65 @@ RemoteConnectionListen(PCSTR Port)
 DWORD WINAPI
 RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
 {
-    char recvbuf[COMMUNICATION_BUFFER_SIZE] = {0};
+    char   recvbuf[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+    UINT32 BuffLenReceived                                                    = 0;
 
     while (g_IsConnectedToRemoteDebuggee)
     {
         //
         // Receive message
         //
-        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, recvbuf, COMMUNICATION_BUFFER_SIZE) != 0)
+        if (CommunicationClientReceiveMessage(g_ClientConnectSocket, recvbuf, COMMUNICATION_BUFFER_SIZE, &BuffLenReceived) != 0)
         {
             //
             // Failed, break
             //
             break;
-        };
+        }
 
         if (!g_BreakPrintingOutput)
         {
             //
-            // Show messages
+            // Check if it's end of the buffer
             //
-            ShowMessages("%s\n", recvbuf);
+            for (size_t i = 0; i < BuffLenReceived; i++)
+            {
+                if (recvbuf[i] == g_EndOfBufferCheckTcp[0] &&
+                    recvbuf[i + 1] == g_EndOfBufferCheckTcp[1] &&
+                    recvbuf[i + 2] == g_EndOfBufferCheckTcp[2] &&
+                    recvbuf[i + 3] == g_EndOfBufferCheckTcp[3])
+                {
+                    g_IsEndOfMessageReceived = TRUE;
+
+                    //
+                    // Cut the last string using \x00 \x00
+                    //
+                    recvbuf[i]     = '\x00';
+                    recvbuf[i + 1] = '\x00';
+                    break;
+                }
+            }
 
             //
-            // Indicate that a message received
+            // Show message from remote debuggee
             //
-            g_IsRemoteDebuggerMessageReceived = TRUE;
+            ShowMessages("%s", recvbuf);
 
             //
             // Show the signature
             //
-            HyperdbgShowSignature();
+            if (g_IsEndOfMessageReceived)
+            {
+                //
+                // it's not end of message anymore
+                //
+                g_IsEndOfMessageReceived = FALSE;
+
+                //
+                // Trigger the event
+                //
+                SetEvent(g_EndOfMessageReceivedEvent);
+            }
         }
 
         //
@@ -247,6 +282,10 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
     else
     {
         //
+        // Connection was successful
+        //
+
+        //
         // Indicate that local debugger is not connected
         //
         g_IsConnectedToHyperDbgLocally = FALSE;
@@ -255,6 +294,14 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
         // Indicate that it's a remote debuggee
         //
         g_IsConnectedToRemoteDebuggee = TRUE;
+
+        //
+        // Create an event to show signature when the messages finished
+        //
+        if (g_EndOfMessageReceivedEvent == NULL)
+        {
+            g_EndOfMessageReceivedEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+        }
 
         //
         // Now, we should create a thread, which always listens to
@@ -296,11 +343,6 @@ int
 RemoteConnectionSendCommand(const char * sendbuf, int len)
 {
     //
-    // Indicate that we set a message and nothing received yet
-    //
-    g_IsRemoteDebuggerMessageReceived = FALSE;
-
-    //
     // Send Message
     //
     if (CommunicationClientSendMessage(g_ClientConnectSocket, sendbuf, len) !=
@@ -311,6 +353,15 @@ RemoteConnectionSendCommand(const char * sendbuf, int len)
         //
         return 1;
     }
+
+    //
+    // We wait for the debuggee to send the message
+    //
+    WaitForSingleObject(
+        g_EndOfMessageReceivedEvent,
+        INFINITE);
+
+    ShowMessages("\n");
 
     //
     // Successful

@@ -53,7 +53,7 @@ int
 CommunicationClientShutdownConnection(SOCKET ConnectSocket);
 
 int
-CommunicationClientReceiveMessage(SOCKET ConnectSocket, char * recvbuf, int recvbuflen);
+CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 MaxBuffLen, PUINT32 BuffLenRecvd);
 
 int
 CommunicationClientCleanup(SOCKET ConnectSocket);

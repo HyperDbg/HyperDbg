@@ -23,7 +23,6 @@ extern BOOLEAN         g_LogOpened;
 extern BOOLEAN         g_ExecutingScript;
 extern BOOLEAN         g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN         g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN         g_IsRemoteDebuggerMessageReceived;
 extern BOOLEAN         g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN         g_IsDebuggeeRunning;
 extern string          g_ServerPort;
@@ -180,14 +179,11 @@ HyperdbgShowSignature()
 {
     if (g_IsConnectedToRemoteDebuggee)
     {
-        if (g_IsRemoteDebuggerMessageReceived)
-        {
-            ShowMessages("HyperDbg [%s:%s] >", g_ServerIp.c_str(), g_ServerPort.c_str());
-        }
+        ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
     }
     else if (g_DebuggingState.IsAttachedToUsermodeProcess)
     {
-        ShowMessages("HyperDbg (%x:%x) >", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
+        ShowMessages("(%x:%x) HyperDbg> ", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
     }
     else
     {
