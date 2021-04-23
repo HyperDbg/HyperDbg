@@ -337,7 +337,9 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
         //
         // Compute the current buffer to read
         //
-        BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+        BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress +
+                                                   (MessageBufferInformation[Index].CurrentIndexToSend *
+                                                    (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
         if (!Header->Valid)
         {
@@ -972,7 +974,9 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
                 //
                 // we have to return here as there is nothing to send here
                 //
-                return;
+                Irp->IoStatus.Status = STATUS_INVALID_PARAMETER;
+                IoCompleteRequest(Irp, IO_NO_INCREMENT);
+                break;
             }
 
             Irp->IoStatus.Information = Length;

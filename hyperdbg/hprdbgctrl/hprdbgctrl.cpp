@@ -122,11 +122,6 @@ ReadIrpBasedBuffer()
     BOOLEAN                OutputSourceFound;
     PLIST_ENTRY            TempList;
 
-    /*
-  ShowMessages(" =============================== Kernel-Mode Logs (Driver) "
-               "===============================\n");
-               */
-
     RegisterEvent.hEvent = NULL;
     RegisterEvent.Type   = IRP_BASED;
 
@@ -198,69 +193,97 @@ ReadIrpBasedBuffer()
 
                 if (!Status)
                 {
-                    ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-                    break;
-                }
-
-                if (g_BreakPrintingOutput)
-                {
                     //
-                    // means that the user asserts a CTRL+C or CTRL+BREAK Signal
-                    // we shouldn't show or save anything in this case
+                    // if we reach here, the packet is probably failed, it might
+                    // be because of using flush command
                     //
                     continue;
+
+                    //
+                    // Error occured for second time, and we show the error message
+                    //
+                    //ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
                 }
 
-                /*  
-        ShowMessages("========================= Kernel Mode (Buffer) "
-                     "=========================\n");
-                     */
-
+                //
+                // Compute the received buffer's operation code
+                //
                 OperationCode = 0;
                 memcpy(&OperationCode, OutputBuffer, sizeof(UINT32));
 
                 /*
-        ShowMessages("returned Length : 0x%x \n", ReturnedLength);
-        ShowMessages(operation Code : 0x%x \n", OperationCode);
-        */
+        ShowMessages("Returned Length : 0x%x \n", ReturnedLength);
+        ShowMessages("Operation Code : 0x%x \n", OperationCode);
+                */
 
                 switch (OperationCode)
                 {
                 case OPERATION_LOG_NON_IMMEDIATE_MESSAGE:
 
-                    /*
-                    ShowMessages(
-                    "a buffer of messages (OPERATION_LOG_NON_IMMEDIATE_MESSAGE) :\n");
-                    */
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
+
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
                     break;
                 case OPERATION_LOG_INFO_MESSAGE:
 
-                    /*
-                    ShowMessages("information log (OPERATION_LOG_INFO_MESSAGE) :\n");
-                    */
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
+
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
                     break;
                 case OPERATION_LOG_ERROR_MESSAGE:
-                    /*
-                    ShowMessages("error log (OPERATION_LOG_ERROR_MESSAGE) :\n");
-                    */
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
+
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
                     break;
                 case OPERATION_LOG_WARNING_MESSAGE:
-                    /*
-                    ShowMessages("warning log (OPERATION_LOG_WARNING_MESSAGE) :\n");
-                    */
+
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
+
                     ShowMessages("%s", OutputBuffer + sizeof(UINT32));
+
                     break;
 
                 case OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM:
+
                     KdCloseConnection();
+
                     break;
 
                 case OPERATION_DEBUGGEE_USER_INPUT:
 
                     KdHandleUserInputInDebuggee(OutputBuffer + sizeof(UINT32));
+
                     break;
 
                 case OPERATION_DEBUGGEE_REGISTER_EVENT:
@@ -268,6 +291,7 @@ ReadIrpBasedBuffer()
                     KdRegisterEventInDebuggee(
                         (PDEBUGGER_GENERAL_EVENT_DETAIL)(OutputBuffer + sizeof(UINT32)),
                         ReturnedLength);
+
                     break;
 
                 case OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT:
@@ -275,6 +299,7 @@ ReadIrpBasedBuffer()
                     KdAddActionToEventInDebuggee(
                         (PDEBUGGER_GENERAL_ACTION)(OutputBuffer + sizeof(UINT32)),
                         ReturnedLength);
+
                     break;
 
                 case OPERATION_DEBUGGEE_CLEAR_EVENTS:
@@ -301,9 +326,15 @@ ReadIrpBasedBuffer()
                     break;
 
                 default:
-                    /*
-                    ShowMessages("message From Debugger :\n");
-                    */
+
+                    if (g_BreakPrintingOutput)
+                    {
+                        //
+                        // means that the user asserts a CTRL+C or CTRL+BREAK Signal
+                        // we shouldn't show or save anything in this case
+                        //
+                        continue;
+                    }
 
                     //
                     // Set output source to not found

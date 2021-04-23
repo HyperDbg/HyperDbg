@@ -148,7 +148,7 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // Load VMM Module
         //
-        ShowMessages("try to install and load the vmm driver\n");
+        ShowMessages("trying to install and load the vmm driver\n");
 
         if (!CommandLoadVmmModule())
         {
