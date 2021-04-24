@@ -82,7 +82,12 @@ CommandScript(vector<string> SplittedCommand, string Command)
 
         while (std::getline(File, Line))
         {
-            ShowMessages("HyperDbg> %s\n", Line.c_str());
+            //
+            // Show current running command
+            //
+            HyperdbgShowSignature();
+            ShowMessages("%s\n", Line.c_str());
+
             CommandExecutionResult = HyperdbgInterpreter(Line.c_str());
             ShowMessages("\n");
 

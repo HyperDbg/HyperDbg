@@ -48,6 +48,10 @@ main(int argc, char * argv[])
 {
     bool ExitFromDebugger = false;
 
+    printf("HyperDbg Debugger [core version: v%s]\n", Version);
+    printf("Please visit https://docs.hyperdbg.com for more information...\n");
+    printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
+
     if (argc != 1)
     {
         //
@@ -70,10 +74,6 @@ main(int argc, char * argv[])
             return 1;
         }
     }
-
-    printf("HyperDbg Debugger [core version: v%s]\n", Version);
-    printf("Please visit https://docs.hyperdbg.com for more information...\n");
-    printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
 
     while (!ExitFromDebugger)
     {

@@ -60,7 +60,6 @@ CommandStatus(vector<string> SplittedCommand, string Command)
         //
         // Connected to a remote debuggee (serial port)
         //
-        ShowMessages("g_BreakPrintingOutput : %s\n", g_BreakPrintingOutput ? "true" : "false");
         ShowMessages("remote debugging ('debugger mode')\n");
     }
     else if (g_IsConnectedToRemoteDebuggee)
@@ -77,13 +76,13 @@ CommandStatus(vector<string> SplittedCommand, string Command)
         //
         // Connected to a local system
         //
-        ShowMessages("g_BreakPrintingOutput : %s\n", g_BreakPrintingOutput ? "true" : "false");
         ShowMessages("local debugging ('vmi mode')\n");
     }
     else if (g_IsConnectedToRemoteDebugger)
     {
         //
-        // It's computer connect to a remote machine
+        // It's computer connect to a remote machine (this
+        // message shouldn't be showed)
         //
         ShowMessages("a remote debugger connected to this system in ('vmi "
                      "mode'), ip : %s:%s \n",

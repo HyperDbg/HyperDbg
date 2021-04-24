@@ -70,7 +70,8 @@ BreakController(DWORD CtrlType)
                         "pause\npausing debugger...\nauto-unpause mode is enabled, "
                         "debugger will automatically continue when you run a new "
                         "event command, if you want to change this behaviour then "
-                        "run run 'settings autounpause off'\n\nHyperDbg> ");
+                        "run run 'settings autounpause off'\n\n");
+                    HyperdbgShowSignature();
                 }
                 else
                 {
@@ -78,7 +79,8 @@ BreakController(DWORD CtrlType)
                         "pause\npausing debugger...\nauto-unpause mode is disabled, you "
                         "should run 'g' when you want to continue, otherwise run "
                         "'settings "
-                        "autounpause on'\n\nHyperDbg> ");
+                        "autounpause on'\n\n");
+                    HyperdbgShowSignature();
                 }
             }
         }
@@ -130,7 +132,8 @@ BreakController(DWORD CtrlType)
                         "pause\npausing debugger...\nauto-unpause mode is enabled, "
                         "debugger will automatically continue when you run a new "
                         "event command, if you want to change this behaviour then "
-                        "run run 'settings autounpause off'\n\nHyperDbg> ");
+                        "run run 'settings autounpause off'\n\n");
+                    HyperdbgShowSignature();
                 }
                 else
                 {
@@ -138,7 +141,8 @@ BreakController(DWORD CtrlType)
                         "pause\npausing debugger...\nauto-unpause mode is disabled, you "
                         "should run 'g' when you want to continue, otherwise run "
                         "'settings "
-                        "autounpause on'\n\nHyperDbg> ");
+                        "autounpause on'\n\n");
+                    HyperdbgShowSignature();
                 }
             }
         }

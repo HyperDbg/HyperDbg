@@ -28,6 +28,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_BreakPrintingOutput;
 
+extern ULONG g_CurrentRemoteCore;
+
 extern string g_ServerPort;
 extern string g_ServerIp;
 
@@ -58,12 +60,12 @@ HyperdbgInterpreter(const char * Command)
 
         g_IsCommandListInitialized = TRUE;
     }
+
     //
     // Save the command into log open file
     //
     if (g_LogOpened && !g_ExecutingScript)
     {
-        LogopenSaveToFile("HyperDbg> ");
         LogopenSaveToFile(Command);
         LogopenSaveToFile("\n");
     }
@@ -190,19 +192,41 @@ HyperdbgInterpreter(const char * Command)
     return 0;
 }
 
+/**
+ * @brief Show signature of HyperDbg
+ *
+ * @return VOID 
+ */
 VOID
 HyperdbgShowSignature()
 {
     if (g_IsConnectedToRemoteDebuggee)
     {
+        //
+        // Remote debugging over tcp (vmi-mode)
+        //
         ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
     }
     else if (g_DebuggingState.IsAttachedToUsermodeProcess)
     {
+        //
+        // Debugging a special process
+        //
         ShowMessages("(%x:%x) HyperDbg> ", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
+    }
+    else if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        //
+        // Remote debugging over serial (debugger-mode)
+        //
+        ShowMessages("%x: kHyperDbg> ", g_CurrentRemoteCore);
     }
     else
     {
+        //
+        // Anything other than above scenarios including local debugging
+        // in vmi-mode
+        //
         ShowMessages("HyperDbg> ");
     }
 }
@@ -241,6 +265,11 @@ GetCommandAttributes(string FirstCommand)
     return NULL;
 }
 
+/**
+ * @brief Initialize commands and attributes 
+ *
+ * @return VOID
+ */
 VOID
 InitializeCommandsDictionary()
 {

@@ -87,7 +87,7 @@ CommandConnect(vector<string> SplittedCommand, string Command)
         //
         // connect to local debugger
         //
-        ShowMessages("local debuging (vmi-mode)\n");
+        ShowMessages("local debugging (vmi-mode)\n");
         g_IsConnectedToHyperDbgLocally = TRUE;
         return;
     }
