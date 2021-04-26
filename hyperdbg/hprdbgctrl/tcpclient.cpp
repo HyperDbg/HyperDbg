@@ -86,7 +86,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
 
     if (ConnectSocket == INVALID_SOCKET)
     {
-        ShowMessages("unable to connect to server\n");
+        ShowMessages("unable to connect to the server\n");
         WSACleanup();
         return 1;
     }

@@ -136,7 +136,7 @@ StartAgain:
         {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
-            ShowMessages("connected to debuggee %s !\n",
+            ShowMessages("connected to debuggee %s\n",
                          ((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
             ShowMessages("press CTRL+C to pause the debuggee\n");
 

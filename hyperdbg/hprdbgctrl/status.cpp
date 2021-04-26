@@ -19,6 +19,7 @@ extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_BreakPrintingOutput;
 extern string  g_ServerPort;
 extern string  g_ServerIp;
@@ -58,9 +59,16 @@ CommandStatus(vector<string> SplittedCommand, string Command)
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
+        // Connected to a remote debugger (serial port)
+        //
+        ShowMessages("remote debugging - debugger ('debugger mode')\n");
+    }
+    else if (g_IsSerialConnectedToRemoteDebugger)
+    {
+        //
         // Connected to a remote debuggee (serial port)
         //
-        ShowMessages("remote debugging ('debugger mode')\n");
+        ShowMessages("remote debugging - debuggee ('debugger mode')\n");
     }
     else if (g_IsConnectedToRemoteDebuggee)
     {

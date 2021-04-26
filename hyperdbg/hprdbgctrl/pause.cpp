@@ -64,5 +64,5 @@ CommandPause(vector<string> SplittedCommand, string Command)
         RemoteConnectionSendCommand("pause", strlen("pause") + 1);
     }
 
-    ShowMessages("\npause\npausing debugger...\n");
+    ShowMessages("pausing debugger...\n");
 }

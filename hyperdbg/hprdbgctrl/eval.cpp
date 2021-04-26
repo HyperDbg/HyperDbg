@@ -124,7 +124,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
         ShowMessages("this command should not be used while you're in VMI-Mode or not in debugger-mode, "
                      "the results that you see is a simulated result for TESTING script-engine "
                      "and is not based on the status of your system. You can use this command, "
-                     "ONLY in debugger-mode.");
+                     "ONLY in debugger-mode\n\n");
 
         ShowMessages("test Expression : %s \n", Command.c_str());
         ScriptEngineWrapperTestParser(Command);

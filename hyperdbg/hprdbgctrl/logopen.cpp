@@ -103,7 +103,7 @@ CommandLogopen(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("enable to open file : %s\n", Command.c_str());
+        ShowMessages("unable to open file : %s\n", Command.c_str());
         return;
     }
 }

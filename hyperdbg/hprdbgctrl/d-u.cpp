@@ -142,7 +142,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         //
         // User inserts two address
         //
-        ShowMessages("err, Please enter a valid address.\n\n");
+        ShowMessages("err, please enter a valid address\n\n");
 
         return;
     }
