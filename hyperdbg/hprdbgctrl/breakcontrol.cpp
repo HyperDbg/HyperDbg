@@ -57,7 +57,7 @@ BreakController(DWORD CtrlType)
                 RemoteConnectionSendCommand("pause", strlen("pause") + 1);
             }
 
-            Sleep(500);
+            Sleep(300);
 
             //
             // It is because we didn't query the target debuggee auto-unpause variable
@@ -71,6 +71,7 @@ BreakController(DWORD CtrlType)
                         "debugger will automatically continue when you run a new "
                         "event command, if you want to change this behaviour then "
                         "run run 'settings autounpause off'\n\n");
+
                     HyperdbgShowSignature();
                 }
                 else
@@ -80,6 +81,7 @@ BreakController(DWORD CtrlType)
                         "should run 'g' when you want to continue, otherwise run "
                         "'settings "
                         "autounpause on'\n\n");
+
                     HyperdbgShowSignature();
                 }
             }
@@ -133,6 +135,7 @@ BreakController(DWORD CtrlType)
                         "debugger will automatically continue when you run a new "
                         "event command, if you want to change this behaviour then "
                         "run run 'settings autounpause off'\n\n");
+
                     HyperdbgShowSignature();
                 }
                 else
@@ -142,6 +145,7 @@ BreakController(DWORD CtrlType)
                         "should run 'g' when you want to continue, otherwise run "
                         "'settings "
                         "autounpause on'\n\n");
+
                     HyperdbgShowSignature();
                 }
             }

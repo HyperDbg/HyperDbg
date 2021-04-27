@@ -155,3 +155,9 @@ CommandFormatsShowResults(UINT64 U64Value);
 
 VOID
 ShowAllRegisters();
+
+VOID
+CommandPauseRequest();
+
+VOID
+CommandGRequest();

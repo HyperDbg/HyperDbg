@@ -16,6 +16,8 @@
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief help of unload command
@@ -59,6 +61,16 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         {
             ShowMessages("you're not connected to any instance of HyperDbg, did you "
                          "use '.connect'? \n");
+            return;
+        }
+
+        //
+        // Check to avoid using this command in debugger-mode
+        //
+        if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger)
+        {
+            ShowMessages("you're connected to a an instance of HyperDbg, please use "
+                         "'.debug close' command\n");
             return;
         }
 

@@ -1511,8 +1511,21 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
             //
             // Allow debugger to show its contents
             //
-            ShowMessages("\n");
+
+            //
+            // Set the g_BreakPrintingOutput to FALSE
+            //
             g_BreakPrintingOutput = FALSE;
+
+            //
+            // If it's a remote debugger then we send the remote debuggee a 'g'
+            //
+            if (g_IsConnectedToRemoteDebuggee)
+            {
+                RemoteConnectionSendCommand("g", strlen("g") + 1);
+            }
+
+            ShowMessages("\n");
         }
     }
     else

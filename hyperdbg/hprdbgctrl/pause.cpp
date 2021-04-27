@@ -30,6 +30,30 @@ CommandPauseHelp()
 }
 
 /**
+ * @brief request to pause 
+ *
+ * @return VOID
+ */
+VOID
+CommandPauseRequest()
+{
+    //
+    // Set the g_BreakPrintingOutput to TRUE
+    //
+    g_BreakPrintingOutput = TRUE;
+
+    //
+    // If it's a remote debugger then we send the remote debuggee a 'g'
+    //
+    if (g_IsConnectedToRemoteDebuggee)
+    {
+        RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+    }
+
+    ShowMessages("pausing debugger...\n");
+}
+
+/**
  * @brief pause command handler
  *
  * @param SplittedCommand
@@ -46,23 +70,5 @@ CommandPause(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    //
-    // Sleep because the other thread that shows must be stopped
-    //
-    Sleep(500);
-
-    //
-    // Set the g_BreakPrintingOutput to TRUE
-    //
-    g_BreakPrintingOutput = TRUE;
-
-    //
-    // If it's a remote debugger then we send the remote debuggee a 'g'
-    //
-    if (g_IsConnectedToRemoteDebuggee)
-    {
-        RemoteConnectionSendCommand("pause", strlen("pause") + 1);
-    }
-
-    ShowMessages("pausing debugger...\n");
+    CommandPauseRequest();
 }

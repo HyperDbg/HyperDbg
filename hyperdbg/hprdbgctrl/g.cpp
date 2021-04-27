@@ -31,22 +31,13 @@ CommandGHelp()
 }
 
 /**
- * @brief handler of g command
+ * @brief Request to unpause
  *
- * @param SplittedCommand
- * @param Command
  * @return VOID
  */
 VOID
-CommandG(vector<string> SplittedCommand, string Command)
+CommandGRequest()
 {
-    if (SplittedCommand.size() != 1)
-    {
-        ShowMessages("incorrect use of 'g'\n\n");
-        CommandGHelp();
-        return;
-    }
-
     //
     // Check if the remote serial debuggee is paused or not
     //
@@ -69,4 +60,24 @@ CommandG(vector<string> SplittedCommand, string Command)
             RemoteConnectionSendCommand("g", strlen("g") + 1);
         }
     }
+}
+
+/**
+ * @brief handler of g command
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID
+CommandG(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() != 1)
+    {
+        ShowMessages("incorrect use of 'g'\n\n");
+        CommandGHelp();
+        return;
+    }
+
+    CommandGRequest();
 }

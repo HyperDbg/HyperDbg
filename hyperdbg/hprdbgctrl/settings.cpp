@@ -16,6 +16,7 @@
 //
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_AutoFlush;
+extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern UINT32  g_DisassemblerSyntax;
 
 /**
@@ -254,15 +255,46 @@ CommandSettings(vector<string> SplittedCommand, string Command)
     //
     if (!SplittedCommand.at(1).compare("autounpause"))
     {
+        //
+        // Handle it locally
+        //
         CommandSettingsAutoUpause(SplittedCommand);
     }
     else if (!SplittedCommand.at(1).compare("syntax"))
     {
-        CommandSettingsSyntax(SplittedCommand);
+        //
+        // If it's a remote debugger then we send it to the remote debugger
+        //
+        if (g_IsConnectedToRemoteDebuggee)
+        {
+            RemoteConnectionSendCommand(Command.c_str(), strlen(Command.c_str()) + 1);
+        }
+        else
+        {
+            //
+            // If it's a connection over serial or a local debugging then
+            // we handle it locally
+            //
+            CommandSettingsSyntax(SplittedCommand);
+        }
     }
     else if (!SplittedCommand.at(1).compare("autoflush"))
     {
-        CommandSettingsAutoFlush(SplittedCommand);
+        //
+        // If it's a remote debugger then we send it to the remote debugger
+        //
+        if (g_IsConnectedToRemoteDebuggee)
+        {
+            RemoteConnectionSendCommand(Command.c_str(), strlen(Command.c_str()) + 1);
+        }
+        else
+        {
+            //
+            // If it's a connection over serial or a local debugging then
+            // we handle it locally
+            //
+            CommandSettingsAutoFlush(SplittedCommand);
+        }
     }
     else
     {
