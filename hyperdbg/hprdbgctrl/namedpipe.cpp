@@ -249,7 +249,7 @@ NamedPipeClientCreatePipeOverlappedIo(LPCSTR PipeName)
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        ShowMessages("err, occurred while connecting to the server: %d\n",
+        ShowMessages("err, occurred while connecting to the server (0x%x)\n",
                      GetLastError());
         //
         // One might want to check whether the server pipe is busy

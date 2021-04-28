@@ -17,6 +17,8 @@
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of listen command
@@ -65,6 +67,16 @@ CommandListen(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("you're connected to a debugger, please use '.disconnect' "
                      "command\n");
+        return;
+    }
+
+    //
+    // Check to avoid using this command in debugger-mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee || g_IsSerialConnectedToRemoteDebugger)
+    {
+        ShowMessages("you're connected to a an instance of HyperDbg, please use "
+                     "'.debug close' command\n");
         return;
     }
 

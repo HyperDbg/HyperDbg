@@ -226,6 +226,7 @@ StartAgain:
             {
                 if (!PausePacket->Is32BitAddress)
                 {
+                    ShowMessages("\n");
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,
@@ -235,6 +236,7 @@ StartAgain:
                 }
                 else
                 {
+                    ShowMessages("\n");
                     HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,
@@ -520,10 +522,10 @@ StartAgain:
             // Signal the event relating to receiving result of adding action to event
             //
             g_SyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+                [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]
                     .IsOnWaitingState = FALSE;
             SetEvent(g_SyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT]
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT]
                              .EventHandle);
 
             break;

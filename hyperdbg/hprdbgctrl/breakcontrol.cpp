@@ -17,7 +17,9 @@
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -34,6 +36,17 @@ BreakController(DWORD CtrlType)
         // Handle the CTRL-C signal.
         //
     case CTRL_C_EVENT:
+
+        //
+        // Check if we should ignore the request or not
+        //
+        if (g_IsSerialConnectedToRemoteDebugger || g_IsSerialConnectedToRemoteDebugger)
+        {
+            //
+            // Handled (ignored)
+            //
+            return TRUE;
+        }
 
         //
         // Check if the debuggee is running because of pausing or not
@@ -99,6 +112,18 @@ BreakController(DWORD CtrlType)
         // Pass other signals to the next handler.
         //
     case CTRL_BREAK_EVENT:
+
+        //
+        // Check if we should ignore the request or not
+        //
+        if (g_IsSerialConnectedToRemoteDebugger || g_IsSerialConnectedToRemoteDebugger)
+        {
+            //
+            // Handled (ignored)
+            //
+            return TRUE;
+        }
+
         //
         // Check if the debuggee is running because of pausing or not
         //

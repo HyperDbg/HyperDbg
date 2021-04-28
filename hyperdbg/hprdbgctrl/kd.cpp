@@ -1620,7 +1620,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (Comm == INVALID_HANDLE_VALUE)
         {
-            ShowMessages("err, port can't be opened. Please close the HyperDbg"
+            ShowMessages("err, port can't be opened\nplease close the HyperDbg"
                          " and re-open again\n");
             return FALSE;
         }

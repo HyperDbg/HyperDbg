@@ -1506,7 +1506,10 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         //
         // Check for auto-unpause mode
         //
-        if (g_BreakPrintingOutput && g_AutoUnpause)
+        if (!g_IsSerialConnectedToRemoteDebuggee &&
+            !g_IsSerialConnectedToRemoteDebugger &&
+            g_BreakPrintingOutput &&
+            g_AutoUnpause)
         {
             //
             // Allow debugger to show its contents

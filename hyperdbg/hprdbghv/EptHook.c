@@ -376,7 +376,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 
         if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, GetCr3FromProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
         {
-            LogInfo("Hidden breakpoint hook applied from VMX Root Mode");
+            LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
 
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
             {

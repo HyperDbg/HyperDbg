@@ -20,6 +20,7 @@ extern BOOLEAN    g_BreakPrintingOutput;
 extern BOOLEAN    g_AutoFlush;
 extern BOOLEAN    g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief help of events command
@@ -438,7 +439,9 @@ CommandEventsHandleModifiedEvent(
                     // It is because we didn't query the target debuggee auto-flush
                     // variable
                     //
-                    if (!g_IsConnectedToRemoteDebuggee)
+                    if (!g_IsConnectedToRemoteDebuggee &&
+                        !g_IsSerialConnectedToRemoteDebuggee &&
+                        !g_IsSerialConnectedToRemoteDebugger)
                     {
                         if (!g_AutoFlush)
                         {
