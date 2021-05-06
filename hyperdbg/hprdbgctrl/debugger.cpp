@@ -246,7 +246,13 @@ DebuggerPauseDebuggee()
 BOOLEAN
 IsConnectedToAnyInstanceOfDebuggerOrDebuggee()
 {
-    if (g_IsConnectedToRemoteDebuggee)
+    if (g_DeviceHandle)
+    {
+        ShowMessages("err, the current system is already connected to the local "
+                     "debugging, use '.disconnect' to disconnect\n");
+        return TRUE;
+    }
+    else if (g_IsConnectedToRemoteDebuggee)
     {
         ShowMessages("err, the current system is already connected to remote "
                      "machine (debuggee), use '.disconnect' to disconnect from the "

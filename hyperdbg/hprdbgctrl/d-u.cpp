@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of u* d* !u* !d* commands
  *
@@ -137,6 +142,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
             return;
         }
     }
+
     if (!TargetAddress)
     {
         //
@@ -146,6 +152,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
 
         return;
     }
+
     if (Length == 0)
     {
         //
@@ -160,12 +167,23 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
             Length = 0x80;
         }
     }
+
     if (IsNextLength || IsNextProcessId)
     {
         ShowMessages("incorrect use of '%s' command\n\n", FirstCommand.c_str());
         CommandReadMemoryAndDisassemblerHelp();
         return;
     }
+
+    //
+    // Check to prevent using process id in d* and u* commands
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
+    {
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+        return;
+    }
+
     if (Pid == 0)
     {
         //

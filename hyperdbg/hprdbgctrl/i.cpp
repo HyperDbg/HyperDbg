@@ -106,7 +106,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     }
     else
     {
-        ShowMessages("err, stepping (t) is not valid in the current context, you "
+        ShowMessages("err, stepping (i) is not valid in the current context, you "
                      "should connect to a debuggee\n");
     }
 }

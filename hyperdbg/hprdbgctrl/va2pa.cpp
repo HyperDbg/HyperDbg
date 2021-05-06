@@ -11,6 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of !va2pa command
  *
@@ -39,7 +44,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
     BOOL                              Status;
     ULONG                             ReturnedLength;
     UINT64                            TargetVa;
-    UINT32                            Pid            = GetCurrentProcessId();
+    UINT32                            Pid            = 0;
     DEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails = {0};
 
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
@@ -108,6 +113,20 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
+    }
+
+    //
+    // Check to prevent using process id in !va2pa command
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
+    {
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+        return;
+    }
+
+    if (Pid == 0)
+    {
+        Pid = GetCurrentProcessId();
     }
 
     //

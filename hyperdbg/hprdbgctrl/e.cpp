@@ -11,7 +11,11 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of !e* and e* commands
  *
@@ -56,7 +60,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     BOOL                 NextIsProcId      = FALSE;
     DEBUGGER_EDIT_MEMORY EditMemoryRequest = {0};
     UINT64               Value             = 0;
-    UINT32               ProcId            = GetCurrentProcessId();
+    UINT32               ProcId            = 0;
     UINT32               CountOfValues     = 0;
     UINT32               FinalSize         = 0;
 
@@ -134,6 +138,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
                 continue;
             }
         }
+
         //
         // Check if it's a process id or not
         //
@@ -233,6 +238,20 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
                 continue;
             }
         }
+    }
+
+    //
+    // Check to prevent using process id in e* commands
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee && ProcId != 0)
+    {
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+        return;
+    }
+
+    if (ProcId == 0)
+    {
+        ProcId = GetCurrentProcessId();
     }
 
     //
