@@ -104,6 +104,27 @@ DebuggerInitialize()
     g_TriggerEventForCpuids = FALSE;
 
     //
+    // Initialize script engines global variables holder
+    //
+    if (!g_ScriptGlobalVariables)
+    {
+        g_ScriptGlobalVariables = ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
+    }
+
+    if (!g_ScriptGlobalVariables)
+    {
+        //
+        // Out of resource, initialization of script engine's global varialbe holders failed
+        //
+        return FALSE;
+    }
+
+    //
+    // Zero the global variables memory
+    //
+    RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+
+    //
     // Initialize the stepping mechanism
     // (USER-MODE STEPPING IS NOT SUPPORTED IN THIS VERSION)
     //
@@ -1035,8 +1056,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
         return FALSE;
     }
 
-    UINT64 g_TempList[MAX_TEMP_COUNT]    = {0};
-    UINT64 g_VariableList[MAX_VAR_COUNT] = {0};
+    UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
@@ -1046,7 +1066,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
         if (ScriptEngineExecute(Regs,
                                 ActionBuffer,
                                 (UINT64 *)g_TempList,
-                                (UINT64 *)g_VariableList,
+                                (UINT64 *)g_ScriptGlobalVariables,
                                 &CodeBuffer,
                                 &i,
                                 &ErrorSymbol) == TRUE)

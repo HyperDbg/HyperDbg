@@ -249,6 +249,12 @@ BOOLEAN g_SharedEventStatus = FALSE;
 CommandType g_CommandList;
 
 /**
+ * @brief Holder of global variables for script engine
+ *
+ */
+UINT64 * g_ScriptGlobalVariables;
+
+/**
  * @brief Is list of command initialized
  *
  */

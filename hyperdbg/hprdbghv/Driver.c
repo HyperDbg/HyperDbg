@@ -152,6 +152,11 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     ExFreePoolWithTag(g_Events, POOLTAG);
 
     //
+    // Free g_ScriptGlobalVariables
+    //
+    ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+
+    //
     // Free g_GuestState
     //
     ExFreePoolWithTag(g_GuestState, POOLTAG);

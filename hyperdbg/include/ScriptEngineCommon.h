@@ -116,7 +116,7 @@ typedef struct _GUEST_REGS
 
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.
-#define MAX_VAR_COUNT 32
+#define MAX_VAR_COUNT 512
 
 #define MAX_FUNCTION_NAME_LENGTH 32
 

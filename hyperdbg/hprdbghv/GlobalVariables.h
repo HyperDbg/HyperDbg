@@ -37,6 +37,12 @@ EPT_STATE * g_EptState;
 DEBUGGER_CORE_EVENTS * g_Events;
 
 /**
+ * @brief Holder of script engines global variables
+ * 
+ */
+UINT64 * g_ScriptGlobalVariables;
+
+/**
  * @brief Save the state of the thread that waits for messages to deliver to user-mode
  * 
  */

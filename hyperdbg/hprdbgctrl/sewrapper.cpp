@@ -19,9 +19,13 @@
 #include "ScriptEngineCommon.h"
 
 //
+// Global Variables
+//
+extern UINT64 * g_ScriptGlobalVariables;
+
+//
 // Function links (wrapper)
 //
-
 PVOID
 ScriptEngineParseWrapper(char * str)
 {
@@ -63,11 +67,10 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
     // Test Parser
     //
     PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
-  
-    UINT64        g_TempList[MAX_TEMP_COUNT]    = {0};
-    UINT64        g_VariableList[MAX_VAR_COUNT] = {0};
-    ACTION_BUFFER ActionBuffer                  = {0};
-    SYMBOL        ErrorSymbol                   = {0};
+
+    UINT64        g_TempList[MAX_TEMP_COUNT] = {0};
+    ACTION_BUFFER ActionBuffer               = {0};
+    SYMBOL        ErrorSymbol                = {0};
 
     if (CodeBuffer->Message == NULL)
     {
@@ -85,7 +88,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
             //
             // If has error, show error message and abort.
             //
-            if (ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_VariableList, CodeBuffer, &i, &ErrorSymbol) == TRUE)
+            if (ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_ScriptGlobalVariables, CodeBuffer, &i, &ErrorSymbol) == TRUE)
             {
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
 
@@ -147,6 +150,15 @@ ScriptEngineWrapperTestParser(string Expr)
     GuestRegs.r13 = 0xe;
     GuestRegs.r14 = (ULONG64)testw;
     GuestRegs.r15 = (ULONG64)test;
+
+    //
+    // Allocate global variables holder
+    //
+    if (!g_ScriptGlobalVariables)
+    {
+        g_ScriptGlobalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+        RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+    }
 
     ScriptEngineWrapperTestPerformAction(&GuestRegs, Expr);
     free(TestStruct);
