@@ -177,7 +177,10 @@ char
 IsType2Func(TOKEN Operator);
 
 char
-IsType3Func(TOKEN Operator);
+IsType4Func(TOKEN Operator);
+
+char
+IsType5Func(TOKEN Operator);
 
 char
 IsTwoOperandOperator(TOKEN Operator);

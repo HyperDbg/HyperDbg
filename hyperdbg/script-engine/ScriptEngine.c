@@ -348,7 +348,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, OperatorSymbol);
         PSYMBOL_BUFFER TempStack    = NewSymbolBuffer();
         UINT32         OperandCount = 0;
-
         do
         {
             Op1 = Pop(MatchedStack);
@@ -443,16 +442,16 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         UINT64 CurrentPointer = CodeBuffer->Pointer;
         PushSymbol(CodeBuffer, OperatorSymbol);
 
-        Op0       = Pop(MatchedStack);
-        Op0Symbol = ToSymbol(Op0);
-        PushSymbol(CodeBuffer, Op0Symbol);
-        RemoveSymbol(Op0Symbol);
-
         PSYMBOL JumpAddressSymbol = NewSymbol();
         JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
         JumpAddressSymbol->Value  = 0xffffffffffffffff;
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
+
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
 
         TOKEN CurrentAddressToken = NewToken();
         CurrentAddressToken->Type = DECIMAL;
@@ -472,7 +471,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         UINT64  CurrentPointer           = CodeBuffer->Pointer;
         TOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
         UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
-        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 2);
+        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
         JumpAddressSymbol->Value         = CurrentPointer + 2;
 
         //
@@ -517,6 +516,13 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
             JumpAddressSymbol->Value   = CurrentPointer;
             JumpSemanticAddressToken   = Pop(MatchedStack);
         }
+        printf("SemanticStack : \n");
+        PrintTokenList(MatchedStack);
+        printf("\n\n");
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_WHILE"))
     {
@@ -537,7 +543,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         UINT64  CurrentPointer           = CodeBuffer->Pointer;
         TOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
         UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
-        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 2);
+        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
         JumpAddressSymbol->Value         = CurrentPointer + 2;
 
         //
@@ -585,8 +591,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         Op0       = Pop(MatchedStack);
         Op0Symbol = ToSymbol(Op0);
-        PushSymbol(CodeBuffer, Op0Symbol);
-        RemoveSymbol(Op0Symbol);
 
         //
         // Add jmp address to Code buffer
@@ -598,7 +602,18 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
 
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
         FreeTemp(Op0);
+
+        printf("SemanticStack : \n");
+        PrintTokenList(MatchedStack);
+        printf("\n\n");
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_FOR"))
     {
@@ -629,13 +644,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, JnzInstruction);
         RemoveSymbol(JnzInstruction);
 
-        //
-        // Add Op0 to CodeBuffer
-        //
-        Op0       = Pop(MatchedStack);
-        Op0Symbol = ToSymbol(Op0);
-        PushSymbol(CodeBuffer, Op0Symbol);
-        RemoveSymbol(Op0Symbol);
 
         //
         // Add JZ addresss to Code CodeBuffer
@@ -645,6 +653,15 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         JnzAddressSymbol->Value  = 0xffffffffffffffff;
         PushSymbol(CodeBuffer, JnzAddressSymbol);
         RemoveSymbol(JnzAddressSymbol);
+
+        //
+        // Add Op0 to CodeBuffer
+        //
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
 
         //
         // JMP
@@ -758,7 +775,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         // Set jz address
         //
         PUINT64 CurrentPointer   = CodeBuffer->Pointer;
-        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 3);
+        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 4);
         JumpAddressSymbol->Value = CurrentPointer;
     }
     else
