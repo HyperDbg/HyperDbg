@@ -516,13 +516,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
             JumpAddressSymbol->Value   = CurrentPointer;
             JumpSemanticAddressToken   = Pop(MatchedStack);
         }
-        printf("SemanticStack : \n");
-        PrintTokenList(MatchedStack);
-        printf("\n\n");
-
-        printf("Code Buffer:\n");
-        PrintSymbolBuffer(CodeBuffer);
-        printf("\n\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_WHILE"))
     {
@@ -780,7 +773,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
     else
     {
-        printf("Internal Error: Unhandled semantic ruls.\n");
+        printf("Internal Error: Unhandled semantic rules.\n");
     }
     RemoveSymbol(OperatorSymbol);
     return;
