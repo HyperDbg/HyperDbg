@@ -2577,9 +2577,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
             ShowMessages("result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
 
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-            LogInfo("result is %llx\n", DesVal);
-#endif // SCRIPT_ENGINE_KERNEL_MODE
         }
 
 #ifdef SCRIPT_ENGINE_USER_MODE

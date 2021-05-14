@@ -226,7 +226,6 @@ StartAgain:
             {
                 if (!PausePacket->Is32BitAddress)
                 {
-                    ShowMessages("\n");
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,
@@ -236,7 +235,6 @@ StartAgain:
                 }
                 else
                 {
-                    ShowMessages("\n");
                     HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,
