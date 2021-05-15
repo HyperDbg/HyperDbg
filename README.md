@@ -73,13 +73,15 @@ Please visit <a href="https://docs.hyperdbg.com/getting-started/build-and-instal
 We explained about how HyperDbg internally works and how we designed its features in details, take a look at : </br>
 <p align="center">(https://docs.hyperdbg.com/design)</p>
 
-Here's a diagram that shows how HyperDbg works !
+Here's a diagram that shows how HyperDbg works!
 </br>
 
 <p align="center"><a href="https://hyperdbg.com/"><img align="center" width="70%" height="100%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/Diagram-hq-v1/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
 </p>
 </br>
 
+HyperDbg subsystems: </br>
+<p align="center"><img align="center" width="70%" height="100%" src="https://github.com/HyperDbg/graphics/raw/master/Diagrams/subsystems/HyperDbg-subsystems.png" alt="HyperDbg Subsystems"></p>
 
 ## Plugins
 The plugin framework is not ready for the current version of HyperDbg. Future versions will support plugins.
@@ -89,7 +91,7 @@ We spent thousands of hours on HyperDbg and it's free and open-source for you, I
 <p align="center">(https://www.compassion.com/donate/donate-to-children-in-africa.htm)</p>
 
 ## Credits
-- Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
+- M. Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
 - MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
 - Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
 - Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
