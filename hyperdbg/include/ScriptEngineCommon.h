@@ -1942,7 +1942,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
     switch (Operator->Value)
     {
-    case FUNC_BREAK:
+    case FUNC_PAUSE:
         ScriptEngineFunctionBreak(ActionDetail.Tag,
                                   ActionDetail.ImmediatelySendTheResults,
                                   GuestRegs,
