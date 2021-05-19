@@ -77,7 +77,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_DISABLEEVENT 36
 #define FUNC_ENABLEEVENT 37
 #define FUNC_PRINTF 38
-#define FUNC_BREAK 39
+#define FUNC_PAUSE 39
 #define FUNC_POI 40
 #define FUNC_DB 41
 #define FUNC_DD 42
@@ -87,6 +87,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_HI 46
 #define FUNC_LOW 47
 #define FUNC_NOT 48
+#define FUNC_MEMSET 49
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,
 	REGISTER_RCX = 1,

@@ -281,11 +281,13 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 {
     TOKEN Op0;
     TOKEN Op1;
+    TOKEN Op2;
     TOKEN Temp;
 
     PSYMBOL OperatorSymbol;
     PSYMBOL Op0Symbol;
     PSYMBOL Op1Symbol;
+    PSYMBOL Op2Symbol;
     PSYMBOL TempSymbol;
 
     OperatorSymbol = ToSymbol(Operator);
@@ -386,6 +388,33 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     else if (IsType5Func(Operator))
     {
         PushSymbol(CodeBuffer, OperatorSymbol);
+    }
+    else if (IsType6Func(Operator))
+    {
+        PushSymbol(CodeBuffer, OperatorSymbol);
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        Op1       = Pop(MatchedStack);
+        Op1Symbol = ToSymbol(Op1);
+        PushSymbol(CodeBuffer, Op1Symbol);
+        RemoveSymbol(Op1Symbol);
+
+        Op2       = Pop(MatchedStack);
+        Op2Symbol = ToSymbol(Op2);
+        PushSymbol(CodeBuffer, Op2Symbol);
+        RemoveSymbol(Op2Symbol);
+
+
+        //
+        // Free the operand if it is a temp value
+        //
+        FreeTemp(Op0);
+        FreeTemp(Op1);
+        FreeTemp(Op2);
+
     }
     else if (IsTwoOperandOperator(Operator))
     {
@@ -600,13 +629,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
         FreeTemp(Op0);
 
-        printf("SemanticStack : \n");
-        PrintTokenList(MatchedStack);
-        printf("\n\n");
-
-        printf("Code Buffer:\n");
-        PrintSymbolBuffer(CodeBuffer);
-        printf("\n\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_FOR"))
     {

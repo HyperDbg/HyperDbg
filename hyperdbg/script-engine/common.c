@@ -528,6 +528,21 @@ IsType5Func(TOKEN Operator)
     return 0;
 }
 
+char
+IsType6Func(TOKEN Operator)
+{
+    unsigned int n = THREEOPFUNC1_LENGTH;
+    for (int i = 0; i < n; i++)
+    {
+        if (!strcmp(Operator->Value, ThreeOpFunc1[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
 /**
 *
 *

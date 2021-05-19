@@ -2,17 +2,18 @@
 #define PARSE_TABLE_H
 #include "common.h"
 #include "ScriptEngineCommonDefinitions.h"
-#define RULES_COUNT 93
-#define TERMINAL_COUNT 50
+#define RULES_COUNT 94
+#define TERMINAL_COUNT 51
 #define NONETERMINAL_COUNT 46
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
-#define KEYWORD_LIST_LENGTH 15
+#define KEYWORD_LIST_LENGTH 16
 #define OPERATORS_ONE_OPERAND_LIST_LENGTH 2
 #define OPERATORS_TWO_OPERAND_LIST_LENGTH 16
 #define REGISTER_MAP_LIST_LENGTH 31
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 9
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 49
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 50
+#define THREEOPFUNC1_LENGTH 1
 #define ONEOPFUNC1_LENGTH 9
 #define ONEOPFUNC2_LENGTH 4
 #define ZEROOPFUNC1_LENGTH 1
@@ -26,6 +27,7 @@ extern const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];
 extern const char* KeywordList[];
 extern const char* OperatorsTwoOperandList[];
 extern const char* OperatorsOneOperandList[];
+extern const char* ThreeOpFunc1[];
 extern const char* OneOpFunc1[];
 extern const char* OneOpFunc2[];
 extern const char* ZeroOpFunc1[];

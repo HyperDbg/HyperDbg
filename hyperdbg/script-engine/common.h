@@ -183,6 +183,9 @@ char
 IsType5Func(TOKEN Operator);
 
 char
+IsType6Func(TOKEN Operator);
+
+char
 IsTwoOperandOperator(TOKEN Operator);
 
 
