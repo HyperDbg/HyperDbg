@@ -368,6 +368,9 @@
     <ClCompile Include="pch.cpp">
       <Filter>Resource Files\Source Files\App</Filter>
     </ClCompile>
+    <ClCompile Include="symbol.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

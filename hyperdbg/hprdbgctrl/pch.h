@@ -29,6 +29,7 @@
 //
 
 #    define WIN32_LEAN_AND_MEAN
+#    define _NO_CVCONST_H // for symbol parsing
 
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
@@ -58,6 +59,8 @@
 #    include <numeric>
 #    include <tlhelp32.h>
 #    include <VersionHelpers.h>
+#    include <tchar.h>
+#    include <dbghelp.h>
 
 //
 // HyperDbg defined headers
@@ -81,12 +84,12 @@
 
 #endif // PCH_H
 
-#pragma comment(lib, "ntdll.lib")
-
 //
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 // for tcpclient.cpp and tcpserver.cpp
 //
+#pragma comment(lib, "ntdll.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "AdvApi32.lib")
+#pragma comment(lib, "dbghelp.lib")

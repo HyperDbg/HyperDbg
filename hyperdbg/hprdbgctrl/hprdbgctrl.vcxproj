@@ -186,6 +186,7 @@
     <ClCompile Include="sewrapper.cpp" />
     <ClCompile Include="sleep.cpp" />
     <ClCompile Include="status.cpp" />
+    <ClCompile Include="symbol.cpp" />
     <ClCompile Include="syscall-sysret.cpp" />
     <ClCompile Include="t.cpp" />
     <ClCompile Include="tcpclient.cpp" />
