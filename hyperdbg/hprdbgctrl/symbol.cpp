@@ -1,6 +1,7 @@
 /**
  * @file symbol.cpp
  * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@rayanfam.com)
  * @brief symbol parser
  * @details
  * @version 0.1
@@ -12,22 +13,23 @@
 #include "pch.h"
 
 BOOL
-GetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
+SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
 BOOL
-GetFileSize(const char * FileName, DWORD & FileSize);
+SymGetFileSize(const char * FileName, DWORD & FileSize);
 VOID
-ShowSymbolInfo(DWORD64 ModBase);
+SymShowSymbolInfo(DWORD64 ModBase);
 
 BOOL CALLBACK
-MyEnumSymbolsCallback(SYMBOL_INFO * pSymInfo, ULONG SymbolSize, PVOID UserContext);
-void
-ShowSymbolDetails(SYMBOL_INFO & SymInfo);
+SymEnumSymbolsCallback(SYMBOL_INFO * pSymInfo, ULONG SymbolSize, PVOID UserContext);
+
+VOID
+SymShowSymbolDetails(SYMBOL_INFO & SymInfo);
 
 const char *
-TagStr(ULONG Tag);
+SymTagStr(ULONG Tag);
 
 int
-SymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
+SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
 {
     BOOL  Ret     = FALSE;
     DWORD Options = SymGetOptions();
@@ -48,23 +50,23 @@ SymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseA
         NULL,                // No user-defined search path -> use default
         FALSE                // Do not load symbols for modules in the current process
     );
-    
 
     if (!Ret)
     {
         ShowMessages(("Error: SymInitialize() failed. Error code: %u \n"),
-               ::GetLastError());
+                     ::GetLastError());
         return 0;
     }
 
     do
     {
+        //
         // Determine the base address and the file size
-
+        //
         DWORD64 BaseAddr = 0;
         DWORD   FileSize = 0;
 
-        if (!GetFileParams(PdbFilePath, BaseAddr, FileSize))
+        if (!SymGetFileParams(PdbFilePath, BaseAddr, FileSize))
         {
             ShowMessages(("Error: Cannot obtain file parameters (internal error).\n"));
             break;
@@ -89,35 +91,37 @@ SymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseA
         if (ModBase == 0)
         {
             ShowMessages(("Error: SymLoadModule64() failed. Error code: %u \n"),
-                   ::GetLastError());
+                         ::GetLastError());
             break;
         }
 
         ShowMessages(("Load address: %I64x \n"), ModBase);
 
+        //
         // Obtain and display information about loaded symbols
+        //
+        SymShowSymbolInfo(ModBase);
 
-        ShowSymbolInfo(ModBase);
-
+        //
         // Enumerate symbols and display information about them
-
+        //
         if (SearchMask != NULL)
             ShowMessages(("Search mask: %s \n"), SearchMask);
 
         ShowMessages(("Symbols: \n"));
 
         Ret = SymEnumSymbols(
-            GetCurrentProcess(),   // Process handle of the current process
-            ModBase,               // Base address of the module
-            SearchMask,            // Mask (NULL -> all symbols)
-            MyEnumSymbolsCallback, // The callback function
-            NULL                   // A used-defined context can be passed here, if necessary
+            GetCurrentProcess(),    // Process handle of the current process
+            ModBase,                // Base address of the module
+            SearchMask,             // Mask (NULL -> all symbols)
+            SymEnumSymbolsCallback, // The callback function
+            NULL                    // A used-defined context can be passed here, if necessary
         );
 
         if (!Ret)
         {
             ShowMessages(("Error: SymEnumSymbols() failed. Error code: %u \n"),
-                   ::GetLastError());
+                         ::GetLastError());
         }
 
         //
@@ -128,13 +132,14 @@ SymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseA
         if (!Ret)
         {
             ShowMessages(("Error: SymUnloadModule64() failed. Error code: %u \n"),
-                   ::GetLastError());
+                         ::GetLastError());
         }
 
     } while (0);
 
-    // Deinitialize DbgHelp
-
+    //
+    // Uninitialize DbgHelp
+    //
     Ret = SymCleanup(GetCurrentProcess());
 
     if (!Ret)
@@ -147,7 +152,7 @@ SymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseA
 }
 
 BOOL
-GetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
+SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
 {
     //
     // Check parameters
@@ -165,7 +170,7 @@ GetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
     _splitpath(FileName, NULL, NULL, NULL, FileExt);
 
     //
-    // Is it .PDB file ?
+    // Is it .PDB file?
     //
     if (strcmp(FileExt, (".pdb")) == 0 || strcmp(FileExt, (".PDB")) == 0)
     {
@@ -174,12 +179,15 @@ GetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         // Determine its size, and use a dummy base address
         //
 
-        BaseAddr = 0x40000000; // it can be any non-zero value, but if we load
-                               // symbols from more than one file, memory regions
-                               // specified for different files should not overlap
-                               // (region is "base address + file size")
+        //
+        // it can be any non-zero value, but if we load
+        // symbols from more than one file, memory regions
+        // specified for different files should not overlap
+        // (region is "base address + file size")
+        //
+        BaseAddr = 0x40000000;
 
-        if (!GetFileSize(FileName, FileSize))
+        if (!SymGetFileSize(FileName, FileSize))
         {
             return FALSE;
         }
@@ -195,15 +203,15 @@ GetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         FileSize = 0;
     }
 
-    // Complete
     return TRUE;
 }
 
 BOOL
-GetFileSize(const char * FileName, DWORD & FileSize)
+SymGetFileSize(const char * FileName, DWORD & FileSize)
 {
+    //
     // Check parameters
-
+    //
     if (FileName == 0)
     {
         return FALSE;
@@ -228,7 +236,10 @@ GetFileSize(const char * FileName, DWORD & FileSize)
     if (FileSize == INVALID_FILE_SIZE)
     {
         ShowMessages(("GetFileSize() failed. Error: %u \n"), ::GetLastError());
+
+        //
         // and continue ...
+        //
     }
 
     //
@@ -237,16 +248,17 @@ GetFileSize(const char * FileName, DWORD & FileSize)
     if (!::CloseHandle(hFile))
     {
         ShowMessages(("CloseHandle() failed. Error: %u \n"), ::GetLastError());
-        // and continue ...
-    }
 
-    // Complete
+        //
+        // and continue ...
+        //
+    }
 
     return (FileSize != INVALID_FILE_SIZE);
 }
 
-void
-ShowSymbolInfo(DWORD64 ModBase)
+VOID
+SymShowSymbolInfo(DWORD64 ModBase)
 {
     //
     // Get module information
@@ -262,7 +274,7 @@ ShowSymbolInfo(DWORD64 ModBase)
     if (!Ret)
     {
         ShowMessages(("Error: SymGetModuleInfo64() failed. Error code: %u \n"),
-               ::GetLastError());
+                     ::GetLastError());
         return;
     }
 
@@ -305,7 +317,11 @@ ShowSymbolInfo(DWORD64 ModBase)
         break;
 
     case SymDeferred:
-        ShowMessages(("Loaded symbols: Deferred\n")); // not actually loaded
+
+        //
+        // not actually loaded
+        //
+        ShowMessages(("Loaded symbols: Deferred\n"));
         break;
 
     default:
@@ -313,99 +329,117 @@ ShowSymbolInfo(DWORD64 ModBase)
         break;
     }
 
+    //
     // Image name
-
+    //
     if (strlen(ModuleInfo.ImageName) > 0)
     {
         ShowMessages(("Image name: %s \n"), ModuleInfo.ImageName);
     }
 
+    //
     // Loaded image name
-
+    //
     if (strlen(ModuleInfo.LoadedImageName) > 0)
     {
         ShowMessages(("Loaded image name: %s \n"), ModuleInfo.LoadedImageName);
     }
 
+    //
     // Loaded PDB name
-
+    //
     if (strlen(ModuleInfo.LoadedPdbName) > 0)
     {
         ShowMessages(("PDB file name: %s \n"), ModuleInfo.LoadedPdbName);
     }
 
-    // Is debug information unmatched ?
+    //
+    // Is debug information unmatched?
     // (It can only happen if the debug information is contained
     // in a separate file (.DBG or .PDB)
-
+    //
     if (ModuleInfo.PdbUnmatched || ModuleInfo.DbgUnmatched)
     {
         ShowMessages(("Warning: Unmatched symbols. \n"));
     }
 
-    // Contents
+    //
+    // *** Contents ***
+    //
 
-    // Line numbers available ?
-
+    //
+    // Line numbers available?
+    //
     ShowMessages(("Line numbers: %s \n"),
-           ModuleInfo.LineNumbers ? ("Available") : ("Not available"));
+                 ModuleInfo.LineNumbers ? ("Available") : ("Not available"));
 
-    // Global symbols available ?
-
+    //
+    // Global symbols available?
+    //
     ShowMessages(("Global symbols: %s \n"),
-           ModuleInfo.GlobalSymbols ? ("Available") : ("Not available"));
+                 ModuleInfo.GlobalSymbols ? ("Available") : ("Not available"));
 
-    // Type information available ?
-
+    //
+    // Type information available?
+    //
     ShowMessages(("Type information: %s \n"),
-           ModuleInfo.TypeInfo ? ("Available") : ("Not available"));
+                 ModuleInfo.TypeInfo ? ("Available") : ("Not available"));
 
-    // Source indexing available ?
-
+    //
+    // Source indexing available?
+    //
     ShowMessages(("Source indexing: %s \n"),
-           ModuleInfo.SourceIndexed ? ("Yes") : ("No"));
+                 ModuleInfo.SourceIndexed ? ("Yes") : ("No"));
 
-    // Public symbols available ?
-
+    //
+    // Public symbols available?
+    //
     ShowMessages(("Public symbols: %s \n"),
-           ModuleInfo.Publics ? ("Available") : ("Not available"));
+                 ModuleInfo.Publics ? ("Available") : ("Not available"));
 }
 
 BOOL CALLBACK
-MyEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
     if (SymInfo != 0)
     {
-        ShowSymbolDetails(*SymInfo);
+        SymShowSymbolDetails(*SymInfo);
     }
 
-    return TRUE; // Continue enumeration
+    //
+    // Continue enumeration
+    //
+    return TRUE;
 }
 
-void
-ShowSymbolDetails(SYMBOL_INFO & SymInfo)
+VOID
+SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
 {
+    //
     // Kind of symbol (tag)
+    //
+    ShowMessages(("Symbol: %s  "), SymTagStr(SymInfo.Tag));
 
-    ShowMessages(("Symbol: %s  "), TagStr(SymInfo.Tag));
-
+    //
     // Address
-
+    //
     ShowMessages(("Address: %x  "), SymInfo.Address);
 
+    //
     // Size
-
+    //
     ShowMessages(("Size: %u  "), SymInfo.Size);
 
+    //
     // Name
-
+    //
     ShowMessages(("Name: %s"), SymInfo.Name);
 
     ShowMessages(("\n"));
 }
 
 const char *
-TagStr(ULONG Tag)
+SymTagStr(ULONG Tag)
 {
     switch (Tag)
     {
