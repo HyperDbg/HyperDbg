@@ -29,7 +29,7 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
     //
     // Initialize DbgHelp and load symbols for all modules of the current process
     //
-    Ret = ::SymInitialize(
+    Ret = SymInitialize(
         GetCurrentProcess(), // Process handle of the current process
         NULL,                // No user-defined search path -> use default
         FALSE                // Do not load symbols for modules in the current process
@@ -37,8 +37,8 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 
     if (!Ret)
     {
-        ShowMessages(("Error: SymInitialize() failed. Error code: %u \n"),
-                     ::GetLastError());
+        ShowMessages("err, symbol init failed (%u)\n",
+                     GetLastError());
         return 0;
     }
 
@@ -52,16 +52,16 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 
         if (!SymGetFileParams(PdbFilePath, BaseAddr, FileSize))
         {
-            ShowMessages(("Error: Cannot obtain file parameters (internal error).\n"));
+            ShowMessages("err, cannot obtain file parameters (internal error)\n");
             break;
         }
 
         //
         // Load symbols for the module
         //
-        ShowMessages(("Loading symbols for: %s ... \n"), PdbFilePath);
+        ShowMessages("loading symbols for: %s\n", PdbFilePath);
 
-        DWORD64 ModBase = ::SymLoadModule64(
+        DWORD64 ModBase = SymLoadModule64(
             GetCurrentProcess(), // Process handle of the current process
             NULL,                // Handle to the module's image file (not needed)
             PdbFilePath,         // Path/name of the file
@@ -74,12 +74,12 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 
         if (ModBase == 0)
         {
-            ShowMessages(("Error: SymLoadModule64() failed. Error code: %u \n"),
-                         ::GetLastError());
+            ShowMessages("err, loading symbols failed (%u)\n",
+                         GetLastError());
             break;
         }
 
-        ShowMessages(("Load address: %I64x \n"), ModBase);
+        ShowMessages("load address: %I64x\n", ModBase);
 
         //
         // Obtain and display information about loaded symbols
@@ -90,9 +90,9 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
         // Enumerate symbols and display information about them
         //
         if (SearchMask != NULL)
-            ShowMessages(("Search mask: %s \n"), SearchMask);
+            ShowMessages("search mask: %s\n", SearchMask);
 
-        ShowMessages(("Symbols: \n"));
+        ShowMessages("symbols:\n");
 
         Ret = SymEnumSymbols(
             GetCurrentProcess(),    // Process handle of the current process
@@ -104,19 +104,19 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 
         if (!Ret)
         {
-            ShowMessages(("Error: SymEnumSymbols() failed. Error code: %u \n"),
-                         ::GetLastError());
+            ShowMessages("err, symbol enum failed (%u)\n",
+                         GetLastError());
         }
 
         //
         // Unload symbols for the module
         //
-        Ret = ::SymUnloadModule64(GetCurrentProcess(), ModBase);
+        Ret = SymUnloadModule64(GetCurrentProcess(), ModBase);
 
         if (!Ret)
         {
-            ShowMessages(("Error: SymUnloadModule64() failed. Error code: %u \n"),
-                         ::GetLastError());
+            ShowMessages("err, unload symbol failed (%u)\n",
+                         GetLastError());
         }
 
     } while (0);
@@ -128,7 +128,7 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 
     if (!Ret)
     {
-        ShowMessages(("Error: SymCleanup() failed. Error code: %u \n"), ::GetLastError());
+        ShowMessages("err, symbol cleanup failed (%u)\n", GetLastError());
         return 0;
     }
 
@@ -204,11 +204,11 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     // Open the file
     //
-    HANDLE hFile = ::CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    HANDLE hFile = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        ShowMessages(("CreateFile() failed. Error: %u \n"), ::GetLastError());
+        ShowMessages("err, unable to open symbol file (%u)\n", GetLastError());
         return FALSE;
     }
 
@@ -219,7 +219,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 
     if (FileSize == INVALID_FILE_SIZE)
     {
-        ShowMessages(("GetFileSize() failed. Error: %u \n"), ::GetLastError());
+        ShowMessages("err, unable to get symbol file size (%u)\n", GetLastError());
 
         //
         // and continue ...
@@ -229,9 +229,9 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     // Close the file
     //
-    if (!::CloseHandle(hFile))
+    if (!CloseHandle(hFile))
     {
-        ShowMessages(("CloseHandle() failed. Error: %u \n"), ::GetLastError());
+        ShowMessages("err, unable to close symbol file (%u)\n", GetLastError());
 
         //
         // and continue ...
@@ -253,12 +253,12 @@ SymShowSymbolInfo(DWORD64 ModBase)
 
     ModuleInfo.SizeOfStruct = sizeof(ModuleInfo);
 
-    BOOL Ret = ::SymGetModuleInfo64(GetCurrentProcess(), ModBase, &ModuleInfo);
+    BOOL Ret = SymGetModuleInfo64(GetCurrentProcess(), ModBase, &ModuleInfo);
 
     if (!Ret)
     {
-        ShowMessages(("Error: SymGetModuleInfo64() failed. Error code: %u \n"),
-                     ::GetLastError());
+        ShowMessages("err, unable to get symbol file information (%u)\n",
+                     GetLastError());
         return;
     }
 
@@ -269,35 +269,35 @@ SymShowSymbolInfo(DWORD64 ModBase)
     switch (ModuleInfo.SymType)
     {
     case SymNone:
-        ShowMessages(("No symbols available for the module.\n"));
+        ShowMessages("no symbols available for the module\n");
         break;
 
     case SymExport:
-        ShowMessages(("Loaded symbols: Exports\n"));
+        ShowMessages("loaded symbols: Exports\n");
         break;
 
     case SymCoff:
-        ShowMessages(("Loaded symbols: COFF\n"));
+        ShowMessages("loaded symbols: COFF\n");
         break;
 
     case SymCv:
-        ShowMessages(("Loaded symbols: CodeView\n"));
+        ShowMessages("loaded symbols: CodeView\n");
         break;
 
     case SymSym:
-        ShowMessages(("Loaded symbols: SYM\n"));
+        ShowMessages("loaded symbols: SYM\n");
         break;
 
     case SymVirtual:
-        ShowMessages(("Loaded symbols: Virtual\n"));
+        ShowMessages("loaded symbols: Virtual\n");
         break;
 
     case SymPdb:
-        ShowMessages(("Loaded symbols: PDB\n"));
+        ShowMessages("loaded symbols: PDB\n");
         break;
 
     case SymDia:
-        ShowMessages(("Loaded symbols: DIA\n"));
+        ShowMessages("loaded symbols: DIA\n");
         break;
 
     case SymDeferred:
@@ -305,11 +305,11 @@ SymShowSymbolInfo(DWORD64 ModBase)
         //
         // not actually loaded
         //
-        ShowMessages(("Loaded symbols: Deferred\n"));
+        ShowMessages("loaded symbols: Deferred\n");
         break;
 
     default:
-        ShowMessages(("Loaded symbols: Unknown format.\n"));
+        ShowMessages("loaded symbols: Unknown format\n");
         break;
     }
 
@@ -318,7 +318,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
     //
     if (strlen(ModuleInfo.ImageName) > 0)
     {
-        ShowMessages(("Image name: %s \n"), ModuleInfo.ImageName);
+        ShowMessages("image name: %s\n", ModuleInfo.ImageName);
     }
 
     //
@@ -326,7 +326,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
     //
     if (strlen(ModuleInfo.LoadedImageName) > 0)
     {
-        ShowMessages(("Loaded image name: %s \n"), ModuleInfo.LoadedImageName);
+        ShowMessages("loaded image name: %s\n", ModuleInfo.LoadedImageName);
     }
 
     //
@@ -334,7 +334,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
     //
     if (strlen(ModuleInfo.LoadedPdbName) > 0)
     {
-        ShowMessages(("PDB file name: %s \n"), ModuleInfo.LoadedPdbName);
+        ShowMessages("PDB file name: %s\n", ModuleInfo.LoadedPdbName);
     }
 
     //
@@ -344,7 +344,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
     //
     if (ModuleInfo.PdbUnmatched || ModuleInfo.DbgUnmatched)
     {
-        ShowMessages(("Warning: Unmatched symbols. \n"));
+        ShowMessages("warning, unmatched symbols\n");
     }
 
     //
@@ -354,32 +354,32 @@ SymShowSymbolInfo(DWORD64 ModBase)
     //
     // Line numbers available?
     //
-    ShowMessages(("Line numbers: %s \n"),
-                 ModuleInfo.LineNumbers ? ("Available") : ("Not available"));
+    ShowMessages("line numbers: %s\n",
+                 ModuleInfo.LineNumbers ? "available" : "not available");
 
     //
     // Global symbols available?
     //
-    ShowMessages(("Global symbols: %s \n"),
-                 ModuleInfo.GlobalSymbols ? ("Available") : ("Not available"));
+    ShowMessages("global symbols: %s\n",
+                 ModuleInfo.GlobalSymbols ? "available" : "not available");
 
     //
     // Type information available?
     //
-    ShowMessages(("Type information: %s \n"),
+    ShowMessages("type information: %s\n",
                  ModuleInfo.TypeInfo ? ("Available") : ("Not available"));
 
     //
     // Source indexing available?
     //
-    ShowMessages(("Source indexing: %s \n"),
-                 ModuleInfo.SourceIndexed ? ("Yes") : ("No"));
+    ShowMessages("source indexing: %s\n",
+                 ModuleInfo.SourceIndexed ? "yes" : "no");
 
     //
     // Public symbols available?
     //
-    ShowMessages(("Public symbols: %s \n"),
-                 ModuleInfo.Publics ? ("Available") : ("Not available"));
+    ShowMessages("public symbols: %s\n",
+                 ModuleInfo.Publics ? "available" : "not available");
 }
 
 BOOL CALLBACK
@@ -402,24 +402,22 @@ SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
     //
     // Kind of symbol (tag)
     //
-    ShowMessages(("Symbol: %s  "), SymTagStr(SymInfo.Tag));
+    ShowMessages("symbol: %s  ", SymTagStr(SymInfo.Tag));
 
     //
     // Address
     //
-    ShowMessages(("Address: %x  "), SymInfo.Address);
+    ShowMessages("address: %x  ", SymInfo.Address);
 
     //
     // Size
     //
-    ShowMessages(("Size: %u  "), SymInfo.Size);
+    ShowMessages("size: %u  ", SymInfo.Size);
 
     //
     // Name
     //
-    ShowMessages(("Name: %s"), SymInfo.Name);
-
-    ShowMessages(("\n"));
+    ShowMessages("name: %s\n", SymInfo.Name);
 }
 
 const char *
