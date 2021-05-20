@@ -27,7 +27,6 @@
 //
 // add headers that you want to pre-compile here
 //
-
 #    define WIN32_LEAN_AND_MEAN
 #    define _NO_CVCONST_H // for symbol parsing
 
@@ -81,15 +80,21 @@
 #    include "namedpipe.h"
 #    include "forwarding.h"
 #    include "kd.h"
+#    include "symbol.h"
 
 #endif // PCH_H
+
+#pragma comment(lib, "ntdll.lib")
 
 //
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 // for tcpclient.cpp and tcpserver.cpp
 //
-#pragma comment(lib, "ntdll.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "AdvApi32.lib")
+
+//
+// Needed to link symbol server
+//
 #pragma comment(lib, "dbghelp.lib")

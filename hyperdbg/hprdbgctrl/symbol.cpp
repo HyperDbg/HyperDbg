@@ -12,23 +12,7 @@
  */
 #include "pch.h"
 
-BOOL
-SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
-BOOL
-SymGetFileSize(const char * FileName, DWORD & FileSize);
-VOID
-SymShowSymbolInfo(DWORD64 ModBase);
-
-BOOL CALLBACK
-SymEnumSymbolsCallback(SYMBOL_INFO * pSymInfo, ULONG SymbolSize, PVOID UserContext);
-
-VOID
-SymShowSymbolDetails(SYMBOL_INFO & SymInfo);
-
-const char *
-SymTagStr(ULONG Tag);
-
-int
+UINT32
 SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
 {
     BOOL  Ret     = FALSE;
