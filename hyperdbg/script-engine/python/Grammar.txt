@@ -14,7 +14,7 @@
 .OperatorsTwoOperand->or xor and asr asl add sub mul div mod gt lt egt elt eq neq 
 .OperatorsOneOperand->inc dec 
 
-.SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if
+.SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while  start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if
 
 .Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 ds es fs gs cs ss rflags rip idtr gdtr cr0 cr2 cr3 cr4 cr8
 
@@ -29,8 +29,8 @@ STATEMENT->DO_WHILE_STATEMENT
 STATEMENT->FOR_STATEMENT
 STATEMENT->ASSIGN_STATEMENT ;
 STATEMENT->CALL_FUNC_STATEMENT ;
-STATEMENT->break ;
-STATEMENT->continue ;
+STATEMENT->break @BREAK ;
+STATEMENT->continue @CONTINUE ;
 
 
 ASSIGN_STATEMENT->L_VALUE = EXPRESSION @MOV NULL
@@ -50,7 +50,7 @@ END_OF_IF->eps
 
     
 
-WHILE_STATEMENT->while @START_OF_WHILE ( BOOLEAN_EXPRESSION ) @JZ { S @END_OF_WHILE } 
+WHILE_STATEMENT->while @START_OF_WHILE ( BOOLEAN_EXPRESSION ) @START_OF_WHILE_COMMANDS { S @END_OF_WHILE } 
 DO_WHILE_STATEMENT->do @START_OF_DO_WHILE { S } while ( BOOLEAN_EXPRESSION ) @END_OF_DO_WHILE ; 
 
 FOR_STATEMENT->for ( SIMPLE_ASSIGNMENT ; @START_OF_FOR BOOLEAN_EXPRESSION ; @FOR_INC_DEC INC_DEC ) { @START_OF_FOR_COMMANDS S @END_OF_FOR }

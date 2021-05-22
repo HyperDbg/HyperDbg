@@ -407,14 +407,12 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, Op2Symbol);
         RemoveSymbol(Op2Symbol);
 
-
         //
         // Free the operand if it is a temp value
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
         FreeTemp(Op2);
-
     }
     else if (IsTwoOperandOperator(Operator))
     {
@@ -495,6 +493,16 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     else if (!strcmp(Operator->Value, "@JMP_TO_END_AND_JZCOMPLETED"))
     {
         //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+
+        //
         // Set JZ jump address
         //
         UINT64  CurrentPointer           = CodeBuffer->Pointer;
@@ -548,6 +556,11 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
     else if (!strcmp(Operator->Value, "@START_OF_WHILE"))
     {
+        //
+        // Push @START_OF_WHILE token into matched stack
+        //
+        Push(MatchedStack, Operator);
+
         UINT64 CurrentPointer      = CodeBuffer->Pointer;
         TOKEN  CurrentAddressToken = NewToken();
         CurrentAddressToken->Type  = DECIMAL;
@@ -557,16 +570,62 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         CurrentAddressToken->Value = str;
         Push(MatchedStack, CurrentAddressToken);
     }
+    else if (!strcmp(Operator->Value, "@START_OF_WHILE_COMMANDS"))
+    {
+        UINT64 CurrentPointer = CodeBuffer->Pointer;
+        TOKEN  JzToken        = NewToken();
+        JzToken->Type         = SEMANTIC_RULE;
+        char * str            = malloc(strlen("@JZ") + 1);
+        strcpy(str, "@JZ");
+        JzToken->Value = str;
+        OperatorSymbol = ToSymbol(JzToken);
+        PushSymbol(CodeBuffer, OperatorSymbol);
+
+        PSYMBOL JumpAddressSymbol = NewSymbol();
+        JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+        JumpAddressSymbol->Value  = 0xffffffffffffffff;
+        PushSymbol(CodeBuffer, JumpAddressSymbol);
+        RemoveSymbol(JumpAddressSymbol);
+
+        Op0       = Pop(MatchedStack);
+        Op0Symbol = ToSymbol(Op0);
+        PushSymbol(CodeBuffer, Op0Symbol);
+        RemoveSymbol(Op0Symbol);
+
+        TOKEN StartOfWhileToken = Pop(MatchedStack);
+
+        TOKEN CurrentAddressToken = NewToken();
+        CurrentAddressToken->Type = DECIMAL;
+        str                       = malloc(16);
+        sprintf(str, "%llu", CurrentPointer + 1);
+        CurrentAddressToken->Value = str;
+        Push(MatchedStack, CurrentAddressToken);
+
+        Push(MatchedStack, StartOfWhileToken);
+
+        FreeTemp(Op0);
+
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+    }
     else if (!strcmp(Operator->Value, "@END_OF_WHILE"))
     {
         //
-        // Set JZ jump address
+        // Print Debug Info
         //
-        UINT64  CurrentPointer           = CodeBuffer->Pointer;
-        TOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
-        UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
-        PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
-        JumpAddressSymbol->Value         = CurrentPointer + 2;
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
 
         //
         // Add jmp instruction to Code Buffer
@@ -580,14 +639,58 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         // Add jmp address to Code buffer
         //
-        TOKEN  JumpAddressToken = Pop(MatchedStack);
-        UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
-        JumpAddressSymbol       = ToSymbol(JumpAddressToken);
+        TOKEN   JumpAddressToken  = Pop(MatchedStack);
+        UINT64  JumpAddress       = DecimalToInt(JumpAddressToken->Value);
+        PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken);
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
+
+        //
+        // Set JZ jump address
+        //
+        /*UINT64  CurrentPointer           = CodeBuffer->Pointer;
+        TOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
+        UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
+        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress);
+        JumpAddressSymbol->Value         = CurrentPointer;*/
+
+        //
+        // Set jumps addresses
+        //
+
+        PUINT64 CurrentPointer = CodeBuffer->Pointer;
+
+        do
+        {
+            JumpAddressToken = Pop(MatchedStack);
+            if (!strcmp(JumpAddressToken->Value, "@START_OF_WHILE"))
+            {
+                break;
+            }
+            JumpAddress = DecimalToInt(JumpAddressToken->Value);
+            printf("Jz Jump Address = %d\n", JumpAddress);
+            JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
+            JumpAddressSymbol->Value = CurrentPointer;
+
+        } while (TRUE);
+
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_DO_WHILE"))
     {
+        //
+        // Push @START_OF_DO_WHILE token into matched stack
+        //
+        Push(MatchedStack, Operator);
+
         UINT64 CurrentPointer      = CodeBuffer->Pointer;
         TOKEN  CurrentAddressToken = NewToken();
         CurrentAddressToken->Type  = DECIMAL;
@@ -599,6 +702,16 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     }
     else if (!strcmp(Operator->Value, "@END_OF_DO_WHILE"))
     {
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+
         //
         // Add jmp instruction to Code Buffer
         //
@@ -629,9 +742,43 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
         FreeTemp(Op0);
 
+        //
+        // Set jumps addresses
+        //
+
+        PUINT64 CurrentPointer = CodeBuffer->Pointer;
+
+        do
+        {
+            JumpAddressToken = Pop(MatchedStack);
+            if (!strcmp(JumpAddressToken->Value, "@START_OF_DO_WHILE"))
+            {
+                break;
+            }
+            JumpAddress = DecimalToInt(JumpAddressToken->Value);
+            printf("Jz Jump Address = %d\n", JumpAddress);
+            JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
+            JumpAddressSymbol->Value = CurrentPointer;
+
+        } while (TRUE);
+
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
     }
     else if (!strcmp(Operator->Value, "@START_OF_FOR"))
     {
+        //
+        // Push @START_OF_FOR token into matched stack
+        //
+        Push(MatchedStack, Operator);
+
         //
         // Push current pointer into matched stack
         //
@@ -659,7 +806,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, JnzInstruction);
         RemoveSymbol(JnzInstruction);
 
-
         //
         // Add JZ addresss to Code CodeBuffer
         //
@@ -676,7 +822,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         Op0Symbol = ToSymbol(Op0);
         PushSymbol(CodeBuffer, Op0Symbol);
         RemoveSymbol(Op0Symbol);
-
 
         //
         // JMP
@@ -703,7 +848,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         // Pop start_of_for address
         //
-        TOKEN StartOfForToken = Pop(MatchedStack);
+        TOKEN StartOfForAddressToken = Pop(MatchedStack);
 
         //
         // Push current pointer into matched stack
@@ -720,7 +865,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         // Push start_of_for address to matched stack
         //
-        Push(MatchedStack, StartOfForToken);
+        Push(MatchedStack, StartOfForAddressToken);
     }
     else if (!strcmp(Operator->Value, "@START_OF_FOR_COMMANDS"))
     {
@@ -750,11 +895,32 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         //
         // Set jmp address
         //
-        PUINT64 CurrentPointer   = CodeBuffer->Pointer;
-        JumpAddressToken         = Pop(MatchedStack);
-        JumpAddress              = DecimalToInt(JumpAddressToken->Value);
+        PUINT64 CurrentPointer = CodeBuffer->Pointer;
+        JumpAddressToken       = Pop(MatchedStack);
+        JumpAddress            = DecimalToInt(JumpAddressToken->Value);
+
         JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 1);
         JumpAddressSymbol->Value = CurrentPointer;
+
+        //
+        // Push address of jz address to stack
+        //
+        TOKEN JzAddressToken = NewToken();
+        JzAddressToken->Type = DECIMAL;
+        char * str           = malloc(16);
+        sprintf(str, "%llu", JumpAddress - 4);
+        JzAddressToken->Value = str;
+        Push(MatchedStack, JzAddressToken);
+
+        //
+        // Push @INC_DEC token to mathced stack
+        //
+        TOKEN IncDecToken = NewToken();
+        IncDecToken->Type = SEMANTIC_RULE;
+        str               = malloc(strlen("@INC_DEC") + 1);
+        strcpy(str, "@INC_DEC");
+        IncDecToken->Value = str;
+        Push(MatchedStack, IncDecToken);
 
         //
         // Push start of inc_dec address to mathced stack
@@ -764,7 +930,16 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
     else if (!strcmp(Operator->Value, "@END_OF_FOR"))
     {
         //
-        // JMP
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+        //
+        // Jmp
         //
 
         //
@@ -786,12 +961,226 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, JumpAddressSymbol);
         RemoveSymbol(JumpAddressSymbol);
 
+        JumpAddressToken = Pop(MatchedStack);
+
         //
-        // Set jz address
+        // Set jumps addresses
         //
-        PUINT64 CurrentPointer   = CodeBuffer->Pointer;
-        JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 4);
-        JumpAddressSymbol->Value = CurrentPointer;
+
+        PUINT64 CurrentPointer = CodeBuffer->Pointer;
+
+        do
+        {
+            JumpAddressToken = Pop(MatchedStack);
+            if (!strcmp(JumpAddressToken->Value, "@START_OF_FOR"))
+            {
+                break;
+            }
+            else
+            {
+                JumpAddress = DecimalToInt(JumpAddressToken->Value);
+                printf("Jz Jump Address = %d\n", JumpAddress);
+                JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
+                JumpAddressSymbol->Value = CurrentPointer;
+            }
+
+        } while (TRUE);
+
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+    }
+    else if (!strcmp(Operator->Value, "@BREAK"))
+    {
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+
+        //
+        // Pop Objects from stack while reaching @START_OF_*
+        //
+        BOOL       HasError  = FALSE;
+        TOKEN_LIST TempStack = NewTokenList();
+        TOKEN      TempToken;
+        do
+        {
+            TempToken = Pop(MatchedStack);
+
+            if ((!strcmp(TempToken->Value, "@START_OF_FOR")) ||
+                (!strcmp(TempToken->Value, "@START_OF_WHILE")) ||
+                (!strcmp(TempToken->Value, "@START_OF_DO_WHILE")))
+            {
+                //
+                // Push back START_OF_*
+                //
+                Push(MatchedStack, TempToken);
+
+                //
+                // Push current pointer into matched stack
+                //
+                UINT64 CurrentPointer      = CodeBuffer->Pointer + 1;
+                TOKEN  CurrentAddressToken = NewToken();
+                CurrentAddressToken->Type  = DECIMAL;
+
+                char * str = malloc(16);
+                sprintf(str, "%llu", CurrentPointer);
+                CurrentAddressToken->Value = str;
+                Push(MatchedStack, CurrentAddressToken);
+
+                //
+                // JMP
+                //
+
+                //
+                // Add jmp instruction to Code Buffer
+                //
+                PSYMBOL JumpInstruction = NewSymbol();
+                JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+                JumpInstruction->Value  = FUNC_JMP;
+                PushSymbol(CodeBuffer, JumpInstruction);
+                RemoveSymbol(JumpInstruction);
+
+                //
+                // Add jmp address to Code buffer
+                //
+                PSYMBOL JumpAddressSymbol = NewSymbol();
+                JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+                JumpAddressSymbol->Value  = 0xffffffffffffffff;
+                PushSymbol(CodeBuffer, JumpAddressSymbol);
+                RemoveSymbol(JumpAddressSymbol);
+
+                //
+                //
+                //
+                do
+                {
+                    TempToken = Pop(TempStack);
+                    Push(MatchedStack, TempToken);
+
+                } while (TempStack->Pointer != 0);
+                break;
+            }
+            else if (MatchedStack->Pointer == 0)
+            {
+                HasError = TRUE;
+                break;
+            }
+            else
+            {
+                Push(TempStack, TempToken);
+            }
+
+        } while (TRUE);
+
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+
+        printf("Break hit\n");
+
+        RemoveTokenList(TempStack);
+    }
+    else if (!strcmp(Operator->Value, "@CONTINUE"))
+    {
+        //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
+
+        //
+        // Pop Objects from stack while reaching @INC_DEC
+        //
+        BOOL       HasError  = FALSE;
+        TOKEN_LIST TempStack = NewTokenList();
+        TOKEN      TempToken;
+        do
+        {
+            TempToken = Pop(MatchedStack);
+
+            if (!strcmp(TempToken->Value, "@INC_DEC"))
+            {
+                //
+                // Push back INC_DEC
+                //
+                Push(MatchedStack, TempToken);
+
+                //
+                // Add jmp instruction to Code Buffer
+                //
+                PSYMBOL JumpInstruction = NewSymbol();
+                JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
+                JumpInstruction->Value  = FUNC_JMP;
+                PushSymbol(CodeBuffer, JumpInstruction);
+                RemoveSymbol(JumpInstruction);
+
+                //
+                // Add jmp address to Code buffer
+                //
+                TempToken = Pop(TempStack);
+                Push(MatchedStack, TempToken);
+
+                PSYMBOL JumpAddressSymbol = NewSymbol();
+                JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
+                JumpAddressSymbol->Value  = DecimalToInt(TempToken->Value);
+                PushSymbol(CodeBuffer, JumpAddressSymbol);
+                RemoveSymbol(JumpAddressSymbol);
+
+                //
+                //
+                //
+                do
+                {
+                    TempToken = Pop(TempStack);
+                    Push(MatchedStack, TempToken);
+
+                } while (TempStack->Pointer != 0);
+                break;
+            }
+            else if (MatchedStack->Pointer == 0)
+            {
+                HasError = TRUE;
+                break;
+            }
+            else
+            {
+                Push(TempStack, TempToken);
+            }
+
+        } while (TRUE);
+
+        RemoveTokenList(TempStack);
+
+         //
+        // Print Debug Info
+        //
+        printf("Semantic Stack:\n");
+        PrintTokenList(MatchedStack);
+
+        printf("Code Buffer:\n");
+        PrintSymbolBuffer(CodeBuffer);
+        printf("\n");
     }
     else
     {
