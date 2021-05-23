@@ -669,6 +669,17 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
             HvSetExternalInterruptExiting(FALSE);
         }
 
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        if (g_GuestState[CurrentCore].PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Enable Interrupt-window exiting.
+            //
+            HvSetInterruptWindowExiting(TRUE);
+        }
+
         g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
@@ -967,6 +978,17 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
             HvSetExternalInterruptExiting(FALSE);
         }
 
+        //
+        // Check if there is at least an interrupt that needs to be delivered
+        //
+        if (g_GuestState[CurrentCore].PendingExternalInterrupts[0] != NULL)
+        {
+            //
+            // Enable Interrupt-window exiting.
+            //
+            HvSetInterruptWindowExiting(TRUE);
+        }
+
         g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue = FALSE;
     }
 
@@ -1256,6 +1278,12 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Change guest interrupt-state
     //
     HvSetExternalInterruptExiting(TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
     g_GuestState[CoreId].DebuggingState.EnableExternalInterruptsOnContinue = TRUE;
 
     //

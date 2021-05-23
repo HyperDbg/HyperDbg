@@ -249,11 +249,6 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO Inter
         }
     }
 
-    //
-    // Enable Interrupt-window exiting.
-    //
-    HvSetInterruptWindowExiting(TRUE);
-
     return FoundAPlaceForFutureInjection;
 }
 
@@ -345,6 +340,11 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
             // we have to queue it an re-inject it when the interrupt window is opened !
             //
             IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(InterruptExit, CurrentProcessorIndex);
+
+            //
+            // Enable Interrupt-window exiting.
+            //
+            HvSetInterruptWindowExiting(TRUE);
         }
 
         //
