@@ -945,6 +945,7 @@ StartAgain:
     //   ShowMessages("%x ", SerialBuffer[i]);
     // }
     // ShowMessages("\n");
+    //
 
     if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
     {
@@ -979,18 +980,21 @@ StartAgain:
         switch (TheActualPacket->RequestedActionOfThePacket)
         {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE:
+
             if (!DebuggerPauseDebuggee())
             {
                 ShowMessages("err, debugger tries to pause the debuggee but the "
                              "attempt was unsuccessful\n");
             }
             break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_DO_NOT_READ_ANY_PACKET:
             //
             // Not read anymore
             //
             return TRUE;
             break;
+
         default:
             ShowMessages("err, unknown packet action received from the debugger\n");
             break;

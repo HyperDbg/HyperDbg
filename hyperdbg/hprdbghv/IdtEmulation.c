@@ -214,6 +214,50 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
 }
 
 /**
+ * @brief if the guest is not interruptible, then we save the details of each
+ * interrupt so we can re-inject them to the guest whenever the interrupt window
+ * is open
+ * 
+ * @param InterruptExit interrupt info from vm-exit
+ * @param CurrentProcessorIndex processor index
+ * @return BOOLEAN 
+ */
+BOOLEAN
+IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex)
+{
+    BOOLEAN FoundAPlaceForFutureInjection;
+
+    FoundAPlaceForFutureInjection = FALSE;
+
+    //
+    // We can't inject interrupt because the guest's state is not interruptible
+    // we have to queue it an re-inject it when the interrupt window is opened !
+    //
+    for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
+    {
+        //
+        // Find an empty space
+        //
+        if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] == NULL)
+        {
+            //
+            // Save it for future re-injection (interrupt-window exiting)
+            //
+            g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = InterruptExit.Flags;
+            FoundAPlaceForFutureInjection                                    = TRUE;
+            break;
+        }
+    }
+
+    //
+    // Enable Interrupt-window exiting.
+    //
+    HvSetInterruptWindowExiting(TRUE);
+
+    return FoundAPlaceForFutureInjection;
+}
+
+/**
  * @brief external-interrupt vm-exit handler
  * 
  * @param InterruptExit interrupt info from vm-exit
@@ -239,11 +283,25 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     // the interrupt into the guest
     //
 
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue && TRUE)
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrument step-in
         //
+
+        //
+        // During developing HyperDbg, we realized that if we just ignore the interrupts completely
+        // while we are waiting on 'i' instrument-in command, then the serial device becomes
+        // unresposive, to solve this issue we hold the details of interrupts so we can re-inject
+        // and process them when we decide to continue the debuggee (guest interrupt windows is open)
+        // this way, the serial device works normally and won't become unresponsive
+        //
+        IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(InterruptExit, CurrentProcessorIndex);
+
+        //
+        // avoid incrementing rip
+        //
+        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
@@ -286,25 +344,7 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
             // We can't inject interrupt because the guest's state is not interruptible
             // we have to queue it an re-inject it when the interrupt window is opened !
             //
-            for (size_t i = 0; i < PENDING_INTERRUPTS_BUFFER_CAPACITY; i++)
-            {
-                //
-                // Find an empty space
-                //
-                if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] == NULL)
-                {
-                    //
-                    // Save it for future re-injection (interrupt-window exiting)
-                    //
-                    g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = InterruptExit.Flags;
-                    break;
-                }
-            }
-
-            //
-            // Enable Interrupt-window exiting.
-            //
-            HvSetInterruptWindowExiting(TRUE);
+            IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(InterruptExit, CurrentProcessorIndex);
         }
 
         //
