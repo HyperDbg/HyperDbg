@@ -33,6 +33,10 @@ VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     AsmEnableVmxOperation();
 
     LogDebugInfo("VMX-Operation Enabled Successfully");
+    
+    // Fix Cr4 and Cr0 bits during vmx operation 
+    
+    FixCr4AndCr0Bits();
 
     if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
     {
@@ -266,7 +270,7 @@ VmxAllocateMsrBitmap(INT ProcessorID)
     LogDebugInfo("Msr Bitmap Physical Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
 
     return TRUE;
-}
+} 
 
 /**
  * @brief Allocate a buffer forr I/O Bitmap
