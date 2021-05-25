@@ -348,6 +348,61 @@ typedef struct _CONTROL_REGISTER_4
     };
 } CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
 
+typedef union
+{
+    unsigned __int64 Flags;
+
+    struct
+    {
+        unsigned __int64 ProtectionEnable : 1;
+
+        unsigned __int64 MonitorCoprocessor : 1;
+
+        unsigned __int64 EmulateFpu : 1;
+
+        unsigned __int64 TaskSwitched : 1;
+
+        unsigned __int64 ExtensionType : 1;
+
+        unsigned __int64 NumericError : 1;
+
+        unsigned __int64 Reserved1 : 10;
+
+        unsigned __int64 WriteProtect : 1;
+
+        unsigned __int64 Reserved2 : 1;
+
+        unsigned __int64 AlignmentMask : 1;
+
+        unsigned __int64 Reserved3 : 10;
+
+        unsigned __int64 NotWriteThrough : 1;
+
+        unsigned __int64 CacheDisable : 1;
+
+        unsigned __int64 PagingEnable : 1;
+
+        unsigned __int64 Reserved4 : 32;
+    };
+
+} CONTROL_REGISTER_0;
+
+typedef union CR_FIXED
+{
+    struct
+    {
+        unsigned long Low;
+        long          High;
+    } Split;
+    struct
+    {
+        unsigned long Low;
+        long          High;
+    } u;
+    __int64 Flags;
+}CR_FIXED, *PCR_FIXED;
+
+
 /**
  * @brief Debug Register 7 Structure
  * 
