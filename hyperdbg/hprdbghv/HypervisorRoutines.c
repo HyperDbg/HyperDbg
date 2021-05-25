@@ -109,26 +109,45 @@ HvIsVmxSupported()
     IA32_FEATURE_CONTROL_MSR FeatureControlMsr = {0};
 
     //
-    // VMX bit
+    // Gets Processor Info and Feature Bits
     //
     __cpuid((int *)&Data, 1);
-    if ((Data.ecx & (1 << 5)) == 0)
+
+    //
+    // Check For VMX Bit CPUID.ECX[5]
+    //
+    if (!_bittest((const LONG *)&Data.ecx, 5))
+    {
+        //
+        // returns FALSE if vmx is not supported
+        //
         return FALSE;
+    }
 
     FeatureControlMsr.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
 
     //
-    // BIOS lock check
+    // Commented because of https://stackoverflow.com/questions/34900224/
+    // and https://github.com/HyperDbg/HyperDbg/issues/24
+    // the problem is when writing to IA32_FEATURE_CONTROL MSR, the lock bit
+    // of this MSR Is not set to 0 on most computers, if the user enabled VT-X
+    // from the BIOS the VMXON will be already set so checking lock bit and
+    // then writing to EnableVmxon again is not meaningful since its already
+    // there
     //
-    if (FeatureControlMsr.Fields.Lock == 0)
+
+    //
+    // if (FeatureControlMsr.Fields.Lock == 0)
+    // {
+    //     FeatureControlMsr.Fields.Lock        = TRUE;
+    //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
+    //     __writemsr(MSR_IA32_FEATURE_CONTROL, FeatureControlMsr.All);
+    // }
+    // else
+
+    if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
     {
-        FeatureControlMsr.Fields.Lock        = TRUE;
-        FeatureControlMsr.Fields.EnableVmxon = TRUE;
-        __writemsr(MSR_IA32_FEATURE_CONTROL, FeatureControlMsr.All);
-    }
-    else if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
-    {
-        LogError("Intel VMX feature is locked in BIOS");
+        LogError("you should enable vt-x from BIOS");
         return FALSE;
     }
 

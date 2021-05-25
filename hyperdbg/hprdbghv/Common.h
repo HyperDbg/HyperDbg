@@ -54,16 +54,16 @@ SpinlockUnlock(volatile LONG * Lock);
 /*
 * @brief Segment register and corresponding GDT meaning in Windows
 */
-#define KGDT64_NULL      (0 * 16) // NULL descriptor
-#define KGDT64_R0_CODE   (1 * 16) // kernel mode 64-bit code
+#define KGDT64_NULL      (0 * 16)     // NULL descriptor
+#define KGDT64_R0_CODE   (1 * 16)     // kernel mode 64-bit code
 #define KGDT64_R0_DATA   (1 * 16) + 8 // kernel mode 64-bit data (stack)
-#define KGDT64_R3_CMCODE (2 * 16) // user mode 32-bit code
+#define KGDT64_R3_CMCODE (2 * 16)     // user mode 32-bit code
 #define KGDT64_R3_DATA   (2 * 16) + 8 // user mode 32-bit data
-#define KGDT64_R3_CODE   (3 * 16) // user mode 64-bit code
-#define KGDT64_SYS_TSS   (4 * 16) // kernel mode system task state
-#define KGDT64_R3_CMTEB  (5 * 16) // user mode 32-bit TEB
-#define KGDT64_R0_CMCODE (6 * 16) // kernel mode 32-bit code
-#define KGDT64_LAST      (7 * 16) // last entry
+#define KGDT64_R3_CODE   (3 * 16)     // user mode 64-bit code
+#define KGDT64_SYS_TSS   (4 * 16)     // kernel mode system task state
+#define KGDT64_R3_CMTEB  (5 * 16)     // user mode 32-bit TEB
+#define KGDT64_R0_CMCODE (6 * 16)     // kernel mode 32-bit code
+#define KGDT64_LAST      (7 * 16)     // last entry
 
 /** 
  * @brief Intel CPU flags in CR0 
@@ -348,60 +348,43 @@ typedef struct _CONTROL_REGISTER_4
     };
 } CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
 
-typedef union
+typedef union _CONTROL_REGISTER_0
 {
-    unsigned __int64 Flags;
+    UINT64 Flags;
 
     struct
     {
-        unsigned __int64 ProtectionEnable : 1;
-
-        unsigned __int64 MonitorCoprocessor : 1;
-
-        unsigned __int64 EmulateFpu : 1;
-
-        unsigned __int64 TaskSwitched : 1;
-
-        unsigned __int64 ExtensionType : 1;
-
-        unsigned __int64 NumericError : 1;
-
-        unsigned __int64 Reserved1 : 10;
-
-        unsigned __int64 WriteProtect : 1;
-
-        unsigned __int64 Reserved2 : 1;
-
-        unsigned __int64 AlignmentMask : 1;
-
-        unsigned __int64 Reserved3 : 10;
-
-        unsigned __int64 NotWriteThrough : 1;
-
-        unsigned __int64 CacheDisable : 1;
-
-        unsigned __int64 PagingEnable : 1;
-
-        unsigned __int64 Reserved4 : 32;
+        UINT64 ProtectionEnable : 1;
+        UINT64 MonitorCoprocessor : 1;
+        UINT64 EmulateFpu : 1;
+        UINT64 TaskSwitched : 1;
+        UINT64 ExtensionType : 1;
+        UINT64 NumericError : 1;
+        UINT64 Reserved1 : 10;
+        UINT64 WriteProtect : 1;
+        UINT64 Reserved2 : 1;
+        UINT64 AlignmentMask : 1;
+        UINT64 Reserved3 : 10;
+        UINT64 NotWriteThrough : 1;
+        UINT64 CacheDisable : 1;
+        UINT64 PagingEnable : 1;
+        UINT64 Reserved4 : 32;
     };
 
 } CONTROL_REGISTER_0, *PCONTROL_REGISTER_0;
 
-typedef union CR_FIXED
+typedef union _CR_FIXED
 {
     struct
     {
         unsigned long Low;
         long          High;
-    } Split;
-    struct
-    {
-        unsigned long Low;
-        long          High;
-    } u;
-    __int64 Flags;
-}CR_FIXED, *PCR_FIXED;
 
+    } Value;
+
+    UINT64 Flags;
+
+} CR_FIXED, *PCR_FIXED;
 
 /**
  * @brief Debug Register 7 Structure
