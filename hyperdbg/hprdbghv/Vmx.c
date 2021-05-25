@@ -107,7 +107,7 @@ VmxInitializer()
 
 /**
  * @Fixes The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change 
- * ref: https://revers.engineering/day-2-entering-vmx-operation/
+ * @ref https://revers.engineering/day-2-entering-vmx-operation/
  * @param void
  * @return void
  */
