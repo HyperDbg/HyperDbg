@@ -106,6 +106,36 @@ VmxInitializer()
 }
 
 /**
+ * @Fixes The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change 
+ * ref: https://revers.engineering/day-2-entering-vmx-operation/
+ * @param void
+ * @return void
+ */
+
+VOID
+FixCr4AndCr0Bits()
+{
+    CR_FIXED Cr_Fixed           = {0};
+    CONTROL_REGISTER_4 Cr4      = {0};
+    CONTROL_REGISTER_0 Cr0      = {0};
+
+    Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR0_FIXED0);
+    Cr0.Flags = __readcr0();
+    Cr0.Flags |= Cr_Fixed.Split.Low;
+    Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR0_FIXED1);
+    Cr0.Flags &= Cr_Fixed.Split.Low;
+    __writecr0(Cr0.Flags);
+    Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR4_FIXED0);
+    Cr4.Flags = __readcr4();
+    Cr4.Flags |= Cr_Fixed.Split.Low;
+    Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR4_FIXED1);
+    Cr4.Flags &= Cr_Fixed.Split.Low;
+    __writecr4(Cr4.Flags);
+    Cr4.VmxEnable = 0;
+    __writecr4(Cr4.Flags);
+}    
+
+/**
  * @brief It can deteministcly check whether the caller is on vmx-root mode
  * or not
  * 
