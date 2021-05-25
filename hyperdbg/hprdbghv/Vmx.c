@@ -131,8 +131,6 @@ FixCr4AndCr0Bits()
     Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR4_FIXED1);
     Cr4.Flags &= Cr_Fixed.Split.Low;
     __writecr4(Cr4.Flags);
-    Cr4.VmxEnable = 0;
-    __writecr4(Cr4.Flags);
 }    
 
 /**
