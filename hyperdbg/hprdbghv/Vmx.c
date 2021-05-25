@@ -119,12 +119,17 @@ FixCr4AndCr0Bits()
     CONTROL_REGISTER_4 Cr4      = {0};
     CONTROL_REGISTER_0 Cr0      = {0};
 
+    // Fix Cr0 
+    
     Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR0_FIXED0);
     Cr0.Flags = __readcr0();
     Cr0.Flags |= Cr_Fixed.Split.Low;
     Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR0_FIXED1);
     Cr0.Flags &= Cr_Fixed.Split.Low;
     __writecr0(Cr0.Flags);
+    
+    // Fix Cr4 
+    
     Cr_Fixed.Flags = __readmsr(MSR_IA32_VMX_CR4_FIXED0);
     Cr4.Flags = __readcr4();
     Cr4.Flags |= Cr_Fixed.Split.Low;
