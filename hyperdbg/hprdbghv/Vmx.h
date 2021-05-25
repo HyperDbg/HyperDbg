@@ -695,5 +695,8 @@ VmxCheckIsOnVmxRoot();
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
+VOID
+FixCr4AndCr0Bits();
+
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack);
