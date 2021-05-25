@@ -385,7 +385,7 @@ typedef union
         unsigned __int64 Reserved4 : 32;
     };
 
-} CONTROL_REGISTER_0;
+} CONTROL_REGISTER_0, *PCONTROL_REGISTER_0;
 
 typedef union CR_FIXED
 {
