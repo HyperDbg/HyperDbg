@@ -44,14 +44,6 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 string
 SeparateTo64BitValue(UINT64 Value);
 
-int
-HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
-                       UINT64          BaseAddress,
-                       UINT64          Size,
-                       UINT32          MaximumInstrDecoded,
-                       BOOLEAN         ShowBranchIsTakenOrNot,
-                       PRFLAGS         Rflags);
-
 void
 ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length);
 
@@ -71,12 +63,26 @@ HyperDbgIsConditionalJumpTaken(unsigned char * BufferToDisassemble,
                                BOOLEAN         Isx86_64);
 
 int
+HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
+                       UINT64          BaseAddress,
+                       UINT64          Size,
+                       UINT32          MaximumInstrDecoded,
+                       BOOLEAN         ShowBranchIsTakenOrNot,
+                       PRFLAGS         Rflags);
+
+int
 HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
                        UINT64          BaseAddress,
                        UINT64          Size,
                        UINT32          MaximumInstrDecoded,
                        BOOLEAN         ShowBranchIsTakenOrNot,
                        PRFLAGS         Rflags);
+
+UINT32
+HyperDbgLengthDisassemblerEngine(
+    unsigned char * BufferToDisassemble,
+    UINT64          BuffLength,
+    BOOLEAN         Isx86_64);
 
 BOOLEAN
 HyperDbgCheckWhetherTheCurrentInstructionIsCall(

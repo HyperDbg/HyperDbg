@@ -224,6 +224,23 @@ StartAgain:
             if (PausePacket->PausingReason !=
                 DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM)
             {
+                //
+                // Check if the instruction is received completely or not
+                //
+                if (PausePacket->ReadInstructionLen != MAXIMUM_INSTR_SIZE)
+                {
+                    //
+                    // We check if the disassembled buffer has greater size
+                    // than what is retrieved
+                    //
+                    if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
+                                                         MAXIMUM_INSTR_SIZE,
+                                                         PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+                    {
+                        ShowMessages("there might be an error in disassembling the current instruction might be wrong\n");
+                    }
+                }
+
                 if (!PausePacket->Is32BitAddress)
                 {
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,

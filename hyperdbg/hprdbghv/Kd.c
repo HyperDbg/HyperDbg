@@ -2205,8 +2205,9 @@ KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             BOOLEAN                           MainCore)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
-    ULONG                  ExitInstructionLength = 0;
-    RFLAGS                 Rflags                = {0};
+    ULONG                  ExitInstructionLength  = 0;
+    UINT64                 SizeOfSafeBufferToRead = 0;
+    RFLAGS                 Rflags                 = {0};
 
     //
     // Perform Pre-halt tasks
@@ -2270,19 +2271,34 @@ StartAgain:
         }
         else
         {
-            __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
-        }
+            //
+            // Reading instruction length proved to provide wrong results,
+            // so we won't use it anymore
+            //
+            // __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+            //
 
-        //
-        // Sometime instruction length is 0, e.g., in Trap #DB therefore we
-        // use maximum length for an instruction
-        //
-        if (ExitInstructionLength == 0)
-        {
-            if (CheckMemoryAccessSafety(g_GuestState[CurrentCore].LastVmexitRip, MAXIMUM_INSTR_SIZE))
+            //
+            // Compute the amount of buffer we can read without problem
+            //
+            SizeOfSafeBufferToRead = g_GuestState[CurrentCore].LastVmexitRip & 0xfff;
+            SizeOfSafeBufferToRead += MAXIMUM_INSTR_SIZE;
+
+            if (SizeOfSafeBufferToRead >= PAGE_SIZE)
             {
-                ExitInstructionLength = MAXIMUM_INSTR_SIZE;
+                SizeOfSafeBufferToRead = SizeOfSafeBufferToRead - PAGE_SIZE;
+                SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE - SizeOfSafeBufferToRead;
             }
+            else
+            {
+                SizeOfSafeBufferToRead = MAXIMUM_INSTR_SIZE;
+            }
+
+            //
+            // Set the length to notify debuggee
+            //
+            PausePacket.ReadInstructionLen = SizeOfSafeBufferToRead;
+            ExitInstructionLength          = SizeOfSafeBufferToRead;
         }
 
         //

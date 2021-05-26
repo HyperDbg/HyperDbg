@@ -1334,6 +1334,7 @@ typedef struct _DEBUGGEE_PAUSED_PACKET
     UINT64                  EventTag;
     RFLAGS                  Rflags;
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    USHORT                  ReadInstructionLen;
 
 } DEBUGGEE_PAUSED_PACKET, *PDEBUGGEE_PAUSED_PACKET;
 
