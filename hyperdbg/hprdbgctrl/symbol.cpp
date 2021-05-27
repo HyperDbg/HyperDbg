@@ -12,6 +12,16 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Enumerate all the symbols in a file
+ *
+ * @param PdbFilePath
+ * @param SearchMask
+ * @param BaseAddr
+ * @param FileSize
+ * 
+ * @return UINT32
+ */
 UINT32
 SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
 {
@@ -135,6 +145,15 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
     return 0;
 }
 
+/**
+ * @brief Get symbol file parameters
+ *
+ * @param FileName
+ * @param BaseAddr
+ * @param FileSize
+ * 
+ * @return BOOL
+ */
 BOOL
 SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
 {
@@ -190,6 +209,14 @@ SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
     return TRUE;
 }
 
+/**
+ * @brief Get symbol file size
+ *
+ * @param FileName
+ * @param FileSize
+ * 
+ * @return BOOL
+ */
 BOOL
 SymGetFileSize(const char * FileName, DWORD & FileSize)
 {
@@ -241,6 +268,13 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     return (FileSize != INVALID_FILE_SIZE);
 }
 
+/**
+ * @brief Show symbol info
+ *
+ * @param ModBase
+ * 
+ * @return VOID
+ */
 VOID
 SymShowSymbolInfo(DWORD64 ModBase)
 {
@@ -382,6 +416,15 @@ SymShowSymbolInfo(DWORD64 ModBase)
                  ModuleInfo.Publics ? "available" : "not available");
 }
 
+/**
+ * @brief Callback for showing and enumerating symbols
+ *
+ * @param SymInfo
+ * @param SymbolSize
+ * @param UserContext
+ * 
+ * @return BOOL
+ */
 BOOL CALLBACK
 SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
@@ -396,6 +439,13 @@ SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContex
     return TRUE;
 }
 
+/**
+ * @brief Show symbols details
+ *
+ * @param SymInfo
+ * 
+ * @return VOID
+ */
 VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
 {
@@ -420,6 +470,13 @@ SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
     ShowMessages("name: %s\n", SymInfo.Name);
 }
 
+/**
+ * @brief Interpret different tags for pdbs
+ *
+ * @param Tag
+ * 
+ * @return const char *
+ */
 const char *
 SymTagStr(ULONG Tag)
 {
@@ -427,66 +484,97 @@ SymTagStr(ULONG Tag)
     {
     case SymTagNull:
         return ("Null");
+
     case SymTagExe:
         return ("Exe");
+
     case SymTagCompiland:
         return ("Compiland");
+
     case SymTagCompilandDetails:
         return ("CompilandDetails");
+
     case SymTagCompilandEnv:
         return ("CompilandEnv");
+
     case SymTagFunction:
         return ("Function");
+
     case SymTagBlock:
         return ("Block");
+
     case SymTagData:
         return ("Data");
+
     case SymTagAnnotation:
         return ("Annotation");
+
     case SymTagLabel:
         return ("Label");
+
     case SymTagPublicSymbol:
         return ("PublicSymbol");
+
     case SymTagUDT:
         return ("UDT");
+
     case SymTagEnum:
         return ("Enum");
+
     case SymTagFunctionType:
         return ("FunctionType");
+
     case SymTagPointerType:
         return ("PointerType");
+
     case SymTagArrayType:
         return ("ArrayType");
+
     case SymTagBaseType:
         return ("BaseType");
+
     case SymTagTypedef:
         return ("Typedef");
+
     case SymTagBaseClass:
         return ("BaseClass");
+
     case SymTagFriend:
         return ("Friend");
+
     case SymTagFunctionArgType:
         return ("FunctionArgType");
+
     case SymTagFuncDebugStart:
         return ("FuncDebugStart");
+
     case SymTagFuncDebugEnd:
         return ("FuncDebugEnd");
+
     case SymTagUsingNamespace:
         return ("UsingNamespace");
+
     case SymTagVTableShape:
         return ("VTableShape");
+
     case SymTagVTable:
         return ("VTable");
+
     case SymTagCustom:
         return ("Custom");
+
     case SymTagThunk:
         return ("Thunk");
+
     case SymTagCustomType:
         return ("CustomType");
+
     case SymTagManagedType:
         return ("ManagedType");
+
     case SymTagDimension:
         return ("Dimension");
+
     default:
         return ("Unknown");
     }

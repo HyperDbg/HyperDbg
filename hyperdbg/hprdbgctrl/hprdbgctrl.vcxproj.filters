@@ -374,6 +374,12 @@
     <ClCompile Include="symbol.cpp">
       <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
     </ClCompile>
+    <ClCompile Include="sympath.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="sym.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

@@ -324,6 +324,12 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_BL_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_SYM_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -523,3 +529,9 @@ CommandBd(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandBc(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandSympath(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandSym(vector<string> SplittedCommand, string Command);

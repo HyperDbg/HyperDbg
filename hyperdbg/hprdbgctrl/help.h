@@ -215,3 +215,9 @@ CommandBdHelp();
 
 VOID
 CommandBcHelp();
+
+VOID
+CommandSympathHelp();
+
+VOID
+CommandSymHelp();
