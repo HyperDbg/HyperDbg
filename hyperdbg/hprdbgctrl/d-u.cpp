@@ -38,7 +38,7 @@ CommandReadMemoryAndDisassemblerHelp()
 
     ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                  "[process id (hex)]\n");
-    ShowMessages("\t\te.g : db nt!kd_default_mask \n");
+    ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask \n");
     ShowMessages("\t\te.g : db fffff8077356f010 \n");
     ShowMessages("\t\te.g : !dq 100000\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag\n");
