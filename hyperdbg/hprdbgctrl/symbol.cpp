@@ -13,6 +13,101 @@
 #include "pch.h"
 
 /**
+ * @brief Convert function name to address
+ *
+ * @param FunctionName
+ * @param WasFound
+ * 
+ * @return UINT64
+ */
+UINT64
+SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
+{
+    BOOLEAN Found   = FALSE;
+    UINT64  Address = NULL;
+
+    //
+    // Not found by default
+    //
+    *WasFound = FALSE;
+
+    if (strcmp(FunctionName, "test1") == 0)
+    {
+        Found   = TRUE;
+        Address = 0x85;
+    }
+    else if (strcmp(FunctionName, "test2") == 0)
+    {
+        Found   = TRUE;
+        Address = 0x185;
+    }
+    else
+    {
+        Found   = FALSE;
+        Address = NULL;
+    }
+
+    *WasFound = Found;
+    return Address;
+}
+
+/**
+ * @brief check and convert string to a 64 bit unsigned interger and also
+ *  check for symbol object names
+ * 
+ * @param TextToConvert the target string
+ * @param Result result will be save to the pointer
+ * 
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result)
+{
+    BOOLEAN IsFound = FALSE;
+    UINT64  Address = NULL;
+
+    if (!ConvertStringToUInt64(TextToConvert, &Address))
+    {
+        //
+        // Check for symbol object names
+        //
+        Address = SymConvertNameToAddress(TextToConvert.c_str(), &IsFound);
+
+        if (!IsFound)
+        {
+            //
+            // It's neither a number, nor a founded object name
+            //
+            IsFound = FALSE;
+        }
+        else
+        {
+            //
+            // Object name is found
+            //
+            IsFound = TRUE;
+        }
+    }
+    else
+    {
+        //
+        // It's a hex number
+        //
+        IsFound = TRUE;
+    }
+
+    //
+    // Set the number if the address is founded
+    //
+    if (IsFound)
+    {
+        *Result = Address;
+    }
+
+    return IsFound;
+}
+
+/**
  * @brief Enumerate all the symbols in a file
  *
  * @param PdbFilePath

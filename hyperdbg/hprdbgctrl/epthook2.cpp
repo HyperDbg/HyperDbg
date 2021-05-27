@@ -26,6 +26,7 @@ CommandEptHook2Help()
         "in hex]} code {[assembly in hex]} buffer [pre-require buffer - (hex "
         "value)] \n");
 
+    ShowMessages("\t\te.g : !epthook2 nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !epthook2 fffff801deadb000\n");
     ShowMessages("\t\te.g : !epthook2 fffff801deadb000 pid 400\n");
     ShowMessages("\t\te.g : !epthook2 fffff801deadb000 core 2 pid 400\n");
@@ -92,7 +93,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
             //
             // It's probably address
             //
-            if (!ConvertStringToUInt64(Section, &OptionalParam1))
+            if (!SymConvertObjectNameOrStringToUInt64(Section, &OptionalParam1))
             {
                 //
                 // Unkonwn parameter

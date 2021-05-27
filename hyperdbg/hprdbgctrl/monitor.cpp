@@ -115,7 +115,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             //
             if (!SetFrom)
             {
-                if (!ConvertStringToUInt64(Section, &OptionalParam1))
+                if (!SymConvertObjectNameOrStringToUInt64(Section, &OptionalParam1))
                 {
                     //
                     // Unkonwn parameter
@@ -128,7 +128,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             }
             else if (!SetTo)
             {
-                if (!ConvertStringToUInt64(Section, &OptionalParam2))
+                if (!SymConvertObjectNameOrStringToUInt64(Section, &OptionalParam2))
                 {
                     //
                     // Unkonwn parameter

@@ -21,6 +21,7 @@ CommandPteHelp()
 {
     ShowMessages("!pte : Find virtual address of different paging-levels.\n\n");
     ShowMessages("syntax : \t!pte [Virtual Address (hex value)]\n");
+    ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
 }
 
@@ -46,9 +47,10 @@ CommandPte(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!ConvertStringToUInt64(SplittedCommand.at(1), &TargetVa))
+    if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetVa))
     {
-        ShowMessages("incorrect address, please enter a valid virtual address\n\n");
+        ShowMessages("incorrect address or object name, please enter a valid virtual"
+                     " address\n\n");
         return;
     }
 

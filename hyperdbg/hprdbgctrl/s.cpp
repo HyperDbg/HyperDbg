@@ -36,6 +36,7 @@ CommandSearchMemoryHelp()
     ShowMessages("syntax : \t[!]s[b|d|q] [address from] l [length (hex value)] "
                  "[byte pattern (hex)] pid [process id (hex)]\n");
 
+    ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb fffff8077356f010 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sd fffff8077356f010 90423580 l ffff pid 1c0 \n");
     ShowMessages("\t\te.g : !sq 100000 9090909090909090 l ffff\n");
@@ -191,9 +192,9 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!ConvertStringToUInt64(Section, &Address))
+            if (!SymConvertObjectNameOrStringToUInt64(Section, &Address))
             {
-                ShowMessages("please specify a correct hex address to search\n\n");
+                ShowMessages("please specify a correct hex address or object name to search\n\n");
                 CommandSearchMemoryHelp();
                 return;
             }

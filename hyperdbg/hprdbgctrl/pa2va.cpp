@@ -27,6 +27,7 @@ CommandPa2vaHelp()
     ShowMessages("!pa2va : Converts virtual address to physical address.\n\n");
     ShowMessages("syntax : \t!pa2va [Virtual Address (hex value)] pid [Process "
                  "id (hex value)]\n");
+    ShowMessages("\t\te.g : !pa2va nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !pa2va fffff801deadbeef\n");
     ShowMessages("\t\te.g : !pa2va fffff801deadbeef pid 0xc8\n");
 }
@@ -60,10 +61,10 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         // It's just a address for current process
         //
-        if (!ConvertStringToUInt64(SplittedCommand.at(1), &TargetPa))
+        if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetPa))
         {
-            ShowMessages(
-                "incorrect address, please enter a valid physical address\n\n");
+            ShowMessages("incorrect address or object name, please enter a valid physical"
+                         " address\n\n");
             return;
         }
     }
@@ -79,19 +80,19 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 ShowMessages("incorrect address, please enter a valid process id\n\n");
                 return;
             }
-            if (!ConvertStringToUInt64(SplittedCommand.at(3), &TargetPa))
+            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(3), &TargetPa))
             {
-                ShowMessages(
-                    "incorrect address, please enter a valid physical address\n\n");
+                ShowMessages("incorrect address or object name, please enter a valid physical"
+                             " address\n\n");
                 return;
             }
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!ConvertStringToUInt64(SplittedCommand.at(1), &TargetPa))
+            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetPa))
             {
-                ShowMessages(
-                    "incorrect address, please enter a valid physical address\n\n");
+                ShowMessages("incorrect address or object name, please enter a valid physical"
+                             " address\n\n");
                 return;
             }
             if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))

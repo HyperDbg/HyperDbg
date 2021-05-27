@@ -27,6 +27,7 @@ CommandVa2paHelp()
     ShowMessages("!va2pa : Converts virtual address to physical address.\n\n");
     ShowMessages("syntax : \t!va2pa [Virtual Address (hex value)] pid [Process "
                  "id (hex value)]\n");
+    ShowMessages("\t\te.g : !va2pa nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !va2pa fffff801deadbeef\n");
     ShowMessages("\t\te.g : !va2pa fffff801deadbeef pid 0xc8\n");
 }
@@ -58,12 +59,12 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
     if (SplittedCommand.size() == 2)
     {
         //
-        // It's just a address for current process
+        // It's just an address for current process
         //
-        if (!ConvertStringToUInt64(SplittedCommand.at(1), &TargetVa))
+        if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetVa))
         {
-            ShowMessages(
-                "incorrect address, please enter a valid virtual address\n\n");
+            ShowMessages("incorrect address or object name, please enter a valid virtual"
+                         " address\n\n");
             return;
         }
     }
@@ -79,21 +80,23 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
                 ShowMessages("incorrect address, please enter a valid process id\n\n");
                 return;
             }
-            if (!ConvertStringToUInt64(SplittedCommand.at(3), &TargetVa))
+
+            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(3), &TargetVa))
             {
-                ShowMessages(
-                    "incorrect address, please enter a valid virtual address\n\n");
+                ShowMessages("incorrect address or object name, please enter a valid virtual"
+                             " address\n\n");
                 return;
             }
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!ConvertStringToUInt64(SplittedCommand.at(1), &TargetVa))
+            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetVa))
             {
-                ShowMessages(
-                    "incorrect address, please enter a valid virtual address\n\n");
+                ShowMessages("incorrect address or object name, please enter a valid virtual"
+                             " address\n\n");
                 return;
             }
+
             if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
             {
                 ShowMessages("incorrect address, please enter a valid process id\n\n");

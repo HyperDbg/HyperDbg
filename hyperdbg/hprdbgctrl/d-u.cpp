@@ -38,8 +38,10 @@ CommandReadMemoryAndDisassemblerHelp()
 
     ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                  "[process id (hex)]\n");
+    ShowMessages("\t\te.g : db nt!kd_default_mask \n");
     ShowMessages("\t\te.g : db fffff8077356f010 \n");
     ShowMessages("\t\te.g : !dq 100000\n");
+    ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : u fffff8077356f010\n");
 }
 
@@ -120,13 +122,9 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         //
         if (TargetAddress == 0)
         {
-            string TempAddress = Section;
-            TempAddress.erase(remove(TempAddress.begin(), TempAddress.end(), '`'),
-                              TempAddress.end());
-
-            if (!ConvertStringToUInt64(TempAddress, &TargetAddress))
+            if (!SymConvertObjectNameOrStringToUInt64(Section, &TargetAddress))
             {
-                ShowMessages("err, you should enter a valid address\n\n");
+                ShowMessages("err, you should enter a valid address or object name\n");
                 return;
             }
         }

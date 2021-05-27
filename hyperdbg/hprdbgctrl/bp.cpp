@@ -31,6 +31,7 @@ CommandBpHelp()
         "documentation for more inforamtion.\n\n");
     ShowMessages("syntax : \tbp [address (hex value)] [pid | tid | core (hex "
                  "value - optional)]\n");
+    ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : bp fffff8077356f010\n");
     ShowMessages("\t\te.g : bp fffff8077356f010 pid 0x4\n");
     ShowMessages("\t\te.g : bp fffff8077356f010 tid 0x1000\n");
@@ -133,9 +134,9 @@ CommandBp(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!ConvertStringToUInt64(Section, &Address))
+            if (!SymConvertObjectNameOrStringToUInt64(Section, &Address))
             {
-                ShowMessages("please specify a correct hex value as address\n\n");
+                ShowMessages("please specify a correct hex value or a function name as address\n\n");
                 CommandBpHelp();
                 return;
             }

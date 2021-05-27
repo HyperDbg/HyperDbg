@@ -12,6 +12,12 @@
  */
 #pragma once
 
+UINT64
+SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+
+BOOLEAN
+SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result);
+
 BOOL
 SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
 

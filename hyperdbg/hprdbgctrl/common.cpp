@@ -207,10 +207,12 @@ HexToBytes(const string & hex)
 }
 
 /**
- * @brief check and convert string to a 64 bit unsigned it and also
+ * @brief check and convert string to a 64 bit unsigned integer and also
  *  check for special notations like 0x etc.
+ * 
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
+ * 
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
@@ -227,6 +229,10 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
     {
         TextToConvert = TextToConvert.erase(0, 1);
     }
+
+    //
+    // Remove '`' (if any)
+    //
     TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
                         TextToConvert.end());
 

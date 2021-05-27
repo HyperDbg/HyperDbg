@@ -34,6 +34,7 @@ CommandEditMemoryHelp()
     ShowMessages("syntax : \t[!]e[b|d|q] [address] [new memory contents (hex)] "
                  "pid [process id (hex)]\n");
     ShowMessages("\t\te.g : eb fffff8077356f010 90 \n");
+    ShowMessages("\t\te.g : eb nt!kd_default_mask ff ff ff ff \n");
     ShowMessages("\t\te.g : eb fffff8077356f010 90 90 90 90 \n");
     ShowMessages("\t\te.g : !eq 100000 9090909090909090\n");
     ShowMessages("\t\te.g : !eq 100000 9090909090909090 9090909090909090 "
@@ -150,9 +151,9 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!ConvertStringToUInt64(Section, &Address))
+            if (!SymConvertObjectNameOrStringToUInt64(Section, &Address))
             {
-                ShowMessages("please specify a correct hex address to edit\n\n");
+                ShowMessages("please specify a correct hex address or object name to edit\n\n");
                 CommandEditMemoryHelp();
                 return;
             }
