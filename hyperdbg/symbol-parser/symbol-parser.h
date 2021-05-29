@@ -1,23 +1,26 @@
 /**
- * @file symbol.h
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @file symbol-parser.h
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief symbol parser header
- * @details
+ * @brief symbok parser headers
+ * @details 
  * @version 0.1
- * @date 2021-05-20
+ * @date 2021-05-29
  *
  * @copyright This project is released under the GNU Public License v3.
  *
  */
 #pragma once
 
-UINT64
-SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+//////////////////////////////////////////////////
+//					Exports                    //
+//////////////////////////////////////////////////
+extern "C" {
+__declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+}
 
-BOOLEAN
-SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result);
-
+//////////////////////////////////////////////////
+//					Functions                   //
+//////////////////////////////////////////////////
 BOOL
 SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
 

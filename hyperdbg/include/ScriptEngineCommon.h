@@ -130,6 +130,12 @@ __declspec(dllimport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 __declspec(dllimport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 __declspec(dllimport) void PrintSymbol(PSYMBOL Symbol);
 __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
+
+//
+// pdb parser
+//
+__declspec(dllimport) UINT64
+    ScriptEnginePdbParser(const char * FunctionName, PBOOLEAN WasFound);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -2576,7 +2582,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 #ifdef SCRIPT_ENGINE_USER_MODE
             ShowMessages("result is %llx\n", DesVal);
 #endif // SCRIPT_ENGINE_USER_MODE
-
         }
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2696,7 +2701,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
-       
+
         //
         // Call the target function
         //

@@ -19,6 +19,20 @@
 #    include "scanner.h"
 #    include "common.h"
 
+//
+// *** import pdb parser functions ***
+//
+__declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+
+//
+// *** export pdb wrapper as script engine function ***
+//
+__declspec(dllexport) UINT64
+    ScriptEnginePdbParser(const char * FunctionName, PBOOLEAN WasFound);
+
+//
+// *** Exoort script engine functions ***
+//
 #    define SYNTAX_ERROR 0
 #    define UNKOWN_TOKEN 1
 

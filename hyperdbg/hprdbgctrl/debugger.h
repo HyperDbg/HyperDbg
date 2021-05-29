@@ -12,6 +12,12 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//    Pdb Parser Wrapper (from script-engine)   //
+//////////////////////////////////////////////////
+UINT64
+ScriptEnginePdbParserWrapper(const char * FunctionName, PBOOLEAN WasFound);
+
+//////////////////////////////////////////////////
 //          Script Engine Wrapper               //
 //////////////////////////////////////////////////
 
@@ -41,6 +47,12 @@ ListeningSerialPauseDebuggeeThread(PVOID Param);
 
 DWORD WINAPI
 ListeningSerialPauseDebuggerThread(PVOID Param);
+
+//
+// For symbol (pdb) parsing
+//
+BOOLEAN
+SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result);
 
 //////////////////////////////////////////////////
 //            	    Structures                  //

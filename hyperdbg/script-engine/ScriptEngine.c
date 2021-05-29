@@ -22,6 +22,20 @@
 #include "string.h"
 
 //#define _SCRIPT_ENGINE_DBG_EN
+
+/**
+*
+*
+*/
+UINT64
+ScriptEnginePdbParser(const char * FunctionName, PBOOLEAN WasFound)
+{
+    //
+    // A wrapper for pdb parser
+    //
+    SymConvertNameToAddress(FunctionName, WasFound);
+}
+
 /**
 *
 *
@@ -1172,7 +1186,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
 
         RemoveTokenList(TempStack);
 
-         //
+        //
         // Print Debug Info
         //
         printf("Semantic Stack:\n");
