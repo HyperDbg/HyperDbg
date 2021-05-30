@@ -47,7 +47,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetVa))
+    if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetVa))
     {
         ShowMessages("incorrect address or object name, please enter a valid virtual"
                      " address\n\n");

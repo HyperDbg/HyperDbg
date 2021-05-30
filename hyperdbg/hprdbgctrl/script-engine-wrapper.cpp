@@ -1,5 +1,5 @@
 /**
- * @file debugger.cpp
+ * @file script-engine-wrapper.cpp
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Interpret general fields
@@ -24,17 +24,49 @@
 extern UINT64 * g_ScriptGlobalVariables;
 
 //
-// Pdb parse wrapper
+// *********************** Pdb parse wrapper ***********************
 //
+
+/**
+ * @brief ScriptEngineConvertNameToAddress wrapper
+ *
+ * @param FunctionName
+ * @param WasFound
+ * 
+ * @return UINT64
+ */
 UINT64
-ScriptEnginePdbParserWrapper(const char * FunctionName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound)
 {
-    return ScriptEnginePdbParser(FunctionName, WasFound);
+    return ScriptEngineConvertNameToAddress(FunctionName, WasFound);
+}
+
+/**
+ * @brief ScriptEngineLoadFileSymbol wrapper
+ *
+ * @param BaseAddress
+ * @param FileName
+ * @param Guid
+ * 
+ * @return UINT64
+ */
+UINT64
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * FileName, const char * Guid)
+{
+    return ScriptEngineLoadFileSymbol(BaseAddress, FileName, Guid);
 }
 
 //
-// Function links (wrapper)
+// *********************** Function links (wrapper) ***********************
 //
+
+/**
+ * @brief ScriptEngineParse wrapper
+ *
+ * @param str
+ * 
+ * @return PVOID
+ */
 PVOID
 ScriptEngineParseWrapper(char * str)
 {
@@ -59,18 +91,26 @@ ScriptEngineParseWrapper(char * str)
     }
 }
 
-//
-// Print symbol buffer wrapper
-//
-void
+/**
+ * @brief PrintSymbolBuffer wrapper
+ * @details Print symbol buffer wrapper
+ * @param SymbolBuffer
+ * 
+ * @return PVOID
+ */
+VOID
 PrintSymbolBufferWrapper(PVOID SymbolBuffer)
 {
     PrintSymbolBuffer((PSYMBOL_BUFFER)SymbolBuffer);
 }
 
-//
-// test function
-//
+/**
+ * @brief test function
+ * @param GuestRegs
+ * @param Expr
+ * 
+ * @return VOID
+ */
 VOID
 ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
                                      string      Expr)
@@ -122,6 +162,12 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
     return;
 }
 
+/**
+ * @brief test parser
+ * @param Expr
+ * 
+ * @return VOID
+ */
 VOID
 ScriptEngineWrapperTestParser(string Expr)
 {
@@ -176,12 +222,24 @@ ScriptEngineWrapperTestParser(string Expr)
     free(TestStruct);
 }
 
+/**
+ * @brief wrapper for getting head 
+ * @param SymbolBuffer
+ * 
+ * @return UINT64
+ */
 UINT64
 ScriptEngineWrapperGetHead(PVOID SymbolBuffer)
 {
     return (UINT64)((PSYMBOL_BUFFER)SymbolBuffer)->Head;
 }
 
+/**
+ * @brief wrapper for getting size 
+ * @param SymbolBuffer
+ * 
+ * @return UINT32
+ */
 UINT32
 ScriptEngineWrapperGetSize(PVOID SymbolBuffer)
 {
@@ -190,12 +248,24 @@ ScriptEngineWrapperGetSize(PVOID SymbolBuffer)
     return Size;
 }
 
+/**
+ * @brief wrapper for getting pointer 
+ * @param SymbolBuffer
+ * 
+ * @return UINT32
+ */
 UINT32
 ScriptEngineWrapperGetPointer(PVOID SymbolBuffer)
 {
     return (UINT32)((PSYMBOL_BUFFER)SymbolBuffer)->Pointer;
 }
 
+/**
+ * @brief wrapper for removing symbol buffer 
+ * @param SymbolBuffer
+ * 
+ * @return UINT32
+ */
 VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer)
 {

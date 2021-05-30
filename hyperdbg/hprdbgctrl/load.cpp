@@ -155,6 +155,11 @@ CommandLoad(vector<string> SplittedCommand, string Command)
             ShowMessages("failed to install or load the driver\n");
             return;
         }
+
+        //
+        // If in vmi-mode then initialize the symbol server for local debugging
+        //
+        SymbolLoadNtoskrnlSymbol(DebuggerGetNtoskrnlBase());
     }
     else
     {

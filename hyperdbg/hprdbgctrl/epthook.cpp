@@ -93,7 +93,7 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
             //
             // It's probably address
             //
-            if (!SymConvertObjectNameOrStringToUInt64(Section, &OptionalParam1))
+            if (!SymbolConvertNameToAddress(Section, &OptionalParam1))
             {
                 //
                 // Unkonwn parameter

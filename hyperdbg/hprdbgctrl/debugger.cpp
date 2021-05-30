@@ -186,6 +186,37 @@ ShowErrorMessage(UINT32 Error)
 }
 
 /**
+ * @brief Get ntoskrnl.exe base in the kernel
+ *
+ * @return UINT64 Base address of ntoskrnl.exe
+ */
+UINT64
+DebuggerGetNtoskrnlBase()
+{
+    UINT64               NtoskrnlBase = NULL;
+    PRTL_PROCESS_MODULES Modules      = NULL;
+
+    Modules = (PRTL_PROCESS_MODULES)malloc(1024 * 1024);
+
+    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11, Modules, 1024 * 1024, NULL);
+
+    for (int i = 0; i < Modules->NumberOfModules; i++)
+    {
+        if (!strcmp((const char *)Modules->Modules[i].FullPathName +
+                        Modules->Modules[i].OffsetToFileName,
+                    "ntoskrnl.exe"))
+        {
+            NtoskrnlBase = (UINT64)Modules->Modules[i].ImageBase;
+            break;
+        }
+    }
+
+    free(Modules);
+
+    return NtoskrnlBase;
+}
+
+/**
  * @brief pauses the debuggee
  *
  * @return BOOLEAN shows whether the pause was successful or not, if successful

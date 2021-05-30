@@ -1101,6 +1101,7 @@ typedef struct _DEBUGGER_PREPARE_DEBUGGEE
 {
     UINT32 PortAddress;
     UINT32 Baudrate;
+    UINT64 NtoskrnlBaseAddress;
     UINT32 Result; // Result from the kernel
     CHAR   OsName[MAXIMUM_CHARACTER_FOR_OS_NAME];
 

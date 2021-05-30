@@ -15,6 +15,22 @@
 /**
  * @brief Convert function name to address
  *
+ * @param BaseAddress
+ * @param FileName
+ * @param Guid
+ * 
+ * @return UINT64
+ */
+UINT64
+SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid)
+{
+    // printf("hello from symbol loaded base address is : %llx !\n", BaseAddress);
+    return 0x55;
+}
+
+/**
+ * @brief Convert function name to address
+ *
  * @param FunctionName
  * @param WasFound
  * 

@@ -475,5 +475,5 @@ InitializeCommandsDictionary()
 
     g_CommandList[".sympath"] = {&CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
 
-    g_CommandList[".sym"]     = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
+    g_CommandList[".sym"] = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
 }

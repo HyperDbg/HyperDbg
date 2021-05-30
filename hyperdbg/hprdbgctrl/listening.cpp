@@ -40,6 +40,7 @@ extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 BOOLEAN
 ListeningSerialPortInDebugger()
 {
+    PDEBUGGER_PREPARE_DEBUGGEE            InitPacket;
     PDEBUGGER_REMOTE_PACKET               TheActualPacket;
     PDEBUGGEE_PAUSED_PACKET               PausePacket;
     PDEBUGGEE_MESSAGE_PACKET              MessagePacket;
@@ -136,8 +137,17 @@ StartAgain:
         {
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED:
 
-            ShowMessages("connected to debuggee %s\n",
-                         ((CHAR *)TheActualPacket) + sizeof(DEBUGGER_REMOTE_PACKET));
+            InitPacket =
+                (DEBUGGER_PREPARE_DEBUGGEE *)(((CHAR *)TheActualPacket) +
+                                              sizeof(DEBUGGER_REMOTE_PACKET));
+
+            ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
+
+            //
+            // initialize symbol (pdb) server for debuggee's ntoskrnl
+            //
+            SymbolLoadNtoskrnlSymbol(InitPacket->NtoskrnlBaseAddress);
+
             ShowMessages("press CTRL+C to pause the debuggee\n");
 
             //

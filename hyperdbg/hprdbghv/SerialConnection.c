@@ -260,7 +260,7 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     //
     KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_STARTED,
-                               DebuggeeRequest->OsName,
+                               DebuggeeRequest,
                                MAXIMUM_CHARACTER_FOR_OS_NAME);
 
     //

@@ -13,6 +13,21 @@
 #include "pch.h"
 
 /**
+ * @brief Load symbol for ntoskrnl
+ * 
+ * @param BaseAddress Base address of ntoskrnl
+ * 
+ * @return BOOLEAN shows whether the conversion was successful or not
+ */
+BOOLEAN
+SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress)
+{
+    ScriptEngineLoadFileSymbolWrapper(BaseAddress, "ntoskrnl.exe", "123");
+
+    return TRUE;
+}
+
+/**
  * @brief check and convert string to a 64 bit unsigned interger and also
  *  check for symbol object names
  * 
@@ -22,7 +37,7 @@
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
-SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result)
+SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result)
 {
     BOOLEAN IsFound = FALSE;
     UINT64  Address = NULL;
@@ -32,7 +47,7 @@ SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result)
         //
         // Check for symbol object names
         //
-        Address = ScriptEnginePdbParserWrapper(TextToConvert.c_str(), &IsFound);
+        Address = ScriptEngineConvertNameToAddressWrapper(TextToConvert.c_str(), &IsFound);
 
         if (!IsFound)
         {

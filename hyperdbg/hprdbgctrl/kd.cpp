@@ -1749,6 +1749,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         DebuggeeRequest->Baudrate    = Baudrate;
 
         //
+        // Get base address of ntoskrnl
+        //
+        DebuggeeRequest->NtoskrnlBaseAddress = DebuggerGetNtoskrnlBase();
+
+        //
         // Set the debuggee name, version, and build number
         //
         if (!KdGetWindowVersion(DebuggeeRequest->OsName))
@@ -1756,7 +1761,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             // It's not an error if it returned null
             //
-            /*return FALSE;*/
+            // return FALSE;
         }
 
         //

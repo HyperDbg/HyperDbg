@@ -1,6 +1,7 @@
 /**
  * @file ScriptEngine.c
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1
@@ -28,12 +29,25 @@
 *
 */
 UINT64
-ScriptEnginePdbParser(const char * FunctionName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
 {
     //
     // A wrapper for pdb parser
     //
-    SymConvertNameToAddress(FunctionName, WasFound);
+    return SymConvertNameToAddress(FunctionName, WasFound);
+}
+
+/**
+*
+*
+*/
+UINT64
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid)
+{
+    //
+    // A wrapper for pdb parser
+    //
+    return SymLoadFileSymbol(BaseAddress, FileName, Guid);
 }
 
 /**

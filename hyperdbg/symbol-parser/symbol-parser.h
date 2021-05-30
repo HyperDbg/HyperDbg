@@ -15,6 +15,7 @@
 //					Exports                    //
 //////////////////////////////////////////////////
 extern "C" {
+__declspec(dllexport) UINT64 SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
 }
 

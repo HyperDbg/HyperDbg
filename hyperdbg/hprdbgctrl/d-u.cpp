@@ -122,7 +122,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         //
         if (TargetAddress == 0)
         {
-            if (!SymConvertObjectNameOrStringToUInt64(Section, &TargetAddress))
+            if (!SymbolConvertNameToAddress(Section, &TargetAddress))
             {
                 ShowMessages("err, you should enter a valid address or object name\n");
                 return;

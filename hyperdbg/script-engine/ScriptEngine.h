@@ -23,12 +23,15 @@
 // *** import pdb parser functions ***
 //
 __declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+__declspec(dllimport) UINT64 SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
 
 //
 // *** export pdb wrapper as script engine function ***
 //
 __declspec(dllexport) UINT64
-    ScriptEnginePdbParser(const char * FunctionName, PBOOLEAN WasFound);
+    ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+__declspec(dllexport) UINT64
+    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
 
 //
 // *** Exoort script engine functions ***

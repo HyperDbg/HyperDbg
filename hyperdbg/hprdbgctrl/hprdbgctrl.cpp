@@ -28,6 +28,7 @@ extern BOOLEAN    g_BreakPrintingOutput;
 extern BOOLEAN    g_IsConnectedToRemoteDebugger;
 extern BOOLEAN    g_OutputSourcesInitialized;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN    g_IsConnectedToHyperDbgLocally;
 extern LIST_ENTRY g_OutputSources;
 
 /**

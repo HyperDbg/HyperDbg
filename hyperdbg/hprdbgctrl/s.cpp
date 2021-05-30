@@ -192,7 +192,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymConvertObjectNameOrStringToUInt64(Section, &Address))
+            if (!SymbolConvertNameToAddress(Section, &Address))
             {
                 ShowMessages("please specify a correct hex address or object name to search\n\n");
                 CommandSearchMemoryHelp();

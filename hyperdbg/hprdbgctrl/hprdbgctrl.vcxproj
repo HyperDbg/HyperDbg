@@ -183,7 +183,7 @@
     <ClCompile Include="s.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="settings.cpp" />
-    <ClCompile Include="sewrapper.cpp" />
+    <ClCompile Include="script-engine-wrapper.cpp" />
     <ClCompile Include="sleep.cpp" />
     <ClCompile Include="status.cpp" />
     <ClCompile Include="sym.cpp" />

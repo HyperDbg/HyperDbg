@@ -61,7 +61,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         // It's just a address for current process
         //
-        if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetPa))
+        if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetPa))
         {
             ShowMessages("incorrect address or object name, please enter a valid physical"
                          " address\n\n");
@@ -80,7 +80,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 ShowMessages("incorrect address, please enter a valid process id\n\n");
                 return;
             }
-            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(3), &TargetPa))
+            if (!SymbolConvertNameToAddress(SplittedCommand.at(3), &TargetPa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid physical"
                              " address\n\n");
@@ -89,7 +89,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!SymConvertObjectNameOrStringToUInt64(SplittedCommand.at(1), &TargetPa))
+            if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetPa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid physical"
                              " address\n\n");

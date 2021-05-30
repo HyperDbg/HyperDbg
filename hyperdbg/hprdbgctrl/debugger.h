@@ -15,7 +15,10 @@
 //    Pdb Parser Wrapper (from script-engine)   //
 //////////////////////////////////////////////////
 UINT64
-ScriptEnginePdbParserWrapper(const char * FunctionName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound);
+
+UINT64
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * FileName, const char * Guid);
 
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
@@ -27,7 +30,7 @@ ScriptEngineWrapperTestParser(string Expr);
 PVOID
 ScriptEngineParseWrapper(char * str);
 
-void
+VOID
 PrintSymbolBufferWrapper(PVOID SymbolBuffer);
 
 UINT64
@@ -52,7 +55,10 @@ ListeningSerialPauseDebuggerThread(PVOID Param);
 // For symbol (pdb) parsing
 //
 BOOLEAN
-SymConvertObjectNameOrStringToUInt64(string TextToConvert, PUINT64 Result);
+SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result);
+
+BOOLEAN
+SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress);
 
 //////////////////////////////////////////////////
 //            	    Structures                  //
@@ -91,6 +97,9 @@ IsConnectedToAnyInstanceOfDebuggerOrDebuggee();
 
 BOOLEAN
 IsTagExist(UINT64 Tag);
+
+UINT64
+DebuggerGetNtoskrnlBase();
 
 BOOLEAN
 DebuggerPauseDebuggee();

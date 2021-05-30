@@ -308,9 +308,6 @@
     <ClCompile Include="print.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
-    <ClCompile Include="sewrapper.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
-    </ClCompile>
     <ClCompile Include="forwarding.cpp">
       <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
     </ClCompile>
@@ -376,6 +373,9 @@
     </ClCompile>
     <ClCompile Include="sym.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="script-engine-wrapper.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
