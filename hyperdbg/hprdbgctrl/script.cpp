@@ -71,6 +71,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
     // Parse the script file
     //
     ifstream File(Command);
+
     if (File.is_open())
     {
         IsOpened = TRUE;

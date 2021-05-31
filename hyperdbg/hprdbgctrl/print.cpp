@@ -79,7 +79,6 @@ CommandPrint(vector<string> SplittedCommand, string Command)
     // TODO: end of string must have a whitspace. fix it.
     //
     Command.append(" ");
-    // Command = " x = 4 >> 1; ";
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
