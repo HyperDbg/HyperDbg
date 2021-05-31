@@ -136,8 +136,12 @@ __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 //
 __declspec(dllimport) UINT64
     ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
-__declspec(dllimport) UINT64
-    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
+__declspec(dllimport) UINT32
+    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllimport) UINT32
+    ScriptEngineUnloadAllSymbols();
+__declspec(dllimport) UINT32
+    ScriptEngineSearchSymbolForMask(const char * SearchMask);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 

@@ -202,6 +202,7 @@
     <ClCompile Include="va2pa.cpp" />
     <ClCompile Include="vmcall.cpp" />
     <ClCompile Include="wrmsr.cpp" />
+    <ClCompile Include="x.cpp" />
     <ClCompile Include="~.cpp" />
     <MASM Include="AsmVmxChecks.asm">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

@@ -377,6 +377,9 @@
     <ClCompile Include="script-engine-wrapper.cpp">
       <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
     </ClCompile>
+    <ClCompile Include="x.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="AsmVmxChecks.asm">

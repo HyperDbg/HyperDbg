@@ -12,18 +12,30 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//					Exports                    //
+//					Configs                     //
+//////////////////////////////////////////////////
+
+#define DoNotShowDetailedResult TRUE
+
+//////////////////////////////////////////////////
+//					Exports                     //
 //////////////////////////////////////////////////
 extern "C" {
-__declspec(dllexport) UINT64 SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
+__declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllexport) UINT32 SymUnloadAllSymbols();
+__declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
 }
 
 //////////////////////////////////////////////////
 //					Functions                   //
 //////////////////////////////////////////////////
+
+UINT32
+SymSymbolsEnumerateAll(const char * PdbFilePath, DWORD64 BaseAddr);
+
 BOOL
-SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
+SymGetFileParams(const char * FileName, DWORD & FileSize);
 
 BOOL
 SymGetFileSize(const char * FileName, DWORD & FileSize);

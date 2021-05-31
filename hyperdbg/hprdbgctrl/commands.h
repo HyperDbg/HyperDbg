@@ -144,6 +144,7 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
     0x1 | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE     0x2
 #define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION 0x4
+#define DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE               0x8
 
 /**
  * @brief Absolute local commands
@@ -329,6 +330,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_SYM_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_X_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
 //////////////////////////////////////////////////
 //             Command Functions                //
@@ -535,3 +539,6 @@ CommandSympath(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandSym(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandX(vector<string> SplittedCommand, string Command);

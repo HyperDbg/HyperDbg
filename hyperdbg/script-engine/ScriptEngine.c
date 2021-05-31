@@ -41,13 +41,32 @@ ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
 *
 *
 */
-UINT64
-ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid)
+
+UINT32
+ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
     //
     // A wrapper for pdb parser
     //
-    return SymLoadFileSymbol(BaseAddress, FileName, Guid);
+    return SymLoadFileSymbol(BaseAddress, PdbFileName);
+}
+
+UINT32
+ScriptEngineUnloadAllSymbols()
+{
+    //
+    // A wrapper for pdb unloader
+    //
+    return SymUnloadAllSymbols();
+}
+
+UINT32
+ScriptEngineSearchSymbolForMask(const char * SearchMask)
+{
+    //
+    // A wrapper for pdb mask searcher
+    //
+    return SymSearchSymbolForMask(SearchMask);
 }
 
 /**

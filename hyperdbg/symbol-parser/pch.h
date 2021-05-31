@@ -13,6 +13,8 @@
 
 #include <Windows.h>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>

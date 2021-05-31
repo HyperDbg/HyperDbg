@@ -12,20 +12,58 @@
  */
 #include "pch.h"
 
+DWORD64 ModBase;
+
 /**
- * @brief Convert function name to address
+ * @brief load symbol based on a file name and GUID
  *
  * @param BaseAddress
  * @param FileName
  * @param Guid
  * 
- * @return UINT64
+ * @return UINT32
  */
-UINT64
-SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid)
+UINT32
+SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
-    // printf("hello from symbol loaded base address is : %llx !\n", BaseAddress);
-    return 0x55;
+    SymSymbolsEnumerateAll(PdbFileName, BaseAddress);
+
+    return 0;
+}
+
+/**
+ * @brief Unload all the symbols
+ * 
+ * @return UINT32
+ */
+UINT32
+SymUnloadAllSymbols()
+{
+    BOOL Ret = FALSE;
+
+    //
+    // Unload symbols for the module
+    //
+    Ret = SymUnloadModule64(GetCurrentProcess(), ModBase);
+
+    if (!Ret)
+    {
+        printf("err, unload symbol failed (%u)\n",
+               GetLastError());
+    }
+
+    //
+    // Uninitialize DbgHelp
+    //
+    Ret = SymCleanup(GetCurrentProcess());
+
+    if (!Ret)
+    {
+        printf("err, symbol cleanup failed (%u)\n", GetLastError());
+        return 0;
+    }
+
+    return 0;
 }
 
 /**
@@ -68,20 +106,68 @@ SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
 }
 
 /**
- * @brief Enumerate all the symbols in a file
+ * @brief Search and show symbols 
+ * @details mainly used by the 'x' command
  *
- * @param PdbFilePath
  * @param SearchMask
- * @param BaseAddr
- * @param FileSize
  * 
  * @return UINT32
  */
 UINT32
-SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
+SymSearchSymbolForMask(const char * SearchMask)
 {
-    BOOL  Ret     = FALSE;
-    DWORD Options = SymGetOptions();
+    BOOL Ret = FALSE;
+
+    Ret = SymEnumSymbols(
+        GetCurrentProcess(),    // Process handle of the current process
+        ModBase,                // Base address of the module
+        SearchMask,             // Mask (NULL -> all symbols)
+        SymEnumSymbolsCallback, // The callback function
+        NULL                    // A used-defined context can be passed here, if necessary
+    );
+
+    if (!Ret)
+    {
+        printf("err, symbol enum failed (%u)\n",
+               GetLastError());
+    }
+
+    return 0;
+}
+
+/**
+ * @brief add ` between 64 bit values and convert them to string
+ *
+ * @param Value
+ * @return string
+ */
+string
+SymSeparateTo64BitValue(UINT64 Value)
+{
+    ostringstream OstringStream;
+    string        Temp;
+
+    OstringStream << setw(16) << setfill('0') << hex << Value;
+    Temp = OstringStream.str();
+
+    Temp.insert(8, 1, '`');
+    return Temp;
+}
+
+/**
+ * @brief Enumerate all the symbols in a file
+ *
+ * @param PdbFilePath
+ * @param BaseAddr
+ * 
+ * @return UINT32
+ */
+UINT32
+SymSymbolsEnumerateAll(const char * PdbFilePath, DWORD64 BaseAddr)
+{
+    BOOL  Ret      = FALSE;
+    DWORD Options  = SymGetOptions();
+    DWORD FileSize = 0;
 
     //
     // SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
@@ -107,95 +193,50 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
         return 0;
     }
 
-    do
-    {
-        //
-        // Determine the base address and the file size
-        //
-        DWORD64 BaseAddr = 0;
-        DWORD   FileSize = 0;
-
-        if (!SymGetFileParams(PdbFilePath, BaseAddr, FileSize))
-        {
-            printf("err, cannot obtain file parameters (internal error)\n");
-            break;
-        }
-
-        //
-        // Load symbols for the module
-        //
-        printf("loading symbols for: %s\n", PdbFilePath);
-
-        DWORD64 ModBase = SymLoadModule64(
-            GetCurrentProcess(), // Process handle of the current process
-            NULL,                // Handle to the module's image file (not needed)
-            PdbFilePath,         // Path/name of the file
-            NULL,                // User-defined short name of the module (it can be NULL)
-            BaseAddr,            // Base address of the module (cannot be NULL if .PDB file is
-                                 // used, otherwise it can be NULL)
-            FileSize             // Size of the file (cannot be NULL if .PDB file is used,
-                                 // otherwise it can be NULL)
-        );
-
-        if (ModBase == 0)
-        {
-            printf("err, loading symbols failed (%u)\n",
-                   GetLastError());
-            break;
-        }
-
-        printf("load address: %I64x\n", ModBase);
-
-        //
-        // Obtain and display information about loaded symbols
-        //
-        SymShowSymbolInfo(ModBase);
-
-        //
-        // Enumerate symbols and display information about them
-        //
-        if (SearchMask != NULL)
-            printf("search mask: %s\n", SearchMask);
-
-        printf("symbols:\n");
-
-        Ret = SymEnumSymbols(
-            GetCurrentProcess(),    // Process handle of the current process
-            ModBase,                // Base address of the module
-            SearchMask,             // Mask (NULL -> all symbols)
-            SymEnumSymbolsCallback, // The callback function
-            NULL                    // A used-defined context can be passed here, if necessary
-        );
-
-        if (!Ret)
-        {
-            printf("err, symbol enum failed (%u)\n",
-                   GetLastError());
-        }
-
-        //
-        // Unload symbols for the module
-        //
-        Ret = SymUnloadModule64(GetCurrentProcess(), ModBase);
-
-        if (!Ret)
-        {
-            printf("err, unload symbol failed (%u)\n",
-                   GetLastError());
-        }
-
-    } while (0);
-
     //
-    // Uninitialize DbgHelp
+    // Determine the base address and the file size
     //
-    Ret = SymCleanup(GetCurrentProcess());
 
-    if (!Ret)
+    if (!SymGetFileParams(PdbFilePath, FileSize))
     {
-        printf("err, symbol cleanup failed (%u)\n", GetLastError());
-        return 0;
+        printf("err, cannot obtain file parameters (internal error)\n");
+        return -1;
     }
+
+    ModBase = SymLoadModule64(
+        GetCurrentProcess(), // Process handle of the current process
+        NULL,                // Handle to the module's image file (not needed)
+        PdbFilePath,         // Path/name of the file
+        NULL,                // User-defined short name of the module (it can be NULL)
+        BaseAddr,            // Base address of the module (cannot be NULL if .PDB file is
+                             // used, otherwise it can be NULL)
+        FileSize             // Size of the file (cannot be NULL if .PDB file is used,
+                             // otherwise it can be NULL)
+    );
+
+    if (ModBase == 0)
+    {
+        printf("err, loading symbols failed (%u)\n",
+               GetLastError());
+
+        return -1;
+    }
+
+#ifndef DoNotShowDetailedResult
+
+    //
+    // Load symbols for the module
+    //
+    printf("loading symbols for: %s\n", PdbFilePath);
+
+    printf("load address: %I64x\n", ModBase);
+
+    //
+    // Obtain and display information about loaded symbols
+    //
+    SymShowSymbolInfo(ModBase);
+
+#endif // !DoNotShowDetailedResult
 
     return 0;
 }
@@ -210,7 +251,7 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
  * @return BOOL
  */
 BOOL
-SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
+SymGetFileParams(const char * FileName, DWORD & FileSize)
 {
     //
     // Check parameters
@@ -237,14 +278,6 @@ SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         // Determine its size, and use a dummy base address
         //
 
-        //
-        // it can be any non-zero value, but if we load
-        // symbols from more than one file, memory regions
-        // specified for different files should not overlap
-        // (region is "base address + file size")
-        //
-        BaseAddr = 0x40000000;
-
         if (!SymGetFileSize(FileName, FileSize))
         {
             return FALSE;
@@ -256,9 +289,8 @@ SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         // It is not a .PDB file
         // Base address and file size can be 0
         //
-
-        BaseAddr = 0;
         FileSize = 0;
+        return FALSE;
     }
 
     return TRUE;
@@ -505,24 +537,28 @@ VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
 {
     //
-    // Kind of symbol (tag)
-    //
-    printf("symbol: %s  ", SymTagStr(SymInfo.Tag));
-
-    //
     // Address
     //
-    printf("address: %x  ", SymInfo.Address);
-
-    //
-    // Size
-    //
-    printf("size: %u  ", SymInfo.Size);
+    printf("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
 
     //
     // Name
     //
-    printf("name: %s\n", SymInfo.Name);
+    printf(" %s\n", SymInfo.Name);
+
+#ifndef DoNotShowDetailedResult
+
+    //
+    // Size
+    //
+    printf(" size: %u", SymInfo.Size);
+
+    //
+    // Kind of symbol (tag)
+    //
+    printf(" symbol: %s  ", SymTagStr(SymInfo.Tag));
+
+#endif // !DoNotShowDetailedResult
 }
 
 /**

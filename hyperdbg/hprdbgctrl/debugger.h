@@ -17,8 +17,14 @@
 UINT64
 ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound);
 
-UINT64
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * FileName, const char * Guid);
+UINT32
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
+
+UINT32
+ScriptEngineUnloadAllSymbolsWrapper();
+
+UINT32
+ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
