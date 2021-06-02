@@ -12,7 +12,56 @@
  */
 #include "pch.h"
 
-DWORD64 ModBase;
+//
+// Global Variables
+//
+extern std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
+extern BOOLEAN                                    g_IsLoadedModulesInitialized;
+extern CHAR *                                     g_CurrentModuleName;
+
+/**
+ * @brief Interpret and find module base , based on module name 
+ * @param SearchMask
+ * 
+ * @return DWORD64 NULL means error or not found, otherwise the address
+ */
+DWORD64
+SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlobally)
+{
+    char * ModuleName = NULL;
+
+    if (!g_IsLoadedModulesInitialized)
+    {
+        //
+        // no module is loaded
+        //
+        return NULL;
+    }
+
+    /*
+    if (true)
+    {
+    }
+
+    if (strcmp(ModuleName, ("ntkrnlmp")) == 0 || strcmp(ModuleName, ("ntoskrnl")) == 0 ||
+        strcmp(ModuleName, ("ntkrpamp")) == 0 || strcmp(ModuleName, ("ntkrnlpa")) == 0)
+    {
+        //
+        // It's "nt"
+        //
+    }
+    */
+
+    //
+    // ************* Interpret based on remarks of the "X" command *************
+    //
+    if (SetModuleNameGlobally)
+    {
+        g_CurrentModuleName = (char *)g_LoadedModules.at(0)->ModuleName;
+    }
+
+    return g_LoadedModules.at(0)->ModuleBase;
+}
 
 /**
  * @brief load symbol based on a file name and GUID
@@ -26,7 +75,165 @@ DWORD64 ModBase;
 UINT32
 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
-    SymSymbolsEnumerateAll(PdbFileName, BaseAddress);
+    BOOL                          Ret                    = FALSE;
+    DWORD                         Options                = 0;
+    DWORD                         FileSize               = 0;
+    int                           Index                  = 0;
+    char                          Ch                     = NULL;
+    char                          ModuleName[_MAX_FNAME] = {0};
+    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails          = NULL;
+
+    //
+    // Get options
+    //
+    Options = SymGetOptions();
+
+    //
+    // SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
+    // messages to debug output - use the debugger's Debug Output window
+    // to view the messages
+    //
+    Options |= SYMOPT_DEBUG;
+    SymSetOptions(Options);
+
+    //
+    // Initialize DbgHelp and load symbols for all modules of the current process
+    //
+    Ret = SymInitialize(
+        GetCurrentProcess(), // Process handle of the current process
+        NULL,                // No user-defined search path -> use default
+        FALSE                // Do not load symbols for modules in the current process
+    );
+
+    if (!Ret)
+    {
+        printf("err, symbol init failed (%u)\n",
+               GetLastError());
+        return -1;
+    }
+
+    //
+    // Determine the base address and the file size
+    //
+    if (!SymGetFileParams(PdbFileName, FileSize))
+    {
+        printf("err, cannot obtain file parameters (internal error)\n");
+        return -1;
+    }
+
+    //
+    // Determine the extension of the file
+    //
+    _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
+
+    //
+    // Convert module name to lowercase
+    //
+    while (ModuleName[Index])
+    {
+        Ch = ModuleName[Index];
+
+        //
+        // convert ch to lowercase using toLower()
+        //
+        ModuleName[Index] = tolower(Ch);
+
+        Index++;
+    }
+
+    //
+    // Is it "nt" module or not
+    //
+    // Names of kernel
+    //     NTOSKRNL.EXE : 1 CPU
+    //     NTKRNLMP.EXE : N CPU, SMP
+    //     NTKRNLPA.EXE : 1 CPU, PAE
+    //     NTKRPAMP.EXE : N CPU SMP, PAE
+    //
+    if (strcmp(ModuleName, ("ntkrnlmp")) == 0 || strcmp(ModuleName, ("ntoskrnl")) == 0 ||
+        strcmp(ModuleName, ("ntkrpamp")) == 0 || strcmp(ModuleName, ("ntkrnlpa")) == 0)
+    {
+        //
+        // It's "nt"
+        //
+        RtlZeroMemory(ModuleName, _MAX_FNAME);
+
+        //
+        // Move nt as the name
+        //
+        ModuleName[0] = 'n';
+        ModuleName[1] = 't';
+    }
+
+    //
+    // Allocate buffer to store the details
+    //
+    ModuleDetails = (SYMBOL_LOADED_MODULE_DETAILS *)malloc(sizeof(SYMBOL_LOADED_MODULE_DETAILS));
+
+    if (ModuleDetails == NULL)
+    {
+        printf("err, allocating buffer for storing symbol details (%u)\n",
+               GetLastError());
+
+        return -1;
+    }
+
+    RtlZeroMemory(ModuleDetails, sizeof(SYMBOL_LOADED_MODULE_DETAILS));
+
+    ModuleDetails->ModuleBase = SymLoadModule64(
+        GetCurrentProcess(), // Process handle of the current process
+        NULL,                // Handle to the module's image file (not needed)
+        PdbFileName,         // Path/name of the file
+        NULL,                // User-defined short name of the module (it can be NULL)
+        BaseAddress,         // Base address of the module (cannot be NULL if .PDB file is
+                             // used, otherwise it can be NULL)
+        FileSize             // Size of the file (cannot be NULL if .PDB file is used,
+                             // otherwise it can be NULL)
+    );
+
+    if (ModuleDetails->ModuleBase == NULL)
+    {
+        printf("err, loading symbols failed (%u)\n",
+               GetLastError());
+
+        free(ModuleDetails);
+        return -1;
+    }
+
+#ifndef DoNotShowDetailedResult
+
+    //
+    // Load symbols for the module
+    //
+    printf("loading symbols for: %s\n", PdbFilePath);
+
+    printf("load address: %I64x\n", ModuleDetails.ModuleBase);
+
+    //
+    // Obtain and display information about loaded symbols
+    //
+    SymShowSymbolInfo(ModuleDetails.ModuleBase);
+
+#endif // !DoNotShowDetailedResult
+
+    //
+    // Make the details (to save)
+    //
+    ModuleDetails->BaseAddress = BaseAddress;
+    strcpy((char *)ModuleDetails->ModuleName, ModuleName);
+
+    //
+    // Save it
+    //
+    g_LoadedModules.push_back(ModuleDetails);
+
+    if (!g_IsLoadedModulesInitialized)
+    {
+        //
+        // Indicate that at least one module is loaded
+        //
+        g_IsLoadedModulesInitialized = TRUE;
+    }
 
     return 0;
 }
@@ -41,16 +248,26 @@ SymUnloadAllSymbols()
 {
     BOOL Ret = FALSE;
 
-    //
-    // Unload symbols for the module
-    //
-    Ret = SymUnloadModule64(GetCurrentProcess(), ModBase);
-
-    if (!Ret)
+    for (auto item : g_LoadedModules)
     {
-        printf("err, unload symbol failed (%u)\n",
-               GetLastError());
+        //
+        // Unload symbols for the module
+        //
+        Ret = SymUnloadModule64(GetCurrentProcess(), item->ModuleBase);
+
+        if (!Ret)
+        {
+            printf("err, unload symbol failed (%u)\n",
+                   GetLastError());
+        }
+
+        free(item);
     }
+
+    //
+    // Clear the list
+    //
+    g_LoadedModules.clear();
 
     //
     // Uninitialize DbgHelp
@@ -116,11 +333,28 @@ SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
 UINT32
 SymSearchSymbolForMask(const char * SearchMask)
 {
-    BOOL Ret = FALSE;
+    BOOL    Ret        = FALSE;
+    DWORD64 ModuleBase = NULL;
+
+    //
+    // Find module base
+    //
+    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+
+    //
+    // Find the module name
+    //
+    if (ModuleBase == NULL)
+    {
+        //
+        // Module not found or there was an error
+        //
+        return -1;
+    }
 
     Ret = SymEnumSymbols(
         GetCurrentProcess(),    // Process handle of the current process
-        ModBase,                // Base address of the module
+        ModuleBase,             // Base address of the module
         SearchMask,             // Mask (NULL -> all symbols)
         SymEnumSymbolsCallback, // The callback function
         NULL                    // A used-defined context can be passed here, if necessary
@@ -152,93 +386,6 @@ SymSeparateTo64BitValue(UINT64 Value)
 
     Temp.insert(8, 1, '`');
     return Temp;
-}
-
-/**
- * @brief Enumerate all the symbols in a file
- *
- * @param PdbFilePath
- * @param BaseAddr
- * 
- * @return UINT32
- */
-UINT32
-SymSymbolsEnumerateAll(const char * PdbFilePath, DWORD64 BaseAddr)
-{
-    BOOL  Ret      = FALSE;
-    DWORD Options  = SymGetOptions();
-    DWORD FileSize = 0;
-
-    //
-    // SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
-    // messages to debug output - use the debugger's Debug Output window
-    // to view the messages
-    //
-    Options |= SYMOPT_DEBUG;
-    SymSetOptions(Options);
-
-    //
-    // Initialize DbgHelp and load symbols for all modules of the current process
-    //
-    Ret = SymInitialize(
-        GetCurrentProcess(), // Process handle of the current process
-        NULL,                // No user-defined search path -> use default
-        FALSE                // Do not load symbols for modules in the current process
-    );
-
-    if (!Ret)
-    {
-        printf("err, symbol init failed (%u)\n",
-               GetLastError());
-        return 0;
-    }
-
-    //
-    // Determine the base address and the file size
-    //
-
-    if (!SymGetFileParams(PdbFilePath, FileSize))
-    {
-        printf("err, cannot obtain file parameters (internal error)\n");
-        return -1;
-    }
-
-    ModBase = SymLoadModule64(
-        GetCurrentProcess(), // Process handle of the current process
-        NULL,                // Handle to the module's image file (not needed)
-        PdbFilePath,         // Path/name of the file
-        NULL,                // User-defined short name of the module (it can be NULL)
-        BaseAddr,            // Base address of the module (cannot be NULL if .PDB file is
-                             // used, otherwise it can be NULL)
-        FileSize             // Size of the file (cannot be NULL if .PDB file is used,
-                             // otherwise it can be NULL)
-    );
-
-    if (ModBase == 0)
-    {
-        printf("err, loading symbols failed (%u)\n",
-               GetLastError());
-
-        return -1;
-    }
-
-#ifndef DoNotShowDetailedResult
-
-    //
-    // Load symbols for the module
-    //
-    printf("loading symbols for: %s\n", PdbFilePath);
-
-    printf("load address: %I64x\n", ModBase);
-
-    //
-    // Obtain and display information about loaded symbols
-    //
-    SymShowSymbolInfo(ModBase);
-
-#endif // !DoNotShowDetailedResult
-
-    return 0;
 }
 
 /**
@@ -358,12 +505,12 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 /**
  * @brief Show symbol info
  *
- * @param ModBase
+ * @param ModuleBase
  * 
  * @return VOID
  */
 VOID
-SymShowSymbolInfo(DWORD64 ModBase)
+SymShowSymbolInfo(DWORD64 ModuleBase)
 {
     //
     // Get module information
@@ -374,7 +521,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
 
     ModuleInfo.SizeOfStruct = sizeof(ModuleInfo);
 
-    BOOL Ret = SymGetModuleInfo64(GetCurrentProcess(), ModBase, &ModuleInfo);
+    BOOL Ret = SymGetModuleInfo64(GetCurrentProcess(), ModuleBase, &ModuleInfo);
 
     if (!Ret)
     {
@@ -536,15 +683,25 @@ SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContex
 VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
 {
-    //
-    // Address
-    //
-    printf("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
+    if (g_CurrentModuleName == NULL)
+    {
+        //
+        // Name Address
+        //
+        printf("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
+    }
+    else
+    {
+        //
+        // Module!Name Address
+        //
+        printf("%s  %s!", SymSeparateTo64BitValue(SymInfo.Address).c_str(), g_CurrentModuleName);
+    }
 
     //
     // Name
     //
-    printf(" %s\n", SymInfo.Name);
+    printf("%s\n", SymInfo.Name);
 
 #ifndef DoNotShowDetailedResult
 

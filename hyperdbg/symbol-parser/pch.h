@@ -15,6 +15,7 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>

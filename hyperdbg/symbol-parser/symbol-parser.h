@@ -18,6 +18,30 @@
 #define DoNotShowDetailedResult TRUE
 
 //////////////////////////////////////////////////
+//					Structures                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Hold detail about the loaded modules
+ *
+ */
+typedef struct _SYMBOL_LOADED_MODULE_DETAILS
+{
+    UINT64  BaseAddress;
+    DWORD64 ModuleBase;
+    char *  ModuleName[_MAX_FNAME];
+
+} SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
+
+//////////////////////////////////////////////////
+//		    	Global Variables                //
+//////////////////////////////////////////////////
+
+std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
+BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
+CHAR *                                     g_CurrentModuleName          = NULL;
+
+//////////////////////////////////////////////////
 //					Exports                     //
 //////////////////////////////////////////////////
 extern "C" {
@@ -30,9 +54,6 @@ __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, 
 //////////////////////////////////////////////////
 //					Functions                   //
 //////////////////////////////////////////////////
-
-UINT32
-SymSymbolsEnumerateAll(const char * PdbFilePath, DWORD64 BaseAddr);
 
 BOOL
 SymGetFileParams(const char * FileName, DWORD & FileSize);
