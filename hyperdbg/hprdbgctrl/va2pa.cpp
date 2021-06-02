@@ -47,6 +47,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
     UINT64                            TargetVa;
     UINT32                            Pid            = 0;
     DEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails = {0};
+    vector<string>                    SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
         SplittedCommand.size() == 3)
@@ -61,7 +62,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         // It's just an address for current process
         //
-        if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetVa))
+        if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
         {
             ShowMessages("incorrect address or object name, please enter a valid virtual"
                          " address\n\n");
@@ -81,7 +82,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
                 return;
             }
 
-            if (!SymbolConvertNameToAddress(SplittedCommand.at(3), &TargetVa))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid virtual"
                              " address\n\n");
@@ -90,7 +91,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetVa))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid virtual"
                              " address\n\n");

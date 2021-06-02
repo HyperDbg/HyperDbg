@@ -72,6 +72,8 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     UINT32                 FinalSize     = 0;
     UINT64 *               FinalBuffer;
     vector<UINT64>         ValuesToEdit;
+    vector<string>         SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32                 IndexInCommandCaseSensitive = 0;
 
     if (SplittedCommand.size() <= 4)
     {
@@ -82,6 +84,8 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
     for (auto Section : SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
+
         if (!Section.compare(SplittedCommand.at(0)))
         {
             if (!Section.compare("!sb"))
@@ -192,7 +196,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameToAddress(Section, &Address))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
             {
                 ShowMessages("please specify a correct hex address or object name to search\n\n");
                 CommandSearchMemoryHelp();

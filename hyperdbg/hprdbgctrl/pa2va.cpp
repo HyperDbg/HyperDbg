@@ -47,6 +47,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
     UINT64                            TargetPa;
     UINT32                            Pid            = 0;
     DEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails = {0};
+    vector<string>                    SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
         SplittedCommand.size() == 3)
@@ -61,7 +62,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         // It's just a address for current process
         //
-        if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetPa))
+        if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
         {
             ShowMessages("incorrect address or object name, please enter a valid physical"
                          " address\n\n");
@@ -80,7 +81,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 ShowMessages("incorrect address, please enter a valid process id\n\n");
                 return;
             }
-            if (!SymbolConvertNameToAddress(SplittedCommand.at(3), &TargetPa))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetPa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid physical"
                              " address\n\n");
@@ -89,7 +90,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetPa))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
             {
                 ShowMessages("incorrect address or object name, please enter a valid physical"
                              " address\n\n");
