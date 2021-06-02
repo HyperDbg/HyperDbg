@@ -112,6 +112,7 @@ DebuggerPauseDebuggee();
 
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> * SplittedCommand,
+                            vector<string> * SplittedCommandCaseSensitive,
                             BOOLEAN          IsConditionBuffer,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength);
@@ -131,6 +132,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                 SplittedCommand,
+    vector<string> *                 SplittedCommandCaseSensitive,
     DEBUGGER_EVENT_TYPE_ENUM         EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL * EventDetailsToFill,
     PUINT32                          EventBufferLength,

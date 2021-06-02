@@ -72,6 +72,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     UINT32                         ActionScriptLength          = 0;
     UINT64                         SpecialTarget               = DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS;
     BOOLEAN                        GetSyscallNumber            = FALSE;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     //
     // Interpret and fill the general event and action fields
@@ -81,6 +82,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     {
         if (!InterpretGeneralEventAndActionsFields(
                 &SplittedCommand,
+                &SplittedCommandCaseSensitive,
                 SYSCALL_HOOK_EFER_SYSCALL,
                 &Event,
                 &EventLength,
@@ -99,6 +101,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     {
         if (!InterpretGeneralEventAndActionsFields(
                 &SplittedCommand,
+                &SplittedCommandCaseSensitive,
                 SYSCALL_HOOK_EFER_SYSRET,
                 &Event,
                 &EventLength,

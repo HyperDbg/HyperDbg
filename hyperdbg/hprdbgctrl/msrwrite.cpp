@@ -52,6 +52,7 @@ CommandMsrwrite(vector<string> SplittedCommand, string Command)
     UINT32                         ActionScriptLength          = 0;
     UINT64                         SpecialTarget               = DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS;
     BOOLEAN                        GetAddress                  = FALSE;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     //
     // Interpret and fill the general event and action fields
@@ -59,6 +60,7 @@ CommandMsrwrite(vector<string> SplittedCommand, string Command)
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
+            &SplittedCommandCaseSensitive,
             WRMSR_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,

@@ -57,6 +57,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
     BOOLEAN                        OutputSourceFound = FALSE;
     HANDLE                         SourceHandle      = INVALID_HANDLE_VALUE;
     SOCKET                         Socket            = NULL;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     //
     // Check if the user needs a list of outputs or not
@@ -203,7 +204,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
                     CONTAINING_RECORD(TempList, DEBUGGER_EVENT_FORWARDING, OutputSourcesList);
 
                 if (strcmp(CurrentOutputSourceDetails->Name,
-                           SplittedCommand.at(2).c_str()) == 0)
+                           SplittedCommandCaseSensitive.at(2).c_str()) == 0)
                 {
                     //
                     // Indicate that we found this item
@@ -232,8 +233,8 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         // try to open the source and get the handle
         //
 
-        DetailsOfSource = Command.substr(Command.find(SplittedCommand.at(3)) +
-                                             SplittedCommand.at(3).size() + 1,
+        DetailsOfSource = Command.substr(Command.find(SplittedCommandCaseSensitive.at(3)) +
+                                             SplittedCommandCaseSensitive.at(3).size() + 1,
                                          Command.size());
 
         SourceHandle = ForwardingCreateOutputSource(Type, DetailsOfSource, &Socket);
@@ -292,7 +293,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         // Move the name of the output source to the buffer
         //
-        strcpy_s(EventForwardingObject->Name, SplittedCommand.at(2).c_str());
+        strcpy_s(EventForwardingObject->Name, SplittedCommandCaseSensitive.at(2).c_str());
 
         //
         // Check if list is initialized or not
@@ -335,7 +336,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
                 OutputSourcesList);
 
             if (strcmp(CurrentOutputSourceDetails->Name,
-                       SplittedCommand.at(2).c_str()) == 0)
+                       SplittedCommandCaseSensitive.at(2).c_str()) == 0)
             {
                 //
                 // Indicate that we found this item
@@ -404,7 +405,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
                 OutputSourcesList);
 
             if (strcmp(CurrentOutputSourceDetails->Name,
-                       SplittedCommand.at(2).c_str()) == 0)
+                       SplittedCommandCaseSensitive.at(2).c_str()) == 0)
             {
                 //
                 // Indicate that we found this item

@@ -363,6 +363,7 @@ IsTagExist(UINT64 Tag)
  * input structure
  *
  * @param SplittedCommand the initialized command that are splitted by space
+ * @param SplittedCommandCaseSensitive case sensitive splitted command
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -370,7 +371,13 @@ IsTagExist(UINT64 Tag)
  * successful (false)
  */
 BOOLEAN
-InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, PUINT64 BufferAddress, PUINT32 BufferLength, PUINT32 Pointer, PUINT64 ScriptCodeBuffer)
+InterpretScript(vector<string> * SplittedCommand,
+                vector<string> * SplittedCommandCaseSensitive,
+                PBOOLEAN         ScriptSyntaxErrors,
+                PUINT64          BufferAddress,
+                PUINT32          BufferLength,
+                PUINT32          Pointer,
+                PUINT64          ScriptCodeBuffer)
 {
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
@@ -385,6 +392,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
     int            OpenBracket      = 0;
     size_t         CountOfOpenBrackets;
     size_t         CountOfCloseBrackets;
+    UINT32         IndexInCommandCaseSensitive          = 0;
+    vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
 
     //
     // Indicate that there is an error at first
@@ -393,6 +402,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
 
     for (auto Section : *SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
         Index++;
 
         if (IsInState)
@@ -425,7 +435,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                     //
                     // remove the last character and append it to the ConditionBuffer
                     //
-                    SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+                    SaveBuffer.push_back(
+                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
 
                     IsEnded = TRUE;
                     break;
@@ -480,7 +491,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+                    SaveBuffer.push_back(
+                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
                     break;
                 }
             }
@@ -488,7 +500,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
             //
             // Add the text as the script screen
             //
-            SaveBuffer.push_back(Section);
+            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
 
             //
             // We want to stay in this condition
@@ -544,7 +556,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                 //
                 IndexesToRemove.push_back(Index);
 
-                Temp = Section.erase(0, 1);
+                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
                 SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
                 IsEnded = TRUE;
@@ -574,7 +586,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+                    SaveBuffer.push_back(
+                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
                     break;
                 }
             }
@@ -584,7 +597,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
             //
             IndexesToRemove.push_back(Index);
 
-            SaveBuffer.push_back(Section.erase(0, 1));
+            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
 
             IsInState = TRUE;
             continue;
@@ -657,8 +670,9 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                 // remove the last character and first character append it to the
                 // ConditionBuffer
                 //
-                Temp = Section.erase(0, 7);
-                SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
+                SaveBuffer.push_back(
+                    SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
 
                 IsEnded     = TRUE;
                 OpenBracket = 0;
@@ -669,7 +683,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
                 //
                 // Section starts with script{
                 //
-                SaveBuffer.push_back(Section.erase(0, 7));
+                SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
 
                 //
                 // Check if script contains bracket "}"
@@ -813,6 +827,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
 
         SplittedCommand->erase(SplittedCommand->begin() +
                                (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
+                                            (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -825,6 +841,8 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
  * input structure
  *
  * @param SplittedCommand the initialized command that are splitted by space
+ * @param SplittedCommandCaseSensitive the initialized command that are splitted
+ * by space case sensitive
  * @param IsConditionBuffer is it a condition buffer or a custom code buffer
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
@@ -834,6 +852,7 @@ InterpretScript(vector<string> * SplittedCommand, PBOOLEAN ScriptSyntaxErrors, P
  */
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> * SplittedCommand,
+                            vector<string> * SplittedCommandCaseSensitive,
                             BOOLEAN          IsConditionBuffer,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength)
@@ -1185,6 +1204,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
 
         SplittedCommand->erase(SplittedCommand->begin() +
                                (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
+                                            (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1197,6 +1218,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * like sending over network, save to file, and send over a namedpipe
  *
  * @param SplittedCommand the initialized command that are splitted by space
+ * @param SplittedCommandCaseSensitive the initialized command that are splitted 
+ * by space case sensitive 
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -1204,7 +1227,9 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * successful (false)
  */
 BOOLEAN
-InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
+InterpretOutput(vector<string> * SplittedCommand,
+                vector<string> * SplittedCommandCaseSensitive,
+                vector<string> & InputSources)
 {
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
@@ -1214,13 +1239,16 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
     string         Token;
-    int            NewIndexToRemove = 0;
-    int            Index            = 0;
-    string         Delimiter        = ",";
-    size_t         Pos              = 0;
+    int            NewIndexToRemove                     = 0;
+    int            Index                                = 0;
+    string         Delimiter                            = ",";
+    size_t         Pos                                  = 0;
+    vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
+    UINT32         IndexInCommandCaseSensitive          = 0;
 
     for (auto Section : *SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
         Index++;
 
         if (IsInState)
@@ -1251,7 +1279,8 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
                 //
                 // remove the last character and append it to the output buffer
                 //
-                SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+                SaveBuffer.push_back(
+                    SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
 
                 IsEnded = TRUE;
                 break;
@@ -1265,7 +1294,7 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
             //
             // Add the codes into buffer buffer
             //
-            SaveBuffer.push_back(Section);
+            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1));
 
             //
             // We want to stay in this condition
@@ -1300,7 +1329,7 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
                 //
                 IndexesToRemove.push_back(Index);
 
-                Temp = Section.erase(0, 1);
+                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
                 SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
                 IsEnded = TRUE;
@@ -1312,7 +1341,7 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
             //
             IndexesToRemove.push_back(Index);
 
-            SaveBuffer.push_back(Section.erase(0, 1));
+            SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1));
 
             IsInState = TRUE;
             continue;
@@ -1356,7 +1385,7 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
                 //
                 // Section starts with output{
                 //
-                SaveBuffer.push_back(Section.erase(0, 7));
+                SaveBuffer.push_back(SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7));
                 continue;
             }
             else
@@ -1365,7 +1394,7 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
                 // remove the last character and first character append it to the
                 // Output
                 //
-                Temp = Section.erase(0, 7);
+                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
                 SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
 
                 IsEnded = TRUE;
@@ -1450,6 +1479,8 @@ InterpretOutput(vector<string> * SplittedCommand, vector<string> & InputSources)
 
         SplittedCommand->erase(SplittedCommand->begin() +
                                (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
+                                            (IndexToRemove - NewIndexToRemove));
     }
 
     return TRUE;
@@ -1829,6 +1860,8 @@ GetNewDebuggerEventTag()
  * @brief Interpret general event fields
  *
  * @param SplittedCommand the commands that was splitted by space
+ * @param SplittedCommandCaseSensitive the commands that was splitted by space 
+ * case sensitive
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled
  * by event detail buffer
@@ -1844,6 +1877,7 @@ GetNewDebuggerEventTag()
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                 SplittedCommand,
+    vector<string> *                 SplittedCommandCaseSensitive,
     DEBUGGER_EVENT_TYPE_ENUM         EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL * EventDetailsToFill,
     PUINT32                          EventBufferLength,
@@ -1896,11 +1930,12 @@ InterpretGeneralEventAndActionsFields(
     //
     // Create a command string to show in the history
     //
-    for (auto Section : *SplittedCommand)
+    for (auto Section : *SplittedCommandCaseSensitive)
     {
         CommandString.append(Section);
         CommandString.append(" ");
     }
+
     //
     // Compute the size of buffer + 1 null for the end of buffer
     //
@@ -1922,7 +1957,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a condition buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
+    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, TRUE, &ConditionBufferAddress, &ConditionBufferLength))
     {
         //
         // Indicate condition is not available
@@ -1964,7 +1999,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a code buffer in the command
     //
-    if (!InterpretConditionsAndCodes(SplittedCommand, FALSE, &CodeBufferAddress, &CodeBufferLength))
+    if (!InterpretConditionsAndCodes(SplittedCommand, SplittedCommandCaseSensitive, FALSE, &CodeBufferAddress, &CodeBufferLength))
     {
         //
         // Indicate code is not available
@@ -2004,7 +2039,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a Script block in the command
     //
-    if (!InterpretScript(SplittedCommand, &HasScriptSyntaxError, &ScriptBufferAddress, &ScriptBufferLength, &ScriptBufferPointer, &ScriptCodeBuffer))
+    if (!InterpretScript(SplittedCommand, SplittedCommandCaseSensitive, &HasScriptSyntaxError, &ScriptBufferAddress, &ScriptBufferLength, &ScriptBufferPointer, &ScriptCodeBuffer))
     {
         //
         // Indicate code is not available
@@ -2034,7 +2069,7 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a output path in the command
     //
-    if (!InterpretOutput(SplittedCommand, ListOfOutputSources))
+    if (!InterpretOutput(SplittedCommand, SplittedCommandCaseSensitive, ListOfOutputSources))
     {
         //
         // Indicate output is not available
@@ -2770,6 +2805,8 @@ InterpretGeneralEventAndActionsFields(
         NewIndexToRemove++;
         SplittedCommand->erase(SplittedCommand->begin() +
                                (IndexToRemove - NewIndexToRemove));
+        SplittedCommandCaseSensitive->erase(SplittedCommandCaseSensitive->begin() +
+                                            (IndexToRemove - NewIndexToRemove));
     }
 
     //
