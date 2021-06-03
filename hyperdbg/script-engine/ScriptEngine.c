@@ -29,12 +29,12 @@
 *
 */
 UINT64
-ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
     //
     // A wrapper for pdb parser
     //
-    return SymConvertNameToAddress(FunctionName, WasFound);
+    return SymConvertNameToAddress(FunctionOrVariableName, WasFound);
 }
 
 /**

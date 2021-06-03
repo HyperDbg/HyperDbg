@@ -40,6 +40,7 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
 std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
 BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
+CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
 
 //////////////////////////////////////////////////
 //					Exports                     //
@@ -48,7 +49,7 @@ extern "C" {
 __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
-__declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+__declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 }
 
 //////////////////////////////////////////////////

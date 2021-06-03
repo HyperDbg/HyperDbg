@@ -64,8 +64,11 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
         {
-            ShowMessages("incorrect address or object name, please enter a valid virtual"
-                         " address\n\n");
+            //
+            // Couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         SplittedCommandCaseSensitive.at(1).c_str());
             return;
         }
     }
@@ -84,8 +87,11 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
 
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
             {
-                ShowMessages("incorrect address or object name, please enter a valid virtual"
-                             " address\n\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(3).c_str());
                 return;
             }
         }
@@ -93,8 +99,11 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         {
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
             {
-                ShowMessages("incorrect address or object name, please enter a valid virtual"
-                             " address\n\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(1).c_str());
                 return;
             }
 

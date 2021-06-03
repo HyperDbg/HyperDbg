@@ -64,8 +64,11 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
         {
-            ShowMessages("incorrect address or object name, please enter a valid physical"
-                         " address\n\n");
+            //
+            // Couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         SplittedCommandCaseSensitive.at(1).c_str());
             return;
         }
     }
@@ -83,8 +86,11 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
             }
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetPa))
             {
-                ShowMessages("incorrect address or object name, please enter a valid physical"
-                             " address\n\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(3).c_str());
                 return;
             }
         }
@@ -92,8 +98,12 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         {
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
             {
-                ShowMessages("incorrect address or object name, please enter a valid physical"
-                             " address\n\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(1).c_str());
+
                 return;
             }
             if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))

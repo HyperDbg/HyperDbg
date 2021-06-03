@@ -128,7 +128,11 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                                             &TargetAddress))
             {
-                ShowMessages("err, you should enter a valid address or object name\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 return;
             }
         }

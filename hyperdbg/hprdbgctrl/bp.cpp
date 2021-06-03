@@ -140,7 +140,11 @@ CommandBp(vector<string> SplittedCommand, string Command)
         {
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1), &Address))
             {
-                ShowMessages("please specify a correct hex value or a function name as address\n\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandBpHelp();
                 return;
             }

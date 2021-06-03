@@ -158,7 +158,8 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
             if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                                             &Address))
             {
-                ShowMessages("please specify a correct hex address or object name to edit\n\n");
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEditMemoryHelp();
                 return;
             }

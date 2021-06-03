@@ -15,7 +15,7 @@
 //    Pdb Parser Wrapper (from script-engine)   //
 //////////////////////////////////////////////////
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 
 UINT32
 ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);

@@ -18,6 +18,7 @@
 extern std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
 extern BOOLEAN                                    g_IsLoadedModulesInitialized;
 extern CHAR *                                     g_CurrentModuleName;
+extern CHAR                                       g_NtModuleName[_MAX_FNAME];
 
 /**
  * @brief Interpret and find module base , based on module name 
@@ -103,6 +104,8 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
         // There is no '!' in the middle of the search mask so,
         // we assume that the module is nt
         //
+        RtlZeroMemory(ModuleName, _MAX_FNAME);
+
         ModuleName[0] = 'n';
         ModuleName[1] = 't';
     }
@@ -142,13 +145,14 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 UINT32
 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
-    BOOL                          Ret                    = FALSE;
-    DWORD                         Options                = 0;
-    DWORD                         FileSize               = 0;
-    int                           Index                  = 0;
-    char                          Ch                     = NULL;
-    char                          ModuleName[_MAX_FNAME] = {0};
-    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails          = NULL;
+    BOOL                          Ret                             = FALSE;
+    DWORD                         Options                         = 0;
+    DWORD                         FileSize                        = 0;
+    int                           Index                           = 0;
+    char                          Ch                              = NULL;
+    char                          ModuleName[_MAX_FNAME]          = {0};
+    char                          AlternateModuleName[_MAX_FNAME] = {0};
+    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
 
     //
     // Get options
@@ -194,6 +198,11 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
 
     //
+    // Move to alternate list
+    //
+    strcpy(AlternateModuleName, ModuleName);
+
+    //
     // Convert module name to lowercase
     //
     while (ModuleName[Index])
@@ -230,6 +239,12 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
         //
         ModuleName[0] = 'n';
         ModuleName[1] = 't';
+
+        //
+        // Describe it as main nt module
+        //
+        RtlZeroMemory(g_NtModuleName, _MAX_FNAME);
+        strcpy(g_NtModuleName, AlternateModuleName);
     }
 
     //
@@ -359,31 +374,61 @@ SymUnloadAllSymbols()
  * @return UINT64
  */
 UINT64
-SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
+SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
-    BOOLEAN Found   = FALSE;
-    UINT64  Address = NULL;
+    BOOLEAN      Found   = FALSE;
+    UINT64       Address = NULL;
+    ULONG64      Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(ULONG64) - 1) / sizeof(ULONG64)];
+    PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
 
     //
     // Not found by default
     //
     *WasFound = FALSE;
 
-    if (strcmp(FunctionName, "test1") == 0)
+    //
+    // Retrieve the address from name
+    //
+    Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    Symbol->MaxNameLen   = MAX_SYM_NAME;
+
+    //
+    // Check if it starts with 'nt!' and if starts then
+    // we'll remove it, because 'nt!' is not a real module
+    // name
+    //
+    if (strlen(FunctionOrVariableName) >= 4 &&
+        tolower(FunctionOrVariableName[0]) == 'n' &&
+        tolower(FunctionOrVariableName[1]) == 't' &&
+        tolower(FunctionOrVariableName[2]) == '!')
     {
-        Found   = TRUE;
-        Address = 0x85;
+        //
+        // No need to use nt!
+        //
+        memmove((char *)FunctionOrVariableName, FunctionOrVariableName + 3, strlen(FunctionOrVariableName));
     }
-    else if (strcmp(FunctionName, "test2") == 0)
+
+    if (SymFromName(GetCurrentProcess(), FunctionOrVariableName, Symbol))
     {
+        //
+        // SymFromName returned success
+        //
         Found   = TRUE;
-        Address = 0x185;
+        Address = Symbol->Address;
     }
     else
     {
-        Found   = FALSE;
-        Address = NULL;
+        //
+        // SymFromName failed
+        //
+        Found = FALSE;
+
+        //
+        //printf("symbol not found (%u)\n", GetLastError());
+        //
     }
+
+    ////////
 
     *WasFound = Found;
     return Address;

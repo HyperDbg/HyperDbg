@@ -135,7 +135,7 @@ __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 // pdb parser
 //
 __declspec(dllimport) UINT64
-    ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllimport) UINT32
     ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllimport) UINT32

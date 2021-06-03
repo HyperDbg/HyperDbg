@@ -36,9 +36,9 @@ extern UINT64 * g_ScriptGlobalVariables;
  * @return UINT64
  */
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
-    return ScriptEngineConvertNameToAddress(FunctionName, WasFound);
+    return ScriptEngineConvertNameToAddress(FunctionOrVariableName, WasFound);
 }
 
 /**
