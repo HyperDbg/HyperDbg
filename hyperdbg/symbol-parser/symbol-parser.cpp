@@ -28,39 +28,106 @@ extern CHAR *                                     g_CurrentModuleName;
 DWORD64
 SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlobally)
 {
-    char * ModuleName = NULL;
+    string Token;
+    char   ModuleName[_MAX_FNAME] = {0};
+    string Delimiter              = "!";
+    int    Index                  = 0;
+    char   Ch                     = NULL;
 
-    if (!g_IsLoadedModulesInitialized)
+    if (!g_IsLoadedModulesInitialized || SearchMask == NULL)
     {
         //
-        // no module is loaded
+        // no module is loaded or search mask is invalid
         //
         return NULL;
     }
 
-    /*
-    if (true)
-    {
-    }
+    //
+    // Convert search mask to string
+    //
+    string SearchMaskString(SearchMask);
 
-    if (strcmp(ModuleName, ("ntkrnlmp")) == 0 || strcmp(ModuleName, ("ntoskrnl")) == 0 ||
-        strcmp(ModuleName, ("ntkrpamp")) == 0 || strcmp(ModuleName, ("ntkrnlpa")) == 0)
+    //
+    // Check if the string contains '!'
+    //
+    if (SearchMaskString.find('!') != std::string::npos)
     {
         //
-        // It's "nt"
+        // Found
         //
+        Token = SearchMaskString.substr(0, SearchMaskString.find(Delimiter)); // token is "scott"
+
+        strcpy(ModuleName, Token.c_str());
+
+        if (strlen(ModuleName) == 0)
+        {
+            //
+            // Invalid name
+            //
+            return NULL;
+        }
+
+        //
+        // Convert module name to lowercase
+        //
+        while (ModuleName[Index])
+        {
+            Ch = ModuleName[Index];
+
+            //
+            // convert ch to lowercase using toLower()
+            //
+            ModuleName[Index] = tolower(Ch);
+
+            Index++;
+        }
+
+        if (strcmp(ModuleName, "ntkrnlmp") == 0 || strcmp(ModuleName, "ntoskrnl") == 0 ||
+            strcmp(ModuleName, "ntkrpamp") == 0 || strcmp(ModuleName, "ntkrnlpa") == 0)
+        {
+            //
+            // It's "nt"
+            //
+            RtlZeroMemory(ModuleName, _MAX_FNAME);
+
+            //
+            // Move nt as the name
+            //
+            ModuleName[0] = 'n';
+            ModuleName[1] = 't';
+        }
     }
-    */
+    else
+    {
+        //
+        // There is no '!' in the middle of the search mask so,
+        // we assume that the module is nt
+        //
+        ModuleName[0] = 'n';
+        ModuleName[1] = 't';
+    }
 
     //
     // ************* Interpret based on remarks of the "X" command *************
     //
-    if (SetModuleNameGlobally)
+    for (auto item : g_LoadedModules)
     {
-        g_CurrentModuleName = (char *)g_LoadedModules.at(0)->ModuleName;
+        if (strcmp((const char *)item->ModuleName, ModuleName) == 0)
+        {
+            if (SetModuleNameGlobally)
+            {
+                g_CurrentModuleName = (char *)item->ModuleName;
+            }
+
+            return item->ModuleBase;
+        }
     }
 
-    return g_LoadedModules.at(0)->ModuleBase;
+    //
+    // If the function continues until here then it means
+    // that the module not found
+    //
+    return NULL;
 }
 
 /**
