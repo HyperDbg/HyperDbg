@@ -221,3 +221,6 @@ CommandSympathHelp();
 
 VOID
 CommandSymHelp();
+
+VOID
+CommandXHelp();

@@ -22,7 +22,10 @@
 BOOLEAN
 SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress)
 {
-    ScriptEngineLoadFileSymbolWrapper(BaseAddress, "ntoskrnl.exe", "123");
+    //
+    // To be implemented
+    //
+    //ScriptEngineLoadFileSymbolWrapper(BaseAddress, "C:\\symbols\\ntkrnlmp.pdb\\3D4400784115718818EFC898413F36C41\\ntkrnlmp.pdb");
 
     return TRUE;
 }

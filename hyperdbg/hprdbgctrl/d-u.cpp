@@ -53,15 +53,16 @@ CommandReadMemoryAndDisassemblerHelp()
  * @return VOID
  */
 VOID
-CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
-                                 string         Command)
+CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
 {
-    UINT32  Pid             = 0;
-    UINT32  Length          = 0;
-    UINT64  TargetAddress   = 0;
-    BOOLEAN IsNextProcessId = FALSE;
-    BOOLEAN IsFirstCommand  = TRUE;
-    BOOLEAN IsNextLength    = FALSE;
+    UINT32         Pid             = 0;
+    UINT32         Length          = 0;
+    UINT64         TargetAddress   = 0;
+    BOOLEAN        IsNextProcessId = FALSE;
+    BOOLEAN        IsFirstCommand  = TRUE;
+    BOOLEAN        IsNextLength    = FALSE;
+    vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32         IndexInCommandCaseSensitive = 0;
 
     string FirstCommand = SplittedCommand.front();
 
@@ -78,6 +79,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
 
     for (auto Section : SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
+
         if (IsFirstCommand)
         {
             IsFirstCommand = FALSE;
@@ -122,9 +125,14 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand,
         //
         if (TargetAddress == 0)
         {
-            if (!SymbolConvertNameToAddress(Section, &TargetAddress))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                                            &TargetAddress))
             {
-                ShowMessages("err, you should enter a valid address or object name\n");
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 return;
             }
         }

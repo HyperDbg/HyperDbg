@@ -12,76 +12,152 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
+extern BOOLEAN                                    g_IsLoadedModulesInitialized;
+extern CHAR *                                     g_CurrentModuleName;
+extern CHAR                                       g_NtModuleName[_MAX_FNAME];
+
 /**
- * @brief Convert function name to address
+ * @brief Interpret and find module base , based on module name 
+ * @param SearchMask
+ * 
+ * @return DWORD64 NULL means error or not found, otherwise the address
+ */
+DWORD64
+SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlobally)
+{
+    string Token;
+    char   ModuleName[_MAX_FNAME] = {0};
+    string Delimiter              = "!";
+    int    Index                  = 0;
+    char   Ch                     = NULL;
+
+    if (!g_IsLoadedModulesInitialized || SearchMask == NULL)
+    {
+        //
+        // no module is loaded or search mask is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Convert search mask to string
+    //
+    string SearchMaskString(SearchMask);
+
+    //
+    // Check if the string contains '!'
+    //
+    if (SearchMaskString.find('!') != std::string::npos)
+    {
+        //
+        // Found
+        //
+        Token = SearchMaskString.substr(0, SearchMaskString.find(Delimiter)); // token is "scott"
+
+        strcpy(ModuleName, Token.c_str());
+
+        if (strlen(ModuleName) == 0)
+        {
+            //
+            // Invalid name
+            //
+            return NULL;
+        }
+
+        //
+        // Convert module name to lowercase
+        //
+        while (ModuleName[Index])
+        {
+            Ch = ModuleName[Index];
+
+            //
+            // convert ch to lowercase using toLower()
+            //
+            ModuleName[Index] = tolower(Ch);
+
+            Index++;
+        }
+
+        if (strcmp(ModuleName, "ntkrnlmp") == 0 || strcmp(ModuleName, "ntoskrnl") == 0 ||
+            strcmp(ModuleName, "ntkrpamp") == 0 || strcmp(ModuleName, "ntkrnlpa") == 0)
+        {
+            //
+            // It's "nt"
+            //
+            RtlZeroMemory(ModuleName, _MAX_FNAME);
+
+            //
+            // Move nt as the name
+            //
+            ModuleName[0] = 'n';
+            ModuleName[1] = 't';
+        }
+    }
+    else
+    {
+        //
+        // There is no '!' in the middle of the search mask so,
+        // we assume that the module is nt
+        //
+        RtlZeroMemory(ModuleName, _MAX_FNAME);
+
+        ModuleName[0] = 'n';
+        ModuleName[1] = 't';
+    }
+
+    //
+    // ************* Interpret based on remarks of the "X" command *************
+    //
+    for (auto item : g_LoadedModules)
+    {
+        if (strcmp((const char *)item->ModuleName, ModuleName) == 0)
+        {
+            if (SetModuleNameGlobally)
+            {
+                g_CurrentModuleName = (char *)item->ModuleName;
+            }
+
+            return item->ModuleBase;
+        }
+    }
+
+    //
+    // If the function continues until here then it means
+    // that the module not found
+    //
+    return NULL;
+}
+
+/**
+ * @brief load symbol based on a file name and GUID
  *
  * @param BaseAddress
  * @param FileName
  * @param Guid
  * 
- * @return UINT64
- */
-UINT64
-SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid)
-{
-    // printf("hello from symbol loaded base address is : %llx !\n", BaseAddress);
-    return 0x55;
-}
-
-/**
- * @brief Convert function name to address
- *
- * @param FunctionName
- * @param WasFound
- * 
- * @return UINT64
- */
-UINT64
-SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound)
-{
-    BOOLEAN Found   = FALSE;
-    UINT64  Address = NULL;
-
-    //
-    // Not found by default
-    //
-    *WasFound = FALSE;
-
-    if (strcmp(FunctionName, "test1") == 0)
-    {
-        Found   = TRUE;
-        Address = 0x85;
-    }
-    else if (strcmp(FunctionName, "test2") == 0)
-    {
-        Found   = TRUE;
-        Address = 0x185;
-    }
-    else
-    {
-        Found   = FALSE;
-        Address = NULL;
-    }
-
-    *WasFound = Found;
-    return Address;
-}
-
-/**
- * @brief Enumerate all the symbols in a file
- *
- * @param PdbFilePath
- * @param SearchMask
- * @param BaseAddr
- * @param FileSize
- * 
  * @return UINT32
  */
 UINT32
-SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & BaseAddr, DWORD & FileSize)
+SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
-    BOOL  Ret     = FALSE;
-    DWORD Options = SymGetOptions();
+    BOOL                          Ret                             = FALSE;
+    DWORD                         Options                         = 0;
+    DWORD                         FileSize                        = 0;
+    int                           Index                           = 0;
+    char                          Ch                              = NULL;
+    char                          ModuleName[_MAX_FNAME]          = {0};
+    char                          AlternateModuleName[_MAX_FNAME] = {0};
+    PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
+
+    //
+    // Get options
+    //
+    Options = SymGetOptions();
 
     //
     // SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
@@ -104,79 +180,162 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
     {
         printf("err, symbol init failed (%u)\n",
                GetLastError());
-        return 0;
+        return -1;
     }
 
-    do
+    //
+    // Determine the base address and the file size
+    //
+    if (!SymGetFileParams(PdbFileName, FileSize))
+    {
+        printf("err, cannot obtain file parameters (internal error)\n");
+        return -1;
+    }
+
+    //
+    // Determine the extension of the file
+    //
+    _splitpath(PdbFileName, NULL, NULL, ModuleName, NULL);
+
+    //
+    // Move to alternate list
+    //
+    strcpy(AlternateModuleName, ModuleName);
+
+    //
+    // Convert module name to lowercase
+    //
+    while (ModuleName[Index])
+    {
+        Ch = ModuleName[Index];
+
+        //
+        // convert ch to lowercase using toLower()
+        //
+        ModuleName[Index] = tolower(Ch);
+
+        Index++;
+    }
+
+    //
+    // Is it "nt" module or not
+    //
+    // Names of kernel
+    //     NTOSKRNL.EXE : 1 CPU
+    //     NTKRNLMP.EXE : N CPU, SMP
+    //     NTKRNLPA.EXE : 1 CPU, PAE
+    //     NTKRPAMP.EXE : N CPU SMP, PAE
+    //
+    if (strcmp(ModuleName, ("ntkrnlmp")) == 0 || strcmp(ModuleName, ("ntoskrnl")) == 0 ||
+        strcmp(ModuleName, ("ntkrpamp")) == 0 || strcmp(ModuleName, ("ntkrnlpa")) == 0)
     {
         //
-        // Determine the base address and the file size
+        // It's "nt"
         //
-        DWORD64 BaseAddr = 0;
-        DWORD   FileSize = 0;
-
-        if (!SymGetFileParams(PdbFilePath, BaseAddr, FileSize))
-        {
-            printf("err, cannot obtain file parameters (internal error)\n");
-            break;
-        }
+        RtlZeroMemory(ModuleName, _MAX_FNAME);
 
         //
-        // Load symbols for the module
+        // Move nt as the name
         //
-        printf("loading symbols for: %s\n", PdbFilePath);
-
-        DWORD64 ModBase = SymLoadModule64(
-            GetCurrentProcess(), // Process handle of the current process
-            NULL,                // Handle to the module's image file (not needed)
-            PdbFilePath,         // Path/name of the file
-            NULL,                // User-defined short name of the module (it can be NULL)
-            BaseAddr,            // Base address of the module (cannot be NULL if .PDB file is
-                                 // used, otherwise it can be NULL)
-            FileSize             // Size of the file (cannot be NULL if .PDB file is used,
-                                 // otherwise it can be NULL)
-        );
-
-        if (ModBase == 0)
-        {
-            printf("err, loading symbols failed (%u)\n",
-                   GetLastError());
-            break;
-        }
-
-        printf("load address: %I64x\n", ModBase);
+        ModuleName[0] = 'n';
+        ModuleName[1] = 't';
 
         //
-        // Obtain and display information about loaded symbols
+        // Describe it as main nt module
         //
-        SymShowSymbolInfo(ModBase);
+        RtlZeroMemory(g_NtModuleName, _MAX_FNAME);
+        strcpy(g_NtModuleName, AlternateModuleName);
+    }
 
+    //
+    // Allocate buffer to store the details
+    //
+    ModuleDetails = (SYMBOL_LOADED_MODULE_DETAILS *)malloc(sizeof(SYMBOL_LOADED_MODULE_DETAILS));
+
+    if (ModuleDetails == NULL)
+    {
+        printf("err, allocating buffer for storing symbol details (%u)\n",
+               GetLastError());
+
+        return -1;
+    }
+
+    RtlZeroMemory(ModuleDetails, sizeof(SYMBOL_LOADED_MODULE_DETAILS));
+
+    ModuleDetails->ModuleBase = SymLoadModule64(
+        GetCurrentProcess(), // Process handle of the current process
+        NULL,                // Handle to the module's image file (not needed)
+        PdbFileName,         // Path/name of the file
+        NULL,                // User-defined short name of the module (it can be NULL)
+        BaseAddress,         // Base address of the module (cannot be NULL if .PDB file is
+                             // used, otherwise it can be NULL)
+        FileSize             // Size of the file (cannot be NULL if .PDB file is used,
+                             // otherwise it can be NULL)
+    );
+
+    if (ModuleDetails->ModuleBase == NULL)
+    {
+        printf("err, loading symbols failed (%u)\n",
+               GetLastError());
+
+        free(ModuleDetails);
+        return -1;
+    }
+
+#ifndef DoNotShowDetailedResult
+
+    //
+    // Load symbols for the module
+    //
+    printf("loading symbols for: %s\n", PdbFilePath);
+
+    printf("load address: %I64x\n", ModuleDetails.ModuleBase);
+
+    //
+    // Obtain and display information about loaded symbols
+    //
+    SymShowSymbolInfo(ModuleDetails.ModuleBase);
+
+#endif // !DoNotShowDetailedResult
+
+    //
+    // Make the details (to save)
+    //
+    ModuleDetails->BaseAddress = BaseAddress;
+    strcpy((char *)ModuleDetails->ModuleName, ModuleName);
+
+    //
+    // Save it
+    //
+    g_LoadedModules.push_back(ModuleDetails);
+
+    if (!g_IsLoadedModulesInitialized)
+    {
         //
-        // Enumerate symbols and display information about them
+        // Indicate that at least one module is loaded
         //
-        if (SearchMask != NULL)
-            printf("search mask: %s\n", SearchMask);
+        g_IsLoadedModulesInitialized = TRUE;
+    }
 
-        printf("symbols:\n");
+    return 0;
+}
 
-        Ret = SymEnumSymbols(
-            GetCurrentProcess(),    // Process handle of the current process
-            ModBase,                // Base address of the module
-            SearchMask,             // Mask (NULL -> all symbols)
-            SymEnumSymbolsCallback, // The callback function
-            NULL                    // A used-defined context can be passed here, if necessary
-        );
+/**
+ * @brief Unload all the symbols
+ * 
+ * @return UINT32
+ */
+UINT32
+SymUnloadAllSymbols()
+{
+    BOOL Ret = FALSE;
 
-        if (!Ret)
-        {
-            printf("err, symbol enum failed (%u)\n",
-                   GetLastError());
-        }
-
+    for (auto item : g_LoadedModules)
+    {
         //
         // Unload symbols for the module
         //
-        Ret = SymUnloadModule64(GetCurrentProcess(), ModBase);
+        Ret = SymUnloadModule64(GetCurrentProcess(), item->ModuleBase);
 
         if (!Ret)
         {
@@ -184,7 +343,13 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
                    GetLastError());
         }
 
-    } while (0);
+        free(item);
+    }
+
+    //
+    // Clear the list
+    //
+    g_LoadedModules.clear();
 
     //
     // Uninitialize DbgHelp
@@ -201,6 +366,141 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
 }
 
 /**
+ * @brief Convert function name to address
+ *
+ * @param FunctionName
+ * @param WasFound
+ * 
+ * @return UINT64
+ */
+UINT64
+SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
+{
+    BOOLEAN      Found   = FALSE;
+    UINT64       Address = NULL;
+    ULONG64      Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(ULONG64) - 1) / sizeof(ULONG64)];
+    PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
+
+    //
+    // Not found by default
+    //
+    *WasFound = FALSE;
+
+    //
+    // Retrieve the address from name
+    //
+    Symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    Symbol->MaxNameLen   = MAX_SYM_NAME;
+
+    //
+    // Check if it starts with 'nt!' and if starts then
+    // we'll remove it, because 'nt!' is not a real module
+    // name
+    //
+    if (strlen(FunctionOrVariableName) >= 4 &&
+        tolower(FunctionOrVariableName[0]) == 'n' &&
+        tolower(FunctionOrVariableName[1]) == 't' &&
+        tolower(FunctionOrVariableName[2]) == '!')
+    {
+        //
+        // No need to use nt!
+        //
+        memmove((char *)FunctionOrVariableName, FunctionOrVariableName + 3, strlen(FunctionOrVariableName));
+    }
+
+    if (SymFromName(GetCurrentProcess(), FunctionOrVariableName, Symbol))
+    {
+        //
+        // SymFromName returned success
+        //
+        Found   = TRUE;
+        Address = Symbol->Address;
+    }
+    else
+    {
+        //
+        // SymFromName failed
+        //
+        Found = FALSE;
+
+        //
+        //printf("symbol not found (%u)\n", GetLastError());
+        //
+    }
+
+    ////////
+
+    *WasFound = Found;
+    return Address;
+}
+
+/**
+ * @brief Search and show symbols 
+ * @details mainly used by the 'x' command
+ *
+ * @param SearchMask
+ * 
+ * @return UINT32
+ */
+UINT32
+SymSearchSymbolForMask(const char * SearchMask)
+{
+    BOOL    Ret        = FALSE;
+    DWORD64 ModuleBase = NULL;
+
+    //
+    // Find module base
+    //
+    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+
+    //
+    // Find the module name
+    //
+    if (ModuleBase == NULL)
+    {
+        //
+        // Module not found or there was an error
+        //
+        return -1;
+    }
+
+    Ret = SymEnumSymbols(
+        GetCurrentProcess(),    // Process handle of the current process
+        ModuleBase,             // Base address of the module
+        SearchMask,             // Mask (NULL -> all symbols)
+        SymEnumSymbolsCallback, // The callback function
+        NULL                    // A used-defined context can be passed here, if necessary
+    );
+
+    if (!Ret)
+    {
+        printf("err, symbol enum failed (%u)\n",
+               GetLastError());
+    }
+
+    return 0;
+}
+
+/**
+ * @brief add ` between 64 bit values and convert them to string
+ *
+ * @param Value
+ * @return string
+ */
+string
+SymSeparateTo64BitValue(UINT64 Value)
+{
+    ostringstream OstringStream;
+    string        Temp;
+
+    OstringStream << setw(16) << setfill('0') << hex << Value;
+    Temp = OstringStream.str();
+
+    Temp.insert(8, 1, '`');
+    return Temp;
+}
+
+/**
  * @brief Get symbol file parameters
  *
  * @param FileName
@@ -210,7 +510,7 @@ SymSymbolsEnumerateAll(char * PdbFilePath, const char * SearchMask, DWORD64 & Ba
  * @return BOOL
  */
 BOOL
-SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
+SymGetFileParams(const char * FileName, DWORD & FileSize)
 {
     //
     // Check parameters
@@ -237,14 +537,6 @@ SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         // Determine its size, and use a dummy base address
         //
 
-        //
-        // it can be any non-zero value, but if we load
-        // symbols from more than one file, memory regions
-        // specified for different files should not overlap
-        // (region is "base address + file size")
-        //
-        BaseAddr = 0x40000000;
-
         if (!SymGetFileSize(FileName, FileSize))
         {
             return FALSE;
@@ -256,9 +548,8 @@ SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize)
         // It is not a .PDB file
         // Base address and file size can be 0
         //
-
-        BaseAddr = 0;
         FileSize = 0;
+        return FALSE;
     }
 
     return TRUE;
@@ -326,12 +617,12 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 /**
  * @brief Show symbol info
  *
- * @param ModBase
+ * @param ModuleBase
  * 
  * @return VOID
  */
 VOID
-SymShowSymbolInfo(DWORD64 ModBase)
+SymShowSymbolInfo(DWORD64 ModuleBase)
 {
     //
     // Get module information
@@ -342,7 +633,7 @@ SymShowSymbolInfo(DWORD64 ModBase)
 
     ModuleInfo.SizeOfStruct = sizeof(ModuleInfo);
 
-    BOOL Ret = SymGetModuleInfo64(GetCurrentProcess(), ModBase, &ModuleInfo);
+    BOOL Ret = SymGetModuleInfo64(GetCurrentProcess(), ModuleBase, &ModuleInfo);
 
     if (!Ret)
     {
@@ -504,25 +795,39 @@ SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContex
 VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
 {
-    //
-    // Kind of symbol (tag)
-    //
-    printf("symbol: %s  ", SymTagStr(SymInfo.Tag));
-
-    //
-    // Address
-    //
-    printf("address: %x  ", SymInfo.Address);
-
-    //
-    // Size
-    //
-    printf("size: %u  ", SymInfo.Size);
+    if (g_CurrentModuleName == NULL)
+    {
+        //
+        // Name Address
+        //
+        printf("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
+    }
+    else
+    {
+        //
+        // Module!Name Address
+        //
+        printf("%s  %s!", SymSeparateTo64BitValue(SymInfo.Address).c_str(), g_CurrentModuleName);
+    }
 
     //
     // Name
     //
-    printf("name: %s\n", SymInfo.Name);
+    printf("%s\n", SymInfo.Name);
+
+#ifndef DoNotShowDetailedResult
+
+    //
+    // Size
+    //
+    printf(" size: %u", SymInfo.Size);
+
+    //
+    // Kind of symbol (tag)
+    //
+    printf(" symbol: %s  ", SymTagStr(SymInfo.Tag));
+
+#endif // !DoNotShowDetailedResult
 }
 
 /**

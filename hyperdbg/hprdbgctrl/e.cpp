@@ -64,6 +64,8 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     UINT32               ProcId            = 0;
     UINT32               CountOfValues     = 0;
     UINT32               FinalSize         = 0;
+    vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32               IndexInCommandCaseSensitive = 0;
 
     if (SplittedCommand.size() <= 2)
     {
@@ -74,6 +76,8 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
     for (auto Section : SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
+
         if (!Section.compare(SplittedCommand.at(0)))
         {
             if (!Section.compare("!eb"))
@@ -151,9 +155,11 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
 
         if (!SetAddress)
         {
-            if (!SymbolConvertNameToAddress(Section, &Address))
+            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                                            &Address))
             {
-                ShowMessages("please specify a correct hex address or object name to edit\n\n");
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEditMemoryHelp();
                 return;
             }

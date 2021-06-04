@@ -47,10 +47,29 @@ CommandPte(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!SymbolConvertNameToAddress(SplittedCommand.at(1), &TargetVa))
+    //
+    // Trim the command
+    //
+    Trim(Command);
+
+    //
+    // Remove !pte from it
+    //
+    Command.erase(0, 4);
+
+    //
+    // Trim it again
+    //
+    Trim(Command);
+
+    if (!SymbolConvertNameToAddress(Command, &TargetVa))
     {
-        ShowMessages("incorrect address or object name, please enter a valid virtual"
-                     " address\n\n");
+        //
+        // Couldn't resolve or unkonwn parameter
+        //
+        ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                     Command.c_str());
+
         return;
     }
 

@@ -52,6 +52,8 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     UINT32                         ActionScriptLength          = 0;
     BOOLEAN                        GetAddress                  = FALSE;
     UINT64                         OptionalParam1              = 0; // Set the target address
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32                         IndexInCommandCaseSensitive = 0;
 
     if (SplittedCommand.size() < 2)
     {
@@ -65,6 +67,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
+            &SplittedCommandCaseSensitive,
             HIDDEN_HOOK_EXEC_DETOURS,
             &Event,
             &EventLength,
@@ -84,6 +87,8 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     //
     for (auto Section : SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
+
         if (!Section.compare("!epthook2"))
         {
             continue;
@@ -93,12 +98,15 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
             //
             // It's probably address
             //
-            if (!SymbolConvertNameToAddress(Section, &OptionalParam1))
+            if (!SymbolConvertNameToAddress(
+                    SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                    &OptionalParam1))
             {
                 //
-                // Unkonwn parameter
+                // Couldn't resolve or unkonwn parameter
                 //
-                ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEptHook2Help();
                 return;
             }

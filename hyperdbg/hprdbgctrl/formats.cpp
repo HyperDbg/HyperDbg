@@ -117,7 +117,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     Trim(Command);
 
     //
-    // Remove print.formats from it
+    // Remove .formats from it
     //
     Command.erase(0, 8);
 

@@ -56,6 +56,7 @@ CommandException(vector<string> SplittedCommand, string Command)
     UINT32                         ActionScriptLength          = 0;
     UINT64                         SpecialTarget               = DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES;
     BOOLEAN                        GetEntry                    = FALSE;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     //
     // Interpret and fill the general event and action fields
@@ -63,6 +64,7 @@ CommandException(vector<string> SplittedCommand, string Command)
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
+            &SplittedCommandCaseSensitive,
             EXCEPTION_OCCURRED,
             &Event,
             &EventLength,

@@ -12,18 +12,52 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//					Exports                    //
+//					Configs                     //
+//////////////////////////////////////////////////
+
+#define DoNotShowDetailedResult TRUE
+
+//////////////////////////////////////////////////
+//					Structures                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Hold detail about the loaded modules
+ *
+ */
+typedef struct _SYMBOL_LOADED_MODULE_DETAILS
+{
+    UINT64  BaseAddress;
+    DWORD64 ModuleBase;
+    char *  ModuleName[_MAX_FNAME];
+
+} SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
+
+//////////////////////////////////////////////////
+//		    	Global Variables                //
+//////////////////////////////////////////////////
+
+std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
+BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
+CHAR *                                     g_CurrentModuleName          = NULL;
+CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
+
+//////////////////////////////////////////////////
+//					Exports                     //
 //////////////////////////////////////////////////
 extern "C" {
-__declspec(dllexport) UINT64 SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
-__declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
+__declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllexport) UINT32 SymUnloadAllSymbols();
+__declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
+__declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 }
 
 //////////////////////////////////////////////////
 //					Functions                   //
 //////////////////////////////////////////////////
+
 BOOL
-SymGetFileParams(const char * FileName, DWORD64 & BaseAddr, DWORD & FileSize);
+SymGetFileParams(const char * FileName, DWORD & FileSize);
 
 BOOL
 SymGetFileSize(const char * FileName, DWORD & FileSize);

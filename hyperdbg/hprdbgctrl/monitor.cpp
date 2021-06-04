@@ -56,6 +56,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     UINT64                         OptionalParam2 = 0; // Set the 'to' target address
     BOOLEAN                        SetFrom        = FALSE;
     BOOLEAN                        SetTo          = FALSE;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32                         IndexInCommandCaseSensitive = 0;
 
     if (SplittedCommand.size() < 4)
     {
@@ -73,6 +75,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
+            &SplittedCommandCaseSensitive,
             HIDDEN_HOOK_READ_AND_WRITE,
             &Event,
             &EventLength,
@@ -92,6 +95,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     //
     for (auto Section : SplittedCommand)
     {
+        IndexInCommandCaseSensitive++;
+
         if (!Section.compare("!monitor"))
         {
             continue;
@@ -115,12 +120,15 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             //
             if (!SetFrom)
             {
-                if (!SymbolConvertNameToAddress(Section, &OptionalParam1))
+                if (!SymbolConvertNameToAddress(
+                        SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        &OptionalParam1))
                 {
                     //
-                    // Unkonwn parameter
+                    // couldn't resolve or unkonwn parameter
                     //
-                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                                 SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                     CommandMonitorHelp();
                     return;
                 }
@@ -128,12 +136,16 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             }
             else if (!SetTo)
             {
-                if (!SymbolConvertNameToAddress(Section, &OptionalParam2))
+                if (!SymbolConvertNameToAddress(
+                        SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                        &OptionalParam2))
                 {
                     //
-                    // Unkonwn parameter
+                    // Couldn't resolve or unkonwn parameter
                     //
-                    ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
+                    ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                                 SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
+
                     CommandMonitorHelp();
                     return;
                 }

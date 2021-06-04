@@ -49,6 +49,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     UINT32                         ActionBreakToDebuggerLength = 0;
     UINT32                         ActionCustomCodeLength      = 0;
     UINT32                         ActionScriptLength          = 0;
+    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
 
     //
     // Interpret and fill the general event and action fields
@@ -56,6 +57,7 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
     //
     if (!InterpretGeneralEventAndActionsFields(
             &SplittedCommand,
+            &SplittedCommandCaseSensitive,
             CPUID_INSTRUCTION_EXECUTION,
             &Event,
             &EventLength,

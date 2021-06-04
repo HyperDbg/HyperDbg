@@ -36,9 +36,9 @@ extern UINT64 * g_ScriptGlobalVariables;
  * @return UINT64
  */
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound)
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
-    return ScriptEngineConvertNameToAddress(FunctionName, WasFound);
+    return ScriptEngineConvertNameToAddress(FunctionOrVariableName, WasFound);
 }
 
 /**
@@ -48,12 +48,36 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasF
  * @param FileName
  * @param Guid
  * 
- * @return UINT64
+ * @return UINT32
  */
-UINT64
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * FileName, const char * Guid)
+UINT32
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName)
 {
-    return ScriptEngineLoadFileSymbol(BaseAddress, FileName, Guid);
+    return ScriptEngineLoadFileSymbol(BaseAddress, PdbFileName);
+}
+
+/**
+ * @brief ScriptEngineUnloadAllSymbols wrapper
+ * 
+ * @return UINT32
+ */
+UINT32
+ScriptEngineUnloadAllSymbolsWrapper()
+{
+    return ScriptEngineUnloadAllSymbols();
+}
+
+/**
+ * @brief ScriptEngineSearchSymbolForMask wrapper
+ *
+ * @param SearchMask
+ * 
+ * @return UINT32
+ */
+UINT32
+ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
+{
+    return ScriptEngineSearchSymbolForMask(SearchMask);
 }
 
 //

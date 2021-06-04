@@ -15,10 +15,16 @@
 //    Pdb Parser Wrapper (from script-engine)   //
 //////////////////////////////////////////////////
 UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionName, PBOOLEAN WasFound);
+ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 
-UINT64
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * FileName, const char * Guid);
+UINT32
+ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
+
+UINT32
+ScriptEngineUnloadAllSymbolsWrapper();
+
+UINT32
+ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
@@ -106,6 +112,7 @@ DebuggerPauseDebuggee();
 
 BOOLEAN
 InterpretConditionsAndCodes(vector<string> * SplittedCommand,
+                            vector<string> * SplittedCommandCaseSensitive,
                             BOOLEAN          IsConditionBuffer,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength);
@@ -125,6 +132,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
     vector<string> *                 SplittedCommand,
+    vector<string> *                 SplittedCommandCaseSensitive,
     DEBUGGER_EVENT_TYPE_ENUM         EventType,
     PDEBUGGER_GENERAL_EVENT_DETAIL * EventDetailsToFill,
     PUINT32                          EventBufferLength,

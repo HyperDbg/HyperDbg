@@ -11,8 +11,6 @@
  */
 #include "pch.h"
 
-using namespace std;
-
 /**
  * @brief add ` between 64 bit values and convert them to string
  *

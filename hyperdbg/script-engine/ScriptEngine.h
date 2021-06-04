@@ -22,17 +22,22 @@
 //
 // *** import pdb parser functions ***
 //
-__declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
-__declspec(dllimport) UINT64 SymLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
+__declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+__declspec(dllimport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllimport) UINT32 SymUnloadAllSymbols();
+__declspec(dllimport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
 
 //
 // *** export pdb wrapper as script engine function ***
 //
 __declspec(dllexport) UINT64
-    ScriptEngineConvertNameToAddress(const char * FunctionName, PBOOLEAN WasFound);
-__declspec(dllexport) UINT64
-    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * FileName, const char * Guid);
-
+    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
+__declspec(dllexport) UINT32
+    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
+__declspec(dllexport) UINT32
+    ScriptEngineUnloadAllSymbols();
+__declspec(dllexport) UINT32
+    ScriptEngineSearchSymbolForMask(const char * SearchMask);
 //
 // *** Exoort script engine functions ***
 //

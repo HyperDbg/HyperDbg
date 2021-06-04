@@ -129,6 +129,7 @@ HyperdbgInterpreter(const char * Command)
         // It's a connection over serial (Debugger-Mode)
         //
         KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
+
         //
         // Indicate that we sent the command to the target system
         //
@@ -177,7 +178,19 @@ HyperdbgInterpreter(const char * Command)
         }
         else
         {
-            Iterator->second.CommandFunction(SplittedCommand, CommandString);
+            //
+            // Check if command is case-sensitive or not
+            //
+            if ((Iterator->second.CommandAttrib &
+                 DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE))
+            {
+                string CaseSensitiveCommandString(Command);
+                Iterator->second.CommandFunction(SplittedCommand, CaseSensitiveCommandString);
+            }
+            else
+            {
+                Iterator->second.CommandFunction(SplittedCommand, CommandString);
+            }
         }
     }
 
@@ -476,4 +489,6 @@ InitializeCommandsDictionary()
     g_CommandList[".sympath"] = {&CommandSympath, &CommandSympathHelp, DEBUGGER_COMMAND_SYMPATH_ATTRIBUTES};
 
     g_CommandList[".sym"] = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
+
+    g_CommandList["x"] = {&CommandX, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
 }
