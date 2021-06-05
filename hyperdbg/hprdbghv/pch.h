@@ -12,7 +12,7 @@
  * 
  */
 #pragma once
-
+#define _NO_CRT_STDIO_INLINE
 //
 // Windows defined functions
 //
