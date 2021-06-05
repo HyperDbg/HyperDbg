@@ -617,6 +617,84 @@ ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 // *** Functions ***
 //
 
+// eq
+BOOLEAN
+ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Address, sizeof(QWORD)))
+    {
+        *HasError = TRUE;
+
+        return FALSE;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    *(UINT64 *)Address = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperWriteMemorySafeOnTargetProcess(Address, &Value, sizeof(QWORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return TRUE;
+}
+
+// ed
+BOOLEAN
+ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
+    {
+        *HasError = TRUE;
+
+        return FALSE;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    *(DWORD *)Address = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperWriteMemorySafeOnTargetProcess(Address, &Value, sizeof(DWORD));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return TRUE;
+}
+
+// eb
+BOOLEAN
+ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Address, sizeof(BYTE)))
+    {
+        *HasError = TRUE;
+
+        return FALSE;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+    *(BYTE *)Address = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    MemoryMapperWriteMemorySafeOnTargetProcess(Address, &Value, sizeof(BYTE));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return TRUE;
+}
+
 VOID
 ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
@@ -646,6 +724,7 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
+
 VOID
 ScriptEngineFunctionEnableEvent(UINT64  Tag,
                                 BOOLEAN ImmediateMessagePassing,
