@@ -113,6 +113,7 @@
     <ClInclude Include="forwarding.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="help.h" />
+    <ClInclude Include="inipp.h" />
     <ClInclude Include="install.h" />
     <ClInclude Include="kd.h" />
     <ClInclude Include="list.h" />

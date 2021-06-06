@@ -58,11 +58,17 @@
 #    include <tlhelp32.h>
 #    include <VersionHelpers.h>
 #    include <tchar.h>
+#    include <cctype>
+#    include <cstring>
+#    include <list>
+#    include <locale>
+#    include <memory>
 
 //
 // HyperDbg defined headers
 //
 #    include "ScriptEngineCommonDefinitions.h"
+#    include "inipp.h"
 #    include "Configuration.h"
 #    include "Definition.h"
 #    include "commands.h"

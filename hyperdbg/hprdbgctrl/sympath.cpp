@@ -23,7 +23,7 @@
 VOID
 CommandSympathHelp()
 {
-    ShowMessages(".sympath : set the symbol server and path.\n\n");
+    ShowMessages(".sympath : show and set the symbol server and path.\n\n");
 
     ShowMessages("syntax : \t.sympath [server, path]\n");
     ShowMessages("\t\te.g : .sympath\n");
@@ -40,4 +40,69 @@ CommandSympathHelp()
 VOID
 CommandSympath(vector<string> SplittedCommand, string Command)
 {
+    inipp::Ini<char> Ini;
+    ifstream         Is(CONFIG_FILE_NAME);
+    ofstream         Os(CONFIG_FILE_NAME);
+    string           SymbolServer = "";
+
+    if (SplittedCommand.size() == 1)
+    {
+        //
+        // Show the current symbol path
+        //
+
+        //
+        // Read config file
+        //
+        Ini.parse(Is);
+
+        inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
+
+        Is.close();
+
+        ShowMessages("current SymbolServer is : %s\n", SymbolServer.c_str());
+    }
+    else
+    {
+        //
+        // Save the symbol path
+        //
+
+        //
+        // Trim the command
+        //
+        Trim(Command);
+
+        //
+        // Remove .sympath from it
+        //
+        Command.erase(0, 8);
+
+        //
+        // Trim it again
+        //
+        Trim(Command);
+
+        //
+        // Open file
+        //
+
+        //
+        // Save the config
+        //
+        Ini.sections["DEFAULT"]["SymbolServer"] = Command.c_str();
+        Ini.interpolate();
+
+        //
+        // Test, show the config
+        //
+        // Ini.generate(std::cout);
+
+        //
+        // Save the config
+        //
+        Ini.generate(Os);
+
+        Os.close();
+    }
 }
