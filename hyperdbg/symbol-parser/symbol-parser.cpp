@@ -56,7 +56,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
         //
         // Found
         //
-        Token = SearchMaskString.substr(0, SearchMaskString.find(Delimiter)); // token is "scott"
+        Token = SearchMaskString.substr(0, SearchMaskString.find(Delimiter));
 
         strcpy(ModuleName, Token.c_str());
 

@@ -132,7 +132,7 @@
  * @brief Config file name for HyperDbg
  *
  */
-#define CONFIG_FILE_NAME "hyperdbg_config.ini"
+#define CONFIG_FILE_NAME L"config.ini"
 
 //////////////////////////////////////////////////
 //                   Installer                  //

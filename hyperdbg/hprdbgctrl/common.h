@@ -64,6 +64,9 @@ Trim(std::string & s);
 std::string
 RemoveSpaces(std::string str);
 
+VOID
+GetConfigFilePath(PWCHAR ConfigPath);
+
 //////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////

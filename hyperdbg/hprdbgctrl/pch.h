@@ -56,6 +56,7 @@
 #    include <tchar.h>
 #    include <numeric>
 #    include <tlhelp32.h>
+#    include <shlwapi.h>
 #    include <VersionHelpers.h>
 #    include <tchar.h>
 #    include <cctype>
@@ -88,6 +89,11 @@
 #endif // PCH_H
 
 #pragma comment(lib, "ntdll.lib")
+
+//
+// For path combine
+//
+#pragma comment(lib, "Shlwapi.lib")
 
 //
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib

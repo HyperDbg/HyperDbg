@@ -468,3 +468,29 @@ RemoveSpaces(std::string str)
     str.erase(remove(str.begin(), str.end(), ' '), str.end());
     return str;
 }
+
+/**
+ * @brief Get config path
+ *
+ * @param ConfigPath
+ */
+VOID
+GetConfigFilePath(PWCHAR ConfigPath)
+{
+    WCHAR CurrentPath[MAX_PATH] = {0};
+
+    //
+    // Get path file of current exe
+    //
+    GetModuleFileNameW(NULL, CurrentPath, MAX_PATH);
+
+    //
+    // Remove exe file name
+    //
+    PathRemoveFileSpecW(CurrentPath);
+
+    //
+    // Combine current exe path with config file name
+    //
+    PathCombineW(ConfigPath, CurrentPath, CONFIG_FILE_NAME);
+}

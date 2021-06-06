@@ -41,12 +41,21 @@ VOID
 CommandSympath(vector<string> SplittedCommand, string Command)
 {
     inipp::Ini<char> Ini;
-    ifstream         Is(CONFIG_FILE_NAME);
-    ofstream         Os(CONFIG_FILE_NAME);
-    string           SymbolServer = "";
+    inipp::Ini<char> Ini2;
+    string           SymbolServer         = "";
+    WCHAR            ConfigPath[MAX_PATH] = {0};
+    string           Delimiter            = "*";
+    string           Token;
+
+    //
+    // Get config file path
+    //
+    GetConfigFilePath(ConfigPath);
 
     if (SplittedCommand.size() == 1)
     {
+        ifstream Is(ConfigPath);
+
         //
         // Show the current symbol path
         //
@@ -55,6 +64,11 @@ CommandSympath(vector<string> SplittedCommand, string Command)
         // Read config file
         //
         Ini.parse(Is);
+
+        //
+        // Show config file
+        //
+        // Ini.generate(std::cout);
 
         inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
 
@@ -84,25 +98,71 @@ CommandSympath(vector<string> SplittedCommand, string Command)
         Trim(Command);
 
         //
-        // Open file
+        // *** validate the symbols ***
         //
 
         //
-        // Save the config
+        // Check if the string contains '*'
         //
-        Ini.sections["DEFAULT"]["SymbolServer"] = Command.c_str();
-        Ini.interpolate();
+        if (Command.find('*') != std::string::npos)
+        {
+            //
+            // Found
+            //
+            Token = Command.substr(0, Command.find(Delimiter));
+            // using transform() function and ::tolower in STL
+            transform(Token.begin(), Token.end(), Token.begin(), ::tolower);
 
-        //
-        // Test, show the config
-        //
-        // Ini.generate(std::cout);
+            //
+            // Check if it starts with srv
+            //
+            if (!Token.compare("srv"))
+            {
+                ifstream Is(ConfigPath);
 
-        //
-        // Save the config
-        //
-        Ini.generate(Os);
+                //
+                // Show the current symbol path
+                //
 
-        Os.close();
+                //
+                // Read config file
+                //
+                Ini.parse(Is);
+
+                Is.close();
+
+                //
+                // Save the config
+                //
+                Ini.sections["DEFAULT"]["SymbolServer"] = Command.c_str();
+                Ini.interpolate();
+
+                //
+                // Test, show the config
+                //
+                // Ini.generate(std::cout);
+
+                //
+                // Save the config
+                //
+                ofstream Os(ConfigPath);
+
+                Ini.generate(Os);
+
+                Os.close();
+            }
+            else
+            {
+                ShowMessages("symbol path is invalid\n\n");
+                CommandSympathHelp();
+                return;
+            }
+        }
+        else
+        {
+            ShowMessages("symbol path is invalid\n\n");
+            CommandSympathHelp();
+            return;
+        }
     }
 }
