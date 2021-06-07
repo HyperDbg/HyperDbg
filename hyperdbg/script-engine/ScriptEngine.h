@@ -26,6 +26,7 @@ __declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionOrVari
 __declspec(dllimport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllimport) UINT32 SymUnloadAllSymbols();
 __declspec(dllimport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
+__declspec(dllimport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 
 //
 // *** export pdb wrapper as script engine function ***
@@ -38,6 +39,8 @@ __declspec(dllexport) UINT32
     ScriptEngineUnloadAllSymbols();
 __declspec(dllexport) UINT32
     ScriptEngineSearchSymbolForMask(const char * SearchMask);
+__declspec(dllexport) BOOLEAN
+    ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 //
 // *** Exoort script engine functions ***
 //

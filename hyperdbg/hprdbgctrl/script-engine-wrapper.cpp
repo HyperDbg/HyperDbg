@@ -80,6 +80,21 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
     return ScriptEngineSearchSymbolForMask(SearchMask);
 }
 
+/**
+ * @brief ScriptEngineConvertFileToPdbPath wrapper
+ *
+ * @param LocalFilePath
+ * @param ResultPath
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath)
+
+{
+    return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath);
+}
+
 //
 // *********************** Function links (wrapper) ***********************
 //

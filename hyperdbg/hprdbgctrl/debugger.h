@@ -26,6 +26,9 @@ ScriptEngineUnloadAllSymbolsWrapper();
 UINT32
 ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
+BOOLEAN
+ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath);
+
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
 //////////////////////////////////////////////////

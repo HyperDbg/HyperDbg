@@ -69,7 +69,7 @@ CommandX(vector<string> SplittedCommand, string Command)
     if (!g_TestIsModulesLoaded)
     {
         //SymbolLoadNtoskrnlSymbol(DebuggerGetNtoskrnlBase());
-        //ScriptEngineLoadFileSymbolWrapper(DebuggerGetNtoskrnlBase(), "C:\\symbols\\ntkrnlmp.pdb\\3D4400784115718818EFC898413F36C41\\ntkrnlmp.pdb");
+        ScriptEngineLoadFileSymbolWrapper(DebuggerGetNtoskrnlBase(), "C:\\symbols\\ntkrnlmp.pdb\\3D4400784115718818EFC898413F36C41\\ntkrnlmp.pdb");
         //ScriptEngineLoadFileSymbolWrapper(DebuggerGetNtoskrnlBase() + 0x1000000, "C:\\symbols\\win32k.pdb\\ED706A38659240A066E6FB19B994BAAA1\\win32k.pdb");
         g_TestIsModulesLoaded = TRUE;
     }

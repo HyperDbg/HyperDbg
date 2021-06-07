@@ -69,6 +69,15 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
     return SymSearchSymbolForMask(SearchMask);
 }
 
+BOOLEAN
+ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
+{
+    //
+    // A wrapper for pdb to path converter
+    //
+    return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
+}
+
 /**
 *
 *
