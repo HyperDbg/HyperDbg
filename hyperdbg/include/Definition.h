@@ -284,6 +284,18 @@
 #define TCP_END_OF_BUFFER_CHAR_4 0x44
 
 //////////////////////////////////////////////////
+//              Symbols Details                 //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum size for GUID and Age of PE
+ * @detail It seems that 33 bytes is enough but let's
+ * have more space because there might be sth that we
+ * missed :)
+ */
+#define MAXIMUM_GUID_AND_AGE_SIZE 60
+
+//////////////////////////////////////////////////
 //              Processor Details               //
 //////////////////////////////////////////////////
 

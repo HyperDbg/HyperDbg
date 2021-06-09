@@ -454,3 +454,21 @@ BOOLEAN g_AutoFlush = FALSE;
  *
  */
 UINT32 g_DisassemblerSyntax = 1;
+
+//////////////////////////////////////////////////
+//			   	 Symbol Table			        //
+//////////////////////////////////////////////////
+
+/**
+ * @brief The buffer that stores the details of 
+ * symbol table
+ *
+ */
+PMODULE_SYMBOL_DETAIL g_SymbolTable = NULL;
+
+/**
+ * @brief The buffer that stores size of the  
+ * details of symbol table
+ *
+ */
+UINT32 g_SymbolTableSize = NULL;

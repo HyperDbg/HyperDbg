@@ -29,6 +29,11 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 BOOLEAN
 ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath);
 
+BOOLEAN
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
+                                                            char *       PdbFilePath,
+                                                            char *       GuidAndAgeDetails);
+
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
 //////////////////////////////////////////////////

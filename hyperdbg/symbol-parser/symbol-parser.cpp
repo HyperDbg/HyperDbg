@@ -962,7 +962,78 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 
     if (Ret)
     {
-        wsprintfA(ResultPath, FormatStr, SymInfo.pdbfile, SymInfo.guid.Data1, SymInfo.guid.Data2, SymInfo.guid.Data3, SymInfo.guid.Data4[0], SymInfo.guid.Data4[1], SymInfo.guid.Data4[2], SymInfo.guid.Data4[3], SymInfo.guid.Data4[4], SymInfo.guid.Data4[5], SymInfo.guid.Data4[6], SymInfo.guid.Data4[7], SymInfo.age, SymInfo.pdbfile);
+        wsprintfA(ResultPath,
+                  FormatStr,
+                  SymInfo.pdbfile,
+                  SymInfo.guid.Data1,
+                  SymInfo.guid.Data2,
+                  SymInfo.guid.Data3,
+                  SymInfo.guid.Data4[0],
+                  SymInfo.guid.Data4[1],
+                  SymInfo.guid.Data4[2],
+                  SymInfo.guid.Data4[3],
+                  SymInfo.guid.Data4[4],
+                  SymInfo.guid.Data4[5],
+                  SymInfo.guid.Data4[6],
+                  SymInfo.guid.Data4[7],
+                  SymInfo.age,
+                  SymInfo.pdbfile);
+
+        return TRUE;
+    }
+    else
+    {
+        //
+        // printf("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        //
+        return FALSE;
+    }
+
+    //
+    // By default, return false
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Convert a DLL to a Microsoft Symbol details
+ * like pdb file path and GUID
+ *
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
+{
+    SYMSRV_INDEX_INFO SymInfo              = {0};
+    const char *      FormatStrPdbFilePath = "%s";
+    const char *      FormatStrPdbFileGuidAndAgeDetails =
+        "%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x%x";
+    SymInfo.sizeofstruct = sizeof(SYMSRV_INDEX_INFO);
+
+    BOOL Ret = SymSrvGetFileIndexInfo(LocalFilePath, &SymInfo, 0);
+
+    if (Ret)
+    {
+        wsprintfA(PdbFilePath, FormatStrPdbFilePath, SymInfo.pdbfile);
+
+        wsprintfA(GuidAndAgeDetails,
+                  FormatStrPdbFileGuidAndAgeDetails,
+                  SymInfo.guid.Data1,
+                  SymInfo.guid.Data2,
+                  SymInfo.guid.Data3,
+                  SymInfo.guid.Data4[0],
+                  SymInfo.guid.Data4[1],
+                  SymInfo.guid.Data4[2],
+                  SymInfo.guid.Data4[3],
+                  SymInfo.guid.Data4[4],
+                  SymInfo.guid.Data4[5],
+                  SymInfo.guid.Data4[6],
+                  SymInfo.guid.Data4[7],
+                  SymInfo.age);
 
         return TRUE;
     }

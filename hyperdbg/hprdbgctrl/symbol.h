@@ -12,6 +12,27 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		        	 Structures	        	    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief structures for sending and saving details
+ * about each module and symbols details
+ *
+ */
+typedef struct _MODULE_SYMBOL_DETAIL
+{
+    BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
+    BOOLEAN IsRealSymbolPath;     // TRUE if the ModuleSymbolPath is a real path
+                                  // and FALSE if ModuleSymbolPath is just a module name
+    UINT64 BaseAddress;
+    char   FilePath[MAX_PATH];
+    char   ModuleSymbolPath[MAX_PATH];
+    char   ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE];
+
+} MODULE_SYMBOL_DETAIL, *PMODULE_SYMBOL_DETAIL;
+
+//////////////////////////////////////////////////
 //			 For symbol (pdb) parsing		    //
 //////////////////////////////////////////////////
 
@@ -22,4 +43,4 @@ BOOLEAN
 SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress);
 
 BOOLEAN
-SymbolReloadLoadedModulesInformation(PVOID BufferToStoreDetails, PUINT StoredLength);
+SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength);

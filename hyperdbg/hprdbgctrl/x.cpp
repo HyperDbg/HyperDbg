@@ -48,10 +48,6 @@ CommandX(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    SymbolReloadLoadedModulesInformation(NULL, NULL);
-
-    return;
-
     //
     // Trim the command
     //

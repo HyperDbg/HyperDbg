@@ -144,6 +144,8 @@ __declspec(dllimport) UINT32
     ScriptEngineSearchSymbolForMask(const char * SearchMask);
 __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
+__declspec(dllimport) BOOLEAN
+    ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 

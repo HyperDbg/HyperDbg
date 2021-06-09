@@ -95,6 +95,24 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
     return ScriptEngineConvertFileToPdbPath(LocalFilePath, ResultPath);
 }
 
+/**
+ * @brief ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails wrapper
+ *
+ * @param LocalFilePath
+ * @param PdbFilePath
+ * @param GuidAndAgeDetails
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
+                                                            char *       PdbFilePath,
+                                                            char *       GuidAndAgeDetails)
+
+{
+    return ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails);
+}
+
 //
 // *********************** Function links (wrapper) ***********************
 //

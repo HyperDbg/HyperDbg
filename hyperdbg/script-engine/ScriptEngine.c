@@ -78,6 +78,15 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
 }
 
+BOOLEAN
+ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
+{
+    //
+    // A wrapper for pdb to path file and guid and age detail converter
+    //
+    return SymConvertFileToPdbFileAndGuidAndAgeDetails(LocalFilePath, PdbFilePath, GuidAndAgeDetails);
+}
+
 /**
 *
 *
