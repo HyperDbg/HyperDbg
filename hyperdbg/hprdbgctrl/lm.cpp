@@ -42,7 +42,7 @@ VOID
 CommandLm(vector<string> SplittedCommand, string Command)
 {
     PRTL_PROCESS_MODULES ModuleInfo;
-    NTSTATUS             status;
+    NTSTATUS             Status;
     ULONG                i;
     char *               Search;
 
@@ -73,12 +73,12 @@ CommandLm(vector<string> SplittedCommand, string Command)
     // 11 = SystemModuleInformation
     //
     if (!NT_SUCCESS(
-            status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11,
+            Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11,
                                               ModuleInfo,
                                               1024 * 1024,
                                               NULL)))
     {
-        ShowMessages("\nError: Unable to query module list (%#x)\n", status);
+        ShowMessages("\nError: Unable to query module list (%#x)\n", Status);
 
         VirtualFree(ModuleInfo, 0, MEM_RELEASE);
         return;
@@ -132,5 +132,4 @@ CommandLm(vector<string> SplittedCommand, string Command)
     }
 
     VirtualFree(ModuleInfo, 0, MEM_RELEASE);
-    return;
 }

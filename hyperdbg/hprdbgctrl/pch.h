@@ -74,6 +74,7 @@
 #    include "Definition.h"
 #    include "commands.h"
 #    include "common.h"
+#    include "symbol.h"
 #    include "debugger.h"
 #    include "exports.h"
 #    include "help.h"

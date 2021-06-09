@@ -108,6 +108,9 @@
     <ClInclude Include="inipp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="symbol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="readmem.cpp">

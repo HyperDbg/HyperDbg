@@ -19,6 +19,9 @@
 VOID
 PrintBits(size_t const size, void const * const ptr);
 
+BOOL
+Replace(std::string & str, const std::string & from, const std::string & to);
+
 VOID
 ReplaceAll(string & str, const string & from, const string & to);
 

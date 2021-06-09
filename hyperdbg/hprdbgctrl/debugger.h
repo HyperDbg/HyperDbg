@@ -60,15 +60,6 @@ ListeningSerialPauseDebuggeeThread(PVOID Param);
 DWORD WINAPI
 ListeningSerialPauseDebuggerThread(PVOID Param);
 
-//
-// For symbol (pdb) parsing
-//
-BOOLEAN
-SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result);
-
-BOOLEAN
-SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress);
-
 //////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////

@@ -120,6 +120,7 @@
     <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="communication.h" />
+    <ClInclude Include="symbol.h" />
     <ClInclude Include="tests.h" />
     <ClInclude Include="transparency.h" />
   </ItemGroup>

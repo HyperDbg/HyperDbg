@@ -968,7 +968,9 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     }
     else
     {
-        printf("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        //
+        // printf("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        //
         return FALSE;
     }
 
