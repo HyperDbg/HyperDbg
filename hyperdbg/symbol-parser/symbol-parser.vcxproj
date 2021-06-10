@@ -88,9 +88,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="common-utils.cpp" />
     <ClCompile Include="symbol-parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common-utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="symbol-parser.h" />
   </ItemGroup>

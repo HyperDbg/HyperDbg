@@ -68,7 +68,7 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
 }
 
-VOID
+BOOLEAN
 ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
 {
     //

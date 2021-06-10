@@ -102,9 +102,9 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
  * @param StoredLength
  * @param SymbolPath
  * 
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
 {
     return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, SymbolPath);

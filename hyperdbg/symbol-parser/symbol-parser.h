@@ -1,7 +1,7 @@
 /**
  * @file symbol-parser.h
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief symbok parser headers
+ * @brief symbol parser headers
  * @details 
  * @version 0.1
  * @date 2021-05-29
@@ -34,15 +34,6 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
 } SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
 
 //////////////////////////////////////////////////
-//		    	Global Variables                //
-//////////////////////////////////////////////////
-
-std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
-BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
-CHAR *                                     g_CurrentModuleName          = NULL;
-CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
-
-//////////////////////////////////////////////////
 //					Exports                     //
 //////////////////////////////////////////////////
 extern "C" {
@@ -52,7 +43,7 @@ __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
-__declspec(dllexport) VOID SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath);
+__declspec(dllexport) BOOLEAN SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath);
 }
 
 //////////////////////////////////////////////////
@@ -76,3 +67,6 @@ SymShowSymbolDetails(SYMBOL_INFO & SymInfo);
 
 const char *
 SymTagStr(ULONG Tag);
+
+BOOLEAN
+SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath);

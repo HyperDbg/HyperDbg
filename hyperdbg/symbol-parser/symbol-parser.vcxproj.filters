@@ -18,12 +18,18 @@
     <ClCompile Include="symbol-parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="common-utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="symbol-parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common-utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
