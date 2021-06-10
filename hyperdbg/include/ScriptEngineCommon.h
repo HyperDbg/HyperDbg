@@ -146,6 +146,8 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
+__declspec(dllimport) VOID
+    ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 

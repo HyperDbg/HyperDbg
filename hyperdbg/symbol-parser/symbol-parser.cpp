@@ -1124,32 +1124,40 @@ Split(const string & s, const char & c)
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
- * @param SymPath The path of symbols
+ * @param SymbolPath The path of symbols
  * 
  */
 VOID
-SymbolInitLoad(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength, string SymPath)
+SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
 {
     string tmp, SymDir;
+    string SymPath(SymbolPath);
+
     SymDir = Split(SymPath, '*')[1];
-    for (size_t i = 0; i < *StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    for (size_t i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
-        if (BufferToStoreDetails[i]->IsLocalSymbolPath)
+        if (BufferToStoreDetails[i].IsLocalSymbolPath)
         {
-            if (IsFileExist(BufferToStoreDetails[i]->ModuleSymbolPath))
+            if (IsFileExist(BufferToStoreDetails[i].ModuleSymbolPath))
             {
-                BufferToStoreDetails[i]->IsSymbolPDBAvaliable = TRUE;
-                SymLoadFileSymbol(BufferToStoreDetails[i]->BaseAddress, BufferToStoreDetails[i]->ModuleSymbolPath);
+                BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
+                SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, BufferToStoreDetails[i].ModuleSymbolPath);
             }
         }
         else
         {
-            tmp = SymDir + "\\" + BufferToStoreDetails[i]->ModuleSymbolPath + "\\" + BufferToStoreDetails[i]->ModuleSymbolGuidAndAge + "\\" + BufferToStoreDetails[i]->ModuleSymbolPath;
+            tmp = SymDir +
+                  "\\" +
+                  BufferToStoreDetails[i].ModuleSymbolPath +
+                  "\\" +
+                  BufferToStoreDetails[i].ModuleSymbolGuidAndAge +
+                  "\\" +
+                  BufferToStoreDetails[i].ModuleSymbolPath;
 
             if (IsFileExist(tmp))
             {
-                BufferToStoreDetails[i]->IsSymbolPDBAvaliable = TRUE;
-                SymLoadFileSymbol(BufferToStoreDetails[i]->BaseAddress, tmp.c_str());
+                BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
+                SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, tmp.c_str());
             }
         }
     }

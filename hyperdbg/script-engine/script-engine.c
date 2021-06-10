@@ -1,5 +1,5 @@
 /**
- * @file ScriptEngine.c
+ * @file script-engine.c
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Script engine parser and codegen
@@ -66,6 +66,15 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     // A wrapper for pdb to path converter
     //
     return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
+}
+
+VOID
+ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
+{
+    //
+    // A wrapper for pdb and modules parser
+    //
+    return SymbolInitLoad(BufferToStoreDetails, StoredLength, SymbolPath);
 }
 
 BOOLEAN

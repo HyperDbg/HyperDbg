@@ -103,6 +103,11 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
 
+        //
+        // Load available symbols
+        //
+        ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, "test");
+
         ShowMessages("symbol table successfully updated\n");
     }
     else

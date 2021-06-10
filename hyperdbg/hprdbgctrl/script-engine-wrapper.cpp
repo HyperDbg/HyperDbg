@@ -96,6 +96,21 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
 }
 
 /**
+ * @brief ScriptEngineSymbolInitLoad wrapper
+ *
+ * @param ScriptEngineSymbolInitLoad
+ * @param StoredLength
+ * @param SymbolPath
+ * 
+ * @return VOID
+ */
+VOID
+ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
+{
+    return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, SymbolPath);
+}
+
+/**
  * @brief ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails wrapper
  *
  * @param LocalFilePath

@@ -24,13 +24,13 @@
     <ClInclude Include="scanner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parse_table.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="script_engine.h">
+    <ClInclude Include="script-engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="parse-table.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -41,13 +41,13 @@
     <ClCompile Include="common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parse_table.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="globals.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="script_engine.c">
+    <ClCompile Include="script-engine.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="parse-table.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
