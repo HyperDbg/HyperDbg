@@ -77,7 +77,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         for (size_t i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
         {
             ShowMessages("is pdb details available? : %s\n", g_SymbolTable[i].IsSymbolDetailsFound ? "true" : "false");
-            ShowMessages("is pdb a path instead of module name? : %s\n", g_SymbolTable[i].IsRealSymbolPath ? "true" : "false");
+            ShowMessages("is pdb a path instead of module name? : %s\n", g_SymbolTable[i].IsLocalSymbolPath ? "true" : "false");
             ShowMessages("base address : %llx\n", g_SymbolTable[i].BaseAddress);
             ShowMessages("file path : %s\n", g_SymbolTable[i].FilePath);
             ShowMessages("guid and age : %s\n", g_SymbolTable[i].ModuleSymbolGuidAndAge);

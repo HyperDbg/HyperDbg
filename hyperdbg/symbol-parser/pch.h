@@ -29,3 +29,8 @@ using namespace std;
 // Needed to link symbol server
 //
 #pragma comment(lib, "dbghelp.lib")
+
+//
+// For URLDownloadToFileA
+//
+#pragma comment(lib, "Urlmon.lib")

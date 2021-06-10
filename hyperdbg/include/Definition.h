@@ -303,12 +303,13 @@
 typedef struct _MODULE_SYMBOL_DETAIL
 {
     BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
-    BOOLEAN IsRealSymbolPath;     // TRUE if the ModuleSymbolPath is a real path
+    BOOLEAN IsLocalSymbolPath;     // TRUE if the ModuleSymbolPath is a real path
                                   // and FALSE if ModuleSymbolPath is just a module name
-    UINT64 BaseAddress;
-    char   FilePath[MAX_PATH];
-    char   ModuleSymbolPath[MAX_PATH];
-    char   ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE];
+    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the Module's pdb is avilable(if exists in the sympath)
+    UINT64  BaseAddress;
+    char    FilePath[MAX_PATH];
+    char    ModuleSymbolPath[MAX_PATH];
+    char    ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE];
 
 } MODULE_SYMBOL_DETAIL, *PMODULE_SYMBOL_DETAIL;
 

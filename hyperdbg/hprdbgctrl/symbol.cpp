@@ -238,9 +238,9 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
             //
             string ModuleSymbolPathString(ModuleSymbolPath);
             if (ModuleSymbolPathString.find(":\\") != std::string::npos)
-                ModuleSymDetailArray[i].IsRealSymbolPath = TRUE;
+                ModuleSymDetailArray[i].IsLocalSymbolPath = TRUE;
             else
-                ModuleSymDetailArray[i].IsRealSymbolPath = FALSE;
+                ModuleSymDetailArray[i].IsLocalSymbolPath = FALSE;
         }
         else
         {
@@ -257,3 +257,4 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
 
     return TRUE;
 }
+

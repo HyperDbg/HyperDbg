@@ -1050,3 +1050,128 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
     //
     return FALSE;
 }
+
+/**
+ * @brief check if a file exist or not
+ * 
+ * @param FileName path of file
+ * @param SymPath The path of symbols
+ * @return BOOLEAN shows whether the file exist or not
+ */
+BOOLEAN
+IsFileExist(const std::string & FileName)
+{
+    struct stat buffer;
+    return (stat(FileName.c_str(), &buffer) == 0);
+}
+
+/**
+ * @brief create a directory recursivly
+ * 
+ * @param Path path of file
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+CreateDirectoryRecursive(string Path)
+{
+    unsigned int pos = 0;
+    do
+    {
+        pos = Path.find_first_of("\\/", pos + 1);
+        if (!CreateDirectoryA(Path.substr(0, pos).c_str(), NULL))
+        {
+            if (GetLastError() == ERROR_ALREADY_EXISTS)
+                continue;
+            else
+                return FALSE;
+        }
+    } while (pos != std::string::npos);
+}
+
+/**
+ * @brief general split command
+ *
+ * @param s target string
+ * @param c splitter (delimiter)
+ * @return const vector<string>
+ */
+const vector<string>
+Split(const string & s, const char & c)
+{
+    string         buff {""};
+    vector<string> v;
+
+    for (auto n : s)
+    {
+        if (n != c)
+            buff += n;
+        else if (n == c && buff != "")
+        {
+            v.push_back(buff);
+            buff = "";
+        }
+    }
+    if (buff != "")
+        v.push_back(buff);
+
+    return v;
+}
+
+/**
+ * @brief check if the pdb files of loaded symbols are available or not
+ * 
+ * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
+ * this buffer will be allocated by this function and needs to be freed by caller
+ * @param StoredLength The length that stored on the BufferToStoreDetails
+ * @param SymPath The path of symbols
+ * 
+ */
+VOID
+SymbolInitLoad(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength, string SymPath)
+{
+    string tmp, SymDir;
+    SymDir = Split(SymPath, '*')[1];
+    for (size_t i = 0; i < *StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    {
+        if (BufferToStoreDetails[i]->IsLocalSymbolPath)
+        {
+            if (IsFileExist(BufferToStoreDetails[i]->ModuleSymbolPath))
+            {
+                BufferToStoreDetails[i]->IsSymbolPDBAvaliable = TRUE;
+                SymLoadFileSymbol(BufferToStoreDetails[i]->BaseAddress, BufferToStoreDetails[i]->ModuleSymbolPath);
+            }
+        }
+        else
+        {
+            tmp = SymDir + "\\" + BufferToStoreDetails[i]->ModuleSymbolPath + "\\" + BufferToStoreDetails[i]->ModuleSymbolGuidAndAge + "\\" + BufferToStoreDetails[i]->ModuleSymbolPath;
+
+            if (IsFileExist(tmp))
+            {
+                BufferToStoreDetails[i]->IsSymbolPDBAvaliable = TRUE;
+                SymLoadFileSymbol(BufferToStoreDetails[i]->BaseAddress, tmp.c_str());
+            }
+        }
+    }
+}
+
+/**
+ * @brief download pdb file 
+ * 
+ * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
+ * this buffer will be allocated by this function and needs to be freed by caller
+ * @param StoredLength The length that stored on the BufferToStoreDetails
+ * @param SymPath The path of symbols
+ * 
+ */
+VOID
+SymbolPDBDownload(string SymName, string GUID, string SymPath)
+{
+    string SymDir            = Split(SymPath, '*')[1];
+    string SymDownloadServer = Split(SymPath, '*')[2];
+    string SymNamePDB        = SymName + ".pdb";
+    string DownloadURL       = SymDownloadServer + "/" + SymNamePDB + "/" + GUID + "/" + SymNamePDB;
+    string SymFullDir        = SymDir + "\\" + SymNamePDB + "\\" + GUID + "\\";
+    CreateDirectoryRecursive(SymFullDir);
+    URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymNamePDB).c_str(), 0, NULL);
+}
