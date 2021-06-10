@@ -488,6 +488,32 @@ RemoveSpaces(std::string str)
 }
 
 /**
+ * @brief check if a file exist or not (ASCII)
+ * 
+ * @param FileName path of file
+ * @return BOOLEAN shows whether the file exist or not
+ */
+BOOLEAN
+IsFileExistA(const char * FileName)
+{
+    struct stat buffer;
+    return (stat(FileName, &buffer) == 0);
+}
+
+/**
+ * @brief check if a file exist or not (wide-char)
+ * 
+ * @param FileName path of file
+ * @return BOOLEAN shows whether the file exist or not
+ */
+BOOLEAN
+IsFileExistW(const wchar_t * FileName)
+{
+    struct _stat64i32 buffer;
+    return (_wstat(FileName, &buffer) == 0);
+}
+
+/**
  * @brief Get config path
  *
  * @param ConfigPath

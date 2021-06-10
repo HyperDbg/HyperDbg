@@ -45,6 +45,10 @@ CommandSymHelp()
 VOID
 CommandSym(vector<string> SplittedCommand, string Command)
 {
+    WCHAR            ConfigPath[MAX_PATH] = {0};
+    inipp::Ini<char> Ini;
+    string           SymbolServer = "";
+
     if (SplittedCommand.size() == 1)
     {
         ShowMessages("incorrect use of '.sym'\n\n");
@@ -104,9 +108,46 @@ CommandSym(vector<string> SplittedCommand, string Command)
         SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
 
         //
+        // *** Read symbol path/server from config file ***
+        //
+
+        //
+        // Get config file path
+        //
+        GetConfigFilePath(ConfigPath);
+
+        if (!IsFileExistW(ConfigPath))
+        {
+            ShowMessages("please configure the symbol path before using this command. use 'help .sympath' for more information\n");
+            return;
+        }
+
+        ifstream Is(ConfigPath);
+
+        //
+        // Read config file
+        //
+        Ini.parse(Is);
+
+        //
+        // Show config file
+        //
+        // Ini.generate(std::cout);
+
+        inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
+
+        Is.close();
+
+        if (SymbolServer.empty())
+        {
+            ShowMessages("err, invalid config for symbol server/path\n");
+            return;
+        }
+
+        //
         // Load available symbols
         //
-        ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, "test");
+        ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, SymbolServer.c_str());
 
         ShowMessages("symbol table successfully updated\n");
     }

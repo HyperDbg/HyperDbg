@@ -67,6 +67,12 @@ Trim(std::string & s);
 std::string
 RemoveSpaces(std::string str);
 
+BOOLEAN
+IsFileExistA(const char * FileName);
+
+BOOLEAN
+IsFileExistW(const wchar_t * FileName);
+
 VOID
 GetConfigFilePath(PWCHAR ConfigPath);
 
