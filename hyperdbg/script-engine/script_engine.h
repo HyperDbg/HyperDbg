@@ -1,5 +1,5 @@
 /**
- * @file ScriptEngine.h
+ * @file script_engine.h
  * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
  * @brief Script engine parser and codegen
  * @details
@@ -9,15 +9,12 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
 #pragma once
+
 #ifndef SCRIPT_ENGINE_H
 #    define SCRIPT_ENGINE_H
 
-#    include <stdio.h>
 #    include "ScriptEngineCommon.h"
-#    include "scanner.h"
-#    include "common.h"
 
 //
 // *** import pdb parser functions ***

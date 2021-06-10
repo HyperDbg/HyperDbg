@@ -58,7 +58,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;SCRIPTENGINE_EXPORTS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -102,18 +102,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
-    <ClInclude Include="framework.h" />
     <ClInclude Include="globals.h" />
     <ClInclude Include="parse_table.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="scanner.h" />
-    <ClInclude Include="ScriptEngine.h" />
+    <ClInclude Include="script_engine.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="globals.c" />
     <ClCompile Include="parse_table.c" />
     <ClCompile Include="scanner.c" />
-    <ClCompile Include="ScriptEngine.c" />
+    <ClCompile Include="script_engine.c" />
     <ClCompile Include="common.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

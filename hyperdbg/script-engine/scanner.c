@@ -9,14 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include "scanner.h"
-#include "common.h"
-#include "parse_table.h"
+#include "pch.h"
 
 /**
 * @brief reads a token from the input string
@@ -340,7 +333,7 @@ GetToken(char * c, char * str)
             Token->Type = SPECIAL_TOKEN;
             return Token;
         }
-      
+
     case '^':
         strcpy(Token->Value, "^");
         Token->Type = SPECIAL_TOKEN;

@@ -1,11 +1,4 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include "common.h"
-#include "globals.h"
-#include "parse_table.h"
+#include "pch.h"
 
 /**
  * @brief allocates a new token
@@ -541,7 +534,6 @@ IsType6Func(TOKEN Operator)
     }
     return 0;
 }
-
 
 /**
 *

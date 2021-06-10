@@ -1,7 +1,8 @@
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#include "common.h"
+
 #include "ScriptEngineCommonDefinitions.h"
+
 #define RULES_COUNT 96
 #define TERMINAL_COUNT 53
 #define NONETERMINAL_COUNT 46

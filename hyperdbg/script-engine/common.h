@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #ifndef COMMON_H

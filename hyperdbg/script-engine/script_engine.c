@@ -10,17 +10,8 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include "globals.h"
-#include "common.h"
-#include "parse_table.h"
-#include "ScriptEngine.h"
-#include "ScriptEngineCommonDefinitions.h"
-#include "string.h"
+#include "pch.h"
+#include "script_engine.h"
 
 //#define _SCRIPT_ENGINE_DBG_EN
 

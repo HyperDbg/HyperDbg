@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef GLOBALS_H
 #    define GlOABLS_H
 #    define MAX_TEMP_COUNT 32

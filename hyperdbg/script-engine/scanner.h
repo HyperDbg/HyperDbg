@@ -2,7 +2,7 @@
 
 #ifndef SCANNER_H
 #    define SCANNER_H
-#    include "common.h"
+
 /**
 * @brief lookup table for storing Ids
 */
