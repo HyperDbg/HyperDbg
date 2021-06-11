@@ -467,7 +467,7 @@ GetToken(char * c, char * str)
             Token->Type = HEX;
             return Token;
         }
-        else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_'))
+        else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_') || (*c == '!'))
         {
             uint8_t NotHex = 0;
             do
@@ -496,7 +496,7 @@ GetToken(char * c, char * str)
                     if (*c != '`')
                         Append(Token, *c);
                     *c = sgetc(str);
-                } while (IsLetter(*c) || IsHex(*c) || (*c == '_'));
+                } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
                 if (IsKeyword(Token->Value))
                 {
                     Token->Type = KEYWORD;
@@ -507,7 +507,20 @@ GetToken(char * c, char * str)
                 }
                 else
                 {
-                    Token->Type = ID;
+                    BOOLEAN WasFound = FALSE;
+                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    if (WasFound)
+                    {
+                        free(Token->Value);
+                        char * str = malloc(20);
+                        sprintf(str, "%llx", Address);
+                        Token->Value = str;
+                        Token->Type  = HEX;
+                    }
+                    else
+                    {
+                        Token->Type = ID;
+                    }
                 }
                 return Token;
             }
@@ -523,7 +536,20 @@ GetToken(char * c, char * str)
                 }
                 else if (IsId(Token->Value))
                 {
-                    Token->Type = ID;
+                    BOOLEAN WasFound = FALSE;
+                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    if (WasFound)
+                    {
+                        free(Token->Value);
+                        char * str = malloc(20);
+                        sprintf(str, "%llx", Address);
+                        Token->Value = str;
+                        Token->Type  = HEX;
+                    }
+                    else
+                    {
+                        Token->Type = ID;
+                    }
                 }
                 else
                 {
@@ -532,14 +558,14 @@ GetToken(char * c, char * str)
                 return Token;
             }
         }
-        else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z') || (*c == '_'))
+        else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z') || (*c == '_') || (*c == '!'))
         {
             do
             {
                 if (*c != '`')
                     Append(Token, *c);
                 *c = sgetc(str);
-            } while (IsLetter(*c) || IsHex(*c) || (*c == '_'));
+            } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
             if (IsKeyword(Token->Value))
             {
                 Token->Type = KEYWORD;
@@ -550,7 +576,20 @@ GetToken(char * c, char * str)
             }
             else
             {
-                Token->Type = ID;
+                BOOLEAN WasFound = FALSE;
+                UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                if (WasFound)
+                {
+                    free(Token->Value);
+                    char * str = malloc(20);
+                    sprintf(str, "%llx", Address);
+                    Token->Value = str;
+                    Token->Type  = HEX;
+                }
+                else
+                {
+                    Token->Type = ID;
+                }
             }
             return Token;
         }
