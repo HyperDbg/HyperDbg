@@ -467,7 +467,7 @@ GetToken(char * c, char * str)
             Token->Type = HEX;
             return Token;
         }
-        else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F'))
+        else if ((*c >= 'a' && *c <= 'f') || (*c >= 'A' && *c <= 'F') || (*c == '_'))
         {
             uint8_t NotHex = 0;
             do
@@ -496,7 +496,7 @@ GetToken(char * c, char * str)
                     if (*c != '`')
                         Append(Token, *c);
                     *c = sgetc(str);
-                } while (IsLetter(*c) || IsHex(*c));
+                } while (IsLetter(*c) || IsHex(*c) || (*c == '_'));
                 if (IsKeyword(Token->Value))
                 {
                     Token->Type = KEYWORD;
@@ -517,7 +517,7 @@ GetToken(char * c, char * str)
                 {
                     Token->Type = KEYWORD;
                 }
-                if (IsRegister(Token->Value))
+                else if (IsRegister(Token->Value))
                 {
                     Token->Type = REGISTER;
                 }
@@ -532,14 +532,14 @@ GetToken(char * c, char * str)
                 return Token;
             }
         }
-        else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z'))
+        else if ((*c >= 'G' && *c <= 'Z') || (*c >= 'g' && *c <= 'z') || (*c == '_'))
         {
             do
             {
                 if (*c != '`')
                     Append(Token, *c);
                 *c = sgetc(str);
-            } while (IsLetter(*c) || IsHex(*c));
+            } while (IsLetter(*c) || IsHex(*c) || (*c == '_'));
             if (IsKeyword(Token->Value))
             {
                 Token->Type = KEYWORD;

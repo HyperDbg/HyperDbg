@@ -524,10 +524,10 @@ IsType5Func(TOKEN Operator)
 char
 IsType6Func(TOKEN Operator)
 {
-    unsigned int n = THREEOPFUNC1_LENGTH;
+    unsigned int n = TWOOPFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
     {
-        if (!strcmp(Operator->Value, ThreeOpFunc1[i]))
+        if (!strcmp(Operator->Value, TwoOpFunc1[i]))
         {
             return 1;
         }

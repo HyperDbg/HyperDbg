@@ -95,8 +95,9 @@ class LL1Parser:
         # print()
         
         # Prints variables that are needed for parser for parsing into the output file 
+        self.HeaderFile.write("#pragma once\n")
+
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
-        self.HeaderFile.write("#ifndef #pragma once\n")
         self.HeaderFile.write("#define PARSE_TABLE_H\n")
         
         self.HeaderFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")

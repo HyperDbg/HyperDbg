@@ -466,17 +466,17 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator)
         PushSymbol(CodeBuffer, Op1Symbol);
         RemoveSymbol(Op1Symbol);
 
-        Op2       = Pop(MatchedStack);
-        Op2Symbol = ToSymbol(Op2);
-        PushSymbol(CodeBuffer, Op2Symbol);
-        RemoveSymbol(Op2Symbol);
+        Temp = NewTemp();
+        Push(MatchedStack, Temp);
+        TempSymbol = ToSymbol(Temp);
+        PushSymbol(CodeBuffer, TempSymbol);
+        RemoveSymbol(TempSymbol);
 
         //
         // Free the operand if it is a temp value
         //
         FreeTemp(Op0);
         FreeTemp(Op1);
-        FreeTemp(Op2);
     }
     else if (IsTwoOperandOperator(Operator))
     {

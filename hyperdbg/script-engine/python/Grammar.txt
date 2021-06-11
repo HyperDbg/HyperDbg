@@ -1,17 +1,17 @@
-# ThreeOpFunc1 inputs are three numbers.
-.ThreeOpFunc1->mem_set
+# TwoOpFunc1 inputs are two numbers and returns a number.
+.TwoOpFunc1->ed eb eq
 
 # OneOpFunc1 input is a number and returns a number.
 .OneOpFunc1->poi db dd dw dq neg hi low not check_address
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats disable_event enable_event
+.OneOpFunc2->print formats disable_event enable_event 
 
 .ZeroOpFunc1->pause
 
 .VarArgFunc1->printf 
 
-.OperatorsTwoOperand->or xor and asr asl add sub mul div mod gt lt egt elt eq neq 
+.OperatorsTwoOperand->or xor and asr asl add sub mul div mod gt lt egt elt equal neq 
 .OperatorsOneOperand->inc dec 
 
 .SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while  start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if
@@ -119,7 +119,8 @@ E10->E12
 
 
 E12->.OneOpFunc1 ( EXPRESSION @.OneOpFunc1 ) 
-E12->.ThreeOpFunc1 ( EXPRESSION , EXPRESSION , EXPRESSION , @.ThreeOpFunc1 ) 
+E12->.TwoOpFunc1 ( EXPRESSION , EXPRESSION @.TwoOpFunc1 ) 
+
 
 E12->( EXPRESSION )
 

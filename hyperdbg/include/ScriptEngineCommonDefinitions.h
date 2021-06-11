@@ -54,7 +54,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_LT 13
 #define FUNC_EGT 14
 #define FUNC_ELT 15
-#define FUNC_EQ 16
+#define FUNC_EQUAL 16
 #define FUNC_NEQ 17
 #define FUNC_START_OF_IF 18
 #define FUNC_JMP 19
@@ -76,8 +76,8 @@ typedef struct ACTION_BUFFER {
 #define FUNC_END_OF_IF 35
 #define FUNC_PRINT 36
 #define FUNC_FORMATS 37
-#define FUNC_DISABLEEVENT 38
-#define FUNC_ENABLEEVENT 39
+#define FUNC_DISABLE_EVENT 38
+#define FUNC_ENABLE_EVENT 39
 #define FUNC_PRINTF 40
 #define FUNC_PAUSE 41
 #define FUNC_POI 42
@@ -89,7 +89,10 @@ typedef struct ACTION_BUFFER {
 #define FUNC_HI 48
 #define FUNC_LOW 49
 #define FUNC_NOT 50
-#define FUNC_MEMSET 51
+#define FUNC_CHECK_ADDRESS 51
+#define FUNC_ED 52
+#define FUNC_EB 53
+#define FUNC_EQ 54
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,
 	REGISTER_RCX = 1,
