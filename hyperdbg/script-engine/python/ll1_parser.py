@@ -96,10 +96,9 @@ class LL1Parser:
         
         # Prints variables that are needed for parser for parsing into the output file 
         self.HeaderFile.write("#ifndef PARSE_TABLE_H\n")
+        self.HeaderFile.write("#ifndef #pragma once\n")
         self.HeaderFile.write("#define PARSE_TABLE_H\n")
         
-        self.HeaderFile.write("#include \"common.h\"\n")
-        self.HeaderFile.write("#include \"ScriptEngineCommonDefinitions.h\"\n")
         self.HeaderFile.write("#define RULES_COUNT " + str(len(self.LhsList)) + "\n")
         self.HeaderFile.write("#define TERMINAL_COUNT " + str(len(list(self.TerminalSet))) + "\n")
         self.HeaderFile.write("#define NONETERMINAL_COUNT " + str(len(list(self.NonTerminalList))) + "\n")
@@ -115,9 +114,8 @@ class LL1Parser:
             self.HeaderFile.write("#define "+ Key[1:].upper() + "_LENGTH "+ str(len(self.FunctionsDict[Key]))+"\n")
 
        
-        self.SourceFile.write("#include \"parse_table.h\"\n")
-        self.SourceFile.write("#include \"common.h\"\n")
-        self.SourceFile.write("#include \"ScriptEngineCommonDefinitions.h\"\n")
+        self.SourceFile.write("#include \"pch.h\"\n")
+
 
 
         # Prints Rules into output files

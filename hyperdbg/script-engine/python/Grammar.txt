@@ -1,11 +1,11 @@
 # ThreeOpFunc1 inputs are three numbers.
-.ThreeOpFunc1->memset
+.ThreeOpFunc1->mem_set
 
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq neg hi low not
+.OneOpFunc1->poi db dd dw dq neg hi low not check_address
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats disableevent enableevent
+.OneOpFunc2->print formats disable_event enable_event
 
 .ZeroOpFunc1->pause
 
