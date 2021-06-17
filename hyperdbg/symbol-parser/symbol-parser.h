@@ -43,7 +43,7 @@ __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
-__declspec(dllexport) BOOLEAN SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath);
+__declspec(dllexport) BOOLEAN SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath);
 }
 
 //////////////////////////////////////////////////

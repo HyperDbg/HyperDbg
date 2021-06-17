@@ -147,7 +147,7 @@ __declspec(dllimport) BOOLEAN
 __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN
-    ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath);
+    ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath);
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -2526,7 +2526,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
 
-    case FUNC_EQUAL     :
+    case FUNC_EQUAL:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;

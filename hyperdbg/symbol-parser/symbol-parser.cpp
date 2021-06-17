@@ -1057,11 +1057,12 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
+ * @param DownloadIfAvailable Download the file if its available online
  * @param SymbolPath The path of symbols
  * @return BOOLEAN
  */
 BOOLEAN
-SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
+SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath)
 {
     string Tmp, SymDir;
     string SymPath(SymbolPath);
@@ -1073,18 +1074,44 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
         return FALSE;
 
     SymDir = SplitedsymPath[1];
+
+    //
+    // Split each module and details
+    //
     for (size_t i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
+        //
+        // Check if it's a local path (a path) or a microsoft symbol
+        //
         if (BufferToStoreDetails[i].IsLocalSymbolPath)
         {
+            //
+            // If this is a local driver, then load the pdb
+            //
             if (IsFileExists(BufferToStoreDetails[i].ModuleSymbolPath))
             {
                 BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
-                SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, BufferToStoreDetails[i].ModuleSymbolPath);
+
+                //
+                // Load symbol locally
+                //
+                printf("loading symbol '%s'...", Tmp.c_str());
+
+                if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, BufferToStoreDetails[i].ModuleSymbolPath) == 0)
+                {
+                    printf("\tloaded\n");
+                }
+                else
+                {
+                    printf("\tcould not be loaded\n");
+                }
             }
         }
         else
         {
+            //
+            // It might be a Windows symbol
+            //
             Tmp = SymDir +
                   "\\" +
                   BufferToStoreDetails[i].ModuleSymbolPath +
@@ -1093,14 +1120,32 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
                   "\\" +
                   BufferToStoreDetails[i].ModuleSymbolPath;
 
+            //
+            // Check if the symbol already download or not
+            //
             if (IsFileExists(Tmp))
             {
                 BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
-                SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, Tmp.c_str());
+                printf("loading symbol '%s'...", Tmp.c_str());
+
+                if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, Tmp.c_str()) == 0)
+                {
+                    printf("\tloaded\n");
+                }
+                else
+                {
+                    printf("\tcould not be loaded\n");
+                }
             }
             else
             {
-                //SymbolPDBDownload(BufferToStoreDetails[i].ModuleSymbolPath, BufferToStoreDetails[i].ModuleSymbolGuidAndAge, SymPath);
+                if (DownloadIfAvailable)
+                {
+                    //
+                    // Download the symbol
+                    //
+                    SymbolPDBDownload(BufferToStoreDetails[i].ModuleSymbolPath, BufferToStoreDetails[i].ModuleSymbolGuidAndAge, SymPath);
+                }
             }
         }
     }
@@ -1140,6 +1185,10 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath)
     {
         printf("\tdownloaded\n");
         return TRUE;
+    }
+    else
+    {
+        printf("\tcould not be downloaded\n");
     }
 
     return FALSE;

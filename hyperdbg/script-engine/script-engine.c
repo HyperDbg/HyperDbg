@@ -69,12 +69,12 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 }
 
 BOOLEAN
-ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, const char * SymbolPath)
+ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath)
 {
     //
     // A wrapper for pdb and modules parser
     //
-    return SymbolInitLoad(BufferToStoreDetails, StoredLength, SymbolPath);
+    return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath);
 }
 
 BOOLEAN

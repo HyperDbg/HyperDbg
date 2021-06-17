@@ -31,6 +31,7 @@ CommandSymHelp()
                  "[path (string path to pdb)]\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
+    ShowMessages("\t\te.g : .sym download\n");
     ShowMessages("\t\te.g : .sym load base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");
     ShowMessages("\t\te.g : .sym unload win32k\n");
 }
@@ -89,7 +90,8 @@ CommandSym(vector<string> SplittedCommand, string Command)
             ShowMessages("========================================================================\n");
         }
     }
-    else if (!SplittedCommand.at(1).compare("reload"))
+    else if (SplittedCommand.size() == 2 &&
+             (!SplittedCommand.at(1).compare("reload") || !SplittedCommand.at(1).compare("download")))
     {
         //
         // Check if we found an already built symbol table
@@ -145,9 +147,16 @@ CommandSym(vector<string> SplittedCommand, string Command)
         }
 
         //
-        // Load available symbols
+        // Load and download available symbols
         //
-        ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, SymbolServer.c_str());
+        if (!SplittedCommand.at(1).compare("reload"))
+        {
+            ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, FALSE, SymbolServer.c_str());
+        }
+        else if (!SplittedCommand.at(1).compare("download"))
+        {
+            ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, TRUE, SymbolServer.c_str());
+        }
 
         ShowMessages("symbol table successfully updated\n");
     }
