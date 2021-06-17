@@ -11,11 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-BOOLEAN g_TestIsModulesLoaded = FALSE;
-
 /**
  * @brief help of x command
  *
@@ -62,17 +57,6 @@ CommandX(vector<string> SplittedCommand, string Command)
     // Trim it again
     //
     Trim(Command);
-
-    //
-    // Test should be removed
-    //
-    if (!g_TestIsModulesLoaded)
-    {
-        //SymbolLoadNtoskrnlSymbol(DebuggerGetNtoskrnlBase());
-        ScriptEngineLoadFileSymbolWrapper(DebuggerGetNtoskrnlBase(), "C:\\symbols\\ntkrnlmp.pdb\\D572501B90246C4BE1992A7842D966E41\\ntkrnlmp.pdb");
-        //ScriptEngineLoadFileSymbolWrapper(DebuggerGetNtoskrnlBase() + 0x1000000, "C:\\symbols\\win32k.pdb\\ED706A38659240A066E6FB19B994BAAA1\\win32k.pdb");
-        g_TestIsModulesLoaded = TRUE;
-    }
 
     //
     // Search for mask

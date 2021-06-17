@@ -1181,14 +1181,16 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath)
         return FALSE;
     }
     printf("downloading symbol '%s'...", SymName.c_str());
-    if (S_OK == URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymName).c_str(), 0, NULL))
+
+    HRESULT Result = URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymName).c_str(), 0, NULL);
+    if (Result == S_OK)
     {
         printf("\tdownloaded\n");
         return TRUE;
     }
     else
     {
-        printf("\tcould not be downloaded\n");
+        printf("\tcould not be downloaded (%x) \n", Result);
     }
 
     return FALSE;
