@@ -68,6 +68,18 @@ ScriptEngineUnloadAllSymbolsWrapper()
 }
 
 /**
+ * @brief ScriptEngineUnloadModuleSymbol wrapper
+ * @param ModuleName
+ * 
+ * @return UINT32
+ */
+UINT32
+ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName)
+{
+    return ScriptEngineUnloadModuleSymbol(ModuleName);
+}
+
+/**
  * @brief ScriptEngineSearchSymbolForMask wrapper
  *
  * @param SearchMask

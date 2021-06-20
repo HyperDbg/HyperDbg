@@ -321,6 +321,66 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 }
 
 /**
+ * @brief Unload one module symbol
+ * 
+ * @param ModuleName 
+ * 
+ * @return UINT32
+ */
+UINT32
+SymUnloadModuleSymbol(char * ModuleName)
+{
+    BOOLEAN OneModuleFound = FALSE;
+    BOOL    Ret            = FALSE;
+    UINT32  Index          = 0;
+
+    for (auto item : g_LoadedModules)
+    {
+        Index++;
+        if (strcmp(item->ModuleName, ModuleName) == 0)
+        {
+            //
+            // Unload symbol for the module
+            //
+            Ret = SymUnloadModule64(GetCurrentProcess(), item->ModuleBase);
+
+            if (!Ret)
+            {
+                printf("err, unload symbol failed (%u)\n",
+                       GetLastError());
+                return -1;
+            }
+
+            OneModuleFound = TRUE;
+
+            free(item);
+
+            break;
+        }
+    }
+
+    if (!OneModuleFound)
+    {
+        //
+        // Not found
+        //
+        return -1;
+    }
+
+    //
+    // Remove it from the vector
+    //
+    std::vector<PSYMBOL_LOADED_MODULE_DETAILS>::iterator it = g_LoadedModules.begin();
+    std::advance(it, --Index);
+    g_LoadedModules.erase(it);
+
+    //
+    // Success
+    //
+    return 0;
+}
+
+/**
  * @brief Unload all the symbols
  * 
  * @return UINT32

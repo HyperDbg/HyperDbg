@@ -51,6 +51,15 @@ ScriptEngineUnloadAllSymbols()
 }
 
 UINT32
+ScriptEngineUnloadModuleSymbol(char * ModuleName)
+{
+    //
+    // A wrapper for pdb unloader
+    //
+    return SymUnloadModuleSymbol(ModuleName);
+}
+
+UINT32
 ScriptEngineSearchSymbolForMask(const char * SearchMask)
 {
     //

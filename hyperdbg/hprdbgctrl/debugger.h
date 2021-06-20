@@ -24,6 +24,9 @@ UINT32
 ScriptEngineUnloadAllSymbolsWrapper();
 
 UINT32
+ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName);
+
+UINT32
 ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
 BOOLEAN
