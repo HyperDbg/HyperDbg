@@ -333,7 +333,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         else if (err == 577)
         {
             ShowMessages(
-                "err (577), it's because you driver signature enforcement is enabled. "
+                "err (577), it's because you driver signature enforcement is enabled\n"
                 "you should disable driver signature enforcement by attaching Windbg "
                 "or from the boot menu\n");
 

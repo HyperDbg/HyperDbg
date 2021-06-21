@@ -275,8 +275,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails->ModuleBase == NULL)
     {
-        printf("err, loading symbols failed (%u)\n",
-               GetLastError());
+        //printf("err, loading symbols failed (%u)\n",
+        //       GetLastError());
 
         free(ModuleDetails);
         return -1;
@@ -1146,6 +1146,17 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
     //
     for (size_t i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
+        //
+        // Check if symbol pdb detail is available in the module
+        //
+        if (!BufferToStoreDetails[i].IsSymbolDetailsFound)
+        {
+            //
+            // Ignore the module
+            //
+            continue;
+        }
+
         //
         // Check if it's a local path (a path) or a microsoft symbol
         //
