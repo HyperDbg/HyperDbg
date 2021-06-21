@@ -11,12 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
-extern UINT32                g_SymbolTableSize;
-
 /**
  * @brief help of .sym command
  *
@@ -27,8 +21,8 @@ CommandSymHelp()
 {
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
-    ShowMessages("syntax : \t.sym [ table | reload | load | unload ] [base (hex address)] "
-                 "[path (string path to pdb)]\n");
+    ShowMessages("syntax : \t.sym [table | reload | load | unload | download] [base (hex address)] "
+                 "[path | module name (string path to pdb or module name)]\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
     ShowMessages("\t\te.g : .sym download\n");
@@ -47,12 +41,9 @@ CommandSymHelp()
 VOID
 CommandSym(vector<string> SplittedCommand, string Command)
 {
-    WCHAR            ConfigPath[MAX_PATH] = {0};
-    inipp::Ini<char> Ini;
-    string           SymbolServer = "";
-    UINT64           BaseAddress  = NULL;
-    string           Delimiter    = "";
-    string           PathToPdb    = "";
+    UINT64 BaseAddress = NULL;
+    string Delimiter   = "";
+    string PathToPdb   = "";
 
     if (SplittedCommand.size() == 1)
     {
@@ -74,35 +65,9 @@ CommandSym(vector<string> SplittedCommand, string Command)
         }
 
         //
-        // Check if we found an already built symbol table
+        // Build and show symbol table
         //
-        if (g_SymbolTable != NULL)
-        {
-            free(g_SymbolTable);
-
-            g_SymbolTable     = NULL;
-            g_SymbolTableSize = NULL;
-        }
-
-        //
-        // Build the symbol table
-        //
-        SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
-
-        //
-        // Test, should be removed
-        // show packet details
-        //
-        for (size_t i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
-        {
-            ShowMessages("is pdb details available? : %s\n", g_SymbolTable[i].IsSymbolDetailsFound ? "true" : "false");
-            ShowMessages("is pdb a path instead of module name? : %s\n", g_SymbolTable[i].IsLocalSymbolPath ? "true" : "false");
-            ShowMessages("base address : %llx\n", g_SymbolTable[i].BaseAddress);
-            ShowMessages("file path : %s\n", g_SymbolTable[i].FilePath);
-            ShowMessages("guid and age : %s\n", g_SymbolTable[i].ModuleSymbolGuidAndAge);
-            ShowMessages("module symbol path/name : %s\n", g_SymbolTable[i].ModuleSymbolPath);
-            ShowMessages("========================================================================\n");
-        }
+        SymbolBuildAndShowSymbolTable();
     }
     else if (!SplittedCommand.at(1).compare("reload") || !SplittedCommand.at(1).compare("download"))
     {
@@ -117,68 +82,15 @@ CommandSym(vector<string> SplittedCommand, string Command)
         }
 
         //
-        // Check if we found an already built symbol table
-        //
-        if (g_SymbolTable != NULL)
-        {
-            free(g_SymbolTable);
-
-            g_SymbolTable     = NULL;
-            g_SymbolTableSize = NULL;
-        }
-
-        //
-        // Build the symbol table
-        //
-        SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
-
-        //
-        // *** Read symbol path/server from config file ***
-        //
-
-        //
-        // Get config file path
-        //
-        GetConfigFilePath(ConfigPath);
-
-        if (!IsFileExistW(ConfigPath))
-        {
-            ShowMessages("please configure the symbol path before using this command. use 'help .sympath' for more information\n");
-            return;
-        }
-
-        ifstream Is(ConfigPath);
-
-        //
-        // Read config file
-        //
-        Ini.parse(Is);
-
-        //
-        // Show config file
-        //
-        // Ini.generate(std::cout);
-
-        inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
-
-        Is.close();
-
-        if (SymbolServer.empty())
-        {
-            ShowMessages("err, invalid config for symbol server/path\n");
-            return;
-        }
-
-        //
         // Load and download available symbols
         //
         if (!SplittedCommand.at(1).compare("reload"))
         {
-            ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, FALSE, SymbolServer.c_str());
+            SymbolReloadOrDownloadSymbols(FALSE, FALSE);
         }
         else if (!SplittedCommand.at(1).compare("download"))
         {
-            ScriptEngineSymbolInitLoadWrapper(g_SymbolTable, g_SymbolTableSize, TRUE, SymbolServer.c_str());
+            SymbolReloadOrDownloadSymbols(TRUE, FALSE);
         }
 
         ShowMessages("symbol table successfully updated\n");

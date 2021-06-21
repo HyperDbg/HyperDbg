@@ -41,7 +41,8 @@ BOOLEAN
 ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   UINT32                StoredLength,
                                   BOOLEAN               DownloadIfAvailable,
-                                  const char *          SymbolPath);
+                                  const char *          SymbolPath,
+                                  BOOLEAN               IsSilentLoad);
 
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //

@@ -157,9 +157,10 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         }
 
         //
-        // If in vmi-mode then initialize the symbol server for local debugging
+        // If in vmi-mode then initialize and load symbols (pdb)
+        // for previously downloaded symbols
         //
-        SymbolLoadNtoskrnlSymbol(DebuggerGetNtoskrnlBase());
+        SymbolInitialReload();
     }
     else
     {

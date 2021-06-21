@@ -1119,10 +1119,16 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
  * @param StoredLength The length that stored on the BufferToStoreDetails
  * @param DownloadIfAvailable Download the file if its available online
  * @param SymbolPath The path of symbols
+ * @param IsSilentLoad
+ * 
  * @return BOOLEAN
  */
 BOOLEAN
-SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath)
+SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
+               UINT32                StoredLength,
+               BOOLEAN               DownloadIfAvailable,
+               const char *          SymbolPath,
+               BOOLEAN               IsSilentLoad)
 {
     string Tmp, SymDir;
     string SymPath(SymbolPath);
@@ -1155,15 +1161,24 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
                 //
                 // Load symbol locally
                 //
-                printf("loading symbol '%s'...", Tmp.c_str());
+                if (!IsSilentLoad)
+                {
+                    printf("loading symbol '%s'...", Tmp.c_str());
+                }
 
                 if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, BufferToStoreDetails[i].ModuleSymbolPath) == 0)
                 {
-                    printf("\tloaded\n");
+                    if (!IsSilentLoad)
+                    {
+                        printf("\tloaded\n");
+                    }
                 }
                 else
                 {
-                    printf("\tcould not be loaded\n");
+                    if (!IsSilentLoad)
+                    {
+                        printf("\tcould not be loaded\n");
+                    }
                 }
             }
         }
@@ -1186,15 +1201,25 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
             if (IsFileExists(Tmp))
             {
                 BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
-                printf("loading symbol '%s'...", Tmp.c_str());
+
+                if (!IsSilentLoad)
+                {
+                    printf("loading symbol '%s'...", Tmp.c_str());
+                }
 
                 if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, Tmp.c_str()) == 0)
                 {
-                    printf("\tloaded\n");
+                    if (!IsSilentLoad)
+                    {
+                        printf("\tloaded\n");
+                    }
                 }
                 else
                 {
-                    printf("\tcould not be loaded\n");
+                    if (!IsSilentLoad)
+                    {
+                        printf("\tcould not be loaded\n");
+                    }
                 }
             }
             else
@@ -1204,11 +1229,16 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
                     //
                     // Download the symbol
                     //
-                    SymbolPDBDownload(BufferToStoreDetails[i].ModuleSymbolPath, BufferToStoreDetails[i].ModuleSymbolGuidAndAge, SymPath);
+                    SymbolPDBDownload(BufferToStoreDetails[i].ModuleSymbolPath,
+                                      BufferToStoreDetails[i].ModuleSymbolGuidAndAge,
+                                      SymPath,
+                                      IsSilentLoad);
                 }
             }
         }
     }
+
+    return TRUE;
 }
 
 /**
@@ -1218,10 +1248,12 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, 
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
  * @param SymPath The path of symbols
+ * @param IsSilentLoad Download without any message
+ * 
  * return BOOLEAN
  */
 BOOLEAN
-SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath)
+SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BOOLEAN IsSilentLoad)
 {
     vector<string> SplitedsymPath = Split(SymPath, '*');
     if (SplitedsymPath.size() < 2)
@@ -1237,20 +1269,33 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath)
     string SymFullDir        = SymDir + "\\" + SymName + "\\" + GUID + "\\";
     if (!CreateDirectoryRecursive(SymFullDir))
     {
-        printf("err, unable to create sympath directory '%s'\n", SymFullDir);
+        if (!IsSilentLoad)
+        {
+            printf("err, unable to create sympath directory '%s'\n", SymFullDir);
+        }
         return FALSE;
     }
-    printf("downloading symbol '%s'...", SymName.c_str());
+
+    if (!IsSilentLoad)
+    {
+        printf("downloading symbol '%s'...", SymName.c_str());
+    }
 
     HRESULT Result = URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymName).c_str(), 0, NULL);
     if (Result == S_OK)
     {
-        printf("\tdownloaded\n");
+        if (!IsSilentLoad)
+        {
+            printf("\tdownloaded\n");
+        }
         return TRUE;
     }
     else
     {
-        printf("\tcould not be downloaded (%x) \n", Result);
+        if (!IsSilentLoad)
+        {
+            printf("\tcould not be downloaded (%x) \n", Result);
+        }
     }
 
     return FALSE;

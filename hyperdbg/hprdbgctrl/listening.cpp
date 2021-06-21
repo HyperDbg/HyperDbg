@@ -144,9 +144,9 @@ StartAgain:
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
             //
-            // initialize symbol (pdb) server for debuggee's ntoskrnl
+            // initialize and load symbols (pdb) for previously downloaded symbols
             //
-            SymbolLoadNtoskrnlSymbol(InitPacket->NtoskrnlBaseAddress);
+            SymbolInitialReload();
 
             ShowMessages("press CTRL+C to pause the debuggee\n");
 

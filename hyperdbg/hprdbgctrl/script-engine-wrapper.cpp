@@ -114,13 +114,18 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
  * @param StoredLength
  * @param DownloadIfAvailable
  * @param SymbolPath
+ * @param IsSilentLoad
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath)
+ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
+                                  UINT32                StoredLength,
+                                  BOOLEAN               DownloadIfAvailable,
+                                  const char *          SymbolPath,
+                                  BOOLEAN               IsSilentLoad)
 {
-    return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath);
+    return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
 }
 
 /**

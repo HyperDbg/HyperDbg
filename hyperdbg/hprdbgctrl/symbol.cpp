@@ -12,22 +12,119 @@
  */
 #include "pch.h"
 
+//
+// Global Variables
+//
+extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
+extern UINT32                g_SymbolTableSize;
+
 /**
- * @brief Load symbol for ntoskrnl
+ * @brief Initial reload of symbols (for previously download symbols)
  * 
- * @param BaseAddress Base address of ntoskrnl
- * 
- * @return BOOLEAN shows whether the conversion was successful or not
+ * @return VOID 
  */
-BOOLEAN
-SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress)
+VOID
+SymbolInitialReload()
 {
     //
-    // To be implemented
+    // Load already downloaded symbol (won't download at this point)
     //
-    //ScriptEngineLoadFileSymbolWrapper(BaseAddress, "C:\\symbols\\ntkrnlmp.pdb\\3D4400784115718818EFC898413F36C41\\ntkrnlmp.pdb");
+    SymbolReloadOrDownloadSymbols(FALSE, TRUE);
+}
 
-    return TRUE;
+/**
+ * @brief Build and show symbol table details
+ * 
+ * @return VOID 
+ */
+VOID
+SymbolBuildAndShowSymbolTable()
+{
+    //
+    // Build the symbol table
+    //
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
+
+    //
+    // Test, should be removed
+    // show packet details
+    //
+    for (size_t i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
+    {
+        ShowMessages("is pdb details available? : %s\n", g_SymbolTable[i].IsSymbolDetailsFound ? "true" : "false");
+        ShowMessages("is pdb a path instead of module name? : %s\n", g_SymbolTable[i].IsLocalSymbolPath ? "true" : "false");
+        ShowMessages("base address : %llx\n", g_SymbolTable[i].BaseAddress);
+        ShowMessages("file path : %s\n", g_SymbolTable[i].FilePath);
+        ShowMessages("guid and age : %s\n", g_SymbolTable[i].ModuleSymbolGuidAndAge);
+        ShowMessages("module symbol path/name : %s\n", g_SymbolTable[i].ModuleSymbolPath);
+        ShowMessages("========================================================================\n");
+    }
+}
+
+/**
+ * @brief Reload or download symbols
+ * @param IsDownload Download from remote server if not available locally
+ * @param SilentLoad Load without any message
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
+{
+    WCHAR            ConfigPath[MAX_PATH] = {0};
+    inipp::Ini<char> Ini;
+    string           SymbolServer = "";
+
+    //
+    // Build the symbol table
+    //
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
+
+    //
+    // *** Read symbol path/server from config file ***
+    //
+
+    //
+    // Get config file path
+    //
+    GetConfigFilePath(ConfigPath);
+
+    if (!IsFileExistW(ConfigPath))
+    {
+        ShowMessages("please configure the symbol path (use 'help .sympath' for more information)\n");
+        return FALSE;
+    }
+
+    ifstream Is(ConfigPath);
+
+    //
+    // Read config file
+    //
+    Ini.parse(Is);
+
+    //
+    // Show config file
+    //
+    // Ini.generate(std::cout);
+
+    inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
+
+    Is.close();
+
+    if (SymbolServer.empty())
+    {
+        ShowMessages("err, invalid config for symbol server/path\n");
+        return FALSE;
+    }
+
+    //
+    // Load or download available symbols
+    //
+    return ScriptEngineSymbolInitLoadWrapper(g_SymbolTable,
+                                             g_SymbolTableSize,
+                                             IsDownload,
+                                             SymbolServer.c_str(),
+                                             SilentLoad);
 }
 
 /**
@@ -106,6 +203,17 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
     char                  ModuleSymbolPath[MAX_PATH]                        = {0};
     char                  ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
     BOOLEAN               IsSymbolPdbDetailAvailable                        = FALSE;
+
+    //
+    // Check if we found an already built symbol table
+    //
+    if (g_SymbolTable != NULL)
+    {
+        free(g_SymbolTable);
+
+        g_SymbolTable     = NULL;
+        g_SymbolTableSize = NULL;
+    }
 
     //
     // Get system root
@@ -257,4 +365,3 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
 
     return TRUE;
 }
-

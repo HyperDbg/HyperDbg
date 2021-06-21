@@ -15,11 +15,17 @@
 //			 For symbol (pdb) parsing		    //
 //////////////////////////////////////////////////
 
+VOID
+SymbolBuildAndShowSymbolTable();
+
+BOOLEAN
+SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
+
 BOOLEAN
 SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result);
 
 BOOLEAN
-SymbolLoadNtoskrnlSymbol(UINT64 BaseAddress);
-
-BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength);
+
+VOID
+SymbolInitialReload();
