@@ -22,13 +22,12 @@ CommandSymHelp()
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
     ShowMessages("syntax : \t.sym [table | reload | load | unload | download] [base (hex address)] "
-                 "[path | module name (string path to pdb or module name)]\n");
+                 "[path (string path to pdb)]\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
     ShowMessages("\t\te.g : .sym download\n");
     ShowMessages("\t\te.g : .sym load base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");
     ShowMessages("\t\te.g : .sym unload\n");
-    ShowMessages("\t\te.g : .sym unload win32k\n");
 }
 
 /**
@@ -100,28 +99,23 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // Validate params
         //
-        if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
+        if (SplittedCommand.size() != 2)
         {
             ShowMessages("incorrect use of '.sym'\n\n");
             CommandSymHelp();
             return;
         }
 
-        if (SplittedCommand.size() == 2)
-        {
-            //
-            // unload without any parameters, means that unload
-            // all the symbols
-            //
-            ScriptEngineUnloadAllSymbolsWrapper();
-        }
-        else
-        {
-            //
-            // Size is 3 there is module name
-            //
-            ScriptEngineUnloadModuleSymbolWrapper((char *)SplittedCommand.at(2).c_str());
-        }
+        //
+        // unload without any parameters, means that unload
+        // all the symbols
+        //
+        ScriptEngineUnloadAllSymbolsWrapper();
+
+        //
+        // Size is 3 there is module name (mot working ! I don't know why)
+        //
+        // ScriptEngineUnloadModuleSymbolWrapper((char *)SplittedCommand.at(2).c_str());
     }
     else if (!SplittedCommand.at(1).compare("load"))
     {

@@ -1124,14 +1124,15 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
  * @return BOOLEAN
  */
 BOOLEAN
-SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
-               UINT32                StoredLength,
-               BOOLEAN               DownloadIfAvailable,
-               const char *          SymbolPath,
-               BOOLEAN               IsSilentLoad)
+SymbolInitLoad(PVOID        BufferToStoreDetails,
+               UINT32       StoredLength,
+               BOOLEAN      DownloadIfAvailable,
+               const char * SymbolPath,
+               BOOLEAN      IsSilentLoad)
 {
-    string Tmp, SymDir;
-    string SymPath(SymbolPath);
+    string                Tmp, SymDir;
+    string                SymPath(SymbolPath);
+    PMODULE_SYMBOL_DETAIL BufferToStoreDetailsConverted = (PMODULE_SYMBOL_DETAIL)BufferToStoreDetails;
 
     vector<string> SplitedsymPath = Split(SymPath, '*');
     if (SplitedsymPath.size() < 2)
@@ -1149,7 +1150,7 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
         //
         // Check if symbol pdb detail is available in the module
         //
-        if (!BufferToStoreDetails[i].IsSymbolDetailsFound)
+        if (!BufferToStoreDetailsConverted[i].IsSymbolDetailsFound)
         {
             //
             // Ignore the module
@@ -1160,14 +1161,14 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
         //
         // Check if it's a local path (a path) or a microsoft symbol
         //
-        if (BufferToStoreDetails[i].IsLocalSymbolPath)
+        if (BufferToStoreDetailsConverted[i].IsLocalSymbolPath)
         {
             //
             // If this is a local driver, then load the pdb
             //
-            if (IsFileExists(BufferToStoreDetails[i].ModuleSymbolPath))
+            if (IsFileExists(BufferToStoreDetailsConverted[i].ModuleSymbolPath))
             {
-                BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
+                BufferToStoreDetailsConverted[i].IsSymbolPDBAvaliable = TRUE;
 
                 //
                 // Load symbol locally
@@ -1177,7 +1178,8 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                     printf("loading symbol '%s'...", Tmp.c_str());
                 }
 
-                if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, BufferToStoreDetails[i].ModuleSymbolPath) == 0)
+                if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress,
+                                      BufferToStoreDetailsConverted[i].ModuleSymbolPath) == 0)
                 {
                     if (!IsSilentLoad)
                     {
@@ -1200,25 +1202,25 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
             //
             Tmp = SymDir +
                   "\\" +
-                  BufferToStoreDetails[i].ModuleSymbolPath +
+                  BufferToStoreDetailsConverted[i].ModuleSymbolPath +
                   "\\" +
-                  BufferToStoreDetails[i].ModuleSymbolGuidAndAge +
+                  BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge +
                   "\\" +
-                  BufferToStoreDetails[i].ModuleSymbolPath;
+                  BufferToStoreDetailsConverted[i].ModuleSymbolPath;
 
             //
             // Check if the symbol already download or not
             //
             if (IsFileExists(Tmp))
             {
-                BufferToStoreDetails[i].IsSymbolPDBAvaliable = TRUE;
+                BufferToStoreDetailsConverted[i].IsSymbolPDBAvaliable = TRUE;
 
                 if (!IsSilentLoad)
                 {
                     printf("loading symbol '%s'...", Tmp.c_str());
                 }
 
-                if (SymLoadFileSymbol(BufferToStoreDetails[i].BaseAddress, Tmp.c_str()) == 0)
+                if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress, Tmp.c_str()) == 0)
                 {
                     if (!IsSilentLoad)
                     {
@@ -1240,8 +1242,8 @@ SymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                     //
                     // Download the symbol
                     //
-                    SymbolPDBDownload(BufferToStoreDetails[i].ModuleSymbolPath,
-                                      BufferToStoreDetails[i].ModuleSymbolGuidAndAge,
+                    SymbolPDBDownload(BufferToStoreDetailsConverted[i].ModuleSymbolPath,
+                                      BufferToStoreDetailsConverted[i].ModuleSymbolGuidAndAge,
                                       SymPath,
                                       IsSilentLoad);
                 }

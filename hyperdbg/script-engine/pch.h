@@ -26,7 +26,6 @@
 #    include <string.h>
 #    include <stdint.h>
 
-#    include "Definition.h"
 #    include "common.h"
 #    include "scanner.h"
 #    include "globals.h"

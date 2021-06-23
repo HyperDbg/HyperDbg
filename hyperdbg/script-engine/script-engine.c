@@ -78,7 +78,7 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 }
 
 BOOLEAN
-ScriptEngineSymbolInitLoad(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
+ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails,
                            UINT32                StoredLength,
                            BOOLEAN               DownloadIfAvailable,
                            const char *          SymbolPath,
