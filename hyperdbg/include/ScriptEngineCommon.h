@@ -1,6 +1,6 @@
 /**
  * @file ScriptEngineCommon.h
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
  * @author Alee Amini (aleeaminiz@gmail.com)
  * @brief Shared Headers for Script engine

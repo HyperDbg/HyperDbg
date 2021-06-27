@@ -1,6 +1,6 @@
 /**
  * @file ScriptEngine.c
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @brief Script engine parser and wrapper functions
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file script-engine-wrapper.cpp
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief Interpret general fields
  * @details

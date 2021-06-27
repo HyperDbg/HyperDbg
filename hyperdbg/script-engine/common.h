@@ -14,7 +14,7 @@
 /**
 * @brief init size of token list
 */
-#    define TOKEN_LIST_INIT_SIZE 1024
+#    define TOKEN_LIST_INIT_SIZE 256
 
 /**
 * @brief enumerates possible types for token
@@ -22,7 +22,9 @@
 typedef enum TOKEN_TYPE
 {
     ID,
+    UNRESOLVED_ID,
     DECIMAL,
+    STATE_ID,
     HEX,
     OCTAL,
     BINARY,

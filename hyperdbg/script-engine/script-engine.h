@@ -1,6 +1,6 @@
 /**
  * @file script-engine.h
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1
@@ -46,11 +46,15 @@ __declspec(dllexport) BOOLEAN
 __declspec(dllexport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 
-//
-// *** Exoort script engine functions ***
-//
-#    define SYNTAX_ERROR 0
-#    define UNKOWN_TOKEN 1
+typedef enum _SCRIPT_ENGINE_ERROR_TYPE
+{
+    SCRIPT_ENGINE_ERROR_FREE,
+    SCRIPT_ENGINE_ERROR_SYNTAX,
+    SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN,
+    SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE,
+    SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE
+} SCRIPT_ENGINE_ERROR_TYPE,
+    *PSCRIPT_ENGINE_ERROR_TYPE;
 
 PSYMBOL
 NewSymbol(void);
@@ -77,24 +81,25 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 __declspec(dllexport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 
 PSYMBOL
-ToSymbol(TOKEN Token);
+ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
 char *
 ScriptEngineBooleanExpresssionParse(
-    UINT64         BooleanExpressionSize,
-    TOKEN          FirstToken,
-    TOKEN_LIST     MatchedStack,
-    PSYMBOL_BUFFER CodeBuffer,
-    char *         str,
-    char *         c);
+    UINT64                     BooleanExpressionSize,
+    TOKEN                      FirstToken,
+    TOKEN_LIST                 MatchedStack,
+    PSYMBOL_BUFFER             CodeBuffer,
+    char *                     str,
+    char *                     c,
+    PSCRIPT_ENGINE_ERROR_TYPE  Error);
 
 UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression);
 
 void
-CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator);
+CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 unsigned long long int
 RegisterToInt(char * str);
@@ -106,10 +111,13 @@ unsigned long long int
 SemanticRuleToInt(char * str);
 
 char *
-HandleError(unsigned int ErrorType, char * str);
+HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str);
 
 int
-GetIdentifierVal(TOKEN Token);
+GetIdentifireVal(TOKEN Token);
+
+int
+NewIdentifire(TOKEN Token);
 
 int
 LalrGetRhsSize(int RuleId);

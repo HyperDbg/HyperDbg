@@ -37,7 +37,6 @@ RemoveToken(TOKEN Token)
 {
     free(Token->Value);
     free(Token);
-
     return;
 }
 
@@ -69,6 +68,12 @@ PrintToken(TOKEN Token)
     {
     case ID:
         printf(" ID>\n");
+        break;
+    case UNRESOLVED_ID:
+        printf(" UNRESOLVED_ID>\n");
+        break;
+    case STATE_ID:
+        printf(" STATE_ID>\n");
         break;
     case DECIMAL:
         printf(" DECIMAL>\n");
@@ -205,7 +210,7 @@ RemoveTokenList(TOKEN_LIST TokenList)
     }
     free(TokenList->Head);
     free(TokenList);
-
+   
     return;
 }
 
@@ -434,7 +439,6 @@ FreeTemp(TOKEN Temp)
     {
         TempMap[id] = 0;
     }
-    RemoveToken(Temp);
 }
 
 char
@@ -576,7 +580,7 @@ GetNonTerminalId(TOKEN Token)
         if (!strcmp(Token->Value, NoneTerminalMap[i]))
             return i;
     }
-    return -1;
+    return INVALID;
 }
 
 /**
@@ -594,7 +598,7 @@ GetTerminalId(TOKEN Token)
             if (!strcmp("_hex", TerminalMap[i]))
                 return i;
         }
-        else if (Token->Type == ID)
+        else if (Token->Type == ID || Token->Type == UNRESOLVED_ID)
         {
             if (!strcmp("_id", TerminalMap[i]))
             {
@@ -650,7 +654,7 @@ GetTerminalId(TOKEN Token)
                 return i;
         }
     }
-    return -1;
+    return INVALID;
 }
 
 /**
@@ -666,7 +670,7 @@ LalrGetNonTerminalId(TOKEN Token)
         if (!strcmp(Token->Value, LalrNoneTerminalMap[i]))
             return i;
     }
-    return -1;
+    return INVALID;
 }
 
 /**
@@ -684,7 +688,7 @@ LalrGetTerminalId(TOKEN Token)
             if (!strcmp("_hex", LalrTerminalMap[i]))
                 return i;
         }
-        else if (Token->Type == ID)
+        else if (Token->Type == ID || Token->Type == UNRESOLVED_ID)
         {
             if (!strcmp("_id", LalrTerminalMap[i]))
             {
@@ -740,7 +744,7 @@ LalrGetTerminalId(TOKEN Token)
                 return i;
         }
     }
-    return -1;
+    return INVALID;
 }
 
 /**
@@ -764,6 +768,14 @@ IsEqual(const TOKEN Token1, const TOKEN Token2)
         {
             return 1;
         }
+    }
+    if (Token1->Type == ID && Token2->Type == UNRESOLVED_ID)
+    {
+        return 1;
+    }
+    if (Token1->Type == UNRESOLVED_ID && Token2->Type == ID)
+    {
+        return 1;
     }
     return 0;
 }

@@ -1,6 +1,6 @@
 /**
  * @file scanner.c
- * @author M.H. Gholamrezei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @brief Script Engine Scanner
  * @details
  * @version 0.1
@@ -519,7 +519,22 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        Token->Type = ID;
+                        if (strstr(Token->Value, "!"))
+                        {
+                            Token->Type = UNKNOWN;
+                            return Token;
+                        }
+                        else
+                        {
+                            if (GetIdentifireVal(Token) != -1)
+                            {
+                                Token->Type = ID;
+                            }
+                            else 
+                            {
+                                Token->Type = UNRESOLVED_ID;
+                            }
+                        }
                     }
                 }
                 return Token;
@@ -548,7 +563,22 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        Token->Type = ID;
+                        if (strstr(Token->Value, "!"))
+                        {
+                            Token->Type = UNKNOWN;
+                            return Token;
+                        }
+                        else
+                        {
+                            if (GetIdentifireVal(Token) != -1)
+                            {
+                                Token->Type = ID;
+                            }
+                            else
+                            {
+                                Token->Type = UNRESOLVED_ID;
+                            }
+                        }
                     }
                 }
                 else
@@ -588,7 +618,22 @@ GetToken(char * c, char * str)
                 }
                 else
                 {
-                    Token->Type = ID;
+                    if (strstr(Token->Value, "!"))
+                    {
+                        Token->Type = UNKNOWN;
+                        return Token;
+                    }
+                    else
+                    {
+                        if (GetIdentifireVal(Token) != -1)
+                        {
+                            Token->Type = ID;
+                        }
+                        else
+                        {
+                            Token->Type = UNRESOLVED_ID;
+                        }
+                    }
                 }
             }
             return Token;
