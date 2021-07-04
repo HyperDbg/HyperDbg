@@ -317,7 +317,7 @@ TOKEN
 Top(TOKEN_LIST TokenList)
 {
     //
-    // Calculate address to read most recent token
+    // Calculate address to read most recent pushed token
     //
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer - 1;

@@ -1151,9 +1151,6 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
         // pointers are checked and are safe to access
         //
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-    printf("============================================================\n");
-#endif // SCRIPT_ENGINE_USER_MODE
 
     char    FinalBuffer[PacketChunkSize]              = {0};
     UINT32  CurrentPositionInFinalBuffer              = 0;
@@ -1341,7 +1338,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 // Print final result
 //
 #ifdef SCRIPT_ENGINE_USER_MODE
-    printf("Final Buffer : %s\n", FinalBuffer);
+    printf("%s", FinalBuffer);
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -2063,9 +2060,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2091,9 +2086,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2119,9 +2112,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
     case FUNC_PAUSE:
@@ -2152,9 +2143,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 | SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2209,9 +2198,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 ^ SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2236,9 +2223,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 & SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2263,9 +2248,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 >> SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2290,9 +2273,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 << SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2316,9 +2297,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 + SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2342,9 +2321,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 - SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
     case FUNC_MUL:
@@ -2367,9 +2344,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 * SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2393,9 +2368,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 / SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
     case FUNC_MOD:
@@ -2418,9 +2391,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 % SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2444,9 +2415,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 > SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2470,9 +2439,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 < SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2496,9 +2463,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 >= SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2522,9 +2487,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 <= SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2548,9 +2511,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 == SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2574,9 +2535,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 != SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2595,9 +2554,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                         &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2616,9 +2573,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
     case FUNC_DW:
@@ -2636,9 +2591,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
     case FUNC_DQ:
@@ -2656,9 +2609,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2676,9 +2627,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = ~SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2697,9 +2646,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = 0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
 
         return HasError;
 
@@ -2717,9 +2664,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = -(INT64)SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
         return HasError;
 
     case FUNC_HI:
@@ -2737,9 +2682,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
         return HasError;
 
     case FUNC_LOW:
@@ -2757,9 +2700,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                         &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
         return HasError;
     case FUNC_MOV:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -2774,16 +2715,9 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-        if (Des->Type == SYMBOL_ID_TYPE)
-        {
-#ifdef SCRIPT_ENGINE_USER_MODE
-            ShowMessages("result is %llx\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
-        }
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-        ShowMessages("DesVal = %d\n", DesVal);
-#endif // SCRIPT_ENGINE_USER_MODE
+
+
         return HasError;
 
     case FUNC_PRINT:

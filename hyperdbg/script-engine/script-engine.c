@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file script-engine.c
  * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
  * @author Sina Karvandi (sina@rayanfam.com)
@@ -14,7 +14,7 @@
 
 //#define _SCRIPT_ENGINE_LALR_DBG_EN
 //#define _SCRIPT_ENGINE_LL1_DBG_EN
-#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
+//#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
 *
@@ -108,7 +108,7 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
 {
-    TOKEN_LIST Stack           = NewTokenList();
+    TOKEN_LIST Stack = NewTokenList();
 
     TOKEN_LIST     MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
@@ -190,12 +190,16 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
 
+
+        
+
                 ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
                 }
 
+                RemoveToken(CurrentIn);
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -260,8 +264,11 @@ ScriptEngineParse(char * str)
                 RemoveToken(TopToken);
                 TopToken = Pop(Stack);
 
+               
 
                 Push(MatchedStack, CurrentIn);
+
+           
 
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
@@ -270,7 +277,7 @@ ScriptEngineParse(char * str)
                     break;
                 }
 
-                // char t = getchar();
+               
             }
 
             else
@@ -297,6 +304,7 @@ ScriptEngineParse(char * str)
             {
                 RemoveToken(CurrentIn);
                 CurrentIn = Scan(str, &c);
+                
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -322,9 +330,8 @@ ScriptEngineParse(char * str)
 
     CodeBuffer->Message = ErrorMessage;
 
-    if (Stack)
+     if (Stack)
         RemoveTokenList(Stack);
-
 
     if (MatchedStack)
         RemoveTokenList(MatchedStack);
@@ -346,6 +353,8 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
     TOKEN Op2  = NULL;
     TOKEN Temp = NULL;
 
+    
+
     PSYMBOL OperatorSymbol = NULL;
     PSYMBOL Op0Symbol      = NULL;
     PSYMBOL Op1Symbol      = NULL;
@@ -366,7 +375,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
     PrintTokenList(MatchedStack);
     printf("\n");
 
-
     printf("Code Buffer:\n");
     PrintSymbolBuffer(CodeBuffer);
     printf(".\n.\n.\n\n");
@@ -384,6 +392,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             if (Op1->Type == UNRESOLVED_ID)
             {
                 Op1Symbol        = NewSymbol();
+                free(Op1Symbol->Value);
                 Op1Symbol->Value = NewIdentifire(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
             }
@@ -457,7 +466,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                     }
                     PushSymbol(TempStack, Op1Symbol);
                     FreeTemp(Op1);
-                    
+
                     OperandCount++;
                 }
 
@@ -485,8 +494,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 PushSymbol(CodeBuffer, Symbol);
             }
             RemoveSymbolBuffer(TempStack);
-            
-            
 
             FreeTemp(Op0);
         }
@@ -566,16 +573,21 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
         }
         else if (!strcmp(Operator->Value, "@VARGSTART"))
         {
-            TOKEN OperatorCopy  = NewToken();
+            TOKEN OperatorCopy = NewToken();
+            OperatorCopy->Type = Operator->Type;
             free(OperatorCopy->Value);
             OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
             strcpy(OperatorCopy->Value, Operator->Value);
-            OperatorCopy->Type = Operator->Type;
             Push(MatchedStack, OperatorCopy);
         }
         else if (!strcmp(Operator->Value, "@START_OF_IF"))
         {
-            Push(MatchedStack, Operator);
+            TOKEN OperatorCopy = NewToken();
+            OperatorCopy->Type = Operator->Type;
+            free(OperatorCopy->Value);
+            OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
+            strcpy(OperatorCopy->Value, Operator->Value);
+            Push(MatchedStack, OperatorCopy);
         }
         else if (!strcmp(Operator->Value, "@JZ"))
         {
@@ -617,6 +629,9 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
             PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
             JumpAddressSymbol->Value         = CurrentPointer + 2;
+            RemoveToken(JumpSemanticAddressToken);
+
+
 
             //
             // Add jmp instruction to Code Buffer
@@ -659,8 +674,9 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 UINT64 JumpSemanticAddress = DecimalToInt(JumpSemanticAddressToken->Value);
                 JumpAddressSymbol          = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
                 JumpAddressSymbol->Value   = CurrentPointer;
-                RemoveToken(JumpSemanticAddressToken);
 
+
+                RemoveToken(JumpSemanticAddressToken);
                 JumpSemanticAddressToken = Pop(MatchedStack);
             }
             RemoveToken(JumpSemanticAddressToken);
@@ -670,7 +686,12 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             //
             // Push @START_OF_WHILE token into matched stack
             //
-            Push(MatchedStack, Operator);
+            TOKEN OperatorCopy = NewToken();
+            OperatorCopy->Type = Operator->Type;
+            free(OperatorCopy->Value);
+            OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
+            strcpy(OperatorCopy->Value, Operator->Value);
+            Push(MatchedStack, OperatorCopy);
 
             UINT64 CurrentPointer      = CodeBuffer->Pointer;
             TOKEN  CurrentAddressToken = NewToken();
@@ -689,9 +710,11 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             JzToken->Type         = SEMANTIC_RULE;
             free(JzToken->Value);
 
-            char * str            = malloc(strlen("@JZ") + 1);
+            char * str = malloc(strlen("@JZ") + 1);
             strcpy(str, "@JZ");
             JzToken->Value = str;
+
+            RemoveSymbol(OperatorSymbol);
             OperatorSymbol = ToSymbol(JzToken, Error);
             RemoveToken(JzToken);
 
@@ -708,9 +731,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type = DECIMAL;
             free(CurrentAddressToken->Value);
 
-
-
-            str                       = malloc(16);
+            str = malloc(16);
             sprintf(str, "%llu", CurrentPointer + 1);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -763,6 +784,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 
             do
             {
+                RemoveToken(JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_WHILE"))
                 {
@@ -773,13 +795,19 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 JumpAddressSymbol->Value = CurrentPointer;
 
             } while (TRUE);
+            RemoveToken(JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_DO_WHILE"))
         {
             //
             // Push @START_OF_DO_WHILE token into matched stack
             //
-            Push(MatchedStack, Operator);
+            TOKEN OperatorCopy = NewToken();
+            OperatorCopy->Type = Operator->Type;
+            free(OperatorCopy->Value);
+            OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
+            strcpy(OperatorCopy->Value, Operator->Value);
+            Push(MatchedStack, OperatorCopy);
 
             UINT64 CurrentPointer      = CodeBuffer->Pointer;
             TOKEN  CurrentAddressToken = NewToken();
@@ -820,7 +848,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
 
             RemoveSymbol(JumpAddressSymbol);
-            RemoveToken(JumpAddressToken);
+            
 
             FreeTemp(Op0);
 
@@ -837,6 +865,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 
             do
             {
+                RemoveToken(JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_DO_WHILE"))
                 {
@@ -848,13 +877,19 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 JumpAddressSymbol->Value = CurrentPointer;
 
             } while (TRUE);
+            RemoveToken(JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_FOR"))
         {
             //
             // Push @START_OF_FOR token into matched stack
             //
-            Push(MatchedStack, Operator);
+            TOKEN OperatorCopy = NewToken();
+            OperatorCopy->Type = Operator->Type;
+            free(OperatorCopy->Value);
+            OperatorCopy->Value = malloc(strlen(Operator->Value) + 1);
+            strcpy(OperatorCopy->Value, Operator->Value);
+            Push(MatchedStack, OperatorCopy);
 
             //
             // Push current pointer into matched stack
@@ -996,7 +1031,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             JzAddressToken->Type = DECIMAL;
             free(JzAddressToken->Value);
 
-            char * str           = malloc(16);
+            char * str = malloc(16);
             sprintf(str, "%llu", JumpAddress - 4);
             JzAddressToken->Value = str;
             Push(MatchedStack, JzAddressToken);
@@ -1008,7 +1043,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             IncDecToken->Type = SEMANTIC_RULE;
             free(IncDecToken->Value);
 
-            str               = malloc(strlen("@INC_DEC") + 1);
+            str = malloc(strlen("@INC_DEC") + 1);
             strcpy(str, "@INC_DEC");
             IncDecToken->Value = str;
             Push(MatchedStack, IncDecToken);
@@ -1043,6 +1078,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             RemoveSymbol(JumpAddressSymbol);
+            RemoveToken(JumpAddressToken);
 
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
@@ -1050,6 +1086,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             }
 
             JumpAddressToken = Pop(MatchedStack);
+            
 
             //
             // Set jumps addresses
@@ -1059,6 +1096,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 
             do
             {
+                RemoveToken(JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_FOR"))
                 {
@@ -1067,12 +1105,13 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 else
                 {
                     JumpAddress = DecimalToInt(JumpAddressToken->Value);
-                    RemoveToken(JumpAddressToken);
+                    
                     JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
                     JumpAddressSymbol->Value = CurrentPointer;
                 }
 
             } while (TRUE);
+            RemoveToken(JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@BREAK"))
         {
@@ -1233,7 +1272,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
     PrintTokenList(MatchedStack);
     printf("\n");
 
-
     printf("Code Buffer:\n");
     PrintSymbolBuffer(CodeBuffer);
     printf("------------------------------------------\n\n");
@@ -1317,8 +1355,8 @@ ScriptEngineBooleanExpresssionParse(
 {
     TOKEN_LIST Stack = NewTokenList();
 
-    TOKEN State  = NewToken();
-    State->Type  = STATE_ID;
+    TOKEN State = NewToken();
+    State->Type = STATE_ID;
     free(State->Value);
     State->Value = malloc(strlen("0") + 1);
     strcpy(State->Value, "0");
@@ -1331,17 +1369,18 @@ ScriptEngineBooleanExpresssionParse(
     TOKEN EndToken = NewToken();
     EndToken->Type = END_OF_STACK;
     free(EndToken->Value);
+    EndToken->Value = malloc(strlen("$") + 1);
     strcpy(EndToken->Value, "$");
 
     TOKEN CurrentIn = NewToken();
     CurrentIn->Type = FirstToken->Type;
     free(CurrentIn->Value);
+    CurrentIn->Value = malloc(strlen(FirstToken->Value) + 1);
     strcpy(CurrentIn->Value, FirstToken->Value);
 
-
-    TOKEN TopToken  = NULL;
-    TOKEN Lhs       = NULL;
-    TOKEN Temp      = NULL;
+    TOKEN TopToken     = NULL;
+    TOKEN Lhs          = NULL;
+    TOKEN Temp         = NULL;
     TOKEN Operand      = NULL;
     TOKEN SemanticRule = NULL;
 
@@ -1360,8 +1399,7 @@ ScriptEngineBooleanExpresssionParse(
         StateId        = DecimalToSignedInt(TopToken->Value);
         if (StateId == INVALID)
         {
-            *Error         = SCRIPT_ENGINE_ERROR_SYNTAX;
-            break;
+            return;
         }
         Action = LalrActionTable[StateId][TerminalId];
 
@@ -1386,8 +1424,9 @@ ScriptEngineBooleanExpresssionParse(
             StateId = Action;
             Push(Stack, CurrentIn);
 
-            State        = NewToken();
-            State->Type  = STATE_ID;
+
+            State       = NewToken();
+            State->Type = STATE_ID;
             free(State->Value);
 
             State->Value = malloc(4);
@@ -1397,18 +1436,18 @@ ScriptEngineBooleanExpresssionParse(
             InputIdxTemp = InputIdx;
             Ctemp        = *c;
 
-            RemoveToken(CurrentIn);
-            CurrentIn    = Scan(str, c);
+            CurrentIn = Scan(str, c);
             if (InputIdx - 1 > BooleanExpressionSize)
             {
-                InputIdx  = InputIdxTemp;
-                *c        = Ctemp;
+                InputIdx = InputIdxTemp;
+                *c       = Ctemp;
 
                 RemoveToken(CurrentIn);
 
-                CurrentIn = NewToken();
+                CurrentIn       = NewToken();
                 CurrentIn->Type = EndToken->Type;
                 free(CurrentIn->Value);
+                CurrentIn->Value = malloc(strlen(EndToken->Value) + 1);
                 strcpy(CurrentIn->Value, EndToken->Value);
             }
         }
@@ -1419,6 +1458,8 @@ ScriptEngineBooleanExpresssionParse(
             RhsSize      = LalrGetRhsSize(StateId - 1);
             SemanticRule = &LalrSemanticRules[StateId - 1];
 
+            
+
             for (int i = 0; i < 2 * RhsSize; i++)
             {
                 Temp = Pop(Stack);
@@ -1427,15 +1468,24 @@ ScriptEngineBooleanExpresssionParse(
                     if (LalrIsOperandType(Temp))
                     {
                         Operand = Temp;
+                        Push(MatchedStack, Operand);
+                    }
+                    else
+                    {
+                        RemoveToken(Temp);
                     }
                 }
-
+                else
+                {
+                    RemoveToken(Temp);     
+                }
             }
             if (SemanticRule->Type == SEMANTIC_RULE)
             {
                 if (!strcmp(SemanticRule->Value, "@PUSH"))
                 {
-                    Push(MatchedStack, Operand);
+
+                    
                 }
                 else
                 {
@@ -1449,23 +1499,28 @@ ScriptEngineBooleanExpresssionParse(
 
             Temp    = Top(Stack);
             StateId = DecimalToSignedInt(Temp->Value);
-            RemoveToken(Temp);
 
             Goto = LalrGotoTable[StateId][LalrGetNonTerminalId(Lhs)];
-               
+
             TOKEN LhsCopy = NewToken();
             LhsCopy->Type = Lhs->Type;
             free(LhsCopy->Value);
+            LhsCopy->Value = malloc(strlen(Lhs->Value) + 1);
             strcpy(LhsCopy->Value, Lhs->Value);
 
-            State        = NewToken();
-            State->Type  = STATE_ID;
+            State       = NewToken();
+            State->Type = STATE_ID;
             free(State->Value);
 
             State->Value = malloc(4);
             sprintf(State->Value, "%d", Goto);
             Push(Stack, LhsCopy);
             Push(Stack, State);
+
+#ifdef _SCRIPT_ENGINE_LALR_DBG_EN
+            printf("Stack :\n");
+            PrintTokenList(Stack);
+#endif
         }
     }
 
@@ -1476,16 +1531,18 @@ ScriptEngineBooleanExpresssionParse(
         CodeBuffer->Message = Message;
     }
 
-
     if (EndToken)
         RemoveToken(EndToken);
+
     
-    PrintTokenList(Stack);
     if (Stack)
         RemoveTokenList(Stack);
+
+    if (CurrentIn)
+        RemoveToken(CurrentIn);
+
     
-    
-    
+
     return Message;
 }
 /**
