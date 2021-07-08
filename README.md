@@ -10,8 +10,7 @@
 
 # HyperDbg Debugger 
 
-### (HyperDbg is in the TESTING phase - YOU SHOULD NOT USE IT, but you can observe codes, please wait for first release in late June 2021)
-#### We planned for first-release in late June 2021
+### HyperDbg is now available for tests! Please test it and provide us with your valueable feedback and possible bugs.
 
 **HyperDbg** Debugger is an open-source, community-driven, hypervisor-assisted, user-mode and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing and reversing.
 
