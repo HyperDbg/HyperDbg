@@ -1,12 +1,13 @@
 /**
  * @file Ept.c
  * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Gbps
  * @brief The implementation of functions relating to the Extended Page Table (a.k.a. EPT)
- * @details
+ * @details Some of the codes are re-used from Gbps/gbhv (https://github.com/Gbps/gbhv)
  * @version 0.1
  * @date 2020-04-10
  * 
- * @copyright This project is released under the GNU Public License v3.
+ * @copyright This project is released under the GNU Public License v3. The re-used codes from Gbps/gbhv are under CC 4.0 AL terms.
  * 
  */
 #include "pch.h"
