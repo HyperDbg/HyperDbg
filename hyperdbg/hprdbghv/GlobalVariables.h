@@ -223,3 +223,10 @@ UINT64 g_KernelTestR15;
 UINT64 g_KernelTestR14;
 UINT64 g_KernelTestR13;
 UINT64 g_KernelTestR12;
+
+/**
+ * @brief Shows whether the debuggee is waiting for an 
+ * trap step or not
+ * 
+ */
+BOOLEAN g_IsUnsafeSyscallOrSysretHandling;

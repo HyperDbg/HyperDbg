@@ -303,7 +303,7 @@
 typedef struct _MODULE_SYMBOL_DETAIL
 {
     BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
-    BOOLEAN IsLocalSymbolPath;     // TRUE if the ModuleSymbolPath is a real path
+    BOOLEAN IsLocalSymbolPath;    // TRUE if the ModuleSymbolPath is a real path
                                   // and FALSE if ModuleSymbolPath is just a module name
     BOOLEAN IsSymbolPDBAvaliable; // TRUE if the Module's pdb is avilable(if exists in the sympath)
     UINT64  BaseAddress;
@@ -476,6 +476,17 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM
     RUN_CUSTOM_CODE
 
 } DEBUGGER_EVENT_ACTION_TYPE_ENUM;
+
+/**
+ * @brief Type of handling !syscall or !sysret
+ *
+ */
+typedef enum _DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE
+{
+    DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY = 0,
+    DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD      = 1,
+
+} DEBUGGER_EVENT_SYSCALL_SYSRET_TYPE;
 
 /**
  * @brief Each command is like the following struct, it also used for

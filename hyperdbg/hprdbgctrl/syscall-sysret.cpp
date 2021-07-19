@@ -20,16 +20,21 @@ VOID
 CommandSyscallHelp()
 {
     ShowMessages("!syscall : Monitors and hooks all execution of syscall "
-                 "instructions.\n\n");
+                 "instructions (by accessing memory and checking for instructions).\n\n");
+    ShowMessages("!syscall2 : Monitors and hooks all execution of syscall "
+                 "instructions (by emulating all #UDs).\n\n");
     ShowMessages("syntax : \t!syscall [syscall num (hex)] core [core index "
                  "(hex value)] pid [process id (hex value)] condition {[assembly "
                  "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
                  "(hex value)] \n");
 
     ShowMessages("\t\te.g : !syscall\n");
+    ShowMessages("\t\te.g : !syscall2\n");
     ShowMessages("\t\te.g : !syscall 0x55\n");
+    ShowMessages("\t\te.g : !syscall2 0x55\n");
     ShowMessages("\t\te.g : !syscall 0x55 pid 400\n");
     ShowMessages("\t\te.g : !syscall 0x55 core 2 pid 400\n");
+    ShowMessages("\t\te.g : !syscall2 0x55 core 2 pid 400\n");
 }
 
 /**
@@ -41,19 +46,24 @@ VOID
 CommandSysretHelp()
 {
     ShowMessages("!sysret : Monitors and hooks all execution of sysret "
-                 "instructions.\n\n");
+                 "instructions (by accessing memory and checking for instructions).\n\n");
+    ShowMessages("!sysret2 : Monitors and hooks all execution of sysret "
+                 "instructions (by emulating all #UDs).\n\n");
     ShowMessages("syntax : \t!sysret core [core index "
                  "(hex value)] pid [process id (hex value)] condition {[assembly "
                  "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
                  "(hex value)] \n");
 
     ShowMessages("\t\te.g : !sysret\n");
+    ShowMessages("\t\te.g : !sysret2\n");
     ShowMessages("\t\te.g : !sysret pid 400\n");
+    ShowMessages("\t\te.g : !sysret2 pid 400\n");
     ShowMessages("\t\te.g : !sysret core 2 pid 400\n");
+    ShowMessages("\t\te.g : !sysret2 core 2 pid 400\n");
 }
 
 /**
- * @brief !syscall and !sysret commands handler
+ * @brief !syscall, !syscall2 and !sysret, !sysret2 commands handler
  *
  * @param SplittedCommand
  * @param Command
@@ -78,7 +88,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     //
-    if (!SplittedCommand.at(0).compare("!syscall"))
+    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
     {
         if (!InterpretGeneralEventAndActionsFields(
                 &SplittedCommand,
@@ -127,14 +137,18 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // and we don't wanna deal with dynamic mapping of rcx (user stack)
     // in vmx-root
     //
-    if (!SplittedCommand.at(0).compare("!syscall"))
+    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
     {
         for (auto Section : SplittedCommand)
         {
-            if (!Section.compare("!syscall") || !Section.compare("!sysret"))
+            if (!Section.compare("!syscall") ||
+                !Section.compare("!syscall2") ||
+                !Section.compare("!sysret") ||
+                !Section.compare("!sysret2"))
             {
                 continue;
             }
+
             else if (!GetSyscallNumber)
             {
                 //
@@ -146,7 +160,8 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                     // Unkonwn parameter
                     //
                     ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
-                    if (!SplittedCommand.at(0).compare("!syscall"))
+
+                    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
                     {
                         CommandSyscallHelp();
                     }
@@ -167,7 +182,8 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                 // Unkonwn parameter
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
-                if (!SplittedCommand.at(0).compare("!syscall"))
+
+                if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
                 {
                     CommandSyscallHelp();
                 }
@@ -183,6 +199,24 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
         // Set the target syscall
         //
         Event->OptionalParam1 = SpecialTarget;
+    }
+
+    //
+    // Set whether it's !syscall or !syscall2 or !sysret or !sysret2
+    //
+    if (!SplittedCommand.at(0).compare("!syscall2") || !SplittedCommand.at(0).compare("!sysret2"))
+    {
+        //
+        // It's a !syscall2 or !sysret2
+        //
+        Event->OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD;
+    }
+    else
+    {
+        //
+        // It's a !syscall or !sysret
+        //
+        Event->OptionalParam2 = DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY;
     }
 
     //

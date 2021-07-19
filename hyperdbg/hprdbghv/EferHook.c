@@ -234,77 +234,102 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     //
     __vmx_vmread(GUEST_RIP, &Rip);
 
-    //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
-    //
-
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
-
-    if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+    if (g_IsUnsafeSyscallOrSysretHandling)
     {
-        OriginalCr3 = __readcr3();
-
-        __writecr3(GuestCr3.Flags);
-
         //
-        // Read the memory
+        // In some computers, we realized that safe accessing to memory
+        // is problematic. It means that our syscall approach might not
+        // working properly.
+        // Based on our tests, we realized that system doesn't generate #UD
+        // regularly. So, we can imagine that only kernel addresses are SYSRET
+        // instruction and SYSCALL is on a user-mode RIP.
+        // It's faster than our safe methods but if the system generates a #UD
+        // then a BSOD will happen. But if the system is working regularly, then
+        // no BSOD happens. For more information, see documentation at !syscall2
+        // or !sysret2 commands
         //
-        CHAR * InstructionBuffer[3] = {0};
-
-        if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
+        if (Rip & 0xff00000000000000)
         {
-            //
-            // The page is safe to read (present)
-            //
-            MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
+            goto EmulateSYSRET;
         }
         else
         {
-            //
-            // The page is not present, we have to inject a #PF
-            //
-            g_GuestState[CoreIndex].IncrementRip = FALSE;
-
-            //
-            // For testing purpose
-            //
-            // LogInfo("#PF Injected.");
-
-            //
-            // Inject #PF
-            //
-            EventInjectPageFault(Rip);
-
-            //
-            // We should not inject #UD
-            //
-            return FALSE;
-        }
-
-        if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
-        {
-            __writecr3(OriginalCr3);
-            goto EmulateSYSRET;
-        }
-        if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
-        {
-            __writecr3(OriginalCr3);
             goto EmulateSYSCALL;
         }
-        __writecr3(OriginalCr3);
-        return FALSE;
     }
     else
     {
-        if (IS_SYSRET_INSTRUCTION(Rip))
-            goto EmulateSYSRET;
-        if (IS_SYSCALL_INSTRUCTION(Rip))
-            goto EmulateSYSCALL;
-        return FALSE;
-    }
+        //
+        // Due to KVA Shadowing, we need to switch to a different directory table base
+        // if the PCID indicates this is a user mode directory table base.
+        //
 
+        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+        GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+        {
+            OriginalCr3 = __readcr3();
+
+            __writecr3(GuestCr3.Flags);
+
+            //
+            // Read the memory
+            //
+            CHAR * InstructionBuffer[3] = {0};
+
+            if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
+            {
+                //
+                // The page is safe to read (present)
+                //
+                MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
+            }
+            else
+            {
+                //
+                // The page is not present, we have to inject a #PF
+                //
+                g_GuestState[CoreIndex].IncrementRip = FALSE;
+
+                //
+                // For testing purpose
+                //
+                // LogInfo("#PF Injected.");
+
+                //
+                // Inject #PF
+                //
+                EventInjectPageFault(Rip);
+
+                //
+                // We should not inject #UD
+                //
+                return FALSE;
+            }
+
+            if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
+            {
+                __writecr3(OriginalCr3);
+                goto EmulateSYSRET;
+            }
+            if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
+            {
+                __writecr3(OriginalCr3);
+                goto EmulateSYSCALL;
+            }
+            __writecr3(OriginalCr3);
+            return FALSE;
+        }
+        else
+        {
+            if (IS_SYSRET_INSTRUCTION(Rip))
+                goto EmulateSYSRET;
+            if (IS_SYSCALL_INSTRUCTION(Rip))
+                goto EmulateSYSCALL;
+            return FALSE;
+        }
+    }
     //----------------------------------------------------------------------------------------
 
     //
@@ -313,8 +338,6 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 EmulateSYSRET:
     //
     // Test
-    //
-
     //
     // LogInfo("SYSRET instruction => 0x%llX", Rip);
     //
@@ -336,8 +359,6 @@ EmulateSYSCALL:
 
     //
     // Test
-    //
-
     //
     // LogInfo("SYSCALL instruction => 0x%llX , Process Id : 0x%x", Rip, PsGetCurrentProcessId());
     //

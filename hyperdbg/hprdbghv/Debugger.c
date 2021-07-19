@@ -806,6 +806,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case HIDDEN_HOOK_READ_AND_WRITE:
         case HIDDEN_HOOK_READ:
         case HIDDEN_HOOK_WRITE:
@@ -826,6 +827,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case HIDDEN_HOOK_EXEC_CC:
         case HIDDEN_HOOK_EXEC_DETOURS:
             //
@@ -852,6 +854,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case RDMSR_INSTRUCTION_EXECUTION:
         case WRMSR_INSTRUCTION_EXECUTION:
             //
@@ -865,6 +868,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case EXCEPTION_OCCURRED:
             //
             // check if exception is what we need or not
@@ -877,6 +881,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case IN_INSTRUCTION_EXECUTION:
         case OUT_INSTRUCTION_EXECUTION:
             //
@@ -890,6 +895,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
             break;
+
         case SYSCALL_HOOK_EFER_SYSCALL:
 
             //
@@ -908,7 +914,9 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+
             break;
+
         default:
             break;
         }
@@ -2221,6 +2229,18 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
         // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
         //
+
+        //
+        // whether it's a !syscall2 or !sysret2
+        //
+        if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_HANDLE_ALL_UD)
+        {
+            g_IsUnsafeSyscallOrSysretHandling = TRUE;
+        }
+        else if (EventDetails->OptionalParam2 == DEBUGGER_EVENT_SYSCALL_SYSRET_SAFE_ACCESS_MEMORY)
+        {
+            g_IsUnsafeSyscallOrSysretHandling = FALSE;
+        }
 
         //
         // Let's see if it is for all cores or just one core
