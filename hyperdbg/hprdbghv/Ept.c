@@ -290,6 +290,13 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
     EntryTemplate.ExecuteAccess = 1;
 
     //
+    // copy other bits from target entry
+    //
+    EntryTemplate.MemoryType = TargetEntry->MemoryType;
+    EntryTemplate.IgnorePat  = TargetEntry->IgnorePat;
+    EntryTemplate.SuppressVe = TargetEntry->SuppressVe;
+
+    //
     // Copy the template into all the PML1 entries
     //
     __stosq((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.Flags, VMM_EPT_PML1E_COUNT);
