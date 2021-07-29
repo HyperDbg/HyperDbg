@@ -53,7 +53,7 @@ ShowMessages(const char * Fmt, ...)
 {
     va_list ArgList;
     va_list Args;
-    char    TempMessage[PacketChunkSize] = {0};
+    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
 
     if (g_MessageHandler == NULL && !g_IsConnectedToRemoteDebugger &&
         !g_IsSerialConnectedToRemoteDebugger)
@@ -68,7 +68,7 @@ ShowMessages(const char * Fmt, ...)
     }
 
     va_start(ArgList, Fmt);
-    int sprintfresult = vsprintf(TempMessage, Fmt, ArgList);
+    int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
     va_end(ArgList);
 
     if (sprintfresult != -1)

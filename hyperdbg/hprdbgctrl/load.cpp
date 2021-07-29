@@ -50,7 +50,7 @@ CommandLoadVmmModule()
         OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken);
     if (!Status)
     {
-        ShowMessages("err, OpenProcessToken failed (%u) \n");
+        ShowMessages("err, OpenProcessToken failed (%u)\n", GetLastError());
         return FALSE;
     }
 
