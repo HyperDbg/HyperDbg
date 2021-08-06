@@ -157,7 +157,7 @@ ReadIrpBasedBuffer()
             ShowMessages("err, CreateFile failed with (0x%x)\n", ErrorNum);
         }
 
-        g_DeviceHandle = NULL;
+        Handle = NULL;
         return;
     }
 
@@ -403,6 +403,15 @@ ReadIrpBasedBuffer()
                 // the thread should not work anymore
                 //
                 free(OutputBuffer);
+
+                //
+                // closeHandle
+                //
+                if (!CloseHandle(Handle))
+                {
+                    ShowMessages("err, closing handle 0x%x\n", GetLastError());
+                };
+
                 return;
             }
         }
@@ -412,6 +421,14 @@ ReadIrpBasedBuffer()
         ShowMessages(" Exception !\n");
     }
     free(OutputBuffer);
+
+    //
+    // closeHandle
+    //
+    if (!CloseHandle(Handle))
+    {
+        ShowMessages("err, closing handle 0x%x\n", GetLastError());
+    };
 }
 
 /**
