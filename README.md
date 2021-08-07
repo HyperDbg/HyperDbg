@@ -8,13 +8,13 @@
 
 <a href="https://hyperdbg.com/"><img align="right" width="150" height="150" src="https://github.com/HyperDbg/graphics/raw/master/Art%20Board/HyperDbg-Cat.Circle.Compressed.png" alt="HyperDbg Debugger"></a></br>
 
-# HyperDbg Debugger 
+# HyperDbg Debugger
 
-### HyperDbg is now available for tests! Please test it and provide us with your valueable feedback and possible bugs.
+### HyperDbg is now available for testing! Please test it and provide us with your valuable feedback and possible bugs.
 
 **HyperDbg** Debugger is an open-source, community-driven, hypervisor-assisted, user-mode and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing and reversing.
 
-Follow **HyperDbg** on **Twitter** to get notified about new releases ! 
+Follow **HyperDbg** on **Twitter** to get notified about new releases!
 <p align="center">(https://twitter.com/HyperDbg)</p>
 
 ## Description
@@ -44,7 +44,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * Debug Registers Hook & Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/dr" target="_blank">link</a>]
 * I/O Port (In Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioin" target="_blank">link</a>]
 * I/O Port (Out Instruction) Hook & Monitor  [<a href="https://docs.hyperdbg.com/commands/extension-commands/ioout" target="_blank">link</a>]
-* MMIO Monitor 
+* MMIO Monitor
 * Exception (IDT < 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/exception" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/vmm-module/design-of-exception-and-interrupt" target="_blank">link</a>]
 * External-Interrupt (IDT > 32) Monitor [<a href="https://docs.hyperdbg.com/commands/extension-commands/interrupt" target="_blank">link</a>][<a href="https://docs.hyperdbg.com/design/features/vmm-module/design-of-exception-and-interrupt" target="_blank">link</a>]
 * Running Automated Scripts [<a href="https://docs.hyperdbg.com/using-hyperdbg/examples/running-hyperdbg-script" target="_blank">link</a>]
