@@ -500,26 +500,32 @@ EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
     TargetBuffer[4] = 0x00;
 
     //
-    // mov r11, Target
+    // push Lower 4-byte TargetAddress
     //
-    TargetBuffer[5] = 0x49;
-    TargetBuffer[6] = 0xBB;
+    TargetBuffer[5] = 0x68;
 
     //
-    // Target
+    // Lower 4-byte TargetAddress
     //
-    *((PSIZE_T)&TargetBuffer[7]) = TargetAddress;
+    *((PUINT32)&TargetBuffer[6]) = (UINT32)TargetAddress;
 
     //
-    // push r11
+    // mov [rsp+4],High 4-byte TargetAddress
     //
-    TargetBuffer[15] = 0x41;
-    TargetBuffer[16] = 0x53;
+    TargetBuffer[10] = 0xC7;
+    TargetBuffer[11] = 0x44;
+    TargetBuffer[12] = 0x24;
+    TargetBuffer[13] = 0x04;
+
+    //
+    // High 4-byte TargetAddress
+    //
+    *((PUINT32)&TargetBuffer[14]) = (UINT32)(TargetAddress >> 32);
 
     //
     // ret
     //
-    TargetBuffer[17] = 0xC3;
+    TargetBuffer[18] = 0xC3;
 }
 
 /**
@@ -533,26 +539,32 @@ VOID
 EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
 {
     //
-    // mov r11, Target
+    // push Lower 4-byte TargetAddress
     //
-    TargetBuffer[0] = 0x49;
-    TargetBuffer[1] = 0xBB;
+    TargetBuffer[0] = 0x68;
+
+    // 
+    // Lower 4-byte TargetAddress
+    //
+    *((PUINT32)&TargetBuffer[1]) = (UINT32)TargetAddress;
 
     //
-    // Target
+    // mov [rsp+4],High 4-byte TargetAddress
     //
-    *((PSIZE_T)&TargetBuffer[2]) = TargetAddress;
+    TargetBuffer[5] = 0xC7;
+    TargetBuffer[6] = 0x44;
+    TargetBuffer[7] = 0x24;
+    TargetBuffer[8] = 0x04;
 
     //
-    // push r11
+    // High 4-byte TargetAddress
     //
-    TargetBuffer[10] = 0x41;
-    TargetBuffer[11] = 0x53;
+    *((PUINT32)&TargetBuffer[9]) = (UINT32)(TargetAddress >> 32);
 
     //
     // ret
     //
-    TargetBuffer[12] = 0xC3;
+    TargetBuffer[13] = 0xC3;
 }
 
 /**
@@ -576,7 +588,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
     OffsetIntoPage = ADDRMASK_EPT_PML1_OFFSET((SIZE_T)TargetFunction);
     LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
 
-    if ((OffsetIntoPage + 18) > PAGE_SIZE - 1)
+    if ((OffsetIntoPage + 19) > PAGE_SIZE - 1)
     {
         LogError("Function extends past a page boundary. We just don't have the technology to solve this.....");
         return FALSE;
@@ -586,7 +598,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
     // Determine the number of instructions necessary to overwrite using Length Disassembler Engine
     //
     for (SizeOfHookedInstructions = 0;
-         SizeOfHookedInstructions < 18;
+         SizeOfHookedInstructions < 19;
          SizeOfHookedInstructions += ldisasm(((UINT64)TargetFunctionInSafeMemory + SizeOfHookedInstructions), TRUE))
     {
         //
