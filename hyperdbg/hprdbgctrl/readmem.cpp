@@ -129,7 +129,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 void
 ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    CHAR Character;
+    unsigned int Character;
 
     for (int i = 0; i < Size; i += 16)
     {
@@ -197,7 +197,7 @@ ShowMemoryCommandDB(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEB
 void
 ShowMemoryCommandDC(unsigned char * OutputBuffer, UINT Size, UINT64 Address, DEBUGGER_READ_MEMORY_TYPE MemoryType, UINT64 Length)
 {
-    CHAR Character;
+    unsigned int Character;
     for (int i = 0; i < Size; i += 16)
     {
         if (MemoryType == DEBUGGER_READ_PHYSICAL_ADDRESS)
