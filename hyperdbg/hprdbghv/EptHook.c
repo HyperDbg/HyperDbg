@@ -543,7 +543,7 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
     //
     TargetBuffer[0] = 0x68;
 
-    // 
+    //
     // Lower 4-byte TargetAddress
     //
     *((PUINT32)&TargetBuffer[1]) = (UINT32)TargetAddress;
@@ -586,7 +586,12 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
     CR3_TYPE                     Cr3OfCurrentProcess;
 
     OffsetIntoPage = ADDRMASK_EPT_PML1_OFFSET((SIZE_T)TargetFunction);
-    LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
+
+    //
+    // Log offset
+    //
+    // LogInfo("OffsetIntoPage: 0x%llx", OffsetIntoPage);
+    //
 
     if ((OffsetIntoPage + 19) > PAGE_SIZE - 1)
     {
@@ -1018,7 +1023,12 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
 
         if (AsmVmxVmcall(VmcallNumber, TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId).Flags) == STATUS_SUCCESS)
         {
-            LogInfo("Hook applied from VMX Root Mode");
+            //
+            // Test log
+            //
+            // LogInfo("Hook applied from VMX Root Mode");
+            //
+
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
             {
                 //

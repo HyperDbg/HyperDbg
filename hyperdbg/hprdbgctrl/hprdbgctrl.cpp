@@ -156,8 +156,8 @@ ReadIrpBasedBuffer()
         {
             ShowMessages("err, CreateFile failed with (0x%x)\n", ErrorNum);
         }
-
-        Handle = NULL;
+        g_DeviceHandle = NULL;
+        Handle         = NULL;
         return;
     }
 
