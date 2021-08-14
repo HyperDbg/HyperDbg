@@ -1142,15 +1142,14 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
     if (*HasError)
         return;
 
-        //
-        // Call printf
-        //
+    //
+    // Call printf
+    //
 
-        //
-        // When we're here, all the pointers are the pointers including %ws and %s
-        // pointers are checked and are safe to access
-        //
-
+    //
+    // When we're here, all the pointers are the pointers including %ws and %s
+    // pointers are checked and are safe to access
+    //
 
     char    FinalBuffer[PacketChunkSize]              = {0};
     UINT32  CurrentPositionInFinalBuffer              = 0;
@@ -2060,8 +2059,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_EB:
@@ -2086,8 +2083,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_EQ:
@@ -2111,8 +2106,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = ScriptEngineFunctionEq(SrcVal0, SrcVal1, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
     case FUNC_PAUSE:
@@ -2142,8 +2135,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 | SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2198,8 +2189,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 ^ SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_AND:
@@ -2222,8 +2211,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 & SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2248,8 +2235,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 >> SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_ASL:
@@ -2273,8 +2258,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 << SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_ADD:
@@ -2296,8 +2279,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 + SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2321,8 +2302,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 - SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
     case FUNC_MUL:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -2343,8 +2322,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 * SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2368,8 +2345,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 / SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
     case FUNC_MOD:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -2390,8 +2365,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 % SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2415,8 +2388,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 > SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_LT:
@@ -2438,8 +2409,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 < SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2463,8 +2432,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 >= SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_ELT:
@@ -2486,8 +2453,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal1 <= SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2511,8 +2476,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 == SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_NEQ:
@@ -2535,8 +2498,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = SrcVal1 != SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_POI:
@@ -2553,8 +2514,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
                                         &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2573,8 +2532,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
     case FUNC_DW:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -2590,8 +2547,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = ScriptEngineKeywordDb((PUINT64)GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0),
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
     case FUNC_DQ:
@@ -2609,8 +2564,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_NOT:
@@ -2627,8 +2580,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         DesVal = ~SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
-
         return HasError;
 
     case FUNC_CHECK_ADDRESS:
@@ -2641,12 +2592,29 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
-        // TODO: Call CheckIfAddressIsValid(Address)
-        //DesVal = CheckIfAddressIsValidUsingTsx(SrcVal0);
-        DesVal = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        if (CheckMemoryAccessSafety(SrcVal0, sizeof(BYTE)))
+        {
+            DesVal = 1; // TRUE
+            LogInfo("address is valid");
+        }
+        else
+        {
+            DesVal = 0; // FALSE
+            LogInfo("address is invalid");
+        }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+        DesVal = 1; // TRUE by default in user-mode
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
@@ -2663,7 +2631,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = -(INT64)SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
 
         return HasError;
 
@@ -2682,7 +2649,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                        &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
         return HasError;
 
     case FUNC_LOW:
@@ -2700,7 +2666,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                         &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
-
         return HasError;
     case FUNC_MOV:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -2715,8 +2680,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
-
-
 
         return HasError;
 
