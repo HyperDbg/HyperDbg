@@ -32,7 +32,8 @@ __declspec(dllimport) int HyperdbgInstallVmmDriver();
 __declspec(dllimport) int HyperdbgUninstallDriver();
 __declspec(dllimport) int HyperdbgStopDriver();
 __declspec(dllimport) int HyperdbgInterpreter(const char * Command);
-__declspec(dllexport) void HyperdbgShowSignature();
+__declspec(dllimport) void HyperdbgShowSignature();
+__declspec(dllimport) bool HyperdbgContinuePreviousCommand();
 __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
 }
 
@@ -46,7 +47,8 @@ __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
 int
 main(int argc, char * argv[])
 {
-    bool ExitFromDebugger = false;
+    bool   ExitFromDebugger = false;
+    string PreviousCommand;
 
     printf("HyperDbg Debugger [core version: v%s]\n", Version);
     printf("Please visit https://docs.hyperdbg.com for more information...\n");
@@ -79,15 +81,32 @@ main(int argc, char * argv[])
     {
         HyperdbgShowSignature();
 
-        string command;
-        getline(cin, command);
+        string CurrentCommand;
+
+        getline(cin, CurrentCommand);
 
         if (cin.fail() || cin.eof())
         {
             cin.clear(); // reset cin state
         }
 
-        int CommandExecutionResult = HyperdbgInterpreter(command.c_str());
+        if (!CurrentCommand.compare("") &&
+            HyperdbgContinuePreviousCommand())
+        {
+            //
+            // Retry the previous command
+            //
+            CurrentCommand = PreviousCommand;
+        }
+        else
+        {
+            //
+            // Save previous command
+            //
+            PreviousCommand = CurrentCommand;
+        }
+
+        int CommandExecutionResult = HyperdbgInterpreter(CurrentCommand.c_str());
 
         //
         // if the debugger encounters an exit state then the return will be 1

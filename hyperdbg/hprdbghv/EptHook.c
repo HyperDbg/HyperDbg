@@ -651,8 +651,11 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
     //
     EptHookWriteAbsoluteJump2(&Hook->Trampoline[SizeOfHookedInstructions], (SIZE_T)TargetFunction + SizeOfHookedInstructions);
 
-    LogInfo("Trampoline: 0x%llx", Hook->Trampoline);
-    LogInfo("HookFunction: 0x%llx", HookFunction);
+    //
+    //
+    //
+    // LogInfo("Trampoline: 0x%llx", Hook->Trampoline);
+    // LogInfo("HookFunction: 0x%llx", HookFunction);
 
     //
     // Let the hook function call the original function

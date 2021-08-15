@@ -28,4 +28,5 @@ __declspec(dllexport) int HyperdbgStopDriver();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
 __declspec(dllexport) int HyperdbgInterpreter(const char * Command);
 __declspec(dllexport) void HyperdbgShowSignature();
+__declspec(dllexport) bool HyperdbgContinuePreviousCommand();
 }

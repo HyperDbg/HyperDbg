@@ -19,6 +19,7 @@ using namespace std;
 extern DEBUGGING_STATE g_DebuggingState;
 extern CommandType     g_CommandList;
 
+extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BOOLEAN g_IsCommandListInitialized;
 extern BOOLEAN g_LogOpened;
 extern BOOLEAN g_ExecutingScript;
@@ -44,7 +45,8 @@ int
 HyperdbgInterpreter(const char * Command)
 {
     string                CommandString(Command);
-    BOOLEAN               HelpCommand = FALSE;
+    BOOLEAN               HelpCommand       = FALSE;
+    UINT64                CommandAttributes = NULL;
     CommandType::iterator Iterator;
 
     //
@@ -89,14 +91,30 @@ HyperdbgInterpreter(const char * Command)
     string FirstCommand = SplittedCommand.front();
 
     //
+    // Read the command's attributes
+    //
+    CommandAttributes = GetCommandAttributes(FirstCommand);
+
+    //
+    // Check if the command needs to be continued by pressing enter
+    //
+    if (CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_REPEAT_ON_ENTER)
+    {
+        g_ShouldPreviousCommandBeContinued = TRUE;
+    }
+    else
+    {
+        g_ShouldPreviousCommandBeContinued = FALSE;
+    }
+
+    //
     // Check and send remote command and also we check whether this
     // is a command that should be handled in this command or we can
     // send it to the remote computer, it is because in a remote connection
     // still some of the commands should be handled in the local HyperDbg
     //
     if (g_IsConnectedToRemoteDebuggee &&
-        !(GetCommandAttributes(FirstCommand) &
-          DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION))
+        !(CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_REMOTE_CONNECTION))
     {
         //
         // Check it here because generally, we use this variable in host
@@ -122,7 +140,7 @@ HyperdbgInterpreter(const char * Command)
         return 2;
     }
     else if (g_IsSerialConnectedToRemoteDebuggee &&
-             !(GetCommandAttributes(FirstCommand) &
+             !(CommandAttributes &
                DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE))
     {
         //
@@ -241,6 +259,34 @@ HyperdbgShowSignature()
         // in vmi-mode
         //
         ShowMessages("HyperDbg> ");
+    }
+}
+
+/**
+ * @brief Some of commands like stepping commands (i, p, t) and etc.
+ * need to be repeated when the user press enter, this function shows
+ * whether we should continue the previous command or not
+ *
+ * @return true means the command should be continued, false means command 
+ * should be ignored
+ */
+bool
+HyperdbgContinuePreviousCommand()
+{
+    BOOLEAN Result = g_ShouldPreviousCommandBeContinued;
+
+    //
+    // We should keep it false for the next command
+    //
+    g_ShouldPreviousCommandBeContinued = FALSE;
+
+    if (Result)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 

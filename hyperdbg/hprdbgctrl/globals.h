@@ -243,6 +243,13 @@ BOOLEAN g_SharedEventStatus = FALSE;
 //////////////////////////////////////////////////
 
 /**
+ * @brief Shows whether the previous command should be
+ * continued or not
+ *
+ */
+BOOLEAN g_ShouldPreviousCommandBeContinued;
+
+/**
  * @brief List of command and attributes
  *
  */

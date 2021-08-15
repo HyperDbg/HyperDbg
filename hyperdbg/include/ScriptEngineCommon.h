@@ -1088,11 +1088,16 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
                            BOOLEAN *     HasError)
 {
     *HasError = FALSE;
-    PSYMBOL Symbol;
 
-    UINT32 i = 0;
+    PSYMBOL Symbol;
+    UINT32  i = 0;
 
     char * Str = Format;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    DbgBreakPoint();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
 
     do
     {
@@ -1142,9 +1147,12 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
     if (*HasError)
         return;
 
-    //
-    // Call printf
-    //
+        //
+        // Call printf
+        //
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    DbgBreakPoint();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     //
     // When we're here, all the pointers are the pointers including %ws and %s
