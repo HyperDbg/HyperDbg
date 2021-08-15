@@ -197,16 +197,15 @@ CommandEventsShowEvents()
     // It's an events without any argument so we have to show
     // all the currently active events
     //
-    PLIST_ENTRY                    TempList         = 0;
-    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail    = {0};
-    BOOLEAN                        IsThereAnyEvents = FALSE;
+    PLIST_ENTRY TempList         = 0;
+    BOOLEAN     IsThereAnyEvents = FALSE;
 
     TempList = &g_EventTrace;
     while (&g_EventTrace != TempList->Blink)
     {
         TempList = TempList->Blink;
 
-        CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+        PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
         ShowMessages("%x\t(%s)\t    %s\n",
                      CommandDetail->Tag - DebuggerEventTagStartSeed,
@@ -238,16 +237,15 @@ CommandEventsShowEvents()
 BOOLEAN
 CommandEventDisableEvent(UINT64 Tag)
 {
-    PLIST_ENTRY                    TempList      = 0;
-    BOOLEAN                        Result        = FALSE;
-    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+    PLIST_ENTRY TempList = 0;
+    BOOLEAN     Result   = FALSE;
 
     TempList = &g_EventTrace;
     while (&g_EventTrace != TempList->Blink)
     {
         TempList = TempList->Blink;
 
-        CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+        PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
         if (CommandDetail->Tag == Tag ||
             Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
@@ -289,16 +287,15 @@ CommandEventDisableEvent(UINT64 Tag)
 BOOLEAN
 CommandEventEnableEvent(UINT64 Tag)
 {
-    PLIST_ENTRY                    TempList      = 0;
-    BOOLEAN                        Result        = FALSE;
-    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+    PLIST_ENTRY TempList = 0;
+    BOOLEAN     Result   = FALSE;
 
     TempList = &g_EventTrace;
     while (&g_EventTrace != TempList->Blink)
     {
         TempList = TempList->Blink;
 
-        CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+        PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
         if (CommandDetail->Tag == Tag ||
             Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
@@ -340,53 +337,78 @@ CommandEventEnableEvent(UINT64 Tag)
 BOOLEAN
 CommandEventClearEvent(UINT64 Tag)
 {
-    PLIST_ENTRY                    TempList      = 0;
-    BOOLEAN                        Result        = FALSE;
-    PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = {0};
+    PLIST_ENTRY                    TempList         = 0;
+    BOOLEAN                        Result           = FALSE;
+    PDEBUGGER_GENERAL_EVENT_DETAIL TmpCommandDetail = NULL;
 
     TempList = &g_EventTrace;
-    while (&g_EventTrace != TempList->Blink)
+    while (&g_EventTrace != TempList->Flink)
     {
-        TempList = TempList->Blink;
+        TempList = TempList->Flink;
 
-        CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+        PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
 
-        if (CommandDetail->Tag == Tag ||
-            Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
+        if (CommandDetail->Tag == Tag || Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
         {
-            //
-            // Remove it from the list
-            //
-            RemoveEntryList(&CommandDetail->CommandsEventList);
-
             //
             // Free the buffer for string of command
             //
             free(CommandDetail->CommandStringBuffer);
 
-            //
-            // Free the event it self
-            //
-            free(CommandDetail);
-
             if (!Result)
             {
                 Result = TRUE;
+                //
+                // We'll save one element so we can traverse and deallocate
+                // all of the elements
+                //
+                TmpCommandDetail = CommandDetail;
             }
 
             if (Tag != DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
             {
                 //
+                // Remove it from the list
+                //
+                RemoveEntryList(&CommandDetail->CommandsEventList);
+
+                //
+                // Free the event it self
+                //
+                free(CommandDetail);
+
+                //
                 // Only, one command exist with a tag, so we need to return as we
                 // find it
                 //
+
                 return TRUE;
             }
         }
     }
 
+    if (Result && Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
+    {
+        //
+        // We have to deallocate all the elements (note that CommandDetail->CommandStringBuffer is
+        // already deallocated)
+        //
+        while ((UINT64)TmpCommandDetail != (UINT64)&g_EventTrace.Flink)
+        {
+            PVOID Temp       = (PVOID)TmpCommandDetail;
+            TmpCommandDetail = (PDEBUGGER_GENERAL_EVENT_DETAIL)TmpCommandDetail->CommandsEventList.Flink;
+
+            free(Temp);
+        }
+
+        //
+        // Reinitialize list head
+        //
+        InitializeListHead(&g_EventTrace);
+    }
+
     //
-    // Not found
+    // Either not found or DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG is specified
     //
     return Result;
 }
@@ -605,7 +627,6 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
         //
         // Send the request to the kernel
         //
-
         Status =
             DeviceIoControl(g_DeviceHandle,                // Handle to device
                             IOCTL_DEBUGGER_MODIFY_EVENTS,  // IO Control code
