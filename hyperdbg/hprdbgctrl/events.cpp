@@ -62,7 +62,7 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     //
     if (SplittedCommand.size() != 1 && SplittedCommand.size() != 3)
     {
-        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0));
+        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }
@@ -104,7 +104,7 @@ CommandEvents(vector<string> SplittedCommand, string Command)
         //
         // unknown second command
         //
-        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0));
+        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
         CommandEventsHelp();
         return;
     }
