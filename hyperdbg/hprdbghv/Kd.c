@@ -2405,9 +2405,8 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     // way we are sure that we get all the other cores at the middle
     // of their execution codes and not on HyperDbg routines
     //
-    /*
-    KdBroadcastHaltOnAllCores();
-    */
+    // KdBroadcastHaltOnAllCores();
+    //
 
     //
     // vm-exit and halt current core

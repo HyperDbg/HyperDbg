@@ -610,7 +610,11 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
         // Get the full size of instructions necessary to copy
         //
     }
-    LogInfo("Number of bytes of instruction mem: %d", SizeOfHookedInstructions);
+    
+    //
+    // For logging purpose
+    //
+    // LogInfo("Number of bytes of instruction mem: %d", SizeOfHookedInstructions);
 
     //
     // Build a trampoline

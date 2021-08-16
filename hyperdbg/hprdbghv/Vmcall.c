@@ -433,6 +433,20 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT:
+    {
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+
+        TriggeredEventDetail.Context = OptionalParam1;
+        TriggeredEventDetail.Tag     = OptionalParam2;
+
+        KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
+                                              GuestRegs,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+                                              &TriggeredEventDetail);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Unsupported VMCALL");

@@ -277,6 +277,13 @@
  */
 #define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x2a
 
+/**
+ * @brief VMCALL to cause vm-exit and halt the system because
+ * of triggering an event
+ * 
+ */
+#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x2b
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

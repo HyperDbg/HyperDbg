@@ -750,7 +750,7 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 VOID
-ScriptEngineFunctionBreak(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_REGS GuestRegs, UINT64 Context)
+ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_REGS GuestRegs, UINT64 Context)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, breaking is not possible in user-mode\n");
@@ -758,31 +758,44 @@ ScriptEngineFunctionBreak(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
-    UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
-
-    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    //
+    // pause(); function is only working when kernel debugger is working
+    // it's not designed to work on vmi-mode (local debugging)
+    //
+    if (g_KernelDebuggerState)
     {
-        //
-        // The guest is already in vmx-root mode
-        // Halt other cores
-        //
-        ContextAndTag.Tag     = Tag;
-        ContextAndTag.Context = Context;
+        DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
+        UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
-        KdHandleBreakpointAndDebugBreakpoints(
-            CurrentProcessorIndex,
-            GuestRegs,
-            DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
-            &ContextAndTag);
+        if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+        {
+            //
+            // The guest is already in vmx-root mode
+            // Halt other cores
+            //
+            ContextAndTag.Tag     = Tag;
+            ContextAndTag.Context = Context;
+
+            KdHandleBreakpointAndDebugBreakpoints(
+                CurrentProcessorIndex,
+                GuestRegs,
+                DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+                &ContextAndTag);
+        }
+        else
+        {
+            //
+            // The guest is on vmx non-root mode, the first parameter
+            // is context and the second parameter is tag
+            //
+            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, 0);
+        }
     }
     else
     {
-        //
-        // The guest is on vmx non-root mode
-        //
-        AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+        LogInfo("pause(); function is called but you're not allowed to use it on vmi-mode (local debugging)");
     }
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -1094,11 +1107,6 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 
     char * Str = Format;
 
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-    DbgBreakPoint();
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-
     do
     {
         //
@@ -1147,12 +1155,9 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
     if (*HasError)
         return;
 
-        //
-        // Call printf
-        //
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-    DbgBreakPoint();
-#endif // SCRIPT_ENGINE_KERNEL_MODE
+    //
+    // Call printf
+    //
 
     //
     // When we're here, all the pointers are the pointers including %ws and %s
@@ -2117,7 +2122,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
     case FUNC_PAUSE:
-        ScriptEngineFunctionBreak(ActionDetail.Tag,
+        ScriptEngineFunctionPause(ActionDetail.Tag,
                                   ActionDetail.ImmediatelySendTheResults,
                                   GuestRegs,
                                   ActionDetail.Context);
