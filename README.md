@@ -100,6 +100,5 @@ If you want to create a pull request or contribute in HyperDbg please read [Cont
 
 
 ## License
-Dependencies are licensed by their own licenses.
-
-**HyperDbg** is under **GPLv3** LICENSE.
+**HyperDbg**, and all the submodule and repos, unless a license is otherwise specified, are licensed under **GPLv3** LICENSE.
+Dependencies are licensed by their own.
