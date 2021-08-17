@@ -1984,6 +1984,7 @@ SetValue(PGUEST_REGS GuestRegs, UINT64 * g_TempList, UINT64 * g_VariableList, PS
         return;
     case SYMBOL_TEMP_TYPE:
         g_TempList[Symbol->Value] = Value;
+        return;
     case SYMBOL_REGISTER_TYPE:
         SetRegValue(GuestRegs, Symbol, Value);
         return;
@@ -2046,7 +2047,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         ShowMessages("err, expecting operator type\n");
         return HasError;
 #endif // SCRIPT_ENGINE_USER_MODE
-    }
+    };
 
     switch (Operator->Value)
     {
@@ -2470,6 +2471,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         return HasError;
 
     case FUNC_EQUAL:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -2758,6 +2760,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         return HasError;
 
     case (FUNC_JZ):
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -2778,14 +2781,17 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         return HasError;
 
     case (FUNC_JNZ):
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
