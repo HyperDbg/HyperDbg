@@ -80,9 +80,6 @@ Here's a diagram that shows how HyperDbg works!
 </p>
 </br>
 
-HyperDbg subsystems: </br>
-<p align="center"><img align="center" width="70%" height="100%" src="https://github.com/HyperDbg/graphics/raw/master/Diagrams/subsystems/HyperDbg-subsystems.png" alt="HyperDbg Subsystems"></p>
-
 ## Plugins
 The plugin framework is not ready for the current version of HyperDbg. Future versions will support plugins.
 
