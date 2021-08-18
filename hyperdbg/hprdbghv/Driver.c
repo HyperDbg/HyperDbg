@@ -242,6 +242,11 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     g_RtmSupport = CheckCpuSupportRtm();
 
     //
+    // Get x86 processor width for virtual address
+    //
+    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+
+    //
     // Initialize Vmx
     //
     if (HvVmxInitialize())

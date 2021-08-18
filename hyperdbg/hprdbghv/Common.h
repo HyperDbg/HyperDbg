@@ -141,6 +141,12 @@ SpinlockUnlock(volatile LONG * Lock);
 #define CPUID_HV_INTERFACE                0x40000001
 
 /**
+ * @brief Cpuid to get virtual address width
+ * 
+ */
+#define CPUID_ADDR_WIDTH 0x80000008
+
+/**
  * @brief CPUID Features
  * 
  */
@@ -670,6 +676,9 @@ GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
 
 BOOLEAN
 CheckCpuSupportRtm();
+
+UINT32
+Getx86VirtualAddressWidth();
 
 BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);

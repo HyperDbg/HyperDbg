@@ -178,6 +178,12 @@ PVOID g_NmiHandlerForKeDeregisterNmiCallback;
 BOOLEAN g_RtmSupport;
 
 /**
+ * @brief Virtual address width for x86 processors
+ * 
+ */
+UINT32 g_VirtualAddressWidth;
+
+/**
  * @brief Shows whether the debuggee is waiting for an 
  * trap step or not
  * 
