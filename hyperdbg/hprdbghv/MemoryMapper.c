@@ -76,6 +76,14 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
     //
     Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
 
+    //
+    // Check for invalid address
+    //
+    if (Cr3Va == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PML4, Va);
 
     PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
@@ -86,6 +94,15 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
     }
 
     PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12);
+
+    //
+    // Check for invalid address
+    //
+    if (PdptVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PDPT, Va);
 
     PPAGE_ENTRY Pdpte = &PdptVa[Offset];
@@ -95,7 +112,16 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
         return Pdpte;
     }
 
-    PdVa   = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12);
+    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12);
+
+    //
+    // Check for invalid address
+    //
+    if (PdVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PD, Va);
 
     PPAGE_ENTRY Pde = &PdVa[Offset];
@@ -105,7 +131,16 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
         return Pde;
     }
 
-    PtVa   = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12);
+    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12);
+
+    //
+    // Check for invalid address
+    //
+    if (PtVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PT, Va);
 
     PPAGE_ENTRY Pt = &PtVa[Offset];
@@ -159,6 +194,14 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     //
     Cr3Va = PhysicalAddressToVirtualAddress(TempCr3, TargetCr3);
 
+    //
+    // Check for invalid address
+    //
+    if (Cr3Va == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PML4, Va);
 
     PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
@@ -169,6 +212,15 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     }
 
     PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12, TargetCr3);
+
+    //
+    // Check for invalid address
+    //
+    if (PdptVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PDPT, Va);
 
     PPAGE_ENTRY Pdpte = &PdptVa[Offset];
@@ -178,7 +230,16 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
         return Pdpte;
     }
 
-    PdVa   = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12, TargetCr3);
+    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12, TargetCr3);
+
+    //
+    // Check for invalid address
+    //
+    if (PdVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PD, Va);
 
     PPAGE_ENTRY Pde = &PdVa[Offset];
@@ -188,7 +249,16 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
         return Pde;
     }
 
-    PtVa   = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12, TargetCr3);
+    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12, TargetCr3);
+
+    //
+    // Check for invalid address
+    //
+    if (PtVa == NULL)
+    {
+        return NULL;
+    }
+
     Offset = MemoryMapperGetOffset(PT, Va);
 
     PPAGE_ENTRY Pt = &PtVa[Offset];
@@ -219,7 +289,7 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
     //
     PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
 
-    if (PageEntry->Present)
+    if (PageEntry != NULL && PageEntry->Present)
     {
         return TRUE;
     }

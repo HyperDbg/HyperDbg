@@ -2612,19 +2612,15 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         DesVal = 1; // TRUE by default in user-mode
 
-        /*
-
-      if (CheckMemoryAccessSafety(SrcVal0, sizeof(BYTE)))
+        if (CheckMemoryAccessSafety(SrcVal0, sizeof(BYTE)))
         {
             DesVal = 1; // TRUE
-            LogInfo("address is valid");
         }
         else
         {
             DesVal = 0; // FALSE
-            LogInfo("address is invalid");
         }
-        */
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
