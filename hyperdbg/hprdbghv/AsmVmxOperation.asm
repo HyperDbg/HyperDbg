@@ -12,7 +12,6 @@ AsmEnableVmxOperation PROC PUBLIC
     mov rax,cr4
     or rax,02000h		; Set the 14th bit
     mov cr4,rax
-
     ret
 
 AsmEnableVmxOperation ENDP
@@ -41,7 +40,6 @@ AsmVmxVmcall PROC
     ret                             ; Return type is NTSTATUS and it's on RAX from the previous function, no need to change anything
 
 AsmVmxVmcall ENDP
-
 
 ;------------------------------------------------------------------------
 

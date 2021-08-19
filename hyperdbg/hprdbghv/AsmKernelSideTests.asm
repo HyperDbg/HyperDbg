@@ -31,7 +31,6 @@ AsmTestWrapperWithTestTags PROC PUBLIC
     mov r14, g_KernelTestTag1
     mov r15, g_KernelTestTag2
 
-
     pop r12                        ; r12 is not changed (non-volatile)
                                    ; we save it so we can restore to 
                                    ; TestKernelConfigureTagsAndCallTargetFunction

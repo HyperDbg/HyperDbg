@@ -124,7 +124,6 @@ AsmVmxoffHandler PROC
     call HvReturnStackPointerForVmxoff
     add rsp, 020h ; remove for shadow space
     
-    
     mov [rsp+88h], rax  ; now, rax contains rsp
     
     sub rsp, 020h      ; shadow space
@@ -145,7 +144,6 @@ AsmVmxoffHandler PROC
     sub rbx,08h         ; we push sth, so we have to add (sub) +8 from previous stack
                    		; also rbx already contains the rsp
     mov [rsp+88h], rbx  ; move the new pointer to the current stack
-    
     
     RestoreState:
     pop rax
@@ -191,6 +189,7 @@ AsmVmxoffHandler PROC
 
     popfq
     pop		rsp     ; restore rsp
+
     ret             ; jump back to where we called Vmcall
 
 AsmVmxoffHandler ENDP
