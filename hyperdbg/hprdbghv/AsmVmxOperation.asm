@@ -16,7 +16,6 @@ AsmEnableVmxOperation PROC PUBLIC
 
 AsmEnableVmxOperation ENDP
 
-
 ;------------------------------------------------------------------------
 
 AsmVmxVmcall PROC

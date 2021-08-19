@@ -681,6 +681,9 @@ UINT32
 Getx86VirtualAddressWidth();
 
 BOOLEAN
+CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress);
+
+BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
 //////////////////////////////////////////////////

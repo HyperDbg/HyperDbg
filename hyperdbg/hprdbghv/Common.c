@@ -675,11 +675,15 @@ Getx86VirtualAddressWidth()
  * @brief Checks if the address is canonical based on x86 processor's
  * virtual address width or not
  * @param VAddr virtual address to check
+ * @param IsKernelAddress Filled to show whether the address is a 
+ * kernel address or user-address
+ * @brief IsKernelAddress wouldn't check for page attributes, it 
+ * just checks the address convention in Windows
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-CheckCanonicalVirtualAddress(UINT64 VAddr)
+CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
 {
     UINT64 Addr = (UINT64)VAddr;
     UINT64 MaxVirtualAddrLowHalf, MinVirtualAddressHighHalf;
@@ -706,7 +710,20 @@ CheckCanonicalVirtualAddress(UINT64 VAddr)
     //
     if ((Addr > MaxVirtualAddrLowHalf) && (Addr < MinVirtualAddressHighHalf))
     {
+        *IsKernelAddress = FALSE;
         return FALSE;
+    }
+
+    //
+    // Set whether it's a kernel address or not
+    //
+    if (MinVirtualAddressHighHalf < Addr)
+    {
+        *IsKernelAddress = TRUE;
+    }
+    else
+    {
+        *IsKernelAddress = FALSE;
     }
 
     return TRUE;
@@ -724,12 +741,13 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 {
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
+    BOOLEAN  IsKernelAddress;
 
     //
     // First, we check if the address is canonical based
     // on Intel processor's virtual address width
     //
-    if (!CheckCanonicalVirtualAddress(TargetAddress))
+    if (!CheckCanonicalVirtualAddress(TargetAddress, &IsKernelAddress))
     {
         //
         // No need for further check, address is invalid
@@ -749,7 +767,14 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     OriginalCr3 = __readcr3();
     __writecr3(GuestCr3.Flags);
 
-    if (g_RtmSupport)
+    //
+    // We'll only check address with TSX if the address is a kernel-mode
+    // address because an exception is thrown if we access user-mode code
+    // from vmx-root mode, thus, TSX will fail the transaction and the
+    // result is not true, so we check each pages' page-table for user-mode
+    // codes in both user-mode and kernel-mode
+    //
+    if (g_RtmSupport && IsKernelAddress)
     {
         //
         // The guest supports Intel TSX
