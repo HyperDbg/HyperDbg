@@ -33,6 +33,39 @@ CommandEvalHelp()
 }
 
 /**
+ * @brief Check test-cases for script-engine
+ *
+ * @return VOID
+ */
+VOID
+CommandEvalCheckTestcase()
+{
+    std::string Line;
+    BOOLEAN     IsOpened = FALSE;
+
+    //
+    // Read the test-case file for script-engine
+    //
+    ifstream File(SCRIPT_TEST_CASE_FILE_NAME);
+
+    if (File.is_open())
+    {
+        IsOpened = TRUE;
+
+        while (std::getline(File, Line))
+        {
+            ShowMessages("%s\n", Line.c_str());
+        }
+
+        File.close();
+    }
+    if (!IsOpened)
+    {
+        ShowMessages("err, could not find '%s' file for test-cases\n", SCRIPT_TEST_CASE_FILE_NAME);
+    }
+}
+
+/**
  * @brief handler of ? command
  *
  * @param SplittedCommand
@@ -68,6 +101,19 @@ CommandEval(vector<string> SplittedCommand, string Command)
     // Trim it again
     //
     Trim(Command);
+
+    //
+    // Check if it's a test-case check or not
+    //
+    if (!Command.compare("test"))
+    {
+        //
+        // It's a test-case checker
+        //
+        CommandEvalCheckTestcase();
+
+        return;
+    }
 
     //
     // TODO: end of string must have a whitspace. fix it.
