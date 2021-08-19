@@ -129,6 +129,7 @@ RestoreTheRegisters:
 AsmDebuggerConditionCodeHandler ENDP 
 
 ;------------------------------------------------------------------------
+
 AsmDebuggerSpinOnThread PROC PUBLIC
     
     ; DO NOT CHANGE THE NOPS, THIS FUNCTION'S SIZE IS 7 BYTES (WITHOUT INT 3 AND RET)

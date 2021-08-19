@@ -111,9 +111,9 @@ RestoreState:
 
     popfq
 
-	sub rsp, 0100h      ; to avoid error in future functions
-	jmp VmxVmresume
-
+    sub rsp, 0100h      ; to avoid error in future functions
+    jmp VmxVmresume
+    
 AsmVmexitHandler ENDP
 
 ;------------------------------------------------------------------------
