@@ -26,20 +26,19 @@ SaveTheRegisters:
     push rdx
     push rcx
     push rax	
-
-	mov rcx, rsp		    ; Fast call argument to PGUEST_REGS
+    
+    mov rcx, rsp		    ; Fast call argument to PGUEST_REGS
     mov rdx, [rsp +080h]    ; Fast call argument (second) - CalledFrom
     sub rdx, 5              ; as we used (call $ + 5) so we subtract it by 5 
-	sub	rsp, 28h		; Free some space for Shadow Section
-
-	call	DebuggerEventEptHook2GeneralDetourEventHandler
-
-	add	rsp, 28h		; Restore the state
-
+    sub	rsp, 28h		; Free some space for Shadow Section
+    
+    call	DebuggerEventEptHook2GeneralDetourEventHandler
+    
+    add	rsp, 28h		; Restore the state
     mov  [rsp +080h], rax ; the return address of the above function is where we should continue
-
+    
 RestoreTheRegisters:
-	pop rax
+    pop rax
     pop rcx
     pop rdx
     pop rbx
@@ -60,6 +59,7 @@ RestoreTheRegisters:
 AsmGeneralDetourHook ENDP 
 
 ;------------------------------------------------------------------------
+
 AsmDebuggerCustomCodeHandler PROC PUBLIC
 
 ; Generally, The registers RAX, RCX, RDX, R8, R9, R10, R11 are considered volatile (caller-saved) 
@@ -94,11 +94,11 @@ RestoreTheRegisters:
 AsmDebuggerCustomCodeHandler ENDP 
 
 ;------------------------------------------------------------------------
+
 AsmDebuggerConditionCodeHandler PROC PUBLIC
 
 ; Generally, The registers RAX, RCX, RDX, R8, R9, R10, R11 are considered volatile (caller-saved) 
 ; and registers RBX, RBP, RDI, RSI, RSP, R12, R13, R14, and R15 are considered nonvolatile (callee-saved).
-
 
 SaveTheRegisters:
     push RBX

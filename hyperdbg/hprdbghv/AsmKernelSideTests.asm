@@ -9,7 +9,6 @@ EXTERN g_KernelTestR14:QWORD
 EXTERN g_KernelTestR13:QWORD
 EXTERN g_KernelTestR12:QWORD
 
-
 .code _text
 
 ;------------------------------------------------------------------------

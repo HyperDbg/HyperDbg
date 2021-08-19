@@ -2,7 +2,6 @@ PUBLIC AsmEnableVmxOperation
 PUBLIC AsmVmxVmcall
 PUBLIC AsmHypervVmcall
 
-
 .code _text
 
 ;------------------------------------------------------------------------
@@ -22,8 +21,10 @@ AsmEnableVmxOperation ENDP
 ;------------------------------------------------------------------------
 
 AsmVmxVmcall PROC
+
     ; We change r10 to HVFS Hex ASCII and r11 to VMCALL Hex ASCII and r12 to NOHYPERV Hex ASCII so we can make sure that the calling Vmcall comes
     ; from our hypervisor and we're resposible for managing it, otherwise it has to be managed by Hyper-V
+
     pushfq
     push    r10
     push    r11
@@ -35,6 +36,7 @@ AsmVmxVmcall PROC
     pop     r12
     pop     r11
     pop     r10
+
     popfq
     ret                             ; Return type is NTSTATUS and it's on RAX from the previous function, no need to change anything
 
@@ -44,12 +46,12 @@ AsmVmxVmcall ENDP
 ;------------------------------------------------------------------------
 
 AsmHypervVmcall PROC
+
     vmcall                       ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
     ret
 
 AsmHypervVmcall ENDP
 
 ;------------------------------------------------------------------------
-
 
 END
