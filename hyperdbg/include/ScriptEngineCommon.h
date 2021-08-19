@@ -633,7 +633,11 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 
     if (!CheckMemoryAccessSafety(Address, sizeof(QWORD)))
     {
-        *HasError = TRUE;
+        //
+        // Instead of indicating an error, just return false
+        // to assign it as a return result to a variable
+        //
+        // *HasError = TRUE;
 
         return FALSE;
     }
@@ -659,7 +663,11 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 
     if (!CheckMemoryAccessSafety(Address, sizeof(DWORD)))
     {
-        *HasError = TRUE;
+        //
+        // Instead of indicating an error, just return false
+        // to assign it as a return result to a variable
+        //
+        // *HasError = TRUE;
 
         return FALSE;
     }
@@ -685,7 +693,11 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 
     if (!CheckMemoryAccessSafety(Address, sizeof(BYTE)))
     {
-        *HasError = TRUE;
+        //
+        // Instead of indicating an error, just return false
+        // to assign it as a return result to a variable
+        //
+        // *HasError = TRUE;
 
         return FALSE;
     }
