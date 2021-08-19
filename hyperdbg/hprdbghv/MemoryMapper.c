@@ -472,7 +472,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead, PVOID BufferTo
     //
     // Finally, invalidate the caches for the virtual address.
     //
-    __invlpg(Va);
+    //__invlpg(Va);
 
     //
     // Also invalidate it from vpids if we're in vmx root
