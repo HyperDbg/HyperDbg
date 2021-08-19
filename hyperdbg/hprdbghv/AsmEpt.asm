@@ -21,11 +21,11 @@ AsmInvept PROC PUBLIC
     xor     rax, rax
     ret
 
-    ErrorWithStatus: 
+ErrorWithStatus: 
     mov     rax, VMX_ERROR_CODE_FAILED_WITH_STATUS
     ret
 
-    ErrorCodeFailed:
+ErrorCodeFailed:
     mov     rax, VMX_ERROR_CODE_FAILED
     ret
 
@@ -41,11 +41,11 @@ AsmInvvpid PROC
     xor     rax, rax
     ret
     
-    ErrorWithStatus:
+ErrorWithStatus:
     mov     rax, VMX_ERROR_CODE_FAILED_WITH_STATUS
     ret
 
-    ErrorCodeFailed:
+ErrorCodeFailed:
     mov     rax, VMX_ERROR_CODE_FAILED
     ret
     

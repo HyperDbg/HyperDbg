@@ -40,7 +40,7 @@ AsmTestWrapperWithTestTags PROC PUBLIC
     
     jmp g_KernelTestTargetFunction      ; jump target function (we didn't change its parameters)
 
-    RestoreState :
+RestoreState:
     push r12                       ; Restore to the previous function address to return
                                    ; TestKernelConfigureTagsAndCallTargetFunction
     

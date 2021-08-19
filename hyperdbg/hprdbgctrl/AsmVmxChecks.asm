@@ -18,13 +18,13 @@ AsmVmxSupportDetection PROC
     bt     ecx, 05h
     jc     VMXSupport
     
-    VMXNotSupport:
+VMXNotSupport:
     jmp     RetInst
     
-    VMXSupport:
+VMXSupport:
     mov    rax, 01h
     
-    RetInst:
+RetInst:
     ret
 
 AsmVmxSupportDetection ENDP

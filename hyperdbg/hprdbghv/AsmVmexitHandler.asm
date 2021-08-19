@@ -67,7 +67,7 @@ AsmVmexitHandler PROC
     cmp	al, 1	; Check whether we have to turn off VMX or Not (the result is in RAX)
     je		AsmVmxoffHandler
     
-    RestoreState:
+RestoreState:
     pop rax
     pop rcx
     pop rdx
@@ -145,7 +145,7 @@ AsmVmxoffHandler PROC
                    		; also rbx already contains the rsp
     mov [rsp+88h], rbx  ; move the new pointer to the current stack
     
-    RestoreState:
+RestoreState:
     pop rax
     pop rcx
     pop rdx

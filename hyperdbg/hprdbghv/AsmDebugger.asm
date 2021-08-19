@@ -54,6 +54,7 @@ RestoreTheRegisters:
     pop r13
     pop r14
     pop r15
+
     ret ; jump back to the trampoline
     
 AsmGeneralDetourHook ENDP 
@@ -80,7 +81,6 @@ SaveTheRegisters:
     call R9 ; Because R9 contains the 4th argument and a pointer to the function of target custom code
 
 RestoreTheRegisters:
-
     pop R15 
     pop R14
     pop R13
@@ -89,6 +89,7 @@ RestoreTheRegisters:
     pop RDI
     pop RBP
     pop RBX
+
     ret ; jump back to the trampoline
     
 AsmDebuggerCustomCodeHandler ENDP 
@@ -114,7 +115,6 @@ SaveTheRegisters:
     call R8 ; Because R8 contains the 4th argument and a pointer to the function of target condition code
 
 RestoreTheRegisters:
-
     pop R15 
     pop R14
     pop R13
@@ -123,6 +123,7 @@ RestoreTheRegisters:
     pop RDI
     pop RBP
     pop RBX
+
     ret ; jump back to the trampoline
     
 AsmDebuggerConditionCodeHandler ENDP 
@@ -130,7 +131,7 @@ AsmDebuggerConditionCodeHandler ENDP
 ;------------------------------------------------------------------------
 AsmDebuggerSpinOnThread PROC PUBLIC
     
-    ;;;;; DO NOT CHANGE THE NOPS, THIS FUNCTION'S SIZE IS 7 BYTES (WITHOUT INT 3 AND RET)
+    ; DO NOT CHANGE THE NOPS, THIS FUNCTION'S SIZE IS 7 BYTES (WITHOUT INT 3 AND RET)
 NopLoop:
     nop
     nop
@@ -140,6 +141,7 @@ NopLoop:
     jmp NopLoop
 
     int 3 ; we should never reach here
+
     ret 
     
 AsmDebuggerSpinOnThread ENDP 
