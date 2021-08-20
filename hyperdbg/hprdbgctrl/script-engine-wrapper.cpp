@@ -269,7 +269,24 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
 BOOLEAN
 ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
 {
-    return TRUE;
+    //
+    // Call the test parser
+    //
+    ScriptEngineWrapperTestParser(Expr);
+
+    //
+    // Check the global variable to see the results
+    //
+    if (g_CurrentTestResultHasError && ExceptError)
+    {
+        return TRUE;
+    }
+    else if (ExpectationValue == g_CurrentTestResult)
+    {
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 /**

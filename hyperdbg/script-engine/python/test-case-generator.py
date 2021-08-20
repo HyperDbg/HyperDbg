@@ -558,7 +558,7 @@ if __name__ == '__main__':
         depth = 0
         sentence = EXPRESSION()
         if len(sentence)<=150:
-            res = 'x = ' + sentence + '; printf("%d\\n", x);'
+            res = 'x = ' + sentence + '; test_statement(x);'
             val = evaluate(sentence)
             if type(val)=='int' and not(abs(val)<=65536):
                 continue

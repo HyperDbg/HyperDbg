@@ -40,10 +40,11 @@ CommandEvalHelp()
 BOOLEAN
 CommandEvalCheckTestcase()
 {
-    std::string Line;
-    BOOLEAN     IsOpened      = FALSE;
-    UINT64      ExpectedValue = 0;
-    BOOLEAN     ExpectError   = FALSE;
+    string  Line;
+    BOOLEAN IsOpened      = FALSE;
+    UINT64  ExpectedValue = 0;
+    BOOLEAN ExpectError   = FALSE;
+    string  Expr          = "";
 
     //
     // Read the test-case file for script-engine
@@ -69,6 +70,7 @@ CommandEvalCheckTestcase()
                 return FALSE;
             }
 
+            Expr = Line;
             ShowMessages("Statement : %s\n", Line.c_str());
 
             //
@@ -107,7 +109,11 @@ CommandEvalCheckTestcase()
             // Call wrapper for testing statements
             //
             Line.append(" ");
-            ScriptAutomaticStatementsTestWrapper(Line, ExpectedValue, ExpectError);
+
+            //
+            // Test results
+            //
+            ShowMessages("Test result : %s\n", ScriptAutomaticStatementsTestWrapper(Expr, ExpectedValue, ExpectError) ? "passed" : "failed");
 
             //
             // Test-case end

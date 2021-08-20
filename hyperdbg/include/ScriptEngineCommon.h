@@ -13,6 +13,20 @@
  */
 #pragma once
 
+/**
+ * @brief global variable to save the result of script-engine statement
+ * tests
+ *
+ */
+UINT64 g_CurrentTestResult;
+
+/**
+ * @brief global variable to detect if there was an error in the result
+ *  of script-engine statement tests
+ *
+ */
+BOOLEAN g_CurrentTestResultHasError;
+
 #ifndef PacketChunkSize
 #    define PacketChunkSize 3000
 #endif // !PacketChunkSize
