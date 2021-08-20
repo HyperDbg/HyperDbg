@@ -258,6 +258,21 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
 }
 
 /**
+ * @brief massive tests for script engine statements
+ * @param Expr The expression to test
+ * @param ExpectationValue What value this statements expects (not 
+ * used if ExceptError is TRUE)
+ * @param ExceptError True if the statement expects an error
+ * 
+ * @return BOOLEAN whether the test was successful or not
+ */
+BOOLEAN
+ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
+{
+    return TRUE;
+}
+
+/**
  * @brief test parser
  * @param Expr
  * 

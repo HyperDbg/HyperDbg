@@ -531,6 +531,8 @@ def NULL():
     res = ''
     return res
 
+def tohex(val, nbits):
+  return hex((val + (1 << nbits)) % (1 << nbits))
 
 def evaluate(s):
     s2 = s.replace('0n','').replace('0y','0b').replace('/','//')
@@ -538,6 +540,8 @@ def evaluate(s):
     
     try:
         v = eval(s2)
+        v = tohex(v, 64)
+        v = v.replace('0x', '')
     except:
         pass
     return v
@@ -562,7 +566,6 @@ if __name__ == '__main__':
             f.write(res+'\n')
             f.write(str(val)+'\n')
             f.write('$end$'+'\n')
-            f.write('\n')
             print(counter)
             print(res)
             print(val)

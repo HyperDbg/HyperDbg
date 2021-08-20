@@ -51,6 +51,9 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
 VOID
 ScriptEngineWrapperTestParser(string Expr);
 
+BOOLEAN
+ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
+
 PVOID
 ScriptEngineParseWrapper(char * str);
 

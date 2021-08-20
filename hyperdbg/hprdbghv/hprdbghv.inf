@@ -79,8 +79,8 @@ KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
-ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
-ClassName="Samples" ; TODO: edit ClassName
+ManufacturerName="HyperDbg Debugger Community" ;TODO: Replace with your manufacturer name
+ClassName="HyperDbg" ; TODO: edit ClassName
 DiskName = "hprdbghv Installation Disk"
 hprdbghv.DeviceDesc = "hprdbghv Device"
 hprdbghv.SVCDESC = "hprdbghv Service"
