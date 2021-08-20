@@ -625,7 +625,7 @@ ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    Result = *Address;
+    //Result = *Address;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -659,7 +659,7 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    *(UINT64 *)Address = Value;
+    //*(UINT64 *)Address = Value;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -689,7 +689,7 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    *(DWORD *)Address = Value;
+    //*(DWORD *)Address = Value;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -719,7 +719,7 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
 #ifdef SCRIPT_ENGINE_USER_MODE
-    *(BYTE *)Address = Value;
+    //*(BYTE *)Address = Value;
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -2131,7 +2131,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
-
+ 
     case FUNC_EQ:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -2155,6 +2155,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
+
+
     case FUNC_PAUSE:
         ScriptEngineFunctionPause(ActionDetail.Tag,
                                   ActionDetail.ImmediatelySendTheResults,

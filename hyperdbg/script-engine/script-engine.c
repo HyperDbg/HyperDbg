@@ -348,6 +348,7 @@ ScriptEngineParse(char * str)
 void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
+    static BOOL IgnoreLvalue = FALSE;
     TOKEN Op0  = NULL;
     TOKEN Op1  = NULL;
     TOKEN Op2  = NULL;
@@ -501,6 +502,10 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
         }
+        else if (!strcmp(Operator->Value, "@IGNORE_LVALUE"))
+        {
+            IgnoreLvalue = TRUE;
+        }
         else if (IsType6Func(Operator))
         {
             PushSymbol(CodeBuffer, OperatorSymbol);
@@ -510,9 +515,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp();
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
+           
 
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
@@ -520,7 +523,18 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             }
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
+
+            
+            Temp = NewTemp();
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
+
+            if (IgnoreLvalue)
+            {
+                IgnoreLvalue = FALSE;
+                FreeTemp(Temp);
+            }
 
             //
             // Free the operand if it is a temp value

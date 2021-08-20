@@ -213,7 +213,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
     //
     // Print symbol buffer
     //
-    PrintSymbolBuffer(CodeBuffer);
+    //PrintSymbolBuffer(CodeBuffer);
 
     UINT64        g_TempList[MAX_TEMP_COUNT] = {0};
     ACTION_BUFFER ActionBuffer               = {0};

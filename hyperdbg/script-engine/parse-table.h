@@ -11,9 +11,8 @@
 #define OPERATORS_TWO_OPERAND_LIST_LENGTH 16
 #define REGISTER_MAP_LIST_LENGTH 31
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 9
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 59
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 60
 #define TWOOPFUNC1_LENGTH 3
-#define TWOOPFUNC2_LENGTH 3
 #define ONEOPFUNC1_LENGTH 10
 #define ONEOPFUNC2_LENGTH 5
 #define ZEROOPFUNC1_LENGTH 1
@@ -28,7 +27,6 @@ extern const char* KeywordList[];
 extern const char* OperatorsTwoOperandList[];
 extern const char* OperatorsOneOperandList[];
 extern const char* TwoOpFunc1[];
-extern const char* TwoOpFunc2[];
 extern const char* OneOpFunc1[];
 extern const char* OneOpFunc2[];
 extern const char* ZeroOpFunc1[];
