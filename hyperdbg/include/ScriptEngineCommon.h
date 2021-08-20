@@ -2081,7 +2081,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEd(SrcVal0, SrcVal1, &HasError);
+        DesVal = ScriptEngineFunctionEd(SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -2105,7 +2105,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEb(SrcVal0, SrcVal1, &HasError);
+        DesVal = ScriptEngineFunctionEb(SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -2129,7 +2129,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionEq(SrcVal0, SrcVal1, &HasError);
+        DesVal = ScriptEngineFunctionEq(SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
