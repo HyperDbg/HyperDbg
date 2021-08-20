@@ -743,6 +743,13 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 }
 
 VOID
+ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
+{
+    g_CurrentTestResult = Value;
+    g_CurrentTestResultHasError = FALSE;
+}
+
+VOID
 ScriptEngineFunctionDisableEvent(UINT64  Tag,
                                  BOOLEAN ImmediateMessagePassing,
                                  UINT64  Value)
@@ -2735,6 +2742,21 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         // Call the target function
         //
         ScriptEngineFunctionPrint(ActionDetail.Tag,
+                                  ActionDetail.ImmediatelySendTheResults,
+                                  SrcVal0);
+        return HasError;
+
+    case FUNC_TEST_STATEMENT:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        //
+        // Call the target function
+        //
+        ScriptEngineFunctionTestStatement(ActionDetail.Tag,
                                   ActionDetail.ImmediatelySendTheResults,
                                   SrcVal0);
         return HasError;

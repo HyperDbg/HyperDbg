@@ -108,7 +108,7 @@ CommandEvalCheckTestcase()
             //
             // Call wrapper for testing statements
             //
-            Line.append(" ");
+            Expr.append(" ");
 
             //
             // Test results

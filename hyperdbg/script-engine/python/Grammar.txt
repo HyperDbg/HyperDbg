@@ -7,7 +7,7 @@
 .OneOpFunc1->poi db dd dw dq neg hi low not check_address
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats disable_event enable_event 
+.OneOpFunc2->print formats disable_event enable_event test_statement
 
 .ZeroOpFunc1->pause
 
@@ -33,13 +33,14 @@ STATEMENT->ASSIGN_STATEMENT ;
 STATEMENT->CALL_FUNC_STATEMENT ;
 STATEMENT->break @BREAK ;
 STATEMENT->continue @CONTINUE ;
-STATEMENT->.TwoOpFunc2 ( EXPRESSION , EXPRESSION @.TwoOpFunc2 ) 
+
 
 
 ASSIGN_STATEMENT->L_VALUE = EXPRESSION @MOV NULL
 CALL_FUNC_STATEMENT->.OneOpFunc2 ( EXPRESSION @.OneOpFunc2 )
 CALL_FUNC_STATEMENT->.VarArgFunc1 ( STRING @VARGSTART VA @.VarArgFunc1 )
 CALL_FUNC_STATEMENT->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
+CALL_FUNC_STATEMENT->.TwoOpFunc2 ( EXPRESSION , EXPRESSION @.TwoOpFunc2 ) 
 VA->, EXPRESSION VA
 VA->eps
 

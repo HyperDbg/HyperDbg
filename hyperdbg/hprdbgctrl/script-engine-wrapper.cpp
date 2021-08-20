@@ -232,6 +232,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
             ActionBuffer.ImmediatelySendTheResults = FALSE;
             ActionBuffer.Tag                       = NULL;
 
+            
             //
             // If has error, show error message and abort.
             //
@@ -242,7 +243,8 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
                 ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
                 ShowMessages("invalid returning address for operator: %s",
                              NameOfOperator);
-
+                g_CurrentTestResultHasError = TRUE;
+                g_CurrentTestResult         = NULL;
                 break;
             }
         }
