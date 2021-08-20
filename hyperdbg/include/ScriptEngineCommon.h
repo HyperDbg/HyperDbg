@@ -2390,8 +2390,15 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+        if (SrcVal0 == 0)
+        {
+            HasError = TRUE;
+            return HasError;
+        }
 
         DesVal = SrcVal1 / SrcVal0;
+   
+
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -2411,7 +2418,11 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
-
+        if (SrcVal0 == 0)
+        {
+            HasError = TRUE;
+            return HasError;
+        }
         DesVal = SrcVal1 % SrcVal0;
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 

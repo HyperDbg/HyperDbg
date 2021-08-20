@@ -13,7 +13,7 @@
 #include "pch.h"
 
 //#define _SCRIPT_ENGINE_LALR_DBG_EN
-//#define _SCRIPT_ENGINE_LL1_DBG_EN
+#define _SCRIPT_ENGINE_LL1_DBG_EN
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**

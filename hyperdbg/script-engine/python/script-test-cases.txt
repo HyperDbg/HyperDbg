@@ -1,6 +1,6 @@
 1
-x = ---0y1010 % 0o21 / 0x5 * -0o1 - 0n15 / (0x1 >> 0x2 ^ 0xf ^ 0xa | 0x1) % 0y1010 / ~0o12 % 0o4 % 0o10 % ++0x11 * 0o16; test_statement(x);
-ffffffffffffffd5
+x = 1; test_statement(x);
+1
 $end$
 2
 x = 0n0 % -0x6 / --0x6 << 0n2 >> ++~-0n2 / ++0o23 / ~0xd * 0o12 / +(0xc) % +---0x6 / 0n15 / 0y1011 - +0o11 % 0n7; test_statement(x);
