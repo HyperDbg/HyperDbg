@@ -348,7 +348,14 @@ GetToken(char * c, char * str)
                 Append(Token, *c);
                 *c = sgetc(str);
             }
-            Token->Type = REGISTER;
+            if (RegisterToInt(Token->Value) != INVALID)
+            {
+                Token->Type = REGISTER;
+            }
+            else
+            {
+                Token->Type = UNKNOWN;
+            }
             return Token;
         }
 
@@ -361,7 +368,15 @@ GetToken(char * c, char * str)
                 Append(Token, *c);
                 *c = sgetc(str);
             }
-            Token->Type = PSEUDO_REGISTER;
+            if (PseudoRegToInt(Token->Value) != INVALID)
+            {
+                Token->Type = PSEUDO_REGISTER;
+            }
+            else
+            {
+                Token->Type = UNKNOWN;
+            }
+
             return Token;
         }
 
@@ -738,17 +753,9 @@ IsKeyword(char * str)
 char
 IsRegister(char * str)
 {
-    int    n = REGISTER_MAP_LIST_LENGTH;
-    char * name;
-    for (int i = 0; i < n; i++)
-    {
-        name = RegisterMapList[i].Name;
-        if (!strcmp(str, name))
-        {
-            return 1;
-        }
-    }
-    return 0;
+    if (RegisterToInt(str) == INVALID)
+        return 0;
+    return 1;
 }
 char
 IsId(char * str)
