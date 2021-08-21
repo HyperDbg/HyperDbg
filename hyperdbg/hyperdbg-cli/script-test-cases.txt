@@ -3,7 +3,7 @@ x = 1; test_statement(x);
 1
 $end$
 2
-x = ; test_statement(x);
+x = 0n0 % -0x6 / --0x6 << 0n2 >> ++~-0n2 / ++0o23 / ~0xd * 0o12 / +(0xc) % +---0x6 / 0n15 / 0y1011 - +0o11 % 0n7; test_statement(x);
 $error$
 $end$
 3

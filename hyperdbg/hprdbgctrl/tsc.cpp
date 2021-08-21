@@ -49,6 +49,7 @@ CommandTsc(vector<string> SplittedCommand, string Command)
     UINT32                         ActionCustomCodeLength      = 0;
     UINT32                         ActionScriptLength          = 0;
     vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
     // Interpret and fill the general event and action fields
@@ -65,9 +66,9 @@ CommandTsc(vector<string> SplittedCommand, string Command)
             &ActionCustomCode,
             &ActionCustomCodeLength,
             &ActionScript,
-            &ActionScriptLength))
+            &ActionScriptLength,
+            &EventParsingErrorCause))
     {
-        CommandTscHelp();
         return;
     }
 

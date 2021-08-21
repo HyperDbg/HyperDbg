@@ -42,18 +42,19 @@ CommandEptHook2Help()
 VOID
 CommandEptHook2(vector<string> SplittedCommand, string Command)
 {
-    PDEBUGGER_GENERAL_EVENT_DETAIL Event                 = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionCustomCode      = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionScript          = NULL;
-    UINT32                         EventLength;
-    UINT32                         ActionBreakToDebuggerLength = 0;
-    UINT32                         ActionCustomCodeLength      = 0;
-    UINT32                         ActionScriptLength          = 0;
-    BOOLEAN                        GetAddress                  = FALSE;
-    UINT64                         OptionalParam1              = 0; // Set the target address
-    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
-    UINT32                         IndexInCommandCaseSensitive = 0;
+    PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
+    UINT32                             EventLength;
+    UINT32                             ActionBreakToDebuggerLength = 0;
+    UINT32                             ActionCustomCodeLength      = 0;
+    UINT32                             ActionScriptLength          = 0;
+    BOOLEAN                            GetAddress                  = FALSE;
+    UINT64                             OptionalParam1              = 0; // Set the target address
+    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    UINT32                             IndexInCommandCaseSensitive = 0;
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     if (SplittedCommand.size() < 2)
     {
@@ -76,9 +77,9 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
             &ActionCustomCode,
             &ActionCustomCodeLength,
             &ActionScript,
-            &ActionScriptLength))
+            &ActionScriptLength,
+            &EventParsingErrorCause))
     {
-        CommandEptHook2Help();
         return;
     }
 
