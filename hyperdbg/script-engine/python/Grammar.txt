@@ -18,7 +18,7 @@
 
 .SemantiRules->start_of_if jmp jz jnz jmp_to_end_and_jzcompleted end_of_if start_of_while end_of_while vargstart mov start_of_do_while  start_of_do_while_commands end_of_do_while start_of_for for_inc_dec start_of_for_ommands end_of_if ignore_lvalue
 
-.Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 ds es fs gs cs ss rflags rip idtr gdtr cr0 cr2 cr3 cr4 cr8
+.Registers->rax rcx rdx rbx rsp rbp rsi rdi r8 r9 r10 r11 r12 r13 r14 r15 ds es fs gs cs ss rflags rip idtr gdtr cr0 cr2 cr3 cr4 cr8 eax ax ah al ebx bx bh bl ecx cx ch cl edx dx dh dl esp sp spl ebp bp bpl esi si sil edi di dil r8d r8w r8h r8l r9d r9w r9h r9l r10d r10w r10h r10l r11d r11w r11h r11l r12d r12w r12h r12l r13d r13w r13h r13l r14d r14w r14h r14l r15d r15w r15h r15l eflags flags eip ip
 
 .PseudoRegisters->pid tid proc thread peb teb ip buffer context
  

@@ -329,9 +329,6 @@
     <ClCompile Include="kd.cpp">
       <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
     </ClCompile>
-    <ClCompile Include="p.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
-    </ClCompile>
     <ClCompile Include="~.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
@@ -385,6 +382,9 @@
     </ClCompile>
     <ClCompile Include="x.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="p.cpp">
+      <Filter>Resource Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

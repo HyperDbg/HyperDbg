@@ -1401,13 +1401,72 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_EAX:
+        return (GuestRegs->rax & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_AX:
+        return (GuestRegs->rax & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_AH:
+        return (GuestRegs->rax & 0x000000000000ff00)>> 8;
+
+        break;
+
+    case REGISTER_AL:
+        return (GuestRegs->rax & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RCX:
         return GuestRegs->rcx;
+
+        break;
+    case REGISTER_ECX:
+        return (GuestRegs->rcx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_CX:
+        return (GuestRegs->rcx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_CH:
+        return (GuestRegs->rcx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_CL:
+        return (GuestRegs->rcx & 0x00000000000000ff);
 
         break;
 
     case REGISTER_RDX:
         return GuestRegs->rdx;
+
+        break;
+   
+    case REGISTER_EDX:
+        return (GuestRegs->rdx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_DX:
+        return (GuestRegs->rdx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_DH:
+        return (GuestRegs->rdx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_DL:
+        return (GuestRegs->rdx & 0x00000000000000ff);
 
         break;
 
@@ -1416,6 +1475,25 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+        case REGISTER_EBX:
+        return (GuestRegs->rbx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_BX:
+        return (GuestRegs->rbx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_BH:
+        return (GuestRegs->rbx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_BL:
+        return (GuestRegs->rbx & 0x00000000000000ff);
+
+        break;
     case REGISTER_RSP:
         return GuestRegs->rsp;
 

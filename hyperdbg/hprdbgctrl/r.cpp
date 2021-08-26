@@ -50,7 +50,71 @@ map<string, REGS_ENUM> RegistersMap = {
     {"cr2", REGISTER_CR2},
     {"cr3", REGISTER_CR3},
     {"cr4", REGISTER_CR4},
-    {"cr8", REGISTER_CR8}};
+    {"cr8", REGISTER_CR8},
+    {"eax", REGISTER_EAX},
+    {"ax", REGISTER_AX},
+    {"ah", REGISTER_AH},
+    {"al", REGISTER_AL},
+    {"ebx", REGISTER_EBX},
+    {"bx", REGISTER_BX},
+    {"bh", REGISTER_BH},
+    {"bl", REGISTER_BL},
+    {"ecx", REGISTER_ECX},
+    {"cx", REGISTER_CX},
+    {"ch", REGISTER_CH},
+    {"cl", REGISTER_CL},
+    {"edx", REGISTER_EDX},
+    {"dx", REGISTER_DX},
+    {"dh", REGISTER_DH},
+    {"dl", REGISTER_DL},
+    {"esp", REGISTER_ESP},
+    {"sp", REGISTER_SP},
+    {"spl", REGISTER_SPL},
+    {"ebp", REGISTER_EBP},
+    {"bp", REGISTER_BP},
+    {"bpl", REGISTER_BPL},
+    {"esi", REGISTER_ESI},
+    {"si", REGISTER_SI},
+    {"sil", REGISTER_SIL},
+    {"edi", REGISTER_EDI},
+    {"di", REGISTER_DI},
+    {"dil", REGISTER_DIL},
+    {"r8d", REGISTER_R8D},
+    {"r8w", REGISTER_R8W},
+    {"r8h", REGISTER_R8H},
+    {"r8l", REGISTER_R8L},
+    {"r9d", REGISTER_R9D},
+    {"r9w", REGISTER_R9W},
+    {"r9h", REGISTER_R9H},
+    {"r9l", REGISTER_R9L},
+    {"r10d", REGISTER_R10D},
+    {"r10w", REGISTER_R10W},
+    {"r10h", REGISTER_R10H},
+    {"r10l", REGISTER_R10L},
+    {"r11d", REGISTER_R11D},
+    {"r11w", REGISTER_R11W},
+    {"r11h", REGISTER_R11H},
+    {"r11l", REGISTER_R11L},
+    {"r12d", REGISTER_R12D},
+    {"r12w", REGISTER_R12W},
+    {"r12h", REGISTER_R12H},
+    {"r12l", REGISTER_R12L},
+    {"r13d", REGISTER_R13D},
+    {"r13w", REGISTER_R13W},
+    {"r13h", REGISTER_R13H},
+    {"r13l", REGISTER_R13L},
+    {"r14d", REGISTER_R14D},
+    {"r14w", REGISTER_R14W},
+    {"r14h", REGISTER_R14H},
+    {"r14l", REGISTER_R14L},
+    {"r15d", REGISTER_R15D},
+    {"r15w", REGISTER_R15W},
+    {"r15h", REGISTER_R15H},
+    {"r15l", REGISTER_R15L},
+    {"eflags", REGISTER_EFLAGS},
+    {"flags", REGISTER_FLAGS},
+    {"eip", REGISTER_EIP},
+    {"ip", REGISTER_IP}};
 
 /**
  * @brief help of r command
@@ -136,6 +200,9 @@ CommandR(vector<string> SplittedCommand, string Command)
     //
     if (Command.find('=', 0) == string::npos)
     {
+        //
+        //erase '=' from the string now we have just the name of register
+        //
         Command.erase(0, 1);
         PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
             new DEBUGGEE_REGISTER_READ_DESCRIPTION;
@@ -147,6 +214,9 @@ CommandR(vector<string> SplittedCommand, string Command)
         }
         else
         {
+            //
+            //set the Reg to -1(invalid register)
+            //
             Reg = (REGS_ENUM)-1;
         }
         if (Reg != -1)
