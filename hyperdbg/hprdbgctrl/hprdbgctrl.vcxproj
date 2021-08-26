@@ -15,7 +15,7 @@
     <ProjectGuid>{809C3AD5-3211-4992-A472-9D81D124C5FA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>hprdbgctrl</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

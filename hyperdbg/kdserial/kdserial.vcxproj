@@ -45,7 +45,7 @@
     <RootNamespace>kdserial</RootNamespace>
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
     <TargetPlatformVersion>10.0.10135.0</TargetPlatformVersion>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

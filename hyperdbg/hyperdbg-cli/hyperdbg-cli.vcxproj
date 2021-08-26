@@ -15,7 +15,7 @@
     <ProjectGuid>{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>hyperdbg-cli</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>hyperdbg-cli</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
