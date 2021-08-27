@@ -138,15 +138,6 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     }
 
     //
-    // Check if its DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES then
-    // we have to convert it to current process id
-    //
-    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-    {
-        ProcessId = PsGetCurrentProcessId();
-    }
-
-    //
     // Perform the EPT Hook
     //
     EptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);

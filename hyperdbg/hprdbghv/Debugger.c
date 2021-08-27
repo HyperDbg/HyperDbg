@@ -1794,8 +1794,14 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // First check if the address are valid
         //
-        if (VirtualAddressToPhysicalAddress(EventDetails->OptionalParam1) == NULL ||
-            VirtualAddressToPhysicalAddress(EventDetails->OptionalParam2) == NULL)
+        TempPid = EventDetails->ProcessId;
+        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
+        {
+            TempPid = PsGetCurrentProcessId();
+        }
+
+        if (VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid) == NULL ||
+            VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, TempPid) == NULL)
         {
             //
             // Address is invalid (Set the error)
@@ -1870,6 +1876,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT;
         return FALSE;
     }
+
     //
     // Register the event
     //
@@ -1886,12 +1893,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE)
     {
+        //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr32 of current process
+        //
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
+            EventDetails->ProcessId == 0)
+        {
+            EventDetails->ProcessId = PsGetCurrentProcessId();
+        }
+
         PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
         PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                             EventDetails->ProcessId,
+                                                             TRUE,
+                                                             TRUE);
         }
 
         //
@@ -1904,12 +1924,25 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     }
     else if (EventDetails->EventType == HIDDEN_HOOK_READ)
     {
+        //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr32 of current process
+        //
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
+            EventDetails->ProcessId == 0)
+        {
+            EventDetails->ProcessId = PsGetCurrentProcessId();
+        }
+
         PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
         PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                             EventDetails->ProcessId,
+                                                             TRUE,
+                                                             TRUE);
         }
 
         //
@@ -1923,6 +1956,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
     {
         //
+        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
+        // or if process id is 0 then we use the cr32 of current process
+        //
+        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
+            EventDetails->ProcessId == 0)
+        {
+            EventDetails->ProcessId = PsGetCurrentProcessId();
+        }
+
+        //
         // Read should be enabled by default, we can't ignore it
         //
         PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
@@ -1930,7 +1973,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE), EventDetails->ProcessId, TRUE, TRUE);
+            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                             EventDetails->ProcessId,
+                                                             TRUE,
+                                                             TRUE);
         }
 
         //
@@ -1981,18 +2027,12 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
 
-        TempPid = EventDetails->ProcessId;
-        if (TempPid == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-        {
-            TempPid = PsGetCurrentProcessId();
-        }
-
         //
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
         // Also, we are sure that this is not null because we checked it before
         //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, TempPid);
+        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
     }
     else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
     {

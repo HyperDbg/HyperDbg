@@ -610,7 +610,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
         // Get the full size of instructions necessary to copy
         //
     }
-    
+
     //
     // For logging purpose
     //
@@ -1059,6 +1059,10 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
             return TRUE;
         }
     }
+
+    //
+    // There was a error, we shouldn't reach here
+    //
     LogWarning("Hook not applied");
 
     return FALSE;
