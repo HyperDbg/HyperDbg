@@ -827,7 +827,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     }
     else
     {
-        LogError("Invald invalidation parameter.");
+        LogError("err, invald invalidation parameter");
     }
 
     //

@@ -59,12 +59,13 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     //
                     // Restore to its orginal entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                    // EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_ALL_CONTEXTS);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                     //
-                    g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
+                    g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = HookedEntry;
 
                     //
                     // We have to set Monitor trap flag and give it the HookedEntry to work with

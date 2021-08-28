@@ -89,7 +89,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
     if (!PhysicalBaseAddress)
     {
-        LogError("Target address could not be mapped to physical memory");
+        LogError("target address could not be mapped to physical memory");
         return FALSE;
     }
 
@@ -179,13 +179,13 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
         if (!TargetBuffer)
         {
-            LogError("There is no pre-allocated buffer available");
+            LogError("there is no pre-allocated buffer available");
             return FALSE;
         }
 
         if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
         {
-            LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
+            LogError("could not split page for the address : 0x%llx", PhysicalBaseAddress);
             return FALSE;
         }
 
@@ -199,7 +199,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         //
         if (!TargetPage)
         {
-            LogError("Failed to get PML1 entry of the target address");
+            LogError("failed to get PML1 entry of the target address");
             return FALSE;
         }
 
@@ -215,7 +215,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
         if (!HookedPage)
         {
-            LogError("There is no pre-allocated pool for saving hooked page details");
+            LogError("there is no pre-allocated pool for saving hooked page details");
             return FALSE;
         }
 
@@ -376,7 +376,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
 
         if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, GetCr3FromProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
         {
-            LogDebugInfo("Hidden breakpoint hook applied from VMX Root Mode");
+            LogDebugInfo("hidden breakpoint hook applied from VMX Root Mode");
 
             if (!g_GuestState[LogicalCoreIndex].IsOnVmxRootMode)
             {
@@ -387,7 +387,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
             }
             else
             {
-                LogError("Unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode.");
+                LogError("err, unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode");
             }
 
             return TRUE;
@@ -595,7 +595,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
 
     if ((OffsetIntoPage + 19) > PAGE_SIZE - 1)
     {
-        LogError("Function extends past a page boundary. We just don't have the technology to solve this.....");
+        LogError("function extends past a page boundary, we just don't have the technology to solve this.....");
         return FALSE;
     }
 
@@ -627,7 +627,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
 
     if (!Hook->Trampoline)
     {
-        LogError("Could not allocate trampoline function buffer.");
+        LogError("could not allocate trampoline function buffer");
         return FALSE;
     }
 
@@ -755,7 +755,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!PhysicalBaseAddress)
     {
-        LogError("Target address could not be mapped to physical memory");
+        LogError("target address could not be mapped to physical memory");
         return FALSE;
     }
 
@@ -787,13 +787,13 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!TargetBuffer)
     {
-        LogError("There is no pre-allocated buffer available");
+        LogError("there is no pre-allocated buffer available");
         return FALSE;
     }
 
     if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
-        LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
+        LogError("could not split page for the address : 0x%llx", PhysicalBaseAddress);
         return FALSE;
     }
 
@@ -807,7 +807,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
     //
     if (!TargetPage)
     {
-        LogError("Failed to get PML1 entry of the target address");
+        LogError("failed to get PML1 entry of the target address");
         return FALSE;
     }
 
@@ -836,7 +836,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!HookedPage)
     {
-        LogError("There is no pre-allocated pool for saving hooked page details");
+        LogError("there is no pre-allocated pool for saving hooked page details");
         return FALSE;
     }
 
@@ -920,7 +920,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
         //
         if (!EptHookInstructionMemory(HookedPage, ProcessCr3, TargetAddress, TargetAddressInSafeMemory, HookFunction))
         {
-            LogError("Could not build the hook.");
+            LogError("could not build the hook");
             return FALSE;
         }
     }
@@ -1045,7 +1045,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
             }
             else
             {
-                LogError("Unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode.");
+                LogInfo("err, unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode, however, the hook is still works");
             }
 
             return TRUE;
@@ -1055,7 +1055,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     {
         if (EptHookPerformPageHook2(TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId), SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
         {
-            LogInfo("[*] Hook applied (VM has not launched)");
+            LogInfo("hook applied (VM has not launched)");
             return TRUE;
         }
     }
@@ -1063,7 +1063,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     //
     // There was a error, we shouldn't reach here
     //
-    LogWarning("Hook not applied");
+    LogWarning("err, hook was not applied");
 
     return FALSE;
 }
@@ -1203,7 +1203,7 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
             //
             if (!PoolManagerFreePool(CurrentHookedDetails))
             {
-                LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+                LogError("err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
             }
             return TRUE;
         }
@@ -1289,7 +1289,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                         //
                         if (!PoolManagerFreePool(HookedEntry))
                         {
-                            LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+                            LogError("err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
                         }
 
                         //
@@ -1391,7 +1391,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                 //
                 if (!PoolManagerFreePool(HookedEntry))
                 {
-                    LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+                    LogError("err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
                 }
 
                 return TRUE;
@@ -1457,7 +1457,7 @@ EptHookUnHookAll()
         //
         if (!PoolManagerFreePool(HookedEntry))
         {
-            LogError("Something goes wrong ! the pool not found in the list of previously allocated pools by pool manager.");
+            LogError("err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
         }
     }
 }
