@@ -770,8 +770,17 @@ InterpretScript(vector<string> * SplittedCommand,
         AppendedFinalBuffer = buffer.str();
         if (AppendedFinalBuffer.empty())
         {
-            ShowMessages("err, either script file is not found or it's empty.\n\n");
-            return FALSE;
+            ShowMessages("err, either script file is not found or it's empty\n");
+
+            //
+            // There was an error
+            //
+            *ScriptSyntaxErrors = TRUE;
+
+            //
+            // return TRUE to show that this item contains an script
+            //
+            return TRUE;
         }
     }
 
