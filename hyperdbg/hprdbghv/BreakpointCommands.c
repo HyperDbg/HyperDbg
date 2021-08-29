@@ -59,8 +59,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     //
                     // Restore to its orginal entry for one instruction
                     //
-                    // EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_ALL_CONTEXTS);
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -71,6 +70,38 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     // We have to set Monitor trap flag and give it the HookedEntry to work with
                     //
                     HvSetMonitorTrapFlag(TRUE);
+
+                    //
+                    // The following codes are added because we realized if the execution takes long then
+                    // the execution might be switched to another routines, thus, MTF might conclude on
+                    // another routine and we might (and will) trigger the same instruction soon
+                    //
+                    // The following code is not necessary on local debugging (VMI Mode), however, I don't
+                    // know why? just things are not reasonable here for me
+                    // another weird thing that I observed is the fact if you don't touch the routine related
+                    // to the I/O in and out instructions in VMWare then it works perfectly, just touching I/O
+                    // for serial is problematic, it might be a VMWare nested-virtualization bug, however, the
+                    // below approached proved to be work on both Debug Mode and WMI Mode
+                    // If you remove the below codes then when epthook is triggered then the execution stucks
+                    // on the same instruction on where the hooks is triggered, so 'p' and 't' commands for
+                    // steppings won't work
+                    //
+
+                    //
+                    // Change guest interrupt-state
+                    //
+                    HvSetExternalInterruptExiting(TRUE);
+
+                    //
+                    // Do not vm-exit on interrupt windows
+                    //
+                    HvSetInterruptWindowExiting(FALSE);
+
+                    //
+                    // Indicate that we should enable external interruts and configure external interrupt
+                    // window exiting somewhere at MTF
+                    //
+                    g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
 
                     //
                     // Indicate that we handled the ept violation

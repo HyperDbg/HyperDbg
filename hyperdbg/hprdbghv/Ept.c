@@ -705,6 +705,28 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
                 // We have to set Monitor trap flag and give it the HookedEntry to work with
                 //
                 HvSetMonitorTrapFlag(TRUE);
+
+                //
+                // The following codes are added because we realized if the execution takes long then
+                // the execution might be switched to another routines, thus, MTF might conclude on
+                // another routine and we might (and will) trigger the same instruction soon
+                //
+
+                //
+                // Change guest interrupt-state
+                //
+                HvSetExternalInterruptExiting(TRUE);
+
+                //
+                // Do not vm-exit on interrupt windows
+                //
+                HvSetInterruptWindowExiting(FALSE);
+
+                //
+                // Indicate that we should enable external interruts and configure external interrupt
+                // window exiting somewhere at MTF
+                //
+                g_GuestState[KeGetCurrentProcessorNumber()].DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
             }
 
             //

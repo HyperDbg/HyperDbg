@@ -87,6 +87,38 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // Set it to NULL
         //
         g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
+
+        //
+        // Check if we should enable interrupts in this core or not,
+        // we have another same check in SWITCHING CORES too
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
+        {
+            //
+            // Check if the debugger has events relating to external-interrupts, if no
+            // we completely disable external interrupts
+            //
+            if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) == 0)
+            {
+                //
+                // There is no events for external interrupts
+                //
+                HvSetExternalInterruptExiting(FALSE);
+            }
+
+            //
+            // Check if there is at least an interrupt that needs to be delivered
+            //
+            if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[0] != NULL)
+            {
+                //
+                // Enable Interrupt-window exiting.
+                //
+                HvSetInterruptWindowExiting(TRUE);
+            }
+
+            g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = FALSE;
+        }
     }
     else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf)
     {

@@ -152,8 +152,6 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
             // vmx non-root
             //
             OldIRQL = KeRaiseIrqlToDpcLevel();
-
-            KeLowerIrql(OldIRQL);
         }
 
         //
