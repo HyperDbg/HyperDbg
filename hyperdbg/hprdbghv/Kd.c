@@ -2297,9 +2297,13 @@ StartAgain:
             //
             // Set the length to notify debuggee
             //
-            PausePacket.ReadInstructionLen = SizeOfSafeBufferToRead;
-            ExitInstructionLength          = SizeOfSafeBufferToRead;
+            ExitInstructionLength = SizeOfSafeBufferToRead;
         }
+
+        //
+        // Set the reading length of bytes (for instruction disassembling)
+        //
+        PausePacket.ReadInstructionLen = ExitInstructionLength;
 
         //
         // Find the current instruction

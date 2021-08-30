@@ -205,7 +205,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             }
 
             //
-            // Hint debuggee about the length
+            // Hint the debuggee about the length
             //
             g_GuestState[CurrentProcessorIndex].DebuggingState.InstructionLengthHint = CurrentBreakpointDesc->InstructionLength;
 
