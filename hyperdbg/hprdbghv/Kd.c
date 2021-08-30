@@ -1262,12 +1262,12 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // in the debuggee
     //
     __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
-    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.CsSel = CsSel;
+    g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.CsSel = CsSel;
 
     //
     // Set an indicator of wait for MTF
     //
-    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = TRUE;
+    g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf = TRUE;
 
     //
     // Not unset again
@@ -1350,7 +1350,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
     }
     else
     {
-        LogError("Err, inknown changes in cs selectro during the instrument step-in");
+        LogError("Err, inknown changes in cs selectro during the instrumentation step-in");
     }
 
     //
@@ -1646,7 +1646,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 SteppingPacket = (DEBUGGEE_STEP_PACKET *)(((CHAR *)TheActualPacket) +
                                                           sizeof(DEBUGGER_REMOTE_PACKET));
 
-                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_INSTRUMENT)
+                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN)
                 {
                     //
                     // Guaranteed step in (i command)

@@ -120,7 +120,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = FALSE;
         }
     }
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf)
+    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf)
     {
         //
         // Check if the cs selector changed or not, which indicates that the
@@ -129,14 +129,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
 
-        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel,
+        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel,
                                          CsSel);
 
         //
         //  Unset the MTF flag and previous cs selector
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = FALSE;
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel            = 0;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel            = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
