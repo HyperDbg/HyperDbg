@@ -354,7 +354,7 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     }
     else
     {
-        LogError("Why we are here ? It's a vm-exit due to the external"
+        LogError("Err, why we are here ? it's a vm-exit due to the external"
                  "interrupt and its type is not external interrupt? weird!");
 
         return FALSE;

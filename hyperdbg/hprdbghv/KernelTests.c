@@ -82,7 +82,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 {
     UINT64 TempPool = NULL;
 
-    LogInfo("starting kernel-test process...");
+    LogInfo("Starting kernel-test process...");
 
     //
     // Call wrapper for ExAllocatePoolWithTag
@@ -103,7 +103,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
         ExFreePoolWithTag(TempPool, POOLTAG);
     }
 
-    LogInfo("all kernel events are triggered");
+    LogInfo("All the kernel events are triggered");
 
     KernelTestRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
 }
@@ -153,7 +153,7 @@ TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest)
     //
     if (Index > TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES)
     {
-        LogError("err, test cases are above the supported buffers");
+        LogError("Err, test cases are above the supported buffers");
         return 0;
     }
 

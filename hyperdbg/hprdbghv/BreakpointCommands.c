@@ -701,7 +701,7 @@ BreakpointListAllBreakpoint()
 
         if (IsListEmpty)
         {
-            Log("id   address           status\n");
+            Log("Id   Address           Status\n");
             Log("--   ---------------   --------");
 
             IsListEmpty = FALSE;

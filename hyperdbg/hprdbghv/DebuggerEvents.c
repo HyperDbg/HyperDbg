@@ -105,7 +105,7 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     // that's an error, we can't do anything else now :(
     //
 
-    LogError("Couldn't find anything to return");
+    LogError("Err, couldn't find anything to return");
 
     return 0;
 }

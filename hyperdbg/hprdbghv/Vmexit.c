@@ -101,7 +101,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     {
     case EXIT_REASON_TRIPLE_FAULT:
     {
-        LogError("Triple fault error occurred");
+        LogError("Err, triple fault error occurred");
 
         break;
     }
@@ -224,7 +224,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
         {
-            LogError("There were errors in handling Ept Violation");
+            LogError("Err, there were errors in handling EPT violation");
         }
 
         break;
@@ -424,7 +424,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
     default:
     {
-        LogError("Unkown Vmexit, reason : 0x%llx", ExitReason);
+        LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
         break;
     }
     }

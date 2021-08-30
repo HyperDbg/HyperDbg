@@ -33,7 +33,7 @@ KdInitializeKernelDebugger()
 
     if (g_DebuggeeDpc == NULL)
     {
-        LogError("err, allocating dpc holder for debuggee");
+        LogError("Err, allocating dpc holder for debuggee");
         return;
     }
 
@@ -434,7 +434,7 @@ KdRecvBuffer(CHAR *   BufferToSave,
             //
             // Invalid buffer (size of buffer exceeds the limitation)
             //
-            LogError("err, a buffer received in debuggee which exceeds the buffer limitation");
+            LogError("Err, a buffer received in debuggee which exceeds the buffer limitation");
             return FALSE;
         }
 
@@ -765,7 +765,7 @@ KdSwitchToNewProcessDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1,
         //
         // Pid is invalid
         //
-        LogInfo("err, process id is invalid (unable to switch)");
+        LogInfo("Err, process id is invalid (unable to switch)");
 
         //
         // Trigger a breakpoint to be managed by HyperDbg as sign of failure
@@ -1350,7 +1350,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
     }
     else
     {
-        LogError("Unknwn changes in cs selectro during the instrument step-in");
+        LogError("Err, inknown changes in cs selectro during the instrument step-in");
     }
 
     //
@@ -1605,7 +1605,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                       RecvBufferLength - sizeof(BYTE)) !=
                 TheActualPacket->Checksum)
             {
-                LogError("err, checksum is invalid");
+                LogError("Err, checksum is invalid");
                 continue;
             }
 
@@ -1619,7 +1619,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // sth wrong happened, the packet is not belonging to use
                 // nothing to do, just wait again
                 //
-                LogError("err, unknown packet received from the debugger\n");
+                LogError("Err, unknown packet received from the debugger\n");
             }
 
             //
@@ -2118,7 +2118,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 break;
 
             default:
-                LogError("err, unknown packet action received from the debugger\n");
+                LogError("Err, unknown packet action received from the debugger\n");
                 break;
             }
         }
@@ -2179,7 +2179,7 @@ KdIsGuestOnUsermode32Bit()
     }
     else
     {
-        LogError("unknown value for cs, cannot determine wow64 mode.");
+        LogError("Err, unknown value for cs, cannot determine wow64 mode");
     }
 
     //

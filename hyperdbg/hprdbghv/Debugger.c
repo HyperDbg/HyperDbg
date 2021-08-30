@@ -1113,7 +1113,7 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
     // -----------------------------------------------------------------------------------------------------
     // Test (Should be removed)
     //
-    // LogInfo("%x       Called from : %llx", Tag, Context);
+    // LogInfo("%X       Called from : %llx", Tag, Context);
     //
     //
     // LogInfo("Process Id : %x , Rax : %llx , R8 : %llx , Context : 0x%llx ", PsGetCurrentProcessId(), Regs->rax, Regs->r8, Context);
@@ -2713,7 +2713,7 @@ DebuggerTerminateEvent(UINT64 Tag)
         break;
     }
     default:
-        LogError("Uknown event for termination.");
+        LogError("Err, unknown event for termination");
         break;
     }
 }
@@ -2918,7 +2918,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
 //
 //   if (!Event1)
 //   {
-//       LogError("Error in creating event");
+//       LogError("Err, in creating event");
 //   }
 //
 //   //

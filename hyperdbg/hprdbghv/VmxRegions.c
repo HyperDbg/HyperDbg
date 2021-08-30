@@ -25,7 +25,7 @@ VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
 {
     int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
 
-    LogDebugInfo("Allocating Vmx Regions for logical core %d", CurrentProcessorNumber);
+    LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
 
     //
     // Enabling VMX Operation
@@ -37,16 +37,16 @@ VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID Sys
     //
     VmxFixCr4AndCr0Bits();
 
-    LogDebugInfo("VMX-Operation Enabled Successfully");
+    LogDebugInfo("VMX-Operation enabled successfully");
 
     if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
     {
-        LogError("Error in allocating memory for Vmxon region");
+        LogError("Err, allocating memory for vmxon region was not successfull");
         return FALSE;
     }
     if (!VmxAllocateVmcsRegion(&g_GuestState[CurrentProcessorNumber]))
     {
-        LogError("Error in allocating memory for Vmcs region");
+        LogError("Err, allocating memory for vmcs region was not successfull");
         return FALSE;
     }
 
@@ -99,7 +99,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
     if (VmxonRegion == NULL)
     {
-        LogError("Couldn't Allocate Buffer for VMXON Region.");
+        LogError("Err, couldn't allocate buffer for VMXON region");
         return FALSE;
     }
 
@@ -136,7 +136,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     VmxonStatus = __vmx_on(&AlignedVmxonRegionPhysicalAddr);
     if (VmxonStatus)
     {
-        LogError("Executing Vmxon instruction failed with status : %d", VmxonStatus);
+        LogError("Err, executing vmxon instruction failed with status : %d", VmxonStatus);
         return FALSE;
     }
 
@@ -181,7 +181,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
     if (VmcsRegion == NULL)
     {
-        LogError("Couldn't Allocate Buffer for VMCS Region.");
+        LogError("Err, couldn't allocate Buffer for VMCS region");
         return FALSE;
     }
     RtlSecureZeroMemory(VmcsRegion, VmcsSize + ALIGNMENT_PAGE_SIZE);
@@ -189,10 +189,10 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     VmcsPhysicalAddr = VirtualAddressToPhysicalAddress(VmcsRegion);
 
     AlignedVmcsRegion = (BYTE *)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogDebugInfo("VMCS Region Address : %llx", AlignedVmcsRegion);
+    LogDebugInfo("VMCS region address : %llx", AlignedVmcsRegion);
 
     AlignedVmcsRegionPhysicalAddr = (BYTE *)((ULONG_PTR)(VmcsPhysicalAddr + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
-    LogDebugInfo("VMCS Region Physical Address : %llx", AlignedVmcsRegionPhysicalAddr);
+    LogDebugInfo("VMCS region physical address : %llx", AlignedVmcsRegionPhysicalAddr);
 
     //
     // get IA32_VMX_BASIC_MSR RevisionId
@@ -234,12 +234,12 @@ VmxAllocateVmmStack(INT ProcessorID)
 
     if (g_GuestState[ProcessorID].VmmStack == NULL)
     {
-        LogError("Insufficient memory in allocationg Vmm stack");
+        LogError("Err, insufficient memory in allocationg vmm stack");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 
-    LogDebugInfo("Vmm Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
+    LogDebugInfo("VMM Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
 
     return TRUE;
 }
@@ -260,15 +260,15 @@ VmxAllocateMsrBitmap(INT ProcessorID)
 
     if (g_GuestState[ProcessorID].MsrBitmapVirtualAddress == NULL)
     {
-        LogError("Insufficient memory in allocationg Msr Bitmaps");
+        LogError("Err, insufficient memory in allocationg MSR Bitmaps");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].MsrBitmapVirtualAddress, PAGE_SIZE);
 
     g_GuestState[ProcessorID].MsrBitmapPhysicalAddress = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
 
-    LogDebugInfo("Msr Bitmap Virtual Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
-    LogDebugInfo("Msr Bitmap Physical Address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
+    LogDebugInfo("MSR Bitmap virtual address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+    LogDebugInfo("MSR Bitmap physical address : 0x%llx", g_GuestState[ProcessorID].MsrBitmapPhysicalAddress);
 
     return TRUE;
 }
@@ -289,7 +289,7 @@ VmxAllocateIoBitmaps(INT ProcessorID)
 
     if (g_GuestState[ProcessorID].IoBitmapVirtualAddressA == NULL)
     {
-        LogError("Insufficient memory in allocationg I/O Bitmaps A");
+        LogError("Err, insufficient memory in allocationg I/O Bitmaps A");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].IoBitmapVirtualAddressA, PAGE_SIZE);
@@ -306,15 +306,15 @@ VmxAllocateIoBitmaps(INT ProcessorID)
 
     if (g_GuestState[ProcessorID].IoBitmapVirtualAddressB == NULL)
     {
-        LogError("Insufficient memory in allocationg I/O Bitmaps B");
+        LogError("Err, insufficient memory in allocationg I/O Bitmaps B");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].IoBitmapVirtualAddressB, PAGE_SIZE);
 
     g_GuestState[ProcessorID].IoBitmapPhysicalAddressB = VirtualAddressToPhysicalAddress(g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
 
-    LogDebugInfo("I/O Bitmap B Virtual Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
-    LogDebugInfo("I/O Bitmap B Physical Address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
+    LogDebugInfo("I/O Bitmap B virtual address : 0x%llx", g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+    LogDebugInfo("I/O Bitmap B physical address : 0x%llx", g_GuestState[ProcessorID].IoBitmapPhysicalAddressB);
 
     return TRUE;
 }

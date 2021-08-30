@@ -40,7 +40,7 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length)
     //
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
-        LogError("err, buffer is above the maximum buffer size that can be sent to debuggee");
+        LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee");
         return FALSE;
     }
 
@@ -77,7 +77,7 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
     //
     if ((Length1 + Length2 + SERIAL_END_OF_BUFFER_CHARS_COUNT) > MaxSerialPacketSize)
     {
-        LogError("err, buffer is above the maximum buffer size that can be sent to debuggee");
+        LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee");
         return FALSE;
     }
 
@@ -132,7 +132,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     //
     if ((Length1 + Length2 + Length3 + SERIAL_END_OF_BUFFER_CHARS_COUNT) > MaxSerialPacketSize)
     {
-        LogError("err, buffer is above the maximum buffer size that can be sent to debuggee");
+        LogError("Err, buffer is above the maximum buffer size that can be sent to debuggee");
         return FALSE;
     }
 

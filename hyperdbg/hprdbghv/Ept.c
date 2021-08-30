@@ -48,11 +48,11 @@ EptCheckFeatures()
 
     if (!MTRRDefType.MtrrEnable)
     {
-        LogError("Mtrr Dynamic Ranges not supported");
+        LogError("Err, MTRR dynamic ranges are not supported");
         return FALSE;
     }
 
-    LogDebugInfo(" *** All EPT features are present *** ");
+    LogDebugInfo("All EPT features are present");
 
     return TRUE;
 }
@@ -126,7 +126,7 @@ EptBuildMtrrMap()
         }
     }
 
-    LogDebugInfo("Total MTRR Ranges Committed: %d", g_EptState->NumberOfEnabledMemoryRanges);
+    LogDebugInfo("Total MTRR ranges committed: %d", g_EptState->NumberOfEnabledMemoryRanges);
 
     return TRUE;
 }
@@ -245,7 +245,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
     TargetEntry = EptGetPml2Entry(EptPageTable, PhysicalAddress);
     if (!TargetEntry)
     {
-        LogError("An invalid physical address passed");
+        LogError("Err, an invalid physical address passed");
         return FALSE;
     }
 
@@ -270,7 +270,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
     NewSplit = (PVMM_EPT_DYNAMIC_SPLIT)PreAllocatedBuffer;
     if (!NewSplit)
     {
-        LogError("Failed to allocate dynamic split memory");
+        LogError("Err, failed to allocate dynamic split memory");
         return FALSE;
     }
     RtlZeroMemory(NewSplit, sizeof(VMM_EPT_DYNAMIC_SPLIT));
@@ -448,7 +448,7 @@ EptAllocateAndCreateIdentityPageTable()
 
     if (PageTable == NULL)
     {
-        LogError("Failed to allocate memory for PageTable");
+        LogError("Err, failed to allocate memory for PageTable");
         return NULL;
     }
 
@@ -561,7 +561,7 @@ EptLogicalProcessorInitialize()
     PageTable = EptAllocateAndCreateIdentityPageTable();
     if (!PageTable)
     {
-        LogError("Unable to allocate memory for EPT");
+        LogError("Err, unable to allocate memory for EPT");
         return FALSE;
     }
 
@@ -618,7 +618,7 @@ EptInitializeSeconadaryEpt()
     PageTable = EptAllocateAndCreateIdentityPageTable();
     if (!PageTable)
     {
-        LogError("Unable to allocate memory for EPT");
+        LogError("Err, unable to allocate memory for EPT");
         return FALSE;
     }
 
@@ -773,7 +773,7 @@ EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhy
         return TRUE;
     }
 
-    LogError("Unexpected EPT violation");
+    LogError("Err, unexpected EPT violation");
 
     //
     // Redo the instruction that caused the exception
@@ -806,7 +806,7 @@ VOID
 EptHandleMisconfiguration(UINT64 GuestAddress)
 {
     LogInfo("EPT Misconfiguration!");
-    LogError("A field in the EPT paging structure was invalid, Faulting guest address : 0x%llx", GuestAddress);
+    LogError("Err, a field in the EPT paging structure was invalid, faulting guest address : 0x%llx", GuestAddress);
 
     //
     // We can't continue now.
@@ -849,7 +849,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     }
     else
     {
-        LogError("err, invald invalidation parameter");
+        LogError("Err, invald invalidation parameter");
     }
 
     //

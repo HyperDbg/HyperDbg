@@ -37,7 +37,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
-    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION                  DebuggerKernelSideTestInformationRequest;
+    PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION              DebuggerKernelSideTestInformationRequest;
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
     PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
@@ -74,7 +74,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -94,7 +94,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Status = LogRegisterEventBasedNotification(DeviceObject, Irp);
                 break;
             default:
-                LogError("Unknow notification type from user-mode");
+                LogError("Err, unknow notification type from user-mode");
                 Status = STATUS_INVALID_PARAMETER;
                 break;
             }
@@ -142,7 +142,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -181,7 +181,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -238,7 +238,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -278,7 +278,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -320,7 +320,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -362,7 +362,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -450,7 +450,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -493,7 +493,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -549,7 +549,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -619,7 +619,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -659,7 +659,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -702,7 +702,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -745,7 +745,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -788,7 +788,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -831,7 +831,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -874,7 +874,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -918,7 +918,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -973,7 +973,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -1029,7 +1029,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -1073,7 +1073,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->AssociatedIrp.SystemBuffer == NULL)
             {
                 Status = STATUS_INVALID_PARAMETER;
-                LogError("Invalid parameter to IOCTL Dispatcher.");
+                LogError("Err, invalid parameter to IOCTL dispatcher");
                 break;
             }
 
@@ -1108,7 +1108,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             break;
 
         default:
-            LogError("Unknow IOCTL");
+            LogError("Err, unknown IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;
             break;
         }

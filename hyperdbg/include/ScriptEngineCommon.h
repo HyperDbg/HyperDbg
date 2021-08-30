@@ -826,7 +826,7 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
     }
     else
     {
-        LogInfo("pause(); function is called but you're not allowed to use it on vmi-mode (local debugging)");
+        LogInfo("The 'pause();' function is called but you're not allowed to use it on vmi-mode (local debugging)");
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE

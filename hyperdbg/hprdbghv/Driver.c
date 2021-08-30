@@ -75,7 +75,7 @@ DriverEntry(
         // we use DbgPrint as the vmx-root or non-root is not initialized
         //
 
-        DbgPrint("Insufficient memory\n");
+        DbgPrint("err, insufficient memory\n");
         DbgBreakPoint();
         return STATUS_INSUFFICIENT_RESOURCES;
     }
@@ -85,7 +85,7 @@ DriverEntry(
     //
     RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
 
-    LogDebugInfo("Hyperdbg is Loaded :)");
+    LogDebugInfo("Hyperdbg is loaded :)");
 
     Ntstatus = IoCreateDevice(DriverObject,
                               0,
@@ -220,7 +220,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     g_AllowIOCTLFromUsermode = TRUE;
 
-    LogDebugInfo("Hyperdbg's hypervisor Started...");
+    LogDebugInfo("Hyperdbg's hypervisor started...");
     //
     // We have to zero the g_GuestState again as we want to support multiple initialization by CreateFile
     //
@@ -251,7 +251,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     if (HvVmxInitialize())
     {
-        LogDebugInfo("Hyperdbg's hypervisor loaded successfully :)");
+        LogDebugInfo("Hyperdbg's hypervisor loaded successfully");
 
         //
         // Initialize the debugger
@@ -274,12 +274,12 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
         else
         {
-            LogError("Hyperdbg's debugger was not loaded");
+            LogError("Err, Hyperdbg's debugger was not loaded");
         }
     }
     else
     {
-        LogError("Hyperdbg's hypervisor was not loaded :(");
+        LogError("Err, Hyperdbg's hypervisor was not loaded :(");
     }
 
     //

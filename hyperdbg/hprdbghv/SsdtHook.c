@@ -39,7 +39,7 @@ SyscallHookGetKernelBase(PULONG pImageSize)
 
     if (!SystemInfoBufferSize)
     {
-        LogError("ZwQuerySystemInformation (1) failed");
+        LogError("Err, ZwQuerySystemInformation (1) failed");
         return NULL;
     }
 
@@ -47,7 +47,7 @@ SyscallHookGetKernelBase(PULONG pImageSize)
 
     if (!pSystemInfoBuffer)
     {
-        LogError("ExAllocatePool failed");
+        LogError("Err, insufficient memory");
         return NULL;
     }
 
@@ -66,7 +66,7 @@ SyscallHookGetKernelBase(PULONG pImageSize)
     }
     else
     {
-        LogError("ZwQuerySystemInformation (2) failed");
+        LogError("Err, ZwQuerySystemInformation (2) failed");
         return NULL;
     }
 
@@ -171,7 +171,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 
     if (!Result)
     {
-        LogError("SSDT not found");
+        LogError("Err, SSDT not found");
         return 0;
     }
 
@@ -192,7 +192,7 @@ SyscallHookGetFunctionAddress(INT32 ApiNumber, BOOLEAN GetFromWin32k)
 
     if (!SSDTbase)
     {
-        LogError("ServiceTable not found");
+        LogError("Err, ServiceTable not found");
         return 0;
     }
     return (PVOID)((SSDT->pServiceTable[ApiNumber] >> 4) + SSDTbase);
@@ -283,7 +283,7 @@ SyscallHookTest()
 
     if (!ApiLocationFromSSDTOfNtCreateFile)
     {
-        LogError("Error in finding base address.");
+        LogError("Err, address finding for syscall base address");
         return FALSE;
     }
 
