@@ -20,7 +20,6 @@
 // Extern global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;

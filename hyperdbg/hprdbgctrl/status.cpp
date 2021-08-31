@@ -15,12 +15,10 @@
 // Global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN g_BreakPrintingOutput;
 extern string  g_ServerPort;
 extern string  g_ServerIp;
 

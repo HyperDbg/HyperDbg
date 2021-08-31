@@ -60,6 +60,18 @@ HyperdbgInterpreter(const char * Command)
         //
         InitializeCommandsDictionary();
 
+        //
+        // Register the CTRL+C and CTRL+BREAK Signals handler
+        //
+        if (!SetConsoleCtrlHandler(BreakController, TRUE))
+        {
+            ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
+                         "handler\n");
+            //
+            // prefer to continue
+            //
+        }
+
         g_IsCommandListInitialized = TRUE;
     }
 

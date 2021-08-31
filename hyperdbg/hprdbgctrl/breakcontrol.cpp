@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
@@ -33,8 +34,9 @@ BreakController(DWORD CtrlType)
     switch (CtrlType)
     {
         //
-        // Handle the CTRL-C signal.
+        // Handle the CTRL + C & CTRL + Break signal.
         //
+    case CTRL_BREAK_EVENT:
     case CTRL_C_EVENT:
 
         //
@@ -54,6 +56,13 @@ BreakController(DWORD CtrlType)
         if (g_IsSerialConnectedToRemoteDebuggee)
         {
             KdBreakControlCheckAndPauseDebugger();
+        }
+        else if (!g_IsDebuggerModulesLoaded)
+        {
+            //
+            // vmm module is not loaded here, just ignore
+            //
+            return TRUE;
         }
         else
         {
@@ -103,78 +112,9 @@ BreakController(DWORD CtrlType)
         return TRUE;
 
         //
-        // CTRL-CLOSE: confirm that the user wants to exit.
+        // CTRL+CLOSE: confirm that the user wants to exit.
         //
     case CTRL_CLOSE_EVENT:
-        return TRUE;
-
-        //
-        // Pass other signals to the next handler.
-        //
-    case CTRL_BREAK_EVENT:
-
-        //
-        // Check if we should ignore the request or not
-        //
-        if (g_IsSerialConnectedToRemoteDebugger || g_IsSerialConnectedToRemoteDebugger)
-        {
-            //
-            // Handled (ignored)
-            //
-            return TRUE;
-        }
-
-        //
-        // Check if the debuggee is running because of pausing or not
-        //
-        if (g_IsSerialConnectedToRemoteDebuggee)
-        {
-            KdBreakControlCheckAndPauseDebugger();
-        }
-        else
-        {
-            //
-            // Sleep because the other thread that shows must be stopped
-            //
-            g_BreakPrintingOutput = TRUE;
-
-            //
-            // Check if its a remote debuggee then we should send the 'pause' command
-            //
-            if (g_IsConnectedToRemoteDebuggee)
-            {
-                RemoteConnectionSendCommand("pause", strlen("pause") + 1);
-            }
-
-            Sleep(500);
-
-            //
-            // It is because we didn't query the target debuggee auto-unpause variable
-            //
-            if (!g_IsConnectedToRemoteDebuggee)
-            {
-                if (g_AutoUnpause)
-                {
-                    ShowMessages(
-                        "pause\npausing debugger...\nauto-unpause mode is enabled, "
-                        "debugger will automatically continue when you run a new "
-                        "event command, if you want to change this behaviour then "
-                        "run run 'settings autounpause off'\n\n");
-
-                    HyperdbgShowSignature();
-                }
-                else
-                {
-                    ShowMessages(
-                        "pause\npausing debugger...\nauto-unpause mode is disabled, you "
-                        "should run 'g' when you want to continue, otherwise run "
-                        "'settings "
-                        "autounpause on'\n\n");
-
-                    HyperdbgShowSignature();
-                }
-            }
-        }
         return TRUE;
 
     case CTRL_LOGOFF_EVENT:
