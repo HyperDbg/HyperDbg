@@ -62,7 +62,6 @@ BreakController(DWORD CtrlType)
             //
             // vmm module is not loaded here, just ignore
             //
-            return TRUE;
         }
         else
         {

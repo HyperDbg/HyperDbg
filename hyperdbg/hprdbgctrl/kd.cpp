@@ -1509,16 +1509,6 @@ StartAgain:
         g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
 
         //
-        // Register the CTRL+C and CTRL+BREAK Signals handler
-        //
-        if (!SetConsoleCtrlHandler(BreakController, TRUE))
-        {
-            ShowMessages(
-                "err, in registering CTRL+C and CTRL+BREAK Signals handler\n");
-            return FALSE;
-        }
-
-        //
         // Wait for event on this thread
         //
         KdTheRemoteSystemIsRunning();
