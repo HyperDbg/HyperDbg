@@ -88,6 +88,12 @@ main(int argc, char * argv[])
         if (cin.fail() || cin.eof())
         {
             cin.clear(); // reset cin state
+            printf("\n\n");
+
+            //
+            // probably sth like CTRL+C pressed
+            //
+            continue;
         }
 
         if (!CurrentCommand.compare("") &&

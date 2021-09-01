@@ -131,7 +131,7 @@
     <ClCompile Include="be.cpp" />
     <ClCompile Include="bl.cpp" />
     <ClCompile Include="bp.cpp" />
-    <ClCompile Include="breakcontrol.cpp" />
+    <ClCompile Include="break-control.cpp" />
     <ClCompile Include="cls.cpp" />
     <ClCompile Include="connect.cpp" />
     <ClCompile Include="cpuid.cpp" />
@@ -181,7 +181,7 @@
     <ClCompile Include="r.cpp" />
     <ClCompile Include="rdmsr.cpp" />
     <ClCompile Include="readmem.cpp" />
-    <ClCompile Include="remoteconnection.cpp" />
+    <ClCompile Include="remote-connection.cpp" />
     <ClCompile Include="s.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="settings.cpp" />

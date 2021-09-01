@@ -248,9 +248,6 @@
     <ClCompile Include="events.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
-    <ClCompile Include="breakcontrol.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
-    </ClCompile>
     <ClCompile Include="g.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
@@ -292,9 +289,6 @@
     </ClCompile>
     <ClCompile Include="listen.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
-    </ClCompile>
-    <ClCompile Include="remoteconnection.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
     </ClCompile>
     <ClCompile Include="status.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
@@ -385,6 +379,12 @@
     </ClCompile>
     <ClCompile Include="x.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="break-control.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    </ClCompile>
+    <ClCompile Include="remote-connection.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

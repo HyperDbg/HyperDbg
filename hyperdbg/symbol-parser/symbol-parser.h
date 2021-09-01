@@ -45,6 +45,7 @@ __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVari
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllexport) BOOLEAN SymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllexport) VOID SymbolAbortLoading();
 }
 
 //////////////////////////////////////////////////
@@ -71,3 +72,6 @@ SymTagStr(ULONG Tag);
 
 BOOLEAN
 SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BOOLEAN IsSilentLoad);
+
+VOID
+SymbolAbortLoading();

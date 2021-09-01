@@ -44,6 +44,9 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   const char *          SymbolPath,
                                   BOOLEAN               IsSilentLoad);
 
+VOID
+ScriptEngineSymbolAbortLoadingWrapper();
+
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
 //////////////////////////////////////////////////

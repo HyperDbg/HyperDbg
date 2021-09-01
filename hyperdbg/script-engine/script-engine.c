@@ -33,7 +33,6 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 *
 *
 */
-
 UINT32
 ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
@@ -90,6 +89,15 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
     // A wrapper for pdb and modules parser
     //
     return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
+}
+
+VOID
+ScriptEngineSymbolAbortLoading()
+{
+    //
+    // A wrapper for aborting download and reload
+    //
+    return SymbolAbortLoading();
 }
 
 BOOLEAN
@@ -190,9 +198,6 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
 
-
-        
-
                 ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
@@ -264,11 +269,7 @@ ScriptEngineParse(char * str)
                 RemoveToken(TopToken);
                 TopToken = Pop(Stack);
 
-               
-
                 Push(MatchedStack, CurrentIn);
-
-           
 
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
@@ -276,8 +277,6 @@ ScriptEngineParse(char * str)
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
-
-               
             }
 
             else
@@ -304,7 +303,6 @@ ScriptEngineParse(char * str)
             {
                 RemoveToken(CurrentIn);
                 CurrentIn = Scan(str, &c);
-                
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -330,7 +328,7 @@ ScriptEngineParse(char * str)
 
     CodeBuffer->Message = ErrorMessage;
 
-     if (Stack)
+    if (Stack)
         RemoveTokenList(Stack);
 
     if (MatchedStack)
@@ -349,12 +347,10 @@ void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static BOOL IgnoreLvalue = FALSE;
-    TOKEN Op0  = NULL;
-    TOKEN Op1  = NULL;
-    TOKEN Op2  = NULL;
-    TOKEN Temp = NULL;
-
-    
+    TOKEN       Op0          = NULL;
+    TOKEN       Op1          = NULL;
+    TOKEN       Op2          = NULL;
+    TOKEN       Temp         = NULL;
 
     PSYMBOL OperatorSymbol = NULL;
     PSYMBOL Op0Symbol      = NULL;
@@ -392,7 +388,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1 = Pop(MatchedStack);
             if (Op1->Type == UNRESOLVED_ID)
             {
-                Op1Symbol        = NewSymbol();
+                Op1Symbol = NewSymbol();
                 free(Op1Symbol->Value);
                 Op1Symbol->Value = NewIdentifire(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
@@ -515,8 +511,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-           
-
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -524,7 +518,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
-            
             Temp = NewTemp();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
@@ -645,8 +638,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             JumpAddressSymbol->Value         = CurrentPointer + 2;
             RemoveToken(JumpSemanticAddressToken);
 
-
-
             //
             // Add jmp instruction to Code Buffer
             //
@@ -688,7 +679,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 UINT64 JumpSemanticAddress = DecimalToInt(JumpSemanticAddressToken->Value);
                 JumpAddressSymbol          = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
                 JumpAddressSymbol->Value   = CurrentPointer;
-
 
                 RemoveToken(JumpSemanticAddressToken);
                 JumpSemanticAddressToken = Pop(MatchedStack);
@@ -862,7 +852,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
 
             RemoveSymbol(JumpAddressSymbol);
-            
 
             FreeTemp(Op0);
 
@@ -1100,7 +1089,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             }
 
             JumpAddressToken = Pop(MatchedStack);
-            
 
             //
             // Set jumps addresses
@@ -1119,7 +1107,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 else
                 {
                     JumpAddress = DecimalToInt(JumpAddressToken->Value);
-                    
+
                     JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
                     JumpAddressSymbol->Value = CurrentPointer;
                 }
@@ -1438,7 +1426,6 @@ ScriptEngineBooleanExpresssionParse(
             StateId = Action;
             Push(Stack, CurrentIn);
 
-
             State       = NewToken();
             State->Type = STATE_ID;
             free(State->Value);
@@ -1472,8 +1459,6 @@ ScriptEngineBooleanExpresssionParse(
             RhsSize      = LalrGetRhsSize(StateId - 1);
             SemanticRule = &LalrSemanticRules[StateId - 1];
 
-            
-
             for (int i = 0; i < 2 * RhsSize; i++)
             {
                 Temp = Pop(Stack);
@@ -1491,15 +1476,13 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    RemoveToken(Temp);     
+                    RemoveToken(Temp);
                 }
             }
             if (SemanticRule->Type == SEMANTIC_RULE)
             {
                 if (!strcmp(SemanticRule->Value, "@PUSH"))
                 {
-
-                    
                 }
                 else
                 {
@@ -1548,14 +1531,11 @@ ScriptEngineBooleanExpresssionParse(
     if (EndToken)
         RemoveToken(EndToken);
 
-    
     if (Stack)
         RemoveTokenList(Stack);
 
     if (CurrentIn)
         RemoveToken(CurrentIn);
-
-    
 
     return Message;
 }

@@ -21,6 +21,7 @@ extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN g_IsExecutingSymbolLoadingRoutines;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -51,6 +52,22 @@ BreakController(DWORD CtrlType)
         }
 
         //
+        // Check for aborting symbol loading routines
+        //
+        if (g_IsExecutingSymbolLoadingRoutines)
+        {
+            //
+            // Avoid to calling it again
+            //
+            g_IsExecutingSymbolLoadingRoutines = FALSE;
+
+            //
+            // Abort the execution
+            //
+            ScriptEngineSymbolAbortLoadingWrapper();
+        }
+
+        //
         // Check if the debuggee is running because of pausing or not
         //
         if (g_IsSerialConnectedToRemoteDebuggee)
@@ -60,7 +77,7 @@ BreakController(DWORD CtrlType)
         else if (!g_IsDebuggerModulesLoaded)
         {
             //
-            // vmm module is not loaded here, just ignore
+            // vmm module is not loaded here
             //
         }
         else

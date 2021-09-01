@@ -164,6 +164,8 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllimport) VOID
+    ScriptEngineSymbolAbortLoading();
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -745,7 +747,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
-    g_CurrentTestResult = Value;
+    g_CurrentTestResult         = Value;
     g_CurrentTestResultHasError = FALSE;
 }
 
@@ -1412,7 +1414,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_AH:
-        return (GuestRegs->rax & 0x000000000000ff00)>> 8;
+        return (GuestRegs->rax & 0x000000000000ff00) >> 8;
 
         break;
 
@@ -1449,7 +1451,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return GuestRegs->rdx;
 
         break;
-   
+
     case REGISTER_EDX:
         return (GuestRegs->rdx & 0x00000000ffffffff);
 
@@ -1475,7 +1477,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
-        case REGISTER_EBX:
+    case REGISTER_EBX:
         return (GuestRegs->rbx & 0x00000000ffffffff);
 
         break;
@@ -2209,7 +2211,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
- 
+
     case FUNC_EQ:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -2233,7 +2235,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
-
 
     case FUNC_PAUSE:
         ScriptEngineFunctionPause(ActionDetail.Tag,
@@ -2475,7 +2476,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         }
 
         DesVal = SrcVal1 / SrcVal0;
-   
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -2848,8 +2848,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         // Call the target function
         //
         ScriptEngineFunctionTestStatement(ActionDetail.Tag,
-                                  ActionDetail.ImmediatelySendTheResults,
-                                  SrcVal0);
+                                          ActionDetail.ImmediatelySendTheResults,
+                                          SrcVal0);
         return HasError;
 
     case FUNC_DISABLE_EVENT:
