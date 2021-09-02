@@ -1879,6 +1879,32 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_LDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        return GetGuestLdtr();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_TR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        return GetGuestTr();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_GDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1948,6 +1974,78 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         return GetGuestCr8();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr0();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR1:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr1();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr2();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr3();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR6:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr6();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR7:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr7();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2028,6 +2126,23 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_EAX:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+
+        break;
+    case REGISTER_AX:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+    case REGISTER_AH:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | (Value & 0x000000000000ff00);
+
+        break;
+    case REGISTER_AL:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RCX:
         GuestRegs->rcx = Value;
 
@@ -2052,6 +2167,45 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         GuestRegs->rsp = Value;
         SetGuestRSP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ESP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SPL:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2201,6 +2355,30 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_EFLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags((GetGuestRFlags() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_FLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags((GetGuestRFlags() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_RIP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2209,6 +2387,31 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRIP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_EIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRIP((GetGuestRIP() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRIP((GetGuestRIP() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2227,6 +2430,20 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_LDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        SetGuestLdtr(Value);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_GDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2236,6 +2453,18 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
         SetGuestGdtr(Value);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    case REGISTER_TR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        SetGuestTr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2295,6 +2524,78 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestCr8(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr0(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR1:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr1(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr2(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr3(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR6:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr6(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR7:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr7(Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;

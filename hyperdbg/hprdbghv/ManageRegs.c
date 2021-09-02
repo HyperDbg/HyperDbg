@@ -311,6 +311,33 @@ GetGuestIdtr()
 }
 
 /**
+ * @brief Set the Guest Ldtr
+ * 
+ * @param Ldtr The Idtr Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestLdtr(UINT64 Ldtr)
+{
+    __vmx_vmwrite(GUEST_LDTR_BASE, Ldtr);
+}
+
+/**
+ * @brief Get the Guest Ldtr
+ * 
+ * @return UINT64 
+ */
+UINT64
+GetGuestLdtr()
+{
+    UINT64 Ldtr;
+
+    __vmx_vmread(GUEST_LDTR_BASE, &Ldtr);
+
+    return Ldtr;
+}
+
+/**
  * @brief Set the Guest Gdtr
  * 
  * @param Gdtr The Gdtr Selector for the guest
@@ -337,6 +364,30 @@ GetGuestGdtr()
     return Gdtr;
 }
 
+/**
+ * @param Tr The Tr Selector for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestTr(UINT64 Tr)
+{
+    __vmx_vmwrite(GUEST_TR_BASE, Tr);
+}
+
+/**
+ * @brief Get the Guest Tr
+ * 
+ * @return UINT64 
+ */
+UINT64
+GetGuestTr()
+{
+    UINT64 Tr;
+
+    __vmx_vmread(GUEST_TR_BASE, &Tr);
+
+    return Tr;
+}
 /**
  * @brief Set the Guest RFLAGS Register
  * 
@@ -528,4 +579,161 @@ VOID
 SetGuestCr8(UINT64 Cr8)
 {
     __writecr8(Cr8);
+}
+
+
+/**
+ * @brief Set the Guest Dr0 Register
+ * 
+ * @param Dr0 The Dr0 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr0(UINT64 Dr0)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr0);
+}
+
+/**
+ * @brief Set the Guest Dr1 Register
+ * 
+ * @param Dr1 The Dr1 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr1(UINT64 Dr1)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr1);
+}
+
+/**
+ * @brief Set the Guest Dr2 Register
+ * 
+ * @param Dr2 The Dr2 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr2(UINT64 Dr2)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr2);
+}
+
+/**
+ * @brief Set the Guest Dr3 Register
+ * 
+ * @param Dr3 The Dr3 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr3(UINT64 Dr3)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr3);
+}
+
+/**
+ * @brief Set the Guest Dr6 Register
+ * 
+ * @param Dr6 The Dr6 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr6(UINT64 Dr6)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr6);
+}
+
+/**
+ * @brief Set the Guest Dr7 Register
+ * 
+ * @param Dr7 The Dr7 Value for the guest
+ * @return VOID 
+ */
+VOID
+SetGuestDr7(UINT64 Dr7)
+{
+    __vmx_vmwrite(GUEST_CR0, Dr7);
+}
+
+/**
+ * @brief Get the Guest Dr0 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr0()
+{
+    UINT64 Dr0;
+
+    __vmx_vmread(GUEST_CR0, &Dr0);
+    return Dr0;
+}
+
+/**
+ * @brief Get the Guest Dr1 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr1()
+{
+    UINT64 Dr1;
+
+    __vmx_vmread(GUEST_CR0, &Dr1);
+    return Dr1;
+}
+
+/**
+ * @brief Get the Guest Dr2 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr2()
+{
+    UINT64 Dr2;
+
+    __vmx_vmread(GUEST_CR0, &Dr2);
+    return Dr2;
+}
+
+/**
+ * @brief Get the Guest Dr3 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr3()
+{
+    UINT64 Dr3;
+
+    __vmx_vmread(GUEST_CR0, &Dr3);
+    return Dr3;
+}
+
+/**
+ * @brief Get the Guest Dr6 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr6()
+{
+    UINT64 Dr6;
+
+    __vmx_vmread(GUEST_CR0, &Dr6);
+    return Dr6;
+}
+
+/**
+ * @brief Get the Guest Dr7 value
+ * 
+ * @return UINT64
+ */
+UINT64
+GetGuestDr7()
+{
+    UINT64 Dr7;
+
+    __vmx_vmread(GUEST_CR0, &Dr7);
+    return Dr7;
 }

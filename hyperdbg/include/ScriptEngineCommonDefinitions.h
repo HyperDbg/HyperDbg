@@ -189,12 +189,20 @@ typedef enum REGS_ENUM {
 	REGISTER_EIP = 86,
 	REGISTER_IP = 87,
 	REGISTER_IDTR = 88,
-	REGISTER_GDTR = 89,
-	REGISTER_CR0 = 90,
-	REGISTER_CR2 = 91,
-	REGISTER_CR3 = 92,
-	REGISTER_CR4 = 93,
-	REGISTER_CR8 = 94
+	REGISTER_LDTR = 89,
+	REGISTER_GDTR = 90,
+	REGISTER_TR = 91,
+	REGISTER_CR0 = 92,
+	REGISTER_CR2 = 93,
+	REGISTER_CR3 = 94,
+	REGISTER_CR4 = 95,
+	REGISTER_CR8 = 96,
+	REGISTER_DR0 = 97,
+	REGISTER_DR1 = 98,
+	REGISTER_DR2 = 99,
+	REGISTER_DR3 = 100,
+	REGISTER_DR6 = 101,
+	REGISTER_DR7 = 102
 
 } REGS_ENUM;
 
@@ -210,7 +218,8 @@ static const char *const RegistersNames[] = {
 "r13h", "r13l", "r14", "r14d", "r14w", "r14h", "r14l", "r15",
 "r15d", "r15w", "r15h", "r15l", "ds", "es", "fs", "gs",
 "cs", "ss", "rflags", "eflags", "flags", "rip", "eip", "ip",
-"idtr", "gdtr", "cr0", "cr2", "cr3", "cr4", 	"cr8"
+"idtr", "ldtr", "gdtr", "tr", "cr0", "cr2", "cr3", "cr4",
+"cr8", "dr0", "dr1", "dr2", "dr3", "dr6","dr7"
 };
 
 #define PSEUDO_REGISTER_PID 0
