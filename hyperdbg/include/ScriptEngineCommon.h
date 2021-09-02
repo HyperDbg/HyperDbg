@@ -1427,6 +1427,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return GuestRegs->rcx;
 
         break;
+
     case REGISTER_ECX:
         return (GuestRegs->rcx & 0x00000000ffffffff);
 
@@ -1496,6 +1497,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return (GuestRegs->rbx & 0x00000000000000ff);
 
         break;
+
     case REGISTER_RSP:
         return GuestRegs->rsp;
 
@@ -1510,6 +1512,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return (GuestRegs->rsp & 0x000000000000ffff);
 
         break;
+
     case REGISTER_SPL:
         return (GuestRegs->rsp & 0x00000000000000ff);
 
@@ -1519,6 +1522,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return GuestRegs->rbp;
 
         break;
+
     case REGISTER_EBP:
         return (GuestRegs->rbp & 0x00000000ffffffff);
 
@@ -1532,10 +1536,12 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return (GuestRegs->rbp & 0x00000000000000ff);
 
         break;
+
     case REGISTER_RSI:
         return GuestRegs->rsi;
 
         break;
+
     case REGISTER_ESI:
         return (GuestRegs->rsi & 0x00000000ffffffff);
 
@@ -1545,14 +1551,17 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return (GuestRegs->rsi & 0x000000000000ffff);
 
         break;
+
     case REGISTER_SIL:
         return (GuestRegs->rsi & 0x00000000000000ff);
 
         break;
+
     case REGISTER_RDI:
         return GuestRegs->rdi;
 
         break;
+
     case REGISTER_EDI:
         return (GuestRegs->rdi & 0x00000000ffffffff);
 
@@ -1562,26 +1571,32 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return (GuestRegs->rdi & 0x000000000000ffff);
 
         break;
+
     case REGISTER_DIL:
         return (GuestRegs->rdi & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R8:
         return GuestRegs->r8;
 
         break;
+
     case REGISTER_R8D:
         return (GuestRegs->r8 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R8W:
         return (GuestRegs->r8 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R8H:
         return (GuestRegs->r8 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R8L:
         return (GuestRegs->r8 & 0x00000000000000ff);
 
@@ -1590,142 +1605,177 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         return GuestRegs->r9;
 
         break;
+
     case REGISTER_R9D:
         return (GuestRegs->r9 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R9W:
         return (GuestRegs->r9 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R9H:
         return (GuestRegs->r9 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R9L:
         return (GuestRegs->r9 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R10:
         return GuestRegs->r10;
 
         break;
+
     case REGISTER_R10D:
         return (GuestRegs->r10 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R10W:
         return (GuestRegs->r10 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R10H:
         return (GuestRegs->r10 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R10L:
         return (GuestRegs->r10 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R11:
         return GuestRegs->r11;
 
         break;
+
     case REGISTER_R11D:
         return (GuestRegs->r11 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R11W:
         return (GuestRegs->r11 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R11H:
         return (GuestRegs->r11 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R11L:
         return (GuestRegs->r11 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R12:
         return GuestRegs->r12;
 
         break;
+
     case REGISTER_R12D:
         return (GuestRegs->r12 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R12W:
         return (GuestRegs->r12 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R12H:
         return (GuestRegs->r12 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R12L:
         return (GuestRegs->r12 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R13:
         return GuestRegs->r13;
 
         break;
+
     case REGISTER_R13D:
         return (GuestRegs->r13 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R13W:
         return (GuestRegs->r13 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R13H:
         return (GuestRegs->r13 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R13L:
         return (GuestRegs->r13 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R14:
         return GuestRegs->r14;
 
         break;
+
     case REGISTER_R14D:
         return (GuestRegs->r14 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R14W:
         return (GuestRegs->r14 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R14H:
         return (GuestRegs->r14 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R14L:
         return (GuestRegs->r14 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_R15:
         return GuestRegs->r15;
 
         break;
+
     case REGISTER_R15D:
         return (GuestRegs->r15 & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_R15W:
         return (GuestRegs->r15 & 0x000000000000ffff);
 
         break;
+
     case REGISTER_R15H:
         return (GuestRegs->r15 & 0x000000000000ff00) >> 8;
 
         break;
+
     case REGISTER_R15L:
         return (GuestRegs->r15 & 0x00000000000000ff);
 
         break;
+
     case REGISTER_DS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1809,6 +1859,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
+
     case REGISTER_EFLAGS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1820,6 +1871,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
+
     case REGISTER_FLAGS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1843,6 +1895,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
+
     case REGISTER_EIP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1854,6 +1907,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
+
     case REGISTER_IP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2051,11 +2105,14 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case INVALID:
+
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
+
         break;
+
         // TODO: Add all the register
     }
 }
@@ -2130,14 +2187,17 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         GuestRegs->rax = (GuestRegs->rax & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
         break;
+
     case REGISTER_AX:
         GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
 
         break;
+
     case REGISTER_AH:
         GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
 
         break;
+
     case REGISTER_AL:
         GuestRegs->rax = (GuestRegs->rax & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
 
@@ -2456,6 +2516,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
+        break;
+
     case REGISTER_TR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2467,6 +2529,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         SetGuestTr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
 
     case REGISTER_CR0:
 
