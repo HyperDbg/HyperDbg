@@ -2135,7 +2135,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_AH:
-        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | (Value & 0x000000000000ff00);
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
 
         break;
     case REGISTER_AL:
