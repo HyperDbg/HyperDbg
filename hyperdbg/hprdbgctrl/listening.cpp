@@ -59,6 +59,8 @@ ListeningSerialPortInDebugger()
     PGUEST_REGS                           Regs;
     PGUEST_EXTRA_REGISTERS                ExtraRegs;
     unsigned char *                       MemoryBuffer;
+    BOOLEAN                               ShowSignatureWhenDisconnected = FALSE;
+
 StartAgain:
 
     CHAR   BufferToReceive[MaxSerialPacketSize] = {0};
@@ -75,15 +77,29 @@ StartAgain:
             //
             // The remote computer (debuggee) closed the connection
             //
-            ShowMessages("the remote connection is closed\n");
+            ShowMessages("\nthe remote connection is closed\n");
 
-            if (g_IsDebuggeeRunning == FALSE && g_IsSerialConnectedToRemoteDebuggee)
+            if (g_IsSerialConnectedToRemoteDebuggee)
             {
-                ShowMessages("\n");
-                HyperdbgShowSignature();
+                //
+                // Remove and reset all the events
+                //
+                CommandEventsClearAllEventsAndResetTags();
+
+                if (g_IsDebuggeeRunning == FALSE)
+                {
+                    ShowSignatureWhenDisconnected = TRUE;
+                }
             }
 
             KdCloseConnection();
+
+            if (ShowSignatureWhenDisconnected)
+            {
+                ShowSignatureWhenDisconnected = FALSE;
+                ShowMessages("\n");
+                HyperdbgShowSignature();
+            }
             return FALSE;
         }
         else

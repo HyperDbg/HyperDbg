@@ -181,6 +181,9 @@ CommandEventsHandleModifiedEvent(
     PDEBUGGER_MODIFY_EVENTS ModifyEventRequest);
 
 VOID
+CommandEventsClearAllEventsAndResetTags();
+
+VOID
 CommandFlushRequestFlush();
 
 UINT64
