@@ -128,7 +128,7 @@ StartAgain:
                                   LengthReceived - sizeof(BYTE)) !=
             TheActualPacket->Checksum)
         {
-            ShowMessages("err checksum is invalid\n");
+            ShowMessages("\nerr, checksum is invalid\n");
             goto StartAgain;
         }
 
@@ -142,7 +142,7 @@ StartAgain:
             // sth wrong happened, the packet is not belonging to use
             // nothing to do, just wait again
             //
-            ShowMessages("err, unknown packet received from the debuggee\n");
+            ShowMessages("\nerr, unknown packet received from the debuggee\n");
             goto StartAgain;
         }
 
