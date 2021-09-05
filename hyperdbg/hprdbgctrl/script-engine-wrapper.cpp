@@ -129,6 +129,18 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
 }
 
 /**
+ * @brief SymbolAbortLoading wrapper
+ *
+ * @return VOID
+ */
+VOID
+ScriptEngineSymbolAbortLoadingWrapper()
+
+{
+    return ScriptEngineSymbolAbortLoading();
+}
+
+/**
  * @brief ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails wrapper
  *
  * @param LocalFilePath
@@ -175,7 +187,7 @@ ScriptEngineParseWrapper(char * str)
         //
         // Show error message and free the buffer
         //
-        ShowMessages("syntax error:\n %s\n", SymbolBuffer->Message);
+        ShowMessages("%s\n", SymbolBuffer->Message);
         ScriptEngineWrapperRemoveSymbolBuffer(SymbolBuffer);
         return NULL;
     }
@@ -232,7 +244,6 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
             ActionBuffer.ImmediatelySendTheResults = FALSE;
             ActionBuffer.Tag                       = NULL;
 
-            
             //
             // If has error, show error message and abort.
             //

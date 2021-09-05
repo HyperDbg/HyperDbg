@@ -21,6 +21,7 @@ extern BOOLEAN    g_AutoFlush;
 extern BOOLEAN    g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
+extern UINT64     g_EventTag;
 
 /**
  * @brief help of events command
@@ -411,6 +412,33 @@ CommandEventClearEvent(UINT64 Tag)
     // Either not found or DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG is specified
     //
     return Result;
+}
+
+/**
+ * @brief Clears all the events and resets the tag
+ *
+ * @return VOID
+ */
+VOID
+CommandEventsClearAllEventsAndResetTags()
+{
+    //
+    // Check if events are initialized
+    //
+    if (g_EventTraceInitialized)
+    {
+        CommandEventClearEvent(DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG);
+
+        //
+        // Indicate that it's not initialized
+        //
+        g_EventTraceInitialized = FALSE;
+
+        //
+        // Reset tag numbering mechanism
+        //
+        g_EventTag = DebuggerEventTagStartSeed;
+    }
 }
 
 /**

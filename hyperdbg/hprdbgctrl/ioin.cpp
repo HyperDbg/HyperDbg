@@ -43,17 +43,18 @@ CommandIoinHelp()
 VOID
 CommandIoin(vector<string> SplittedCommand, string Command)
 {
-    PDEBUGGER_GENERAL_EVENT_DETAIL Event                 = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionCustomCode      = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionScript          = NULL;
-    UINT32                         EventLength;
-    UINT32                         ActionBreakToDebuggerLength = 0;
-    UINT32                         ActionCustomCodeLength      = 0;
-    UINT32                         ActionScriptLength          = 0;
-    UINT64                         SpecialTarget               = DEBUGGER_EVENT_ALL_IO_PORTS;
-    BOOLEAN                        GetPort                     = FALSE;
-    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+    PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
+    UINT32                             EventLength;
+    UINT32                             ActionBreakToDebuggerLength = 0;
+    UINT32                             ActionCustomCodeLength      = 0;
+    UINT32                             ActionScriptLength          = 0;
+    UINT64                             SpecialTarget               = DEBUGGER_EVENT_ALL_IO_PORTS;
+    BOOLEAN                            GetPort                     = FALSE;
+    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //
     // Interpret and fill the general event and action fields
@@ -69,9 +70,9 @@ CommandIoin(vector<string> SplittedCommand, string Command)
             &ActionCustomCode,
             &ActionCustomCodeLength,
             &ActionScript,
-            &ActionScriptLength))
+            &ActionScriptLength,
+            &EventParsingErrorCause))
     {
-        CommandIoinHelp();
         return;
     }
 

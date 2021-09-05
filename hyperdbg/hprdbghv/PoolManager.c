@@ -28,7 +28,7 @@ PoolManagerInitialize()
 
     if (!g_RequestNewAllocation)
     {
-        LogError("Insufficient memory");
+        LogError("Err, insufficient memory");
         return FALSE;
     }
     RtlZeroMemory(g_RequestNewAllocation, MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION));
@@ -241,7 +241,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 
         if (!SinglePool)
         {
-            LogError("Insufficient memory");
+            LogError("Err, insufficient memory");
             return FALSE;
         }
 
@@ -254,7 +254,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 
         if (!SinglePool->Address)
         {
-            LogError("Insufficient memory");
+            LogError("Err, insufficient memory");
             return FALSE;
         }
 

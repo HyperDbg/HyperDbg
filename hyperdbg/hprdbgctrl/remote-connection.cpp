@@ -319,16 +319,6 @@ RemoteConnectionConnect(PCSTR Ip, PCSTR Port)
             0,
             &ThreadId);
 
-        //
-        // Register the CTRL+C and CTRL+BREAK Signals handler
-        //
-        if (!SetConsoleCtrlHandler(BreakController, TRUE))
-        {
-            ShowMessages(
-                "err, in registering CTRL+C and CTRL+BREAK Signals handler\n");
-            return;
-        }
-
         ShowMessages("connected to %s:%s\n", Ip, Port);
     }
 }

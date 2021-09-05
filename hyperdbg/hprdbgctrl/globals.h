@@ -253,7 +253,7 @@ BOOLEAN g_ShouldPreviousCommandBeContinued;
  * @brief List of command and attributes
  *
  */
-CommandType g_CommandList;
+CommandType g_CommandsList;
 
 /**
  * @brief Holder of global variables for script engine
@@ -392,6 +392,13 @@ BOOLEAN g_ExecutingScript = FALSE;
  *
  */
 BOOLEAN g_BreakPrintingOutput = FALSE;
+
+/**
+ * @brief Executing symbol reloading or downloading
+ * routines
+ *
+ */
+BOOLEAN g_IsExecutingSymbolLoadingRoutines = FALSE;
 
 /**
  * @brief Shows whether the user executed and mesaured '!measure'

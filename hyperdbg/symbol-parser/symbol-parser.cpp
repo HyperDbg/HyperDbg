@@ -17,6 +17,7 @@
 //
 std::vector<PSYMBOL_LOADED_MODULE_DETAILS> g_LoadedModules;
 BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
+BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
 CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
 
@@ -1148,6 +1149,14 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
     for (size_t i = 0; i < StoredLength / sizeof(MODULE_SYMBOL_DETAIL); i++)
     {
         //
+        // Check for abort
+        //
+        if (g_AbortLoadingExecution)
+        {
+            g_AbortLoadingExecution = FALSE;
+            return FALSE;
+        }
+        //
         // Check if symbol pdb detail is available in the module
         //
         if (!BufferToStoreDetailsConverted[i].IsSymbolDetailsFound)
@@ -1295,6 +1304,7 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BO
     }
 
     HRESULT Result = URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymName).c_str(), 0, NULL);
+
     if (Result == S_OK)
     {
         if (!IsSilentLoad)
@@ -1312,4 +1322,20 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BO
     }
 
     return FALSE;
+}
+
+/**
+ * @brief In the case of pressing CTRL+C, it sets a flag
+ * to abort the execution of 'reload'ing and 'download'ing
+ *  
+ * return VOID
+ */
+VOID
+SymbolAbortLoading()
+{
+    if (!g_AbortLoadingExecution)
+    {
+        g_AbortLoadingExecution = TRUE;
+        printf("\naborting, please wait...\n");
+    }
 }

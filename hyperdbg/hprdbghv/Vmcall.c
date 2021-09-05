@@ -449,7 +449,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     default:
     {
-        LogError("Unsupported VMCALL");
+        LogError("Err, unsupported VMCALL");
         VmcallStatus = STATUS_UNSUCCESSFUL;
         break;
     }

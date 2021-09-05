@@ -33,7 +33,6 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 *
 *
 */
-
 UINT32
 ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
@@ -90,6 +89,15 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
     // A wrapper for pdb and modules parser
     //
     return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
+}
+
+VOID
+ScriptEngineSymbolAbortLoading()
+{
+    //
+    // A wrapper for aborting download and reload
+    //
+    return SymbolAbortLoading();
 }
 
 BOOLEAN

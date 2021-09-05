@@ -152,8 +152,6 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
             // vmx non-root
             //
             OldIRQL = KeRaiseIrqlToDpcLevel();
-
-            KeLowerIrql(OldIRQL);
         }
 
         //
@@ -937,7 +935,7 @@ LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument
             //
             if (!(Irp->CurrentLocation <= Irp->StackCount + 1))
             {
-                LogError("Probably two or more functions called DPC for an object.");
+                LogError("Err, probably two or more functions called DPC for an object");
                 return;
             }
 
@@ -1150,7 +1148,7 @@ LogRegisterEventBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     if (!NT_SUCCESS(Status))
     {
-        LogError("Unable to reference User-Mode Event object, Error = 0x%x", Status);
+        LogError("Err, unable to reference user mode event object, status = 0x%x", Status);
         ExFreePoolWithTag(NotifyRecord, POOLTAG);
         return Status;
     }

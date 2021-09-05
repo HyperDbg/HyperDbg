@@ -231,8 +231,8 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             KeGenericCallDpc(BroadcastDpcReadMsrToAllCores, 0x0);
 
             //
-            // When we reach here, all processor read their shits
-            // so we have to fill that fucking buffer for usermode
+            // When we reach here, all processors read their shits
+            // so we have to fill that fucking buffer for user mode
             //
             for (size_t i = 0; i < ProcessorCount; i++)
             {

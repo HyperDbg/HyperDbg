@@ -22,13 +22,12 @@ extern BOOLEAN    g_IsVmxOffProcessStart;
 extern Callback   g_MessageHandler;
 extern TCHAR      g_DriverLocation[MAX_PATH];
 extern LIST_ENTRY g_EventTrace;
-extern BOOLEAN    g_EventTraceInitialized;
 extern BOOLEAN    g_LogOpened;
 extern BOOLEAN    g_BreakPrintingOutput;
 extern BOOLEAN    g_IsConnectedToRemoteDebugger;
 extern BOOLEAN    g_OutputSourcesInitialized;
 extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN    g_IsConnectedToHyperDbgLocally;
+extern BOOLEAN    g_IsDebuggerModulesLoaded;
 extern LIST_ENTRY g_OutputSources;
 
 /**
@@ -619,16 +618,6 @@ HyperdbgLoadVmm()
 
 #endif
 
-    //
-    // Register the CTRL+C and CTRL+BREAK Signals handler
-    //
-    if (!SetConsoleCtrlHandler(BreakController, TRUE))
-    {
-        ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
-                     "handler\n");
-        return 1;
-    }
-
     return 0;
 }
 
@@ -672,6 +661,7 @@ HyperdbgUnload()
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
     }
 
     //
@@ -697,6 +687,7 @@ HyperdbgUnload()
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return 1;
     }
 
     //
@@ -712,6 +703,7 @@ HyperdbgUnload()
     if (!CloseHandle(g_DeviceHandle))
     {
         ShowMessages("err, closing handle 0x%x\n", GetLastError());
+        return 1;
     };
 
     //
@@ -719,6 +711,11 @@ HyperdbgUnload()
     // to use
     //
     g_DeviceHandle = NULL;
+
+    //
+    // Debugger module is not loaded anymore
+    //
+    g_IsDebuggerModulesLoaded = FALSE;
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
 }

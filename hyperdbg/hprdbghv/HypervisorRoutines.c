@@ -147,7 +147,7 @@ HvIsVmxSupported()
 
     if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
     {
-        LogError("you should enable vt-x from BIOS");
+        LogError("Err, you should enable vt-x from BIOS");
         return FALSE;
     }
 
@@ -732,7 +732,7 @@ HvDpcBroadcastInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArg
 VOID
 HvTerminateVmx()
 {
-    LogDebugInfo("Terminating VMX...\n");
+    LogDebugInfo("Terminating VMX ...\n");
 
     //
     // ******* Terminating Vmx *******
@@ -792,7 +792,7 @@ HvDpcBroadcastTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgu
     //
     if (!VmxTerminate())
     {
-        LogError("There were an error terminating Vmx");
+        LogError("Err, there were an error terminating vmx");
     }
 
     //

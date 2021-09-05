@@ -33,7 +33,7 @@ KdInitializeKernelDebugger()
 
     if (g_DebuggeeDpc == NULL)
     {
-        LogError("err, allocating dpc holder for debuggee");
+        LogError("Err, allocating dpc holder for debuggee");
         return;
     }
 
@@ -434,7 +434,7 @@ KdRecvBuffer(CHAR *   BufferToSave,
             //
             // Invalid buffer (size of buffer exceeds the limitation)
             //
-            LogError("err, a buffer received in debuggee which exceeds the buffer limitation");
+            LogError("Err, a buffer received in debuggee which exceeds the buffer limitation");
             return FALSE;
         }
 
@@ -765,7 +765,7 @@ KdSwitchToNewProcessDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1,
         //
         // Pid is invalid
         //
-        LogInfo("err, process id is invalid (unable to switch)");
+        LogInfo("Err, process id is invalid (unable to switch)");
 
         //
         // Trigger a breakpoint to be managed by HyperDbg as sign of failure
@@ -1262,12 +1262,12 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // in the debuggee
     //
     __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
-    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.CsSel = CsSel;
+    g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.CsSel = CsSel;
 
     //
     // Set an indicator of wait for MTF
     //
-    g_GuestState[CoreId].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = TRUE;
+    g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf = TRUE;
 
     //
     // Not unset again
@@ -1350,7 +1350,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
     }
     else
     {
-        LogError("Unknwn changes in cs selectro during the instrument step-in");
+        LogError("Err, inknown changes in cs selectro during the instrumentation step-in");
     }
 
     //
@@ -1605,7 +1605,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                       RecvBufferLength - sizeof(BYTE)) !=
                 TheActualPacket->Checksum)
             {
-                LogError("err, checksum is invalid");
+                LogError("Err, checksum is invalid");
                 continue;
             }
 
@@ -1619,7 +1619,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // sth wrong happened, the packet is not belonging to use
                 // nothing to do, just wait again
                 //
-                LogError("err, unknown packet received from the debugger\n");
+                LogError("Err, unknown packet received from the debugger\n");
             }
 
             //
@@ -1646,7 +1646,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 SteppingPacket = (DEBUGGEE_STEP_PACKET *)(((CHAR *)TheActualPacket) +
                                                           sizeof(DEBUGGER_REMOTE_PACKET));
 
-                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN_INSTRUMENT)
+                if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN)
                 {
                     //
                     // Guaranteed step in (i command)
@@ -2118,7 +2118,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 break;
 
             default:
-                LogError("err, unknown packet action received from the debugger\n");
+                LogError("Err, unknown packet action received from the debugger\n");
                 break;
             }
         }
@@ -2179,7 +2179,7 @@ KdIsGuestOnUsermode32Bit()
     }
     else
     {
-        LogError("unknown value for cs, cannot determine wow64 mode.");
+        LogError("Err, unknown value for cs, cannot determine wow64 mode");
     }
 
     //
@@ -2297,9 +2297,13 @@ StartAgain:
             //
             // Set the length to notify debuggee
             //
-            PausePacket.ReadInstructionLen = SizeOfSafeBufferToRead;
-            ExitInstructionLength          = SizeOfSafeBufferToRead;
+            ExitInstructionLength = SizeOfSafeBufferToRead;
         }
+
+        //
+        // Set the reading length of bytes (for instruction disassembling)
+        //
+        PausePacket.ReadInstructionLen = ExitInstructionLength;
 
         //
         // Find the current instruction
@@ -2312,6 +2316,7 @@ StartAgain:
         // Send the pause packet, along with RIP and an
         // indication to pause to the debugger to the debugger
         //
+
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
                                    &PausePacket,

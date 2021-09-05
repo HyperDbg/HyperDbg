@@ -105,7 +105,7 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     // that's an error, we can't do anything else now :(
     //
 
-    LogError("Couldn't find anything to return");
+    LogError("Err, couldn't find anything to return");
 
     return 0;
 }
@@ -135,15 +135,6 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     if (EnableForWrite)
     {
         EnableForRead = TRUE;
-    }
-
-    //
-    // Check if its DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES then
-    // we have to convert it to current process id
-    //
-    if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES)
-    {
-        ProcessId = PsGetCurrentProcessId();
     }
 
     //

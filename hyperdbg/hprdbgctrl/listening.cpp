@@ -59,6 +59,8 @@ ListeningSerialPortInDebugger()
     PGUEST_REGS                           Regs;
     PGUEST_EXTRA_REGISTERS                ExtraRegs;
     unsigned char *                       MemoryBuffer;
+    BOOLEAN                               ShowSignatureWhenDisconnected = FALSE;
+
 StartAgain:
 
     CHAR   BufferToReceive[MaxSerialPacketSize] = {0};
@@ -75,15 +77,29 @@ StartAgain:
             //
             // The remote computer (debuggee) closed the connection
             //
-            ShowMessages("the remote connection is closed\n");
+            ShowMessages("\nthe remote connection is closed\n");
 
-            if (g_IsDebuggeeRunning == FALSE && g_IsSerialConnectedToRemoteDebuggee)
+            if (g_IsSerialConnectedToRemoteDebuggee)
             {
-                ShowMessages("\n");
-                HyperdbgShowSignature();
+                //
+                // Remove and reset all the events
+                //
+                CommandEventsClearAllEventsAndResetTags();
+
+                if (g_IsDebuggeeRunning == FALSE)
+                {
+                    ShowSignatureWhenDisconnected = TRUE;
+                }
             }
 
             KdCloseConnection();
+
+            if (ShowSignatureWhenDisconnected)
+            {
+                ShowSignatureWhenDisconnected = FALSE;
+                ShowMessages("\n");
+                HyperdbgShowSignature();
+            }
             return FALSE;
         }
         else
@@ -112,7 +128,7 @@ StartAgain:
                                   LengthReceived - sizeof(BYTE)) !=
             TheActualPacket->Checksum)
         {
-            ShowMessages("err checksum is invalid\n");
+            ShowMessages("\nerr, checksum is invalid\n");
             goto StartAgain;
         }
 
@@ -126,7 +142,7 @@ StartAgain:
             // sth wrong happened, the packet is not belonging to use
             // nothing to do, just wait again
             //
-            ShowMessages("err, unknown packet received from the debuggee\n");
+            ShowMessages("\nerr, unknown packet received from the debuggee\n");
             goto StartAgain;
         }
 
@@ -247,7 +263,7 @@ StartAgain:
                                                          MAXIMUM_INSTR_SIZE,
                                                          PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
                     {
-                        ShowMessages("there might be an error in disassembling the current instruction might be wrong\n");
+                        ShowMessages("oh, there might be an error in disassembling the current instruction; so, it might be wrong :(\n");
                     }
                 }
 

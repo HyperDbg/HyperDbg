@@ -87,8 +87,40 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // Set it to NULL
         //
         g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
+
+        //
+        // Check if we should enable interrupts in this core or not,
+        // we have another same check in SWITCHING CORES too
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
+        {
+            //
+            // Check if the debugger has events relating to external-interrupts, if no
+            // we completely disable external interrupts
+            //
+            if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) == 0)
+            {
+                //
+                // There is no events for external interrupts
+                //
+                HvSetExternalInterruptExiting(FALSE);
+            }
+
+            //
+            // Check if there is at least an interrupt that needs to be delivered
+            //
+            if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[0] != NULL)
+            {
+                //
+                // Enable Interrupt-window exiting.
+                //
+                HvSetInterruptWindowExiting(TRUE);
+            }
+
+            g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = FALSE;
+        }
     }
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf)
+    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf)
     {
         //
         // Check if the cs selector changed or not, which indicates that the
@@ -97,14 +129,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
 
-        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel,
+        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel,
                                          CsSel);
 
         //
         //  Unset the MTF flag and previous cs selector
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.WaitForStepOnMtf = FALSE;
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentInTrace.CsSel            = 0;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForStepOnMtf = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel            = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
@@ -139,7 +171,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     }
     else if (!IsMtfForReApplySoftwareBreakpoint)
     {
-        LogError("Why MTF occurred?!");
+        LogError("Err, why MTF occurred?!");
     }
 
     //

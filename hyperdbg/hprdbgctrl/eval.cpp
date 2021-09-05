@@ -113,7 +113,7 @@ CommandEvalCheckTestcase()
             //
             // Test results
             //
-            ShowMessages("Test result : %s\n", ScriptAutomaticStatementsTestWrapper(Expr, ExpectedValue, ExpectError) ? "passed" : "failed");
+            ShowMessages("Test result : %s\n", ScriptAutomaticStatementsTestWrapper(Expr, ExpectedValue, ExpectError) ? "Passed" : "Failed");
 
             //
             // Test-case end

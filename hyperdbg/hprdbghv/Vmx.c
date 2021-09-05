@@ -24,7 +24,7 @@ VmxInitializer()
 
     if (!HvIsVmxSupported())
     {
-        LogError("VMX is not supported in this machine !");
+        LogError("Err, VMX is not supported in this machine");
         return FALSE;
     }
 
@@ -36,7 +36,7 @@ VmxInitializer()
     g_EptState = ExAllocatePoolWithTag(NonPagedPool, sizeof(EPT_STATE), POOLTAG);
     if (!g_EptState)
     {
-        LogError("Insufficient memory");
+        LogError("Err, insufficient memory");
         return FALSE;
     }
 
@@ -55,7 +55,7 @@ VmxInitializer()
     //
     if (!EptCheckFeatures())
     {
-        LogError("Your processor doesn't support all EPT features");
+        LogError("Err, your processor doesn't support all EPT features");
         return FALSE;
     }
     else
@@ -70,11 +70,11 @@ VmxInitializer()
         //
         if (!EptBuildMtrrMap())
         {
-            LogError("Could not build Mtrr memory map");
+            LogError("Err, could not build MTRR memory map");
             return FALSE;
         }
 
-        LogDebugInfo("Mtrr memory map built successfully");
+        LogDebugInfo("MTRR memory map built successfully");
     }
 
     //
@@ -82,7 +82,7 @@ VmxInitializer()
     //
     if (!PoolManagerInitialize())
     {
-        LogError("Could not initialize pool manager");
+        LogError("Err, could not initialize pool manager");
         return FALSE;
     }
 
@@ -184,14 +184,14 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     ProcessorID = KeGetCurrentProcessorNumber();
 
-    LogDebugInfo("Virtualizing Current System (Logical Core : 0x%x)", ProcessorID);
+    LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
     //
     if (!VmxClearVmcsState(&g_GuestState[ProcessorID]))
     {
-        LogError("Failed to clear vmcs");
+        LogError("Err, failed to clear vmcs");
         return FALSE;
     }
 
@@ -200,7 +200,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     if (!VmxLoadVmcs(&g_GuestState[ProcessorID]))
     {
-        LogError("Failed to load vmcs");
+        LogError("Err, failed to load vmcs");
         return FALSE;
     }
 
@@ -233,9 +233,9 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     __vmx_off();
 
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
-    LogError("VMLAUNCH Error : 0x%llx", ErrorCode);
+    LogError("Err, unable to execute VMLAUNCH, status : 0x%llx", ErrorCode);
 
-    LogError("VMXOFF Executed Successfully but it was because of an error.");
+    LogError("Err, VMXOFF Executed Successfully but it was because of an error");
 
     return FALSE;
 }
@@ -263,7 +263,7 @@ VmxTerminate()
     Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL, NULL, NULL);
     if (Status == STATUS_SUCCESS)
     {
-        LogDebugInfo("VMX Terminated on logical core %d\n", CurrentCoreIndex);
+        LogDebugInfo("VMX terminated on logical core %d\n", CurrentCoreIndex);
 
         //
         // Free the destination memory
@@ -293,7 +293,7 @@ VmxVmptrst()
     VmcsPhysicalAddr.QuadPart = 0;
     __vmx_vmptrst((unsigned __int64 *)&VmcsPhysicalAddr);
 
-    LogDebugInfo("Vmptrst result : %llx", VmcsPhysicalAddr);
+    LogDebugInfo("VMPTRST result : %llx", VmcsPhysicalAddr);
 }
 
 /*  */
@@ -314,14 +314,14 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     VmclearStatus = __vmx_vmclear(&CurrentGuestState->VmcsRegionPhysicalAddress);
 
-    LogDebugInfo("Vmcs Vmclear Status : %d", VmclearStatus);
+    LogDebugInfo("VMCS VMCLEAR status : %d", VmclearStatus);
 
     if (VmclearStatus)
     {
         //
         // Otherwise terminate the VMX
         //
-        LogDebugInfo("VMCS failed to clear ( status : %d )", VmclearStatus);
+        LogDebugInfo("VMCS failed to clear, status : %d", VmclearStatus);
         __vmx_off();
         return FALSE;
     }
@@ -343,7 +343,7 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     VmptrldStatus = __vmx_vmptrld(&CurrentGuestState->VmcsRegionPhysicalAddress);
     if (VmptrldStatus)
     {
-        LogDebugInfo("VMCS failed to load ( status : %d )", VmptrldStatus);
+        LogDebugInfo("VMCS failed to load, status : %d", VmptrldStatus);
         return FALSE;
     }
     return TRUE;
@@ -420,7 +420,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 
-    LogDebugInfo("Cpu Based VM Exec Controls (Based on %s) : 0x%x",
+    LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
                  VmxBasicMsr.Fields.VmxCapabilityHint ? "MSR_IA32_VMX_TRUE_PROCBASED_CTLS" : "MSR_IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
 
@@ -556,7 +556,7 @@ VmxVmresume()
     // It's such a bad error because we don't where to go !
     // prefer to break
     //
-    LogError("Error in executing Vmresume , status : 0x%llx", ErrorCode);
+    LogError("Err,  in executing VMRESUME , status : 0x%llx", ErrorCode);
 }
 
 /**

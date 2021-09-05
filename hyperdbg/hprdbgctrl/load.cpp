@@ -61,6 +61,9 @@ CommandLoadVmmModule()
         return FALSE;
     }
 
+    //
+    // Install vmm driver
+    //
     if (HyperdbgInstallVmmDriver() == 1)
     {
         return FALSE;

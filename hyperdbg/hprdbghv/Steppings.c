@@ -314,7 +314,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         //
         if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.ChangeToPrimaryEptpCurrentThreadDetail == NULL)
         {
-            LogError("Forgot to set the restoration part of the thread");
+            LogError("Err, you'd forgot to set the restoration part of the thread");
         }
         else
         {
@@ -648,7 +648,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
 
     if (!PhysicalBaseAddress)
     {
-        LogError("Target address could not be mapped to physical memory");
+        LogError("Err, target address could not be mapped to physical memory");
         return FALSE;
     }
 
@@ -660,7 +660,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
 
     if (!TargetBuffer)
     {
-        LogError("There is no pre-allocated buffer available");
+        LogError("Err, there is no pre-allocated buffer available");
         return FALSE;
     }
 
@@ -669,7 +669,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     //
     if (!EptSplitLargePage(g_EptState->SecondaryEptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
-        LogError("Could not split page for the address : 0x%llx", PhysicalBaseAddress);
+        LogError("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
         return FALSE;
     }
 
@@ -683,7 +683,7 @@ SteppingsSwapPageWithInfiniteLoop(PVOID TargetAddress, CR3_TYPE ProcessCr3, UINT
     //
     if (!TargetPage)
     {
-        LogError("Failed to get PML1 entry of the target address");
+        LogError("Err, failed to get PML1 entry of the target address");
         return FALSE;
     }
 
@@ -1002,7 +1002,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
             Dr7.ReadWrite0 = 0b10; // 0b10 => 2
-            LogError("I/O access breakpoint by debug regs are not supported.");
+            LogError("Err, I/O access breakpoint by debug regs are not supported");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
@@ -1013,7 +1013,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             //
             // what?
             //
-            LogError("Unknown parameter as debug reg action type.");
+            LogError("Err, unknown parameter as debug reg action type");
             return FALSE;
             break;
         }
@@ -1043,7 +1043,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
             Dr7.ReadWrite1 = 0b10; // 0b10 => 2
-            LogError("I/O access breakpoint by debug regs are not supported.");
+            LogError("Err, I/O access breakpoint by debug regs are not supported");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
@@ -1054,7 +1054,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             //
             // what?
             //
-            LogError("Unknown parameter as debug reg action type.");
+            LogError("Err, unknown parameter as debug reg action type");
             return FALSE;
             break;
         }
@@ -1084,7 +1084,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
             Dr7.ReadWrite2 = 0b10; // 0b10 => 2
-            LogError("I/O access breakpoint by debug regs are not supported.");
+            LogError("Err, I/O access breakpoint by debug regs are not supported");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
@@ -1095,7 +1095,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             //
             // what?
             //
-            LogError("Unknown parameter as debug reg action type.");
+            LogError("Err, unknown parameter as debug reg action type");
             return FALSE;
             break;
         }
@@ -1125,7 +1125,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             break;
         case BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED:
             Dr7.ReadWrite3 = 0b10; // 0b10 => 2
-            LogError("I/O access breakpoint by debug regs are not supported.");
+            LogError("Err, I/O access breakpoint by debug regs are not supported");
             return FALSE;
             break;
         case BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH:
@@ -1136,7 +1136,7 @@ SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BO
             //
             // what?
             //
-            LogError("Unknown parameter as debug reg action type.");
+            LogError("Err, unknown parameter as debug reg action type");
             return FALSE;
             break;
         }

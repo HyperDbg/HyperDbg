@@ -152,7 +152,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
             KdHandleNmi(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue)
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue || g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
         {
             //
             // Ignore the nmi
@@ -278,15 +278,15 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     // the interrupt into the guest
     //
 
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue && TRUE)
+    if ((g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue || g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf) && TRUE)
     {
         //
-        // Ignore the interrupt as it's suppressed supressed because of instrument step-in
+        // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
         //
 
         //
         // During developing HyperDbg, we realized that if we just ignore the interrupts completely
-        // while we are waiting on 'i' instrument-in command, then the serial device becomes
+        // while we are waiting on 'i' instrumentation step-in command, then the serial device becomes
         // unresposive, to solve this issue we hold the details of interrupts so we can re-inject
         // and process them when we decide to continue the debuggee (guest interrupt windows is open)
         // this way, the serial device works normally and won't become unresponsive
@@ -354,7 +354,7 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     }
     else
     {
-        LogError("Why we are here ? It's a vm-exit due to the external"
+        LogError("Err, why we are here ? it's a vm-exit due to the external"
                  "interrupt and its type is not external interrupt? weird!");
 
         return FALSE;

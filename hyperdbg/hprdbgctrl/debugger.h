@@ -44,6 +44,9 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   const char *          SymbolPath,
                                   BOOLEAN               IsSilentLoad);
 
+VOID
+ScriptEngineSymbolAbortLoadingWrapper();
+
 //////////////////////////////////////////////////
 //          Script Engine Wrapper               //
 //////////////////////////////////////////////////
@@ -143,17 +146,18 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
 
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                 SplittedCommand,
-    vector<string> *                 SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM         EventType,
-    PDEBUGGER_GENERAL_EVENT_DETAIL * EventDetailsToFill,
-    PUINT32                          EventBufferLength,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillBreakToDebugger,
-    PUINT32                          ActionBufferLengthBreakToDebugger,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillCustomCode,
-    PUINT32                          ActionBufferLengthCustomCode,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillScript,
-    PUINT32                          ActionBufferLengthScript);
+    vector<string> *                    SplittedCommand,
+    vector<string> *                    SplittedCommandCaseSensitive,
+    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
+    PUINT32                             EventBufferLength,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,
+    PUINT32                             ActionBufferLengthBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillCustomCode,
+    PUINT32                             ActionBufferLengthCustomCode,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillScript,
+    PUINT32                             ActionBufferLengthScript,
+    PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing);
 
 UINT64
 GetNewDebuggerEventTag();
@@ -175,6 +179,9 @@ VOID
 CommandEventsHandleModifiedEvent(
     UINT64                  Tag,
     PDEBUGGER_MODIFY_EVENTS ModifyEventRequest);
+
+VOID
+CommandEventsClearAllEventsAndResetTags();
 
 VOID
 CommandFlushRequestFlush();

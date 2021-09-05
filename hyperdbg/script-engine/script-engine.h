@@ -45,6 +45,8 @@ __declspec(dllexport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllexport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllexport) VOID
+    ScriptEngineSymbolAbortLoading();
 
 typedef enum _SCRIPT_ENGINE_ERROR_TYPE
 {
@@ -87,13 +89,13 @@ __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
 char *
 ScriptEngineBooleanExpresssionParse(
-    UINT64                     BooleanExpressionSize,
-    TOKEN                      FirstToken,
-    TOKEN_LIST                 MatchedStack,
-    PSYMBOL_BUFFER             CodeBuffer,
-    char *                     str,
-    char *                     c,
-    PSCRIPT_ENGINE_ERROR_TYPE  Error);
+    UINT64                    BooleanExpressionSize,
+    TOKEN                     FirstToken,
+    TOKEN_LIST                MatchedStack,
+    PSYMBOL_BUFFER            CodeBuffer,
+    char *                    str,
+    char *                    c,
+    PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression);

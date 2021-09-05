@@ -76,10 +76,22 @@ UINT64
 GetGuestIdtr();
 
 VOID
+SetGuestLdtr(UINT64 Ldtr);
+
+UINT64
+GetGuestLdtr();
+
+VOID
 SetGuestGdtr(UINT64 Gdtr);
 
 UINT64
 GetGuestGdtr();
+
+VOID
+SetGuestTr(UINT64 Tr);
+
+UINT64
+GetGuestTr();
 
 VOID
 SetGuestRFlags(UINT64 RFlags);
@@ -125,3 +137,39 @@ SetGuestCr4(UINT64 Cr4);
 
 VOID
 SetGuestCr8(UINT64 Cr8);
+
+UINT64
+GetGuestDr0();
+
+UINT64
+GetGuestDr1();
+
+UINT64
+GetGuestDr2();
+
+UINT64
+GetGuestDr3();
+
+UINT64
+GetGuestDr6();
+
+UINT64
+GetGuestDr7();
+
+VOID
+SetGuestDr0(UINT64 Dr0);
+
+VOID
+SetGuestDr1(UINT64 Dr1);
+
+VOID
+SetGuestDr2(UINT64 Dr2);
+
+VOID
+SetGuestDr3(UINT64 Dr3);
+
+VOID
+SetGuestDr6(UINT64 Dr6);
+
+VOID
+SetGuestDr7(UINT64 Dr7);

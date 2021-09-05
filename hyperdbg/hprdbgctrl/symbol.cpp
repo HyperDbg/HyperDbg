@@ -17,6 +17,7 @@
 //
 extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
 extern UINT32                g_SymbolTableSize;
+extern BOOLEAN               g_IsExecutingSymbolLoadingRoutines;
 
 /**
  * @brief Initial reload of symbols (for previously download symbols)
@@ -74,6 +75,7 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     WCHAR            ConfigPath[MAX_PATH] = {0};
     inipp::Ini<char> Ini;
     string           SymbolServer = "";
+    BOOLEAN          Result       = FALSE;
 
     //
     // Build the symbol table
@@ -118,13 +120,25 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     }
 
     //
-    // Load or download available symbols
+    // *** Load or download available symbols **
     //
-    return ScriptEngineSymbolInitLoadWrapper(g_SymbolTable,
-                                             g_SymbolTableSize,
-                                             IsDownload,
-                                             SymbolServer.c_str(),
-                                             SilentLoad);
+
+    //
+    // Indicate that we're in loading routines
+    //
+    g_IsExecutingSymbolLoadingRoutines = TRUE;
+    Result                             = ScriptEngineSymbolInitLoadWrapper(g_SymbolTable,
+                                               g_SymbolTableSize,
+                                               IsDownload,
+                                               SymbolServer.c_str(),
+                                               SilentLoad);
+
+    //
+    // Not in loading routines anymore
+    //
+    g_IsExecutingSymbolLoadingRoutines = FALSE;
+
+    return Result;
 }
 
 /**

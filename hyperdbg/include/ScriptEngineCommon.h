@@ -164,6 +164,8 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllimport) VOID
+    ScriptEngineSymbolAbortLoading();
 }
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -745,7 +747,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
-    g_CurrentTestResult = Value;
+    g_CurrentTestResult         = Value;
     g_CurrentTestResultHasError = FALSE;
 }
 
@@ -826,7 +828,7 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
     }
     else
     {
-        LogInfo("pause(); function is called but you're not allowed to use it on vmi-mode (local debugging)");
+        LogInfo("The 'pause();' function is called but you're not allowed to use it on vmi-mode (local debugging)");
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1355,8 +1357,48 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_EAX:
+        return (GuestRegs->rax & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_AX:
+        return (GuestRegs->rax & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_AH:
+        return (GuestRegs->rax & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_AL:
+        return (GuestRegs->rax & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RCX:
         return GuestRegs->rcx;
+
+        break;
+
+    case REGISTER_ECX:
+        return (GuestRegs->rcx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_CX:
+        return (GuestRegs->rcx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_CH:
+        return (GuestRegs->rcx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_CL:
+        return (GuestRegs->rcx & 0x00000000000000ff);
 
         break;
 
@@ -1365,8 +1407,48 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_EDX:
+        return (GuestRegs->rdx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_DX:
+        return (GuestRegs->rdx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_DH:
+        return (GuestRegs->rdx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_DL:
+        return (GuestRegs->rdx & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RBX:
         return GuestRegs->rbx;
+
+        break;
+
+    case REGISTER_EBX:
+        return (GuestRegs->rbx & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_BX:
+        return (GuestRegs->rbx & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_BH:
+        return (GuestRegs->rbx & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_BL:
+        return (GuestRegs->rbx & 0x00000000000000ff);
 
         break;
 
@@ -1375,8 +1457,37 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_ESP:
+        return (GuestRegs->rsp & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_SP:
+        return (GuestRegs->rsp & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_SPL:
+        return (GuestRegs->rsp & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RBP:
         return GuestRegs->rbp;
+
+        break;
+
+    case REGISTER_EBP:
+        return (GuestRegs->rbp & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_BP:
+        return (GuestRegs->rbp & 0x000000000000ffff);
+
+        break;
+    case REGISTER_BPL:
+        return (GuestRegs->rbp & 0x00000000000000ff);
 
         break;
 
@@ -1385,8 +1496,38 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_ESI:
+        return (GuestRegs->rsi & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_SI:
+        return (GuestRegs->rsi & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_SIL:
+        return (GuestRegs->rsi & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RDI:
         return GuestRegs->rdi;
+
+        break;
+
+    case REGISTER_EDI:
+        return (GuestRegs->rdi & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_DI:
+        return (GuestRegs->rdi & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_DIL:
+        return (GuestRegs->rdi & 0x00000000000000ff);
 
         break;
 
@@ -1395,8 +1536,47 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_R8D:
+        return (GuestRegs->r8 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R8W:
+        return (GuestRegs->r8 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R8H:
+        return (GuestRegs->r8 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R8L:
+        return (GuestRegs->r8 & 0x00000000000000ff);
+
+        break;
     case REGISTER_R9:
         return GuestRegs->r9;
+
+        break;
+
+    case REGISTER_R9D:
+        return (GuestRegs->r9 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R9W:
+        return (GuestRegs->r9 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R9H:
+        return (GuestRegs->r9 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R9L:
+        return (GuestRegs->r9 & 0x00000000000000ff);
 
         break;
 
@@ -1405,8 +1585,48 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_R10D:
+        return (GuestRegs->r10 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R10W:
+        return (GuestRegs->r10 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R10H:
+        return (GuestRegs->r10 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R10L:
+        return (GuestRegs->r10 & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_R11:
         return GuestRegs->r11;
+
+        break;
+
+    case REGISTER_R11D:
+        return (GuestRegs->r11 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R11W:
+        return (GuestRegs->r11 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R11H:
+        return (GuestRegs->r11 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R11L:
+        return (GuestRegs->r11 & 0x00000000000000ff);
 
         break;
 
@@ -1415,8 +1635,48 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_R12D:
+        return (GuestRegs->r12 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R12W:
+        return (GuestRegs->r12 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R12H:
+        return (GuestRegs->r12 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R12L:
+        return (GuestRegs->r12 & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_R13:
         return GuestRegs->r13;
+
+        break;
+
+    case REGISTER_R13D:
+        return (GuestRegs->r13 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R13W:
+        return (GuestRegs->r13 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R13H:
+        return (GuestRegs->r13 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R13L:
+        return (GuestRegs->r13 & 0x00000000000000ff);
 
         break;
 
@@ -1425,8 +1685,48 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_R14D:
+        return (GuestRegs->r14 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R14W:
+        return (GuestRegs->r14 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R14H:
+        return (GuestRegs->r14 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R14L:
+        return (GuestRegs->r14 & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_R15:
         return GuestRegs->r15;
+
+        break;
+
+    case REGISTER_R15D:
+        return (GuestRegs->r15 & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_R15W:
+        return (GuestRegs->r15 & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R15H:
+        return (GuestRegs->r15 & 0x000000000000ff00) >> 8;
+
+        break;
+
+    case REGISTER_R15L:
+        return (GuestRegs->r15 & 0x00000000000000ff);
 
         break;
 
@@ -1514,6 +1814,30 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_EFLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & 0x00000000ffffffff);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_FLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & 0x000000000000ffff);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_RIP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1522,6 +1846,30 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         return GetGuestRIP();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_EIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRIP() & 0x00000000ffffffff);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRIP() & 0x000000000000ffff);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1535,6 +1883,32 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
         return GetGuestIdtr();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_LDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        return GetGuestLdtr();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_TR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        return GetGuestTr();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1612,12 +1986,87 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_DR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr0();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR1:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr1();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr2();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr3();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR6:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr6();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR7:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return GetGuestDr7();
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case INVALID:
+
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
         return INVALID;
+
         break;
+
         // TODO: Add all the register
     }
 }
@@ -1688,6 +2137,26 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_EAX:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+
+        break;
+
+    case REGISTER_AX:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_AH:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_AL:
+        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
+
     case REGISTER_RCX:
         GuestRegs->rcx = Value;
 
@@ -1712,6 +2181,45 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         GuestRegs->rsp = Value;
         SetGuestRSP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ESP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SPL:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        GuestRegs->rsp = Value;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        SetGuestRSP((GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1861,6 +2369,30 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_EFLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags((GetGuestRFlags() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_FLAGS:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags((GetGuestRFlags() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_RIP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1869,6 +2401,31 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRIP(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_EIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRIP((GetGuestRIP() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRIP((GetGuestRIP() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -1887,6 +2444,20 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
 
+    case REGISTER_LDTR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        SetGuestLdtr(Value);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_GDTR:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -1898,6 +2469,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         SetGuestGdtr(Value);
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_TR:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+        SetGuestTr(Value);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
 
     case REGISTER_CR0:
 
@@ -1955,6 +2542,78 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestCr8(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR0:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr0(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR1:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr1(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR2:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr2(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR3:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr3(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR6:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr6(Value);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DR7:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestDr7(Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2085,7 +2744,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
- 
+
     case FUNC_EQ:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -2109,7 +2768,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
-
 
     case FUNC_PAUSE:
         ScriptEngineFunctionPause(ActionDetail.Tag,
@@ -2351,7 +3009,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         }
 
         DesVal = SrcVal1 / SrcVal0;
-   
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -2724,8 +3381,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         // Call the target function
         //
         ScriptEngineFunctionTestStatement(ActionDetail.Tag,
-                                  ActionDetail.ImmediatelySendTheResults,
-                                  SrcVal0);
+                                          ActionDetail.ImmediatelySendTheResults,
+                                          SrcVal0);
         return HasError;
 
     case FUNC_DISABLE_EVENT:

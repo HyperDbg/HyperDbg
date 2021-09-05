@@ -295,7 +295,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
                 //
                 // For testing purpose
                 //
-                // LogInfo("#PF Injected.");
+                // LogInfo("#PF Injected");
 
                 //
                 // Inject #PF

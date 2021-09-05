@@ -770,8 +770,17 @@ InterpretScript(vector<string> * SplittedCommand,
         AppendedFinalBuffer = buffer.str();
         if (AppendedFinalBuffer.empty())
         {
-            ShowMessages("err, either script file is not found or it's empty.\n\n");
-            return FALSE;
+            ShowMessages("err, either script file is not found or it's empty\n");
+
+            //
+            // There was an error
+            //
+            *ScriptSyntaxErrors = TRUE;
+
+            //
+            // return TRUE to show that this item contains an script
+            //
+            return TRUE;
         }
     }
 
@@ -1871,22 +1880,25 @@ GetNewDebuggerEventTag()
  * by action detail buffer
  * @param ActionBufferLength a pointer the receives the buffer length
  * of the action
+ * @param ReasonForErrorInParsing reason that interpretation failed, null
+ * if the returns true
  * @return BOOLEAN If this function returns true then it means that there
  * was no error in parsing the general event details
  */
 BOOLEAN
 InterpretGeneralEventAndActionsFields(
-    vector<string> *                 SplittedCommand,
-    vector<string> *                 SplittedCommandCaseSensitive,
-    DEBUGGER_EVENT_TYPE_ENUM         EventType,
-    PDEBUGGER_GENERAL_EVENT_DETAIL * EventDetailsToFill,
-    PUINT32                          EventBufferLength,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillBreakToDebugger,
-    PUINT32                          ActionBufferLengthBreakToDebugger,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillCustomCode,
-    PUINT32                          ActionBufferLengthCustomCode,
-    PDEBUGGER_GENERAL_ACTION *       ActionDetailsToFillScript,
-    PUINT32                          ActionBufferLengthScript)
+    vector<string> *                    SplittedCommand,
+    vector<string> *                    SplittedCommandCaseSensitive,
+    DEBUGGER_EVENT_TYPE_ENUM            EventType,
+    PDEBUGGER_GENERAL_EVENT_DETAIL *    EventDetailsToFill,
+    PUINT32                             EventBufferLength,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillBreakToDebugger,
+    PUINT32                             ActionBufferLengthBreakToDebugger,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillCustomCode,
+    PUINT32                             ActionBufferLengthCustomCode,
+    PDEBUGGER_GENERAL_ACTION *          ActionDetailsToFillScript,
+    PUINT32                             ActionBufferLengthScript,
+    PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing)
 {
     PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
     PDEBUGGER_GENERAL_ACTION       TempActionBreak                = NULL;
@@ -2056,7 +2068,9 @@ InterpretGeneralEventAndActionsFields(
         //
         if (HasScriptSyntaxError)
         {
-            ShowMessages("syntax error in parsing script\n\n");
+            free(BufferOfCommandString);
+
+            *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SCRIPT_SYNTAX_ERROR;
             return FALSE;
         }
 
@@ -2090,8 +2104,10 @@ InterpretGeneralEventAndActionsFields(
             //
             // No input !
             //
-            ShowMessages("err, no input found !\n\n");
             free(BufferOfCommandString);
+
+            ShowMessages("err, no input found\n");
+            *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_NO_INPUT;
             return FALSE;
         }
 
@@ -2101,14 +2117,14 @@ InterpretGeneralEventAndActionsFields(
         if (ListOfOutputSources.size() >
             DebuggerOutputSourceMaximumRemoteSourceForSingleEvent)
         {
-            ShowMessages(
-                "err, based on this build of HyperDbg, the maximum input sources for "
-                "a single event is %d sources but you entered %d sources.\n\n",
-                DebuggerOutputSourceMaximumRemoteSourceForSingleEvent,
-                ListOfOutputSources.size());
-
             free(BufferOfCommandString);
 
+            ShowMessages(
+                "err, based on this build of HyperDbg, the maximum input sources for "
+                "a single event is %d sources but you entered %d sources\n",
+                DebuggerOutputSourceMaximumRemoteSourceForSingleEvent,
+                ListOfOutputSources.size());
+            *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_MAXIMUM_INPUT_REACHED;
             return FALSE;
         }
 
@@ -2117,11 +2133,11 @@ InterpretGeneralEventAndActionsFields(
         //
         if (!g_OutputSourcesInitialized)
         {
-            ShowMessages("err, the name you entered, not found. Did you use "
-                         "'output' commmand to create it?\n\n");
-
             free(BufferOfCommandString);
 
+            ShowMessages("err, the name you entered, not found. Did you use "
+                         "'output' commmand to create it?\n");
+            *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
             return FALSE;
         }
 
@@ -2154,10 +2170,10 @@ InterpretGeneralEventAndActionsFields(
                     //
                     if (CurrentOutputSourceDetails->State == EVENT_FORWARDING_CLOSED)
                     {
-                        ShowMessages("err, output source already closed.\n\n");
-
                         free(BufferOfCommandString);
 
+                        ShowMessages("err, output source already closed\n");
+                        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_SOURCE_ALREADY_CLOSED;
                         return FALSE;
                     }
 
@@ -2181,11 +2197,11 @@ InterpretGeneralEventAndActionsFields(
 
             if (!OutputSourceFound)
             {
-                ShowMessages("err, the name you entered, not found. Did you use "
-                             "'output' commmand to create it?\n\n");
-
                 free(BufferOfCommandString);
 
+                ShowMessages("err, the name you entered, not found. Did you use "
+                             "'output' commmand to create it?\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND;
                 return FALSE;
             }
         }
@@ -2246,6 +2262,9 @@ InterpretGeneralEventAndActionsFields(
         // The heap is not available
         //
         free(BufferOfCommandString);
+
+        ShowMessages("err, allocation error\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ALLOCATION_ERROR;
         return FALSE;
     }
 
@@ -2428,6 +2447,24 @@ InterpretGeneralEventAndActionsFields(
         {
             if (!ConvertStringToUInt32(Section, &RequestBuffer))
             {
+                free(BufferOfCommandString);
+                free(TempEvent);
+
+                if (TempActionBreak != NULL)
+                {
+                    free(TempActionBreak);
+                }
+                if (TempActionScript != NULL)
+                {
+                    free(TempActionScript);
+                }
+                if (TempActionCustomCode != NULL)
+                {
+                    free(TempActionCustomCode);
+                }
+
+                ShowMessages("err, buffer size is invalid\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 return FALSE;
             }
             else
@@ -2473,6 +2510,24 @@ InterpretGeneralEventAndActionsFields(
                 //
                 // err, not token recognized error
                 //
+                free(BufferOfCommandString);
+                free(TempEvent);
+
+                if (TempActionBreak != NULL)
+                {
+                    free(TempActionBreak);
+                }
+                if (TempActionScript != NULL)
+                {
+                    free(TempActionScript);
+                }
+                if (TempActionCustomCode != NULL)
+                {
+                    free(TempActionCustomCode);
+                }
+
+                ShowMessages("err, immediate messaging token is invalid\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 return FALSE;
             }
 
@@ -2506,6 +2561,8 @@ InterpretGeneralEventAndActionsFields(
                     free(TempActionCustomCode);
                 }
 
+                ShowMessages("err, pid is invalid\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 return FALSE;
             }
             else
@@ -2524,6 +2581,7 @@ InterpretGeneralEventAndActionsFields(
 
             continue;
         }
+
         if (IsNextCommandCoreId)
         {
             if (!ConvertStringToUInt32(Section, &CoreId))
@@ -2543,6 +2601,9 @@ InterpretGeneralEventAndActionsFields(
                 {
                     free(TempActionCustomCode);
                 }
+
+                ShowMessages("err, core id is invalid\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
                 return FALSE;
             }
             else
@@ -2618,7 +2679,6 @@ InterpretGeneralEventAndActionsFields(
     //
     if (IsNextCommandCoreId)
     {
-        ShowMessages("err, please specify a value for 'core'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2634,12 +2694,14 @@ InterpretGeneralEventAndActionsFields(
         {
             free(TempActionCustomCode);
         }
+
+        ShowMessages("err, please specify a value for 'core'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
         return FALSE;
     }
 
     if (IsNextCommandPid)
     {
-        ShowMessages("err, please specify a value for 'pid'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2655,12 +2717,14 @@ InterpretGeneralEventAndActionsFields(
         {
             free(TempActionCustomCode);
         }
+
+        ShowMessages("err, please specify a value for 'pid'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
         return FALSE;
     }
 
     if (IsNextCommandBufferSize)
     {
-        ShowMessages("err, please specify a value for 'buffer'\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2676,6 +2740,9 @@ InterpretGeneralEventAndActionsFields(
         {
             free(TempActionCustomCode);
         }
+
+        ShowMessages("err, please specify a value for 'buffer'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
         return FALSE;
     }
 
@@ -2684,11 +2751,6 @@ InterpretGeneralEventAndActionsFields(
     //
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
-        ShowMessages(
-            "err, it's not possible to break to the debugger in VMI Mode. "
-            "You should operate in Debugger Mode to break and get the "
-            "full control of the system. Still, you can use 'script' and run "
-            "'custom code' in your local debugging (VMI Mode).\n\n");
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2704,6 +2766,13 @@ InterpretGeneralEventAndActionsFields(
         {
             free(TempActionCustomCode);
         }
+
+        ShowMessages(
+            "err, it's not possible to break to the debugger in VMI Mode. "
+            "You should operate in Debugger Mode to break and get the "
+            "full control of the system. Still, you can use 'script' and run "
+            "'custom code' in your local debugging (VMI Mode)\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
         return FALSE;
     }
 
@@ -2713,9 +2782,6 @@ InterpretGeneralEventAndActionsFields(
     //
     if (!ImmediateMessagePassing && HasOutputPath)
     {
-        ShowMessages("err, non-immediate message passing is not supported in "
-                     "'output-forwarding mode'.\n\n");
-
         free(BufferOfCommandString);
         free(TempEvent);
 
@@ -2731,6 +2797,10 @@ InterpretGeneralEventAndActionsFields(
         {
             free(TempActionCustomCode);
         }
+
+        ShowMessages("err, non-immediate message passing is not supported in "
+                     "'output-forwarding mode'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE;
         return FALSE;
     }
 
@@ -2829,5 +2899,6 @@ InterpretGeneralEventAndActionsFields(
     //
     // Everything is ok, let's return TRUE
     //
+    *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SUCCESSFUL_NO_ERROR;
     return TRUE;
 }
