@@ -1135,59 +1135,8 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 {
     *HasError = FALSE;
 
-    PSYMBOL Symbol;
-    UINT32  i = 0;
 
-    char * Str = Format;
-
-    do
-    {
-        //
-        // Not the best way but some how for optimization
-        //
-        if (*Str == '%')
-        {
-            CHAR Temp = *(Str + 1);
-
-            if (Temp == 'd' || Temp == 'i' || Temp == 'u' || Temp == 'o' ||
-                Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' ||
-
-                !strncmp(Str, "%ws", 3) || !strncmp(Str, "%ls", 3) ||
-
-                !strncmp(Str, "%ld", 3) || !strncmp(Str, "%li", 3) ||
-                !strncmp(Str, "%lu", 3) || !strncmp(Str, "%lo", 3) ||
-                !strncmp(Str, "%lx", 3) ||
-
-                !strncmp(Str, "%hd", 3) || !strncmp(Str, "%hi", 3) ||
-                !strncmp(Str, "%hu", 3) || !strncmp(Str, "%ho", 3) ||
-                !strncmp(Str, "%hx", 3) ||
-
-                !strncmp(Str, "%lld", 4) || !strncmp(Str, "%lli", 4) ||
-                !strncmp(Str, "%llu", 4) || !strncmp(Str, "%llo", 4) ||
-                !strncmp(Str, "%llx", 4)
-
-            )
-            {
-                if (i < ArgCount)
-                    Symbol = FirstArg + i;
-                else
-                {
-                    *HasError = TRUE;
-                    break;
-                }
-                Symbol->Type &= 0xffffffff;
-                Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
-                i++;
-            }
-        }
-        Str++;
-    } while (*Str);
-
-    if (*HasError == FALSE)
-        *HasError = (i != ArgCount);
-    if (*HasError)
-        return;
-
+    
     //
     // Call printf
     //
@@ -1204,6 +1153,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
     UINT64  Val;
     UINT32  Position;
     UINT32  LenOfFormats = strlen(Format) + 1;
+    PSYMBOL Symbol;
 
     for (int i = 0; i < ArgCount; i++)
     {
@@ -1215,8 +1165,12 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
         //
 
         Position = (Symbol->Type >> 32) + 1;
-        Symbol->Type &= 0x7fffffff;
-        Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Symbol);
+  
+        SYMBOL TempSymbol = {0};
+        memcpy(&TempSymbol, Symbol, sizeof(SYMBOL));
+        TempSymbol.Type &= 0x7fffffff;
+
+        Val = GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, &TempSymbol);
 
         CHAR PercentageChar = Format[Position];
 

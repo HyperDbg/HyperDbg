@@ -254,7 +254,7 @@ ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
         ShowMessages("%s\n", CodeBuffer->Message);
     }
 
-    RemoveSymbolBuffer(CodeBuffer);
+    //RemoveSymbolBuffer(CodeBuffer);
 
     return;
 }

@@ -202,14 +202,14 @@ NewTokenList(void)
 void
 RemoveTokenList(TOKEN_LIST TokenList)
 {
-    TOKEN Token;
+   /* TOKEN Token;l
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
         RemoveToken(Token);
     }
-    free(TokenList->Head);
-    free(TokenList);
+    free(TokenList->Head);*/
+    //free(TokenList);
    
     return;
 }

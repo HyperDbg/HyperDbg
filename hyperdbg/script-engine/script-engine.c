@@ -190,9 +190,6 @@ ScriptEngineParse(char * str)
             {
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
 
-
-        
-
                 ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
@@ -264,11 +261,7 @@ ScriptEngineParse(char * str)
                 RemoveToken(TopToken);
                 TopToken = Pop(Stack);
 
-               
-
                 Push(MatchedStack, CurrentIn);
-
-           
 
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
@@ -276,8 +269,6 @@ ScriptEngineParse(char * str)
                     Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                     break;
                 }
-
-               
             }
 
             else
@@ -304,7 +295,6 @@ ScriptEngineParse(char * str)
             {
                 RemoveToken(CurrentIn);
                 CurrentIn = Scan(str, &c);
-                
 
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -330,7 +320,7 @@ ScriptEngineParse(char * str)
 
     CodeBuffer->Message = ErrorMessage;
 
-     if (Stack)
+    if (Stack)
         RemoveTokenList(Stack);
 
     if (MatchedStack)
@@ -349,12 +339,10 @@ void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static BOOL IgnoreLvalue = FALSE;
-    TOKEN Op0  = NULL;
-    TOKEN Op1  = NULL;
-    TOKEN Op2  = NULL;
-    TOKEN Temp = NULL;
-
-    
+    TOKEN       Op0          = NULL;
+    TOKEN       Op1          = NULL;
+    TOKEN       Op2          = NULL;
+    TOKEN       Temp         = NULL;
 
     PSYMBOL OperatorSymbol = NULL;
     PSYMBOL Op0Symbol      = NULL;
@@ -392,7 +380,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1 = Pop(MatchedStack);
             if (Op1->Type == UNRESOLVED_ID)
             {
-                Op1Symbol        = NewSymbol();
+                Op1Symbol = NewSymbol();
                 free(Op1Symbol->Value);
                 Op1Symbol->Value = NewIdentifire(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
@@ -476,6 +464,9 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
+
+            char * Format = Op0->Value;
+
             PSYMBOL OperandCountSymbol = NewSymbol();
             OperandCountSymbol->Type   = SYMBOL_VARIABLE_COUNT_TYPE;
             OperandCountSymbol->Value  = OperandCount;
@@ -488,12 +479,77 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, OperandCountSymbol);
             RemoveSymbol(OperandCountSymbol);
 
+            PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                                (unsigned long long)(CodeBuffer->Pointer * sizeof(SYMBOL)));
+
+
             PSYMBOL Symbol;
+            int     ArgCount = TempStack->Pointer;
             for (int i = TempStack->Pointer - 1; i >= 0; i--)
             {
                 Symbol = TempStack->Head + i;
                 PushSymbol(CodeBuffer, Symbol);
             }
+
+            UINT32 i = 0;
+            char * Str = Format;
+            do
+            {
+                //
+                // Not the best way but some how for optimization
+                //
+                if (*Str == '%')
+                {
+                    CHAR Temp = *(Str + 1);
+
+                    if (Temp == 'd' || Temp == 'i' || Temp == 'u' || Temp == 'o' ||
+                        Temp == 'x' || Temp == 'c' || Temp == 'p' || Temp == 's' ||
+
+                        !strncmp(Str, "%ws", 3) || !strncmp(Str, "%ls", 3) ||
+
+                        !strncmp(Str, "%ld", 3) || !strncmp(Str, "%li", 3) ||
+                        !strncmp(Str, "%lu", 3) || !strncmp(Str, "%lo", 3) ||
+                        !strncmp(Str, "%lx", 3) ||
+
+                        !strncmp(Str, "%hd", 3) || !strncmp(Str, "%hi", 3) ||
+                        !strncmp(Str, "%hu", 3) || !strncmp(Str, "%ho", 3) ||
+                        !strncmp(Str, "%hx", 3) ||
+
+                        !strncmp(Str, "%lld", 4) || !strncmp(Str, "%lli", 4) ||
+                        !strncmp(Str, "%llu", 4) || !strncmp(Str, "%llo", 4) ||
+                        !strncmp(Str, "%llx", 4)
+
+                    )
+                    {
+                        if (i < ArgCount)
+                        {
+                            Symbol = FirstArg + i;
+                        }
+                        else
+                        {
+                            *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                            break;
+                        }
+                        Symbol->Type &= 0xffffffff;
+                        Symbol->Type |= (UINT64)(Str - Format - 1) << 32;
+                        i++;
+                    }
+                }
+                Str++;
+            } while (*Str);
+
+            if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
+            {
+                if (i != ArgCount)
+                {
+                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                }
+            }
+            if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
+            {
+                break;
+            }
+
             RemoveSymbolBuffer(TempStack);
 
             FreeTemp(Op0);
@@ -515,8 +571,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-           
-
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -524,7 +578,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
-            
             Temp = NewTemp();
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
@@ -645,8 +698,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             JumpAddressSymbol->Value         = CurrentPointer + 2;
             RemoveToken(JumpSemanticAddressToken);
 
-
-
             //
             // Add jmp instruction to Code Buffer
             //
@@ -688,7 +739,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 UINT64 JumpSemanticAddress = DecimalToInt(JumpSemanticAddressToken->Value);
                 JumpAddressSymbol          = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
                 JumpAddressSymbol->Value   = CurrentPointer;
-
 
                 RemoveToken(JumpSemanticAddressToken);
                 JumpSemanticAddressToken = Pop(MatchedStack);
@@ -862,7 +912,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
 
             RemoveSymbol(JumpAddressSymbol);
-            
 
             FreeTemp(Op0);
 
@@ -1100,7 +1149,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             }
 
             JumpAddressToken = Pop(MatchedStack);
-            
 
             //
             // Set jumps addresses
@@ -1119,7 +1167,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 else
                 {
                     JumpAddress = DecimalToInt(JumpAddressToken->Value);
-                    
+
                     JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
                     JumpAddressSymbol->Value = CurrentPointer;
                 }
@@ -1438,7 +1486,6 @@ ScriptEngineBooleanExpresssionParse(
             StateId = Action;
             Push(Stack, CurrentIn);
 
-
             State       = NewToken();
             State->Type = STATE_ID;
             free(State->Value);
@@ -1472,8 +1519,6 @@ ScriptEngineBooleanExpresssionParse(
             RhsSize      = LalrGetRhsSize(StateId - 1);
             SemanticRule = &LalrSemanticRules[StateId - 1];
 
-            
-
             for (int i = 0; i < 2 * RhsSize; i++)
             {
                 Temp = Pop(Stack);
@@ -1491,15 +1536,13 @@ ScriptEngineBooleanExpresssionParse(
                 }
                 else
                 {
-                    RemoveToken(Temp);     
+                    RemoveToken(Temp);
                 }
             }
             if (SemanticRule->Type == SEMANTIC_RULE)
             {
                 if (!strcmp(SemanticRule->Value, "@PUSH"))
                 {
-
-                    
                 }
                 else
                 {
@@ -1548,14 +1591,11 @@ ScriptEngineBooleanExpresssionParse(
     if (EndToken)
         RemoveToken(EndToken);
 
-    
     if (Stack)
         RemoveTokenList(Stack);
 
     if (CurrentIn)
         RemoveToken(CurrentIn);
-
-    
 
     return Message;
 }
@@ -1704,11 +1744,10 @@ NewSymbolBuffer(void)
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-    // PrintSymbolBuffer(SymbolBuffer);
-    free(SymbolBuffer->Message);
+    //PrintSymbolBuffer(SymbolBuffer);
+    /*  free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
-    free(SymbolBuffer);
-    return;
+    free(SymbolBuffer);*/
 }
 
 /**
