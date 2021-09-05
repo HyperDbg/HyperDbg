@@ -1135,27 +1135,21 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
                            PSYMBOL       FirstArg,
                            BOOLEAN *     HasError)
 {
-    *HasError = FALSE;
-
-
-    
     //
-    // Call printf
-    //
-
-    //
-    // When we're here, all the pointers are the pointers including %ws and %s
-    // pointers are checked and are safe to access
+    // The printf function
     //
 
     char    FinalBuffer[PacketChunkSize]              = {0};
     UINT32  CurrentPositionInFinalBuffer              = 0;
     UINT32  CurrentProcessedPositionFromStartOfFormat = 0;
     BOOLEAN WithoutAnyFormatSpecifier                 = TRUE;
+
     UINT64  Val;
     UINT32  Position;
     UINT32  LenOfFormats = strlen(Format) + 1;
     PSYMBOL Symbol;
+
+    *HasError = FALSE;
 
     for (int i = 0; i < ArgCount; i++)
     {
@@ -1167,7 +1161,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
         //
 
         Position = (Symbol->Type >> 32) + 1;
-  
+
         SYMBOL TempSymbol = {0};
         memcpy(&TempSymbol, Symbol, sizeof(SYMBOL));
         TempSymbol.Type &= 0x7fffffff;

@@ -1350,7 +1350,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
     }
     else
     {
-        LogError("Err, inknown changes in cs selectro during the instrumentation step-in");
+        LogError("Err, unknown changes in cs selector during the instrumentation step-in");
     }
 
     //
