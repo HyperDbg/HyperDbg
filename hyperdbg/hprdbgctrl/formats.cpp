@@ -37,10 +37,10 @@ CommandFormatsHelp()
 VOID
 CommandFormatsShowResults(UINT64 U64Value)
 {
-    time_t      t;
-    struct tm * tmp;
-    char        MY_TIME[50];
-    char        Character;
+    time_t       t;
+    struct tm *  tmp;
+    char         MY_TIME[50];
+    unsigned int Character;
 
     time(&t);
 
@@ -70,9 +70,10 @@ CommandFormatsShowResults(UINT64 U64Value)
     //
     // iterate through 8, 8 bits (8*6)
     //
-    for (size_t j = 0; j < 8; j++)
+    unsigned char * TempCharacter = (unsigned char *)&U64Value;
+    for (size_t j = 0; j < sizeof(UINT64); j++)
     {
-        Character = (char)(((char *)&U64Value)[j]);
+        Character = (unsigned int)TempCharacter[j];
 
         if (isprint(Character))
         {
@@ -125,6 +126,10 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     // Trim it again
     //
     Trim(Command);
+
+    //
+    // Command IS USED IN THE ELSE, DO NOT TOUCH THE COMMAND
+    //
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -200,7 +205,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
             ShowMessages("err, unknown parameter '%s'\nwhile you're not connected to any debuggee (Debugger Mode), "
                          "you can only use a constant value in the '.formats' and you're not allowed to use registers "
                          "or expressions\n\n",
-                         SplittedCommand.at(1).c_str());
+                         Command.c_str());
             return;
         }
 
