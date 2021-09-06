@@ -1704,7 +1704,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
     //
     // ----------------------------------------------------------------------------------
-    // Validate the Event's parameters
+    // ***                     Validating the Event's parameters                      ***
     // ----------------------------------------------------------------------------------
     //
 

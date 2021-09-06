@@ -115,6 +115,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                EnableExternalInterruptsOnContinueMtf;
     BOOLEAN                                PassErrorsToWindbg;
     BOOLEAN                                DisableTrapFlagOnContinue;
+    BOOLEAN                                WaitForStepTrap;
     BOOLEAN                                WaitingForNmi;
     BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
     UINT16                                 InstructionLengthHint;

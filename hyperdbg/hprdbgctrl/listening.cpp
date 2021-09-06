@@ -98,7 +98,6 @@ StartAgain:
             {
                 ShowSignatureWhenDisconnected = FALSE;
                 ShowMessages("\n");
-                HyperdbgShowSignature();
             }
             return FALSE;
         }

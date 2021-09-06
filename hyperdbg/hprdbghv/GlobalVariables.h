@@ -184,13 +184,6 @@ BOOLEAN g_RtmSupport;
 UINT32 g_VirtualAddressWidth;
 
 /**
- * @brief Shows whether the debuggee is waiting for an 
- * trap step or not
- * 
- */
-BOOLEAN g_WaitForStepTrap;
-
-/**
  * @brief Holds the requests to pause the break of debuggee until
  * a special event happens
  * 

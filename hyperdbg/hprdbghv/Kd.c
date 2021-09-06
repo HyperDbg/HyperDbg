@@ -477,16 +477,16 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
     //
     ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
 
-    if (g_WaitForStepTrap)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepTrap)
     {
         //
-        // *** Handle a regular step
+        // *** Handle a regular step ***
         //
 
         //
         // Unset to show that we're no longer looking for a trap
         //
-        g_WaitForStepTrap = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.WaitForStepTrap = FALSE;
 
         //
         // Check if we should disable RFLAGS.TF in this core or not
@@ -1373,7 +1373,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
     //
     // We're waiting for an step
     //
-    g_WaitForStepTrap = TRUE;
+    g_GuestState[CoreId].DebuggingState.WaitForStepTrap = TRUE;
 
     //
     // Change guest trap flag
@@ -1390,6 +1390,57 @@ KdRegularStepInInstruction(UINT32 CoreId)
 
             g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue = TRUE;
         }
+    }
+}
+
+/**
+ * @brief Regualar step-over | step one instruction to the debuggee if 
+ * there is a call then it jumps the call
+ * 
+ * @param IsNextInstructionACall 
+ * @param CoreId 
+ * 
+ * @return VOID 
+ */
+VOID
+KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 CoreId)
+{
+    UINT64 NextAddressForHardwareDebugBp = 0;
+    ULONG  CoreCount;
+
+    if (IsNextInstructionACall)
+    {
+        //
+        // It's a call, we should put a hardware debug register breakpoint
+        // on the next instruction
+        //
+        g_GuestState[CoreId].DebuggingState.WaitForStepTrap = TRUE;
+        NextAddressForHardwareDebugBp                       = g_GuestState[CoreId].LastVmexitRip + CallLength;
+
+        CoreCount = KeQueryActiveProcessorCount(0);
+
+        //
+        // Store the detail of the hardware debug register to avoid trigger
+        // in other processes
+        //
+        g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
+        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = PsGetCurrentProcessId();
+        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = PsGetCurrentThreadId();
+
+        //
+        // Add hardware debug breakpoints on all core on vm-entry
+        //
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            g_GuestState[CoreId].DebuggingState.HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
+        }
+    }
+    else
+    {
+        //
+        // Any instruction other than call (regular step)
+        //
+        KdRegularStepInInstruction(CoreId);
     }
 }
 
@@ -1571,9 +1622,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
-    UINT64                                              NextAddressForHardwareDebugBp = 0;
-    UINT32                                              SizeToSend                    = 0;
-    ULONG                                               CoreCount;
+    UINT32                                              SizeToSend       = 0;
     BOOLEAN                                             UnlockTheNewCore = FALSE;
     size_t                                              ReturnSize       = 0;
 
@@ -1691,42 +1740,9 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 else if (SteppingPacket->StepType == DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER)
                 {
                     //
-                    // Step over (p command)
+                    // Step-over (p command)
                     //
-                    if (SteppingPacket->IsCurrentInstructionACall)
-                    {
-                        //
-                        // It's a call, we should put a hardware debug register breakpoint
-                        // on the next instruction
-                        //
-                        g_WaitForStepTrap             = TRUE;
-                        NextAddressForHardwareDebugBp = g_GuestState[CurrentCore].LastVmexitRip + SteppingPacket->CallLength;
-
-                        CoreCount = KeQueryActiveProcessorCount(0);
-
-                        //
-                        // Store the detail of the hardware debug register to avoid trigger
-                        // in other processes
-                        //
-                        g_HardwareDebugRegisterDetailsForStepOver.Address   = NextAddressForHardwareDebugBp;
-                        g_HardwareDebugRegisterDetailsForStepOver.ProcessId = PsGetCurrentProcessId();
-                        g_HardwareDebugRegisterDetailsForStepOver.ThreadId  = PsGetCurrentThreadId();
-
-                        //
-                        // Add hardware debug breakpoints on all core on vm-entry
-                        //
-                        for (size_t i = 0; i < CoreCount; i++)
-                        {
-                            g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NextAddressForHardwareDebugBp;
-                        }
-                    }
-                    else
-                    {
-                        //
-                        // Any instruction other than call (regular step)
-                        //
-                        KdRegularStepInInstruction(CurrentCore);
-                    }
+                    KdRegularStepOver(SteppingPacket->IsCurrentInstructionACall, SteppingPacket->CallLength, CurrentCore);
 
                     //
                     // Unlock other cores
