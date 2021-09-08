@@ -186,6 +186,12 @@ char
 IsType6Func(TOKEN Operator);
 
 char
+IsType7Func(TOKEN Operator);
+
+char
+IsType8Func(TOKEN Operator);
+
+char
 IsTwoOperandOperator(TOKEN Operator);
 
 

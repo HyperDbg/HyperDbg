@@ -81,24 +81,36 @@ typedef struct ACTION_BUFFER {
 #define FUNC_DISABLE_EVENT 39
 #define FUNC_ENABLE_EVENT 40
 #define FUNC_TEST_STATEMENT 41
-#define FUNC_PRINTF 42
-#define FUNC_PAUSE 43
-#define FUNC_ED 44
-#define FUNC_EB 45
-#define FUNC_EQ 46
-#define FUNC_POI 47
-#define FUNC_DB 48
-#define FUNC_DD 49
-#define FUNC_DW 50
-#define FUNC_DQ 51
-#define FUNC_NEG 52
-#define FUNC_HI 53
-#define FUNC_LOW 54
-#define FUNC_NOT 55
-#define FUNC_CHECK_ADDRESS 56
-#define FUNC_ED 57
-#define FUNC_EB 58
-#define FUNC_EQ 59
+#define FUNC_SPINLOCK_LOCK 42
+#define FUNC_SPINLOCK_UNLOCK 43
+#define FUNC_PRINTF 44
+#define FUNC_PAUSE 45
+#define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT 46
+#define FUNC_ED 47
+#define FUNC_EB 48
+#define FUNC_EQ 49
+#define FUNC_INTERLOCKED_EXCHANGE 50
+#define FUNC_INTERLOCKED_EXCHANGE_ADD 51
+#define FUNC_POI 52
+#define FUNC_DB 53
+#define FUNC_DD 54
+#define FUNC_DW 55
+#define FUNC_DQ 56
+#define FUNC_NEG 57
+#define FUNC_HI 58
+#define FUNC_LOW 59
+#define FUNC_NOT 60
+#define FUNC_CHECK_ADDRESS 61
+#define FUNC_STRLEN 62
+#define FUNC_WCSLEN 63
+#define FUNC_INTERLOCKED_EXCHANGE_INCREMENT 64
+#define FUNC_INTERLOCKED_EXCHANGE_DECREMENT 65
+#define FUNC_ED 66
+#define FUNC_EB 67
+#define FUNC_EQ 68
+#define FUNC_INTERLOCKED_EXCHANGE 69
+#define FUNC_INTERLOCKED_EXCHANGE_ADD 70
+#define FUNC_INTERLOCKED_COMPARE_EXCHANGE 71
 typedef enum REGS_ENUM {
 	REGISTER_RAX = 0,
 	REGISTER_EAX = 1,
@@ -219,7 +231,7 @@ static const char *const RegistersNames[] = {
 "r15d", "r15w", "r15h", "r15l", "ds", "es", "fs", "gs",
 "cs", "ss", "rflags", "eflags", "flags", "rip", "eip", "ip",
 "idtr", "ldtr", "gdtr", "tr", "cr0", "cr2", "cr3", "cr4",
-"cr8", "dr0", "dr1", "dr2", "dr3", "dr6","dr7"
+"cr8", "dr0", "dr1", "dr2", "dr3", "dr6", 	"dr7"
 };
 
 #define PSEUDO_REGISTER_PID 0

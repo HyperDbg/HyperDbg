@@ -603,6 +603,69 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             FreeTemp(Op0);
             FreeTemp(Op1);
         }
+        else if (IsType7Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+        }
+        else if (IsType8Func(Operator))
+        {
+            PushSymbol(CodeBuffer, OperatorSymbol);
+            Op0       = Pop(MatchedStack);
+            Op0Symbol = ToSymbol(Op0, Error);
+
+            Op1       = Pop(MatchedStack);
+            Op1Symbol = ToSymbol(Op1, Error);
+
+            TOKEN Op2 = Pop(MatchedStack);
+            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
+            PushSymbol(CodeBuffer, Op0Symbol);
+            PushSymbol(CodeBuffer, Op1Symbol);
+            PushSymbol(CodeBuffer, Op2Symbol);
+
+
+            Temp = NewTemp();
+            Push(MatchedStack, Temp);
+            TempSymbol = ToSymbol(Temp, Error);
+            PushSymbol(CodeBuffer, TempSymbol);
+
+            if (IgnoreLvalue)
+            {
+                IgnoreLvalue = FALSE;
+                FreeTemp(Temp);
+            }
+
+            //
+            // Free the operand if it is a temp value
+            //
+            FreeTemp(Op0);
+            FreeTemp(Op1);
+            FreeTemp(Op2);
+
+        }
         else if (IsTwoOperandOperator(Operator))
         {
             PushSymbol(CodeBuffer, OperatorSymbol);

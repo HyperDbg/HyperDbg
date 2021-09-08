@@ -1,20 +1,22 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 103
-#define TERMINAL_COUNT 57
+#define RULES_COUNT 115
+#define TERMINAL_COUNT 67
 #define NONETERMINAL_COUNT 46
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
-#define KEYWORD_LIST_LENGTH 23
+#define KEYWORD_LIST_LENGTH 35
 #define OPERATORS_ONE_OPERAND_LIST_LENGTH 2
 #define OPERATORS_TWO_OPERAND_LIST_LENGTH 16
 #define REGISTER_MAP_LIST_LENGTH 103
 #define PSEUDO_REGISTER_MAP_LIST_LENGTH 9
-#define SEMANTIC_RULES_MAP_LIST_LENGTH 60
-#define TWOOPFUNC1_LENGTH 3
-#define ONEOPFUNC1_LENGTH 10
-#define ONEOPFUNC2_LENGTH 5
+#define SEMANTIC_RULES_MAP_LIST_LENGTH 72
+#define THREEOPFUNC1_LENGTH 1
+#define TWOOPFUNC1_LENGTH 5
+#define TWOOPFUNC2_LENGTH 1
+#define ONEOPFUNC1_LENGTH 14
+#define ONEOPFUNC2_LENGTH 7
 #define ZEROOPFUNC1_LENGTH 1
 #define VARARGFUNC1_LENGTH 1
 extern const struct _TOKEN Lhs[RULES_COUNT];
@@ -26,7 +28,9 @@ extern const int ParseTable[NONETERMINAL_COUNT][TERMINAL_COUNT];
 extern const char* KeywordList[];
 extern const char* OperatorsTwoOperandList[];
 extern const char* OperatorsOneOperandList[];
+extern const char* ThreeOpFunc1[];
 extern const char* TwoOpFunc1[];
+extern const char* TwoOpFunc2[];
 extern const char* OneOpFunc1[];
 extern const char* OneOpFunc2[];
 extern const char* ZeroOpFunc1[];

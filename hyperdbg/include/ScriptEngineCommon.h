@@ -2827,9 +2827,13 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
     PSYMBOL Operator;
     PSYMBOL Src0;
     PSYMBOL Src1;
+    PSYMBOL Src2;
+
     PSYMBOL Des;
     UINT64  SrcVal0;
     UINT64  SrcVal1;
+    UINT64  SrcVal2;
+
     UINT64  DesVal;
     BOOL    HasError = FALSE;
 
@@ -2920,6 +2924,105 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
+
+        case FUNC_INTERLOCKED_EXCHANGE:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)SrcVal1, SrcVal0);
+
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_INTERLOCKED_EXCHANGE_ADD:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+
+        DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0);
+
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_INTERLOCKED_COMPARE_EXCHANGE:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        Src2  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal2 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionInterlockedCompareExchange((volatile long long *)SrcVal2, SrcVal1, SrcVal0);
+
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+
+    case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT: 
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
+
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long*)SrcVal1, SrcVal0);
+
+        return HasError;
+
 
     case FUNC_PAUSE:
         ScriptEngineFunctionPause(ActionDetail.Tag,
@@ -3442,6 +3545,70 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
 
+    case FUNC_STRLEN:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionStrlen((const char *)SrcVal0);
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_WCSLEN:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionWcslen((const wchar_t *)SrcVal0);
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_INTERLOCKED_EXCHANGE_INCREMENT:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *) SrcVal0);
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_INTERLOCKED_EXCHANGE_DECREMENT:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)SrcVal0);
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
     case FUNC_NEG:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -3536,6 +3703,35 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                                           ActionDetail.ImmediatelySendTheResults,
                                           SrcVal0);
         return HasError;
+
+    case FUNC_SPINLOCK_LOCK:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        //
+        // Call the target function
+        //
+        ScriptEngineFunctionSpinlockLock((volatile LONG*)SrcVal0);
+        return HasError;
+
+
+    case FUNC_SPINLOCK_UNLOCK:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        //
+        // Call the target function
+        //
+        ScriptEngineFunctionSpinlockUnlock((volatile LONG*)SrcVal0);
+        return HasError;
+
+
 
     case FUNC_DISABLE_EVENT:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
