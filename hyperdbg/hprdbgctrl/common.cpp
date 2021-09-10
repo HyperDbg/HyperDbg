@@ -514,6 +514,30 @@ IsFileExistW(const wchar_t * FileName)
 }
 
 /**
+ * @brief Is empty character 
+ *
+ * @param Text
+ */
+BOOLEAN
+IsEmptyString(char * Text)
+{
+    if (Text == NULL || Text[0] == '\0')
+    {
+        return TRUE;
+    }
+
+    for (size_t i = 0; i < strlen(Text); i++)
+    {
+        if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != ' \n')
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Get config path
  *
  * @param ConfigPath

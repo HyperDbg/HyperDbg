@@ -31,7 +31,7 @@ __declspec(dllimport) int HyperdbgUnload();
 __declspec(dllimport) int HyperdbgInstallVmmDriver();
 __declspec(dllimport) int HyperdbgUninstallDriver();
 __declspec(dllimport) int HyperdbgStopDriver();
-__declspec(dllimport) int HyperdbgInterpreter(const char * Command);
+__declspec(dllimport) int HyperdbgInterpreter(char * Command);
 __declspec(dllimport) void HyperdbgShowSignature();
 __declspec(dllimport) bool HyperdbgContinuePreviousCommand();
 __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
@@ -112,7 +112,7 @@ main(int argc, char * argv[])
             PreviousCommand = CurrentCommand;
         }
 
-        int CommandExecutionResult = HyperdbgInterpreter(CurrentCommand.c_str());
+        int CommandExecutionResult = HyperdbgInterpreter((char *)CurrentCommand.c_str());
 
         //
         // if the debugger encounters an exit state then the return will be 1

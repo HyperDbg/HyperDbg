@@ -110,6 +110,9 @@ typedef struct _DEBUGGER_SYNCRONIZATION_EVENTS_STATE
 //				    Functions                   //
 //////////////////////////////////////////////////
 
+VOID
+InterpreterRemoveComments(char * CommandText);
+
 BOOLEAN
 ShowErrorMessage(UINT32 Error);
 

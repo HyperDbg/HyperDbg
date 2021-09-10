@@ -34,9 +34,6 @@
     <Filter Include="Resource Files\Source Files\Debugger\Implementations">
       <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Essentials">
-      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Source Files\Debugger\Communication">
       <UniqueIdentifier>{7522bb67-3e10-4cdc-8d80-13d45ea74661}</UniqueIdentifier>
     </Filter>
@@ -54,6 +51,9 @@
     </Filter>
     <Filter Include="Resource Files\Source Files\App">
       <UniqueIdentifier>{c34ee59d-d780-4ffd-bfc0-2e6017257f88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Source Files\Debugger\Communication\Essentials">
+      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -117,10 +117,10 @@
       <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
     </ClCompile>
     <ClCompile Include="debugger.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="interpreter.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="list.cpp">
       <Filter>Resource Files\Source Files\Common</Filter>
@@ -318,10 +318,10 @@
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
     <ClCompile Include="listening.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="kd.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="p.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
@@ -366,7 +366,7 @@
       <Filter>Resource Files\Source Files\App</Filter>
     </ClCompile>
     <ClCompile Include="symbol.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="sympath.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
@@ -381,7 +381,7 @@
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
     <ClCompile Include="break-control.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+      <Filter>Resource Files\Source Files\Debugger\Communication\Essentials</Filter>
     </ClCompile>
     <ClCompile Include="remote-connection.cpp">
       <Filter>Resource Files\Source Files\Debugger\Communication</Filter>

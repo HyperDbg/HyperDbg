@@ -76,6 +76,9 @@ IsFileExistW(const wchar_t * FileName);
 VOID
 GetConfigFilePath(PWCHAR ConfigPath);
 
+BOOLEAN
+IsEmptyString(char * Text);
+
 //////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////

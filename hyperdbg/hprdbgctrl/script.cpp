@@ -83,13 +83,24 @@ CommandScript(vector<string> SplittedCommand, string Command)
 
         while (std::getline(File, Line))
         {
+            char * LineContent = (char *)Line.c_str();
+            //
+            // Check if the it's a command or not
+            //
+            InterpreterRemoveComments(LineContent);
+
+            if (IsEmptyString(LineContent))
+            {
+                continue;
+            }
+
             //
             // Show current running command
             //
-            HyperdbgShowSignature();
-            ShowMessages("%s\n", Line.c_str());
+            ShowMessages("\n%s\n", LineContent);
 
-            CommandExecutionResult = HyperdbgInterpreter(Line.c_str());
+            CommandExecutionResult = HyperdbgInterpreter(LineContent);
+
             ShowMessages("\n");
 
             //
