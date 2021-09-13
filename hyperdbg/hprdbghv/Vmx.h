@@ -191,6 +191,23 @@
 #define TYPE_LMSW        3
 
 /**
+ * @brief GUEST_INTERRUPTIBILITY_INFO flags
+ * 
+ */
+#define GUEST_INTR_STATE_STI          0x00000001
+#define GUEST_INTR_STATE_MOV_SS       0x00000002
+#define GUEST_INTR_STATE_SMI          0x00000004
+#define GUEST_INTR_STATE_NMI          0x00000008
+#define GUEST_INTR_STATE_ENCLAVE_INTR 0x00000010
+
+/**
+ * @brief Interrupt shadow states
+ * 
+ */
+#define SHADOW_INT_MOV_SS 0x01
+#define SHADOW_INT_STI    0x02
+
+/**
  * @brief Stack Size
  * 
  */

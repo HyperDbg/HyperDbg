@@ -1368,7 +1368,9 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 VOID
 KdRegularStepInInstruction(UINT32 CoreId)
 {
-    RFLAGS Rflags = {0};
+    UINT32 Interruptibility;
+    UINT32 InterruptibilityOld = NULL;
+    RFLAGS Rflags              = {0};
 
     //
     // We're waiting for an step
@@ -1390,6 +1392,31 @@ KdRegularStepInInstruction(UINT32 CoreId)
 
             g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue = TRUE;
         }
+    }
+
+    //
+    // During testing single-step, we realized that after single-stepping
+    // on 'STI' instruction, after one instruction, the guest (target core)
+    // starts Invalid Guest State (0x21) vm-exits, after some searches we
+    // realized that KVM developer's encountered the same error; so, in order
+    // to solve the problem of stepping on 'STI' and 'MOV SS', we check the
+    // interruptibility state, here is a comment from KVM :
+    //
+    // When single stepping over STI and MOV SS, we must clear the
+    // corresponding interruptibility bits in the guest state
+    // Otherwise vmentry fails as it then expects bit 14 (BS)
+    // in pending debug exceptions being set, but that's not
+    // correct for the guest debugging case
+    //
+    __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityOld);
+
+    Interruptibility = InterruptibilityOld;
+
+    Interruptibility &= ~(GUEST_INTR_STATE_STI | GUEST_INTR_STATE_MOV_SS);
+
+    if ((Interruptibility != InterruptibilityOld))
+    {
+        __vmx_vmwrite(GUEST_INTERRUPTIBILITY_INFO, Interruptibility);
     }
 }
 

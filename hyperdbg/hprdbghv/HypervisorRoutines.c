@@ -210,7 +210,7 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 VOID
 HvHandleCpuid(PGUEST_REGS RegistersState)
 {
-    INT32  cpu_info[4];
+    INT32  CpuInfo[4];
     ULONG  Mode    = 0;
     UINT64 Context = 0;
 
@@ -223,7 +223,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     // Otherwise, issue the CPUID to the logical processor based on the indexes
     // on the VP's GPRs.
     //
-    __cpuidex(cpu_info, (INT32)RegistersState->rax, (INT32)RegistersState->rcx);
+    __cpuidex(CpuInfo, (INT32)RegistersState->rax, (INT32)RegistersState->rcx);
 
     //
     // check whether we are in transparent mode or not
@@ -241,7 +241,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
             // reserved for this indication
             //
-            cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+            CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
         }
         else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
         {
@@ -250,10 +250,10 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             // ID signature as required by the spec
             //
 
-            cpu_info[0] = HYPERV_CPUID_INTERFACE;
-            cpu_info[1] = 'epyH'; // [HyperDbg.com]
-            cpu_info[2] = 'gbDr';
-            cpu_info[3] = 'moc.';
+            CpuInfo[0] = HYPERV_CPUID_INTERFACE;
+            CpuInfo[1] = 'epyH'; // [HyperDbg]
+            CpuInfo[2] = 'gbDr';
+            CpuInfo[3] = NULL;
         }
         else if (RegistersState->rax == HYPERV_CPUID_INTERFACE)
         {
@@ -262,18 +262,18 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             // conform to the Microsoft hypervisor interface.
             //
 
-            cpu_info[0] = '0#vH'; // Hv#0
-            cpu_info[1] = cpu_info[2] = cpu_info[3] = 0;
+            CpuInfo[0] = '0#vH'; // Hv#0
+            CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
     }
 
     //
     // Copy the values from the logical processor registers into the VP GPRs
     //
-    RegistersState->rax = cpu_info[0];
-    RegistersState->rbx = cpu_info[1];
-    RegistersState->rcx = cpu_info[2];
-    RegistersState->rdx = cpu_info[3];
+    RegistersState->rax = CpuInfo[0];
+    RegistersState->rbx = CpuInfo[1];
+    RegistersState->rcx = CpuInfo[2];
+    RegistersState->rdx = CpuInfo[3];
 
     //
     // As the context to event trigger, we send the eax before the cpuid
