@@ -188,6 +188,22 @@ ScriptEnginePseudoRegGetTid()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+// $core
+UINT64
+ScriptEnginePseudoRegGetCore()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return GetCurrentProcessorNumber();
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    UINT64 Result = 0;
+    DbgBreakPoint();
+    Result = KeGetCurrentProcessorNumber();
+    return Result;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 // $pid
 UINT64
 ScriptEnginePseudoRegGetPid()
@@ -2231,6 +2247,8 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
         return ScriptEnginePseudoRegGetTid();
     case PSEUDO_REGISTER_PID:
         return ScriptEnginePseudoRegGetPid();
+    case PSEUDO_REGISTER_CORE:
+        return ScriptEnginePseudoRegGetCore();
     case PSEUDO_REGISTER_PROC:
         return ScriptEnginePseudoRegGetProc();
     case PSEUDO_REGISTER_THREAD:
@@ -2834,8 +2852,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
     UINT64  SrcVal1;
     UINT64  SrcVal2;
 
-    UINT64  DesVal;
-    BOOL    HasError = FALSE;
+    UINT64 DesVal;
+    BOOL   HasError = FALSE;
 
     Operator = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -2925,7 +2943,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
 
-        case FUNC_INTERLOCKED_EXCHANGE:
+    case FUNC_INTERLOCKED_EXCHANGE:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -2966,7 +2984,6 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-
         DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
@@ -3004,8 +3021,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
 
         return HasError;
 
-
-    case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT: 
+    case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -3019,10 +3035,9 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1);
 
-        ScriptEngineFunctionSpinlockLockCustomWait((volatile long*)SrcVal1, SrcVal0);
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0);
 
         return HasError;
-
 
     case FUNC_PAUSE:
         ScriptEngineFunctionPause(ActionDetail.Tag,
@@ -3588,7 +3603,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *) SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)SrcVal0);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -3714,9 +3729,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockLock((volatile LONG*)SrcVal0);
+        ScriptEngineFunctionSpinlockLock((volatile LONG *)SrcVal0);
         return HasError;
-
 
     case FUNC_SPINLOCK_UNLOCK:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
@@ -3728,10 +3742,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockUnlock((volatile LONG*)SrcVal0);
+        ScriptEngineFunctionSpinlockUnlock((volatile LONG *)SrcVal0);
         return HasError;
-
-
 
     case FUNC_DISABLE_EVENT:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
