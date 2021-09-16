@@ -101,27 +101,28 @@ SpinlockUnlock(volatile LONG * Lock);
  * @brief EFLAGS/RFLAGS
  * 
  */
-#define X86_FLAGS_CF            (1 << 0)
-#define X86_FLAGS_PF            (1 << 2)
-#define X86_FLAGS_AF            (1 << 4)
-#define X86_FLAGS_ZF            (1 << 6)
-#define X86_FLAGS_SF            (1 << 7)
-#define X86_FLAGS_TF            (1 << 8)
-#define X86_FLAGS_IF            (1 << 9)
-#define X86_FLAGS_DF            (1 << 10)
-#define X86_FLAGS_OF            (1 << 11)
-#define X86_FLAGS_STATUS_MASK   (0xfff)
-#define X86_FLAGS_IOPL_MASK     (3 << 12)
-#define X86_FLAGS_IOPL_SHIFT    (12)
-#define X86_FLAGS_NT            (1 << 14)
-#define X86_FLAGS_RF            (1 << 16)
-#define X86_FLAGS_VM            (1 << 17)
-#define X86_FLAGS_AC            (1 << 18)
-#define X86_FLAGS_VIF           (1 << 19)
-#define X86_FLAGS_VIP           (1 << 20)
-#define X86_FLAGS_ID            (1 << 21)
-#define X86_FLAGS_RESERVED_ONES 0x2
-#define X86_FLAGS_RESERVED      0xffc0802a
+#define X86_FLAGS_CF                 (1 << 0)
+#define X86_FLAGS_PF                 (1 << 2)
+#define X86_FLAGS_AF                 (1 << 4)
+#define X86_FLAGS_ZF                 (1 << 6)
+#define X86_FLAGS_SF                 (1 << 7)
+#define X86_FLAGS_TF                 (1 << 8)
+#define X86_FLAGS_IF                 (1 << 9)
+#define X86_FLAGS_DF                 (1 << 10)
+#define X86_FLAGS_OF                 (1 << 11)
+#define X86_FLAGS_STATUS_MASK        (0xfff)
+#define X86_FLAGS_IOPL_MASK          (3 << 12)
+#define X86_FLAGS_IOPL_SHIFT         (12)
+#define X86_FLAGS_IOPL_SHIFT_2ND_BIT (13)
+#define X86_FLAGS_NT                 (1 << 14)
+#define X86_FLAGS_RF                 (1 << 16)
+#define X86_FLAGS_VM                 (1 << 17)
+#define X86_FLAGS_AC                 (1 << 18)
+#define X86_FLAGS_VIF                (1 << 19)
+#define X86_FLAGS_VIP                (1 << 20)
+#define X86_FLAGS_ID                 (1 << 21)
+#define X86_FLAGS_RESERVED_ONES      0x2
+#define X86_FLAGS_RESERVED           0xffc0802a
 
 #define X86_FLAGS_RESERVED_BITS 0xffc38028
 #define X86_FLAGS_FIXED         0x00000002

@@ -102,6 +102,36 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define UPPER_48_BITS_AND_LOWER_8_BITS 0xffffffffffff00ff
 
 /**
+ * @brief EFLAGS/RFLAGS
+ * 
+ */
+#define X86_FLAGS_CF                 (1 << 0)
+#define X86_FLAGS_PF                 (1 << 2)
+#define X86_FLAGS_AF                 (1 << 4)
+#define X86_FLAGS_ZF                 (1 << 6)
+#define X86_FLAGS_SF                 (1 << 7)
+#define X86_FLAGS_TF                 (1 << 8)
+#define X86_FLAGS_IF                 (1 << 9)
+#define X86_FLAGS_DF                 (1 << 10)
+#define X86_FLAGS_OF                 (1 << 11)
+#define X86_FLAGS_STATUS_MASK        (0xfff)
+#define X86_FLAGS_IOPL_MASK          (3 << 12)
+#define X86_FLAGS_IOPL_SHIFT         (12)
+#define X86_FLAGS_IOPL_SHIFT_2ND_BIT (13)
+#define X86_FLAGS_NT                 (1 << 14)
+#define X86_FLAGS_RF                 (1 << 16)
+#define X86_FLAGS_VM                 (1 << 17)
+#define X86_FLAGS_AC                 (1 << 18)
+#define X86_FLAGS_VIF                (1 << 19)
+#define X86_FLAGS_VIP                (1 << 20)
+#define X86_FLAGS_ID                 (1 << 21)
+#define X86_FLAGS_RESERVED_ONES      0x2
+#define X86_FLAGS_RESERVED           0xffc0802a
+
+#define X86_FLAGS_RESERVED_BITS 0xffc38028
+#define X86_FLAGS_FIXED         0x00000002
+
+/**
  * @brief Integer gp registers (this structure is defined in
  * two places, make sure to change it in two places)
  *
@@ -2019,7 +2049,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & 0x1) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & X86_FLAGS_CF) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2031,7 +2061,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 2)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (0x1 << X86_FLAGS_PF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2043,7 +2073,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 4)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_AF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2055,7 +2085,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 6)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_ZF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2067,7 +2097,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 7)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_SF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2079,7 +2109,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 8)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_TF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2091,7 +2121,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 9)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_IF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2103,7 +2133,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 10)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_DF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2115,7 +2145,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 11)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_OF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2127,7 +2157,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return ((GetGuestRFlags() & (0b11 << 12)) >> 12);
+        return ((GetGuestRFlags() & (0b11 << X86_FLAGS_IOPL_SHIFT)) >> 12);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2139,7 +2169,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 14)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_NT)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2151,7 +2181,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 16)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_RF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2163,7 +2193,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 17)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VM)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2175,7 +2205,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 18)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_AC)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2187,7 +2217,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 19)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VIF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2199,7 +2229,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 20)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_VIP)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2211,7 +2241,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << 21)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_ID)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3006,6 +3036,211 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRFlags((GetGuestRFlags() & UPPER_48_BITS) | (Value & LOWER_16_BITS));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_CF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_CF) : GetGuestRFlags() & (~(X86_FLAGS_CF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_PF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_PF) : GetGuestRFlags() & (~(X86_FLAGS_PF << 2)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_AF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_AF) : GetGuestRFlags() & (~(X86_FLAGS_AF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ZF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_ZF) : GetGuestRFlags() & (~(X86_FLAGS_ZF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_SF) : GetGuestRFlags() & (~(X86_FLAGS_SF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_TF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_TF) : GetGuestRFlags() & (~(X86_FLAGS_TF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_IF) : GetGuestRFlags() & (~(X86_FLAGS_IF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_DF) : GetGuestRFlags() & (~(X86_FLAGS_DF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_OF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_OF) : GetGuestRFlags() & (~(X86_FLAGS_OF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IOPL:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT)));
+        SetGuestRFlags(Value & 0x2 ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_NT:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_NT) : GetGuestRFlags() & (~(X86_FLAGS_NT)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_RF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_RF) : GetGuestRFlags() & (~(X86_FLAGS_RF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VM:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_VM) : GetGuestRFlags() & (~(X86_FLAGS_VM)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_AC:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_AC) : GetGuestRFlags() & (~(X86_FLAGS_AC)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VIF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_VIF) : GetGuestRFlags() & (~(X86_FLAGS_VIF)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_VIP) : GetGuestRFlags() & (~(X86_FLAGS_VIP)));
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ID:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_ID) : GetGuestRFlags() & (~(X86_FLAGS_ID)));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
