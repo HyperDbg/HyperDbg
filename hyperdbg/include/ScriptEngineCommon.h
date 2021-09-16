@@ -2471,11 +2471,14 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
 #endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        LogInfo("Error in reading regesiter");
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
         return INVALID;
 
         break;
-
-        // TODO: Add all the register
     }
 }
 UINT64
@@ -2657,7 +2660,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         GuestRegs->rsp = (GuestRegs->rsp & UPPER_32_BITS) | (Value & LOWER_32_BITS);
-        SetGuestRSP((GuestRegs->rsp & UPPER_32_BITS) | (Value & LOWER_32_BITS));
+        SetGuestRSP(GuestRegs->rsp);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2670,7 +2673,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         GuestRegs->rsp = (GuestRegs->rsp & UPPER_48_BITS) | (Value & LOWER_16_BITS);
-        SetGuestRSP((GuestRegs->rsp & UPPER_48_BITS) | (Value & LOWER_16_BITS));
+        SetGuestRSP(GuestRegs->rsp);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2683,7 +2686,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         GuestRegs->rsp = (GuestRegs->rsp & UPPER_56_BITS) | (Value & LOWER_8_BITS);
-        SetGuestRSP((GuestRegs->rsp & UPPER_56_BITS) | (Value & LOWER_8_BITS));
+        SetGuestRSP(GuestRegs->rsp);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3265,7 +3268,6 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRIP((GetGuestRIP() & UPPER_32_BITS) | (Value & LOWER_32_BITS));
-
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3289,9 +3291,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-
         SetGuestIdtr(Value);
-
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3303,9 +3303,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-
         SetGuestLdtr(Value);
-
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3317,9 +3315,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-
         SetGuestGdtr(Value);
-
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3331,9 +3327,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-
         SetGuestTr(Value);
-
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
