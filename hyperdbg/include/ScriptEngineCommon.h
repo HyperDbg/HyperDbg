@@ -2012,6 +2012,210 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 
         break;
 
+    case REGISTER_CF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & 0x1) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_PF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 2)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_AF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 4)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ZF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 6)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_SF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 7)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_TF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 8)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 9)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_DF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 10)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_OF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 11)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_IOPL:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return ((GetGuestRFlags() & (0b11 << 12)) >> 12);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_NT:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 14)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_RF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 16)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VM:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 17)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_AC:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 18)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VIF:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 19)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_VIP:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 20)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
+    case REGISTER_ID:
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+        return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+        return (GetGuestRFlags() & (0x1 << 21)) != NULL ? TRUE : FALSE;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+
+        break;
+
     case REGISTER_RIP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
