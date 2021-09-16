@@ -2331,17 +2331,71 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         GuestRegs->rcx = Value;
 
         break;
+    case REGISTER_ECX:
+        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_CX:
+        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_CH:
+        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_CL:
+        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_RDX:
         GuestRegs->rdx = Value;
 
         break;
+    case REGISTER_EDX:
+        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_DX:
+        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_DH:
+        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_DL:
+        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_RBX:
         GuestRegs->rbx = Value;
 
         break;
+    case REGISTER_EBX:
+        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_BX:
+        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_BH:
+        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_BL:
+        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_RSP:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -2398,57 +2452,240 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         GuestRegs->rbp = Value;
 
         break;
+    case REGISTER_EBP:
+        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_BP:
+        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_BPL:
+        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_RSI:
         GuestRegs->rsi = Value;
 
         break;
+    case REGISTER_ESI:
+        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_SI:
+        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_SIL:
+        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_RDI:
         GuestRegs->rdi = Value;
 
         break;
+    case REGISTER_EDI:
+        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_DI:
+        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_DIL:
+        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R8:
         GuestRegs->r8 = Value;
 
         break;
+    case REGISTER_R8D:
+        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R8W:
+        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R8H:
+        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R8L:
+        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R9:
         GuestRegs->r9 = Value;
 
         break;
+    case REGISTER_R9D:
+        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R9W:
+        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R9H:
+        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R9L:
+        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R10:
         GuestRegs->r10 = Value;
 
         break;
+    case REGISTER_R10D:
+        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R10W:
+        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R10H:
+        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R10L:
+        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R11:
         GuestRegs->r11 = Value;
 
         break;
+    case REGISTER_R11D:
+        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R11W:
+        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R11H:
+        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R11L:
+        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R12:
         GuestRegs->r12 = Value;
 
         break;
+    case REGISTER_R12D:
+        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R12W:
+        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R12H:
+        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R12L:
+        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R13:
         GuestRegs->r13 = Value;
 
         break;
+    case REGISTER_R13D:
+        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R13W:
+        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R13H:
+        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R13L:
+        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R14:
         GuestRegs->r14 = Value;
 
         break;
+    case REGISTER_R14D:
+        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R14W:
+        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R14H:
+        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R14L:
+        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_R15:
         GuestRegs->r15 = Value;
 
         break;
+    case REGISTER_R15D:
+        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
 
+        break;
+
+    case REGISTER_R15W:
+        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+
+        break;
+
+    case REGISTER_R15H:
+        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+
+        break;
+
+    case REGISTER_R15L:
+        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+
+        break;
     case REGISTER_DS:
 
 #ifdef SCRIPT_ENGINE_USER_MODE
