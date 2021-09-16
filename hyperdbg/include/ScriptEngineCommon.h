@@ -92,6 +92,15 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define FALSE 0
 #define TRUE  1
 
+#define UPPER_56_BITS                  0xffffffffffffff00
+#define UPPER_48_BITS                  0xffffffffffff0000
+#define UPPER_32_BITS                  0xffffffff00000000
+#define LOWER_32_BITS                  0x00000000ffffffff
+#define LOWER_16_BITS                  0x000000000000ffff
+#define LOWER_8_BITS                   0x00000000000000ff
+#define SECOND_LOWER_8_BITS            0x000000000000ff00
+#define UPPER_48_BITS_AND_LOWER_8_BITS 0xffffffffffff00ff
+
 /**
  * @brief Integer gp registers (this structure is defined in
  * two places, make sure to change it in two places)
@@ -197,10 +206,7 @@ ScriptEnginePseudoRegGetCore()
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    UINT64 Result = 0;
-    DbgBreakPoint();
-    Result = KeGetCurrentProcessorNumber();
-    return Result;
+    return KeGetCurrentProcessorNumber();
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -1526,22 +1532,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_EAX:
-        return (GuestRegs->rax & 0x00000000ffffffff);
+        return (GuestRegs->rax & LOWER_32_BITS);
 
         break;
 
     case REGISTER_AX:
-        return (GuestRegs->rax & 0x000000000000ffff);
+        return (GuestRegs->rax & LOWER_16_BITS);
 
         break;
 
     case REGISTER_AH:
-        return (GuestRegs->rax & 0x000000000000ff00) >> 8;
+        return (GuestRegs->rax & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_AL:
-        return (GuestRegs->rax & 0x00000000000000ff);
+        return (GuestRegs->rax & LOWER_8_BITS);
 
         break;
 
@@ -1551,22 +1557,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_ECX:
-        return (GuestRegs->rcx & 0x00000000ffffffff);
+        return (GuestRegs->rcx & LOWER_32_BITS);
 
         break;
 
     case REGISTER_CX:
-        return (GuestRegs->rcx & 0x000000000000ffff);
+        return (GuestRegs->rcx & LOWER_16_BITS);
 
         break;
 
     case REGISTER_CH:
-        return (GuestRegs->rcx & 0x000000000000ff00) >> 8;
+        return (GuestRegs->rcx & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_CL:
-        return (GuestRegs->rcx & 0x00000000000000ff);
+        return (GuestRegs->rcx & LOWER_8_BITS);
 
         break;
 
@@ -1576,22 +1582,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_EDX:
-        return (GuestRegs->rdx & 0x00000000ffffffff);
+        return (GuestRegs->rdx & LOWER_32_BITS);
 
         break;
 
     case REGISTER_DX:
-        return (GuestRegs->rdx & 0x000000000000ffff);
+        return (GuestRegs->rdx & LOWER_16_BITS);
 
         break;
 
     case REGISTER_DH:
-        return (GuestRegs->rdx & 0x000000000000ff00) >> 8;
+        return (GuestRegs->rdx & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_DL:
-        return (GuestRegs->rdx & 0x00000000000000ff);
+        return (GuestRegs->rdx & LOWER_8_BITS);
 
         break;
 
@@ -1601,22 +1607,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_EBX:
-        return (GuestRegs->rbx & 0x00000000ffffffff);
+        return (GuestRegs->rbx & LOWER_32_BITS);
 
         break;
 
     case REGISTER_BX:
-        return (GuestRegs->rbx & 0x000000000000ffff);
+        return (GuestRegs->rbx & LOWER_16_BITS);
 
         break;
 
     case REGISTER_BH:
-        return (GuestRegs->rbx & 0x000000000000ff00) >> 8;
+        return (GuestRegs->rbx & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_BL:
-        return (GuestRegs->rbx & 0x00000000000000ff);
+        return (GuestRegs->rbx & LOWER_8_BITS);
 
         break;
 
@@ -1626,17 +1632,17 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_ESP:
-        return (GuestRegs->rsp & 0x00000000ffffffff);
+        return (GuestRegs->rsp & LOWER_32_BITS);
 
         break;
 
     case REGISTER_SP:
-        return (GuestRegs->rsp & 0x000000000000ffff);
+        return (GuestRegs->rsp & LOWER_16_BITS);
 
         break;
 
     case REGISTER_SPL:
-        return (GuestRegs->rsp & 0x00000000000000ff);
+        return (GuestRegs->rsp & LOWER_8_BITS);
 
         break;
 
@@ -1646,16 +1652,16 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_EBP:
-        return (GuestRegs->rbp & 0x00000000ffffffff);
+        return (GuestRegs->rbp & LOWER_32_BITS);
 
         break;
 
     case REGISTER_BP:
-        return (GuestRegs->rbp & 0x000000000000ffff);
+        return (GuestRegs->rbp & LOWER_16_BITS);
 
         break;
     case REGISTER_BPL:
-        return (GuestRegs->rbp & 0x00000000000000ff);
+        return (GuestRegs->rbp & LOWER_8_BITS);
 
         break;
 
@@ -1665,17 +1671,17 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_ESI:
-        return (GuestRegs->rsi & 0x00000000ffffffff);
+        return (GuestRegs->rsi & LOWER_32_BITS);
 
         break;
 
     case REGISTER_SI:
-        return (GuestRegs->rsi & 0x000000000000ffff);
+        return (GuestRegs->rsi & LOWER_16_BITS);
 
         break;
 
     case REGISTER_SIL:
-        return (GuestRegs->rsi & 0x00000000000000ff);
+        return (GuestRegs->rsi & LOWER_8_BITS);
 
         break;
 
@@ -1685,17 +1691,17 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_EDI:
-        return (GuestRegs->rdi & 0x00000000ffffffff);
+        return (GuestRegs->rdi & LOWER_32_BITS);
 
         break;
 
     case REGISTER_DI:
-        return (GuestRegs->rdi & 0x000000000000ffff);
+        return (GuestRegs->rdi & LOWER_16_BITS);
 
         break;
 
     case REGISTER_DIL:
-        return (GuestRegs->rdi & 0x00000000000000ff);
+        return (GuestRegs->rdi & LOWER_8_BITS);
 
         break;
 
@@ -1705,22 +1711,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R8D:
-        return (GuestRegs->r8 & 0x00000000ffffffff);
+        return (GuestRegs->r8 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R8W:
-        return (GuestRegs->r8 & 0x000000000000ffff);
+        return (GuestRegs->r8 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R8H:
-        return (GuestRegs->r8 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r8 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R8L:
-        return (GuestRegs->r8 & 0x00000000000000ff);
+        return (GuestRegs->r8 & LOWER_8_BITS);
 
         break;
     case REGISTER_R9:
@@ -1729,22 +1735,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R9D:
-        return (GuestRegs->r9 & 0x00000000ffffffff);
+        return (GuestRegs->r9 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R9W:
-        return (GuestRegs->r9 & 0x000000000000ffff);
+        return (GuestRegs->r9 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R9H:
-        return (GuestRegs->r9 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r9 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R9L:
-        return (GuestRegs->r9 & 0x00000000000000ff);
+        return (GuestRegs->r9 & LOWER_8_BITS);
 
         break;
 
@@ -1754,22 +1760,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R10D:
-        return (GuestRegs->r10 & 0x00000000ffffffff);
+        return (GuestRegs->r10 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R10W:
-        return (GuestRegs->r10 & 0x000000000000ffff);
+        return (GuestRegs->r10 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R10H:
-        return (GuestRegs->r10 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r10 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R10L:
-        return (GuestRegs->r10 & 0x00000000000000ff);
+        return (GuestRegs->r10 & LOWER_8_BITS);
 
         break;
 
@@ -1779,22 +1785,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R11D:
-        return (GuestRegs->r11 & 0x00000000ffffffff);
+        return (GuestRegs->r11 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R11W:
-        return (GuestRegs->r11 & 0x000000000000ffff);
+        return (GuestRegs->r11 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R11H:
-        return (GuestRegs->r11 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r11 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R11L:
-        return (GuestRegs->r11 & 0x00000000000000ff);
+        return (GuestRegs->r11 & LOWER_8_BITS);
 
         break;
 
@@ -1804,22 +1810,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R12D:
-        return (GuestRegs->r12 & 0x00000000ffffffff);
+        return (GuestRegs->r12 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R12W:
-        return (GuestRegs->r12 & 0x000000000000ffff);
+        return (GuestRegs->r12 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R12H:
-        return (GuestRegs->r12 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r12 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R12L:
-        return (GuestRegs->r12 & 0x00000000000000ff);
+        return (GuestRegs->r12 & LOWER_8_BITS);
 
         break;
 
@@ -1829,22 +1835,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R13D:
-        return (GuestRegs->r13 & 0x00000000ffffffff);
+        return (GuestRegs->r13 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R13W:
-        return (GuestRegs->r13 & 0x000000000000ffff);
+        return (GuestRegs->r13 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R13H:
-        return (GuestRegs->r13 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r13 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R13L:
-        return (GuestRegs->r13 & 0x00000000000000ff);
+        return (GuestRegs->r13 & LOWER_8_BITS);
 
         break;
 
@@ -1854,22 +1860,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R14D:
-        return (GuestRegs->r14 & 0x00000000ffffffff);
+        return (GuestRegs->r14 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R14W:
-        return (GuestRegs->r14 & 0x000000000000ffff);
+        return (GuestRegs->r14 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R14H:
-        return (GuestRegs->r14 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r14 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R14L:
-        return (GuestRegs->r14 & 0x00000000000000ff);
+        return (GuestRegs->r14 & LOWER_8_BITS);
 
         break;
 
@@ -1879,22 +1885,22 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
         break;
 
     case REGISTER_R15D:
-        return (GuestRegs->r15 & 0x00000000ffffffff);
+        return (GuestRegs->r15 & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R15W:
-        return (GuestRegs->r15 & 0x000000000000ffff);
+        return (GuestRegs->r15 & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R15H:
-        return (GuestRegs->r15 & 0x000000000000ff00) >> 8;
+        return (GuestRegs->r15 & SECOND_LOWER_8_BITS) >> 8;
 
         break;
 
     case REGISTER_R15L:
-        return (GuestRegs->r15 & 0x00000000000000ff);
+        return (GuestRegs->r15 & LOWER_8_BITS);
 
         break;
 
@@ -1989,7 +1995,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & 0x00000000ffffffff);
+        return (GetGuestRFlags() & LOWER_32_BITS);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2001,7 +2007,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & 0x000000000000ffff);
+        return (GetGuestRFlags() & LOWER_16_BITS);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2025,7 +2031,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRIP() & 0x00000000ffffffff);
+        return (GetGuestRIP() & LOWER_32_BITS);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2037,7 +2043,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRIP() & 0x000000000000ffff);
+        return (GetGuestRIP() & LOWER_16_BITS);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2308,22 +2314,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
         break;
 
     case REGISTER_EAX:
-        GuestRegs->rax = (GuestRegs->rax & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rax = (GuestRegs->rax & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_AX:
-        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rax = (GuestRegs->rax & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_AH:
-        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->rax = (GuestRegs->rax & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_AL:
-        GuestRegs->rax = (GuestRegs->rax & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rax = (GuestRegs->rax & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
 
@@ -2332,22 +2338,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_ECX:
-        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rcx = (GuestRegs->rcx & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_CX:
-        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rcx = (GuestRegs->rcx & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_CH:
-        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->rcx = (GuestRegs->rcx & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_CL:
-        GuestRegs->rcx = (GuestRegs->rcx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rcx = (GuestRegs->rcx & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_RDX:
@@ -2355,22 +2361,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_EDX:
-        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rdx = (GuestRegs->rdx & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_DX:
-        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rdx = (GuestRegs->rdx & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_DH:
-        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->rdx = (GuestRegs->rdx & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_DL:
-        GuestRegs->rdx = (GuestRegs->rdx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rdx = (GuestRegs->rdx & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_RBX:
@@ -2378,22 +2384,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_EBX:
-        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rbx = (GuestRegs->rbx & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_BX:
-        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rbx = (GuestRegs->rbx & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_BH:
-        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->rbx = (GuestRegs->rbx & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_BL:
-        GuestRegs->rbx = (GuestRegs->rbx & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rbx = (GuestRegs->rbx & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_RSP:
@@ -2416,8 +2422,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
-        SetGuestRSP((GuestRegs->rsp & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+        GuestRegs->rsp = (GuestRegs->rsp & UPPER_32_BITS) | (Value & LOWER_32_BITS);
+        SetGuestRSP((GuestRegs->rsp & UPPER_32_BITS) | (Value & LOWER_32_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2429,8 +2435,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
-        SetGuestRSP((GuestRegs->rsp & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+        GuestRegs->rsp = (GuestRegs->rsp & UPPER_48_BITS) | (Value & LOWER_16_BITS);
+        SetGuestRSP((GuestRegs->rsp & UPPER_48_BITS) | (Value & LOWER_16_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2442,8 +2448,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        GuestRegs->rsp = (GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
-        SetGuestRSP((GuestRegs->rsp & 0xffffffffffffff00) | (Value & 0x00000000000000ff));
+        GuestRegs->rsp = (GuestRegs->rsp & UPPER_56_BITS) | (Value & LOWER_8_BITS);
+        SetGuestRSP((GuestRegs->rsp & UPPER_56_BITS) | (Value & LOWER_8_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2453,17 +2459,17 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_EBP:
-        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rbp = (GuestRegs->rbp & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_BP:
-        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rbp = (GuestRegs->rbp & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_BPL:
-        GuestRegs->rbp = (GuestRegs->rbp & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rbp = (GuestRegs->rbp & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_RSI:
@@ -2471,17 +2477,17 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_ESI:
-        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rsi = (GuestRegs->rsi & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_SI:
-        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rsi = (GuestRegs->rsi & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_SIL:
-        GuestRegs->rsi = (GuestRegs->rsi & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rsi = (GuestRegs->rsi & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_RDI:
@@ -2489,17 +2495,17 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_EDI:
-        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->rdi = (GuestRegs->rdi & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_DI:
-        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->rdi = (GuestRegs->rdi & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_DIL:
-        GuestRegs->rdi = (GuestRegs->rdi & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->rdi = (GuestRegs->rdi & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R8:
@@ -2507,22 +2513,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R8D:
-        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r8 = (GuestRegs->r8 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R8W:
-        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r8 = (GuestRegs->r8 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R8H:
-        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r8 = (GuestRegs->r8 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R8L:
-        GuestRegs->r8 = (GuestRegs->r8 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r8 = (GuestRegs->r8 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R9:
@@ -2530,22 +2536,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R9D:
-        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r9 = (GuestRegs->r9 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R9W:
-        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r9 = (GuestRegs->r9 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R9H:
-        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r9 = (GuestRegs->r9 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R9L:
-        GuestRegs->r9 = (GuestRegs->r9 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r9 = (GuestRegs->r9 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R10:
@@ -2553,22 +2559,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R10D:
-        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r10 = (GuestRegs->r10 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R10W:
-        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r10 = (GuestRegs->r10 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R10H:
-        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r10 = (GuestRegs->r10 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R10L:
-        GuestRegs->r10 = (GuestRegs->r10 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r10 = (GuestRegs->r10 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R11:
@@ -2576,22 +2582,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R11D:
-        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r11 = (GuestRegs->r11 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R11W:
-        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r11 = (GuestRegs->r11 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R11H:
-        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r11 = (GuestRegs->r11 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R11L:
-        GuestRegs->r11 = (GuestRegs->r11 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r11 = (GuestRegs->r11 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R12:
@@ -2599,22 +2605,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R12D:
-        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r12 = (GuestRegs->r12 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R12W:
-        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r12 = (GuestRegs->r12 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R12H:
-        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r12 = (GuestRegs->r12 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R12L:
-        GuestRegs->r12 = (GuestRegs->r12 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r12 = (GuestRegs->r12 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R13:
@@ -2622,22 +2628,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R13D:
-        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r13 = (GuestRegs->r13 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R13W:
-        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r13 = (GuestRegs->r13 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R13H:
-        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r13 = (GuestRegs->r13 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R13L:
-        GuestRegs->r13 = (GuestRegs->r13 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r13 = (GuestRegs->r13 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R14:
@@ -2645,22 +2651,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R14D:
-        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r14 = (GuestRegs->r14 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R14W:
-        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r14 = (GuestRegs->r14 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R14H:
-        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r14 = (GuestRegs->r14 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R14L:
-        GuestRegs->r14 = (GuestRegs->r14 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r14 = (GuestRegs->r14 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_R15:
@@ -2668,22 +2674,22 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
         break;
     case REGISTER_R15D:
-        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffff00000000) | (Value & 0x00000000ffffffff);
+        GuestRegs->r15 = (GuestRegs->r15 & UPPER_32_BITS) | (Value & LOWER_32_BITS);
 
         break;
 
     case REGISTER_R15W:
-        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffff0000) | (Value & 0x000000000000ffff);
+        GuestRegs->r15 = (GuestRegs->r15 & UPPER_48_BITS) | (Value & LOWER_16_BITS);
 
         break;
 
     case REGISTER_R15H:
-        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffff00ff) | ((Value << 8) & 0x000000000000ff00);
+        GuestRegs->r15 = (GuestRegs->r15 & UPPER_48_BITS_AND_LOWER_8_BITS) | ((Value << 8) & SECOND_LOWER_8_BITS);
 
         break;
 
     case REGISTER_R15L:
-        GuestRegs->r15 = (GuestRegs->r15 & 0xffffffffffffff00) | (Value & 0x00000000000000ff);
+        GuestRegs->r15 = (GuestRegs->r15 & UPPER_56_BITS) | (Value & LOWER_8_BITS);
 
         break;
     case REGISTER_DS:
@@ -2693,7 +2699,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestDsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2706,7 +2712,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestEsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2719,7 +2725,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestFsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2732,7 +2738,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestGsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2745,7 +2751,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestCsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2758,7 +2764,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        Value = Value & 0x000000000000ffff;
+        Value = Value & LOWER_16_BITS;
         SetGuestSsSel((PSEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2783,7 +2789,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        SetGuestRFlags((GetGuestRFlags() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+        SetGuestRFlags((GetGuestRFlags() & UPPER_32_BITS) | (Value & LOWER_32_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2795,7 +2801,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        SetGuestRFlags((GetGuestRFlags() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+        SetGuestRFlags((GetGuestRFlags() & UPPER_48_BITS) | (Value & LOWER_16_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2819,7 +2825,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        SetGuestRIP((GetGuestRIP() & 0xffffffff00000000) | (Value & 0x00000000ffffffff));
+        SetGuestRIP((GetGuestRIP() & UPPER_32_BITS) | (Value & LOWER_32_BITS));
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -2832,7 +2838,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        SetGuestRIP((GetGuestRIP() & 0xffffffffffff0000) | (Value & 0x000000000000ffff));
+        SetGuestRIP((GetGuestRIP() & UPPER_48_BITS) | (Value & LOWER_16_BITS));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
