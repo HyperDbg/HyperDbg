@@ -93,8 +93,8 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
  */
 typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 {
-    BOOLEAN WaitForStepOnMtf;
-    UINT16  CsSel; // the cs value to trace execution modes
+    BOOLEAN WaitForInstrumentationStepInMtf;
+    UINT16  CsSel; // the cs value to trace the execution modes
 
 } DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
 

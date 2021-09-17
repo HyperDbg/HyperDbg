@@ -147,12 +147,19 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
     else if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
              InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
     {
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi)
+        //
+        // Check if we're waiting for an NMI on this core and if the guest is NOT in
+        // a instrument step-in ('i' command) routine
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi &&
+            !g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
             KdHandleNmi(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue || g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
+        else if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue ||
+                 g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf ||
+                 g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             //
             // Ignore the nmi
