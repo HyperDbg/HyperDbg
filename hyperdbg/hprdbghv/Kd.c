@@ -1106,15 +1106,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
-    // We will ignore any breaking events if the guest is currently
-    // in a instrumental step-in ('i' command)
-    //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
-    {
-        return;
-    }
-
-    //
     // Lock handling breakpoints
     //
     SpinlockLock(&DebuggerHandleBreakpointLock);

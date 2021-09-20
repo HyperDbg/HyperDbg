@@ -264,7 +264,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         //
         //
-        // *** WE SHOULD USE TWI IFs, PLEASE DON'T COMBINE THESE TWO IFs, IT MIGHT
+        // *** WE SHOULD USE TWO IFs, PLEASE DON'T COMBINE THESE TWO IFs, IT MIGHT
         // BE CHANGED IN THE TRIGGER EVENT ROUTINES **
         //
         if (!g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
