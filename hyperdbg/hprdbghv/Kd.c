@@ -181,14 +181,6 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
         return Handled;
     }
 
-    if (g_GuestState[0].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf ||
-        g_GuestState[1].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf ||
-        g_GuestState[2].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf ||
-        g_GuestState[3].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
-    {
-        DbgBreakPoint();
-    }
-
     //
     // If we're here then it related to us
     // We set a flag to indicate that this core should be halted

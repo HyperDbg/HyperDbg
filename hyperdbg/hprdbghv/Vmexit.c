@@ -254,17 +254,44 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         //
-        // Call the Exception Bitmap and NMI Handler
-        //
-        IdtEmulationHandleExceptionAndNmi(InterruptExit, CurrentProcessorIndex, GuestRegs);
-
-        //
         // Trigger the event
         //
         // As the context to event trigger, we send the vector
         // or IDT Index
         //
-        DebuggerTriggerEvents(EXCEPTION_OCCURRED, GuestRegs, InterruptExit.Vector);
+
+        //
+        //
+        //
+        //
+        // *** WE SHOULD USE TWI IFs, PLEASE DON'T COMBINE THESE TWO IFs, IT MIGHT
+        // BE CHANGED IN THE TRIGGER EVENT ROUTINES **
+        //
+        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+        {
+            DebuggerTriggerEvents(EXCEPTION_OCCURRED, GuestRegs, InterruptExit.Vector);
+
+            //
+            // Now, we check if the guest enabled MTF for instrumentation stepping
+            // This is because based on Intel SDM :
+            // If the "monitor trap flag" VM-execution control is 1 and VM entry is
+            // injecting a vectored event, an MTF VM exit is pending on the instruction
+            // boundary before the first instruction following the VM entry
+            // and,
+            // If VM entry is injecting a pending MTF VM exit, an MTF VM exit is pending on the
+            // instruction boundary before the first instruction following the VM entry
+            // This is the case even if the "monitor trap flag" VM-execution control is 0
+            //
+            // So, we'll ignore the injection of Exception in this case
+            //
+            if (!g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+            {
+                //
+                // Call the Exception Bitmap and NMI Handler
+                //
+                IdtEmulationHandleExceptionAndNmi(InterruptExit, CurrentProcessorIndex, GuestRegs);
+            }
+        }
 
         break;
     }
