@@ -262,7 +262,7 @@ StartAgain:
                                                          MAXIMUM_INSTR_SIZE,
                                                          PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
                     {
-                        ShowMessages("oh, there might be an error in disassembling the current instruction; so, it might be wrong :(\n");
+                        ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
                     }
                 }
 

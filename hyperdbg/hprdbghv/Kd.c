@@ -1108,7 +1108,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock handling breakpoints
     //
-    SpinlockLock(&DebuggerHandleBreakpointLock);
+    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+    {
+        SpinlockLock(&DebuggerHandleBreakpointLock);
+    }
+    else
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock = FALSE;
+    }
 
     //
     // Check if we should ignore this break request or not
@@ -1117,8 +1124,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     {
         //
         // Unlock the above core
+        // First, check for the AvoidReleaseOrAcquireDebugLock flag, it's not necessary here
+        // as we turn it false in the above routine, but because in future might add some other
+        // routine between these two flag sets, then we prefer to have an extra check here
         //
-        SpinlockUnlock(&DebuggerHandleBreakpointLock);
+        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+        {
+            SpinlockUnlock(&DebuggerHandleBreakpointLock);
+        }
 
         return;
     }
@@ -1182,9 +1195,15 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     g_DebuggeeHaltTag     = NULL;
 
     //
-    // Unlock handling breakpoints
+    // Check if we should release the lock of debugging main core, or not
     //
-    SpinlockUnlock(&DebuggerHandleBreakpointLock);
+    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+    {
+        //
+        // Unlock handling breakpoints ()
+        //
+        SpinlockUnlock(&DebuggerHandleBreakpointLock);
+    }
 }
 
 /**
@@ -1270,6 +1289,17 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = TRUE;
 
     //
+    // This is a tricky part, we should avoid releasing the lock of debug handling.
+    // it's true as other cores are currently spinning on spinlocks but for example in
+    // !exception command, a high rate of cores are triggering events and in that
+    // case, if we release the, lock the other cores might get the chance to get the
+    // lock and completely ruin our assumption (that we're waiting for 'i' instruction)
+    // to re-take the handle as the main core but meanwhile other core triggers the
+    // event and get the main core handle
+    //
+    g_GuestState[CoreId].DebuggingState.AvoidReleaseOrAcquireDebugLock = TRUE;
+
+    //
     // Not unset again
     //
     g_GuestState[CoreId].IgnoreMtfUnset = TRUE;
@@ -1283,7 +1313,6 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Do not vm-exit on interrupt windows
     //
     HvSetInterruptWindowExiting(FALSE);
-
     g_GuestState[CoreId].DebuggingState.EnableExternalInterruptsOnContinue = TRUE;
 
     //
@@ -1323,14 +1352,14 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
         //
         // User-mode -> Kernel-mode
         //
-        LogInfo("User-mode -> Kernel-mode");
+        LogInfo("User-mode -> Kernel-mode\n");
     }
     else if ((CurrentCsSelector == KGDT64_R3_CODE || CurrentCsSelector == KGDT64_R3_CMCODE) && PreviousCsSelector == KGDT64_R0_CODE)
     {
         //
         // Kernel-mode to user-mode
         //
-        LogInfo("Kernel-mode -> User-mode");
+        LogInfo("Kernel-mode -> User-mode\n");
 
         //
         // Nothing to do !
@@ -1342,7 +1371,7 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
         //
         // Probably a heaven's gate
         //
-        LogInfo("Heaven's gate");
+        LogInfo("Heaven's gate\n");
 
         //
         // Nothing to do !

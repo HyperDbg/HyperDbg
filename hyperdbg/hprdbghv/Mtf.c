@@ -136,7 +136,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //  Unset the MTF flag and previous cs selector
         //
         g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = FALSE;
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel            = 0;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel                           = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
