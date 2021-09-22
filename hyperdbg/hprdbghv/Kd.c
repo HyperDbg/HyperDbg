@@ -1352,32 +1352,32 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
         //
         // User-mode -> Kernel-mode
         //
-        LogInfo("\nUser-mode -> Kernel-mode\n");
+        LogInfo("User-mode -> Kernel-mode\n");
     }
     else if ((CurrentCsSelector == KGDT64_R3_CODE || CurrentCsSelector == KGDT64_R3_CMCODE) && PreviousCsSelector == KGDT64_R0_CODE)
     {
         //
         // Kernel-mode to user-mode
         //
-        LogInfo("\nKernel-mode -> User-mode\n");
+        LogInfo("Kernel-mode -> User-mode\n");
     }
     else if (CurrentCsSelector == KGDT64_R3_CODE && PreviousCsSelector == KGDT64_R3_CMCODE)
     {
         //
         // A heaven's gate (User-mode 32-bit code -> User-mode 64-bit code)
         //
-        LogInfo("\n32-bit User-mode -> 64-bit User-mode (Heaven's gate)\n");
+        LogInfo("32-bit User-mode -> 64-bit User-mode (Heaven's gate)\n");
     }
     else if (PreviousCsSelector == KGDT64_R3_CODE && CurrentCsSelector == KGDT64_R3_CMCODE)
     {
         //
         // A heaven's gate (User-mode 64-bit code -> User-mode 32-bit code)
         //
-        LogInfo("\n64-bit User-mode -> 32-bit User-mode (Return from Heaven's gate)\n");
+        LogInfo("64-bit User-mode -> 32-bit User-mode (Return from Heaven's gate)\n");
     }
     else
     {
-        LogError("\nErr, unknown changes in cs selector during the instrumentation step-in\n");
+        LogError("Err, unknown changes in cs selector during the instrumentation step-in\n");
     }
 
     //
