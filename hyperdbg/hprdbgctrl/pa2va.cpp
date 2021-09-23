@@ -62,7 +62,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         // It's just a address for current process
         //
-        if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
+        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
         {
             //
             // Couldn't resolve or unkonwn parameter
@@ -84,7 +84,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 ShowMessages("incorrect address, please enter a valid process id\n\n");
                 return;
             }
-            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetPa))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetPa))
             {
                 //
                 // Couldn't resolve or unkonwn parameter
@@ -96,7 +96,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetPa))
             {
                 //
                 // Couldn't resolve or unkonwn parameter

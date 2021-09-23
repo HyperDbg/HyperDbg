@@ -143,7 +143,7 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 
 /**
  * @brief check and convert string to a 64 bit unsigned interger and also
- *  check for symbol object names
+ *  check for symbol object names and evaluate expressions
  * 
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
@@ -151,10 +151,11 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
-SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result)
+SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result)
 {
-    BOOLEAN IsFound = FALSE;
-    UINT64  Address = NULL;
+    BOOLEAN IsFound  = FALSE;
+    BOOLEAN HasError = NULL;
+    UINT64  Address  = NULL;
 
     if (!ConvertStringToUInt64(TextToConvert, &Address))
     {
@@ -172,7 +173,22 @@ SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result)
             // the evaluation, if we're in VMI mode, then we evaluate it here with all
             // registers set to Zero
             //
-            IsFound = FALSE;
+            Address = ScriptEngineEvalSingleExpression(TextToConvert, &HasError);
+
+            if (HasError)
+            {
+                //
+                // Not found or has error
+                //
+                IsFound = FALSE;
+            }
+            else
+            {
+                //
+                // Expression evaluated successfully
+                //
+                IsFound = TRUE;
+            }
         }
         else
         {

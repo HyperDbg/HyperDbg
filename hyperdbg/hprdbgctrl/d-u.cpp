@@ -125,8 +125,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         //
         if (TargetAddress == 0)
         {
-            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                            &TargetAddress))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
+                                                  &TargetAddress))
             {
                 //
                 // Couldn't resolve or unkonwn parameter

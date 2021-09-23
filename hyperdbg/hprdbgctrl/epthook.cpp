@@ -99,7 +99,7 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
             //
             // It's probably address
             //
-            if (!SymbolConvertNameToAddress(
+            if (!SymbolConvertNameOrExprToAddress(
                     SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                     &OptionalParam1))
             {

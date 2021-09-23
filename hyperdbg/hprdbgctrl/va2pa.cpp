@@ -62,7 +62,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         //
         // It's just an address for current process
         //
-        if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
         {
             //
             // Couldn't resolve or unkonwn parameter
@@ -85,7 +85,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
                 return;
             }
 
-            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
             {
                 //
                 // Couldn't resolve or unkonwn parameter
@@ -97,7 +97,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(2).compare("pid"))
         {
-            if (!SymbolConvertNameToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
             {
                 //
                 // Couldn't resolve or unkonwn parameter

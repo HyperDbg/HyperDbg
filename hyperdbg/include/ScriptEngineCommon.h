@@ -18,14 +18,14 @@
  * tests
  *
  */
-UINT64 g_CurrentTestResult;
+UINT64 g_CurrentExprEvalResult;
 
 /**
  * @brief global variable to detect if there was an error in the result
  *  of script-engine statement tests
  *
  */
-BOOLEAN g_CurrentTestResultHasError;
+BOOLEAN g_CurrentExprEvalResultHasError;
 
 #ifndef PacketChunkSize
 #    define PacketChunkSize 3000
@@ -800,8 +800,8 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
-    g_CurrentTestResult         = Value;
-    g_CurrentTestResultHasError = FALSE;
+    g_CurrentExprEvalResult         = Value;
+    g_CurrentExprEvalResultHasError = FALSE;
 }
 
 //
@@ -1048,7 +1048,9 @@ VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("%llx\n", Value);
+
+    g_CurrentExprEvalResult         = Value;
+    g_CurrentExprEvalResultHasError = FALSE;
 
 #endif // SCRIPT_ENGINE_USER_MODE
 

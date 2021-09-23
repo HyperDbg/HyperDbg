@@ -62,7 +62,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
     //
     Trim(Command);
 
-    if (!SymbolConvertNameToAddress(Command, &TargetVa))
+    if (!SymbolConvertNameOrExprToAddress(Command, &TargetVa))
     {
         //
         // Couldn't resolve or unkonwn parameter

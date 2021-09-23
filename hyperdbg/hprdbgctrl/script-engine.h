@@ -75,6 +75,9 @@ ScriptEngineWrapperGetPointer(PVOID SymbolBuffer);
 VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer);
 
+UINT64
+ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr, PBOOLEAN HasError);
+
 //////////////////////////////////////////////////
 //          Script Engine Functions             //
 //////////////////////////////////////////////////

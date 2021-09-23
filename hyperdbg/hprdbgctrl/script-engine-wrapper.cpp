@@ -263,8 +263,8 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                 ScriptEngineGetOperatorName(&ErrorSymbol, NameOfOperator);
                 ShowMessages("invalid returning address for operator: %s",
                              NameOfOperator);
-                g_CurrentTestResultHasError = TRUE;
-                g_CurrentTestResult         = NULL;
+                g_CurrentExprEvalResultHasError = TRUE;
+                g_CurrentExprEvalResult         = NULL;
                 break;
             }
         }
@@ -299,11 +299,11 @@ ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLE
     //
     // Check the global variable to see the results
     //
-    if (g_CurrentTestResultHasError && ExceptError)
+    if (g_CurrentExprEvalResultHasError && ExceptError)
     {
         return TRUE;
     }
-    else if (ExpectationValue == g_CurrentTestResult)
+    else if (ExpectationValue == g_CurrentExprEvalResult)
     {
         return TRUE;
     }
@@ -366,11 +366,12 @@ ScriptEngineWrapperTestParser(string Expr)
  * @brief In the local debugging (VMI mode) environment, this function computes the expressions
  * @details for example, if the user u ExAllocatePoolWithTag+0x10 this will evaluate the expr
  * @param Expr
+ * @param HasError
  * 
- * @return VOID
+ * @return UINT64
  */
 UINT64
-ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr)
+ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr, PBOOLEAN HasError)
 {
     //
     // In VMI-mode we'll form all registers as zero
@@ -378,6 +379,12 @@ ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr)
     GUEST_REGS GuestRegs = {0};
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
+
+    //
+    // Set the results and return the value
+    //
+    *HasError = g_CurrentExprEvalResultHasError;
+    return g_CurrentExprEvalResult;
 }
 
 /**

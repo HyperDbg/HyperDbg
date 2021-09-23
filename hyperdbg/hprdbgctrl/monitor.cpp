@@ -121,7 +121,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             //
             if (!SetFrom)
             {
-                if (!SymbolConvertNameToAddress(
+                if (!SymbolConvertNameOrExprToAddress(
                         SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                         &OptionalParam1))
                 {
@@ -137,7 +137,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             }
             else if (!SetTo)
             {
-                if (!SymbolConvertNameToAddress(
+                if (!SymbolConvertNameOrExprToAddress(
                         SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
                         &OptionalParam2))
                 {

@@ -11,11 +11,6 @@
  */
 #include "pch.h"
 
-//
-// Global Variables
-//
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-
 /**
  * @brief help of help command :)
  *
@@ -125,51 +120,16 @@ CommandFormats(vector<string> SplittedCommand, string Command)
     Trim(Command);
 
     //
-    // Command IS USED IN THE ELSE, DO NOT TOUCH THE COMMAND
+    // Evaluate a single expression
     //
+    ConstantValue = ScriptEngineEvalSingleExpression(Command, &HasError);
 
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    if (HasError)
     {
-        ConstantValue = ScriptEngineEvalSingleExpression(Command, &HasError);
-
-        if (HasError)
-        {
-            ShowErrorMessage(ConstantValue);
-        }
-        else
-        {
-            //
-            // Show formats results for a constant
-            //
-            CommandFormatsShowResults(ConstantValue);
-        }
+        ShowErrorMessage(ConstantValue);
     }
     else
     {
-        //
-        // The user is either in VMI-mode or not connected to debuggee,
-        // in this state, we will support .formats for constant values
-        // not register, or expression
-        //
-        if (SplittedCommand.size() != 2)
-        {
-            ShowMessages("err, only one constant value is allowed when you're not connected to a debuggee\n\n");
-            CommandFormatsHelp();
-            return;
-        }
-
-        if (!ConvertStringToUInt64(SplittedCommand.at(1), &ConstantValue))
-        {
-            //
-            // Unkonwn parameter
-            //
-            ShowMessages("err, unknown parameter '%s'\nwhile you're not connected to any debuggee (Debugger Mode), "
-                         "you can only use a constant value in the '.formats' and you're not allowed to use registers "
-                         "or expressions\n\n",
-                         Command.c_str());
-            return;
-        }
-
         //
         // Show formats results for a constant
         //

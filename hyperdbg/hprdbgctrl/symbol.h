@@ -22,7 +22,7 @@ BOOLEAN
 SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
 
 BOOLEAN
-SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result);
+SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result);
 
 BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength);

@@ -36,6 +36,43 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     UINT64 Result = NULL;
 
     //
+    // Prepend and append 'formats(' and ')'
+    //
+    Expr.insert(0, "formats(");
+    Expr.append(");");
+
+    //
+    // TODO: end of string must have a whitspace. fix it.
+    //
+    Expr.append(" ");
+
+    //
+    // Run script engine handler
+    //
+    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
+
+    if (CodeBuffer == NULL)
+    {
+        //
+        // return to show that this item contains an script
+        //
+        *HasError = TRUE;
+        return NULL;
+    }
+
+    //
+    // Print symbols (test)
+    //
+    // PrintSymbolBufferWrapper(CodeBuffer);
+
+    //
+    // Set the buffer and length
+    //
+    BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
+    BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
+    Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
+
+    //
     // Check if it's connected over remote debuggee (in the Debugger Mode)
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
@@ -43,53 +80,11 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
         //
         // Send over serial
         //
-        //
-        // Prepend and append 'print(' and ')'
-        //
-        Expr.insert(0, "formats(");
-        Expr.append(");");
-
-        //
-        // TODO: end of string must have a whitspace. fix it.
-        //
-        Expr.append(" ");
-        // Expr = " x = 4 >> 1; ";
-
-        //
-        // Run script engine handler
-        //
-        CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
-
-        if (CodeBuffer == NULL)
-        {
-            //
-            // return to show that this item contains an script
-            //
-            *HasError = TRUE;
-            return NULL;
-        }
-
-        //
-        // Print symbols (test)
-        //
-        // PrintSymbolBufferWrapper(CodeBuffer);
-
-        //
-        // Set the buffer and length
-        //
-        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
 
         //
         // Send it to the remote debuggee
         //
         KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, TRUE);
-
-        //
-        // Remove the buffer of script engine interpreted code
-        //
-        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
 
         //
         // Check whether there was an error in evaluation or not
@@ -104,22 +99,32 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
             g_ErrorStateOfResultOfEvaluatedExpression = NULL;
             g_ResultOfEvaluatedExpression             = NULL;
             *HasError                                 = FALSE;
-            return Result;
         }
         else
         {
+            //
+            // There was an error evaluating the expression from the kernel (debuggee)
+            //
             g_ErrorStateOfResultOfEvaluatedExpression = NULL;
             g_ResultOfEvaluatedExpression             = NULL;
 
             *HasError = TRUE;
-            return NULL;
+            Result    = NULL;
         }
     }
     else
     {
         //
-        // It's in vmi-mode
+        // It's in vmi-mode,
+        // execute it locally with regs set to ZERO
         //
-        return 0;
+        Result = ScriptEngineEvalUInt64StyleExpressionWrapper(Expr, HasError);
     }
+
+    //
+    // Remove the buffer of script engine interpreted code
+    //
+    ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+
+    return Result;
 }
