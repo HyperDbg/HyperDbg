@@ -29,7 +29,9 @@ extern BOOLEAN                              g_IsRunningInstruction32Bit;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-    g_DebuggeeResultOfAddingActionsToEvent;
+              g_DebuggeeResultOfAddingActionsToEvent;
+extern UINT64 g_ResultOfEvaluatedExpression;
+extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -508,17 +510,13 @@ StartAgain:
                 (DEBUGGEE_FORMATS_PACKET *)(((CHAR *)TheActualPacket) +
                                             sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (FormatsPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
-            {
-                //
-                // Show .formats
-                //
-                CommandFormatsShowResults(FormatsPacket->Value);
-            }
-            else
-            {
-                ShowErrorMessage(FormatsPacket->Result);
-            }
+            //
+            // We'll just save the result of expression to the global variables 
+            // and let the debuggee to decide whether wants to show error or not
+            // and let the debuggee to decide whether wants to show error or not
+            //
+            g_ErrorStateOfResultOfEvaluatedExpression = FormatsPacket->Result;
+            g_ResultOfEvaluatedExpression             = FormatsPacket->Value;
 
             break;
 

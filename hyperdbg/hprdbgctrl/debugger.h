@@ -12,76 +12,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//    Pdb Parser Wrapper (from script-engine)   //
-//////////////////////////////////////////////////
-UINT64
-ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBOOLEAN WasFound);
-
-UINT32
-ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
-
-UINT32
-ScriptEngineUnloadAllSymbolsWrapper();
-
-UINT32
-ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName);
-
-UINT32
-ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
-
-BOOLEAN
-ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath);
-
-BOOLEAN
-ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFilePath,
-                                                            char *       PdbFilePath,
-                                                            char *       GuidAndAgeDetails);
-
-BOOLEAN
-ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
-                                  UINT32                StoredLength,
-                                  BOOLEAN               DownloadIfAvailable,
-                                  const char *          SymbolPath,
-                                  BOOLEAN               IsSilentLoad);
-
-VOID
-ScriptEngineSymbolAbortLoadingWrapper();
-
-//////////////////////////////////////////////////
-//          Script Engine Wrapper               //
-//////////////////////////////////////////////////
-
-VOID
-ScriptEngineWrapperTestParser(string Expr);
-
-BOOLEAN
-ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
-
-PVOID
-ScriptEngineParseWrapper(char * str);
-
-VOID
-PrintSymbolBufferWrapper(PVOID SymbolBuffer);
-
-UINT64
-ScriptEngineWrapperGetHead(PVOID SymbolBuffer);
-
-UINT32
-ScriptEngineWrapperGetSize(PVOID SymbolBuffer);
-
-UINT32
-ScriptEngineWrapperGetPointer(PVOID SymbolBuffer);
-
-VOID
-ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer);
-
-DWORD WINAPI
-ListeningSerialPauseDebuggeeThread(PVOID Param);
-
-DWORD WINAPI
-ListeningSerialPauseDebuggerThread(PVOID Param);
-
-//////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////
 
@@ -165,6 +95,12 @@ InterpretGeneralEventAndActionsFields(
 UINT64
 GetNewDebuggerEventTag();
 
+DWORD WINAPI
+ListeningSerialPauseDebuggeeThread(PVOID Param);
+
+DWORD WINAPI
+ListeningSerialPauseDebuggerThread(PVOID Param);
+
 VOID
 LogopenSaveToFile(const char * Text);
 
@@ -200,9 +136,6 @@ DetachFromProcess();
 
 BOOLEAN
 CommandLoadVmmModule();
-
-VOID
-CommandFormatsShowResults(UINT64 U64Value);
 
 VOID
 ShowAllRegisters();

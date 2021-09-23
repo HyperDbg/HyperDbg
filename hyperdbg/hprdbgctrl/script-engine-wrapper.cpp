@@ -214,11 +214,20 @@ PrintSymbolBufferWrapper(PVOID SymbolBuffer)
  * @return VOID
  */
 VOID
-ScriptEngineWrapperTestPerformAction(PGUEST_REGS GuestRegs,
-                                     string      Expr)
+ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
+                        string      Expr)
 {
     //
-    // Test Parser
+    // Allocate global variables holder
+    //
+    if (!g_ScriptGlobalVariables)
+    {
+        g_ScriptGlobalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+        RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+    }
+
+    //
+    // Run Parser
     //
     PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
 
@@ -349,17 +358,26 @@ ScriptEngineWrapperTestParser(string Expr)
     GuestRegs.r14 = (ULONG64)testw;
     GuestRegs.r15 = (ULONG64)test;
 
-    //
-    // Allocate global variables holder
-    //
-    if (!g_ScriptGlobalVariables)
-    {
-        g_ScriptGlobalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
-        RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
-    }
-
-    ScriptEngineWrapperTestPerformAction(&GuestRegs, Expr);
+    ScriptEngineEvalWrapper(&GuestRegs, Expr);
     free(TestStruct);
+}
+
+/**
+ * @brief In the local debugging (VMI mode) environment, this function computes the expressions
+ * @details for example, if the user u ExAllocatePoolWithTag+0x10 this will evaluate the expr
+ * @param Expr
+ * 
+ * @return VOID
+ */
+UINT64
+ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr)
+{
+    //
+    // In VMI-mode we'll form all registers as zero
+    //
+    GUEST_REGS GuestRegs = {0};
+
+    ScriptEngineEvalWrapper(&GuestRegs, Expr);
 }
 
 /**

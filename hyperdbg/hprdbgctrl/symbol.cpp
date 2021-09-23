@@ -166,7 +166,11 @@ SymbolConvertNameToAddress(string TextToConvert, PUINT64 Result)
         if (!IsFound)
         {
             //
-            // It's neither a number, nor a founded object name
+            // It's neither a number, nor a founded object name,
+            // as the last resort, we have to test whether it's an expression or not
+            // if we're in the Debugger Mode then we have to send it the kernel to get
+            // the evaluation, if we're in VMI mode, then we evaluate it here with all
+            // registers set to Zero
             //
             IsFound = FALSE;
         }

@@ -486,3 +486,17 @@ PMODULE_SYMBOL_DETAIL g_SymbolTable = NULL;
  *
  */
 UINT32 g_SymbolTableSize = NULL;
+
+/**
+ * @brief Result of the expression that is evaluated in the
+ * debuggee
+ *
+ */
+UINT64 g_ResultOfEvaluatedExpression = NULL;
+
+/**
+ * @brief Shows the state of the evaluation of expression which 
+ * whether contains error or not
+ *
+ */
+UINT32 g_ErrorStateOfResultOfEvaluatedExpression = NULL;

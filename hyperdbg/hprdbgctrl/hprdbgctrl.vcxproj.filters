@@ -55,6 +55,9 @@
     <Filter Include="Resource Files\Source Files\Debugger\Communication\Essentials">
       <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Source Files\Debugger\Script Engine Wrapper">
+      <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />
@@ -109,6 +112,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="symbol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="script-engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -374,9 +380,6 @@
     <ClCompile Include="sym.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
     </ClCompile>
-    <ClCompile Include="script-engine-wrapper.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
-    </ClCompile>
     <ClCompile Include="x.cpp">
       <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
     </ClCompile>
@@ -385,6 +388,12 @@
     </ClCompile>
     <ClCompile Include="remote-connection.cpp">
       <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="script-engine-wrapper.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Script Engine Wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="script-engine.cpp">
+      <Filter>Resource Files\Source Files\Debugger\Script Engine Wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

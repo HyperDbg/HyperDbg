@@ -99,11 +99,8 @@ CommandFormatsShowResults(UINT64 U64Value)
 VOID
 CommandFormats(vector<string> SplittedCommand, string Command)
 {
-    PVOID  CodeBuffer;
-    UINT64 BufferAddress;
-    UINT64 ConstantValue = 0;
-    UINT32 BufferLength;
-    UINT32 Pointer;
+    UINT64  ConstantValue = 0;
+    BOOLEAN HasError      = TRUE;
 
     if (SplittedCommand.size() == 1)
     {
@@ -133,55 +130,19 @@ CommandFormats(vector<string> SplittedCommand, string Command)
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        //
-        // Send over serial
-        //
-        //
-        // Prepend and append 'print(' and ')'
-        //
-        Command.insert(0, "formats(");
-        Command.append(");");
+        ConstantValue = ScriptEngineEvalSingleExpression(Command, &HasError);
 
-        //
-        // TODO: end of string must have a whitspace. fix it.
-        //
-        Command.append(" ");
-        // Expr = " x = 4 >> 1; ";
-
-        //
-        // Run script engine handler
-        //
-        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
-
-        if (CodeBuffer == NULL)
+        if (HasError)
+        {
+            ShowErrorMessage(ConstantValue);
+        }
+        else
         {
             //
-            // return to show that this item contains an script
+            // Show formats results for a constant
             //
-            return;
+            CommandFormatsShowResults(ConstantValue);
         }
-
-        //
-        // Print symbols (test)
-        //
-        // PrintSymbolBufferWrapper(CodeBuffer);
-
-        //
-        // Set the buffer and length
-        //
-        BufferAddress = ScriptEngineWrapperGetHead(CodeBuffer);
-        BufferLength  = ScriptEngineWrapperGetSize(CodeBuffer);
-        Pointer       = ScriptEngineWrapperGetPointer(CodeBuffer);
-
-        //
-        // Send it to the remote debuggee
-        //
-        KdSendScriptPacketToDebuggee(BufferAddress, BufferLength, Pointer, TRUE);
-
-        //
-        // Remove the buffer of script engine interpreted code
-        //
-        ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
     }
     else
     {

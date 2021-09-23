@@ -76,6 +76,7 @@
 #    include "common.h"
 #    include "symbol.h"
 #    include "debugger.h"
+#    include "script-engine.h"
 #    include "exports.h"
 #    include "help.h"
 #    include "install.h"

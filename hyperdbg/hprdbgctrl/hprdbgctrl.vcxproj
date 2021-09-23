@@ -120,6 +120,7 @@
     <ClInclude Include="namedpipe.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="communication.h" />
+    <ClInclude Include="script-engine.h" />
     <ClInclude Include="symbol.h" />
     <ClInclude Include="tests.h" />
     <ClInclude Include="transparency.h" />
@@ -183,6 +184,7 @@
     <ClCompile Include="readmem.cpp" />
     <ClCompile Include="remote-connection.cpp" />
     <ClCompile Include="s.cpp" />
+    <ClCompile Include="script-engine.cpp" />
     <ClCompile Include="script.cpp" />
     <ClCompile Include="settings.cpp" />
     <ClCompile Include="script-engine-wrapper.cpp" />
