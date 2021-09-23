@@ -153,16 +153,17 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 BOOLEAN
 SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result)
 {
-    BOOLEAN IsFound  = FALSE;
-    BOOLEAN HasError = NULL;
-    UINT64  Address  = NULL;
+    BOOLEAN IsFound            = FALSE;
+    BOOLEAN HasError           = NULL;
+    UINT64  Address            = NULL;
+    string  ConstTextToConvert = TextToConvert;
 
     if (!ConvertStringToUInt64(TextToConvert, &Address))
     {
         //
         // Check for symbol object names
         //
-        Address = ScriptEngineConvertNameToAddressWrapper(TextToConvert.c_str(), &IsFound);
+        Address = ScriptEngineConvertNameToAddressWrapper(ConstTextToConvert.c_str(), &IsFound);
 
         if (!IsFound)
         {

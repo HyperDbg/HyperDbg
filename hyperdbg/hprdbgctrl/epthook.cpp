@@ -27,6 +27,7 @@ CommandEptHookHelp()
         "value)] \n");
 
     ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag\n");
+    ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 pid 400\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000 core 2 pid 400\n");

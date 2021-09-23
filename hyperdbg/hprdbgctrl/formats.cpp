@@ -21,6 +21,14 @@ CommandFormatsHelp()
 {
     ShowMessages(".formats : Show a value or register in different formats.\n\n");
     ShowMessages("syntax : \t.formats [hex value | register | Expression]\n");
+
+    ShowMessages("\t\te.g : .formats nt!ExAllocatePoolWithTag\n");
+    ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask\n");
+    ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask+5\n");
+    ShowMessages("\t\te.g : .formats 55\n");
+    ShowMessages("\t\te.g : .formats @rax\n");
+    ShowMessages("\t\te.g : .formats @rbx+@rcx\n");
+    ShowMessages("\t\te.g : .formats $pid\n");
 }
 
 /**

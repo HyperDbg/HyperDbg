@@ -38,11 +38,17 @@ CommandReadMemoryAndDisassemblerHelp()
 
     ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
                  "[process id (hex)]\n");
-    ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask \n");
-    ShowMessages("\t\te.g : db fffff8077356f010 \n");
+    ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
+    ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask+10\n");
+    ShowMessages("\t\te.g : db @rax\n");
+    ShowMessages("\t\te.g : db @rax+50\n");
+    ShowMessages("\t\te.g : db fffff8077356f010\n");
     ShowMessages("\t\te.g : !dq 100000\n");
+    ShowMessages("\t\te.g : !dq @rax+77\n");
     ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag\n");
+    ShowMessages("\t\te.g : u nt!ExAllocatePoolWithTag+30\n");
     ShowMessages("\t\te.g : u fffff8077356f010\n");
+    ShowMessages("\t\te.g : u fffff8077356f010+@rcx\n");
 }
 
 /**

@@ -32,6 +32,8 @@ CommandBpHelp()
     ShowMessages("syntax : \tbp [address (hex value)] [pid | tid | core (hex "
                  "value - optional)]\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag\n");
+    ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+5\n");
+    ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+@rcx+rbx\n");
     ShowMessages("\t\te.g : bp fffff8077356f010\n");
     ShowMessages("\t\te.g : bp fffff8077356f010 pid 0x4\n");
     ShowMessages("\t\te.g : bp fffff8077356f010 tid 0x1000\n");

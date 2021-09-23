@@ -28,6 +28,9 @@ CommandVa2paHelp()
     ShowMessages("syntax : \t!va2pa [Virtual Address (hex value)] pid [Process "
                  "id (hex value)]\n");
     ShowMessages("\t\te.g : !va2pa nt!ExAllocatePoolWithTag\n");
+    ShowMessages("\t\te.g : !va2pa nt!ExAllocatePoolWithTag+5\n");
+    ShowMessages("\t\te.g : !va2pa @rcx\n");
+    ShowMessages("\t\te.g : !va2pa @rcx+5\n");
     ShowMessages("\t\te.g : !va2pa fffff801deadbeef\n");
     ShowMessages("\t\te.g : !va2pa fffff801deadbeef pid 0xc8\n");
 }

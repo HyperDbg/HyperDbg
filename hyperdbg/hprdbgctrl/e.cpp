@@ -35,8 +35,10 @@ CommandEditMemoryHelp()
                  "pid [process id (hex)]\n");
     ShowMessages("\t\te.g : eb fffff8077356f010 90 \n");
     ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask ff ff ff ff \n");
+    ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask+10+@rcx ff ff ff ff \n");
     ShowMessages("\t\te.g : eb fffff8077356f010 90 90 90 90 \n");
     ShowMessages("\t\te.g : !eq 100000 9090909090909090\n");
+    ShowMessages("\t\te.g : !eq nt!ExAllocatePoolWithTag+55 9090909090909090\n");
     ShowMessages("\t\te.g : !eq 100000 9090909090909090 9090909090909090 "
                  "9090909090909090 9090909090909090 9090909090909090\n");
 }

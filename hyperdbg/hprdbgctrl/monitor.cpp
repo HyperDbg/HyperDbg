@@ -27,6 +27,7 @@ CommandMonitorHelp()
                  "(hex value)] \n");
 
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
+    ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
     ShowMessages(
         "\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
     ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 "

@@ -37,9 +37,12 @@ CommandSearchMemoryHelp()
                  "[byte pattern (hex)] pid [process id (hex)]\n");
 
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag 90 85 95 l ffff \n");
+    ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag+5 90 85 95 l ffff \n");
+    ShowMessages("\t\te.g : sb @rcx+5 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb fffff8077356f010 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sd fffff8077356f010 90423580 l ffff pid 1c0 \n");
     ShowMessages("\t\te.g : !sq 100000 9090909090909090 l ffff\n");
+    ShowMessages("\t\te.g : !sq @rdx+r12 9090909090909090 l ffff\n");
     ShowMessages("\t\te.g : !sq 100000 9090909090909090 9090909090909090 "
                  "9090909090909090 l ffffff\n");
 }
