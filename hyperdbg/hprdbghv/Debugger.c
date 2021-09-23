@@ -16,7 +16,7 @@
 // Include parser
 //
 #define SCRIPT_ENGINE_KERNEL_MODE
-#include "ScriptEngineCommon.h"
+#include "ScriptEngineEval.h"
 
 /**
  * @brief A wrapper for GetRegValue() in script-engine

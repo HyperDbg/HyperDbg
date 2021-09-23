@@ -21,8 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 	ProjectSection(SolutionItems) = preProject
 		include\Configuration.h = include\Configuration.h
 		include\Definition.h = include\Definition.h
-		include\ScriptEngineCommon.h = include\ScriptEngineCommon.h
 		include\ScriptEngineCommonDefinitions.h = include\ScriptEngineCommonDefinitions.h
+		include\ScriptEngineEval.h = include\ScriptEngineEval.h
 		include\ZycoreExportConfig.h = include\ZycoreExportConfig.h
 		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
