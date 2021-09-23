@@ -1108,13 +1108,14 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock handling breakpoints
     //
-    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidAcquireDebugLock)
     {
         SpinlockLock(&DebuggerHandleBreakpointLock);
+        g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = TRUE;
     }
     else
     {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidAcquireDebugLock = FALSE;
     }
 
     //
@@ -1124,13 +1125,18 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     {
         //
         // Unlock the above core
-        // First, check for the AvoidReleaseOrAcquireDebugLock flag, it's not necessary here
-        // as we turn it false in the above routine, but because in future might add some other
-        // routine between these two flag sets, then we prefer to have an extra check here
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock)
         {
-            SpinlockUnlock(&DebuggerHandleBreakpointLock);
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
+            {
+                g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
+                SpinlockUnlock(&DebuggerHandleBreakpointLock);
+            }
+        }
+        else
+        {
+            g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock = FALSE;
         }
 
         return;
@@ -1197,12 +1203,20 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Check if we should release the lock of debugging main core, or not
     //
-    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseOrAcquireDebugLock)
+    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock)
     {
         //
-        // Unlock handling breakpoints ()
+        // Unlock handling breaks
         //
-        SpinlockUnlock(&DebuggerHandleBreakpointLock);
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
+        {
+            g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
+            SpinlockUnlock(&DebuggerHandleBreakpointLock);
+        }
+    }
+    else
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock = FALSE;
     }
 }
 
@@ -1297,7 +1311,8 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // to re-take the handle as the main core but meanwhile other core triggers the
     // event and get the main core handle
     //
-    g_GuestState[CoreId].DebuggingState.AvoidReleaseOrAcquireDebugLock = TRUE;
+    g_GuestState[CoreId].DebuggingState.AvoidAcquireDebugLock = TRUE;
+    g_GuestState[CoreId].DebuggingState.AvoidReleaseDebugLock = TRUE;
 
     //
     // Not unset again
