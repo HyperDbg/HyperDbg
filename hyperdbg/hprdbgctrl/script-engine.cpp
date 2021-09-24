@@ -49,7 +49,7 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     //
     // Run script engine handler
     //
-    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str());
+    CodeBuffer = ScriptEngineParseWrapper((char *)Expr.c_str(), FALSE);
 
     if (CodeBuffer == NULL)
     {

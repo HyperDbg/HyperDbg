@@ -790,7 +790,7 @@ InterpretScript(vector<string> * SplittedCommand,
     // Run script engine handler
     //
     PVOID CodeBuffer =
-        ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str());
+        ScriptEngineParseWrapper((char *)AppendedFinalBuffer.c_str(), TRUE);
 
     if (CodeBuffer == NULL)
     {

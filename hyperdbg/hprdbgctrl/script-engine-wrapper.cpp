@@ -165,15 +165,16 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFi
 /**
  * @brief ScriptEngineParse wrapper
  *
- * @param str
+ * @param Expr
+ * @param ShowErrorMessageIfAny
  * 
  * @return PVOID
  */
 PVOID
-ScriptEngineParseWrapper(char * str)
+ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny)
 {
     PSYMBOL_BUFFER SymbolBuffer;
-    SymbolBuffer = ScriptEngineParse(str);
+    SymbolBuffer = ScriptEngineParse(Expr);
 
     //
     // Check if there is an error or not
@@ -187,7 +188,10 @@ ScriptEngineParseWrapper(char * str)
         //
         // Show error message and free the buffer
         //
-        ShowMessages("%s\n", SymbolBuffer->Message);
+        if (ShowErrorMessageIfAny)
+        {
+            ShowMessages("%s\n", SymbolBuffer->Message);
+        }
         ScriptEngineWrapperRemoveSymbolBuffer(SymbolBuffer);
         return NULL;
     }
@@ -274,7 +278,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
         ShowMessages("%s\n", CodeBuffer->Message);
     }
 
-    //RemoveSymbolBuffer(CodeBuffer);
+    // RemoveSymbolBuffer(CodeBuffer);
 
     return;
 }

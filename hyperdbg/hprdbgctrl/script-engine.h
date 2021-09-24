@@ -58,7 +58,7 @@ BOOLEAN
 ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
 
 PVOID
-ScriptEngineParseWrapper(char * str);
+ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny);
 
 VOID
 PrintSymbolBufferWrapper(PVOID SymbolBuffer);

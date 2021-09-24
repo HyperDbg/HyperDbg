@@ -216,7 +216,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
         //
         // Run script engine handler
         //
-        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str());
+        CodeBuffer = ScriptEngineParseWrapper((char *)Command.c_str(), TRUE);
 
         if (CodeBuffer == NULL)
         {

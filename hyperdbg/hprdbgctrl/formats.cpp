@@ -134,7 +134,7 @@ CommandFormats(vector<string> SplittedCommand, string Command)
 
     if (HasError)
     {
-        ShowErrorMessage(ConstantValue);
+        ShowMessages("err, couldn't resolve error at '%s'\n", Command.c_str());
     }
     else
     {
