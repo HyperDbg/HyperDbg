@@ -74,7 +74,14 @@ CommandSympath(vector<string> SplittedCommand, string Command)
 
         Is.close();
 
-        ShowMessages("current SymbolServer is : %s\n", SymbolServer.c_str());
+        if (!SymbolServer.empty())
+        {
+            ShowMessages("current symbol server is : %s\n", SymbolServer.c_str());
+        }
+        else
+        {
+            ShowMessages("symbol server is not configured, please use '.help .sympath'\n");
+        }
     }
     else
     {
