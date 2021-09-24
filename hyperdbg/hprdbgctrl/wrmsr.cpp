@@ -99,10 +99,10 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
         if (SetMsr)
         {
-            if (!ConvertStringToUInt64(Section, &Value))
+            if (!SymbolConvertNameOrExprToAddress(Section, &Value))
             {
                 ShowMessages(
-                    "please specify a correct hex value to put on the msr\n\n");
+                    "please specify a correct hex value or an expression to put on the msr\n\n");
                 CommandWrmsrHelp();
                 return;
             }

@@ -422,7 +422,7 @@ NewTemp(void)
     if (i == MAX_TEMP_COUNT)
     {
         // TODO: Handle Error
-        printf("Error: Not enough temporary variables to allocate. \n");
+        printf("Error: Not enough temporary variables to allocate.\n");
     }
     TOKEN Temp = NewToken();
     char  TempValue[8];
