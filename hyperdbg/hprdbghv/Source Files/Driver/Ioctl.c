@@ -379,7 +379,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Here we should validate whether the input parameter is
-            // valid or in other words whether we recieved enough space or not
+            // valid or in other words whether we received enough space or not
             //
             if (DebuggerHideAndUnhideRequest->TrueIfProcessIdAndFalseIfProcessName == FALSE &&
                 IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
@@ -513,7 +513,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Here we should validate whether the input parameter is
-            // valid or in other words whether we recieved enough space or not
+            // valid or in other words whether we received enough space or not
             //
             if (IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
                 SIZEOF_DEBUGGER_EDIT_MEMORY + DebuggerEditMemoryRequest->CountOf64Chunks * sizeof(UINT64))
@@ -573,7 +573,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Here we should validate whether the input parameter is
-            // valid or in other words whether we recieved enough space or not
+            // valid or in other words whether we received enough space or not
             //
             if (IrpStack->Parameters.DeviceIoControl.InputBufferLength !=
                 SIZEOF_DEBUGGER_SEARCH_MEMORY + DebuggerSearchMemoryRequest->CountOf64Chunks * sizeof(UINT64))

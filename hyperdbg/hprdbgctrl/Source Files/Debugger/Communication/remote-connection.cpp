@@ -67,7 +67,7 @@ RemoteConnectionListen(PCSTR Port)
     while (true)
     {
         //
-        // Recieve message (this loop works as a command executer,
+        // Receive message (this loop works as a command executer,
         // we don't send the results to the remote machine by using
         // this tools
         //

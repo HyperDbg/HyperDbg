@@ -50,6 +50,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_SCRIPT_PACKET               ScriptPacket;
     PDEBUGGEE_FORMATS_PACKET              FormatsPacket;
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE         SymbolUpdatePacket;
     PDEBUGGER_MODIFY_EVENTS               EventModifyAndQueryPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET       ChangeProcessPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS       FlushPacket;
@@ -159,11 +160,6 @@ StartAgain:
                                               sizeof(DEBUGGER_REMOTE_PACKET));
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
-
-            //
-            // initialize and load symbols (pdb) for previously downloaded symbols
-            //
-            SymbolInitialReload();
 
             ShowMessages("press CTRL+C to pause the debuggee\n");
 
@@ -511,7 +507,7 @@ StartAgain:
                                             sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
-            // We'll just save the result of expression to the global variables 
+            // We'll just save the result of expression to the global variables
             // and let the debuggee to decide whether wants to show error or not
             // and let the debuggee to decide whether wants to show error or not
             //
@@ -867,6 +863,21 @@ StartAgain:
             SetEvent(g_SyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS]
                              .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO:
+
+            SymbolUpdatePacket =
+                (DEBUGGER_UPDATE_SYMBOL_TABLE *)(((CHAR *)TheActualPacket) +
+                                                 sizeof(
+                                                     DEBUGGER_REMOTE_PACKET));
+            //
+            // Perform updates for the symbol table
+            //
+            SymbolBuildAndUpdateSymbolTable(&SymbolUpdatePacket->SymbolDetailPacket,
+                                            SymbolUpdatePacket->CurrentSymbolIndex,
+                                            SymbolUpdatePacket->TotalSymbols);
 
             break;
 

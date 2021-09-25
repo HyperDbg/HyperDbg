@@ -29,5 +29,13 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
                        PUINT32                 StoredLength,
                        BOOLEAN                 SendOverSerial);
 
+BOOLEAN
+SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail,
+                                UINT32                CurrentSymbolTableIndex,
+                                UINT32                TotalSymbols);
+
 VOID
 SymbolInitialReload();
+
+VOID
+SymbolPrepareDebuggerWithSymbolInfo();

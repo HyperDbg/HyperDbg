@@ -1784,7 +1784,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (DebuggeeRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
         {
-            ShowMessages("the operation was successful\n");
+            //
+            // initialize and load symbols (pdb) and send the details to the debugger
+            //
+            ShowMessages("synchronizing modules' symbol details\n");
+            SymbolPrepareDebuggerWithSymbolInfo();
         }
         else
         {
@@ -1796,6 +1800,14 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
             return FALSE;
         }
+
+        //
+        // show the message that the operation was successful,
+        // we show it here because if we set the next variables
+        // to true, then it will be sent to the debugger instead
+        // of showing the message in debuggee
+        //
+        ShowMessages("the operation was successful\n");
 
         //
         // Serial connection is not already closed

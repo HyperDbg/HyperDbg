@@ -39,6 +39,21 @@ SymbolInitialReload()
 }
 
 /**
+ * @brief Initial and send the results of serial for the debugger
+ * in the case of debugger mode
+ * 
+ * @return VOID 
+ */
+VOID
+SymbolPrepareDebuggerWithSymbolInfo()
+{
+    //
+    // Load already downloaded symbol (won't download at this point)
+    //
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, TRUE);
+}
+
+/**
  * @brief Build and show symbol table details
  * 
  * @return VOID 
@@ -403,7 +418,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         // and also make sure that we're connected to the remote debugger
         // and this is a debuggee
         //
-        if (SendOverSerial && g_IsSerialConnectedToRemoteDebugger)
+        if (SendOverSerial)
         {
             KdSendSymbolDetailPacket(&ModuleSymDetailArray[i], i, ModuleInfo->NumberOfModules);
         }
@@ -415,6 +430,27 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     *StoredLength         = ModuleInfo->NumberOfModules * sizeof(MODULE_SYMBOL_DETAIL);
 
     VirtualFree(ModuleInfo, 0, MEM_RELEASE);
+
+    return TRUE;
+}
+
+/**
+ * @brief Allocate (build) and update the symbol table whenever a debuggee is attached
+ * on the debugger mode
+ * 
+ * @param SymbolDetail Pointer to a buffer that was received as the single 
+ * symbol info
+ * @param CurrentSymbolTableIndex Current Index in the symbol table
+ * @param TotalSymbols Total number of symbols in the debuggee
+ * 
+ * @return BOOLEAN shows whether the operation was successful or not
+ */
+BOOLEAN
+SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail,
+                                UINT32                CurrentSymbolTableIndex,
+                                UINT32                TotalSymbols)
+{
+    // printf("Detail of symbol : %s | %s\n", SymbolDetail->FilePath, SymbolDetail->ModuleSymbolGuidAndAge);
 
     return TRUE;
 }

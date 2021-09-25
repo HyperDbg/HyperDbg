@@ -271,7 +271,7 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
 //   while (true) {
 //
 //     //
-//     // Recieve message
+//     // Receive message
 //     //
 //     if (CommunicationServerReceiveMessage(ClientSocket, recvbuf,
 //                                           DEFAULT_BUFLEN) != 0) {

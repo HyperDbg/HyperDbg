@@ -302,7 +302,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     // Check for new allocation
     //
-    if (g_IsNewRequestForAllocationRecieved)
+    if (g_IsNewRequestForAllocationReceived)
     {
         for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)
         {
@@ -373,7 +373,7 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     // All allocation and deallocation are preformed
     //
     g_IsNewRequestForDeAllocation       = FALSE;
-    g_IsNewRequestForAllocationRecieved = FALSE;
+    g_IsNewRequestForAllocationReceived = FALSE;
 
     return Result;
 }
@@ -420,7 +420,7 @@ PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTIO
     //
     // Signals to show that we have new allocations
     //
-    g_IsNewRequestForAllocationRecieved = TRUE;
+    g_IsNewRequestForAllocationReceived = TRUE;
 
     SpinlockUnlock(&LockForRequestAllocation);
     return TRUE;

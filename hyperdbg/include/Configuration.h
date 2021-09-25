@@ -43,14 +43,14 @@
 
 /**
  * @brief Use immediate messaging (means that it sends each message when they
- * recieved and do not accumulate them) it works only if you set
+ * received and do not accumulate them) it works only if you set
  * UseDbgPrintInsteadOfUsermodeMessageTracking to FALSE
  */
 #define UseImmediateMessaging TRUE
 
 /**
  * @brief Use immediate messaging (means that it sends each message when they
- * recieved and do not accumulate them) its the default value on events,
+ * received and do not accumulate them) its the default value on events,
  * a user can change this behavior by selecting 'imm yes' or 'imm no' in the
  * case of events
  */

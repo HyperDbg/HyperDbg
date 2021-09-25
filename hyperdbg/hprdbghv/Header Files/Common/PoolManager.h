@@ -99,7 +99,7 @@ volatile LONG LockForReadingPool;
  * @brief We set it when there is a new allocation
  * 
  */
-BOOLEAN g_IsNewRequestForAllocationRecieved;
+BOOLEAN g_IsNewRequestForAllocationReceived;
 
 /**
  * @brief We set it when there is a new allocation
