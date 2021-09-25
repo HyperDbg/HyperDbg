@@ -25,7 +25,9 @@ BOOLEAN
 SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result);
 
 BOOLEAN
-SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength);
+SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
+                       PUINT32                 StoredLength,
+                       BOOLEAN                 SendOverSerial);
 
 VOID
 SymbolInitialReload();

@@ -147,6 +147,11 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent);
 VOID
 KdSendUsermodePrints(CHAR * Input, UINT32 Length);
 
+VOID
+KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket,
+                         UINT32                CurrentSymbolInfoIndex,
+                         UINT32                TotalSymbols);
+
 BOOLEAN
 KdSendGeneralBuffersFromDebuggeeToDebugger(
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction,

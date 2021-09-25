@@ -15,6 +15,11 @@
 //
 // Global Variables
 //
+extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
+
+//
+// Global Variables
+//
 extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
 extern UINT32                g_SymbolTableSize;
 extern BOOLEAN               g_IsExecutingSymbolLoadingRoutines;
@@ -44,7 +49,7 @@ SymbolBuildAndShowSymbolTable()
     //
     // Build the symbol table
     //
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
 
     //
     // Test, should be removed
@@ -80,7 +85,7 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     //
     // Build the symbol table
     //
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize);
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
 
     //
     // *** Read symbol path/server from config file ***
@@ -225,11 +230,15 @@ SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result)
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
+ * @param SendOverSerial Shows whether the packet should be sent to the debugger
+ * over the serial or not
  * 
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
-SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 StoredLength)
+SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
+                       PUINT32                 StoredLength,
+                       BOOLEAN                 SendOverSerial)
 {
     PRTL_PROCESS_MODULES  ModuleInfo;
     NTSTATUS              Status;
@@ -366,7 +375,6 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
         //
         // Build the structure for this module
         //
-
         ModuleSymDetailArray[i].BaseAddress = (UINT64)ModuleInfo->Modules[i].ImageBase;
         memcpy(ModuleSymDetailArray[i].FilePath, ModuleFullPath.c_str(), ModuleFullPath.size());
 
@@ -388,6 +396,16 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails, PUINT32 Sto
         else
         {
             ModuleSymDetailArray[i].IsSymbolDetailsFound = FALSE;
+        }
+
+        //
+        // Check if it should be send to the remote debugger over serial
+        // and also make sure that we're connected to the remote debugger
+        // and this is a debuggee
+        //
+        if (SendOverSerial && g_IsSerialConnectedToRemoteDebugger)
+        {
+            KdSendSymbolDetailPacket(&ModuleSymDetailArray[i], i, ModuleInfo->NumberOfModules);
         }
     }
     //

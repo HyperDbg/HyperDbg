@@ -1964,6 +1964,7 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        free(GeneralPacketFromDebuggeeToDebuggerRequest);
         return FALSE;
     }
 
@@ -1976,7 +1977,6 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
         // Free the buffer
         //
         free(GeneralPacketFromDebuggeeToDebuggerRequest);
-
         return FALSE;
     }
 
@@ -2290,7 +2290,7 @@ KdHandleUserInputInDebuggee(CHAR * Input)
 }
 
 /**
- * @brief send result of user-mode ShowMessages to debuggee
+ * @brief Send result of user-mode ShowMessages to debuggee
  * @param Input
  * @param Length
  * @return VOID
@@ -2340,8 +2340,63 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        free(UsermodeMessageRequest);
         return;
     }
+
+    free(UsermodeMessageRequest);
+}
+
+/**
+ * @brief Send each packet of debugging information (PDB) to the debugger
+ * @param SymbolDetailPacket
+ * @param CurrentSymbolInfoIndex
+ * @param TotalSymbols
+ * 
+ * @return VOID
+ */
+VOID
+KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket, UINT32 CurrentSymbolInfoIndex, UINT32 TotalSymbols)
+{
+    BOOLEAN                       Result;
+    ULONG                         ReturnedLength;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE UsermodeSymDetailRequest;
+
+    UsermodeSymDetailRequest =
+        (DEBUGGER_UPDATE_SYMBOL_TABLE *)malloc(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE));
+
+    RtlZeroMemory(UsermodeSymDetailRequest, sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE));
+
+    //
+    // Set other parameters for the symbol details
+    //
+    UsermodeSymDetailRequest->CurrentSymbolIndex = CurrentSymbolInfoIndex;
+    UsermodeSymDetailRequest->TotalSymbols       = TotalSymbols;
+
+    //
+    // Move the user message buffer at the bottom of the structure packet
+    //
+    memcpy((PVOID)((UINT64)&UsermodeSymDetailRequest->SymbolDetailPacket),
+           (PVOID)SymbolDetailPacket,
+           sizeof(MODULE_SYMBOL_DETAIL));
+
+    //
+    // Send the symbol update buffer to the debugger
+    //
+    Result = KdSendGeneralBuffersFromDebuggeeToDebugger(
+        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO,
+        UsermodeSymDetailRequest,
+        sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE),
+        FALSE);
+
+    if (!Result)
+    {
+        ShowMessages("err, sending symbol packets failed in debuggee");
+        free(UsermodeSymDetailRequest);
+        return;
+    }
+
+    free(UsermodeSymDetailRequest);
 }
 
 /**

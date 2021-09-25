@@ -699,6 +699,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_EDITING_MEMORY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -757,6 +758,23 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
+
+/*
+==============================================================================================
+ */
+
+/**
+ * @brief request to add new symbol detail or update a previousrds
+ * symbol table entry
+ *
+ */
+typedef struct _DEBUGGER_UPDATE_SYMBOL_TABLE
+{
+    UINT32               TotalSymbols;
+    UINT32               CurrentSymbolIndex;
+    MODULE_SYMBOL_DETAIL SymbolDetailPacket;
+
+} DEBUGGER_UPDATE_SYMBOL_TABLE, *PDEBUGGER_UPDATE_SYMBOL_TABLE;
 
 /*
 ==============================================================================================
@@ -997,7 +1015,7 @@ typedef struct _DEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER
     sizeof(DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER)
 
 /**
- * @brief request for send a send user-mode message to debugger
+ * @brief request for send a user-mode message to debugger
  *
  */
 typedef struct _DEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER
