@@ -136,7 +136,7 @@ CommandMeasure(vector<string> SplittedCommand, string Command)
         g_RdtscMedian            = 0x16;
     }
 
-    ShowMessages("the measurements was successful, now you can use '!hide' command\n");
+    ShowMessages("the measurements were successful\nyou can use the '!hide' command now\n");
 
     //
     // Indicate that the measurements was successful
