@@ -64,7 +64,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>..\hprdbgctrl\pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -87,7 +87,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>..\hprdbgctrl\pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -106,127 +106,122 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="commands.h" />
-    <ClInclude Include="common.h" />
-    <ClInclude Include="debugger.h" />
-    <ClInclude Include="exports.h" />
-    <ClInclude Include="forwarding.h" />
-    <ClInclude Include="globals.h" />
-    <ClInclude Include="help.h" />
-    <ClInclude Include="inipp.h" />
-    <ClInclude Include="install.h" />
-    <ClInclude Include="kd.h" />
-    <ClInclude Include="list.h" />
-    <ClInclude Include="namedpipe.h" />
+    <ClInclude Include="Header Files\commands.h" />
+    <ClInclude Include="Header Files\common.h" />
+    <ClInclude Include="Header Files\communication.h" />
+    <ClInclude Include="Header Files\debugger.h" />
+    <ClInclude Include="Header Files\exports.h" />
+    <ClInclude Include="Header Files\forwarding.h" />
+    <ClInclude Include="Header Files\globals.h" />
+    <ClInclude Include="Header Files\help.h" />
+    <ClInclude Include="Header Files\inipp.h" />
+    <ClInclude Include="Header Files\install.h" />
+    <ClInclude Include="Header Files\kd.h" />
+    <ClInclude Include="Header Files\list.h" />
+    <ClInclude Include="Header Files\namedpipe.h" />
+    <ClInclude Include="Header Files\script-engine.h" />
+    <ClInclude Include="Header Files\symbol.h" />
+    <ClInclude Include="Header Files\tests.h" />
+    <ClInclude Include="Header Files\transparency.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="communication.h" />
-    <ClInclude Include="script-engine.h" />
-    <ClInclude Include="symbol.h" />
-    <ClInclude Include="tests.h" />
-    <ClInclude Include="transparency.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="attach.cpp" />
-    <ClCompile Include="bc.cpp" />
-    <ClCompile Include="bd.cpp" />
-    <ClCompile Include="be.cpp" />
-    <ClCompile Include="bl.cpp" />
-    <ClCompile Include="bp.cpp" />
-    <ClCompile Include="break-control.cpp" />
-    <ClCompile Include="cls.cpp" />
-    <ClCompile Include="connect.cpp" />
-    <ClCompile Include="cpuid.cpp" />
-    <ClCompile Include="d-u.cpp" />
-    <ClCompile Include="debug.cpp" />
-    <ClCompile Include="debugger.cpp" />
-    <ClCompile Include="detach.cpp" />
-    <ClCompile Include="disconnect.cpp" />
-    <ClCompile Include="dr.cpp" />
-    <ClCompile Include="e.cpp" />
-    <ClCompile Include="epthook.cpp" />
-    <ClCompile Include="eval.cpp" />
-    <ClCompile Include="events.cpp" />
-    <ClCompile Include="exception.cpp" />
-    <ClCompile Include="exit.cpp" />
-    <ClCompile Include="flush.cpp" />
-    <ClCompile Include="formats.cpp" />
-    <ClCompile Include="epthook2.cpp" />
-    <ClCompile Include="forwarding.cpp" />
-    <ClCompile Include="g.cpp" />
-    <ClCompile Include="gaussian-rng.cpp" />
-    <ClCompile Include="help.cpp" />
-    <ClCompile Include="hide.cpp" />
-    <ClCompile Include="i.cpp" />
-    <ClCompile Include="interrupt.cpp" />
-    <ClCompile Include="ioin.cpp" />
-    <ClCompile Include="ioout.cpp" />
-    <ClCompile Include="kd.cpp" />
-    <ClCompile Include="listen.cpp" />
-    <ClCompile Include="listening.cpp" />
-    <ClCompile Include="load.cpp" />
-    <ClCompile Include="logclose.cpp" />
-    <ClCompile Include="logopen.cpp" />
-    <ClCompile Include="measure.cpp" />
-    <ClCompile Include="monitor.cpp" />
-    <ClCompile Include="msrread.cpp" />
-    <ClCompile Include="msrwrite.cpp" />
-    <ClCompile Include="namedpipe.cpp" />
-    <ClCompile Include="output.cpp" />
-    <ClCompile Include="p.cpp" />
-    <ClCompile Include="pa2va.cpp" />
-    <ClCompile Include="pause.cpp" />
-    <ClCompile Include="pmc.cpp" />
-    <ClCompile Include="print.cpp" />
-    <ClCompile Include="process.cpp" />
-    <ClCompile Include="pte.cpp" />
-    <ClCompile Include="r.cpp" />
-    <ClCompile Include="rdmsr.cpp" />
-    <ClCompile Include="readmem.cpp" />
-    <ClCompile Include="remote-connection.cpp" />
-    <ClCompile Include="s.cpp" />
-    <ClCompile Include="script-engine.cpp" />
-    <ClCompile Include="script.cpp" />
-    <ClCompile Include="settings.cpp" />
-    <ClCompile Include="script-engine-wrapper.cpp" />
-    <ClCompile Include="sleep.cpp" />
-    <ClCompile Include="status.cpp" />
-    <ClCompile Include="sym.cpp" />
-    <ClCompile Include="symbol.cpp" />
-    <ClCompile Include="sympath.cpp" />
-    <ClCompile Include="syscall-sysret.cpp" />
-    <ClCompile Include="t.cpp" />
-    <ClCompile Include="tcpclient.cpp" />
-    <ClCompile Include="tcpserver.cpp" />
-    <ClCompile Include="test.cpp" />
-    <ClCompile Include="tests.cpp" />
-    <ClCompile Include="transparency.cpp" />
-    <ClCompile Include="tsc.cpp" />
-    <ClCompile Include="unhide.cpp" />
-    <ClCompile Include="unload.cpp" />
-    <ClCompile Include="va2pa.cpp" />
-    <ClCompile Include="vmcall.cpp" />
-    <ClCompile Include="wrmsr.cpp" />
-    <ClCompile Include="x.cpp" />
-    <ClCompile Include="~.cpp" />
-    <MASM Include="AsmVmxChecks.asm">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </MASM>
-    <ClCompile Include="cpu.cpp" />
-    <ClCompile Include="disassembler.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="common.cpp" />
-    <ClCompile Include="hprdbgctrl.cpp" />
-    <ClCompile Include="install.cpp" />
-    <ClCompile Include="interpreter.cpp" />
-    <ClCompile Include="list.cpp" />
-    <ClCompile Include="lm.cpp" />
+    <ClCompile Include="Source Files\App\dllmain.cpp" />
+    <ClCompile Include="Source Files\App\hprdbgctrl.cpp" />
+    <ClCompile Include="Source Files\Common\common.cpp" />
+    <ClCompile Include="Source Files\Common\list.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bc.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bd.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\be.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bl.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bp.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\cpu.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\d-u.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\e.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\eval.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\events.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\exit.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\flush.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\g.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\i.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\lm.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\load.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\output.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\p.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\pause.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\print.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\r.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\rdmsr.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\s.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\settings.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\sleep.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\t.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\test.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\unload.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\wrmsr.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\x.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\~.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\cpuid.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\dr.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\epthook.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\epthook2.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\exception.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\hide.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\interrupt.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\ioin.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\ioout.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\measure.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\monitor.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\msrread.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\msrwrite.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pa2va.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pmc.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pte.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\syscall-sysret.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\tsc.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\unhide.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\va2pa.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\vmcall.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\attach.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\cls.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\connect.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\debug.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\detach.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\disconnect.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\formats.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\help.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\listen.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\logclose.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\logopen.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\process.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\script.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\status.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\sym.cpp" />
+    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\sympath.cpp" />
+    <ClCompile Include="Source Files\Debugger\Communication\forwarding.cpp" />
+    <ClCompile Include="Source Files\Debugger\Communication\namedpipe.cpp" />
+    <ClCompile Include="Source Files\Debugger\Communication\remote-connection.cpp" />
+    <ClCompile Include="Source Files\Debugger\Communication\tcpclient.cpp" />
+    <ClCompile Include="Source Files\Debugger\Communication\tcpserver.cpp" />
+    <ClCompile Include="Source Files\Debugger\Driver Loader\install.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\break-control.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\debugger.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\interpreter.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\kd.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\listening.cpp" />
+    <ClCompile Include="Source Files\Debugger\Essentials\symbol.cpp" />
+    <ClCompile Include="Source Files\Debugger\Implementations\disassembler.cpp" />
+    <ClCompile Include="Source Files\Debugger\Implementations\readmem.cpp" />
+    <ClCompile Include="Source Files\Debugger\Script Engine Wrapper\script-engine-wrapper.cpp" />
+    <ClCompile Include="Source Files\Debugger\Script Engine Wrapper\script-engine.cpp" />
+    <ClCompile Include="Source Files\Debugger\Tests\tests.cpp" />
+    <ClCompile Include="Source Files\Debugger\Transparency\gaussian-rng.cpp" />
+    <ClCompile Include="Source Files\Debugger\Transparency\transparency.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <MASM Include="Source Files\Assembly Files\AsmVmxChecks.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
