@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Source Files\Assembly">
       <UniqueIdentifier>{52b6834d-060a-49d8-a91a-548633cbe5ff}</UniqueIdentifier>
     </Filter>
@@ -21,35 +17,35 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hyperdbg-test.cpp">
+    <ClCompile Include="Source Files\Tests\hyperdbg-test.cpp">
       <Filter>Source Files\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="lookup.cpp">
+    <ClCompile Include="Source Files\Tests\lookup.cpp">
       <Filter>Source Files\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="namedpipe.cpp">
+    <ClCompile Include="Source Files\Tests\namedpipe.cpp">
       <Filter>Source Files\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="test-cases.cpp">
+    <ClCompile Include="Source Files\Tests\test-cases.cpp">
       <Filter>Source Files\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="tools.cpp">
+    <ClCompile Include="Source Files\Tests\tools.cpp">
       <Filter>Source Files\Tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="routines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="namedpipe.h">
+    <ClInclude Include="Header Files\namedpipe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header Files\routines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm-test.asm">
+    <MASM Include="Source Files\Assembly\asm-test.asm">
       <Filter>Source Files\Assembly</Filter>
     </MASM>
   </ItemGroup>

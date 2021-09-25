@@ -28,7 +28,7 @@
 // Program Defined Headers
 //
 #include "Definition.h"
-#include "namedpipe.h"
-#include "routines.h"
+#include "..\hyperdbg-test\Header Files\namedpipe.h"
+#include "..\hyperdbg-test\Header Files\routines.h"
 
 using namespace std;

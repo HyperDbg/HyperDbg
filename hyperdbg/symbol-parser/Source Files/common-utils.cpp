@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "pch.h"
+#include "..\symbol-parser\pch.h"
 
 /**
  * @brief check if a file exist or not

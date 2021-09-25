@@ -20,10 +20,9 @@
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>
 
-#include "common-utils.h"
 #include "Definition.h"
-#include "symbol-parser.h"
-
+#include "..\symbol-parser\Header Files\common-utils.h"
+#include "..\symbol-parser\Header Files\symbol-parser.h"
 
 using namespace std;
 

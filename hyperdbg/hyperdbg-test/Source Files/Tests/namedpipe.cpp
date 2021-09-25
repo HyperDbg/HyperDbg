@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "pch.h"
+#include "..\hyperdbg-test\pch.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //                            Server Side                                 //
