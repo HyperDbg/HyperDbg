@@ -21,8 +21,10 @@
 */
 typedef enum TOKEN_TYPE
 {
-    ID,
-    UNRESOLVED_ID,
+    LOCAL_ID,
+    LOCAL_UNRESOLVED_ID,
+    GLOBAL_ID,
+    GLOBAL_UNRESOLVED_ID,
     DECIMAL,
     STATE_ID,
     HEX,

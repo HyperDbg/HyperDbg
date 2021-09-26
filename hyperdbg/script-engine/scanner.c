@@ -387,12 +387,50 @@ GetToken(char * c, char * str)
 
     case '.':
         *c = sgetc(str);
-        if (IsHex(*c))
+        if (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'))
         {
+            do
+            {
+                Append(Token, *c);
+                *c = sgetc(str);
+            } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
+
+            BOOLEAN WasFound = FALSE;
+            UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+            if (WasFound)
+            {
+                free(Token->Value);
+                char * str = malloc(20);
+                sprintf(str, "%llx", Address);
+                Token->Value = str;
+                Token->Type  = HEX;
+            }
+            else
+            {
+                if (strstr(Token->Value, "!"))
+                {
+                    Token->Type = UNKNOWN;
+                    return Token;
+                }
+                else
+                {
+                    if (GetGlobalIdentifireVal(Token) != -1)
+                    {
+                        Token->Type = GLOBAL_ID;
+                    }
+                    else
+                    {
+                        Token->Type = GLOBAL_UNRESOLVED_ID;
+                    }
+                }
+            }
         }
         else
         {
+            Token->Type = UNKNOWN;
+            return Token;
         }
+        return Token;
 
     case ' ':
     case '\t':
@@ -546,13 +584,13 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetIdentifireVal(Token) != -1)
+                            if (GetLocalIdentifireVal(Token) != -1)
                             {
-                                Token->Type = ID;
+                                Token->Type = LOCAL_ID;
                             }
-                            else 
+                            else
                             {
-                                Token->Type = UNRESOLVED_ID;
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -590,13 +628,13 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetIdentifireVal(Token) != -1)
+                            if (GetLocalIdentifireVal(Token) != -1)
                             {
-                                Token->Type = ID;
+                                Token->Type = LOCAL_ID;
                             }
                             else
                             {
-                                Token->Type = UNRESOLVED_ID;
+                                Token->Type = LOCAL_UNRESOLVED_ID;
                             }
                         }
                     }
@@ -645,13 +683,13 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (GetIdentifireVal(Token) != -1)
+                        if (GetLocalIdentifireVal(Token) != -1)
                         {
-                            Token->Type = ID;
+                            Token->Type = LOCAL_ID;
                         }
                         else
                         {
-                            Token->Type = UNRESOLVED_ID;
+                            Token->Type = LOCAL_UNRESOLVED_ID;
                         }
                     }
                 }

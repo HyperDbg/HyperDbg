@@ -66,11 +66,17 @@ PrintToken(TOKEN Token)
     //
     switch (Token->Type)
     {
-    case ID:
-        printf(" ID>\n");
+    case GLOBAL_ID:
+        printf(" GLOBAL_ID>\n");
         break;
-    case UNRESOLVED_ID:
-        printf(" UNRESOLVED_ID>\n");
+    case GLOBAL_UNRESOLVED_ID:
+        printf(" GLOBAL_UNRESOLVED_ID>\n");
+        break;
+    case LOCAL_ID:
+        printf(" LOCAL_ID>\n");
+        break;
+    case LOCAL_UNRESOLVED_ID:
+        printf(" LOCAL_UNRESOLVED_ID>\n");
         break;
     case STATE_ID:
         printf(" STATE_ID>\n");
@@ -628,9 +634,16 @@ GetTerminalId(TOKEN Token)
             if (!strcmp("_hex", TerminalMap[i]))
                 return i;
         }
-        else if (Token->Type == ID || Token->Type == UNRESOLVED_ID)
+        else if (Token->Type == GLOBAL_ID || Token->Type == GLOBAL_UNRESOLVED_ID)
         {
-            if (!strcmp("_id", TerminalMap[i]))
+            if (!strcmp("_global_id", TerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
+        {
+            if (!strcmp("_local_id", TerminalMap[i]))
             {
                 return i;
             }
@@ -718,9 +731,16 @@ LalrGetTerminalId(TOKEN Token)
             if (!strcmp("_hex", LalrTerminalMap[i]))
                 return i;
         }
-        else if (Token->Type == ID || Token->Type == UNRESOLVED_ID)
+        else if (Token->Type == GLOBAL_ID || Token->Type == GLOBAL_UNRESOLVED_ID)
         {
-            if (!strcmp("_id", LalrTerminalMap[i]))
+            if (!strcmp("_global_id", LalrTerminalMap[i]))
+            {
+                return i;
+            }
+        }
+        else if (Token->Type == LOCAL_ID || Token->Type == LOCAL_UNRESOLVED_ID)
+        {
+            if (!strcmp("_local_id", LalrTerminalMap[i]))
             {
                 return i;
             }
@@ -799,14 +819,24 @@ IsEqual(const TOKEN Token1, const TOKEN Token2)
             return 1;
         }
     }
-    if (Token1->Type == ID && Token2->Type == UNRESOLVED_ID)
+    if (Token1->Type == GLOBAL_ID && Token2->Type == GLOBAL_UNRESOLVED_ID)
     {
         return 1;
     }
-    if (Token1->Type == UNRESOLVED_ID && Token2->Type == ID)
+    if (Token1->Type == GLOBAL_UNRESOLVED_ID && Token2->Type == GLOBAL_ID)
     {
         return 1;
     }
+
+    if (Token1->Type == LOCAL_ID && Token2->Type == LOCAL_UNRESOLVED_ID)
+    {
+        return 1;
+    }
+    if (Token1->Type == LOCAL_UNRESOLVED_ID && Token2->Type == LOCAL_ID)
+    {
+        return 1;
+    }
+
     return 0;
 }
 

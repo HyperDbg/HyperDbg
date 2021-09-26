@@ -140,7 +140,8 @@ E12->( EXPRESSION )
 
 # Types must have '_' at the first 
 E12->@PUSH _register
-E12->@PUSH _id
+E12->@PUSH _local_id
+E12->@PUSH _global_id
 
 
 # numbers 
@@ -160,7 +161,8 @@ E13->eps
 
 
 STRING->@PUSH _string
-L_VALUE->@PUSH _id 
+L_VALUE->@PUSH _global_id 
+L_VALUE->@PUSH _local_id 
 L_VALUE->@PUSH _register
 NULL->eps
 

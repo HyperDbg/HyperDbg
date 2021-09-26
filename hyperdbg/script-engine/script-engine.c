@@ -386,11 +386,18 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op0Symbol = ToSymbol(Op0, Error);
 
             Op1 = Pop(MatchedStack);
-            if (Op1->Type == UNRESOLVED_ID)
+            if (Op1->Type == GLOBAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
                 free(Op1Symbol->Value);
-                Op1Symbol->Value = NewIdentifire(Op1);
+                Op1Symbol->Value = NewGlobalIdentifire(Op1);
+                SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
+            }
+            else if (Op1->Type == LOCAL_UNRESOLVED_ID)
+            {
+                Op1Symbol = NewSymbol();
+                free(Op1Symbol->Value);
+                Op1Symbol->Value = NewLocalIdentifire(Op1);
                 SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
             }
             else
@@ -1740,8 +1747,12 @@ ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     PSYMBOL Symbol = NewSymbol();
     switch (Token->Type)
     {
-    case ID:
-        Symbol->Value = GetIdentifireVal(Token);
+    case GLOBAL_ID:
+        Symbol->Value = GetGlobalIdentifireVal(Token);
+        SetType(&Symbol->Type, SYMBOL_ID_TYPE);
+        return Symbol;
+    case LOCAL_ID:
+        Symbol->Value = GetLocalIdentifireVal(Token);
         SetType(&Symbol->Type, SYMBOL_ID_TYPE);
         return Symbol;
     case DECIMAL:
@@ -2064,7 +2075,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 }
 
 int
-GetIdentifireVal(TOKEN Token)
+GetGlobalIdentifireVal(TOKEN Token)
 {
     TOKEN CurrentToken;
     for (uintptr_t i = 0; i < IdTable->Pointer; i++)
@@ -2079,7 +2090,14 @@ GetIdentifireVal(TOKEN Token)
 }
 
 int
-NewIdentifire(TOKEN Token)
+GetLocalIdentifireVal(TOKEN Token)
+{
+    return -1;
+}
+
+
+int
+NewGlobalIdentifire(TOKEN Token)
 {
     TOKEN CurrentToken = NewToken();
     CurrentToken->Type = Token->Type;
@@ -2087,6 +2105,17 @@ NewIdentifire(TOKEN Token)
     IdTable = Push(IdTable, CurrentToken);
     return IdTable->Pointer - 1;
 }
+
+int
+NewLocalIdentifire(TOKEN Token)
+{
+    TOKEN CurrentToken = NewToken();
+    CurrentToken->Type = Token->Type;
+    strcpy(CurrentToken->Value, Token->Value);
+    IdTable = Push(IdTable, CurrentToken);
+    return IdTable->Pointer - 1;
+}
+
 
 int
 LalrGetRhsSize(int RuleId)
@@ -2106,11 +2135,19 @@ LalrGetRhsSize(int RuleId)
 BOOL
 LalrIsOperandType(TOKEN Token)
 {
-    if (Token->Type == ID)
+    if (Token->Type == GLOBAL_ID)
     {
         return TRUE;
     }
-    else if (Token->Type == UNRESOLVED_ID)
+    else if (Token->Type == GLOBAL_UNRESOLVED_ID)
+    {
+        return TRUE;
+    }
+    if (Token->Type == LOCAL_ID)
+    {
+        return TRUE;
+    }
+    else if (Token->Type == LOCAL_UNRESOLVED_ID)
     {
         return TRUE;
     }

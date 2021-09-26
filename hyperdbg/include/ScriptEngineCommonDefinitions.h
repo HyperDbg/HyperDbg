@@ -250,7 +250,7 @@ static const char *const RegistersNames[] = {
 "zf", "sf", "tf", "if", "df", "of", "iopl", "nt",
 "rf", "vm", "ac", "vif", "vip", "id", "rip", "eip",
 "ip", "idtr", "ldtr", "gdtr", "tr", "cr0", "cr2", "cr3",
-"cr4", "cr8", "dr0", "dr1", "dr2", "dr3", "dr6","dr7"
+"cr4", "cr8", "dr0", "dr1", "dr2", "dr3", "dr6", 	"dr7"
 };
 
 #define PSEUDO_REGISTER_PID 0

@@ -83,7 +83,8 @@ E12->( EXP )
 
 # Types must have '_' at the first 
 E12->_register @PUSH
-E12->_id @PUSH
+E12->_global_id @PUSH
+E12->_local_id @PUSH
 
 
 # numbers 

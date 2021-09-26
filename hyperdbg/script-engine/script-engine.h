@@ -116,10 +116,16 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str);
 
 int
-GetIdentifireVal(TOKEN Token);
+GetGlobalIdentifireVal(TOKEN Token);
 
 int
-NewIdentifire(TOKEN Token);
+GetLocalIdentifireVal(TOKEN Token);
+
+int
+NewGlobalIdentifire(TOKEN Token);
+
+int
+NewLocalIdentifire(TOKEN Token);
 
 int
 LalrGetRhsSize(int RuleId);
