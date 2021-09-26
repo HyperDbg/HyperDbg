@@ -293,6 +293,12 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief maximum supported modules to load
+ * their symbol informations
+ */
+#define MAXIMUM_SUPPORTED_SYMBOLS 1000
+
+/**
  * @brief maximum size for GUID and Age of PE
  * @detail It seems that 33 bytes is enough but let's
  * have more space because there might be sth that we

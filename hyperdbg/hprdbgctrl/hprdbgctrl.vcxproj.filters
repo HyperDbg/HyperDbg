@@ -1,62 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Header Files">
+    <Filter Include="header">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="source">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Resource Files\Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Assembly Files">
-      <UniqueIdentifier>{ed8a8dd7-a467-4ebc-b8e8-2126d1b061dd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger">
-      <UniqueIdentifier>{cb7159dd-9497-477e-98df-23159103b037}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Commands">
-      <UniqueIdentifier>{2f4ae7fa-1e79-4ff8-9a3a-7f5cca3c4143}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Commands\Debugging Commands">
-      <UniqueIdentifier>{b19aa95a-347c-4c7a-b96c-ad4d05bdc05c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Commands\Meta Commands">
-      <UniqueIdentifier>{87fb4212-f9a2-4dba-b943-b1d3a7807c28}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Commands\Extension Commands">
-      <UniqueIdentifier>{6d1d6434-d27d-4f59-83be-301399c3fef8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Implementations">
-      <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Communication">
-      <UniqueIdentifier>{7522bb67-3e10-4cdc-8d80-13d45ea74661}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Transparency">
-      <UniqueIdentifier>{4fbff165-6d2b-4ea2-ae47-7ec44cf79f2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Tests">
-      <UniqueIdentifier>{75cfa57c-a5af-4b8b-ae07-e4b9f9c56f6a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Driver Loader">
-      <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\Common">
-      <UniqueIdentifier>{f2afff38-c518-4252-bd1d-7573d4190f44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Source Files\App">
+    <Filter Include="source\app">
       <UniqueIdentifier>{c34ee59d-d780-4ffd-bfc0-2e6017257f88}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Script Engine Wrapper">
+    <Filter Include="source\common">
+      <UniqueIdentifier>{f2afff38-c518-4252-bd1d-7573d4190f44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger">
+      <UniqueIdentifier>{cb7159dd-9497-477e-98df-23159103b037}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\commands">
+      <UniqueIdentifier>{2f4ae7fa-1e79-4ff8-9a3a-7f5cca3c4143}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\commands\debugging-commands">
+      <UniqueIdentifier>{b19aa95a-347c-4c7a-b96c-ad4d05bdc05c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\commands\extension-commands">
+      <UniqueIdentifier>{6d1d6434-d27d-4f59-83be-301399c3fef8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\commands\meta-commands">
+      <UniqueIdentifier>{87fb4212-f9a2-4dba-b943-b1d3a7807c28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\communication">
+      <UniqueIdentifier>{7522bb67-3e10-4cdc-8d80-13d45ea74661}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\driver-loader">
+      <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\essentials">
+      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\implementations">
+      <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\script-engine-wrapper">
       <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Source Files\Debugger\Essentials">
-      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
+    <Filter Include="source\debugger\tests">
+      <UniqueIdentifier>{75cfa57c-a5af-4b8b-ae07-e4b9f9c56f6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\transparency">
+      <UniqueIdentifier>{4fbff165-6d2b-4ea2-ae47-7ec44cf79f2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\assembly">
+      <UniqueIdentifier>{ed8a8dd7-a467-4ebc-b8e8-2126d1b061dd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -64,341 +60,341 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\commands.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\commands.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\common.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\common.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\communication.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\communication.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\debugger.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\debugger.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\exports.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\exports.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\forwarding.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\forwarding.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\globals.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\globals.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\help.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\help.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\inipp.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\inipp.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\install.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\install.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\kd.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\kd.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\list.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\list.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\namedpipe.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\namedpipe.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\script-engine.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\script-engine.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\symbol.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\symbol.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\tests.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\tests.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\transparency.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\transparency.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
-      <Filter>Resource Files\Source Files\App</Filter>
+      <Filter>source\app</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\~.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\app\dllmain.cpp">
+      <Filter>source\app</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bc.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\app\hprdbgctrl.cpp">
+      <Filter>source\app</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bd.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\common\common.cpp">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\be.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\common\list.cpp">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bl.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\~.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\bp.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\bc.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\cpu.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\bd.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\d-u.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\be.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\e.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\bl.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\eval.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\bp.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\events.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\cpu.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\exit.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\d-u.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\flush.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\e.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\g.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\eval.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\i.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\events.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\lm.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\exit.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\load.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\flush.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\output.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\g.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\p.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\i.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\pause.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\lm.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\print.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\load.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\r.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\output.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\rdmsr.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\p.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\s.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\pause.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\settings.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\print.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\sleep.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\r.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\t.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\rdmsr.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\test.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\s.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\unload.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\settings.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\wrmsr.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\sleep.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Debugging Commands\x.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Debugging Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\t.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\cpuid.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\test.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\dr.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\unload.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\epthook.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\wrmsr.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\epthook2.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\debugging-commands\x.cpp">
+      <Filter>source\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\exception.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\cpuid.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\hide.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\dr.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\interrupt.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\epthook.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\ioin.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\epthook2.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\ioout.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\exception.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\measure.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\hide.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\monitor.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\interrupt.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\msrread.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\ioin.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\msrwrite.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\ioout.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pa2va.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\measure.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pmc.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\monitor.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\pte.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\msrread.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\syscall-sysret.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\msrwrite.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\tsc.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\pa2va.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\unhide.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\pmc.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\va2pa.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\pte.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Extension Commands\vmcall.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Extension Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\syscall-sysret.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\attach.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\tsc.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\cls.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\unhide.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\connect.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\va2pa.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\debug.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\extension-commands\vmcall.cpp">
+      <Filter>source\debugger\commands\extension-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\detach.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\attach.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\disconnect.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\cls.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\formats.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\connect.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\help.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\debug.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\listen.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\detach.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\logclose.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\disconnect.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\logopen.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\formats.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\process.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\help.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\script.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\listen.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\status.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\logclose.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\sym.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\logopen.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\Meta Commands\sympath.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Commands\Meta Commands</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\process.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\forwarding.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\script.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\namedpipe.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\status.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\remote-connection.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\sym.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\tcpclient.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\debugger\commands\meta-commands\sympath.cpp">
+      <Filter>source\debugger\commands\meta-commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\tcpserver.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\debugger\communication\forwarding.cpp">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Driver Loader\install.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Driver Loader</Filter>
+    <ClCompile Include="source\debugger\communication\namedpipe.cpp">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\break-control.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\communication\remote-connection.cpp">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\debugger.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\communication\tcpclient.cpp">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\interpreter.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\communication\tcpserver.cpp">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\kd.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\driver-loader\install.cpp">
+      <Filter>source\debugger\driver-loader</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\listening.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\essentials\break-control.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\symbol.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\debugger\essentials\debugger.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Script Engine Wrapper\script-engine.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Script Engine Wrapper</Filter>
+    <ClCompile Include="source\debugger\essentials\interpreter.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Script Engine Wrapper\script-engine-wrapper.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Script Engine Wrapper</Filter>
+    <ClCompile Include="source\debugger\essentials\kd.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Implementations\disassembler.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
+    <ClCompile Include="source\debugger\essentials\listening.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Implementations\readmem.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Implementations</Filter>
+    <ClCompile Include="source\debugger\essentials\symbol.cpp">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Tests\tests.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Tests</Filter>
+    <ClCompile Include="source\debugger\implementations\disassembler.cpp">
+      <Filter>source\debugger\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Transparency\gaussian-rng.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Transparency</Filter>
+    <ClCompile Include="source\debugger\implementations\readmem.cpp">
+      <Filter>source\debugger\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Transparency\transparency.cpp">
-      <Filter>Resource Files\Source Files\Debugger\Transparency</Filter>
+    <ClCompile Include="source\debugger\script-engine-wrapper\script-engine.cpp">
+      <Filter>source\debugger\script-engine-wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\common.cpp">
-      <Filter>Resource Files\Source Files\Common</Filter>
+    <ClCompile Include="source\debugger\script-engine-wrapper\script-engine-wrapper.cpp">
+      <Filter>source\debugger\script-engine-wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\list.cpp">
-      <Filter>Resource Files\Source Files\Common</Filter>
+    <ClCompile Include="source\debugger\tests\tests.cpp">
+      <Filter>source\debugger\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\App\dllmain.cpp">
-      <Filter>Resource Files\Source Files\App</Filter>
+    <ClCompile Include="source\debugger\transparency\gaussian-rng.cpp">
+      <Filter>source\debugger\transparency</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\App\hprdbgctrl.cpp">
-      <Filter>Resource Files\Source Files\App</Filter>
+    <ClCompile Include="source\debugger\transparency\transparency.cpp">
+      <Filter>source\debugger\transparency</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Source Files\Assembly Files\AsmVmxChecks.asm">
-      <Filter>Resource Files\Source Files\Assembly Files</Filter>
+    <MASM Include="source\assembly\asm-vmx-checks.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

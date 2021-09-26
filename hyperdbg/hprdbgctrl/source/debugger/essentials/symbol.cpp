@@ -450,7 +450,52 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail,
                                 UINT32                CurrentSymbolTableIndex,
                                 UINT32                TotalSymbols)
 {
-    // printf("Detail of symbol : %s | %s\n", SymbolDetail->FilePath, SymbolDetail->ModuleSymbolGuidAndAge);
+    //
+    // Perform check to sanitize the parameters
+    //
+    if (TotalSymbols > MAXIMUM_SUPPORTED_SYMBOLS || CurrentSymbolTableIndex >= TotalSymbols)
+    {
+        //
+        // Invalid parameters
+        //
+        return FALSE;
+    }
+
+    //
+    // Check if we found an already built symbol table
+    //
+    if (g_SymbolTable != NULL)
+    {
+        //
+        // Allocate Details buffer
+        //
+        g_SymbolTable = (PMODULE_SYMBOL_DETAIL)malloc(TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL));
+
+        if (g_SymbolTable == NULL)
+        {
+            ShowMessages("err, unable to allocate memory for module list (%d)\n",
+                         GetLastError());
+            return FALSE;
+        }
+
+        //
+        // Make sure buffer is zero
+        //
+        g_SymbolTableSize = TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL);
+        RtlZeroMemory(g_SymbolTable, TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL));
+    }
+
+    else if (g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL) != TotalSymbols)
+    {
+        //
+        //
+        //
+    }
+
+    //
+    // Move it to the new buffer
+    //
+    memcpy(&g_SymbolTable[CurrentSymbolTableIndex], SymbolDetail, sizeof(MODULE_SYMBOL_DETAIL));
 
     return TRUE;
 }

@@ -49,11 +49,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\build\Debug\</OutDir>
+    <OutDir>$(SolutionDir)\build\debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\build\Release\</OutDir>
+    <OutDir>$(SolutionDir)\build\release\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -92,19 +92,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Tests\hyperdbg-test.cpp" />
-    <ClCompile Include="Source Files\Tests\lookup.cpp" />
-    <ClCompile Include="Source Files\Tests\namedpipe.cpp" />
-    <ClCompile Include="Source Files\Tests\test-cases.cpp" />
-    <ClCompile Include="Source Files\Tests\tools.cpp" />
+    <ClCompile Include="source\tests\hyperdbg-test.cpp" />
+    <ClCompile Include="source\tests\lookup.cpp" />
+    <ClCompile Include="source\tests\namedpipe.cpp" />
+    <ClCompile Include="source\tests\test-cases.cpp" />
+    <ClCompile Include="source\tests\tools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header Files\namedpipe.h" />
-    <ClInclude Include="Header Files\routines.h" />
+    <ClInclude Include="header\namedpipe.h" />
+    <ClInclude Include="header\routines.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Source Files\Assembly\asm-test.asm" />
+    <MASM Include="source\assembly\asm-test.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

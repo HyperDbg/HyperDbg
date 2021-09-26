@@ -1,388 +1,388 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Driver Files">
+    <Filter Include="driver">
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
-    <Filter Include="Source Files\Common">
-      <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
+    <Filter Include="header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Source Files\Assembly">
-      <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger">
-      <UniqueIdentifier>{8467f2ec-c840-4b3b-acb5-edafd20e4199}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger\Features">
-      <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger\Features\Hooks">
-      <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger\Commands">
-      <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Common">
+    <Filter Include="header\common">
       <UniqueIdentifier>{552ad1ee-f507-4577-96c0-a421e5060907}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Misc">
-      <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger">
-      <UniqueIdentifier>{b6e16086-58f5-4809-9406-acafa11e0713}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger\Commands">
-      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger\Features">
-      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger\Essentials">
-      <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger\Essentials">
-      <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\VMM">
-      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\VMM\VMX">
-      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\VMM">
+    <Filter Include="header\vmm">
       <UniqueIdentifier>{7bb3397e-cb3d-4625-8ee3-742475b27948}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\VMM\EPT">
+    <Filter Include="header\vmm\ept">
       <UniqueIdentifier>{0e525115-4ff2-45b4-ba02-f8fd40582ad3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\VMM\VMX">
+    <Filter Include="header\vmm\vmx">
       <UniqueIdentifier>{cbf160f2-ca9f-45ec-a27f-ba0891204aca}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Transparency">
-      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
+    <Filter Include="header\misc">
+      <UniqueIdentifier>{971a3134-4600-4752-8452-e296edd21a13}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Debugger\Transparency">
-      <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Debugger\Communication">
-      <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Debugger\Communication">
-      <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Devices">
+    <Filter Include="header\devices">
       <UniqueIdentifier>{3c7b33d6-6147-4c8a-a742-aeff2b63b575}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Devices">
-      <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
+    <Filter Include="header\debugger">
+      <UniqueIdentifier>{b6e16086-58f5-4809-9406-acafa11e0713}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\VMM\EPT">
-      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    <Filter Include="header\debugger\commands">
+      <UniqueIdentifier>{13b5cca3-35cf-4754-98e4-238145db4e63}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Tests">
-      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
+    <Filter Include="header\debugger\communication">
+      <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Debugger\Tests">
+    <Filter Include="header\debugger\essentials">
+      <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\features">
+      <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\tests">
       <UniqueIdentifier>{c36ade71-0389-4c2f-b18e-ba18e6fe7e69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Driver">
-      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
+    <Filter Include="header\debugger\transparency">
+      <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Script Engine">
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source\assembly">
+      <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\common">
+      <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger">
+      <UniqueIdentifier>{8467f2ec-c840-4b3b-acb5-edafd20e4199}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\commands">
+      <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\communication">
+      <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\essentials">
+      <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\features">
+      <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\script-engine">
       <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Features\Hooks\Syscall Hook">
+    <Filter Include="source\debugger\tests">
+      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\transparency">
+      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\devices">
+      <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\driver">
+      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\vmm">
+      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\vmm\ept">
+      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\vmm\vmx">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\features\hooks">
+      <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger\features\hooks\syscall-hook">
       <UniqueIdentifier>{8e38c4c7-4c0a-4b0d-94ec-1068c8ebbefc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Debugger\Features\Hooks\EPT Hook">
+    <Filter Include="source\debugger\features\hooks\ept-hook">
       <UniqueIdentifier>{fec47462-c7ab-4843-8ba4-a7f68e208c49}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
-      <Filter>Driver Files</Filter>
+      <Filter>driver</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Common\Common.c">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="source\common\Common.c">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\Logging.c">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="source\common\Logging.c">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\MemoryMapper.c">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="source\common\MemoryMapper.c">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\PoolManager.c">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="source\common\PoolManager.c">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Common\Spinlock.c">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="source\common\Spinlock.c">
+      <Filter>source\common</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\BreakpointCommands.c">
-      <Filter>Source Files\Debugger\Commands</Filter>
+    <ClCompile Include="source\devices\Apic.c">
+      <Filter>source\devices</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\DebuggerCommands.c">
-      <Filter>Source Files\Debugger\Commands</Filter>
+    <ClCompile Include="source\driver\Driver.c">
+      <Filter>source\driver</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Commands\ExtensionCommands.c">
-      <Filter>Source Files\Debugger\Commands</Filter>
+    <ClCompile Include="source\driver\Ioctl.c">
+      <Filter>source\driver</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\GdbStub.c">
-      <Filter>Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\vmm\ept\Ept.c">
+      <Filter>source\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Communication\SerialConnection.c">
-      <Filter>Source Files\Debugger\Communication</Filter>
+    <ClCompile Include="source\vmm\ept\Invept.c">
+      <Filter>source\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\Broadcast.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\ept\Vpid.c">
+      <Filter>source\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\Debugger.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\Counters.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\DebuggerEvents.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\CrossVmexits.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\DpcRoutines.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\Events.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\Kd.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\HypervisorRoutines.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\MemoryManager.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\IdtEmulation.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\Steppings.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\IoHandler.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Essentials\Termination.c">
-      <Filter>Source Files\Debugger\Essentials</Filter>
+    <ClCompile Include="source\vmm\vmx\ManageRegs.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\EPT Hook\EptHook.c">
-      <Filter>Source Files\Debugger\Features\Hooks\EPT Hook</Filter>
+    <ClCompile Include="source\vmm\vmx\Mtf.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\Syscall Hook\EferHook.c">
-      <Filter>Source Files\Debugger\Features\Hooks\Syscall Hook</Filter>
+    <ClCompile Include="source\vmm\vmx\Vmcall.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\Syscall Hook\SsdtHook.c">
-      <Filter>Source Files\Debugger\Features\Hooks\Syscall Hook</Filter>
+    <ClCompile Include="source\vmm\vmx\Vmexit.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Script Engine\ScriptEngine.c">
-      <Filter>Source Files\Debugger\Script Engine</Filter>
+    <ClCompile Include="source\vmm\vmx\Vmx.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Tests\KernelTests.c">
-      <Filter>Source Files\Debugger\Tests</Filter>
+    <ClCompile Include="source\vmm\vmx\VmxRegions.c">
+      <Filter>source\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Debugger\Transparency\Transparency.c">
-      <Filter>Source Files\Debugger\Transparency</Filter>
+    <ClCompile Include="source\debugger\commands\BreakpointCommands.c">
+      <Filter>source\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Devices\Apic.c">
-      <Filter>Source Files\Devices</Filter>
+    <ClCompile Include="source\debugger\commands\DebuggerCommands.c">
+      <Filter>source\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Driver\Driver.c">
-      <Filter>Source Files\Driver</Filter>
+    <ClCompile Include="source\debugger\commands\ExtensionCommands.c">
+      <Filter>source\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Driver\Ioctl.c">
-      <Filter>Source Files\Driver</Filter>
+    <ClCompile Include="source\debugger\communication\GdbStub.c">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\EPT\Ept.c">
-      <Filter>Source Files\VMM\EPT</Filter>
+    <ClCompile Include="source\debugger\communication\SerialConnection.c">
+      <Filter>source\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\EPT\Invept.c">
-      <Filter>Source Files\VMM\EPT</Filter>
+    <ClCompile Include="source\debugger\essentials\Broadcast.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\EPT\Vpid.c">
-      <Filter>Source Files\VMM\EPT</Filter>
+    <ClCompile Include="source\debugger\essentials\Debugger.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Counters.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\DebuggerEvents.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\CrossVmexits.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\DpcRoutines.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Events.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\Kd.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\HypervisorRoutines.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\MemoryManager.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\IdtEmulation.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\Steppings.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\IoHandler.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\essentials\Termination.c">
+      <Filter>source\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\ManageRegs.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\features\hooks\ept-hook\EptHook.c">
+      <Filter>source\debugger\features\hooks\ept-hook</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Mtf.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\features\hooks\syscall-hook\EferHook.c">
+      <Filter>source\debugger\features\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Vmcall.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\features\hooks\syscall-hook\SsdtHook.c">
+      <Filter>source\debugger\features\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Vmexit.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\script-engine\ScriptEngine.c">
+      <Filter>source\debugger\script-engine</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\Vmx.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\tests\KernelTests.c">
+      <Filter>source\debugger\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\VMM\VMX\VmxRegions.c">
-      <Filter>Source Files\VMM\VMX</Filter>
+    <ClCompile Include="source\debugger\transparency\Transparency.c">
+      <Filter>source\debugger\transparency</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\Common.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\Common.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\Dpc.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\Dpc.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\LengthDisassemblerEngine.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\LengthDisassemblerEngine.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\Logging.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\Logging.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\MemoryMapper.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\MemoryMapper.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\Msr.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\Msr.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\PoolManager.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\PoolManager.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Common\Trace.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="header\common\Trace.h">
+      <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Commands\BreakpointCommands.h">
-      <Filter>Header Files\Debugger\Commands</Filter>
+    <ClInclude Include="header\misc\GlobalVariables.h">
+      <Filter>header\misc</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Commands\DebuggerCommands.h">
-      <Filter>Header Files\Debugger\Commands</Filter>
+    <ClInclude Include="header\misc\InlineAsm.h">
+      <Filter>header\misc</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Commands\ExtensionCommands.h">
-      <Filter>Header Files\Debugger\Commands</Filter>
+    <ClInclude Include="header\devices\Apic.h">
+      <Filter>header\devices</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Communication\GdbStub.h">
-      <Filter>Header Files\Debugger\Communication</Filter>
+    <ClInclude Include="header\vmm\ept\Ept.h">
+      <Filter>header\vmm\ept</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Communication\SerialConnection.h">
-      <Filter>Header Files\Debugger\Communication</Filter>
+    <ClInclude Include="header\vmm\ept\Invept.h">
+      <Filter>header\vmm\ept</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\Broadcast.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\ept\Vpid.h">
+      <Filter>header\vmm\ept</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\Debugger.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\Counters.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\DebuggerEvents.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\Events.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\DpcRoutines.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\HypervisorRoutines.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\Kd.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\IdtEmulation.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\Steppings.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\IoHandler.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Essentials\Termination.h">
-      <Filter>Header Files\Debugger\Essentials</Filter>
+    <ClInclude Include="header\vmm\vmx\ManageRegs.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Features\Hooks.h">
-      <Filter>Header Files\Debugger\Features</Filter>
+    <ClInclude Include="header\vmm\vmx\Mtf.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Tests\KernelTests.h">
-      <Filter>Header Files\Debugger\Tests</Filter>
+    <ClInclude Include="header\vmm\vmx\Vmcall.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Debugger\Transparency\Transparency.h">
-      <Filter>Header Files\Debugger\Transparency</Filter>
+    <ClInclude Include="header\vmm\vmx\Vmx.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Devices\Apic.h">
-      <Filter>Header Files\Devices</Filter>
+    <ClInclude Include="header\debugger\commands\BreakpointCommands.h">
+      <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Misc\GlobalVariables.h">
-      <Filter>Header Files\Misc</Filter>
+    <ClInclude Include="header\debugger\commands\DebuggerCommands.h">
+      <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Misc\InlineAsm.h">
-      <Filter>Header Files\Misc</Filter>
+    <ClInclude Include="header\debugger\commands\ExtensionCommands.h">
+      <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\EPT\Ept.h">
-      <Filter>Header Files\VMM\EPT</Filter>
+    <ClInclude Include="header\debugger\communication\GdbStub.h">
+      <Filter>header\debugger\communication</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\EPT\Invept.h">
-      <Filter>Header Files\VMM\EPT</Filter>
+    <ClInclude Include="header\debugger\communication\SerialConnection.h">
+      <Filter>header\debugger\communication</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\EPT\Vpid.h">
-      <Filter>Header Files\VMM\EPT</Filter>
+    <ClInclude Include="header\debugger\essentials\Broadcast.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\Counters.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\Debugger.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\Events.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\DebuggerEvents.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\HypervisorRoutines.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\DpcRoutines.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\IdtEmulation.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\Kd.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\IoHandler.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\Steppings.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\ManageRegs.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\essentials\Termination.h">
+      <Filter>header\debugger\essentials</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\Mtf.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\features\Hooks.h">
+      <Filter>header\debugger\features</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\Vmcall.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\tests\KernelTests.h">
+      <Filter>header\debugger\tests</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\VMM\VMX\Vmx.h">
-      <Filter>Header Files\VMM\VMX</Filter>
+    <ClInclude Include="header\debugger\transparency\Transparency.h">
+      <Filter>header\debugger\transparency</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Source Files\Assembly\AsmCommon.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmCommon.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmDebugger.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmDebugger.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmEpt.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmEpt.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmKernelSideTests.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmKernelSideTests.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmSegmentRegs.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmSegmentRegs.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmVmexitHandler.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmVmexitHandler.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmVmxContextState.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmVmxContextState.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
-    <MASM Include="Source Files\Assembly\AsmVmxOperation.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\AsmVmxOperation.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

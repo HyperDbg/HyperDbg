@@ -54,12 +54,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <OutDir>$(SolutionDir)\build\Debug\</OutDir>
+    <OutDir>$(SolutionDir)\build\debug\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <OutDir>$(SolutionDir)\build\Release\</OutDir>
+    <OutDir>$(SolutionDir)\build\release\</OutDir>
     <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -76,14 +76,14 @@
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)\Build\Debug\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\build\debug\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
-      <AdditionalDependencies>$(SolutionDir)\Build\Release\kdserial.lib;%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)\build\release\kdserial.lib;%(AdditionalDependencies);$(KernelBufferOverflowLib);$(DDK_LIB_PATH)ntoskrnl.lib;$(DDK_LIB_PATH)hal.lib;$(DDK_LIB_PATH)wmilib.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfLdr.lib;$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\WdfDriverEntry.lib</AdditionalDependencies>
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
@@ -104,98 +104,98 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Common\Common.c" />
-    <ClCompile Include="Source Files\Common\Logging.c" />
-    <ClCompile Include="Source Files\Common\MemoryMapper.c" />
-    <ClCompile Include="Source Files\Common\PoolManager.c" />
-    <ClCompile Include="Source Files\Common\Spinlock.c" />
-    <ClCompile Include="Source Files\Debugger\Commands\BreakpointCommands.c" />
-    <ClCompile Include="Source Files\Debugger\Commands\DebuggerCommands.c" />
-    <ClCompile Include="Source Files\Debugger\Commands\ExtensionCommands.c" />
-    <ClCompile Include="Source Files\Debugger\Communication\GdbStub.c" />
-    <ClCompile Include="Source Files\Debugger\Communication\SerialConnection.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\Broadcast.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\Debugger.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\DebuggerEvents.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\DpcRoutines.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\Kd.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\MemoryManager.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\Steppings.c" />
-    <ClCompile Include="Source Files\Debugger\Essentials\Termination.c" />
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\EPT Hook\EptHook.c" />
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\Syscall Hook\EferHook.c" />
-    <ClCompile Include="Source Files\Debugger\Features\Hooks\Syscall Hook\SsdtHook.c" />
-    <ClCompile Include="Source Files\Debugger\Script Engine\ScriptEngine.c" />
-    <ClCompile Include="Source Files\Debugger\Tests\KernelTests.c" />
-    <ClCompile Include="Source Files\Debugger\Transparency\Transparency.c" />
-    <ClCompile Include="Source Files\Devices\Apic.c" />
-    <ClCompile Include="Source Files\Driver\Driver.c" />
-    <ClCompile Include="Source Files\Driver\Ioctl.c" />
-    <ClCompile Include="Source Files\VMM\EPT\Ept.c" />
-    <ClCompile Include="Source Files\VMM\EPT\Invept.c" />
-    <ClCompile Include="Source Files\VMM\EPT\Vpid.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Counters.c" />
-    <ClCompile Include="Source Files\VMM\VMX\CrossVmexits.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Events.c" />
-    <ClCompile Include="Source Files\VMM\VMX\HypervisorRoutines.c" />
-    <ClCompile Include="Source Files\VMM\VMX\IdtEmulation.c" />
-    <ClCompile Include="Source Files\VMM\VMX\IoHandler.c" />
-    <ClCompile Include="Source Files\VMM\VMX\ManageRegs.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Mtf.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Vmcall.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Vmexit.c" />
-    <ClCompile Include="Source Files\VMM\VMX\Vmx.c" />
-    <ClCompile Include="Source Files\VMM\VMX\VmxRegions.c" />
+    <ClCompile Include="source\common\Common.c" />
+    <ClCompile Include="source\common\Logging.c" />
+    <ClCompile Include="source\common\MemoryMapper.c" />
+    <ClCompile Include="source\common\PoolManager.c" />
+    <ClCompile Include="source\common\Spinlock.c" />
+    <ClCompile Include="source\debugger\commands\BreakpointCommands.c" />
+    <ClCompile Include="source\debugger\commands\DebuggerCommands.c" />
+    <ClCompile Include="source\debugger\commands\ExtensionCommands.c" />
+    <ClCompile Include="source\debugger\communication\GdbStub.c" />
+    <ClCompile Include="source\debugger\communication\SerialConnection.c" />
+    <ClCompile Include="source\debugger\essentials\Broadcast.c" />
+    <ClCompile Include="source\debugger\essentials\Debugger.c" />
+    <ClCompile Include="source\debugger\essentials\DebuggerEvents.c" />
+    <ClCompile Include="source\debugger\essentials\DpcRoutines.c" />
+    <ClCompile Include="source\debugger\essentials\Kd.c" />
+    <ClCompile Include="source\debugger\essentials\MemoryManager.c" />
+    <ClCompile Include="source\debugger\essentials\Steppings.c" />
+    <ClCompile Include="source\debugger\essentials\Termination.c" />
+    <ClCompile Include="source\debugger\features\hooks\ept-hook\EptHook.c" />
+    <ClCompile Include="source\debugger\features\hooks\syscall-hook\EferHook.c" />
+    <ClCompile Include="source\debugger\features\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="source\debugger\script-engine\ScriptEngine.c" />
+    <ClCompile Include="source\debugger\tests\KernelTests.c" />
+    <ClCompile Include="source\debugger\transparency\Transparency.c" />
+    <ClCompile Include="source\devices\Apic.c" />
+    <ClCompile Include="source\driver\Driver.c" />
+    <ClCompile Include="source\driver\Ioctl.c" />
+    <ClCompile Include="source\vmm\ept\Ept.c" />
+    <ClCompile Include="source\vmm\ept\Invept.c" />
+    <ClCompile Include="source\vmm\ept\Vpid.c" />
+    <ClCompile Include="source\vmm\vmx\Counters.c" />
+    <ClCompile Include="source\vmm\vmx\CrossVmexits.c" />
+    <ClCompile Include="source\vmm\vmx\Events.c" />
+    <ClCompile Include="source\vmm\vmx\HypervisorRoutines.c" />
+    <ClCompile Include="source\vmm\vmx\IdtEmulation.c" />
+    <ClCompile Include="source\vmm\vmx\IoHandler.c" />
+    <ClCompile Include="source\vmm\vmx\ManageRegs.c" />
+    <ClCompile Include="source\vmm\vmx\Mtf.c" />
+    <ClCompile Include="source\vmm\vmx\Vmcall.c" />
+    <ClCompile Include="source\vmm\vmx\Vmexit.c" />
+    <ClCompile Include="source\vmm\vmx\Vmx.c" />
+    <ClCompile Include="source\vmm\vmx\VmxRegions.c" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Source Files\Assembly\AsmCommon.asm" />
-    <MASM Include="Source Files\Assembly\AsmDebugger.asm" />
-    <MASM Include="Source Files\Assembly\AsmEpt.asm" />
-    <MASM Include="Source Files\Assembly\AsmKernelSideTests.asm" />
-    <MASM Include="Source Files\Assembly\AsmSegmentRegs.asm" />
-    <MASM Include="Source Files\Assembly\AsmVmexitHandler.asm" />
-    <MASM Include="Source Files\Assembly\AsmVmxContextState.asm" />
-    <MASM Include="Source Files\Assembly\AsmVmxOperation.asm" />
+    <MASM Include="source\assembly\AsmCommon.asm" />
+    <MASM Include="source\assembly\AsmDebugger.asm" />
+    <MASM Include="source\assembly\AsmEpt.asm" />
+    <MASM Include="source\assembly\AsmKernelSideTests.asm" />
+    <MASM Include="source\assembly\AsmSegmentRegs.asm" />
+    <MASM Include="source\assembly\AsmVmexitHandler.asm" />
+    <MASM Include="source\assembly\AsmVmxContextState.asm" />
+    <MASM Include="source\assembly\AsmVmxOperation.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header Files\Common\Common.h" />
-    <ClInclude Include="Header Files\Common\Dpc.h" />
-    <ClInclude Include="Header Files\Common\LengthDisassemblerEngine.h" />
-    <ClInclude Include="Header Files\Common\Logging.h" />
-    <ClInclude Include="Header Files\Common\MemoryMapper.h" />
-    <ClInclude Include="Header Files\Common\Msr.h" />
-    <ClInclude Include="Header Files\Common\PoolManager.h" />
-    <ClInclude Include="Header Files\Common\Trace.h" />
-    <ClInclude Include="Header Files\Debugger\Commands\BreakpointCommands.h" />
-    <ClInclude Include="Header Files\Debugger\Commands\DebuggerCommands.h" />
-    <ClInclude Include="Header Files\Debugger\Commands\ExtensionCommands.h" />
-    <ClInclude Include="Header Files\Debugger\Communication\GdbStub.h" />
-    <ClInclude Include="Header Files\Debugger\Communication\SerialConnection.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\Broadcast.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\Debugger.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\DebuggerEvents.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\DpcRoutines.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\Kd.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\Steppings.h" />
-    <ClInclude Include="Header Files\Debugger\Essentials\Termination.h" />
-    <ClInclude Include="Header Files\Debugger\Features\Hooks.h" />
-    <ClInclude Include="Header Files\Debugger\Tests\KernelTests.h" />
-    <ClInclude Include="Header Files\Debugger\Transparency\Transparency.h" />
-    <ClInclude Include="Header Files\Devices\Apic.h" />
-    <ClInclude Include="Header Files\Misc\GlobalVariables.h" />
-    <ClInclude Include="Header Files\Misc\InlineAsm.h" />
-    <ClInclude Include="Header Files\VMM\EPT\Ept.h" />
-    <ClInclude Include="Header Files\VMM\EPT\Invept.h" />
-    <ClInclude Include="Header Files\VMM\EPT\Vpid.h" />
-    <ClInclude Include="Header Files\VMM\VMX\Counters.h" />
-    <ClInclude Include="Header Files\VMM\VMX\Events.h" />
-    <ClInclude Include="Header Files\VMM\VMX\HypervisorRoutines.h" />
-    <ClInclude Include="Header Files\VMM\VMX\IdtEmulation.h" />
-    <ClInclude Include="Header Files\VMM\VMX\IoHandler.h" />
-    <ClInclude Include="Header Files\VMM\VMX\ManageRegs.h" />
-    <ClInclude Include="Header Files\VMM\VMX\Mtf.h" />
-    <ClInclude Include="Header Files\VMM\VMX\Vmcall.h" />
-    <ClInclude Include="Header Files\VMM\VMX\Vmx.h" />
+    <ClInclude Include="header\common\Common.h" />
+    <ClInclude Include="header\common\Dpc.h" />
+    <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
+    <ClInclude Include="header\common\Logging.h" />
+    <ClInclude Include="header\common\MemoryMapper.h" />
+    <ClInclude Include="header\common\Msr.h" />
+    <ClInclude Include="header\common\PoolManager.h" />
+    <ClInclude Include="header\common\Trace.h" />
+    <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
+    <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
+    <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
+    <ClInclude Include="header\debugger\communication\GdbStub.h" />
+    <ClInclude Include="header\debugger\communication\SerialConnection.h" />
+    <ClInclude Include="header\debugger\essentials\Broadcast.h" />
+    <ClInclude Include="header\debugger\essentials\Debugger.h" />
+    <ClInclude Include="header\debugger\essentials\DebuggerEvents.h" />
+    <ClInclude Include="header\debugger\essentials\DpcRoutines.h" />
+    <ClInclude Include="header\debugger\essentials\Kd.h" />
+    <ClInclude Include="header\debugger\essentials\Steppings.h" />
+    <ClInclude Include="header\debugger\essentials\Termination.h" />
+    <ClInclude Include="header\debugger\features\Hooks.h" />
+    <ClInclude Include="header\debugger\tests\KernelTests.h" />
+    <ClInclude Include="header\debugger\transparency\Transparency.h" />
+    <ClInclude Include="header\devices\Apic.h" />
+    <ClInclude Include="header\misc\GlobalVariables.h" />
+    <ClInclude Include="header\misc\InlineAsm.h" />
+    <ClInclude Include="header\vmm\ept\Ept.h" />
+    <ClInclude Include="header\vmm\ept\Invept.h" />
+    <ClInclude Include="header\vmm\ept\Vpid.h" />
+    <ClInclude Include="header\vmm\vmx\Counters.h" />
+    <ClInclude Include="header\vmm\vmx\Events.h" />
+    <ClInclude Include="header\vmm\vmx\HypervisorRoutines.h" />
+    <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
+    <ClInclude Include="header\vmm\vmx\IoHandler.h" />
+    <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
+    <ClInclude Include="header\vmm\vmx\Mtf.h" />
+    <ClInclude Include="header\vmm\vmx\Vmcall.h" />
+    <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

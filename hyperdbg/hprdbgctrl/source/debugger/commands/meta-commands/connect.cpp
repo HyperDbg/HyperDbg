@@ -14,7 +14,7 @@
 //
 // Global Variables Header
 //
-#include "..\hprdbgctrl\Header Files\globals.h"
+#include "..\hprdbgctrl\header\globals.h"
 
 //
 // Extern global Variables

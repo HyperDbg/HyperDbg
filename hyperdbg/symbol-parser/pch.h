@@ -21,8 +21,8 @@
 #include <DbgHelp.h>
 
 #include "Definition.h"
-#include "..\symbol-parser\Header Files\common-utils.h"
-#include "..\symbol-parser\Header Files\symbol-parser.h"
+#include "..\symbol-parser\header\common-utils.h"
+#include "..\symbol-parser\header\symbol-parser.h"
 
 using namespace std;
 

@@ -1,52 +1,52 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
+    <Filter Include="header">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Source Files\Assembly">
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source\assembly">
       <UniqueIdentifier>{52b6834d-060a-49d8-a91a-548633cbe5ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Tests">
+    <Filter Include="source\tests">
       <UniqueIdentifier>{0dd2fc9a-1efe-43ae-963c-f3e04a9d5f33}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Tests\hyperdbg-test.cpp">
-      <Filter>Source Files\Tests</Filter>
+    <ClCompile Include="source\tests\hyperdbg-test.cpp">
+      <Filter>source\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Tests\lookup.cpp">
-      <Filter>Source Files\Tests</Filter>
+    <ClCompile Include="source\tests\lookup.cpp">
+      <Filter>source\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Tests\namedpipe.cpp">
-      <Filter>Source Files\Tests</Filter>
+    <ClCompile Include="source\tests\namedpipe.cpp">
+      <Filter>source\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Tests\test-cases.cpp">
-      <Filter>Source Files\Tests</Filter>
+    <ClCompile Include="source\tests\test-cases.cpp">
+      <Filter>source\tests</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Tests\tools.cpp">
-      <Filter>Source Files\Tests</Filter>
+    <ClCompile Include="source\tests\tools.cpp">
+      <Filter>source\tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>Header Files</Filter>
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\namedpipe.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\namedpipe.h">
+      <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\routines.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="header\routines.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="Source Files\Assembly\asm-test.asm">
-      <Filter>Source Files\Assembly</Filter>
+    <MASM Include="source\assembly\asm-test.asm">
+      <Filter>source\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

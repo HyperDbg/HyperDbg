@@ -11,7 +11,7 @@
  */
 #include "..\hprdbghv\pch.h"
 
-#include "..\hprdbghv\Header Files\Debugger\Communication\GdbStub.h"
+#include "..\hprdbghv\header\debugger\communication\GdbStub.h"
 
 #ifdef __STRICT_ANSI__
 #    define asm __asm__
