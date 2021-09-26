@@ -126,7 +126,7 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 
     if (!IsFileExistW(ConfigPath))
     {
-        ShowMessages("please configure the symbol path (use 'help .sympath' for more information)\n");
+        ShowMessages("please configure the symbol path (use '.help .sympath' for more information)\n");
         return FALSE;
     }
 
@@ -536,5 +536,13 @@ SymbolReloadSymbolTableInDebuggerMode()
     //
     // Request to send new symbol details
     //
-    return KdSendSymbolReloadPacketToDebuggee();
+    if (KdSendSymbolReloadPacketToDebuggee())
+    {
+        ShowMessages("symbol table updated successfully\n");
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }

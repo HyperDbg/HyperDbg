@@ -327,7 +327,10 @@ ReadIrpBasedBuffer()
 
                 case OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL:
 
-                    KdReloadSymbolsInDebuggee();
+                    //
+                    // Pause debugger after getting the results
+                    //
+                    KdReloadSymbolsInDebuggee(TRUE);
 
                     break;
 

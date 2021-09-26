@@ -1521,6 +1521,22 @@ StartAgain:
     if (!g_SerialConnectionAlreadyClosed)
     {
         //
+        // The next step is getting symbol details
+        //
+        ShowMessages("getting symbol details...\n");
+
+        //
+        // Wait to receive symbol details
+        //
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
+                .IsOnWaitingState = TRUE;
+        WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                                [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
+                                    .EventHandle,
+                            INFINITE);
+
+        //
         // Connected to the debuggee
         //
         g_IsSerialConnectedToRemoteDebuggee = TRUE;
@@ -1539,6 +1555,11 @@ StartAgain:
         // Is serial handle for a named pipe
         //
         g_IsDebuggerConntectedToNamedPipe = IsNamedPipe;
+
+        //
+        // Now, the user can press ctrl+c to pause the debuggee
+        //
+        ShowMessages("press CTRL+C to pause the debuggee\n");
 
         //
         // Wait for event on this thread
@@ -1820,11 +1841,16 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             // initialize and load symbols (pdb) and send the details to the debugger
             //
             ShowMessages("synchronizing modules' symbol details\n");
-            SymbolPrepareDebuggerWithSymbolInfo();
+
+            //
+            // Do not pause debugger after finish
+            //
+            KdReloadSymbolsInDebuggee(FALSE);
         }
         else
         {
             ShowErrorMessage(DebuggeeRequest->Result);
+
             //
             // Free the buffer
             //
@@ -2032,11 +2058,12 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
  * @brief Send the packets of reloading symbols to build a new 
  * symbol table to the debugger and send the finished packet to
  * the debugger
- *
+ * @param PauseDebuggee
+ * 
  * @return BOOLEAN
  */
 BOOLEAN
-KdReloadSymbolsInDebuggee()
+KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee)
 {
     DEBUGGEE_SYMBOL_UPDATE_RESULT SymReload = {0};
 
@@ -2057,7 +2084,7 @@ KdReloadSymbolsInDebuggee()
         DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED,
         &SymReload,
         sizeof(DEBUGGEE_SYMBOL_UPDATE_RESULT),
-        TRUE);
+        PauseDebuggee);
 }
 
 /**

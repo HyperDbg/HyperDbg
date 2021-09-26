@@ -107,8 +107,6 @@ CommandSym(vector<string> SplittedCommand, string Command)
         {
             SymbolLoadOrDownloadSymbols(TRUE, FALSE);
         }
-
-        ShowMessages("symbol table successfully updated\n");
     }
     else if (!SplittedCommand.at(1).compare("reload"))
     {
@@ -129,6 +127,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             // Build locally and reload it
             //
             SymbolLocalReload();
+            ShowMessages("symbol table updated successfully\n");
         }
     }
     else if (!SplittedCommand.at(1).compare("unload"))

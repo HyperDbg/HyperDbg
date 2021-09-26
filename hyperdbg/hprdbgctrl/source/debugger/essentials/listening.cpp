@@ -162,8 +162,6 @@ StartAgain:
 
             ShowMessages("connected to debuggee %s\n", InitPacket->OsName);
 
-            ShowMessages("press CTRL+C to pause the debuggee\n");
-
             //
             // Signal the event that the debugger started
             //
@@ -628,7 +626,10 @@ StartAgain:
             }
             else
             {
-                ShowMessages("symbol table updated successfully\n");
+                //
+                // Load the symbols
+                //
+                SymbolInitialReload();
             }
 
             //

@@ -166,7 +166,7 @@ BOOLEAN
 KdCloseConnection();
 
 BOOLEAN
-KdReloadSymbolsInDebuggee();
+KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee);
 
 VOID
 KdUninitializeConnection();
