@@ -44,6 +44,11 @@ VOID
 SymbolLocalReload()
 {
     SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
+
+    //
+    // And also load the symbols
+    //
+    SymbolLoadOrDownloadSymbols(FALSE, TRUE);
 }
 
 /**
