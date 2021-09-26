@@ -91,6 +91,9 @@ KdSendEventQueryAndModifyPacketToDebuggee(
 BOOLEAN
 KdSendFlushPacketToDebuggee();
 
+BOOLEAN
+KdSendSymbolReloadPacketToDebuggee();
+
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
 
 BOOLEAN
@@ -161,6 +164,9 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
 
 BOOLEAN
 KdCloseConnection();
+
+BOOLEAN
+KdReloadSymbolsInDebuggee();
 
 VOID
 KdUninitializeConnection();

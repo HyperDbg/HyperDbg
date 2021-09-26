@@ -19,7 +19,7 @@ VOID
 SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable);
 
 BOOLEAN
-SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
+SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
 
 BOOLEAN
 SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result);
@@ -36,4 +36,10 @@ VOID
 SymbolInitialReload();
 
 VOID
+SymbolLocalReload();
+
+VOID
 SymbolPrepareDebuggerWithSymbolInfo();
+
+BOOLEAN
+SymbolReloadSymbolTableInDebuggerMode();

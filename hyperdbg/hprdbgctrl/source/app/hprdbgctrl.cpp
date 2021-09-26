@@ -325,6 +325,12 @@ ReadIrpBasedBuffer()
                     //
                     break;
 
+                case OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL:
+
+                    KdReloadSymbolsInDebuggee();
+
+                    break;
+
                 default:
 
                     if (g_BreakPrintingOutput)

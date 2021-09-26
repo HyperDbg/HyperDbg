@@ -52,6 +52,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
     PDEBUGGER_UPDATE_SYMBOL_TABLE         SymbolUpdatePacket;
     PDEBUGGER_MODIFY_EVENTS               EventModifyAndQueryPacket;
+    PDEBUGGEE_SYMBOL_UPDATE_RESULT        SymbolReloadFinishedPacket;
     PDEBUGGEE_CHANGE_PROCESS_PACKET       ChangeProcessPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS       FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION   ReadRegisterPacket;
@@ -604,6 +605,40 @@ StartAgain:
                     .IsOnWaitingState = FALSE;
             SetEvent(g_SyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT]
+                             .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED:
+
+            SymbolReloadFinishedPacket =
+                (DEBUGGEE_SYMBOL_UPDATE_RESULT *)(((CHAR *)TheActualPacket) +
+                                                  sizeof(DEBUGGER_REMOTE_PACKET));
+
+            //
+            // Show messages as the result of updating symbols
+            //
+            if (SymbolReloadFinishedPacket->KernelStatus !=
+                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // There was an error
+                //
+                ShowErrorMessage(SymbolReloadFinishedPacket->KernelStatus);
+            }
+            else
+            {
+                ShowMessages("symbol table updated successfully\n");
+            }
+
+            //
+            // Signal the event relating to receiving result of symbol reload
+            //
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
+                    .IsOnWaitingState = FALSE;
+            SetEvent(g_SyncronizationObjectsHandleTable
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
                              .EventHandle);
 
             break;

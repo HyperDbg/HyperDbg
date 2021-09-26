@@ -194,6 +194,8 @@
     0xB | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
     0xC | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
+    0xD | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -255,6 +257,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS          0xe
 #define DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY                         0xf
 #define DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY                         0x10
+#define DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD                       0x11
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -684,6 +687,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_EDIT_MEMORY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_BP,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD,
 
     //
     // Debuggee to debugger
@@ -706,6 +710,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -787,6 +792,20 @@ typedef struct _DEBUGGER_UPDATE_SYMBOL_TABLE
  *
  */
 static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize, "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGER_UPDATE_SYMBOL_TABLE (MODULE_SYMBOL_DETAIL)");
+
+/*
+==============================================================================================
+ */
+
+/**
+ * @brief request that shows, symbol reload process is finished
+ *
+ */
+typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
+{
+    UINT64 KernelStatus; // Kerenl put the status in this field
+
+} DEBUGGEE_SYMBOL_UPDATE_RESULT, *PDEBUGGEE_SYMBOL_UPDATE_RESULT;
 
 /*
 ==============================================================================================

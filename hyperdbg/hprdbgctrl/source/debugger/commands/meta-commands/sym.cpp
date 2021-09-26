@@ -26,12 +26,13 @@ CommandSymHelp()
 {
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
-    ShowMessages("syntax : \t.sym [table | reload | load | unload | download] [base (hex address)] "
+    ShowMessages("syntax : \t.sym [table | reload | load | unload | download | add] [base (hex address)] "
                  "[path (string path to pdb)]\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
+    ShowMessages("\t\te.g : .sym load\n");
     ShowMessages("\t\te.g : .sym download\n");
-    ShowMessages("\t\te.g : .sym load base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");
+    ShowMessages("\t\te.g : .sym add base fffff8077356000 path c:\\symbols\\my_dll.pdb\n");
     ShowMessages("\t\te.g : .sym unload\n");
 }
 
@@ -83,7 +84,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
             SymbolBuildAndShowSymbolTable(TRUE);
         }
     }
-    else if (!SplittedCommand.at(1).compare("reload") || !SplittedCommand.at(1).compare("download"))
+    else if (!SplittedCommand.at(1).compare("load") || !SplittedCommand.at(1).compare("download"))
     {
         //
         // Validate params
@@ -98,16 +99,37 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // Load and download available symbols
         //
-        if (!SplittedCommand.at(1).compare("reload"))
+        if (!SplittedCommand.at(1).compare("load"))
         {
-            SymbolReloadOrDownloadSymbols(FALSE, FALSE);
+            SymbolLoadOrDownloadSymbols(FALSE, FALSE);
         }
         else if (!SplittedCommand.at(1).compare("download"))
         {
-            SymbolReloadOrDownloadSymbols(TRUE, FALSE);
+            SymbolLoadOrDownloadSymbols(TRUE, FALSE);
         }
 
         ShowMessages("symbol table successfully updated\n");
+    }
+    else if (!SplittedCommand.at(1).compare("reload"))
+    {
+        //
+        // Refresh and reload symbols
+        //
+
+        if (g_IsSerialConnectedToRemoteDebuggee)
+        {
+            //
+            // Update symbol table from remote debuggee in debugger-mode
+            //
+            SymbolReloadSymbolTableInDebuggerMode();
+        }
+        else
+        {
+            //
+            // Build locally and reload it
+            //
+            SymbolLocalReload();
+        }
     }
     else if (!SplittedCommand.at(1).compare("unload"))
     {
@@ -132,7 +154,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         //
         // ScriptEngineUnloadModuleSymbolWrapper((char *)SplittedCommand.at(2).c_str());
     }
-    else if (!SplittedCommand.at(1).compare("load"))
+    else if (!SplittedCommand.at(1).compare("add"))
     {
         //
         // Validate params

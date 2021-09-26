@@ -1032,6 +1032,22 @@ KdCloseConnectionAndUnloadDebuggee()
 }
 
 /**
+ * @brief Notify user-mode to re-send (reload) the symbol packetsrds
+ * 
+ * @return VOID
+ */
+VOID
+KdReloadSymbolDetailsInDebuggee()
+{
+    //
+    // Send one byte buffer and operation codes
+    //
+    LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
+                  "$",
+                  1);
+}
+
+/**
  * @brief Notify user-mode to about new user-input buffer
  * @details  
  * @param Buffer
@@ -2199,6 +2215,25 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
                                            BpListOrModifyPacket,
                                            sizeof(DEBUGGEE_BP_LIST_OR_MODIFY_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD:
+
+                //
+                // Send the reload symbol request buffer
+                //
+                KdReloadSymbolDetailsInDebuggee();
+
+                //
+                // Unlock other cores
+                //
+                KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
+
+                //
+                // No need to wait for new commands
+                //
+                EscapeFromTheLoop = TRUE;
 
                 break;
 

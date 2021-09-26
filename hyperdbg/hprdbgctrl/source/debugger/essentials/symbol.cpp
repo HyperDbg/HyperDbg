@@ -22,7 +22,7 @@ extern BOOLEAN               g_IsExecutingSymbolLoadingRoutines;
 extern BOOLEAN               g_IsSerialConnectedToRemoteDebugger;
 
 /**
- * @brief Initial reload of symbols (for previously download symbols)
+ * @brief Initial load of symbols (for previously download symbols)
  * 
  * @return VOID 
  */
@@ -32,7 +32,18 @@ SymbolInitialReload()
     //
     // Load already downloaded symbol (won't download at this point)
     //
-    SymbolReloadOrDownloadSymbols(FALSE, TRUE);
+    SymbolLoadOrDownloadSymbols(FALSE, TRUE);
+}
+
+/**
+ * @brief Locally reload the symbol table
+ * 
+ * @return VOID 
+ */
+VOID
+SymbolLocalReload()
+{
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
 }
 
 /**
@@ -55,7 +66,7 @@ SymbolPrepareDebuggerWithSymbolInfo()
  * @param BuildLocalSymTable Should this function call to build local symbol 
  * or the symbols are from a remote debuggee in debugger mode
  * 
- * @return VOID 
+ * @return VOID
  */
 VOID
 SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable)
@@ -90,14 +101,14 @@ SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable)
 }
 
 /**
- * @brief Reload or download symbols
+ * @brief Load or download symbols
  * @param IsDownload Download from remote server if not available locally
  * @param SilentLoad Load without any message
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
+SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 {
     WCHAR            ConfigPath[MAX_PATH] = {0};
     inipp::Ini<char> Ini;
@@ -501,4 +512,29 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail)
     g_SymbolTableSize = g_SymbolTableCurrentIndex * sizeof(MODULE_SYMBOL_DETAIL);
 
     return TRUE;
+}
+
+/**
+ * @brief Update the symbol table from remote debuggee in debugger mode
+ * 
+ * @return BOOLEAN shows whether the operation was successful or not
+ */
+BOOLEAN
+SymbolReloadSymbolTableInDebuggerMode()
+{
+    //
+    // Check if we found an already built symbol table
+    //
+    if (g_SymbolTable != NULL)
+    {
+        free(g_SymbolTable);
+
+        g_SymbolTable     = NULL;
+        g_SymbolTableSize = NULL;
+    }
+
+    //
+    // Request to send new symbol details
+    //
+    return KdSendSymbolReloadPacketToDebuggee();
 }

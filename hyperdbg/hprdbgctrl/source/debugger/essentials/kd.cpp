@@ -319,6 +319,38 @@ KdSendFlushPacketToDebuggee()
 }
 
 /**
+ * @brief Send symbol reload packet to the debuggee
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSymbolReloadPacketToDebuggee()
+{
+    //
+    // Send '.sym reload' as symbol reload packet
+    //
+    if (!KdCommandPacketToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until all of the symbol packets are received
+    //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
+            .IsOnWaitingState = TRUE;
+    WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                            [DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD]
+                                .EventHandle,
+                        INFINITE);
+
+    return TRUE;
+}
+
+/**
  * @brief Send a Read register packet to the debuggee
  *
  * @return BOOLEAN
@@ -1994,6 +2026,38 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
 
     free(GeneralPacketFromDebuggeeToDebuggerRequest);
     return TRUE;
+}
+
+/**
+ * @brief Send the packets of reloading symbols to build a new 
+ * symbol table to the debugger and send the finished packet to
+ * the debugger
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdReloadSymbolsInDebuggee()
+{
+    DEBUGGEE_SYMBOL_UPDATE_RESULT SymReload = {0};
+
+    //
+    // Request debuggee to send new symbol packets
+    //
+    SymbolPrepareDebuggerWithSymbolInfo();
+
+    //
+    // Set the status
+    //
+    SymReload.KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    //
+    // Send the finished request packet
+    //
+    return KdSendGeneralBuffersFromDebuggeeToDebugger(
+        DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED,
+        &SymReload,
+        sizeof(DEBUGGEE_SYMBOL_UPDATE_RESULT),
+        TRUE);
 }
 
 /**
