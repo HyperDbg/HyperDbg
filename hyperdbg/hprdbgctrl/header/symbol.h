@@ -35,7 +35,7 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail);
 VOID
 SymbolInitialReload();
 
-VOID
+BOOLEAN
 SymbolLocalReload();
 
 VOID

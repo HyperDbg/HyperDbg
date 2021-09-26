@@ -126,8 +126,10 @@ CommandSym(vector<string> SplittedCommand, string Command)
             //
             // Build locally and reload it
             //
-            SymbolLocalReload();
-            ShowMessages("symbol table updated successfully\n");
+            if (SymbolLocalReload())
+            {
+                ShowMessages("symbol table updated successfully\n");
+            }
         }
     }
     else if (!SplittedCommand.at(1).compare("unload"))

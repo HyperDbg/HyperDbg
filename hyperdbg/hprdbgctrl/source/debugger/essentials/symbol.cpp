@@ -38,9 +38,9 @@ SymbolInitialReload()
 /**
  * @brief Locally reload the symbol table
  * 
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 SymbolLocalReload()
 {
     SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
@@ -48,7 +48,7 @@ SymbolLocalReload()
     //
     // And also load the symbols
     //
-    SymbolLoadOrDownloadSymbols(FALSE, TRUE);
+    return SymbolLoadOrDownloadSymbols(FALSE, TRUE);
 }
 
 /**
@@ -154,6 +154,15 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     if (SymbolServer.empty())
     {
         ShowMessages("err, invalid config for symbol server/path\n");
+        return FALSE;
+    }
+
+    //
+    // Check if symbol table is empty
+    //
+    if (g_SymbolTable == NULL || g_SymbolTableSize == NULL)
+    {
+        ShowMessages("symbol table is empty, please use '.sym reload' to build a symbol table\n");
         return FALSE;
     }
 
