@@ -15,14 +15,11 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
-
-//
-// Global Variables
-//
 extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
 extern UINT32                g_SymbolTableSize;
+extern UINT32                g_SymbolTableCurrentIndex;
 extern BOOLEAN               g_IsExecutingSymbolLoadingRoutines;
+extern BOOLEAN               g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief Initial reload of symbols (for previously download symbols)
@@ -55,19 +52,29 @@ SymbolPrepareDebuggerWithSymbolInfo()
 
 /**
  * @brief Build and show symbol table details
+ * @param BuildLocalSymTable Should this function call to build local symbol 
+ * or the symbols are from a remote debuggee in debugger mode
  * 
  * @return VOID 
  */
 VOID
-SymbolBuildAndShowSymbolTable()
+SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable)
 {
-    //
-    // Build the symbol table
-    //
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
+    if (BuildLocalSymTable)
+    {
+        //
+        // Build the symbol table
+        //
+        SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
+    }
+
+    if (g_SymbolTable == NULL || g_SymbolTableSize == NULL)
+    {
+        ShowMessages("err, symbol table is empty\n");
+        return;
+    }
 
     //
-    // Test, should be removed
     // show packet details
     //
     for (size_t i = 0; i < g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL); i++)
@@ -96,11 +103,6 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     inipp::Ini<char> Ini;
     string           SymbolServer = "";
     BOOLEAN          Result       = FALSE;
-
-    //
-    // Build the symbol table
-    //
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
 
     //
     // *** Read symbol path/server from config file ***
@@ -140,7 +142,7 @@ SymbolReloadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     }
 
     //
-    // *** Load or download available symbols **
+    // *** Load or download available symbols ***
     //
 
     //
@@ -440,36 +442,30 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
  * 
  * @param SymbolDetail Pointer to a buffer that was received as the single 
  * symbol info
- * @param CurrentSymbolTableIndex Current Index in the symbol table
- * @param TotalSymbols Total number of symbols in the debuggee
  * 
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
-SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail,
-                                UINT32                CurrentSymbolTableIndex,
-                                UINT32                TotalSymbols)
+SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail)
 {
     //
-    // Perform check to sanitize the parameters
+    // Check to avoid overflow in symbol table
     //
-    if (TotalSymbols > MAXIMUM_SUPPORTED_SYMBOLS || CurrentSymbolTableIndex >= TotalSymbols)
+    if (g_SymbolTableCurrentIndex >= MAXIMUM_SUPPORTED_SYMBOLS)
     {
-        //
-        // Invalid parameters
-        //
+        ShowMessages("err, the symbol table buffer is full, unable to add new symbol\n");
         return FALSE;
     }
 
     //
     // Check if we found an already built symbol table
     //
-    if (g_SymbolTable != NULL)
+    if (g_SymbolTable == NULL)
     {
         //
         // Allocate Details buffer
         //
-        g_SymbolTable = (PMODULE_SYMBOL_DETAIL)malloc(TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL));
+        g_SymbolTable = (PMODULE_SYMBOL_DETAIL)malloc(MAXIMUM_SUPPORTED_SYMBOLS * sizeof(MODULE_SYMBOL_DETAIL));
 
         if (g_SymbolTable == NULL)
         {
@@ -479,23 +475,30 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail,
         }
 
         //
+        // Reset the index
+        //
+        g_SymbolTableCurrentIndex = 0;
+
+        //
         // Make sure buffer is zero
         //
-        g_SymbolTableSize = TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL);
-        RtlZeroMemory(g_SymbolTable, TotalSymbols * sizeof(MODULE_SYMBOL_DETAIL));
-    }
-
-    else if (g_SymbolTableSize / sizeof(MODULE_SYMBOL_DETAIL) != TotalSymbols)
-    {
-        //
-        //
-        //
+        RtlZeroMemory(g_SymbolTable, MAXIMUM_SUPPORTED_SYMBOLS * sizeof(MODULE_SYMBOL_DETAIL));
     }
 
     //
     // Move it to the new buffer
     //
-    memcpy(&g_SymbolTable[CurrentSymbolTableIndex], SymbolDetail, sizeof(MODULE_SYMBOL_DETAIL));
+    memcpy(&g_SymbolTable[g_SymbolTableCurrentIndex], SymbolDetail, sizeof(MODULE_SYMBOL_DETAIL));
+
+    //
+    // Add to index for future symbols
+    //
+    g_SymbolTableCurrentIndex++;
+
+    //
+    // Compute the (new) current size
+    //
+    g_SymbolTableSize = g_SymbolTableCurrentIndex * sizeof(MODULE_SYMBOL_DETAIL);
 
     return TRUE;
 }

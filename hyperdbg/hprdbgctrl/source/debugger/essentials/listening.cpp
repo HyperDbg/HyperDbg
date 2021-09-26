@@ -875,9 +875,7 @@ StartAgain:
             //
             // Perform updates for the symbol table
             //
-            SymbolBuildAndUpdateSymbolTable(&SymbolUpdatePacket->SymbolDetailPacket,
-                                            SymbolUpdatePacket->CurrentSymbolIndex,
-                                            SymbolUpdatePacket->TotalSymbols);
+            SymbolBuildAndUpdateSymbolTable(&SymbolUpdatePacket->SymbolDetailPacket);
 
             break;
 

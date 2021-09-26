@@ -11,6 +11,11 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of .sym command
  *
@@ -63,10 +68,20 @@ CommandSym(vector<string> SplittedCommand, string Command)
             return;
         }
 
-        //
-        // Build and show symbol table
-        //
-        SymbolBuildAndShowSymbolTable();
+        if (g_IsSerialConnectedToRemoteDebuggee)
+        {
+            //
+            // Just show the symbol table, not building it locally
+            //
+            SymbolBuildAndShowSymbolTable(FALSE);
+        }
+        else
+        {
+            //
+            // Build locally and show symbol table
+            //
+            SymbolBuildAndShowSymbolTable(TRUE);
+        }
     }
     else if (!SplittedCommand.at(1).compare("reload") || !SplittedCommand.at(1).compare("download"))
     {
@@ -113,7 +128,7 @@ CommandSym(vector<string> SplittedCommand, string Command)
         ScriptEngineUnloadAllSymbolsWrapper();
 
         //
-        // Size is 3 there is module name (mot working ! I don't know why)
+        // Size is 3 there is module name (not working ! I don't know why)
         //
         // ScriptEngineUnloadModuleSymbolWrapper((char *)SplittedCommand.at(2).c_str());
     }

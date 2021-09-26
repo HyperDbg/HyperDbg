@@ -488,6 +488,13 @@ PMODULE_SYMBOL_DETAIL g_SymbolTable = NULL;
 UINT32 g_SymbolTableSize = NULL;
 
 /**
+ * @brief The index to hold the track of 
+ * added symbols
+ *
+ */
+UINT32 g_SymbolTableCurrentIndex = NULL;
+
+/**
  * @brief Result of the expression that is evaluated in the
  * debuggee
  *
