@@ -48,63 +48,63 @@
     <Filter Include="header\debugger\transparency">
       <UniqueIdentifier>{70514b9d-1def-4c8b-b0b4-92c320d4195a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source">
+    <Filter Include="code">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="source\assembly">
+    <Filter Include="code\assembly">
       <UniqueIdentifier>{6d6e64b5-3942-4270-9f6d-cf370eedaab1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\common">
+    <Filter Include="code\common">
       <UniqueIdentifier>{fe16b9fa-aee2-467d-9f51-643057d24250}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger">
+    <Filter Include="code\debugger">
       <UniqueIdentifier>{8467f2ec-c840-4b3b-acb5-edafd20e4199}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\commands">
+    <Filter Include="code\debugger\commands">
       <UniqueIdentifier>{78fdea85-555a-4671-bdf6-4c166e673020}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\communication">
+    <Filter Include="code\debugger\communication">
       <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\essentials">
+    <Filter Include="code\debugger\essentials">
       <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\features">
+    <Filter Include="code\debugger\features">
       <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\script-engine">
-      <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\debugger\tests">
-      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\debugger\transparency">
-      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\devices">
-      <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\driver">
-      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\vmm">
-      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\vmm\ept">
-      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\vmm\vmx">
-      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="source\debugger\features\hooks">
+    <Filter Include="code\debugger\features\hooks">
       <UniqueIdentifier>{ab882ac8-7096-4cb3-8903-320cee753abe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\features\hooks\syscall-hook">
+    <Filter Include="code\debugger\features\hooks\syscall-hook">
       <UniqueIdentifier>{8e38c4c7-4c0a-4b0d-94ec-1068c8ebbefc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\debugger\features\hooks\ept-hook">
+    <Filter Include="code\debugger\features\hooks\ept-hook">
       <UniqueIdentifier>{fec47462-c7ab-4843-8ba4-a7f68e208c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\script-engine">
+      <UniqueIdentifier>{b72275a2-495f-4316-9186-8a5585288203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\tests">
+      <UniqueIdentifier>{ecb68542-02fd-4209-8112-942fd847f7da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\transparency">
+      <UniqueIdentifier>{e5f1d356-ca71-4580-89c2-0d8eb85e38f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\devices">
+      <UniqueIdentifier>{92ce4a54-97e0-4ab4-881f-6703049c03d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\driver">
+      <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm">
+      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm\ept">
+      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm\vmx">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -113,131 +113,131 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\common\Common.c">
-      <Filter>source\common</Filter>
+    <ClCompile Include="code\common\Common.c">
+      <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="source\common\Logging.c">
-      <Filter>source\common</Filter>
+    <ClCompile Include="code\common\Logging.c">
+      <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="source\common\MemoryMapper.c">
-      <Filter>source\common</Filter>
+    <ClCompile Include="code\common\MemoryMapper.c">
+      <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="source\common\PoolManager.c">
-      <Filter>source\common</Filter>
+    <ClCompile Include="code\common\PoolManager.c">
+      <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="source\common\Spinlock.c">
-      <Filter>source\common</Filter>
+    <ClCompile Include="code\common\Spinlock.c">
+      <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="source\devices\Apic.c">
-      <Filter>source\devices</Filter>
+    <ClCompile Include="code\devices\Apic.c">
+      <Filter>code\devices</Filter>
     </ClCompile>
-    <ClCompile Include="source\driver\Driver.c">
-      <Filter>source\driver</Filter>
+    <ClCompile Include="code\driver\Driver.c">
+      <Filter>code\driver</Filter>
     </ClCompile>
-    <ClCompile Include="source\driver\Ioctl.c">
-      <Filter>source\driver</Filter>
+    <ClCompile Include="code\driver\Ioctl.c">
+      <Filter>code\driver</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\ept\Ept.c">
-      <Filter>source\vmm\ept</Filter>
+    <ClCompile Include="code\vmm\ept\Ept.c">
+      <Filter>code\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\ept\Invept.c">
-      <Filter>source\vmm\ept</Filter>
+    <ClCompile Include="code\vmm\ept\Invept.c">
+      <Filter>code\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\ept\Vpid.c">
-      <Filter>source\vmm\ept</Filter>
+    <ClCompile Include="code\vmm\ept\Vpid.c">
+      <Filter>code\vmm\ept</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Counters.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Counters.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\CrossVmexits.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\CrossVmexits.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Events.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Events.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\HypervisorRoutines.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\HypervisorRoutines.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\IdtEmulation.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\IdtEmulation.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\IoHandler.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\IoHandler.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\ManageRegs.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\ManageRegs.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Mtf.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Mtf.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Vmcall.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Vmcall.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Vmexit.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Vmexit.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\Vmx.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\Vmx.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\vmm\vmx\VmxRegions.c">
-      <Filter>source\vmm\vmx</Filter>
+    <ClCompile Include="code\vmm\vmx\VmxRegions.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\commands\BreakpointCommands.c">
-      <Filter>source\debugger\commands</Filter>
+    <ClCompile Include="code\debugger\commands\BreakpointCommands.c">
+      <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\commands\DebuggerCommands.c">
-      <Filter>source\debugger\commands</Filter>
+    <ClCompile Include="code\debugger\commands\DebuggerCommands.c">
+      <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\commands\ExtensionCommands.c">
-      <Filter>source\debugger\commands</Filter>
+    <ClCompile Include="code\debugger\commands\ExtensionCommands.c">
+      <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\communication\GdbStub.c">
-      <Filter>source\debugger\communication</Filter>
+    <ClCompile Include="code\debugger\communication\GdbStub.c">
+      <Filter>code\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\communication\SerialConnection.c">
-      <Filter>source\debugger\communication</Filter>
+    <ClCompile Include="code\debugger\communication\SerialConnection.c">
+      <Filter>code\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\Broadcast.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\Broadcast.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\Debugger.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\Debugger.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\DebuggerEvents.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\DebuggerEvents.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\DpcRoutines.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\DpcRoutines.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\Kd.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\Kd.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\MemoryManager.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\MemoryManager.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\Steppings.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\Steppings.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\essentials\Termination.c">
-      <Filter>source\debugger\essentials</Filter>
+    <ClCompile Include="code\debugger\essentials\Termination.c">
+      <Filter>code\debugger\essentials</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\features\hooks\ept-hook\EptHook.c">
-      <Filter>source\debugger\features\hooks\ept-hook</Filter>
+    <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c">
+      <Filter>code\debugger\features\hooks\ept-hook</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\features\hooks\syscall-hook\EferHook.c">
-      <Filter>source\debugger\features\hooks\syscall-hook</Filter>
+    <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c">
+      <Filter>code\debugger\features\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\features\hooks\syscall-hook\SsdtHook.c">
-      <Filter>source\debugger\features\hooks\syscall-hook</Filter>
+    <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c">
+      <Filter>code\debugger\features\hooks\syscall-hook</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\script-engine\ScriptEngine.c">
-      <Filter>source\debugger\script-engine</Filter>
+    <ClCompile Include="code\debugger\script-engine\ScriptEngine.c">
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\tests\KernelTests.c">
-      <Filter>source\debugger\tests</Filter>
+    <ClCompile Include="code\debugger\tests\KernelTests.c">
+      <Filter>code\debugger\tests</Filter>
     </ClCompile>
-    <ClCompile Include="source\debugger\transparency\Transparency.c">
-      <Filter>source\debugger\transparency</Filter>
+    <ClCompile Include="code\debugger\transparency\Transparency.c">
+      <Filter>code\debugger\transparency</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -360,29 +360,29 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="source\assembly\AsmCommon.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmCommon.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmDebugger.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmDebugger.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmEpt.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmEpt.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmKernelSideTests.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmKernelSideTests.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmSegmentRegs.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmSegmentRegs.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmVmexitHandler.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmVmexitHandler.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmVmxContextState.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmVmxContextState.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
-    <MASM Include="source\assembly\AsmVmxOperation.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\AsmVmxOperation.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

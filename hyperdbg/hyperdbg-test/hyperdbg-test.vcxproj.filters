@@ -5,32 +5,32 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="source">
+    <Filter Include="code">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="source\assembly">
+    <Filter Include="code\assembly">
       <UniqueIdentifier>{52b6834d-060a-49d8-a91a-548633cbe5ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\tests">
+    <Filter Include="code\tests">
       <UniqueIdentifier>{0dd2fc9a-1efe-43ae-963c-f3e04a9d5f33}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\tests\hyperdbg-test.cpp">
-      <Filter>source\tests</Filter>
+    <ClCompile Include="code\tests\hyperdbg-test.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
-    <ClCompile Include="source\tests\lookup.cpp">
-      <Filter>source\tests</Filter>
+    <ClCompile Include="code\tests\lookup.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
-    <ClCompile Include="source\tests\namedpipe.cpp">
-      <Filter>source\tests</Filter>
+    <ClCompile Include="code\tests\namedpipe.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
-    <ClCompile Include="source\tests\test-cases.cpp">
-      <Filter>source\tests</Filter>
+    <ClCompile Include="code\tests\test-cases.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
-    <ClCompile Include="source\tests\tools.cpp">
-      <Filter>source\tests</Filter>
+    <ClCompile Include="code\tests\tools.cpp">
+      <Filter>code\tests</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -45,8 +45,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="source\assembly\asm-test.asm">
-      <Filter>source\assembly</Filter>
+    <MASM Include="code\assembly\asm-test.asm">
+      <Filter>code\assembly</Filter>
     </MASM>
   </ItemGroup>
 </Project>

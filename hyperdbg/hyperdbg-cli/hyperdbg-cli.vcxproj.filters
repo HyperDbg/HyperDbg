@@ -5,7 +5,7 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="source">
+    <Filter Include="code">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
@@ -17,7 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="hyperdbg-cli.cpp">
-      <Filter>source</Filter>
+      <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

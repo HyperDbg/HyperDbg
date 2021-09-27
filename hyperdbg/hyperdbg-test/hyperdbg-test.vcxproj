@@ -92,11 +92,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\tests\hyperdbg-test.cpp" />
-    <ClCompile Include="source\tests\lookup.cpp" />
-    <ClCompile Include="source\tests\namedpipe.cpp" />
-    <ClCompile Include="source\tests\test-cases.cpp" />
-    <ClCompile Include="source\tests\tools.cpp" />
+    <ClCompile Include="code\tests\hyperdbg-test.cpp" />
+    <ClCompile Include="code\tests\lookup.cpp" />
+    <ClCompile Include="code\tests\namedpipe.cpp" />
+    <ClCompile Include="code\tests\test-cases.cpp" />
+    <ClCompile Include="code\tests\tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\namedpipe.h" />
@@ -104,7 +104,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="source\assembly\asm-test.asm" />
+    <MASM Include="code\assembly\asm-test.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

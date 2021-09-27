@@ -88,8 +88,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="source\common-utils.cpp" />
-    <ClCompile Include="source\symbol-parser.cpp" />
+    <ClCompile Include="code\common-utils.cpp" />
+    <ClCompile Include="code\symbol-parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header\common-utils.h" />
