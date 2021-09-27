@@ -36,9 +36,6 @@
     <Filter Include="header\debugger\communication">
       <UniqueIdentifier>{30aa1959-c1d1-4488-a30c-bb6db071344c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\debugger\essentials">
-      <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\debugger\features">
       <UniqueIdentifier>{0afd2927-b208-402f-8f1d-19281e4960c8}</UniqueIdentifier>
     </Filter>
@@ -66,9 +63,6 @@
     </Filter>
     <Filter Include="code\debugger\communication">
       <UniqueIdentifier>{8e94f3da-6ff9-47f8-a84b-44c7171c02d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\essentials">
-      <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\debugger\features">
       <UniqueIdentifier>{f4159ee5-31b8-4c22-bd3f-151cbe0d9370}</UniqueIdentifier>
@@ -106,6 +100,24 @@
     <Filter Include="code\vmm\vmx">
       <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\debugger\core">
+      <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\broadcast">
+      <UniqueIdentifier>{68d807bf-813f-45d5-b903-971d5ab878dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\core">
+      <UniqueIdentifier>{9063df25-3313-4e7e-b111-9e08a388d143}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\broadcast">
+      <UniqueIdentifier>{59bfe97a-e2be-4016-acb0-2068ec6b50e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\memory">
+      <UniqueIdentifier>{27a88a32-b649-4563-8ac5-c48288479627}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\memory">
+      <UniqueIdentifier>{7d72077e-4c3d-471b-8465-c235fc9b9488}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="hprdbghv.inf">
@@ -117,12 +129,6 @@
       <Filter>code\common</Filter>
     </ClCompile>
     <ClCompile Include="code\common\Logging.c">
-      <Filter>code\common</Filter>
-    </ClCompile>
-    <ClCompile Include="code\common\MemoryMapper.c">
-      <Filter>code\common</Filter>
-    </ClCompile>
-    <ClCompile Include="code\common\PoolManager.c">
       <Filter>code\common</Filter>
     </ClCompile>
     <ClCompile Include="code\common\Spinlock.c">
@@ -197,30 +203,6 @@
     <ClCompile Include="code\debugger\communication\SerialConnection.c">
       <Filter>code\debugger\communication</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\essentials\Broadcast.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\Debugger.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\DebuggerEvents.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\DpcRoutines.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\Kd.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\MemoryManager.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\Steppings.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\Termination.c">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c">
       <Filter>code\debugger\features\hooks\ept-hook</Filter>
     </ClCompile>
@@ -239,6 +221,36 @@
     <ClCompile Include="code\debugger\transparency\Transparency.c">
       <Filter>code\debugger\transparency</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\core\Debugger.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\DebuggerEvents.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\Kd.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\Steppings.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\Termination.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\broadcast\Broadcast.c">
+      <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\broadcast\DpcRoutines.c">
+      <Filter>code\debugger\broadcast</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\MemoryManager.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\MemoryMapper.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="code\memory\PoolManager.c">
+      <Filter>code\memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -256,13 +268,7 @@
     <ClInclude Include="header\common\Logging.h">
       <Filter>header\common</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\MemoryMapper.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
     <ClInclude Include="header\common\Msr.h">
-      <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\common\PoolManager.h">
       <Filter>header\common</Filter>
     </ClInclude>
     <ClInclude Include="header\common\Trace.h">
@@ -328,27 +334,6 @@
     <ClInclude Include="header\debugger\communication\SerialConnection.h">
       <Filter>header\debugger\communication</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\essentials\Broadcast.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\Debugger.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\DebuggerEvents.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\DpcRoutines.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\Kd.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\Steppings.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\essentials\Termination.h">
-      <Filter>header\debugger\essentials</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\features\Hooks.h">
       <Filter>header\debugger\features</Filter>
     </ClInclude>
@@ -357,6 +342,33 @@
     </ClInclude>
     <ClInclude Include="header\debugger\transparency\Transparency.h">
       <Filter>header\debugger\transparency</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\broadcast\Broadcast.h">
+      <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\broadcast\DpcRoutines.h">
+      <Filter>header\debugger\broadcast</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Debugger.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\DebuggerEvents.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Kd.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Steppings.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Termination.h">
+      <Filter>header\debugger\core</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\MemoryMapper.h">
+      <Filter>header\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="header\memory\PoolManager.h">
+      <Filter>header\memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

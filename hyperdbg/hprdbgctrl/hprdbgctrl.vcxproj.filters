@@ -36,12 +36,6 @@
     <Filter Include="code\debugger\driver-loader">
       <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\debugger\essentials">
-      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\debugger\implementations">
-      <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\debugger\script-engine-wrapper">
       <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
     </Filter>
@@ -53,6 +47,12 @@
     </Filter>
     <Filter Include="code\assembly">
       <UniqueIdentifier>{ed8a8dd7-a467-4ebc-b8e8-2126d1b061dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\core">
+      <UniqueIdentifier>{a2e82957-85a0-4336-8b27-5804e9503d58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\misc">
+      <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -352,30 +352,6 @@
     <ClCompile Include="code\debugger\driver-loader\install.cpp">
       <Filter>code\debugger\driver-loader</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\essentials\break-control.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\debugger.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\interpreter.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\kd.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\listening.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\essentials\symbol.cpp">
-      <Filter>code\debugger\essentials</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\implementations\disassembler.cpp">
-      <Filter>code\debugger\implementations</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\implementations\readmem.cpp">
-      <Filter>code\debugger\implementations</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\script-engine-wrapper\script-engine.cpp">
       <Filter>code\debugger\script-engine-wrapper</Filter>
     </ClCompile>
@@ -390,6 +366,30 @@
     </ClCompile>
     <ClCompile Include="code\debugger\transparency\transparency.cpp">
       <Filter>code\debugger\transparency</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\break-control.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\debugger.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\interpreter.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\kd.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\listening.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\core\symbol.cpp">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\misc\disassembler.cpp">
+      <Filter>code\debugger\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\misc\readmem.cpp">
+      <Filter>code\debugger\misc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

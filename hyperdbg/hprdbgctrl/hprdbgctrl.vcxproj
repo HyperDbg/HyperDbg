@@ -126,6 +126,14 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\debugger\core\break-control.cpp" />
+    <ClCompile Include="code\debugger\core\debugger.cpp" />
+    <ClCompile Include="code\debugger\core\interpreter.cpp" />
+    <ClCompile Include="code\debugger\core\kd.cpp" />
+    <ClCompile Include="code\debugger\core\listening.cpp" />
+    <ClCompile Include="code\debugger\core\symbol.cpp" />
+    <ClCompile Include="code\debugger\misc\disassembler.cpp" />
+    <ClCompile Include="code\debugger\misc\readmem.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -208,14 +216,6 @@
     <ClCompile Include="code\debugger\communication\tcpclient.cpp" />
     <ClCompile Include="code\debugger\communication\tcpserver.cpp" />
     <ClCompile Include="code\debugger\driver-loader\install.cpp" />
-    <ClCompile Include="code\debugger\essentials\break-control.cpp" />
-    <ClCompile Include="code\debugger\essentials\debugger.cpp" />
-    <ClCompile Include="code\debugger\essentials\interpreter.cpp" />
-    <ClCompile Include="code\debugger\essentials\kd.cpp" />
-    <ClCompile Include="code\debugger\essentials\listening.cpp" />
-    <ClCompile Include="code\debugger\essentials\symbol.cpp" />
-    <ClCompile Include="code\debugger\implementations\disassembler.cpp" />
-    <ClCompile Include="code\debugger\implementations\readmem.cpp" />
     <ClCompile Include="code\debugger\script-engine-wrapper\script-engine-wrapper.cpp" />
     <ClCompile Include="code\debugger\script-engine-wrapper\script-engine.cpp" />
     <ClCompile Include="code\debugger\tests\tests.cpp" />
