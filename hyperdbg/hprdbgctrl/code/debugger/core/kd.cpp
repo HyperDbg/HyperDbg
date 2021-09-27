@@ -1663,8 +1663,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (Comm == INVALID_HANDLE_VALUE)
         {
-            ShowMessages("err, port can't be opened\nplease close the HyperDbg"
-                         " and re-open again\n");
+            ShowMessages("err, port can't be opened\n");
             return FALSE;
         }
 
@@ -1686,6 +1685,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (Status == FALSE)
         {
+            CloseHandle(Comm);
             ShowMessages("err, to Get the COM state\n");
             return FALSE;
         }
@@ -1699,6 +1699,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (Status == FALSE)
         {
+            CloseHandle(Comm);
             ShowMessages("err, to Setting DCB Structure\n");
             return FALSE;
         }
@@ -1756,6 +1757,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         if (!CommandLoadVmmModule())
         {
+            CloseHandle(Comm);
             ShowMessages("failed to install or load the driver\n");
             return FALSE;
         }
@@ -1766,6 +1768,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         if (!g_DeviceHandle)
         {
+            CloseHandle(Comm);
             ShowMessages(
                 "handle not found, probably the driver is not loaded. Did you "
                 "use 'load' command?\n");
@@ -1780,6 +1783,8 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (DebuggeeRequest == NULL)
         {
+            CloseHandle(Comm);
+            ShowMessages("err, unable to allocate memory for request packet");
             return FALSE;
         }
 
@@ -1825,6 +1830,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
 
         if (!StatusIoctl)
         {
+            CloseHandle(Comm);
             ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
             //
@@ -1849,6 +1855,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         }
         else
         {
+            CloseHandle(Comm);
             ShowErrorMessage(DebuggeeRequest->Result);
 
             //

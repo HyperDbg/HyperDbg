@@ -56,9 +56,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -396,5 +393,10 @@
     <MASM Include="code\assembly\asm-vmx-checks.asm">
       <Filter>code\assembly</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint">
+      <Filter>header</Filter>
+    </None>
   </ItemGroup>
 </Project>
