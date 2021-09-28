@@ -74,7 +74,7 @@ BreakController(DWORD CtrlType)
         {
             KdBreakControlCheckAndPauseDebugger();
         }
-        else if (!g_IsDebuggerModulesLoaded)
+        else if (!g_IsDebuggerModulesLoaded && !g_IsConnectedToRemoteDebuggee)
         {
             //
             // vmm module is not loaded here

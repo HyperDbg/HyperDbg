@@ -548,7 +548,7 @@ HyperdbgLoadVmm()
     if (g_DeviceHandle)
     {
         ShowMessages("handle of the driver found, if you use 'load' before, please "
-                     "first unload it then call 'unload'\n");
+                     "unload it using 'unload'\n");
         return 1;
     }
 
