@@ -20,6 +20,9 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBO
 UINT32
 ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName);
 
+VOID
+ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler);
+
 UINT32
 ScriptEngineUnloadAllSymbolsWrapper();
 

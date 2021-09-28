@@ -31,23 +31,23 @@ extern BOOLEAN    g_IsDebuggerModulesLoaded;
 extern LIST_ENTRY g_OutputSources;
 
 /**
- * @brief Set the function callback that will be called if anything received
- * from the kernel
+ * @brief Set the function callback that will be called if any message
+ * needs to be shown
  *
  * @param handler Function that handles the messages
  */
-void
+VOID
 HyperdbgSetTextMessageCallback(Callback handler)
 {
     g_MessageHandler = handler;
 }
 
 /**
- * @brief Show messages received from kernel driver
+ * @brief Show messages
  *
  * @param Fmt format string message
  */
-void
+VOID
 ShowMessages(const char * Fmt, ...)
 {
     va_list ArgList;

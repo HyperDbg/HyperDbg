@@ -102,6 +102,9 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
 VOID
 InitializeCommandsDictionary();
 
+VOID
+InitializeDebugger();
+
 //////////////////////////////////////////////////
 //              Type of Commands                //
 //////////////////////////////////////////////////

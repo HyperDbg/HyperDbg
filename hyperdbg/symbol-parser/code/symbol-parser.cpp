@@ -20,6 +20,53 @@ BOOLEAN                                    g_IsLoadedModulesInitialized = FALSE;
 BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
 CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
+Callback                                   g_MessageHandler             = NULL;
+
+/**
+ * @brief Set the function callback that will be called if any message
+ * needs to be shown
+ *
+ * @param handler Function that handles the messages
+ */
+void
+SymSetTextMessageCallback(PVOID handler)
+{
+    g_MessageHandler = (Callback)handler;
+}
+
+/**
+ * @brief Show messages
+ *
+ * @param Fmt format string message
+ */
+VOID
+ShowMessages(const char * Fmt, ...)
+{
+    va_list ArgList;
+    va_list Args;
+    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
+
+    if (g_MessageHandler == NULL)
+    {
+        va_start(Args, Fmt);
+        vprintf(Fmt, Args);
+        va_end(Args);
+    }
+    else
+    {
+        va_start(ArgList, Fmt);
+        int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
+        va_end(ArgList);
+
+        if (sprintfresult != -1)
+        {
+            //
+            // There is another handler
+            //
+            g_MessageHandler(TempMessage);
+        }
+    }
+}
 
 /**
  * @brief Interpret and find module base , based on module name 
@@ -179,8 +226,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (!Ret)
     {
-        printf("err, symbol init failed (%u)\n",
-               GetLastError());
+        ShowMessages("err, symbol init failed (%u)\n",
+                     GetLastError());
         return -1;
     }
 
@@ -189,7 +236,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     //
     if (!SymGetFileParams(PdbFileName, FileSize))
     {
-        printf("err, cannot obtain file parameters (internal error)\n");
+        ShowMessages("err, cannot obtain file parameters (internal error)\n");
         return -1;
     }
 
@@ -255,8 +302,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails == NULL)
     {
-        printf("err, allocating buffer for storing symbol details (%u)\n",
-               GetLastError());
+        ShowMessages("err, allocating buffer for storing symbol details (%u)\n",
+                     GetLastError());
 
         return -1;
     }
@@ -276,7 +323,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails->ModuleBase == NULL)
     {
-        //printf("err, loading symbols failed (%u)\n",
+        //ShowMessages("err, loading symbols failed (%u)\n",
         //       GetLastError());
 
         free(ModuleDetails);
@@ -288,9 +335,9 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     //
     // Load symbols for the module
     //
-    printf("loading symbols for: %s\n", PdbFilePath);
+    ShowMessages("loading symbols for: %s\n", PdbFilePath);
 
-    printf("load address: %I64x\n", ModuleDetails.ModuleBase);
+    ShowMessages("load address: %I64x\n", ModuleDetails.ModuleBase);
 
     //
     // Obtain and display information about loaded symbols
@@ -347,8 +394,8 @@ SymUnloadModuleSymbol(char * ModuleName)
 
             if (!Ret)
             {
-                printf("err, unload symbol failed (%u)\n",
-                       GetLastError());
+                ShowMessages("err, unload symbol failed (%u)\n",
+                             GetLastError());
                 return -1;
             }
 
@@ -400,8 +447,8 @@ SymUnloadAllSymbols()
 
         if (!Ret)
         {
-            printf("err, unload symbol failed (%u)\n",
-                   GetLastError());
+            ShowMessages("err, unload symbol failed (%u)\n",
+                         GetLastError());
         }
 
         free(item);
@@ -419,7 +466,7 @@ SymUnloadAllSymbols()
 
     if (!Ret)
     {
-        printf("err, symbol cleanup failed (%u)\n", GetLastError());
+        ShowMessages("err, symbol cleanup failed (%u)\n", GetLastError());
         return 0;
     }
 
@@ -485,7 +532,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         Found = FALSE;
 
         //
-        //printf("symbol not found (%u)\n", GetLastError());
+        //ShowMessages("symbol not found (%u)\n", GetLastError());
         //
     }
 
@@ -535,8 +582,8 @@ SymSearchSymbolForMask(const char * SearchMask)
 
     if (!Ret)
     {
-        printf("err, symbol enum failed (%u)\n",
-               GetLastError());
+        ShowMessages("err, symbol enum failed (%u)\n",
+                     GetLastError());
     }
 
     return 0;
@@ -642,7 +689,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        printf("err, unable to open symbol file (%u)\n", GetLastError());
+        ShowMessages("err, unable to open symbol file (%u)\n", GetLastError());
         return FALSE;
     }
 
@@ -653,7 +700,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 
     if (FileSize == INVALID_FILE_SIZE)
     {
-        printf("err, unable to get symbol file size (%u)\n", GetLastError());
+        ShowMessages("err, unable to get symbol file size (%u)\n", GetLastError());
 
         //
         // and continue ...
@@ -665,7 +712,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     if (!CloseHandle(hFile))
     {
-        printf("err, unable to close symbol file (%u)\n", GetLastError());
+        ShowMessages("err, unable to close symbol file (%u)\n", GetLastError());
 
         //
         // and continue ...
@@ -698,8 +745,8 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
 
     if (!Ret)
     {
-        printf("err, unable to get symbol file information (%u)\n",
-               GetLastError());
+        ShowMessages("err, unable to get symbol file information (%u)\n",
+                     GetLastError());
         return;
     }
 
@@ -710,35 +757,35 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     switch (ModuleInfo.SymType)
     {
     case SymNone:
-        printf("no symbols available for the module\n");
+        ShowMessages("no symbols available for the module\n");
         break;
 
     case SymExport:
-        printf("loaded symbols: Exports\n");
+        ShowMessages("loaded symbols: Exports\n");
         break;
 
     case SymCoff:
-        printf("loaded symbols: COFF\n");
+        ShowMessages("loaded symbols: COFF\n");
         break;
 
     case SymCv:
-        printf("loaded symbols: CodeView\n");
+        ShowMessages("loaded symbols: CodeView\n");
         break;
 
     case SymSym:
-        printf("loaded symbols: SYM\n");
+        ShowMessages("loaded symbols: SYM\n");
         break;
 
     case SymVirtual:
-        printf("loaded symbols: Virtual\n");
+        ShowMessages("loaded symbols: Virtual\n");
         break;
 
     case SymPdb:
-        printf("loaded symbols: PDB\n");
+        ShowMessages("loaded symbols: PDB\n");
         break;
 
     case SymDia:
-        printf("loaded symbols: DIA\n");
+        ShowMessages("loaded symbols: DIA\n");
         break;
 
     case SymDeferred:
@@ -746,11 +793,11 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
         //
         // not actually loaded
         //
-        printf("loaded symbols: Deferred\n");
+        ShowMessages("loaded symbols: Deferred\n");
         break;
 
     default:
-        printf("loaded symbols: Unknown format\n");
+        ShowMessages("loaded symbols: Unknown format\n");
         break;
     }
 
@@ -759,7 +806,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     if (strlen(ModuleInfo.ImageName) > 0)
     {
-        printf("image name: %s\n", ModuleInfo.ImageName);
+        ShowMessages("image name: %s\n", ModuleInfo.ImageName);
     }
 
     //
@@ -767,7 +814,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     if (strlen(ModuleInfo.LoadedImageName) > 0)
     {
-        printf("loaded image name: %s\n", ModuleInfo.LoadedImageName);
+        ShowMessages("loaded image name: %s\n", ModuleInfo.LoadedImageName);
     }
 
     //
@@ -775,7 +822,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     if (strlen(ModuleInfo.LoadedPdbName) > 0)
     {
-        printf("PDB file name: %s\n", ModuleInfo.LoadedPdbName);
+        ShowMessages("PDB file name: %s\n", ModuleInfo.LoadedPdbName);
     }
 
     //
@@ -785,7 +832,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     if (ModuleInfo.PdbUnmatched || ModuleInfo.DbgUnmatched)
     {
-        printf("warning, unmatched symbols\n");
+        ShowMessages("warning, unmatched symbols\n");
     }
 
     //
@@ -795,32 +842,32 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     // Line numbers available?
     //
-    printf("line numbers: %s\n",
-           ModuleInfo.LineNumbers ? "available" : "not available");
+    ShowMessages("line numbers: %s\n",
+                 ModuleInfo.LineNumbers ? "available" : "not available");
 
     //
     // Global symbols available?
     //
-    printf("global symbols: %s\n",
-           ModuleInfo.GlobalSymbols ? "available" : "not available");
+    ShowMessages("global symbols: %s\n",
+                 ModuleInfo.GlobalSymbols ? "available" : "not available");
 
     //
     // Type information available?
     //
-    printf("type information: %s\n",
-           ModuleInfo.TypeInfo ? ("Available") : ("Not available"));
+    ShowMessages("type information: %s\n",
+                 ModuleInfo.TypeInfo ? ("Available") : ("Not available"));
 
     //
     // Source indexing available?
     //
-    printf("source indexing: %s\n",
-           ModuleInfo.SourceIndexed ? "yes" : "no");
+    ShowMessages("source indexing: %s\n",
+                 ModuleInfo.SourceIndexed ? "yes" : "no");
 
     //
     // Public symbols available?
     //
-    printf("public symbols: %s\n",
-           ModuleInfo.Publics ? "available" : "not available");
+    ShowMessages("public symbols: %s\n",
+                 ModuleInfo.Publics ? "available" : "not available");
 }
 
 /**
@@ -861,32 +908,32 @@ SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
         //
         // Name Address
         //
-        printf("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
+        ShowMessages("%s ", SymSeparateTo64BitValue(SymInfo.Address).c_str());
     }
     else
     {
         //
         // Module!Name Address
         //
-        printf("%s  %s!", SymSeparateTo64BitValue(SymInfo.Address).c_str(), g_CurrentModuleName);
+        ShowMessages("%s  %s!", SymSeparateTo64BitValue(SymInfo.Address).c_str(), g_CurrentModuleName);
     }
 
     //
     // Name
     //
-    printf("%s\n", SymInfo.Name);
+    ShowMessages("%s\n", SymInfo.Name);
 
 #ifndef DoNotShowDetailedResult
 
     //
     // Size
     //
-    printf(" size: %u", SymInfo.Size);
+    ShowMessages(" size: %u", SymInfo.Size);
 
     //
     // Kind of symbol (tag)
     //
-    printf(" symbol: %s  ", SymTagStr(SymInfo.Tag));
+    ShowMessages(" symbol: %s  ", SymTagStr(SymInfo.Tag));
 
 #endif // !DoNotShowDetailedResult
 }
@@ -1045,7 +1092,7 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     else
     {
         //
-        // printf("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        // ShowMessages("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
         //
         return FALSE;
     }
@@ -1101,7 +1148,7 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
     else
     {
         //
-        // printf("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
+        // ShowMessages("err, unable to get symbol information for %s (%x)\n", LocalFilePath, GetLastError());
         //
         return FALSE;
     }
@@ -1184,7 +1231,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 //
                 if (!IsSilentLoad)
                 {
-                    printf("loading symbol '%s'...", Tmp.c_str());
+                    ShowMessages("loading symbol '%s'...", Tmp.c_str());
                 }
 
                 if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress,
@@ -1192,14 +1239,14 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
                 {
                     if (!IsSilentLoad)
                     {
-                        printf("\tloaded\n");
+                        ShowMessages("\tloaded\n");
                     }
                 }
                 else
                 {
                     if (!IsSilentLoad)
                     {
-                        printf("\tcould not be loaded\n");
+                        ShowMessages("\tcould not be loaded\n");
                     }
                 }
             }
@@ -1226,21 +1273,21 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
 
                 if (!IsSilentLoad)
                 {
-                    printf("loading symbol '%s'...", Tmp.c_str());
+                    ShowMessages("loading symbol '%s'...", Tmp.c_str());
                 }
 
                 if (SymLoadFileSymbol(BufferToStoreDetailsConverted[i].BaseAddress, Tmp.c_str()) == 0)
                 {
                     if (!IsSilentLoad)
                     {
-                        printf("\tloaded\n");
+                        ShowMessages("\tloaded\n");
                     }
                 }
                 else
                 {
                     if (!IsSilentLoad)
                     {
-                        printf("\tcould not be loaded\n");
+                        ShowMessages("\tcould not be loaded\n");
                     }
                 }
             }
@@ -1293,14 +1340,14 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BO
     {
         if (!IsSilentLoad)
         {
-            printf("err, unable to create sympath directory '%s'\n", SymFullDir);
+            ShowMessages("err, unable to create sympath directory '%s'\n", SymFullDir);
         }
         return FALSE;
     }
 
     if (!IsSilentLoad)
     {
-        printf("downloading symbol '%s'...", SymName.c_str());
+        ShowMessages("downloading symbol '%s'...", SymName.c_str());
     }
 
     HRESULT Result = URLDownloadToFileA(NULL, DownloadURL.c_str(), (SymFullDir + "\\" + SymName).c_str(), 0, NULL);
@@ -1309,7 +1356,7 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BO
     {
         if (!IsSilentLoad)
         {
-            printf("\tdownloaded\n");
+            ShowMessages("\tdownloaded\n");
         }
         return TRUE;
     }
@@ -1317,7 +1364,7 @@ SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BO
     {
         if (!IsSilentLoad)
         {
-            printf("\tcould not be downloaded (%x) \n", Result);
+            ShowMessages("\tcould not be downloaded (%x) \n", Result);
         }
     }
 
@@ -1336,6 +1383,6 @@ SymbolAbortLoading()
     if (!g_AbortLoadingExecution)
     {
         g_AbortLoadingExecution = TRUE;
-        printf("\naborting, please wait...\n");
+        ShowMessages("\naborting, please wait...\n");
     }
 }

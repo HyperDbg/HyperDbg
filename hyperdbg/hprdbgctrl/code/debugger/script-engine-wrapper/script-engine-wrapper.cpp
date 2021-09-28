@@ -57,6 +57,19 @@ ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName)
 }
 
 /**
+ * @brief ScriptEngineSetTextMessageCallback wrapper
+ *
+ * @param Handler
+ * 
+ * @return VOID
+ */
+VOID
+ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler)
+{
+    return ScriptEngineSetTextMessageCallback(Handler);
+}
+
+/**
  * @brief ScriptEngineUnloadAllSymbols wrapper
  * 
  * @return UINT32

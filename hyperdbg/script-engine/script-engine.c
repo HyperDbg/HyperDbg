@@ -42,6 +42,16 @@ ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     return SymLoadFileSymbol(BaseAddress, PdbFileName);
 }
 
+/**
+*
+*
+*/
+VOID
+ScriptEngineSetTextMessageCallback(PVOID Handler)
+{
+    SymSetTextMessageCallback(Handler);
+}
+
 UINT32
 ScriptEngineUnloadAllSymbols()
 {
@@ -479,7 +489,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-
             char * Format = Op0->Value;
 
             PSYMBOL OperandCountSymbol = NewSymbol();
@@ -495,8 +504,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             RemoveSymbol(OperandCountSymbol);
 
             PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
-                                (unsigned long long)(CodeBuffer->Pointer * sizeof(SYMBOL)));
-
+                                         (unsigned long long)(CodeBuffer->Pointer * sizeof(SYMBOL)));
 
             PSYMBOL Symbol;
             int     ArgCount = TempStack->Pointer;
@@ -506,7 +514,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 PushSymbol(CodeBuffer, Symbol);
             }
 
-            UINT32 i = 0;
+            UINT32 i   = 0;
             char * Str = Format;
             do
             {
@@ -626,7 +634,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
-
             //
             // Free the operand if it is a temp value
             //
@@ -642,7 +649,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            TOKEN Op2 = Pop(MatchedStack);
+            TOKEN   Op2       = Pop(MatchedStack);
             PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
 
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -652,7 +659,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
-
 
             Temp = NewTemp();
             Push(MatchedStack, Temp);
@@ -671,7 +677,6 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             FreeTemp(Op0);
             FreeTemp(Op1);
             FreeTemp(Op2);
-
         }
         else if (IsTwoOperandOperator(Operator))
         {
@@ -2095,7 +2100,6 @@ GetLocalIdentifireVal(TOKEN Token)
     return -1;
 }
 
-
 int
 NewGlobalIdentifire(TOKEN Token)
 {
@@ -2115,7 +2119,6 @@ NewLocalIdentifire(TOKEN Token)
     IdTable = Push(IdTable, CurrentToken);
     return IdTable->Pointer - 1;
 }
-
 
 int
 LalrGetRhsSize(int RuleId)

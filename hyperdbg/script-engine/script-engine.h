@@ -17,6 +17,7 @@
 //
 // *** import pdb parser functions ***
 //
+__declspec(dllimport) VOID SymSetTextMessageCallback(PVOID Handler);
 __declspec(dllimport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllimport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllimport) UINT32 SymUnloadAllSymbols();
@@ -29,6 +30,7 @@ __declspec(dllimport) BOOLEAN SymbolInitLoad(PVOID BufferToStoreDetails, UINT32 
 //
 // *** export pdb wrapper as script engine function ***
 //
+__declspec(dllexport) VOID ScriptEngineSetTextMessageCallback(PVOID Handler);
 __declspec(dllexport) UINT64
     ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) UINT32

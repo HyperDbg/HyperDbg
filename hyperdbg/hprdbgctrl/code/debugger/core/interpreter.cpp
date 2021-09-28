@@ -65,21 +65,9 @@ HyperdbgInterpreter(char * Command)
     if (!g_IsCommandListInitialized)
     {
         //
-        // Initialize the mapping of functions
+        // Initialize the debugger
         //
-        InitializeCommandsDictionary();
-
-        //
-        // Register the CTRL+C and CTRL+BREAK Signals handler
-        //
-        if (!SetConsoleCtrlHandler(BreakController, TRUE))
-        {
-            ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
-                         "handler\n");
-            //
-            // prefer to continue
-            //
-        }
+        InitializeDebugger();
 
         g_IsCommandListInitialized = TRUE;
     }
@@ -400,6 +388,37 @@ GetCommandAttributes(string FirstCommand)
     }
 
     return NULL;
+}
+
+/**
+ * @brief Initialize the debugger and adjust commands for the first run 
+ *
+ * @return VOID
+ */
+VOID
+InitializeDebugger()
+{
+    //
+    // Initialize the mapping of functions
+    //
+    InitializeCommandsDictionary();
+
+    //
+    // Set the callback for symbol message handler
+    //
+    ScriptEngineSetTextMessageCallbackWrapper(ShowMessages);
+
+    //
+    // Register the CTRL+C and CTRL+BREAK Signals handler
+    //
+    if (!SetConsoleCtrlHandler(BreakController, TRUE))
+    {
+        ShowMessages("err, when registering CTRL+C and CTRL+BREAK Signals "
+                     "handler\n");
+        //
+        // prefer to continue
+        //
+    }
 }
 
 /**

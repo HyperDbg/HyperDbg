@@ -37,6 +37,7 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
 //					Exports                     //
 //////////////////////////////////////////////////
 extern "C" {
+__declspec(dllexport) VOID SymSetTextMessageCallback(PVOID handler);
 __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
