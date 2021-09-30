@@ -2121,7 +2121,7 @@ InterpretGeneralEventAndActionsFields(
 
             ShowMessages(
                 "err, based on this build of HyperDbg, the maximum input sources for "
-                "a single event is %d sources but you entered %d sources\n",
+                "a single event is 0x%x sources but you entered 0x%x sources\n",
                 DebuggerOutputSourceMaximumRemoteSourceForSingleEvent,
                 ListOfOutputSources.size());
             *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_MAXIMUM_INPUT_REACHED;

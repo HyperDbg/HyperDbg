@@ -314,14 +314,14 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     VmclearStatus = __vmx_vmclear(&CurrentGuestState->VmcsRegionPhysicalAddress);
 
-    LogDebugInfo("VMCS VMCLEAR status : %d", VmclearStatus);
+    LogDebugInfo("VMCS VMCLEAR status : 0x%x", VmclearStatus);
 
     if (VmclearStatus)
     {
         //
         // Otherwise terminate the VMX
         //
-        LogDebugInfo("VMCS failed to clear, status : %d", VmclearStatus);
+        LogDebugInfo("VMCS failed to clear, status : 0x%x", VmclearStatus);
         __vmx_off();
         return FALSE;
     }
@@ -343,7 +343,7 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     VmptrldStatus = __vmx_vmptrld(&CurrentGuestState->VmcsRegionPhysicalAddress);
     if (VmptrldStatus)
     {
-        LogDebugInfo("VMCS failed to load, status : %d", VmptrldStatus);
+        LogDebugInfo("VMCS failed to load, status : 0x%x", VmptrldStatus);
         return FALSE;
     }
     return TRUE;

@@ -114,7 +114,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
                     TempTypeString = "tcp      ";
                 }
 
-                ShowMessages("%d  %s   %s\t%s\n", IndexToShowList, TempTypeString.c_str(), TempStateString.c_str(), CurrentOutputSourceDetails->Name);
+                ShowMessages("%x  %s   %s\t%s\n", IndexToShowList, TempTypeString.c_str(), TempStateString.c_str(), CurrentOutputSourceDetails->Name);
             }
         }
         else
@@ -180,7 +180,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         if (SplittedCommand.at(2).size() >=
             MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME)
         {
-            ShowMessages("name of the output cannot exceed form %d.\n\n",
+            ShowMessages("name of the output cannot exceed form %d characters\n\n",
                          MAXIMUM_CHARACTERS_FOR_EVENT_FORWARDING_NAME);
             CommandOutputHelp();
             return;

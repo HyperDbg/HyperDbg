@@ -87,7 +87,7 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
         }
         else
         {
-            ShowMessages("err, CreateService failed!  Error = %d \n", err);
+            ShowMessages("err, CreateService failed (%x)\n", err);
 
             //
             // Indicate an error.
@@ -144,7 +144,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 
     if (!schSCManager)
     {
-        ShowMessages("err, OpenSCManager failed (%d)\n", GetLastError());
+        ShowMessages("err, OpenSCManager failed (%x)\n", GetLastError());
 
         return FALSE;
     }
@@ -245,7 +245,7 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
+        ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
         //
         // Indicate error
@@ -265,7 +265,7 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("err, DeleteService failed (%d)\n", GetLastError());
+        ShowMessages("err, DeleteService failed (%x)\n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle
@@ -306,7 +306,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
+        ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
         //
         // Indicate failure
@@ -344,7 +344,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         }
         else
         {
-            ShowMessages("err, StartService failure (%d)\n", err);
+            ShowMessages("err, StartService failure (%x)\n", err);
 
             //
             // Indicate failure.  Fall through to properly close the service handle
@@ -385,7 +385,7 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 
     if (schService == NULL)
     {
-        ShowMessages("err, OpenService failed (%d)\n", GetLastError());
+        ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
         return FALSE;
     }
@@ -402,7 +402,7 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     }
     else
     {
-        ShowMessages("err, ControlService failed!  Error = %d \n", GetLastError());
+        ShowMessages("err, ControlService failed (%x)\n", GetLastError());
 
         //
         // Indicate failure.  Fall through to properly close the service handle.
@@ -449,7 +449,7 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
 
   if (driverLocLen == 0) {
 
-    ShowMessages("err, GetCurrentDirectory failed (%d)\n", GetLastError());
+    ShowMessages("err, GetCurrentDirectory failed (%x)\n", GetLastError());
 
     return FALSE;
   }

@@ -306,7 +306,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //
     if (GetSystemDirectoryA(SystemRoot, MAX_PATH) == NULL)
     {
-        ShowMessages("err, unable to get system directory (%d)\n",
+        ShowMessages("err, unable to get system directory (%x)\n",
                      GetLastError());
 
         return FALSE;
@@ -338,7 +338,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 
     if (!ModuleInfo)
     {
-        ShowMessages("err, unable to allocate memory for module list (%d)\n",
+        ShowMessages("err, unable to allocate memory for module list (%x)\n",
                      GetLastError());
         return FALSE;
     }
@@ -365,7 +365,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 
     if (ModuleSymDetailArray == NULL)
     {
-        ShowMessages("err, unable to allocate memory for module list (%d)\n",
+        ShowMessages("err, unable to allocate memory for module list (%x)\n",
                      GetLastError());
         return FALSE;
     }
@@ -494,7 +494,7 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail)
 
         if (g_SymbolTable == NULL)
         {
-            ShowMessages("err, unable to allocate memory for module list (%d)\n",
+            ShowMessages("err, unable to allocate memory for module list (%x)\n",
                          GetLastError());
             return FALSE;
         }

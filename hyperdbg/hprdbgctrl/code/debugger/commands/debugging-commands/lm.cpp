@@ -64,7 +64,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
 
     if (!ModuleInfo)
     {
-        ShowMessages("\nUnable to allocate memory for module list (%d)\n",
+        ShowMessages("\nUnable to allocate memory for module list (%x)\n",
                      GetLastError());
         return;
     }

@@ -45,7 +45,7 @@ SetupTestName(_Inout_updates_bytes_all_(BufferLength) PCHAR TestLocation,
 
   if (driverLocLen == 0) {
 
-    ShowMessages("err, GetCurrentDirectory failed (%d)\n", GetLastError());
+    ShowMessages("err, GetCurrentDirectory failed (%x)\n", GetLastError());
 
     return FALSE;
   }

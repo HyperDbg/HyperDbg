@@ -783,7 +783,7 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
             //
             // Log call
             //
-            // ShowMessages("call length : %d\n", instruction.length);
+            // ShowMessages("call length : 0x%x\n", instruction.length);
 
             //
             // Set the length

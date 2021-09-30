@@ -47,7 +47,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0)
     {
-        ShowMessages("err, WSAStartup failed with (%d)\n", iResult);
+        ShowMessages("err, WSAStartup failed (%x)\n", iResult);
         return 1;
     }
 
@@ -63,7 +63,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = getaddrinfo(NULL, Port, &hints, &result);
     if (iResult != 0)
     {
-        ShowMessages("err, getaddrinfo failed (%d)\n", iResult);
+        ShowMessages("err, getaddrinfo failed (%x)\n", iResult);
         WSACleanup();
         return 1;
     }
@@ -87,7 +87,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
     if (iResult == SOCKET_ERROR)
     {
-        ShowMessages("bind failed with error: %d\n", WSAGetLastError());
+        ShowMessages("err, bind failed (%x)\n", WSAGetLastError());
         freeaddrinfo(result);
         closesocket(ListenSocket);
         WSACleanup();
@@ -99,7 +99,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
     iResult = listen(ListenSocket, SOMAXCONN);
     if (iResult == SOCKET_ERROR)
     {
-        ShowMessages("listen failed with error: %d\n", WSAGetLastError());
+        ShowMessages("err, listen failed (%x)\n", WSAGetLastError());
         closesocket(ListenSocket);
         WSACleanup();
         return 1;
@@ -115,7 +115,7 @@ CommunicationServerCreateServerAndWaitForClient(PCSTR    Port,
 
     if (ClientSocket == INVALID_SOCKET)
     {
-        ShowMessages("accept failed with error: %d\n", WSAGetLastError());
+        ShowMessages("err, accept failed (%x)\n", WSAGetLastError());
         closesocket(ListenSocket);
         WSACleanup();
         return 1;
@@ -166,7 +166,7 @@ CommunicationServerReceiveMessage(SOCKET ClientSocket, char * recvbuf, int recvb
     }
     else
     {
-        ShowMessages("recv failed with error: %d\n", WSAGetLastError());
+        ShowMessages("err, recv failed (%x)\n", WSAGetLastError());
         closesocket(ClientSocket);
         WSACleanup();
 
@@ -196,7 +196,7 @@ CommunicationServerSendMessage(SOCKET ClientSocket, const char * sendbuf, int le
     if (iSendResult == SOCKET_ERROR)
     {
         /*
-    ShowMessages("send failed with error: %d\n", WSAGetLastError());
+    ShowMessages("err, send failed (%x)\n", WSAGetLastError());
     closesocket(ClientSocket);
     WSACleanup();   
         */
@@ -235,7 +235,7 @@ CommunicationServerShutdownAndCleanupConnection(SOCKET ClientSocket,
         //
 
         /*
-    ShowMessages("shutdown failed with error: %d\n", WSAGetLastError());
+    ShowMessages("err, shutdown failed (%x)\n", WSAGetLastError());
     */
 
         closesocket(ClientSocket);

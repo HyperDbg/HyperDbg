@@ -971,7 +971,7 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerEnableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%d).", Value);
+        LogInfo("Invalid tag id (%x).", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -989,7 +989,7 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerDisableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%d).", Value);
+        LogInfo("Invalid tag id (%x).", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

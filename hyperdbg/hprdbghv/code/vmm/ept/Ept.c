@@ -126,7 +126,7 @@ EptBuildMtrrMap()
         }
     }
 
-    LogDebugInfo("Total MTRR ranges committed: %d", g_EptState->NumberOfEnabledMemoryRanges);
+    LogDebugInfo("Total MTRR ranges committed: 0x%x", g_EptState->NumberOfEnabledMemoryRanges);
 
     return TRUE;
 }

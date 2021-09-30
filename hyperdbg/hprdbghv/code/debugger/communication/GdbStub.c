@@ -39,7 +39,7 @@ dbg_sys_memset(void * ptr, int data, size_t len)
 {
     DbgBreakPoint();
     //set memory function
-    //printf("memset function runs %x: %d, %d", ptr, data, len);
+    //printf("memset function runs %x: %x, %x", ptr, data, len);
 }
 
 /*

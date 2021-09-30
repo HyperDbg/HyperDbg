@@ -41,8 +41,7 @@ NamedPipeServerCreatePipe(LPCSTR PipeName, UINT32 OutputBufferSize, UINT32 Input
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        printf("Error occurred while "
-               "creating the pipe: %d\n",
+        printf("err, occurred while creating the pipe (%x)\n",
                GetLastError());
         return NULL;
     }
@@ -65,8 +64,7 @@ NamedPipeServerWaitForClientConntection(HANDLE PipeHandle)
 
     if (FALSE == bClientConnected)
     {
-        printf("Error occurred while connecting"
-               " to the client: %d\n",
+        printf("err, occurred while connecting to the client (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -109,8 +107,7 @@ NamedPipeServerReadClientMessage(HANDLE PipeHandle, char * BufferToSave, int Max
 
     if ((!bResult) || (0 == cbBytes))
     {
-        printf("Error occurred while reading "
-               "from the client: %d\n",
+        printf("err, occurred while reading from the client (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
         return 0;
@@ -141,8 +138,7 @@ NamedPipeServerSendMessageToClient(HANDLE PipeHandle,
 
     if ((!bResult) || (BufferSize != cbBytes))
     {
-        printf("Error occurred while writing"
-               " to the client: %d\n",
+        printf("Error occurred while writing to the client (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
         return FALSE;
@@ -198,8 +194,7 @@ NamedPipeClientCreatePipe(LPCSTR PipeName)
 
     if (INVALID_HANDLE_VALUE == hPipe)
     {
-        printf("Error occurred while connecting"
-               " to the server: %d\n",
+        printf("err, occurred while connecting to the server (%x)\n",
                GetLastError());
         //
         // One might want to check whether the server pipe is busy
@@ -250,8 +245,7 @@ NamedPipeClientSendMessage(HANDLE PipeHandle, char * BufferToSend, int BufferSiz
 
     if ((!bResult) || (BufferSize != cbBytes))
     {
-        printf("Error occurred while writing"
-               " to the server: %d\n",
+        printf("err, occurred while writing to the server (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
 
@@ -286,8 +280,7 @@ NamedPipeClientReadMessage(HANDLE PipeHandle, char * BufferToRead, int MaximumSi
 
     if ((!bResult) || (0 == cbBytes))
     {
-        printf("Error occurred while reading"
-               " from the server: %d\n",
+        printf("err, occurred while reading from the server (%x)\n",
                GetLastError());
         CloseHandle(PipeHandle);
         return NULL; // Error

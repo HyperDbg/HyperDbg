@@ -50,7 +50,7 @@ PrintError()
     //
     // Display the message
     //
-    ShowMessages("\n  WARNING: Thread32First failed with error %d (%s)", eNum, sysMsg);
+    ShowMessages("\n  WARNING: Thread32First failed with error (%x:%s)", eNum, sysMsg);
 }
 
 /**
@@ -97,8 +97,8 @@ ListProcessThreads(DWORD dwOwnerPID)
         if (te32.th32OwnerProcessID == dwOwnerPID)
         {
             ShowMessages("\n     Thread Id\t= 0x%08X", te32.th32ThreadID);
-            // ShowMessages("\n     base priority  = %d", te32.tpBasePri);
-            // ShowMessages("\n     delta priority = %d", te32.tpDeltaPri);
+            // ShowMessages("\n     base priority  = %x", te32.tpBasePri);
+            // ShowMessages("\n     delta priority = %x", te32.tpDeltaPri);
         }
     } while (Thread32Next(hThreadSnap, &te32));
 

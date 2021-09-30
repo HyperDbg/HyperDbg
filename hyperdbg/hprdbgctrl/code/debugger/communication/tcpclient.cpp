@@ -33,7 +33,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0)
     {
-        ShowMessages("err, WSAStartup failed with (%d)\n", iResult);
+        ShowMessages("err, WSAStartup failed (%x)\n", iResult);
         return 1;
     }
 
@@ -48,7 +48,7 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
     iResult = getaddrinfo(Ip, Port, &hints, &result);
     if (iResult != 0)
     {
-        ShowMessages("getaddrinfo failed with error: %d\n", iResult);
+        ShowMessages("getaddrinfo failed (%x)\n", iResult);
         WSACleanup();
         return 1;
     }
@@ -118,7 +118,7 @@ CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int b
     iResult = send(ConnectSocket, sendbuf, buflen, 0);
     if (iResult == SOCKET_ERROR)
     {
-        ShowMessages("send failed with error: %d\n", WSAGetLastError());
+        ShowMessages("err, send failed (%x)\n", WSAGetLastError());
         closesocket(ConnectSocket);
         WSACleanup();
         return 1;
@@ -150,7 +150,7 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
         //
 
         /*
-    ShowMessages("shutdown failed with error: %d\n", WSAGetLastError());
+    ShowMessages("err, shutdown failed (%x)\n", WSAGetLastError());
     */
 
         closesocket(ConnectSocket);

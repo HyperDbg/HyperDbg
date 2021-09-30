@@ -366,7 +366,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 
             break;
         default:
-            LogWarning("Unsupported register %d in handling control registers access", CrExitQualification->Fields.ControlRegister);
+            LogWarning("Unsupported register 0x%x in handling control registers access", CrExitQualification->Fields.ControlRegister);
             break;
         }
     }
@@ -386,14 +386,14 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             __vmx_vmread(GUEST_CR4, RegPtr);
             break;
         default:
-            LogWarning("Unsupported register %d in handling control registers access", CrExitQualification->Fields.ControlRegister);
+            LogWarning("Unsupported register 0x%x in handling control registers access", CrExitQualification->Fields.ControlRegister);
             break;
         }
     }
     break;
 
     default:
-        LogWarning("Unsupported operation %d in handling control registers access", CrExitQualification->Fields.AccessType);
+        LogWarning("Unsupported operation 0x%x in handling control registers access", CrExitQualification->Fields.AccessType);
         break;
     }
 }

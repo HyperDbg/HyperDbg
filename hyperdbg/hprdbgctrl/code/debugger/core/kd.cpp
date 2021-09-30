@@ -1718,7 +1718,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
     Timeouts.WriteTotalTimeoutMultiplier = 10;
 
     if (SetCommTimeouts(Comm, &Timeouts) == FALSE) {
-      ShowMessages("err, to Setting Time outs %d.\n", GetLastError());
+      ShowMessages("err, to Setting Time outs (%x).\n", GetLastError());
       return FALSE;
     }
     */

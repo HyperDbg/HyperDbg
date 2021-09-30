@@ -27,7 +27,7 @@ ExAllocatePoolWithTagHook(
     SIZE_T    NumberOfBytes,
     ULONG     Tag)
 {
-    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = %d , Pool Type = %d ", Tag, NumberOfBytes, PoolType);
+    LogInfo("ExAllocatePoolWithTag Called with : Tag = 0x%x , Number Of Bytes = 0x%x , Pool Type = 0x%x ", Tag, NumberOfBytes, PoolType);
     return ExAllocatePoolWithTagOrig(PoolType, NumberOfBytes, Tag);
 }
 
@@ -614,7 +614,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
     //
     // For logging purpose
     //
-    // LogInfo("Number of bytes of instruction mem: %d", SizeOfHookedInstructions);
+    // LogInfo("Number of bytes of instruction mem: %x", SizeOfHookedInstructions);
 
     //
     // Build a trampoline
