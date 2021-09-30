@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbghv", "hprdbghv\hprdbghv.vcxproj", "{BB17323A-2460-4AE1-8AFE-B367400B934F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2D988267-CC53-41E3-936A-48CEF9049DF5} = {2D988267-CC53-41E3-936A-48CEF9049DF5}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cli\hyperdbg-cli.vcxproj", "{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BB17323A-2460-4AE1-8AFE-B367400B934F} = {BB17323A-2460-4AE1-8AFE-B367400B934F}
@@ -15,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cl
 		{2D988267-CC53-41E3-936A-48CEF9049DF5} = {2D988267-CC53-41E3-936A-48CEF9049DF5}
 		{809C3AD5-3211-4992-A472-9D81D124C5FA} = {809C3AD5-3211-4992-A472-9D81D124C5FA}
 		{C3DC85E1-0559-4B58-9792-DE421472DFE9} = {C3DC85E1-0559-4B58-9792-DE421472DFE9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hprdbghv", "hprdbghv\hprdbghv.vcxproj", "{BB17323A-2460-4AE1-8AFE-B367400B934F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2D988267-CC53-41E3-936A-48CEF9049DF5} = {2D988267-CC53-41E3-936A-48CEF9049DF5}
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997E4B6-FE49-4358-ADF1-CDDB5739508E}"
