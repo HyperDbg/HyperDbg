@@ -64,6 +64,7 @@
 #    include <list>
 #    include <locale>
 #    include <memory>
+#    include <psapi.h>
 
 //
 // HyperDbg defined headers
@@ -104,3 +105,11 @@
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "AdvApi32.lib")
+
+//
+// For GetModuleFileNameExA on script-engine for user-mode
+// Kernel32.lib is not needed, but seems that it's the library
+// for Windows 7
+//
+#pragma comment(lib, "Psapi.lib")
+#pragma comment(lib, "Kernel32.lib")

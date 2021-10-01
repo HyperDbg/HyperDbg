@@ -2155,7 +2155,7 @@ KdCloseConnection()
         // without sending the start packet; thus, the debugger has no idea about
         // connection but we should uninitialize everything
         //
-        ShowMessages("err, start packet not received but the debuggee closed the "
+        ShowMessages("err, start packet not received but the target machine closed the "
                      "connection\n");
 
         //

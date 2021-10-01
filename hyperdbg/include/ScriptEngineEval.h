@@ -255,6 +255,52 @@ ScriptEnginePseudoRegGetPid()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+// $pname
+CHAR *
+ScriptEnginePseudoRegGetPname()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    HANDLE Handle = OpenProcess(
+        PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+        FALSE,
+        GetCurrentProcessId() /* Current process */
+    );
+
+    if (Handle)
+    {
+        CHAR CurrentModulePath[MAX_PATH] = {0};
+        if (GetModuleFileNameEx(Handle, 0, CurrentModulePath, MAX_PATH))
+        {
+
+            //
+            // At this point, buffer contains the full path to the executable
+            //
+            CloseHandle(Handle);
+            return PathFindFileNameA(CurrentModulePath);
+        }
+        else
+        {
+            //
+            // Error, error might be shown by GetLastError()
+            //
+            CloseHandle(Handle);
+            return NULL;
+        }
+    }
+
+    //
+    // unable to get handle
+    //
+    return NULL;
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return GetProcessNameFromEprocess(PsGetCurrentProcess());
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 // $proc
 UINT64
 ScriptEnginePseudoRegGetProc()
@@ -2480,6 +2526,8 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
         return ScriptEnginePseudoRegGetTid();
     case PSEUDO_REGISTER_PID:
         return ScriptEnginePseudoRegGetPid();
+    case PSEUDO_REGISTER_PNAME:
+        return (UINT64)ScriptEnginePseudoRegGetPname();
     case PSEUDO_REGISTER_CORE:
         return ScriptEnginePseudoRegGetCore();
     case PSEUDO_REGISTER_PROC:
