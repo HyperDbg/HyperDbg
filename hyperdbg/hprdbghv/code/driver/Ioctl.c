@@ -125,7 +125,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // terminate vmx
             //
-            HvTerminateVmx();
+            VmxPerformTermination();
 
             //
             // Uninitialize memory mapper

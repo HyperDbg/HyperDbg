@@ -16,6 +16,9 @@
 //////////////////////////////////////////////////
 
 VOID
+BroadcastVmxVirtualizationAllCores();
+
+VOID
 BroadcastEnableDbAndBpExitingAllCores();
 
 VOID
@@ -32,3 +35,6 @@ BroadcastEnableNmiExitingAllCores();
 
 VOID
 BroadcastDisableNmiExitingAllCores();
+
+VOID
+BroadcastNotifyAllToInvalidateEptAllCores();

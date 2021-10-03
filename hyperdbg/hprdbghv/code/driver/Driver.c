@@ -249,7 +249,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     //
     // Initialize Vmx
     //
-    if (HvVmxInitialize())
+    if (VmxInitialize())
     {
         LogDebugInfo("Hyperdbg's hypervisor loaded successfully");
 

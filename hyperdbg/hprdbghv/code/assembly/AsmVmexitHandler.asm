@@ -2,8 +2,8 @@ PUBLIC AsmVmexitHandler
 
 EXTERN VmxVmexitHandler:PROC
 EXTERN VmxVmresume:PROC
-EXTERN HvReturnStackPointerForVmxoff:PROC
-EXTERN HvReturnInstructionPointerForVmxoff:PROC
+EXTERN VmxReturnStackPointerForVmxoff:PROC
+EXTERN VmxReturnInstructionPointerForVmxoff:PROC
 
 .code _text
 
@@ -121,13 +121,13 @@ AsmVmexitHandler ENDP
 AsmVmxoffHandler PROC
     
     sub rsp, 020h ; shadow space
-    call HvReturnStackPointerForVmxoff
+    call VmxReturnStackPointerForVmxoff
     add rsp, 020h ; remove for shadow space
     
     mov [rsp+88h], rax  ; now, rax contains rsp
     
     sub rsp, 020h      ; shadow space
-    call HvReturnInstructionPointerForVmxoff
+    call VmxReturnInstructionPointerForVmxoff
     add rsp, 020h      ; remove for shadow space
     
     mov rdx, rsp       ; save current rsp

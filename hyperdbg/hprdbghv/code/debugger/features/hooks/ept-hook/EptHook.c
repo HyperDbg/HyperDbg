@@ -383,7 +383,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
                 //
                 // Now we have to notify all the core to invalidate their EPT
                 //
-                HvNotifyAllToInvalidateEpt();
+                BroadcastNotifyAllToInvalidateEptAllCores();
             }
             else
             {
@@ -1041,7 +1041,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
                 //
                 // Now we have to notify all the core to invalidate their EPT
                 //
-                HvNotifyAllToInvalidateEpt();
+                BroadcastNotifyAllToInvalidateEptAllCores();
             }
             else
             {
@@ -1276,7 +1276,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                         //
                         // Remove the hook entirely on all cores
                         //
-                        KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+                        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
 
                         //
                         // remove the entry from the list
@@ -1372,7 +1372,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                 //
                 // Remove it in all the cores
                 //
-                KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateSingleEntry, HookedEntry->PhysicalBaseAddress);
+                KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
 
                 //
                 // Now that we removed this hidden detours hook, it is
@@ -1426,7 +1426,7 @@ EptHookUnHookAll()
     //
     // Remove it in all the cores
     //
-    KeGenericCallDpc(HvDpcBroadcastRemoveHookAndInvalidateAllEntries, 0x0);
+    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores, 0x0);
 
     //
     // In the case of unhooking all pages, we remove the hooked

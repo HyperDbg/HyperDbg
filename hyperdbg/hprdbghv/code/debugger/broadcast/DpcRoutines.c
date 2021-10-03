@@ -115,6 +115,36 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
 }
 
 /**
+ * @brief Broadcast VmxPerformVirtualizationOnSpecificCore
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return BOOLEAN
+ */
+BOOLEAN
+DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
+    //
+    VmxPerformVirtualizationOnSpecificCore();
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+
+    return TRUE;
+}
+
+/**
  * @brief Broadcast msr write
  * 
  * @param Dpc 
@@ -1204,6 +1234,158 @@ DpcRoutineDisableDbAndBpExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVO
     // Cause no vm-exit on #DBs
     //
     AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief The broadcast function which removes all the hooks and invalidate TLB
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineRemoveHookAndInvalidateAllEntriesOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Execute the VMCALL to remove the hook and invalidate
+    //
+    AsmVmxVmcall(VMCALL_UNHOOK_ALL_PAGES, NULL, NULL, NULL);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief The broadcast function which removes the single hook and invalidate TLB
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Execute the VMCALL to remove the hook and invalidate
+    //
+    AsmVmxVmcall(VMCALL_UNHOOK_SINGLE_PAGE, DeferredContext, NULL, NULL);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief The broadcast function which invalidate EPT using Vmcall
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineInvalidateEptOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    if (DeferredContext == NULL)
+    {
+        //
+        // We have to invalidate all contexts
+        //
+        AsmVmxVmcall(VMCALL_INVEPT_ALL_CONTEXTS, NULL, NULL, NULL);
+    }
+    else
+    {
+        //
+        // We have to invalidate all contexts
+        //
+        AsmVmxVmcall(VMCALL_INVEPT_SINGLE_CONTEXT, DeferredContext, NULL, NULL);
+    }
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief The broadcast function which initialize the guest
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Save the vmx state and prepare vmcs setup and finally execute vmlaunch instruction
+    //
+    AsmVmxSaveState();
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief The broadcast function which terminate the guest
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Terminate Vmx using vmcall
+    //
+    if (!VmxTerminate())
+    {
+        LogError("Err, there were an error terminating vmx");
+    }
 
     //
     // Wait for all DPCs to synchronize at this point

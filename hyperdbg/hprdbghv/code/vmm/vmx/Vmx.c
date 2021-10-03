@@ -12,17 +12,173 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Initialize VMX Operation
+ * @brief Check whether VMX Feature is supported or not
+ * 
+ * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
+ */
+BOOLEAN
+VmxCheckVmxSupport()
+{
+    CPUID                    Data              = {0};
+    IA32_FEATURE_CONTROL_MSR FeatureControlMsr = {0};
+
+    //
+    // Gets Processor Info and Feature Bits
+    //
+    __cpuid((int *)&Data, 1);
+
+    //
+    // Check For VMX Bit CPUID.ECX[5]
+    //
+    if (!_bittest((const LONG *)&Data.ecx, 5))
+    {
+        //
+        // returns FALSE if vmx is not supported
+        //
+        return FALSE;
+    }
+
+    FeatureControlMsr.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
+
+    //
+    // Commented because of https://stackoverflow.com/questions/34900224/
+    // and https://github.com/HyperDbg/HyperDbg/issues/24
+    // the problem is when writing to IA32_FEATURE_CONTROL MSR, the lock bit
+    // of this MSR Is not set to 0 on most computers, if the user enabled VT-X
+    // from the BIOS the VMXON will be already set so checking lock bit and
+    // then writing to EnableVmxon again is not meaningful since its already
+    // there
+    //
+
+    //
+    // if (FeatureControlMsr.Fields.Lock == 0)
+    // {
+    //     FeatureControlMsr.Fields.Lock        = TRUE;
+    //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
+    //     __writemsr(MSR_IA32_FEATURE_CONTROL, FeatureControlMsr.All);
+    // }
+    // else
+
+    if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
+    {
+        LogError("Err, you should enable vt-x from BIOS");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Initialize Vmx operation
+ * 
+ * @return BOOLEAN Returns true if vmx initialized successfully
+ */
+BOOLEAN
+VmxInitialize()
+{
+    int                LogicalProcessorsCount;
+    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
+
+    //
+    // ****** Start Virtualizing Current System ******
+    //
+
+    //
+    // Initiating EPTP and VMX
+    //
+    if (!VmxPerformVirtualizationOnAllCores())
+    {
+        //
+        // there was error somewhere in initializing
+        //
+        return FALSE;
+    }
+
+    LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t ProcessorID = 0; ProcessorID < LogicalProcessorsCount; ProcessorID++)
+    {
+        //
+        // Initial the resource controller
+        //
+        if (!ResourceControllerInitialize(LogicalProcessorsCount))
+        {
+            //
+            // there was error somewhere in initializing resource controller for
+            // this core
+            //
+            return FALSE;
+        }
+
+        //
+        // *** Launching VM for Test (in the all logical processor) ***
+        //
+
+        //
+        //Allocating VMM Stack
+        //
+        if (!VmxAllocateVmmStack(ProcessorID))
+        {
+            //
+            // Some error in allocating Vmm Stack
+            //
+            return FALSE;
+        }
+
+        //
+        // Allocating MSR Bit
+        //
+        if (!VmxAllocateMsrBitmap(ProcessorID))
+        {
+            //
+            // Some error in allocating Msr Bitmaps
+            //
+            return FALSE;
+        }
+
+        //
+        // Allocating I/O Bit
+        //
+        if (!VmxAllocateIoBitmaps(ProcessorID))
+        {
+            //
+            // Some error in allocating I/O Bitmaps
+            //
+            return FALSE;
+        }
+    }
+
+    //
+    // As we want to support more than 32 processor (64 logical-core)
+    // we let windows execute our routine for us
+    //
+    KeGenericCallDpc(DpcRoutineInitializeGuest, 0x0);
+
+    //
+    // Check if everything is ok then return true otherwise false
+    //
+    if (AsmVmxVmcall(VMCALL_TEST, 0x22, 0x333, 0x4444) == STATUS_SUCCESS)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Initialize essential VMX Operation tasks
  * 
  * @return BOOLEAN Returns true if vmx is successfully initialized
  */
 BOOLEAN
-VmxInitializer()
+VmxPerformVirtualizationOnAllCores()
 {
     int       ProcessorCount;
     KAFFINITY AffinityMask;
 
-    if (!HvIsVmxSupported())
+    if (!VmxCheckVmxSupport())
     {
         LogError("Err, VMX is not supported in this machine");
         return FALSE;
@@ -95,13 +251,51 @@ VmxInitializer()
     }
 
     //
-    // Allocate and run Vmxon and Vmptrld on all logical cores
+    // Broadcast to run vmx-specific task to vitualize cores
     //
-    KeGenericCallDpc(VmxDpcBroadcastAllocateVmxonRegions, 0x0);
+    BroadcastVmxVirtualizationAllCores();
 
     //
     // Everything is ok, let's return true
     //
+    return TRUE;
+}
+
+/**
+ * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+VmxPerformVirtualizationOnSpecificCore()
+{
+    int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+
+    LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
+
+    //
+    // Enabling VMX Operation
+    //
+    AsmEnableVmxOperation();
+
+    //
+    // Fix Cr4 and Cr0 bits during VMX operation
+    //
+    VmxFixCr4AndCr0Bits();
+
+    LogDebugInfo("VMX-Operation enabled successfully");
+
+    if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
+    {
+        LogError("Err, allocating memory for vmxon region was not successfull");
+        return FALSE;
+    }
+    if (!VmxAllocateVmcsRegion(&g_GuestState[CurrentProcessorNumber]))
+    {
+        LogError("Err, allocating memory for vmcs region was not successfull");
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -302,7 +496,6 @@ VmxVmptrst()
     LogDebugInfo("VMPTRST result : %llx", VmcsPhysicalAddr);
 }
 
-/*  */
 /**
  * @brief Clearing Vmcs status using vmclear instruction
  * 
@@ -643,4 +836,77 @@ VmxVmxoff()
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
     //
     __writecr4(__readcr4() & (~X86_CR4_VMXE));
+}
+
+/**
+ * @brief Get the RIP of guest (GUEST_RIP) in the case of return from VMXOFF
+ * 
+ * @return UINT64 Returns the stack pointer, to change in the case of Vmxoff
+ */
+UINT64
+VmxReturnStackPointerForVmxoff()
+{
+    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRsp;
+}
+
+/**
+ * @brief Get the RIP of guest (GUEST_RIP) in the case of return from VMXOFF
+ * 
+ * @return UINT64 Returns the instruction pointer, to change in the case of Vmxoff
+ */
+UINT64
+VmxReturnInstructionPointerForVmxoff()
+{
+    return g_GuestState[KeGetCurrentProcessorNumber()].VmxoffState.GuestRip;
+}
+
+/**
+ * @brief Terminate Vmx on all logical cores
+ * 
+ * @return VOID 
+ */
+VOID
+VmxPerformTermination()
+{
+    LogDebugInfo("Terminating VMX ...\n");
+
+    //
+    // ******* Terminating Vmx *******
+    //
+
+    //
+    // Unhide (disable and de-allocate) transparent-mode
+    //
+    TransparentUnhideDebugger();
+
+    //
+    // Remve All the hooks if any
+    //
+    EptHookUnHookAll();
+
+    //
+    // Broadcast to terminate Vmx
+    //
+    KeGenericCallDpc(DpcRoutineTerminateGuest, 0x0);
+
+    //
+    // ****** De-allocatee global variables ******
+    //
+
+    //
+    // Free Identity Page Table
+    //
+    MmFreeContiguousMemory(g_EptState->EptPageTable);
+
+    //
+    // Free EptState
+    //
+    ExFreePoolWithTag(g_EptState, POOLTAG);
+
+    //
+    // Free the Pool manager
+    //
+    PoolManagerUninitialize();
+
+    LogDebugInfo("VMX operation turned off successfully");
 }

@@ -12,58 +12,6 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return BOOLEAN
- */
-BOOLEAN
-VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
-{
-    int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
-
-    LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
-
-    //
-    // Enabling VMX Operation
-    //
-    AsmEnableVmxOperation();
-
-    //
-    // Fix Cr4 and Cr0 bits during VMX operation
-    //
-    VmxFixCr4AndCr0Bits();
-
-    LogDebugInfo("VMX-Operation enabled successfully");
-
-    if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
-    {
-        LogError("Err, allocating memory for vmxon region was not successfull");
-        return FALSE;
-    }
-    if (!VmxAllocateVmcsRegion(&g_GuestState[CurrentProcessorNumber]))
-    {
-        LogError("Err, allocating memory for vmcs region was not successfull");
-        return FALSE;
-    }
-
-    //
-    // Wait for all DPCs to synchronize at this point
-    //
-    KeSignalCallDpcSynchronize(SystemArgument2);
-
-    //
-    // Mark the DPC as being complete
-    //
-    KeSignalCallDpcDone(SystemArgument1);
-
-    return TRUE;
-}
-
-/**
  * @brief Allocates Vmxon region and set the Revision ID based on IA32_VMX_BASIC_MSR
  * 
  * @param CurrentGuestState 

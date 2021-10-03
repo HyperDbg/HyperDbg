@@ -669,10 +669,19 @@ typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
 //////////////////////////////////////////////////
 
 BOOLEAN
-VmxInitializer();
+VmxCheckVmxSupport();
+
+BOOLEAN
+VmxInitialize();
+
+BOOLEAN
+VmxPerformVirtualizationOnAllCores();
 
 BOOLEAN
 VmxTerminate();
+
+VOID
+VmxPerformTermination();
 
 BOOLEAN
 VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState);
@@ -701,6 +710,9 @@ VmxVmresume();
 VOID
 VmxVmxoff();
 
+BOOLEAN
+VmxPerformVirtualizationOnSpecificCore();
+
 VOID
 VmxFixCr4AndCr0Bits();
 
@@ -718,3 +730,9 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack);
+
+UINT64
+VmxReturnStackPointerForVmxoff();
+
+UINT64
+VmxReturnInstructionPointerForVmxoff();

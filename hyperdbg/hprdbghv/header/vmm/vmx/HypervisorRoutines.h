@@ -18,34 +18,6 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Detect whether Vmx is supported or not
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-HvIsVmxSupported();
-
-/**
- * @brief Initialize Vmx
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-HvVmxInitialize();
-
-/**
- * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return BOOLEAN 
- */
-BOOLEAN
-VmxDpcBroadcastAllocateVmxonRegions(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-/**
  * @brief Set Guest Selector Registers
  * 
  * @param GdtBase 
@@ -90,14 +62,6 @@ HvUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN Wr
  */
 ULONG
 HvAdjustControls(ULONG Ctl, ULONG Msr);
-
-/**
- * @brief Notify all cores about EPT Invalidation
- * 
- * @return VOID 
- */
-VOID
-HvNotifyAllToInvalidateEpt();
 
 /**
  * @brief Handle Cpuid
@@ -155,47 +119,6 @@ VOID
 HvResumeToNextInstruction();
 
 /**
- * @brief Invalidate EPT using Vmcall (should be called from Vmx non root mode)
- * 
- * @param Context 
- * @return VOID 
- */
-VOID
-HvInvalidateEptByVmcall(UINT64 Context);
-
-/**
- * @brief The broadcast function which initialize the guest
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
- */
-VOID
-HvDpcBroadcastInitializeGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-/**
- * @brief The broadcast function which terminate the guest
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
- */
-VOID
-HvDpcBroadcastTerminateGuest(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-/**
- * @brief Terminate Vmx on all logical cores
- * 
- * @return VOID 
- */
-VOID
-HvTerminateVmx();
-
-/**
  * @brief Set or unset the monitor trap flags
  * 
  * @param Set 
@@ -221,22 +144,6 @@ HvSetLoadDebugControls(BOOLEAN Set);
  */
 VOID
 HvSetSaveDebugControls(BOOLEAN Set);
-
-/**
- * @brief Returns the stack pointer, to change in the case of Vmxoff
- * 
- * @return UINT64 
- */
-UINT64
-HvReturnStackPointerForVmxoff();
-
-/**
- * @brief Returns the instruction pointer, to change in the case of Vmxoff
- * 
- * @return UINT64 
- */
-UINT64
-HvReturnInstructionPointerForVmxoff();
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard 
@@ -415,27 +322,3 @@ HvPerformIoBitmapChange(UINT64 Port);
  */
 VOID
 HvPerformIoBitmapReset();
-
-/**
- * @brief The broadcast function which removes the single hook and invalidate TLB
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
- */
-VOID
-HvDpcBroadcastRemoveHookAndInvalidateSingleEntry(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-/**
- * @brief The broadcast function which removes all the hooks and invalidate TLB
- * 
- * @param Dpc 
- * @param DeferredContext 
- * @param SystemArgument1 
- * @param SystemArgument2 
- * @return VOID 
- */
-VOID
-HvDpcBroadcastRemoveHookAndInvalidateAllEntries(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

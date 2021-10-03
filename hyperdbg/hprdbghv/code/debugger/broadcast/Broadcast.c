@@ -11,9 +11,20 @@
  */
 #include "..\hprdbghv\pch.h"
 
-//
-// **************** Broadcast Routines ****************
-//
+/**
+ * @brief routines to broadcast virtualization and vmx initialization
+*  on all cores 
+*
+* @return VOID 
+ */
+VOID
+BroadcastVmxVirtualizationAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutinePerformVirtualization, NULL);
+}
 
 /**
  * @brief routines to set vm-exit on all #DBs and #BP on all cores 
@@ -97,4 +108,18 @@ BroadcastDisableNmiExitingAllCores()
     // Broadcast to all cores
     //
     KeGenericCallDpc(DpcRoutineDisableNmiVmexitOnAllCores, NULL);
+}
+
+/**
+ * @brief routines to notify to invalidate their ept on all cores 
+ *
+ * @return VOID 
+ */
+VOID
+BroadcastNotifyAllToInvalidateEptAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, g_EptState->EptPointer.Flags);
 }
