@@ -12,119 +12,170 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Applies the effect of getting a resource
+ * @brief Initialize the resource for the specific core
+ * @details This function should be called in vmx non-root
+ * @param TargetCore Target core index
  * 
- * @param ResourceType The type of resource 
- * @param ResourceIndex Some resources contain index, otherwise null
- * @param TargetCore The target core(s) to apply 
- * @param CurrentCore The current core that tries to apply
- * @param IsSet Is it a set or unset action 
- * 
- * @return BOOLEAN Shows whether the operation was successful or not
+ * @return BOOLEAN Shows whether the initialization was successful or not
  */
 BOOLEAN
-ResourceControllerApply(RESOURCE_CONTROLLER_TYPE ResourceType,
-                        UINT64                   ResourceIndex,
-                        UINT32                   TargetCore,
-                        UINT32                   CurrentCore,
-                        BOOLEAN                  IsSet)
+ResourceControllerInitialize(UINT32 TargetCore)
 {
-    BOOLEAN Result                = FALSE;
-    BOOLEAN IsBroadcastToAllCores = FALSE;
-
     //
-    // Check if it's a broadcast to all cores or not
+    // Check to avoid re-allocation
     //
-    if (TargetCore == RESOURCE_CONTROLLER_APPLY_TO_ALL_CORES)
+    if (g_GuestState[TargetCore].ResourceController != NULL)
     {
-        IsBroadcastToAllCores = TRUE;
+        //
+        // Already allocated
+        //
+        return TRUE;
     }
 
     //
-    // Currently, HyperDbg won't support to broadcast a resource
-    // to all the cores in vmx-root mode
+    // If we're here, it means that resource descriptors are not already allocated
+    // and we should allocate it for this core
     //
-    if (IsBroadcastToAllCores && g_GuestState[CurrentCore].IsOnVmxRootMode)
+    g_GuestState[TargetCore].ResourceController = ExAllocatePoolWithTag(NonPagedPool, RESOURCE_CONTROLER_DESCRIPTORS_LENGTH * sizeof(RESOURCE_CONTROLLER_RESOURCE_STATE), POOLTAG);
+
+    if (g_GuestState[TargetCore].ResourceController == NULL)
     {
         //
-        // Return is always FALSE;
+        // Err, out of pool resource
         //
         return FALSE;
     }
 
     //
-    // Apply the action to the resource
+    // Zero the memory
     //
-    switch (ResourceType)
+    RtlZeroMemory(g_GuestState[TargetCore].ResourceController, RESOURCE_CONTROLER_DESCRIPTORS_LENGTH * sizeof(RESOURCE_CONTROLLER_RESOURCE_STATE));
+
+    //
+    // Everything was okay, let's return to show it was successful
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Uninitialize the resource for the specific core
+ * @details This function should be called in vmx non-root
+ * @param TargetCore Target core index
+ * 
+ * @return VOID
+ */
+VOID
+ResourceControllerUninitialize(UINT32 TargetCore)
+{
+    if (g_GuestState[TargetCore].ResourceController != NULL)
     {
-    case RESOURCE_CONTROLER_TYPE_EXCEPTION_BITMAP:
+        ExFreePoolWithTag(g_GuestState[TargetCore].ResourceController, POOLTAG);
 
-        break;
+        //
+        // Set it to null to indicate that it's deallocated
+        //
+        g_GuestState[TargetCore].ResourceController = NULL;
+    }
+}
 
-    default:
-        Result = FALSE;
-        break;
+/**
+ * @brief Allocates or find a resource descriptor struction
+ *
+ * @param CurrentCore current core Index
+ * @param ResourceType The type of resource 
+ * 
+ * @return PRESOURCE_CONTROLLER_RESOURCE_STATE Returns the resource descriptor
+ */
+PRESOURCE_CONTROLLER_RESOURCE_STATE
+ResourceControllerGetResourceDescriptor(UINT32                   CurrentCore,
+                                        RESOURCE_CONTROLLER_TYPE ResourceType)
+{
+    PRESOURCE_CONTROLLER_RESOURCE_STATE ResourceState = NULL;
+
+    //
+    // Check to make sure that resource controller is already initialized
+    // for this core
+    //
+    if (g_GuestState[CurrentCore].ResourceController == NULL)
+    {
+        //
+        // Resource controller is not initialized for this core
+        //
+        return NULL;
     }
 
-    return Result;
+    //
+    // Check if the ResourceType is valid
+    //
+    if (ResourceType <= RESOURCE_CONTROLER_TYPE_INVALD_INDEX || ResourceType >= RESOURCE_CONTROLER_DESCRIPTORS_LENGTH)
+    {
+        //
+        // ResourceType is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Get the resource
+    //
+    ResourceState = &g_GuestState[CurrentCore].ResourceController[ResourceType];
+
+    //
+    // Set the type of the resource, it's not needed but we use it as a
+    // sign that the corresponding resource is already accessed
+    //
+    ResourceState->Type = ResourceType;
+
+    return ResourceState;
 }
 
 /**
  * @brief Keep the track and applies a special resource
  * 
+ * @param CurrentCore current core Index
  * @param ResourceType The type of resource 
- * @param ResourceIndex Some resources contain index, otherwise null
- * @param Reason The reason to get this resource
- * @param TargetCore The target core(s) to apply 
  * @param IsSetAction Whether we should set or unset this resource 
- * @param IsHighPriorityTask Is it a hight priority (forced) task or not 
+ * @param IsForcedAction Is it a hight priority (forced) task or not 
  * 
- * @return UINT64 Returns the tag that is needed to release the resource
+ * @return BOOLEAN Returns whether the resource allocated successfully or not
  */
-UINT64
-ResourceControllerGet(RESOURCE_CONTROLLER_TYPE             ResourceType,
-                      UINT64                               ResourceIndex,
-                      RESOURCE_CONTROLLER_ASSIGNING_REASON Reason,
-                      UINT32                               TargetCore,
-                      BOOLEAN                              IsSetAction,
-                      BOOLEAN                              IsHighPriorityTask)
+BOOLEAN
+ResourceControllerGet(UINT32                   CurrentCore,
+                      RESOURCE_CONTROLLER_TYPE ResourceType,
+                      BOOLEAN                  IsSetAction,
+                      BOOLEAN                  IsForcedAction)
 {
-    UINT32 CurrentCore;
-    ULONG  ProcessorCount;
-
-    CurrentCore    = KeGetCurrentProcessorNumber();
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    PRESOURCE_CONTROLLER_RESOURCE_STATE CurrentResourceState = NULL;
 
     //
-    // Check whether the target core is valid or not
+    // Get the resource descriptor
     //
-    if (TargetCore != RESOURCE_CONTROLLER_APPLY_TO_ALL_CORES)
+    CurrentResourceState = ResourceControllerGetResourceDescriptor(CurrentCore, ResourceType);
+
+    if (CurrentResourceState == NULL)
     {
         //
-        // Check if the core number is not invalid
+        // Probably, ResourceType is invalid or resource controller
+        // is not initialized
         //
-        if (TargetCore >= ProcessorCount)
-        {
-            return NULL;
-        }
+        return FALSE;
     }
 
     //
-    // Add the resource to the list of resources
+    // Check if set a new reference or dereference
     //
-}
-
-/**
- * @brief Release a special tag
- * 
- * @param Tag The tag that was previously obtained from ResourceControllerGet 
- * 
- * @return BOOLEAN Returns the tag that is needed to release the resource
- */
-BOOLEAN
-ResourceControllerRelease(UINT64 Tag)
-{
-    //
-    // Find the tag details
-    //
+    if (IsSetAction)
+    {
+        CurrentResourceState->RefCount = CurrentResourceState->RefCount + 1;
+    }
+    else
+    {
+        //
+        // Avoid dereference a 0 RefCount, otherwise, we'll ignore it
+        //
+        if (CurrentResourceState->RefCount != 0)
+        {
+            CurrentResourceState->RefCount = CurrentResourceState->RefCount - 1;
+        }
+    }
 }

@@ -42,6 +42,18 @@ HvVmxInitialize()
     for (size_t ProcessorID = 0; ProcessorID < LogicalProcessorsCount; ProcessorID++)
     {
         //
+        // Initial the resource controller
+        //
+        if (!ResourceControllerInitialize(LogicalProcessorsCount))
+        {
+            //
+            // there was error somewhere in initializing resource controller for
+            // this core
+            //
+            return FALSE;
+        }
+
+        //
         // *** Launching VM for Test (in the all logical processor) ***
         //
 

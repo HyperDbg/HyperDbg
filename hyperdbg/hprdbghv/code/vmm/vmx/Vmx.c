@@ -261,6 +261,7 @@ VmxTerminate()
     // Execute Vmcall to to turn off vmx from Vmx root mode
     //
     Status = AsmVmxVmcall(VMCALL_VMXOFF, NULL, NULL, NULL);
+
     if (Status == STATUS_SUCCESS)
     {
         LogDebugInfo("VMX terminated on logical core %d\n", CurrentCoreIndex);
@@ -274,6 +275,11 @@ VmxTerminate()
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressA, POOLTAG);
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressB, POOLTAG);
+
+        //
+        // Uninitialize the resource controller
+        //
+        ResourceControllerUninitialize(CurrentCoreIndex);
 
         return TRUE;
     }
