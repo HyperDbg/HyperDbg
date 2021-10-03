@@ -31,6 +31,7 @@
 #include "Definition.h"
 #include "Configuration.h"
 #include "..\hprdbghv\header\common\Dpc.h"
+#include "..\hprdbghv\header\common\ResourceController.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
 #include "..\hprdbghv\header\common\Logging.h"
 #include "..\hprdbghv\header\memory\MemoryMapper.h"

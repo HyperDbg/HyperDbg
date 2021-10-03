@@ -1033,7 +1033,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
 
 /**
- * @brief Stucture of EPT Violation's Exit Qualification
+ * @brief Structure of EPT Violation's Exit Qualification
  * 
  */
 typedef union _VMX_EXIT_QUALIFICATION_EPT_VIOLATION

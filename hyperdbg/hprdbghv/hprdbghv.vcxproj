@@ -106,6 +106,7 @@
   <ItemGroup>
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
+    <ClCompile Include="code\common\ResourceController.c" />
     <ClCompile Include="code\common\Spinlock.c" />
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
@@ -163,6 +164,7 @@
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
+    <ClInclude Include="header\common\ResourceController.h" />
     <ClInclude Include="header\common\Trace.h" />
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
