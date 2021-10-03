@@ -417,54 +417,6 @@ VOID
 HvPerformIoBitmapReset();
 
 /**
- * @brief routines to enable vm-exit for breakpoints (exception bitmap)
- * 
- * @return VOID 
- */
-VOID
-HvEnableBreakpointExitingOnExceptionBitmapAllCores();
-
-/**
- * @brief routines to disable vm-exit for breakpoints (exception bitmap)
- * 
- * @return VOID 
- */
-VOID
-HvDisableBreakpointExitingOnExceptionBitmapAllCores();
-
-/**
- * @brief routines to enable vm-exit for NMIs
- * 
- * @return VOID 
- */
-VOID
-HvEnableNmiExitingAllCores();
-
-/**
- * @brief routines to disable vm-exit for NMIs
- * 
- * @return VOID 
- */
-VOID
-HvDisableNmiExitingAllCores();
-
-/**
- * @brief routines to enable vm-exit for #DBs and #BPs
- * 
- * @return VOID 
- */
-VOID
-HvEnableDbAndBpExitingAllCores();
-
-/**
- * @brief routines to disable vm-exit for #DBs and #BPs
- * 
- * @return VOID 
- */
-VOID
-HvDisableDbAndBpExitingAllCores();
-
-/**
  * @brief The broadcast function which removes the single hook and invalidate TLB
  * 
  * @param Dpc 

@@ -19,7 +19,7 @@
 VOID
 DebuggerEventEnableEferOnAllProcessors()
 {
-    KeGenericCallDpc(BroadcastDpcEnableEferSyscallEvents, 0x0);
+    KeGenericCallDpc(DpcRoutineEnableEferSyscallEvents, 0x0);
 }
 
 /**
@@ -30,7 +30,7 @@ DebuggerEventEnableEferOnAllProcessors()
 VOID
 DebuggerEventDisableEferOnAllProcessors()
 {
-    KeGenericCallDpc(BroadcastDpcDisableEferSyscallEvents, 0x0);
+    KeGenericCallDpc(DpcRoutineDisableEferSyscallEvents, 0x0);
 }
 
 /**
@@ -41,7 +41,7 @@ DebuggerEventDisableEferOnAllProcessors()
 VOID
 DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 {
-    KeGenericCallDpc(BroadcastDpcEnableMovToCr3Exiting, 0x0);
+    KeGenericCallDpc(DpcRoutineEnableMovToCr3Exiting, 0x0);
 }
 
 /**
@@ -52,7 +52,7 @@ DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 {
-    KeGenericCallDpc(BroadcastDpcDisableMovToCr3Exiting, 0x0);
+    KeGenericCallDpc(DpcRoutineDisableMovToCr3Exiting, 0x0);
 }
 
 /**

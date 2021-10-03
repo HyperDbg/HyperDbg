@@ -372,7 +372,7 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         // Broadcast to all cores to enable vm-exit for breakpoints (exception bitmaps)
         //
-        HvEnableBreakpointExitingOnExceptionBitmapAllCores();
+        BroadcastEnableBreakpointExitingOnExceptionBitmapAllCores();
 
         if (AsmVmxVmcall(VMCALL_SET_HIDDEN_CC_BREAKPOINT, TargetAddress, GetCr3FromProcessId(ProcessId).Flags, NULL) == STATUS_SUCCESS)
         {
@@ -1316,7 +1316,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                             // Did not find any entry, let's disable the breakpoints vm-exits
                             // on exception bitmaps
                             //
-                            HvDisableBreakpointExitingOnExceptionBitmapAllCores();
+                            BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
                         }
                         return TRUE;
                     }

@@ -45,13 +45,13 @@ KdInitializeKernelDebugger()
     //
     // Broadcast on all core to cause exit for NMIs
     //
-    HvEnableNmiExitingAllCores();
+    BroadcastEnableNmiExitingAllCores();
 
     //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //
-    HvEnableDbAndBpExitingAllCores();
+    BroadcastEnableDbAndBpExitingAllCores();
 
     //
     // Reset pause break requests
@@ -105,13 +105,13 @@ KdUninitializeKernelDebugger()
         //
         // Broadcast on all core to cause not to exit for NMIs
         //
-        HvDisableNmiExitingAllCores();
+        BroadcastDisableNmiExitingAllCores();
 
         //
         // Disable vm-exit on Hardware debug exceptions and breakpoints
         // so, not intercept #DBs and #BP by changing exception bitmap (one core)
         //
-        HvDisableDbAndBpExitingAllCores();
+        BroadcastDisableDbAndBpExitingAllCores();
 
         //
         // Free DPC holder
@@ -2511,7 +2511,7 @@ KdBroadcastHaltOnAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(BroadcastDpcVmExitAndHaltSystemAllCores, NULL);
+    KeGenericCallDpc(DpcRoutineVmExitAndHaltSystemAllCores, NULL);
 }
 
 /**

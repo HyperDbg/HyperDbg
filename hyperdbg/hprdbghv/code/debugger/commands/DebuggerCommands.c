@@ -174,7 +174,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Broadcast to all cores to change their Msrs
             //
-            KeGenericCallDpc(BroadcastDpcWriteMsrToAllCores, 0x0);
+            KeGenericCallDpc(DpcRoutineWriteMsrToAllCores, 0x0);
         }
         else
         {
@@ -228,7 +228,7 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
             //
             // Broadcast to all cores to read their Msrs
             //
-            KeGenericCallDpc(BroadcastDpcReadMsrToAllCores, 0x0);
+            KeGenericCallDpc(DpcRoutineReadMsrToAllCores, 0x0);
 
             //
             // When we reach here, all processors read their shits

@@ -445,7 +445,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 VOID
 HvHandleMsrRead(PGUEST_REGS GuestRegs)
 {
-    MSR msr = {0};
+    MSR Msr = {0};
 
     //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
@@ -476,7 +476,7 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //
     if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)) || (GuestRegs->rcx >= RESERVED_MSR_RANGE_LOW && (GuestRegs->rcx <= RESERVED_MSR_RANGE_HI)))
     {
-        msr.Content = __readmsr(GuestRegs->rcx);
+        Msr.Content = __readmsr(GuestRegs->rcx);
     }
 
     //
@@ -486,13 +486,13 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     if (GuestRegs->rcx == MSR_EFER)
     {
         EFER_MSR MsrEFER;
-        MsrEFER.Flags         = msr.Content;
+        MsrEFER.Flags         = Msr.Content;
         MsrEFER.SyscallEnable = TRUE;
-        msr.Content           = MsrEFER.Flags;
+        Msr.Content           = MsrEFER.Flags;
     }
 
-    GuestRegs->rax = msr.Low;
-    GuestRegs->rdx = msr.High;
+    GuestRegs->rax = Msr.Low;
+    GuestRegs->rdx = Msr.High;
 }
 
 /**
@@ -1727,88 +1727,4 @@ HvPerformIoBitmapReset()
     //
     memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
     memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
-}
-
-/**
- * @brief routines to enable vm-exit for breakpoints (exception bitmap) 
- *
- * @return VOID 
- */
-VOID
-HvEnableBreakpointExitingOnExceptionBitmapAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcEnableBreakpointOnExceptionBitmapOnAllCores, NULL);
-}
-
-/**
- * @brief routines to disable vm-exit for breakpoints (exception bitmap) 
-*
-* @return VOID 
- */
-VOID
-HvDisableBreakpointExitingOnExceptionBitmapAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcDisableBreakpointOnExceptionBitmapOnAllCores, NULL);
-}
-
-/**
- * @brief routines to set vm-exit on all NMIs on all cores 
- *
- * @return VOID 
- */
-VOID
-HvEnableNmiExitingAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcEnableNmiVmexitOnAllCores, NULL);
-}
-
-/**
- * @brief routines to set vm-exit on all NMIs on all cores 
- *
- * @return VOID 
- */
-VOID
-HvDisableNmiExitingAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcDisableNmiVmexitOnAllCores, NULL);
-}
-
-/**
- * @brief routines to set vm-exit on all #DBs and #BP on all cores 
-*
-* @return VOID 
- */
-VOID
-HvEnableDbAndBpExitingAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcEnableDbAndBpExitingOnAllCores, NULL);
-}
-
-/**
- * @brief routines to unset vm-exit on all #DBs and #BP on all cores 
- *
- * @return VOID 
- */
-VOID
-HvDisableDbAndBpExitingAllCores()
-{
-    //
-    // Broadcast to all cores
-    //
-    KeGenericCallDpc(BroadcastDpcDisableDbAndBpExitingOnAllCores, NULL);
 }
