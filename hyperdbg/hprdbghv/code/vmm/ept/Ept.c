@@ -715,7 +715,7 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
                 //
                 // Change guest interrupt-state
                 //
-                HvSetExternalInterruptExiting(TRUE);
+                ProtectedHvSetExternalInterruptExiting(TRUE);
 
                 //
                 // Do not vm-exit on interrupt windows

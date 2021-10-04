@@ -268,7 +268,10 @@ SteppingsStartDebuggingThread(UINT32 ProcessId, UINT32 ThreadId)
         // Because of the above-mentioned reasons, we should enable external-interrupt
         // exiting on all cores
         //
-        ExtensionCommandSetExternalInterruptExitingAllCores();
+        //
+        // THIS FUNCTION SHOULD NOT BE USED
+        //
+        // ExtensionCommandSetExternalInterruptExitingAllCores();
     }
 }
 
@@ -345,7 +348,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         // to a new process, no longer need to cause vm-exit
         // on external interrupts
         //
-        HvSetExternalInterruptExiting(FALSE);
+        ProtectedHvSetExternalInterruptExiting(FALSE);
     }
     else if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.DisableExternalInterrupts)
     {
@@ -353,7 +356,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         // The target process and thread already found, not need to
         // further external-interrupt exiting
         //
-        HvSetExternalInterruptExiting(FALSE);
+        ProtectedHvSetExternalInterruptExiting(FALSE);
 
         //
         // When we reached here, other logical processor swapped
@@ -910,7 +913,7 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
     // At this moment, external interrupt exiting in the current core must be
     // disabled, we have to enable it
     //
-    HvSetExternalInterruptExiting(TRUE);
+    ProtectedHvSetExternalInterruptExiting(TRUE);
 }
 
 /**

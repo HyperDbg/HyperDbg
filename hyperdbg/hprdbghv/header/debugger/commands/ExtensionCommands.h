@@ -61,7 +61,7 @@ VOID
 ExtensionCommandSetExternalInterruptExitingAllCores();
 
 VOID
-ExtensionCommandUnsetExternalInterruptExitingAllCores();
+ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
 
 VOID
 ExtensionCommandIoBitmapChangeAllCores(UINT64 Port);

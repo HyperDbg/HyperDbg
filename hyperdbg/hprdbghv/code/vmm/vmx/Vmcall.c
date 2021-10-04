@@ -215,7 +215,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING:
     {
-        HvSetExternalInterruptExiting(TRUE);
+        ProtectedHvSetExternalInterruptExiting(TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -237,9 +237,9 @@ VmxVmcallHandler(UINT64      VmcallNumber,
 
         break;
     }
-    case VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING:
+    case VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS:
     {
-        HvSetExternalInterruptExiting(FALSE);
+        ProtectedHvExternalInterruptExitingForDisablingInterruptCommands();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

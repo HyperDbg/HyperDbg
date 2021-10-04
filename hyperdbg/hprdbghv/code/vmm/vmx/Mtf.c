@@ -95,16 +95,9 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
         {
             //
-            // Check if the debugger has events relating to external-interrupts, if no
-            // we completely disable external interrupts
+            // Enable normal interrupts
             //
-            if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) == 0)
-            {
-                //
-                // There is no events for external interrupts
-                //
-                HvSetExternalInterruptExiting(FALSE);
-            }
+            ProtectedHvSetExternalInterruptExiting(FALSE);
 
             //
             // Check if there is at least an interrupt that needs to be delivered

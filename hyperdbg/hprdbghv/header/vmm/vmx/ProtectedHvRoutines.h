@@ -24,9 +24,17 @@
  */
 typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
 {
+    //
+    // for exception bitmap
+    //
     PASSING_OVER_NONE                                  = 0,
     PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK = 1,
     PASSING_OVER_EXCEPTION_EVENTS,
+
+    //
+    // for external interupts-exitings
+    //
+    PASSING_OVER_INTERRUPT_EVENTS,
 
 } PROTECTED_HV_RESOURCES_PASSING_OVERS;
 //////////////////////////////////////////////////
@@ -44,3 +52,9 @@ ProtectedHvResetExceptionBitmapToClearEvents();
 
 VOID
 ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands();
+
+VOID
+ProtectedHvSetExternalInterruptExiting(BOOLEAN Set);
+
+VOID
+ProtectedHvExternalInterruptExitingForDisablingInterruptCommands();

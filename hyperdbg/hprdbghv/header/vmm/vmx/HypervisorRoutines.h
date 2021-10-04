@@ -269,15 +269,6 @@ VOID
 HvSetMovDebugRegsExiting(BOOLEAN Set);
 
 /**
- * @brief Set the External Interrupt Exiting
- * 
- * @param Set 
- * @return VOID 
- */
-VOID
-HvSetExternalInterruptExiting(BOOLEAN Set);
-
-/**
  * @brief Set the NMI Exiting
  * 
  * @param Set 

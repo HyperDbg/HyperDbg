@@ -961,7 +961,7 @@ DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferred
 }
 
 /**
- * @brief Disable vm-exit on all cores for external interrupts
+ * @brief Disable vm-exit on all cores for external interrupts only for clearing !interrupt events
  * 
  * @param Dpc 
  * @param DeferredContext 
@@ -970,12 +970,15 @@ DpcRoutineSetEnableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID Deferred
  * @return VOID 
  */
 VOID
-DpcRoutineSetDisableExternalInterruptExitingOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores(KDPC * Dpc,
+                                                                                    PVOID  DeferredContext,
+                                                                                    PVOID  SystemArgument1,
+                                                                                    PVOID  SystemArgument2)
 {
     //
     // Disable External Interrupts vm-exit from vmx-root
     //
-    AsmVmxVmcall(VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING, 0, 0, 0);
+    AsmVmxVmcall(VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS, 0, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

@@ -130,10 +130,10 @@
 #define VMCALL_UNSET_RDTSC_EXITING 0x13
 
 /**
- * @brief VMCALL to disable external interrupt exiting
+ * @brief VMCALL to disable external interrupt exiting only to clear !interrupt commands
  * 
  */
-#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING 0x14
+#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS 0x14
 
 /**
  * @brief VMCALL to disable rdpmc exiting in primary cpu-based controls

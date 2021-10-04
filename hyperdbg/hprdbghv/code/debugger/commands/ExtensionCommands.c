@@ -355,16 +355,16 @@ ExtensionCommandSetExternalInterruptExitingAllCores()
 }
 
 /**
- * @brief routines for terminate !interrupt command  
+ * @brief routines for ONLY terminate !interrupt command 
  * @return VOID 
  */
 VOID
-ExtensionCommandUnsetExternalInterruptExitingAllCores()
+ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
 {
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineSetDisableExternalInterruptExitingOnAllCores, NULL);
+    KeGenericCallDpc(DpcRoutineSetDisableExternalInterruptExitingOnlyOnClearingInterruptEventsOnAllCores, NULL);
 }
 
 /**

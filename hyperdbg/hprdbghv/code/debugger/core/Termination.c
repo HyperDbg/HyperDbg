@@ -34,7 +34,7 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandUnsetExternalInterruptExitingAllCores();
+        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -87,7 +87,7 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
         //
         // Broadcast to disable on all cores
         //
-        ExtensionCommandUnsetExternalInterruptExitingAllCores();
+        ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores();
     }
 }
 

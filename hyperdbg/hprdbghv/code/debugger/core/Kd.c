@@ -626,16 +626,9 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
     if (g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue)
     {
         //
-        // Check if the debugger has events relating to external-interrupts, if no
-        // we completely disable external interrupts
+        // Enable normal interrupt
         //
-        if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) == 0)
-        {
-            //
-            // There is no events for external interrupts
-            //
-            HvSetExternalInterruptExiting(FALSE);
-        }
+        ProtectedHvSetExternalInterruptExiting(FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -935,16 +928,9 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     if (g_GuestState[CurrentCore].DebuggingState.EnableExternalInterruptsOnContinue)
     {
         //
-        // Check if the debugger has events relating to external-interrupts, if no
-        // we completely disable external interrupts
+        // Enable normal interrupts
         //
-        if (DebuggerEventListCount(&g_Events->ExternalInterruptOccurredEventsHead) == 0)
-        {
-            //
-            // There is no events for external interrupts
-            //
-            HvSetExternalInterruptExiting(FALSE);
-        }
+        ProtectedHvSetExternalInterruptExiting(FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -1306,7 +1292,7 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     //
     // Change guest interrupt-state
     //
-    HvSetExternalInterruptExiting(TRUE);
+    ProtectedHvSetExternalInterruptExiting(TRUE);
 
     //
     // Do not vm-exit on interrupt windows
