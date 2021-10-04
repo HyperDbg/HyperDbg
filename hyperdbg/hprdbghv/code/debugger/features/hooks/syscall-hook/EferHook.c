@@ -69,7 +69,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // also, we have to set exception bitmap to cause vm-exit on #UDs
         //
-        ProtectedHvSetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
+        HvSetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
     }
     else
     {

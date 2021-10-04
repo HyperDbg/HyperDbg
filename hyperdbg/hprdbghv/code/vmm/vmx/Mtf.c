@@ -97,7 +97,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Enable normal interrupts
             //
-            ProtectedHvSetExternalInterruptExiting(FALSE);
+            HvSetExternalInterruptExiting(FALSE);
 
             //
             // Check if there is at least an interrupt that needs to be delivered

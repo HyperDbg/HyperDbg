@@ -812,6 +812,7 @@ HvSetMovToCr3Vmexit(BOOLEAN Set)
 
 /**
  * @brief Write on exception bitmap in VMCS 
+ * DO NOT CALL IT DIRECTLY, instead use HvSetExceptionBitmap
  * @details Should be called in vmx-root
  * 
  * @param BitmapMask The content to write on exception bitmap 
@@ -1255,4 +1256,51 @@ HvPerformIoBitmapReset()
     //
     memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
     memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+}
+
+/**
+ * @brief Set exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @param IdtIndex Interrupt Descriptor Table index of exception 
+ * @return VOID 
+ */
+VOID
+HvSetExceptionBitmap(UINT32 IdtIndex)
+{
+    //
+    // This is a wrapper to perform extra checks
+    //
+    ProtectedHvSetExceptionBitmap(IdtIndex);
+}
+
+/**
+ * @brief Unset exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @param IdtIndex Interrupt Descriptor Table index of exception 
+ * @return VOID 
+ */
+VOID
+HvUnsetExceptionBitmap(UINT32 IdtIndex)
+{
+    //
+    // This is a wrapper to perform extra checks
+    //
+    ProtectedHvUnsetExceptionBitmap(IdtIndex);
+}
+
+/**
+ * @brief Set the External Interrupt Exiting
+ * 
+ * @param Set Set or unset the External Interrupt Exiting
+ * @return VOID 
+ */
+VOID
+HvSetExternalInterruptExiting(BOOLEAN Set)
+{
+    //
+    // This is a wrapper to perform extra checks
+    //
+    ProtectedHvSetExternalInterruptExiting(Set);
 }

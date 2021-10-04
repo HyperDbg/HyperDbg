@@ -15,7 +15,7 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Add extra mask to this resource 
+ * @brief Add extra mask to this resource and write it 
  * @details As exception bitmap is a protected resource, this 
  * routine makes sure that modifying exception bitmap won't 
  * break the debugger's integrity
@@ -24,10 +24,10 @@
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for exceptions
  * 
- * @return UINT32 The actual value that should be written 
+ * @return VOID  
  */
 UINT32
-ProtectedHvExceptionBitmapIntegrityCheck(UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
 {
     UINT32 CurrentCoreId = 0;
 
@@ -86,7 +86,10 @@ ProtectedHvExceptionBitmapIntegrityCheck(UINT32 CurrentMask, PROTECTED_HV_RESOUR
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
     }
 
-    return CurrentMask;
+    //
+    // Write the final value
+    //
+    HvWriteExceptionBitmap(CurrentMask);
 }
 
 /**
@@ -118,7 +121,7 @@ ProtectedHvSetExceptionBitmap(UINT32 IdtIndex)
     //
     // Set the new value
     //
-    HvWriteExceptionBitmap(ProtectedHvExceptionBitmapIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE));
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE);
 }
 
 /**
@@ -150,7 +153,7 @@ ProtectedHvUnsetExceptionBitmap(UINT32 IdtIndex)
     //
     // Set the new value
     //
-    HvWriteExceptionBitmap(ProtectedHvExceptionBitmapIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE));
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_NONE);
 }
 
 /**
@@ -168,7 +171,7 @@ ProtectedHvResetExceptionBitmapToClearEvents()
     //
     // Set the new value
     //
-    HvWriteExceptionBitmap(ProtectedHvExceptionBitmapIntegrityCheck(ExceptionBitmap, PASSING_OVER_EXCEPTION_EVENTS));
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_EXCEPTION_EVENTS);
 }
 
 /**
@@ -196,7 +199,7 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands()
     //
     // Set the new value
     //
-    HvWriteExceptionBitmap(ProtectedHvExceptionBitmapIntegrityCheck(ExceptionBitmap, PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK));
+    ProtectedHvChangeExceptionBitmapWithIntegrityCheck(ExceptionBitmap, PASSING_OVER_UD_EXCEPTIONS_FOR_SYSCALL_SYSRET_HOOK);
 }
 
 /**

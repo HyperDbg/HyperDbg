@@ -348,7 +348,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         // to a new process, no longer need to cause vm-exit
         // on external interrupts
         //
-        ProtectedHvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(FALSE);
     }
     else if (g_GuestState[ProcessorIndex].DebuggerUserModeSteppingDetails.DisableExternalInterrupts)
     {
@@ -356,7 +356,7 @@ SteppingsHandleClockInterruptOnTargetProcess(PGUEST_REGS GuestRegs, UINT32 Proce
         // The target process and thread already found, not need to
         // further external-interrupt exiting
         //
-        ProtectedHvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(FALSE);
 
         //
         // When we reached here, other logical processor swapped
@@ -913,7 +913,7 @@ SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingD
     // At this moment, external interrupt exiting in the current core must be
     // disabled, we have to enable it
     //
-    ProtectedHvSetExternalInterruptExiting(TRUE);
+    HvSetExternalInterruptExiting(TRUE);
 }
 
 /**

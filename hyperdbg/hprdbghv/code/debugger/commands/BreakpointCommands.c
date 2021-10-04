@@ -90,7 +90,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     //
                     // Change guest interrupt-state
                     //
-                    ProtectedHvSetExternalInterruptExiting(TRUE);
+                    HvSetExternalInterruptExiting(TRUE);
 
                     //
                     // Do not vm-exit on interrupt windows

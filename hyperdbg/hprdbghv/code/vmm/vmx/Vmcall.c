@@ -203,7 +203,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SET_EXCEPTION_BITMAP:
     {
-        ProtectedHvSetExceptionBitmap(OptionalParam1);
+        HvSetExceptionBitmap(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -215,7 +215,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING:
     {
-        ProtectedHvSetExternalInterruptExiting(TRUE);
+        HvSetExternalInterruptExiting(TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -301,7 +301,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_UNSET_EXCEPTION_BITMAP:
     {
-        ProtectedHvUnsetExceptionBitmap(OptionalParam1);
+        HvUnsetExceptionBitmap(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

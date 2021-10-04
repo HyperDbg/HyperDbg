@@ -41,6 +41,10 @@ typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
 //                   Functions                  //
 //////////////////////////////////////////////////
 
+//
+// Exception Bitmap Functions
+//
+
 VOID
 ProtectedHvSetExceptionBitmap(UINT32 IdtIndex);
 
@@ -52,6 +56,10 @@ ProtectedHvResetExceptionBitmapToClearEvents();
 
 VOID
 ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands();
+
+//
+// External-interrupt Exiting Functions
+//
 
 VOID
 ProtectedHvSetExternalInterruptExiting(BOOLEAN Set);

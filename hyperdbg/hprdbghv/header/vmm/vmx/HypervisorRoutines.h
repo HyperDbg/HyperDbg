@@ -303,3 +303,32 @@ HvPerformIoBitmapChange(UINT64 Port);
  */
 VOID
 HvPerformIoBitmapReset();
+
+/**
+ * @brief Set exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @param IdtIndex 
+ * @return VOID 
+ */
+VOID
+HvSetExceptionBitmap(UINT32 IdtIndex);
+
+/**
+ * @brief Unset exception bitmap in VMCS 
+ * @details Should be called in vmx-root
+ * 
+ * @param IdtIndex  
+ * @return VOID 
+ */
+VOID
+HvUnsetExceptionBitmap(UINT32 IdtIndex);
+
+/**
+ * @brief Set the External Interrupt Exiting
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetExternalInterruptExiting(BOOLEAN Set);

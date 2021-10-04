@@ -628,7 +628,7 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
         //
         // Enable normal interrupt
         //
-        ProtectedHvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -930,7 +930,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
         //
         // Enable normal interrupts
         //
-        ProtectedHvSetExternalInterruptExiting(FALSE);
+        HvSetExternalInterruptExiting(FALSE);
 
         //
         // Check if there is at least an interrupt that needs to be delivered
@@ -1237,7 +1237,9 @@ KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorI
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    /* LogInfo("NMI Arrived on : %d \n", KeGetCurrentProcessorNumber()); */
+    /*
+    LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
+    */
 
     //
     // Lock current core
@@ -1292,7 +1294,7 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     //
     // Change guest interrupt-state
     //
-    ProtectedHvSetExternalInterruptExiting(TRUE);
+    HvSetExternalInterruptExiting(TRUE);
 
     //
     // Do not vm-exit on interrupt windows
