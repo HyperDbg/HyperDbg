@@ -574,7 +574,6 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN                             IncrementRip;                                                  // Checks whether it has to redo the previous instruction or not (it used mainly in Ept routines)
     BOOLEAN                             HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN                             IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
-    PRESOURCE_CONTROLLER_RESOURCE_STATE ResourceController;                                            // Resource descriptor (core specific)
     UINT64                              LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64                              VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
     UINT64                              VmxonRegionVirtualAddress;                                     // VMXON region virtual address

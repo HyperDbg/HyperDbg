@@ -846,6 +846,7 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
 
 /**
  * @brief Reset Exception Bitmaps on all cores
+ * @details This function should ONLY be used in clearing !exception events
  * 
  * @param Dpc 
  * @param DeferredContext Exception index on IDT
@@ -854,12 +855,15 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
  * @return VOID 
  */
 VOID
-DpcRoutineResetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores(KDPC * Dpc,
+                                                                      PVOID  DeferredContext,
+                                                                      PVOID  SystemArgument1,
+                                                                      PVOID  SystemArgument2)
 {
     //
     // Reset Exception Bitmaps from vmx-root
     //
-    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+    AsmVmxVmcall(VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS, DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1053,9 +1057,9 @@ VOID
 DpcRoutineEnableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
     //
-    // Change exception bitmap
+    // Change exception bitmap's #BP bit
     //
-    AsmVmxVmcall(VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point
@@ -1083,7 +1087,7 @@ DpcRoutineDisableBreakpointOnExceptionBitmapOnAllCores(KDPC * Dpc, PVOID Deferre
     //
     // Change exception bitmap
     //
-    AsmVmxVmcall(VMCALL_DISABLE_BREAKPOINT_ON_EXCEPTION_BITMAP, NULL, 0, 0);
+    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_BREAKPOINT, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

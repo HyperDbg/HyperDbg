@@ -10,7 +10,6 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-
 #pragma once
 
 //////////////////////////////////////////////////
@@ -216,30 +215,21 @@ VOID
 HvSetMovToCr3Vmexit(BOOLEAN Set);
 
 /**
- * @brief Set exception bitmap in VMCS
+ * @brief Write to the exception bitmap
  * 
- * @param IdtIndex 
+ * @param BitmapMask 
  * @return VOID 
  */
 VOID
-HvSetExceptionBitmap(UINT32 IdtIndex);
+HvWriteExceptionBitmap(UINT32 BitmapMask);
 
 /**
- * @brief Reset exception bitmap in VMCS
+ * @brief Read the exception bitmap
  * 
- * @return VOID 
+ * @return UINT32 
  */
-VOID
-HvResetExceptionBitmap();
-
-/**
- * @brief Unset exception bitmap in VMCS
- * 
- * @param IdtIndex 
- * @return VOID 
- */
-VOID
-HvUnsetExceptionBitmap(UINT32 IdtIndex);
+UINT32
+HvReadExceptionBitmap();
 
 /**
  * @brief Set Interrupt-window exiting

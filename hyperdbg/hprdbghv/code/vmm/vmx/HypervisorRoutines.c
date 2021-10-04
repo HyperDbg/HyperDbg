@@ -811,82 +811,38 @@ HvSetMovToCr3Vmexit(BOOLEAN Set)
 }
 
 /**
- * @brief Set exception bitmap in VMCS 
+ * @brief Write on exception bitmap in VMCS 
  * @details Should be called in vmx-root
  * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
+ * @param BitmapMask The content to write on exception bitmap 
  * @return VOID 
  */
 VOID
-HvSetExceptionBitmap(UINT32 IdtIndex)
+HvWriteExceptionBitmap(UINT32 BitmapMask)
 {
-    UINT32 ExceptionBitmap = 0;
-
-    //
-    // Read the previous flags
-    //
-    __vmx_vmread(EXCEPTION_BITMAP, &ExceptionBitmap);
-
-    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES)
-    {
-        ExceptionBitmap = 0xffffffff;
-    }
-    else
-    {
-        ExceptionBitmap |= 1 << IdtIndex;
-    }
     //
     // Set the new value
     //
-    __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
+    __vmx_vmwrite(EXCEPTION_BITMAP, BitmapMask);
 }
 
 /**
- * @brief Reset exception bitmap in VMCS 
+ * @brief Read exception bitmap in VMCS 
  * @details Should be called in vmx-root
  * 
- * @return VOID 
+ * @return UINT32 
  */
-VOID
-HvResetExceptionBitmap()
+UINT32
+HvReadExceptionBitmap()
 {
     UINT32 ExceptionBitmap = 0;
 
     //
-    // Set the new value
-    //
-    __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
-}
-
-/**
- * @brief Unset exception bitmap in VMCS 
- * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
- */
-VOID
-HvUnsetExceptionBitmap(UINT32 IdtIndex)
-{
-    UINT32 ExceptionBitmap = 0;
-
-    //
-    // Read the previous flags
+    // Read the current bitmap
     //
     __vmx_vmread(EXCEPTION_BITMAP, &ExceptionBitmap);
 
-    if (IdtIndex == DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES)
-    {
-        ExceptionBitmap = 0x0;
-    }
-    else
-    {
-        ExceptionBitmap &= ~(1 << IdtIndex);
-    }
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(EXCEPTION_BITMAP, ExceptionBitmap);
+    return ExceptionBitmap;
 }
 
 /**

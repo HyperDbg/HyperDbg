@@ -1382,11 +1382,6 @@ SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID De
         AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
 
         //
-        // Not intercept #DBs by changing exception bitmap (one core)
-        //
-        AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, EXCEPTION_VECTOR_DEBUG_BREAKPOINT, 0, 0);
-
-        //
         // Disable load debug controls and save debug controls because
         // no longer needed
         //

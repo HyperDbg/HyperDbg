@@ -226,6 +226,16 @@ BOOLEAN
 EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId);
 
 /**
+ * @brief get the length of active EPT hooks (!epthook and !epthook2)
+ * 
+ * @param
+ * 
+ * @return UINT32  
+ */
+UINT32
+EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2);
+
+/**
  * @brief Remove an entry from g_EptHook2sDetourListHead
  * 
  * @param Address 

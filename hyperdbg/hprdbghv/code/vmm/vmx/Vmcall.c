@@ -203,7 +203,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SET_EXCEPTION_BITMAP:
     {
-        HvSetExceptionBitmap(OptionalParam1);
+        ProtectedHvSetExceptionBitmap(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -243,28 +243,6 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
-    case VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP:
-    {
-        //
-        // Enable vm-exits on breakpoints (exception bitmap)
-        //
-        HvSetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
-
-        VmcallStatus = STATUS_SUCCESS;
-
-        break;
-    }
-    case VMCALL_DISABLE_BREAKPOINT_ON_EXCEPTION_BITMAP:
-    {
-        //
-        // Disable vm-exits on breakpoints (exception bitmap)
-        //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
-
-        VmcallStatus = STATUS_SUCCESS;
-
-        break;
-    }
     case VMCALL_UNSET_RDTSC_EXITING:
     {
         HvSetTscVmexit(FALSE);
@@ -297,9 +275,9 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
-    case VMCALL_RESET_EXCEPTION_BITMAP:
+    case VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS:
     {
-        HvResetExceptionBitmap();
+        ProtectedHvResetExceptionBitmapToClearEvents();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -323,7 +301,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_UNSET_EXCEPTION_BITMAP:
     {
-        HvUnsetExceptionBitmap(OptionalParam1);
+        ProtectedHvUnsetExceptionBitmap(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

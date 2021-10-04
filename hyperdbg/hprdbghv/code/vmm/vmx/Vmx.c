@@ -99,18 +99,6 @@ VmxInitialize()
     for (size_t ProcessorID = 0; ProcessorID < LogicalProcessorsCount; ProcessorID++)
     {
         //
-        // Initial the resource controller
-        //
-        if (!ResourceControllerInitialize(LogicalProcessorsCount))
-        {
-            //
-            // there was error somewhere in initializing resource controller for
-            // this core
-            //
-            return FALSE;
-        }
-
-        //
         // *** Launching VM for Test (in the all logical processor) ***
         //
 
@@ -469,11 +457,6 @@ VmxTerminate()
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressA, POOLTAG);
         ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressB, POOLTAG);
-
-        //
-        // Uninitialize the resource controller
-        //
-        ResourceControllerUninitialize(CurrentCoreIndex);
 
         return TRUE;
     }

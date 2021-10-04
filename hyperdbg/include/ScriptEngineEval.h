@@ -282,7 +282,7 @@ ScriptEnginePseudoRegGetPname()
         else
         {
             //
-            // Error, error might be shown by GetLastError()
+            // error might be shown by GetLastError()
             //
             CloseHandle(Handle);
             return NULL;

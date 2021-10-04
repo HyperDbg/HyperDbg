@@ -106,7 +106,6 @@
   <ItemGroup>
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
-    <ClCompile Include="code\common\ResourceController.c" />
     <ClCompile Include="code\common\Spinlock.c" />
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
@@ -143,6 +142,7 @@
     <ClCompile Include="code\vmm\vmx\IoHandler.c" />
     <ClCompile Include="code\vmm\vmx\ManageRegs.c" />
     <ClCompile Include="code\vmm\vmx\Mtf.c" />
+    <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c" />
     <ClCompile Include="code\vmm\vmx\Vmcall.c" />
     <ClCompile Include="code\vmm\vmx\Vmexit.c" />
     <ClCompile Include="code\vmm\vmx\Vmx.c" />
@@ -164,7 +164,6 @@
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
-    <ClInclude Include="header\common\ResourceController.h" />
     <ClInclude Include="header\common\Trace.h" />
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
@@ -196,6 +195,7 @@
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
     <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
     <ClInclude Include="header\vmm\vmx\Mtf.h" />
+    <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h" />
     <ClInclude Include="header\vmm\vmx\Vmcall.h" />
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="pch.h" />

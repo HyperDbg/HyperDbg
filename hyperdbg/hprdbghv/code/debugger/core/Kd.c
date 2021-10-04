@@ -126,24 +126,6 @@ KdUninitializeKernelDebugger()
 }
 
 /**
- * @brief For debugging purpose, passes the errors to Windbg
- *
- * @return BOOLEAN
- */
-VOID
-KdPassErrorsToWindbg()
-{
-    ULONG CoreCount;
-
-    CoreCount = KeQueryActiveProcessorCount(0);
-
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        g_GuestState[i].DebuggingState.PassErrorsToWindbg = TRUE;
-    }
-}
-
-/**
  * @brief Handles NMIs in kernel-mode
  *
  * @param Context
@@ -610,20 +592,6 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
                                   g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
 
         g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
-    }
-
-    //
-    // Check to apply error passing to Windbg (for debugging purpose)
-    //
-    if (g_GuestState[CurrentCore].DebuggingState.PassErrorsToWindbg)
-    {
-        //
-        // Disable hooking of breakpoint exceptions
-        //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_BREAKPOINT);
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
-
-        g_GuestState[CurrentCore].DebuggingState.PassErrorsToWindbg = FALSE;
     }
 }
 

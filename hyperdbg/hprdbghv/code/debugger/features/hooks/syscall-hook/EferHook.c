@@ -69,7 +69,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // also, we have to set exception bitmap to cause vm-exit on #UDs
         //
-        HvSetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
+        ProtectedHvSetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
     }
     else
     {
@@ -99,7 +99,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // unset the exception to not cause vm-exit on #UDs
         //
-        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_UNDEFINED_OPCODE);
+        ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands();
     }
 }
 

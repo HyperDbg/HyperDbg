@@ -124,82 +124,72 @@
 #define VMCALL_SET_HIDDEN_CC_BREAKPOINT 0x12
 
 /**
- * @brief VMCALL to enable breakpoints on exception bitmaps
- * 
- */
-#define VMCALL_ENABLE_BREAKPOINT_ON_EXCEPTION_BITMAP 0x13
-
-/**
- * @brief VMCALL to disable breakpoints on exception bitmaps
- * 
- */
-#define VMCALL_DISABLE_BREAKPOINT_ON_EXCEPTION_BITMAP 0x14
-
-/**
  * @brief VMCALL to disable rdtsc/rdtscp exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_UNSET_RDTSC_EXITING 0x15
+#define VMCALL_UNSET_RDTSC_EXITING 0x13
 
 /**
  * @brief VMCALL to disable external interrupt exiting
  * 
  */
-#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING 0x16
+#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING 0x14
 
 /**
  * @brief VMCALL to disable rdpmc exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_UNSET_RDPMC_EXITING 0x17
+#define VMCALL_UNSET_RDPMC_EXITING 0x15
 
 /**
  * @brief VMCALL to disable mov to debug registers exiting
  * 
  */
-#define VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING 0x18
+#define VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING 0x16
 
 /**
  * @brief VMCALL to reset MSR Bitmap Read
  * 
  */
-#define VMCALL_RESET_MSR_BITMAP_READ 0x19
+#define VMCALL_RESET_MSR_BITMAP_READ 0x17
 
 /**
  * @brief VMCALL to reset MSR Bitmap Write
  * 
  */
-#define VMCALL_RESET_MSR_BITMAP_WRITE 0x1a
+#define VMCALL_RESET_MSR_BITMAP_WRITE 0x18
 
 /**
  * @brief VMCALL to reset exception bitmap on VMCS
+ * @details THIS VMCALL SHOULD BE USED ONLY IN
+ * RESETING (CLEARING) EXCEPTION EVENTS
  * 
  */
-#define VMCALL_RESET_EXCEPTION_BITMAP 0x1b
+#define VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x19
 
 /**
  * @brief VMCALL to reset I/O Bitmaps (A & B)
  * 
  */
-#define VMCALL_RESET_IO_BITMAP 0x1c
+#define VMCALL_RESET_IO_BITMAP 0x1a
 
 /**
  * @brief VMCALL to enable cr3 exiting
  * 
  */
-#define VMCALL_ENABLE_MOV_TO_CR3_EXITING 0x1d
+#define VMCALL_ENABLE_MOV_TO_CR3_EXITING 0x1b
 
 /**
  * @brief VMCALL to disable cr3 exiting
  * 
  */
-#define VMCALL_DISABLE_MOV_TO_CR3_EXITING 0x1e
+#define VMCALL_DISABLE_MOV_TO_CR3_EXITING 0x1c
 
 /**
  * @brief VMCALL to unset exception bitmap on VMCS
  * 
  */
-#define VMCALL_UNSET_EXCEPTION_BITMAP 0x1f
+#define VMCALL_UNSET_EXCEPTION_BITMAP 0x1d
 
 /**
  * @brief VMCALL to set VM-entry LOAD DEBUG CONTROLS
@@ -207,7 +197,7 @@
  * IA32_DEBUGCTL MSR are loaded on VM entry.
  * 
  */
-#define VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x20
+#define VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x1e
 
 /**
  * @brief VMCALL to unset VM-entry LOAD DEBUG CONTROLS
@@ -215,7 +205,7 @@
  * IA32_DEBUGCTL MSR are loaded on VM entry.
  * 
  */
-#define VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x21
+#define VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x1f
 
 /**
  * @brief VMCALL to set VM-exit SAVE DEBUG CONTROLS
@@ -223,7 +213,7 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  * 
  */
-#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x22
+#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x20
 
 /**
  * @brief VMCALL to unset VM-exit SAVE DEBUG CONTROLS
@@ -231,58 +221,58 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  * 
  */
-#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x23
+#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x21
 
 /**
  * @brief VMCALL to cause vm-exit and halt the system
  * 
  */
-#define VMCALL_VM_EXIT_HALT_SYSTEM 0x24
+#define VMCALL_VM_EXIT_HALT_SYSTEM 0x22
 
 /**
  * @brief VMCALL to cause vm-exit on NMIs
  * 
  */
-#define VMCALL_SET_VM_EXIT_ON_NMIS 0x25
+#define VMCALL_SET_VM_EXIT_ON_NMIS 0x23
 
 /**
  * @brief VMCALL to not cause vm-exit on NMIs
  * 
  */
-#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x26
+#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x24
 
 /**
  * @brief VMCALL to cause vm-exit and set the cr3
  * 
  */
-#define VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3 0x27
+#define VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3 0x25
 
 /**
  * @brief VMCALL to signal debugger that debuggee finished
  * execution of the command
  * 
  */
-#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x28
+#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x26
 
 /**
  * @brief VMCALL to send messages to the debugger
  * 
  */
-#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x29
+#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x27
 
 /**
  * @brief VMCALL to send general buffers from debuggee user-mode
  * to the debugger
  * 
  */
-#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x2a
+#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x28
 
 /**
  * @brief VMCALL to cause vm-exit and halt the system because
  * of triggering an event
  * 
  */
-#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x2b
+#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x29
 
 //////////////////////////////////////////////////
 //				    Functions					//

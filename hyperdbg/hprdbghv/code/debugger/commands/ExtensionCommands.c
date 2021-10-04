@@ -310,7 +310,7 @@ ExtensionCommandResetExceptionBitmapAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnAllCores, NULL);
+    KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
 }
 
 /**

@@ -1215,6 +1215,43 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
 }
 
 /**
+ * @brief get the length of active EPT hooks (!epthook and !epthook2)
+ * @param IsEptHook2 Whether the length should be for !epthook or !epthook2
+ * 
+ * @return UINT32 Count of remained breakpoints 
+ */
+UINT32
+EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
+{
+    UINT32      Count    = 0;
+    PLIST_ENTRY TempList = 0;
+
+    TempList = &g_EptState->HookedPagesList;
+    while (&g_EptState->HookedPagesList != TempList->Flink)
+    {
+        TempList                            = TempList->Flink;
+        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
+        if (IsEptHook2)
+        {
+            if (HookedEntry->IsHiddenBreakpoint == FALSE)
+            {
+                Count++;
+            }
+        }
+        else
+        {
+            if (HookedEntry->IsHiddenBreakpoint == TRUE)
+            {
+                Count++;
+            }
+        }
+    }
+
+    return Count;
+}
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx non-root
  * 
@@ -1228,8 +1265,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
     SIZE_T      PhysicalAddress;
     UINT64      TargetAddressInFakePageContent;
     UINT64      PageOffset;
-    PLIST_ENTRY TempList                   = 0;
-    BOOLEAN     FoundHiddenBreakpointEntry = FALSE;
+    PLIST_ENTRY TempList = 0;
 
     if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
     {
@@ -1297,20 +1333,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                         // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
                         // to visit all the entries to see if there is any entries
                         //
-                        TempList = &g_EptState->HookedPagesList;
-                        while (&g_EptState->HookedPagesList != TempList->Flink)
-                        {
-                            TempList                            = TempList->Flink;
-                            PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
-
-                            if (HookedEntry->IsHiddenBreakpoint)
-                            {
-                                FoundHiddenBreakpointEntry = TRUE;
-                                break;
-                            }
-                        }
-
-                        if (!FoundHiddenBreakpointEntry)
+                        if (EptHookGetCountOfEpthooks(FALSE) == 0)
                         {
                             //
                             // Did not find any entry, let's disable the breakpoints vm-exits

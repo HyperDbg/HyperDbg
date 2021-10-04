@@ -251,8 +251,8 @@
     <ClCompile Include="code\memory\PoolManager.c">
       <Filter>code\memory</Filter>
     </ClCompile>
-    <ClCompile Include="code\common\ResourceController.c">
-      <Filter>code\common</Filter>
+    <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c">
+      <Filter>code\vmm\vmx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -373,8 +373,8 @@
     <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
     </ClInclude>
-    <ClInclude Include="header\common\ResourceController.h">
-      <Filter>header\common</Filter>
+    <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1393,6 +1393,78 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 }
 
 /**
+ * @brief Count the list of events in a special list that
+ * are activate on a target core
+ * 
+ * @param TargetEventList target event list
+ * @param TargetCore target core
+ * @return UINT32 count of events on the list which is activated
+ * on the target core
+ */
+UINT32
+DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
+{
+    PLIST_ENTRY TempList = 0;
+    UINT32      Counter  = 0;
+
+    //
+    // We have to iterate through all events of this list
+    //
+    TempList = TargetEventList;
+
+    while (TargetEventList != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
+            CurrentEvent->CoreId == TargetCore)
+        {
+            //
+            // Increase the counter
+            //
+            Counter++;
+        }
+    }
+
+    return Counter;
+}
+
+/**
+ * @brief Get the mask related to the !exception command for the
+ * target core
+ * 
+ * @param CoreIndex The index of core
+ * 
+ * @return UINT32 Returns the current mask for the core
+ */
+UINT32
+DebuggerExceptionEventBitmapMask(UINT32 CoreIndex)
+{
+    PLIST_ENTRY TempList      = 0;
+    UINT32      ExceptionMask = 0;
+
+    //
+    // We have to iterate through all events of this list
+    //
+    TempList = &g_Events->ExceptionOccurredEventsHead;
+
+    while (&g_Events->ExceptionOccurredEventsHead != TempList->Flink)
+    {
+        TempList                     = TempList->Flink;
+        PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+        if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES ||
+            CurrentEvent->CoreId == CoreIndex)
+        {
+            ExceptionMask |= CurrentEvent->OptionalParam1;
+        }
+    }
+
+    return ExceptionMask;
+}
+
+/**
  * @brief Enable an event by tag
  * 
  * @param Tag Tag of target event

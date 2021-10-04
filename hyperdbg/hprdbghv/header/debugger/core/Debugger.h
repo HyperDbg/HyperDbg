@@ -114,7 +114,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE InstrumentationStepInTrace;
     BOOLEAN                                EnableExternalInterruptsOnContinue;
     BOOLEAN                                EnableExternalInterruptsOnContinueMtf;
-    BOOLEAN                                PassErrorsToWindbg;
     BOOLEAN                                DisableTrapFlagOnContinue;
     BOOLEAN                                WaitForStepTrap;
     BOOLEAN                                WaitingForNmi;
@@ -216,6 +215,12 @@ DebuggerTerminateAllEvents();
 
 UINT32
 DebuggerEventListCount(PLIST_ENTRY TargetEventList);
+
+UINT32
+DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore);
+
+UINT32
+DebuggerExceptionEventBitmapMask(UINT32 CoreIndex);
 
 BOOLEAN
 DebuggerIsTagValid(UINT64 Tag);
