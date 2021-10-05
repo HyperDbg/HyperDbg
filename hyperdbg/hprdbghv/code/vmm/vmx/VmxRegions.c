@@ -203,8 +203,9 @@ VmxAllocateMsrBitmap(INT ProcessorID)
 {
     //
     // Allocate memory for MSR Bitmap
+    // Should be aligned
     //
-    g_GuestState[ProcessorID].MsrBitmapVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG); // should be aligned
+    g_GuestState[ProcessorID].MsrBitmapVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
     if (g_GuestState[ProcessorID].MsrBitmapVirtualAddress == NULL)
     {

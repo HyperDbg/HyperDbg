@@ -377,6 +377,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
             ExFreePoolWithTag(Action, POOLTAG);
             return NULL;
         }
+
         RtlZeroMemory(RequestedBuffer, InTheCaseOfCustomCode->OptionalRequestedBufferSize);
 
         //
@@ -419,6 +420,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
             ExFreePoolWithTag(Action, POOLTAG);
             return NULL;
         }
+
         RtlZeroMemory(RequestedBuffer, InTheCaseOfRunScript->OptionalRequestedBufferSize);
 
         //

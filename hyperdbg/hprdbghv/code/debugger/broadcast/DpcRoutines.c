@@ -91,6 +91,7 @@ DpcRoutineRunTaskOnSingleCore(UINT32 CoreNumber, PVOID Routine, PVOID DeferredCo
         //
         // We can't get the lock, probably sth goes wrong !
         //
+        ExFreePoolWithTag(Dpc, POOLTAG);
         return STATUS_UNSUCCESSFUL;
     }
 
