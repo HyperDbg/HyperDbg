@@ -1317,7 +1317,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                         //
                         // remove the entry from the list
                         //
-                        RemoveEntryList(HookedEntry->PageHookList.Flink);
+                        RemoveEntryList(&HookedEntry->PageHookList);
 
                         //
                         // we add the hooked entry to the list
@@ -1406,7 +1406,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
                 //
                 // remove the entry from the list
                 //
-                RemoveEntryList(HookedEntry->PageHookList.Flink);
+                RemoveEntryList(&HookedEntry->PageHookList);
 
                 //
                 // we add the hooked entry to the list
