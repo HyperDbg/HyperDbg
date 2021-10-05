@@ -246,7 +246,7 @@ ExtensionCommandEnableRdtscExitingAllCores()
 }
 
 /**
- * @brief routines for disabling !tsc command
+ * @brief routines for disabling rdtsc/p exiting
  * @return VOID 
  */
 VOID
@@ -256,6 +256,19 @@ ExtensionCommandDisableRdtscExitingAllCores()
     // Broadcast to all cores
     //
     KeGenericCallDpc(DpcRoutineDisableRdtscExitingAllCores, NULL);
+}
+
+/**
+ * @brief routines ONLY for disabling !tsc command 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores, NULL);
 }
 
 /**

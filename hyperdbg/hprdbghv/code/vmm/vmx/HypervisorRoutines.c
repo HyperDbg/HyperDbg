@@ -716,37 +716,6 @@ HvPerformMsrBitmapWriteReset()
 }
 
 /**
- * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp) 
- * @details Should be called in vmx-root
- * 
- * @param Set Set or unset the vm-exits
- * @return VOID 
- */
-VOID
-HvSetTscVmexit(BOOLEAN Set)
-{
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (Set)
-    {
-        CpuBasedVmExecControls |= CPU_BASED_RDTSC_EXITING;
-    }
-    else
-    {
-        CpuBasedVmExecControls &= ~CPU_BASED_RDTSC_EXITING;
-    }
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
-}
-
-/**
  * @brief Set vm-exit for rdpmc instructions 
  * @details Should be called in vmx-root
  * 
@@ -1303,4 +1272,16 @@ HvSetExternalInterruptExiting(BOOLEAN Set)
     // This is a wrapper to perform extra checks
     //
     ProtectedHvSetExternalInterruptExiting(Set);
+}
+
+/**
+ * @brief Set the RDTSC/P Exiting
+ * 
+ * @param Set Set or unset the RDTSC/P Exiting
+ * @return VOID 
+ */
+VOID
+HvSetRdtscExiting(BOOLEAN Set)
+{
+    ProtectedHvSetRdtscExiting(Set);
 }

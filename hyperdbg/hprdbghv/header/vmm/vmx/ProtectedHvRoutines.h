@@ -36,6 +36,11 @@ typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
     //
     PASSING_OVER_INTERRUPT_EVENTS,
 
+    //
+    // for external rdtsc/p exitings
+    //
+    PASSING_OVER_TSC_EVENTS,
+
 } PROTECTED_HV_RESOURCES_PASSING_OVERS;
 //////////////////////////////////////////////////
 //                   Functions                  //
@@ -66,3 +71,13 @@ ProtectedHvSetExternalInterruptExiting(BOOLEAN Set);
 
 VOID
 ProtectedHvExternalInterruptExitingForDisablingInterruptCommands();
+
+//
+// RDTSC/P Exiting Functions
+//
+
+VOID
+ProtectedHvSetRdtscExiting(BOOLEAN Set);
+
+VOID
+ProtectedHvDisableRdtscExitingForDisablingTscCommands();

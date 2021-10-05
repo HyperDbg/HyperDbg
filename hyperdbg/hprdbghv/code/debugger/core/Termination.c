@@ -754,7 +754,7 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableRdtscExitingAllCores();
+        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -807,7 +807,7 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableRdtscExitingAllCores();
+        ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
     }
 }
 

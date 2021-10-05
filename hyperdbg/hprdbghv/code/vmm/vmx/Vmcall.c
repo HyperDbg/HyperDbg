@@ -191,7 +191,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SET_RDTSC_EXITING:
     {
-        HvSetTscVmexit(TRUE);
+        HvSetRdtscExiting(TRUE);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -245,7 +245,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_UNSET_RDTSC_EXITING:
     {
-        HvSetTscVmexit(FALSE);
+        HvSetRdtscExiting(FALSE);
         VmcallStatus = STATUS_SUCCESS;
         break;
 
@@ -422,6 +422,12 @@ VmxVmcallHandler(UINT64      VmcallNumber,
                                               GuestRegs,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                                               &TriggeredEventDetail);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS:
+    {
+        ProtectedHvDisableRdtscExitingForDisablingTscCommands();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

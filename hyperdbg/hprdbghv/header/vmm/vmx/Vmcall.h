@@ -274,6 +274,13 @@
  */
 #define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x29
 
+/**
+ * @brief VMCALL to clear rdtsc exiting bit ONLY in the case of disabling
+ * the events for !tsc command
+ * 
+ */
+#define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x2a
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

@@ -188,15 +188,6 @@ VOID
 HvPerformMsrBitmapWriteReset();
 
 /**
- * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp) 
- * 
- * @param Set 
- * @return VOID 
- */
-VOID
-HvSetTscVmexit(BOOLEAN Set);
-
-/**
  * @brief Set vm-exit for rdpmc instructions
  * 
  * @param Set 
@@ -332,3 +323,12 @@ HvUnsetExceptionBitmap(UINT32 IdtIndex);
  */
 VOID
 HvSetExternalInterruptExiting(BOOLEAN Set);
+
+/**
+ * @brief Set the RDTSC/P Exiting
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetRdtscExiting(BOOLEAN Set);

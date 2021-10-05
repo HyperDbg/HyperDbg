@@ -761,6 +761,36 @@ DpcRoutineDisableRdtscExitingAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID S
 }
 
 /**
+ * @brief Disables rdtsc/rdtscp exiting in primary cpu-based controls
+ * ONLY for clearing !tsc events
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disables rdtsc/rdtscp exiting in primary cpu-based controls
+    // ONLY for clearing events
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables rdpmc exiting in primary cpu-based controls
  * 
  * @param Dpc 

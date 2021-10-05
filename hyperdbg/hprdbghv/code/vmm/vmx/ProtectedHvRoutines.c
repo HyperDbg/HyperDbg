@@ -306,3 +306,103 @@ ProtectedHvExternalInterruptExitingForDisablingInterruptCommands()
 {
     ProtectedHvApplySetExternalInterruptExiting(FALSE, PASSING_OVER_INTERRUPT_EVENTS);
 }
+
+/**
+ * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp) 
+ * @details Should be called in vmx-root
+ * 
+ * @param Set Set or unset the vm-exits
+ * @param PassOver Adds some pass over to the checks
+ * thus we won't check for tsc
+
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    ULONG  CpuBasedVmExecControls = 0;
+    UINT32 CurrentCoreId          = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check if the integrity check is because of clearing
+        // events or not, if it's for clearing events, the debugger
+        // will automatically set
+        //
+        if (!(PassOver & PASSING_OVER_TSC_EVENTS))
+        {
+            CurrentCoreId = KeGetCurrentProcessorNumber();
+
+            //
+            // we have to check for !tsc events and decide whether to
+            // ignore this event or not
+            //
+            if (DebuggerEventListCountByCore(&g_Events->TscInstructionExecutionEventsHead, CurrentCoreId) != 0)
+            {
+                //
+                // We should ignore this unset, because !tsc is enabled for this core
+                //
+
+                return;
+            }
+        }
+
+        //
+        // Check if transparent mode is enabled
+        //
+        if (g_TransparentMode)
+        {
+            //
+            // We should ignore it as we want this bit on transparent mode
+            //
+            return;
+        }
+    }
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_RDTSC_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_RDTSC_EXITING;
+    }
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set the RDTSC/P Exiting
+ * 
+ * @param Set Set or unset the RDTSC/P Exiting
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetRdtscExiting(BOOLEAN Set)
+{
+    ProtectedHvSetTscVmexit(Set, PASSING_OVER_NONE);
+}
+
+/**
+ * @brief Clear events of !tsc
+ * 
+ * @return VOID 
+ */
+VOID
+ProtectedHvDisableRdtscExitingForDisablingTscCommands()
+{
+    ProtectedHvSetTscVmexit(FALSE, PASSING_OVER_TSC_EVENTS);
+}

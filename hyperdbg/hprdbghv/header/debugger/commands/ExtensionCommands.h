@@ -40,6 +40,9 @@ VOID
 ExtensionCommandDisableRdtscExitingAllCores();
 
 VOID
+ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
+
+VOID
 ExtensionCommandEnableRdpmcExitingAllCores();
 
 VOID
