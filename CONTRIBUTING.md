@@ -4,7 +4,7 @@
 Contributing in HyperDbg is always super appreciated.
 
 ## Coding Style
-If you want to create a pull request please read [coding-style](https://docs.hyperdbg.com/contribution/style-guide/coding-style), [doxygen-style](https://docs.hyperdbg.com/contribution/style-guide/doxygen-style), and [command-style](https://docs.hyperdbg.com/contribution/style-guide/command-style) in the case you want a new feature, or report a bug, please explain it in [issues](https://GitHub.com/HyperDbg/HyperDbg/issues/).
+If you want to create a pull request please read [coding-style](https://docs.hyperdbg.org/contribution/style-guide/coding-style), [doxygen-style](https://docs.hyperdbg.org/contribution/style-guide/doxygen-style), and [command-style](https://docs.hyperdbg.org/contribution/style-guide/command-style) in the case you want a new feature, or report a bug, please explain it in [issues](https://GitHub.com/HyperDbg/HyperDbg/issues/).
 
 ## FAQ
 Here's some Frequently Asked Questions which may help with your moving process

@@ -51,7 +51,7 @@ main(int argc, char * argv[])
     string PreviousCommand;
 
     printf("HyperDbg Debugger [core version: v%s]\n", Version);
-    printf("Please visit https://docs.hyperdbg.com for more information...\n");
+    printf("Please visit https://docs.hyperdbg.org for more information...\n");
     printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
 
     if (argc != 1)
