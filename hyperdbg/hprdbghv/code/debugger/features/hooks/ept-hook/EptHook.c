@@ -1252,6 +1252,156 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
 }
 
 /**
+ * @brief Remove single hook of detours type
+ * @details Should be called from vmx non-root
+ * 
+ * @param HookedEntry entry detail of hooked address
+ * @return BOOLEAN If unhook was successful it returns true or if it
+ * was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
+{
+    //
+    // Remove it in all the cores
+    //
+    KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+
+    //
+    // Now that we removed this hidden detours hook, it is
+    // time to remove it from g_EptHook2sDetourListHead
+    //
+    EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
+
+    //
+    // remove the entry from the list
+    //
+    RemoveEntryList(&HookedEntry->PageHookList);
+
+    //
+    // we add the hooked entry to the list
+    // of pools that will be deallocated on next IOCTL
+    //
+    if (!PoolManagerFreePool(HookedEntry))
+    {
+        LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Remove single hook of hidden breakpoint type
+ * @details Should be called from vmx non-root
+ * 
+ * @param HookedEntry entry detail of hooked address
+ * @param VirtualAddress virtual address to unhook
+ * @return BOOLEAN If unhook was successful it returns true or if it
+ * was not successful returns false
+ */
+BOOLEAN
+EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, UINT64 VirtualAddress)
+{
+    UINT64 TargetAddressInFakePageContent;
+    UINT64 PageOffset;
+
+    //
+    // It's a hidden breakpoint (we have to search through an array of addresses)
+    //
+    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+    {
+        if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
+        {
+            //
+            // Check if it's a single breakpoint
+            //
+            if (HookedEntry->CountOfBreakpoints == 1)
+            {
+                //
+                // Remove the hook entirely on all cores
+                //
+                KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
+
+                //
+                // remove the entry from the list
+                //
+                RemoveEntryList(&HookedEntry->PageHookList);
+
+                //
+                // we add the hooked entry to the list
+                // of pools that will be deallocated on next IOCTL
+                //
+                if (!PoolManagerFreePool(HookedEntry))
+                {
+                    LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
+                }
+
+                //
+                // Check if there is any other breakpoints, if no then we have to disalbe
+                // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
+                // to visit all the entries to see if there is any entries
+                //
+                if (EptHookGetCountOfEpthooks(FALSE) == 0)
+                {
+                    //
+                    // Did not find any entry, let's disable the breakpoints vm-exits
+                    // on exception bitmaps
+                    //
+                    BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
+                }
+
+                return TRUE;
+            }
+            else
+            {
+                //
+                // Set 0xcc to its previous value
+                //
+                TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
+                TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
+                PageOffset                     = PAGE_OFFSET(VirtualAddress);
+                TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
+
+                //
+                // Set the previous value
+                //
+                *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
+
+                //
+                // Remove just that special entry
+                // Btw, No need to remove it, it will be replace automatically
+                //
+                HookedEntry->BreakpointAddresses[i]                = NULL;
+                HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
+
+                //
+                // all addresses to a lower array index (because one entry is
+                // missing and might) be in the middle of the array
+                //
+                for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
+                {
+                    HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
+                    HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
+                }
+
+                //
+                // Decrease the count of breakpoints
+                //
+                HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints - 1;
+
+                return TRUE;
+            }
+        }
+    }
+
+    //
+    // If we reach here, sth went
+    //
+    return FALSE;
+}
+
+/**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx non-root
  * 
@@ -1263,8 +1413,6 @@ BOOLEAN
 EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
 {
     SIZE_T      PhysicalAddress;
-    UINT64      TargetAddressInFakePageContent;
-    UINT64      PageOffset;
     PLIST_ENTRY TempList = 0;
 
     if (ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES || ProcessId == 0)
@@ -1294,96 +1442,9 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
         if (HookedEntry->IsHiddenBreakpoint)
         {
             //
-            // It's a hidden breakpoint (we have to search through an array of addresses)
+            // It's a hidden breakpoint
             //
-            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
-            {
-                if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
-                {
-                    //
-                    // We found an address that matches this entry
-                    //
-
-                    //
-                    // Check if it's a single breakpoint
-                    //
-                    if (HookedEntry->CountOfBreakpoints == 1)
-                    {
-                        //
-                        // Remove the hook entirely on all cores
-                        //
-                        KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
-
-                        //
-                        // remove the entry from the list
-                        //
-                        RemoveEntryList(&HookedEntry->PageHookList);
-
-                        //
-                        // we add the hooked entry to the list
-                        // of pools that will be deallocated on next IOCTL
-                        //
-                        if (!PoolManagerFreePool(HookedEntry))
-                        {
-                            LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
-                        }
-
-                        //
-                        // Check if there is any other breakpoints, if no then we have to disalbe
-                        // exception bitmaps on vm-exits for breakpoint, for this purpose, we have
-                        // to visit all the entries to see if there is any entries
-                        //
-                        if (EptHookGetCountOfEpthooks(FALSE) == 0)
-                        {
-                            //
-                            // Did not find any entry, let's disable the breakpoints vm-exits
-                            // on exception bitmaps
-                            //
-                            BroadcastDisableBreakpointExitingOnExceptionBitmapAllCores();
-                        }
-                        return TRUE;
-                    }
-                    else
-                    {
-                        //
-                        // Set 0xcc to its previous value
-                        //
-                        TargetAddressInFakePageContent = &HookedEntry->FakePageContents;
-                        TargetAddressInFakePageContent = PAGE_ALIGN(TargetAddressInFakePageContent);
-                        PageOffset                     = PAGE_OFFSET(VirtualAddress);
-                        TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
-
-                        //
-                        // Set the previous value
-                        //
-                        *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
-
-                        //
-                        // Remove just that special entry
-                        // Btw, No need to remove it, it will be replace automatically
-                        //
-                        HookedEntry->BreakpointAddresses[i]                = NULL;
-                        HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
-
-                        //
-                        // all addresses to a lower array index (because one entry is
-                        // missing and might) be in the middle of the array
-                        //
-                        for (size_t j = i; j < MaximumHiddenBreakpointsOnPage - 1; j++)
-                        {
-                            HookedEntry->BreakpointAddresses[j]                = HookedEntry->BreakpointAddresses[j + 1];
-                            HookedEntry->PreviousBytesOnBreakpointAddresses[j] = HookedEntry->PreviousBytesOnBreakpointAddresses[j + 1];
-                        }
-
-                        //
-                        // Decrease the count of breakpoints
-                        //
-                        HookedEntry->CountOfBreakpoints = HookedEntry->CountOfBreakpoints - 1;
-
-                        return TRUE;
-                    }
-                }
-            }
+            return EptHookUnHookSingleAddressHiddenBreakpoint(HookedEntry, VirtualAddress);
         }
         else
         {
@@ -1392,32 +1453,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
             //
             if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
             {
-                //
-                // Remove it in all the cores
-                //
-                KeGenericCallDpc(DpcRoutineRemoveHookAndInvalidateSingleEntryOnAllCores, HookedEntry->PhysicalBaseAddress);
-
-                //
-                // Now that we removed this hidden detours hook, it is
-                // time to remove it from g_EptHook2sDetourListHead
-                //
-                EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(HookedEntry->VirtualAddress);
-
-                //
-                // remove the entry from the list
-                //
-                RemoveEntryList(&HookedEntry->PageHookList);
-
-                //
-                // we add the hooked entry to the list
-                // of pools that will be deallocated on next IOCTL
-                //
-                if (!PoolManagerFreePool(HookedEntry))
-                {
-                    LogError("Err, something goes wrong, the pool not found in the list of previously allocated pools by pool manager");
-                }
-
-                return TRUE;
+                return EptHookUnHookSingleAddressDetours(HookedEntry);
             }
         }
     }
