@@ -272,7 +272,6 @@ ScriptEnginePseudoRegGetPname()
         CHAR CurrentModulePath[MAX_PATH] = {0};
         if (GetModuleFileNameEx(Handle, 0, CurrentModulePath, MAX_PATH))
         {
-
             //
             // At this point, buffer contains the full path to the executable
             //
@@ -840,7 +839,15 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx", Value);
+
+    //
+    // Prepare a buffer to bypass stack
+    //
+    char   TempBuffer[20] = {0};
+    UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
+
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -1108,7 +1115,13 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
     }
     else
     {
-        LogSimpleWithTag(Tag, ImmediateMessagePassing, "%llx\n", Value);
+        //
+        // Prepare a buffer to bypass stack
+        //
+        char   TempBuffer[20] = {0};
+        UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
+
+        LogSimpleWithTag(Tag, ImmediateMessagePassing, TempBuffer, TempBufferLen + 1);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1583,7 +1596,12 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-    LogSimpleWithTag(Tag, ImmediateMessagePassing, "%s", FinalBuffer);
+
+    //
+    // Prepare a buffer to bypass stack
+    //
+    LogSimpleWithTag(Tag, ImmediateMessagePassing, FinalBuffer, strlen(FinalBuffer) + 1);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 

@@ -514,77 +514,77 @@ typedef enum _LOG_TYPE
  * @brief Log, general
  * 
  */
-#    define LogInfo(format, ...)                                        \
-        LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                              UseImmediateMessaging,                    \
-                              ShowSystemTimeOnDebugMessages,            \
-                              "[+] Information (%s:%d) | " format "\n", \
-                              __func__,                                 \
-                              __LINE__,                                 \
-                              __VA_ARGS__)
+#    define LogInfo(format, ...)                                                  \
+        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                        UseImmediateMessaging,                    \
+                                        ShowSystemTimeOnDebugMessages,            \
+                                        "[+] Information (%s:%d) | " format "\n", \
+                                        __func__,                                 \
+                                        __LINE__,                                 \
+                                        __VA_ARGS__)
 
 /**
  * @brief Log in the case of immediate message
  * 
  */
-#    define LogInfoImmediate(format, ...)                               \
-        LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                              TRUE,                                     \
-                              ShowSystemTimeOnDebugMessages,            \
-                              "[+] Information (%s:%d) | " format "\n", \
-                              __func__,                                 \
-                              __LINE__,                                 \
-                              __VA_ARGS__)
+#    define LogInfoImmediate(format, ...)                                         \
+        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                        TRUE,                                     \
+                                        ShowSystemTimeOnDebugMessages,            \
+                                        "[+] Information (%s:%d) | " format "\n", \
+                                        __func__,                                 \
+                                        __LINE__,                                 \
+                                        __VA_ARGS__)
 
 /**
  * @brief Log in the case of warning
  * 
  */
-#    define LogWarning(format, ...)                                 \
-        LogSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
-                              UseImmediateMessaging,                \
-                              ShowSystemTimeOnDebugMessages,        \
-                              "[-] Warning (%s:%d) | " format "\n", \
-                              __func__,                             \
-                              __LINE__,                             \
-                              __VA_ARGS__)
+#    define LogWarning(format, ...)                                           \
+        LogPrepareAndSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
+                                        UseImmediateMessaging,                \
+                                        ShowSystemTimeOnDebugMessages,        \
+                                        "[-] Warning (%s:%d) | " format "\n", \
+                                        __func__,                             \
+                                        __LINE__,                             \
+                                        __VA_ARGS__)
 
 /**
  * @brief Log in the case of error
  * 
  */
-#    define LogError(format, ...)                                 \
-        LogSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
-                              UseImmediateMessaging,              \
-                              ShowSystemTimeOnDebugMessages,      \
-                              "[!] Error (%s:%d) | " format "\n", \
-                              __func__,                           \
-                              __LINE__,                           \
-                              __VA_ARGS__);                       \
-        if (DebugMode)                                            \
+#    define LogError(format, ...)                                           \
+        LogPrepareAndSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
+                                        UseImmediateMessaging,              \
+                                        ShowSystemTimeOnDebugMessages,      \
+                                        "[!] Error (%s:%d) | " format "\n", \
+                                        __func__,                           \
+                                        __LINE__,                           \
+                                        __VA_ARGS__);                       \
+        if (DebugMode)                                                      \
         DbgBreakPoint()
 
 /**
  * @brief Log without any prefix
  * 
  */
-#    define Log(format, ...)                              \
-        LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
-                              TRUE,                       \
-                              FALSE,                      \
-                              format,                     \
-                              __VA_ARGS__)
+#    define Log(format, ...)                                        \
+        LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
+                                        TRUE,                       \
+                                        FALSE,                      \
+                                        format,                     \
+                                        __VA_ARGS__)
 
 /**
- * @brief Log without any prefix
+ * @brief Log without any prefix and bypass the stack
+ * problem (getting two temporary stacks in preparing phase)
  * 
  */
-#    define LogSimpleWithTag(tag, isimmdte, format, ...) \
+#    define LogSimpleWithTag(tag, isimmdte, buffer, len) \
         LogSendMessageToQueue(tag,                       \
                               isimmdte,                  \
-                              FALSE,                     \
-                              format,                    \
-                              __VA_ARGS__)
+                              buffer,                    \
+                              len)
 
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
@@ -592,15 +592,15 @@ typedef enum _LOG_TYPE
  * @brief Log, initilize boot information and debug information
  * 
  */
-#define LogDebugInfo(format, ...)                                   \
-    if (DebugMode)                                                  \
-    LogSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
-                          UseImmediateMessaging,                    \
-                          ShowSystemTimeOnDebugMessages,            \
-                          "[+] Information (%s:%d) | " format "\n", \
-                          __func__,                                 \
-                          __LINE__,                                 \
-                          __VA_ARGS__)
+#define LogDebugInfo(format, ...)                                             \
+    if (DebugMode)                                                            \
+    LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
+                                    UseImmediateMessaging,                    \
+                                    ShowSystemTimeOnDebugMessages,            \
+                                    "[+] Information (%s:%d) | " format "\n", \
+                                    __func__,                                 \
+                                    __LINE__,                                 \
+                                    __VA_ARGS__)
 
 //////////////////////////////////////////////////
 //				External Functions				//

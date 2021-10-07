@@ -636,7 +636,8 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot)
 }
 
 /**
- * @brief Send string messages and tracing for logging and monitoring
+ * @brief Prepare a printf-style message mapping and send string messages
+ * and tracing for logging and monitoring
  * 
  * @param OperationCode Optional operation code
  * @param IsImmediateMessage Should be sent immediately
@@ -646,13 +647,10 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot)
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
-LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...)
+LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...)
 {
-    BOOLEAN Result;
     va_list ArgList;
     size_t  WrittenSize;
-    UINT32  Index;
-    KIRQL   OldIRQL;
     BOOLEAN IsVmxRootMode;
     int     SprintfResult;
     char    LogMessage[PacketChunkSize];
@@ -770,6 +768,36 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         //
         return FALSE;
     }
+
+    //
+    // Send the prepared buffer
+    //
+    return LogSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize);
+}
+
+/**
+ * @brief Send string messages and tracing for logging and monitoring
+ * 
+ * @param OperationCode Optional operation code
+ * @param IsImmediateMessage Should be sent immediately
+ * @param LogMessage Link of message buffer
+ * @param BufferLen Length of buffer
+ * 
+ * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
+ */
+BOOLEAN
+LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen)
+{
+    BOOLEAN Result;
+    UINT32  Index;
+    KIRQL   OldIRQL;
+    BOOLEAN IsVmxRootMode;
+
+    //
+    // Set Vmx State
+    //
+    IsVmxRootMode = g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode;
+
 #if UseWPPTracing
 
     if (OperationCode == OPERATION_LOG_INFO_MESSAGE)
@@ -808,7 +836,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
 #else
     if (IsImmediateMessage)
     {
-        return LogSendBuffer(OperationCode, LogMessage, WrittenSize);
+        return LogSendBuffer(OperationCode, LogMessage, BufferLen);
     }
     else
     {
@@ -844,7 +872,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         //
         // If log message WrittenSize is above the buffer then we have to send the previous buffer
         //
-        if ((MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer + WrittenSize) > PacketChunkSize - 1 && MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer != 0)
+        if ((MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer + BufferLen) > PacketChunkSize - 1 && MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer != 0)
         {
             //
             // Send the previous buffer (non-immediate message)
@@ -866,12 +894,12 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN 
         RtlCopyBytes(MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage +
                          MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
                      LogMessage,
-                     WrittenSize);
+                     BufferLen);
 
         //
         // add the length
         //
-        MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer += WrittenSize;
+        MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer += BufferLen;
 
         // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
         // if not we use the windows spinlock
