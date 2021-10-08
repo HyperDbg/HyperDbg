@@ -841,7 +841,7 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     //
-    // Prepare a buffer to bypass stack
+    // Prepare a buffer to bypass allocating a huge stack space for logging
     //
     char   TempBuffer[20] = {0};
     UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx", Value);
@@ -1116,7 +1116,7 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
     else
     {
         //
-        // Prepare a buffer to bypass stack
+        // Prepare a buffer to bypass allocating a huge stack space for logging
         //
         char   TempBuffer[20] = {0};
         UINT32 TempBufferLen  = sprintf(TempBuffer, "%llx\n", Value);
@@ -1598,7 +1598,7 @@ ScriptEngineFunctionPrintf(PGUEST_REGS   GuestRegs,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
     //
-    // Prepare a buffer to bypass stack
+    // Prepare a buffer to bypass allocating a huge stack space for logging
     //
     LogSimpleWithTag(Tag, ImmediateMessagePassing, FinalBuffer, strlen(FinalBuffer) + 1);
 

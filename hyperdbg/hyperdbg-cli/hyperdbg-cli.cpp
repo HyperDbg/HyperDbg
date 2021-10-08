@@ -22,6 +22,13 @@
 using namespace std;
 
 //
+// Global variables
+//
+bool IsOnString                    = false;
+bool IsPreviousCharacterABackSlash = false;
+int  CountOfOpenCurlyBrackets      = 0;
+
+//
 // Header file of HPRDBGCTRL
 // Imports
 //
@@ -35,6 +42,84 @@ __declspec(dllimport) int HyperdbgInterpreter(char * Command);
 __declspec(dllimport) void HyperdbgShowSignature();
 __declspec(dllimport) bool HyperdbgContinuePreviousCommand();
 __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
+}
+
+/**
+ * @brief check for multi-line commands
+ * 
+ * @param CurrentCommand 
+ * @return bool return true if the command needs extra input, otherwise
+ * return false
+ */
+bool
+CheckMultilineCommand(std::string CurrentCommand)
+{
+    for (size_t i = 0; i < CurrentCommand.length(); i++)
+    {
+        switch (CurrentCommand.at(i))
+        {
+        case '"':
+
+            if (IsPreviousCharacterABackSlash)
+            {
+                IsPreviousCharacterABackSlash = false;
+                break; // it's an escaped \" double-quote
+            }
+
+            if (IsOnString)
+                IsOnString = false;
+            else
+                IsOnString = true;
+
+            break;
+
+        case '{':
+
+            if (!IsOnString)
+                CountOfOpenCurlyBrackets++;
+
+            break;
+
+        case '}':
+
+            if (!IsOnString && CountOfOpenCurlyBrackets > 0)
+                CountOfOpenCurlyBrackets--;
+
+            break;
+
+        case '\\':
+
+            if (IsPreviousCharacterABackSlash)
+                IsPreviousCharacterABackSlash = false; // it's not a escape character (two backslashes \\ )
+            else
+                IsPreviousCharacterABackSlash = true;
+
+            break;
+
+        default:
+
+            if (IsPreviousCharacterABackSlash)
+                IsPreviousCharacterABackSlash = false;
+
+            break;
+        }
+    }
+
+    if (IsOnString == FALSE && CountOfOpenCurlyBrackets == 0)
+    {
+        //
+        // either the command is finished or it's a single
+        // line command
+        //
+        return false;
+    }
+    else
+    {
+        //
+        // There still other lines, this command is incomplete
+        //
+        return true;
+    }
 }
 
 /**
@@ -81,9 +166,16 @@ main(int argc, char * argv[])
     {
         HyperdbgShowSignature();
 
-        string CurrentCommand;
+        string CurrentCommand         = "";
+        IsOnString                    = false;
+        IsPreviousCharacterABackSlash = false;
+        CountOfOpenCurlyBrackets      = 0;
 
-        getline(cin, CurrentCommand);
+    GetMultiLinecCommand:
+
+        string TempCommand = "";
+
+        getline(cin, TempCommand);
 
         if (cin.fail() || cin.eof())
         {
@@ -94,6 +186,39 @@ main(int argc, char * argv[])
             // probably sth like CTRL+C pressed
             //
             continue;
+        }
+
+        //
+        // Check for multi-line commands
+        //
+        if (CheckMultilineCommand(TempCommand) == true)
+        {
+            //
+            // It's a multi-line command
+            //
+
+            //
+            // Save the command with a space separator
+            //
+            CurrentCommand += TempCommand + " ";
+
+            //
+            // Show a small signature
+            //
+            printf(">  ");
+
+            //
+            // Get next command
+            //
+            goto GetMultiLinecCommand;
+        }
+        else
+        {
+            //
+            // Either the multi-line is finished or it's a
+            // single line command
+            //
+            CurrentCommand += TempCommand;
         }
 
         if (!CurrentCommand.compare("") &&

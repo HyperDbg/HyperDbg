@@ -2054,22 +2054,22 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     switch (*Error)
     {
     case SCRIPT_ENGINE_ERROR_SYNTAX:
-        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Syntax Error: ");
         strcat(Message, "Invalid Syntax");
         return Message;
 
     case SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN:
-        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Syntax Error: ");
         strcat(Message, "Unknown Token");
         return Message;
 
     case SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE:
-        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Syntax Error: ");
         strcat(Message, "Unresolved Variable");
         return Message;
 
     case SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE:
-        strcat(Message, "SyntaxError: ");
+        strcat(Message, "Syntax Error: ");
         strcat(Message, "Unhandled Semantic Rule");
         return Message;
 
