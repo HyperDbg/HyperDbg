@@ -80,7 +80,7 @@ Here's a diagram that shows how HyperDbg works:
 </br>
 
 ## Scripts
-You can write your own **[scripts](https://github.com/HyperDbg/scripts)** and automate the debugger. HyperDbg has a powerful, fast, and fully kernel side implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language).
+You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automate your debugging journey. **HyperDbg** has a powerful, fast, and entirely kernel-side implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language).
 
 ## Credits
 - Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
