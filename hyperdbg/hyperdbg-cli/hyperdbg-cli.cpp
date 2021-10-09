@@ -75,12 +75,18 @@ CheckMultilineCommand(std::string CurrentCommand)
 
         case '{':
 
+            if (IsPreviousCharacterABackSlash)
+                IsPreviousCharacterABackSlash = false;
+
             if (!IsOnString)
                 CountOfOpenCurlyBrackets++;
 
             break;
 
         case '}':
+
+            if (IsPreviousCharacterABackSlash)
+                IsPreviousCharacterABackSlash = false;
 
             if (!IsOnString && CountOfOpenCurlyBrackets > 0)
                 CountOfOpenCurlyBrackets--;
@@ -205,7 +211,7 @@ main(int argc, char * argv[])
             //
             // Show a small signature
             //
-            printf(">  ");
+            printf("> ");
 
             //
             // Get next command
