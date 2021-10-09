@@ -12,9 +12,9 @@
 
 ### HyperDbg is now available for testing! Please test it and provide us with your valuable feedback and possible bugs.
 
-**HyperDbg** Debugger is an open-source, community-driven, hypervisor-assisted, user-mode and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing and reversing.
+HyperDbg Debugger is an open-source, community-driven, hypervisor-assisted, user-mode and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing and reversing.
 
-Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases!
+Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases.
 
 
 ## Description
@@ -66,7 +66,7 @@ If you want to build HyperDbg, you should clone HyperDbg with `--recursive` flag
 ```
 git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
-Please visit <a href="https://docs.hyperdbg.org/getting-started/build-and-install">Build & Install</a> and <a href="https://docs.hyperdbg.org/getting-started/quick-start">Quick Start</a> for a detailed explanation of how to start with **HyperDbg**. You can also see <a href="https://docs.hyperdbg.org/getting-started/faq">FAQ</a> for more information.
+Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
 
 ## How does it work?
 
@@ -80,7 +80,7 @@ Here's a diagram that shows how HyperDbg works:
 </br>
 
 ## Scripts
-You can write your own **[scripts](https://github.com/HyperDbg/scripts)** and automate the debugger. HyperDbg has a powerful, fast, and fully kernel-mode implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language)!
+You can write your own **[scripts](https://github.com/HyperDbg/scripts)** and automate the debugger. HyperDbg has a powerful, fast, and fully kernel side implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language).
 
 ## Credits
 - Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
