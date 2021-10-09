@@ -14,8 +14,8 @@
 
 **HyperDbg** Debugger is an open-source, community-driven, hypervisor-assisted, user-mode and kernel-mode Windows debugger with a focus on using modern hardware technologies. It is a debugger designed for analyzing, fuzzing and reversing.
 
-Follow **HyperDbg** on **Twitter** to get notified about new releases!
-<p align="center">(https://twitter.com/HyperDbg)</p>
+Follow **HyperDbg** on **[Twitter](https://twitter.com/HyperDbg)** to get notified about new releases!
+
 
 ## Description
 
@@ -70,18 +70,17 @@ Please visit <a href="https://docs.hyperdbg.org/getting-started/build-and-instal
 
 ## How does it work?
 
-We explained about how HyperDbg internally works and how we designed its features in details, take a look at : </br>
-<p align="center">(https://docs.hyperdbg.org/design)</p>
+We explained about how HyperDbg internally works and how we designed its features in the [documentation](https://docs.hyperdbg.org/design). 
 
-Here's a diagram that shows how HyperDbg works!
+Here's a diagram that shows how HyperDbg works:
 </br>
 
 <p align="center"><a href="https://hyperdbg.org/"><img align="center" width="70%" height="100%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/Diagram-hq-v1/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
 </p>
 </br>
 
-## Plugins
-The plugin framework is not ready for the current version of HyperDbg. Future versions will support plugins.
+## Scripts
+You can write your own **[scripts](https://github.com/HyperDbg/scripts)** and automate the debugger. HyperDbg has a powerful, fast, and fully kernel-mode implemented [script engine](https://docs.hyperdbg.org/commands/scripting-language)!
 
 ## Credits
 - Mohammad Sina Karvandi (<a href="https://twitter.com/Intel80x86">@Intel80x86</a>)
