@@ -124,7 +124,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         if (HookedEntry->CountOfBreakpoints >= MaximumHiddenBreakpointsOnPage)
         {
             //
-            // Means that breakpoint is full !
+            // Means that breakpoint is full!
             // we can't apply this breakpoint
             //
             return FALSE;
@@ -1305,11 +1305,16 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
 {
     UINT64 TargetAddressInFakePageContent;
     UINT64 PageOffset;
+    UINT32 CountOfEntriesWithSameAddr = 0;
 
     //
     // It's a hidden breakpoint (we have to search through an array of addresses)
+    // We count it from top to down because if there are two ept hooks at the
+    // same address, then the last one has an invalid PreviousByte and this
+    // is the HookedEntry that should be remove (not the first one as it has the
+    // correct PreviousByte)
     //
-    for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
+    for (size_t i = HookedEntry->CountOfBreakpoints; i-- > 0;)
     {
         if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
         {
@@ -1364,13 +1369,29 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
                 TargetAddressInFakePageContent = TargetAddressInFakePageContent + PageOffset;
 
                 //
-                // Set the previous value
+                // We'll check if there is another hooked address with the same virtual address
+                // in the array, then we'll ignore setting the previous bit as previous bit might
+                // be modified for the previous command
                 //
-                *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
+                for (size_t j = 0; j < HookedEntry->CountOfBreakpoints; j++)
+                {
+                    if (HookedEntry->BreakpointAddresses[i] == VirtualAddress)
+                    {
+                        CountOfEntriesWithSameAddr++;
+                    }
+                }
+
+                if (CountOfEntriesWithSameAddr == 1)
+                {
+                    //
+                    // Set the previous value
+                    //
+                    *(BYTE *)TargetAddressInFakePageContent = HookedEntry->PreviousBytesOnBreakpointAddresses[i];
+                }
 
                 //
                 // Remove just that special entry
-                // Btw, No need to remove it, it will be replace automatically
+                // Btw, No need to remove it, it will be replaced automatically
                 //
                 HookedEntry->BreakpointAddresses[i]                = NULL;
                 HookedEntry->PreviousBytesOnBreakpointAddresses[i] = 0x0;
