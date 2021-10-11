@@ -2596,6 +2596,24 @@ GetValue(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionBuffer, UINT64 * g_TempList,
         return g_TempList[Symbol->Value];
     }
 }
+
+UINT64*
+GetValuePtr(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionBuffer, UINT64 * g_TempList, UINT64 * g_VariableList, PSYMBOL Symbol)
+{
+    switch (Symbol->Type)
+    {
+    case SYMBOL_ID_TYPE:
+        return &g_VariableList[Symbol->Value];
+    case SYMBOL_NUM_TYPE:
+        return &Symbol->Value;
+    case SYMBOL_REGISTER_TYPE:
+        return (UINT64*) GetRegValue(GuestRegs, (REGS_ENUM)Symbol->Value);
+    case SYMBOL_PSEUDO_REG_TYPE:
+        return (UINT64 *) GetPseudoRegValue(Symbol, ActionBuffer);
+    case SYMBOL_TEMP_TYPE:
+        return &g_TempList[Symbol->Value];
+    }
+}
 VOID
 SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 {
@@ -4343,6 +4361,23 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
+
+    case FUNC_REF:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+             (UINT64)GetValuePtr(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = SrcVal0;
+        SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
+
+        return HasError;
+
 
     case FUNC_CHECK_ADDRESS:
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

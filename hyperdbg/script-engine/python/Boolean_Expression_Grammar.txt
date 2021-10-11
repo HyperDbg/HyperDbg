@@ -96,8 +96,10 @@ E12->_binary @PUSH
 
 E12->_pseudo_register @PUSH
 
-E12->- E12 @NEG
-E12->+ E12
-E12->~ E12 @NEG
+E12->- E12 @NEG E13
+E12->+ E12 E13
+E12->~ E12 @NOT E13 
+E12->* E12 @POI E13
+E12->& E12 @REF E13 
 
 E13->eps
