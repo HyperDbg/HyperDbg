@@ -3841,7 +3841,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)&SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -3872,7 +3872,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedCompareExchange((volatile long long *)&SrcVal2, SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedCompareExchange((volatile long long *)SrcVal2, SrcVal1, SrcVal0);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -3892,7 +3892,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1, FALSE);
 
-        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)&SrcVal1, SrcVal0);
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0);
 
         return HasError;
 
@@ -4483,7 +4483,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)&SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)SrcVal0);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -4499,7 +4499,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)&SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)SrcVal0);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -4603,13 +4603,14 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src0, FALSE);
 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockLock((volatile LONG *)&SrcVal0);
+        ScriptEngineFunctionSpinlockLock((volatile LONG *)SrcVal0);
         return HasError;
 
     case FUNC_SPINLOCK_UNLOCK:
@@ -4622,7 +4623,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockUnlock((volatile LONG *)&SrcVal0);
+        ScriptEngineFunctionSpinlockUnlock((volatile LONG *)SrcVal0);
         return HasError;
 
     case FUNC_DISABLE_EVENT:
