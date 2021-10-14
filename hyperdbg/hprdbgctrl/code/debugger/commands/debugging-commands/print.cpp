@@ -120,6 +120,8 @@ CommandPrint(vector<string> SplittedCommand, string Command)
         // Remove the buffer of script engine interpreted code
         //
         ScriptEngineWrapperRemoveSymbolBuffer(CodeBuffer);
+
+        ShowMessages("\n");
     }
     else
     {
