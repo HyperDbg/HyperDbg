@@ -2122,7 +2122,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return (GetGuestRFlags() & (0x1 << X86_FLAGS_PF)) != NULL ? TRUE : FALSE;
+        return (GetGuestRFlags() & (X86_FLAGS_PF)) != NULL ? TRUE : FALSE;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3177,7 +3177,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_PF) : GetGuestRFlags() & (~(X86_FLAGS_PF << 2)));
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (X86_FLAGS_PF) : GetGuestRFlags() & (~(X86_FLAGS_PF)));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3290,7 +3290,8 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT)));
-        SetGuestRFlags(Value & 0x2 ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT)));
+        Value = (Value>>4) & 1;
+        SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT)));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
