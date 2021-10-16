@@ -146,10 +146,15 @@ ReadIrpBasedBuffer()
     if (Handle == INVALID_HANDLE_VALUE)
     {
         ErrorNum = GetLastError();
-        if (ErrorNum == 5)
+        if (ErrorNum == ERROR_ACCESS_DENIED)
         {
-            ShowMessages("err, access denied! are you sure you have administrator "
+            ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
+            ShowMessages("err, a device attached to the system is not functioning\n"
+                         "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
         }
         else
         {
@@ -598,10 +603,15 @@ HyperdbgLoadVmm()
     if (g_DeviceHandle == INVALID_HANDLE_VALUE)
     {
         ErrorNum = GetLastError();
-        if (ErrorNum == 5)
+        if (ErrorNum == ERROR_ACCESS_DENIED)
         {
-            ShowMessages("err, Access denied! Are you sure you have administrator "
+            ShowMessages("err, access denied\nare you sure you have administrator "
                          "rights?\n");
+        }
+        else if (ErrorNum == ERROR_GEN_FAILURE)
+        {
+            ShowMessages("err, a device attached to the system is not functioning\n"
+                         "vmx feature might be disabled from BIOS or VBS/HVCI is active\n");
         }
         else
         {

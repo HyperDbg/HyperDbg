@@ -267,68 +267,64 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
         GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
-        if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+        //
+        // No, longer needs to be checked because we're sticking to system process
+        // and we have to change the cr3
+        //
+        // if ((GuestCr3.Flags & PCID_MASK) != PCID_NONE)
+
+        OriginalCr3 = __readcr3();
+
+        __writecr3(GuestCr3.Flags);
+
+        //
+        // Read the memory
+        //
+        CHAR * InstructionBuffer[3] = {0};
+
+        if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
         {
-            OriginalCr3 = __readcr3();
-
-            __writecr3(GuestCr3.Flags);
-
             //
-            // Read the memory
+            // The page is safe to read (present)
             //
-            CHAR * InstructionBuffer[3] = {0};
-
-            if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
-            {
-                //
-                // The page is safe to read (present)
-                //
-                MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
-            }
-            else
-            {
-                //
-                // The page is not present, we have to inject a #PF
-                //
-                g_GuestState[CoreIndex].IncrementRip = FALSE;
-
-                //
-                // For testing purpose
-                //
-                // LogInfo("#PF Injected");
-
-                //
-                // Inject #PF
-                //
-                EventInjectPageFault(Rip);
-
-                //
-                // We should not inject #UD
-                //
-                return FALSE;
-            }
-
-            if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
-            {
-                __writecr3(OriginalCr3);
-                goto EmulateSYSRET;
-            }
-            if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
-            {
-                __writecr3(OriginalCr3);
-                goto EmulateSYSCALL;
-            }
-            __writecr3(OriginalCr3);
-            return FALSE;
+            MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
         }
         else
         {
-            if (IS_SYSRET_INSTRUCTION(Rip))
-                goto EmulateSYSRET;
-            if (IS_SYSCALL_INSTRUCTION(Rip))
-                goto EmulateSYSCALL;
+            //
+            // The page is not present, we have to inject a #PF
+            //
+            g_GuestState[CoreIndex].IncrementRip = FALSE;
+
+            //
+            // For testing purpose
+            //
+            // LogInfo("#PF Injected");
+
+            //
+            // Inject #PF
+            //
+            EventInjectPageFault(Rip);
+
+            //
+            // We should not inject #UD
+            //
             return FALSE;
         }
+
+        if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
+        {
+            __writecr3(OriginalCr3);
+            goto EmulateSYSRET;
+        }
+        if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
+        {
+            __writecr3(OriginalCr3);
+            goto EmulateSYSCALL;
+        }
+        __writecr3(OriginalCr3);
+
+        return FALSE;
     }
     //----------------------------------------------------------------------------------------
 
