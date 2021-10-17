@@ -280,7 +280,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         //
         // Read the memory
         //
-        CHAR * InstructionBuffer[3] = {0};
+        UCHAR InstructionBuffer[10] = {0};
 
         if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
         {
@@ -312,20 +312,37 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             return FALSE;
         }
 
-        if (IS_SYSRET_INSTRUCTION(InstructionBuffer))
+        __writecr3(OriginalCr3);
+
+        if (InstructionBuffer[0] == 0x0F &&
+            InstructionBuffer[1] == 0x05)
         {
-            __writecr3(OriginalCr3);
-            goto EmulateSYSRET;
-        }
-        if (IS_SYSCALL_INSTRUCTION(InstructionBuffer))
-        {
-            __writecr3(OriginalCr3);
             goto EmulateSYSCALL;
         }
-        __writecr3(OriginalCr3);
+
+        if (InstructionBuffer[0] == 0x48 &&
+            InstructionBuffer[1] == 0x0F &&
+            InstructionBuffer[2] == 0x07)
+        {
+            goto EmulateSYSRET;
+        }
+
+        /*
+        if (Rip & 0xff00000000000000)
+        {
+            LogInfo("sysret %llx", *InstructionBuffer);
+            goto EmulateSYSRET;
+        }
+        else
+        {
+            LogInfo("syscall %llx", *InstructionBuffer);
+            goto EmulateSYSCALL;
+        }
+        */
 
         return FALSE;
     }
+
     //----------------------------------------------------------------------------------------
 
     //

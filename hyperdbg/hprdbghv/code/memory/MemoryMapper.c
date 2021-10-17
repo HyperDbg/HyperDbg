@@ -192,7 +192,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     //
     // we need VA of Cr3, not PA
     //
-    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3, TargetCr3);
+    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
 
     //
     // Check for invalid address
@@ -211,7 +211,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
         return Pml4e;
     }
 
-    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12, TargetCr3);
+    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -230,7 +230,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
         return Pdpte;
     }
 
-    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12, TargetCr3);
+    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -249,7 +249,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
         return Pde;
     }
 
-    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12, TargetCr3);
+    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12);
 
     //
     // Check for invalid address
