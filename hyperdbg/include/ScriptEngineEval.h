@@ -871,7 +871,7 @@ ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, U
 
 // spinlock_lock
 VOID
-ScriptEngineFunctionSpinlockLock(volatile LONG * Lock)
+ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     //
@@ -881,13 +881,20 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
     SpinlockLock(Lock);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
 // spinlock_unlock
 VOID
-ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock)
+ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     //
@@ -897,13 +904,21 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
     SpinlockUnlock(Lock);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
 // spinlock_lock_custom_wait
 VOID
-ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait)
+ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     //
@@ -913,7 +928,15 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Lock, sizeof(LONG)))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
     SpinlockLockWithCustomWait(Lock, MaxWait);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -961,9 +984,20 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 // interlocked_exchange
 long long
 ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
-                                        long long            Value)
+                                        long long            Value,
+                                        BOOL *               HasError)
 {
     long long Result = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Target, sizeof(long long)))
+    {
+        *HasError = TRUE;
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     Result = InterlockedExchange64(Target, Value);
 
@@ -973,9 +1007,20 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 // interlocked_exchange_add
 long long
 ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
-                                           long long            Value)
+                                           long long            Value,
+                                           BOOL *               HasError)
 {
     long long Result = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    {
+        *HasError = TRUE;
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     Result = InterlockedExchangeAdd64(Addend, Value);
 
@@ -984,9 +1029,20 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 // interlocked_exchange_increment
 long long
-ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend)
+ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
+                                         BOOL *               HasError)
 {
     long long Result = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    {
+        *HasError = TRUE;
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     Result = InterlockedIncrement64(Addend);
 
@@ -995,9 +1051,20 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend)
 
 // interlocked_exchange_decrement
 long long
-ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend)
+ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
+                                         BOOL *               HasError)
 {
     long long Result = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Addend, sizeof(long long)))
+    {
+        *HasError = TRUE;
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     Result = InterlockedDecrement64(Addend);
 
@@ -1009,9 +1076,20 @@ long long
 ScriptEngineFunctionInterlockedCompareExchange(
     long long volatile * Destination,
     long long            ExChange,
-    long long            Comperand)
+    long long            Comperand,
+    BOOL *               HasError)
 {
     long long Result = 0;
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    if (!CheckMemoryAccessSafety(Destination, sizeof(long long)))
+    {
+        *HasError = TRUE;
+        return NULL;
+    }
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
 
     Result = InterlockedCompareExchange64(Destination, ExChange, Comperand);
 
@@ -3290,7 +3368,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT)));
-        Value = (Value>>4) & 1;
+        Value = (Value >> 4) & 1;
         SetGuestRFlags(Value & TRUE ? GetGuestRFlags() | (1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT) : GetGuestRFlags() & (~(1 << X86_FLAGS_IOPL_SHIFT_2ND_BIT)));
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
@@ -3818,7 +3896,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)&SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)&SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -3842,7 +3920,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -3873,7 +3951,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedCompareExchange((volatile long long *)SrcVal2, SrcVal1, SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedCompareExchange((volatile long long *)SrcVal2, SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
@@ -3893,7 +3971,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, g_TempList, g_VariableList, Src1, FALSE);
 
-        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0);
+        ScriptEngineFunctionSpinlockLockCustomWait((volatile long *)SrcVal1, SrcVal0, &HasError);
 
         return HasError;
 
@@ -4484,7 +4562,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)SrcVal0, &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -4500,7 +4578,7 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)SrcVal0);
+        DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)SrcVal0, &HasError);
         SetValue(GuestRegs, g_TempList, g_VariableList, Des, DesVal);
 
         return HasError;
@@ -4611,7 +4689,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockLock((volatile LONG *)SrcVal0);
+        ScriptEngineFunctionSpinlockLock((volatile LONG *)SrcVal0, &HasError);
+
         return HasError;
 
     case FUNC_SPINLOCK_UNLOCK:
@@ -4624,7 +4703,8 @@ ScriptEngineExecute(PGUEST_REGS GuestRegs, ACTION_BUFFER ActionDetail, UINT64 * 
         //
         // Call the target function
         //
-        ScriptEngineFunctionSpinlockUnlock((volatile LONG *)SrcVal0);
+        ScriptEngineFunctionSpinlockUnlock((volatile LONG *)SrcVal0, &HasError);
+
         return HasError;
 
     case FUNC_DISABLE_EVENT:
