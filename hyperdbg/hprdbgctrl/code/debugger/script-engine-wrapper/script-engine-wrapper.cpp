@@ -96,13 +96,14 @@ ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName)
  * @brief ScriptEngineSearchSymbolForMask wrapper
  *
  * @param SearchMask
+ * @param UpdateSymbolTable
  * 
  * @return UINT32
  */
 UINT32
-ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
+ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask, BOOLEAN UpdateSymbolTable)
 {
-    return ScriptEngineSearchSymbolForMask(SearchMask);
+    return ScriptEngineSearchSymbolForMask(SearchMask, UpdateSymbolTable);
 }
 
 /**

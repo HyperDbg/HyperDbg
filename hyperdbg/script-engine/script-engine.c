@@ -71,12 +71,12 @@ ScriptEngineUnloadModuleSymbol(char * ModuleName)
 }
 
 UINT32
-ScriptEngineSearchSymbolForMask(const char * SearchMask)
+ScriptEngineSearchSymbolForMask(const char * SearchMask, BOOLEAN UpdateSymbolTable)
 {
     //
     // A wrapper for pdb mask searcher
     //
-    return SymSearchSymbolForMask(SearchMask);
+    return SymSearchSymbolForMask(SearchMask, UpdateSymbolTable);
 }
 
 BOOLEAN

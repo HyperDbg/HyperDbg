@@ -44,27 +44,19 @@ all
 extern UINT32 g_DisassemblerSyntax;
 
 /**
- * @brief   Defines the `ZydisSymbol` struct.
+ * @brief Defines the `ZydisSymbol` struct.
  */
 typedef struct ZydisSymbol_
 {
     /**
-   * @brief   The symbol address.
+   * @brief The symbol address.
    */
     ZyanU64 address;
     /**
-   * @brief   The symbol name.
+   * @brief The symbol name.
    */
     const char * name;
 } ZydisSymbol;
-
-/**
- * @brief   A static symbol table with some dummy symbols.
- */
-static const ZydisSymbol SYMBOL_TABLE[3] = {
-    {0x007FFFFFFF401000, "SomeModule.EntryPoint"},
-    {0x007FFFFFFF530040, "SomeModule.SomeData"},
-    {0x007FFFFFFF401100, "SomeModule.SomeFunction"}};
 
 ZydisFormatterFunc default_print_address_absolute;
 
@@ -84,15 +76,20 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
     ZyanU64 address;
     ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
 
-    for (ZyanUSize i = 0; i < ZYAN_ARRAY_LENGTH(SYMBOL_TABLE); ++i)
+    std::map<UINT64, std::string>           SymbolMap;
+    std::map<UINT64, std::string>::iterator Iterate;
+
+    SymbolMap[0xfffff801639b1030] = "nt!ExAllocatePoolWithTag";
+    SymbolMap[0xfffff801639b1050] = "nt!ExSinaWithTag";
+
+    Iterate = SymbolMap.find(address);
+
+    if (Iterate != SymbolMap.end())
     {
-        if (SYMBOL_TABLE[i].address == address)
-        {
-            ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
-            ZyanString * string;
-            ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
-            return ZyanStringAppendFormat(string, "<%s>", SYMBOL_TABLE[i].name);
-        }
+        ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
+        ZyanString * string;
+        ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
+        return ZyanStringAppendFormat(string, "<%s>", Iterate->second.c_str());
     }
 
     return default_print_address_absolute(formatter, buffer, context);

@@ -181,6 +181,11 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
                                                SilentLoad);
 
     //
+    // Build symbol table for disassembler
+    //
+    ScriptEngineSearchSymbolForMaskWrapper(NULL, TRUE);
+
+    //
     // Not in loading routines anymore
     //
     g_IsExecutingSymbolLoadingRoutines = FALSE;
@@ -450,6 +455,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             KdSendSymbolDetailPacket(&ModuleSymDetailArray[i], i, ModuleInfo->NumberOfModules);
         }
     }
+
     //
     // Store the buffer and length of module symbols details
     //

@@ -280,7 +280,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         //
         // Read the memory
         //
-        UCHAR InstructionBuffer[10] = {0};
+        UCHAR InstructionBuffer[3] = {0};
 
         if (MemoryMapperCheckIfPageIsPresentByCr3(Rip, GuestCr3))
         {

@@ -547,43 +547,68 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
  * @details mainly used by the 'x' command
  *
  * @param SearchMask
+ * @param UpdateSymbolTable
  * 
  * @return UINT32
  */
 UINT32
-SymSearchSymbolForMask(const char * SearchMask)
+SymSearchSymbolForMask(const char * SearchMask, BOOLEAN UpdateSymbolTable)
 {
     BOOL    Ret        = FALSE;
     DWORD64 ModuleBase = NULL;
 
-    //
-    // Find module base
-    //
-    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
-
-    //
-    // Find the module name
-    //
-    if (ModuleBase == NULL)
+    if (!UpdateSymbolTable)
     {
         //
-        // Module not found or there was an error
+        // Find module base
         //
-        return -1;
+        ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+
+        //
+        // Find the module name
+        //
+        if (ModuleBase == NULL)
+        {
+            //
+            // Module not found or there was an error
+            //
+            return -1;
+        }
+
+        Ret = SymEnumSymbols(
+            GetCurrentProcess(),           // Process handle of the current process
+            ModuleBase,                    // Base address of the module
+            SearchMask,                    // Mask (NULL -> all symbols)
+            SymDisplayMaskSymbolsCallback, // The callback function
+            NULL                           // A used-defined context can be passed here, if necessary
+        );
+
+        if (!Ret)
+        {
+            ShowMessages("err, symbol enum failed (%u)\n",
+                         GetLastError());
+        }
     }
-
-    Ret = SymEnumSymbols(
-        GetCurrentProcess(),    // Process handle of the current process
-        ModuleBase,             // Base address of the module
-        SearchMask,             // Mask (NULL -> all symbols)
-        SymEnumSymbolsCallback, // The callback function
-        NULL                    // A used-defined context can be passed here, if necessary
-    );
-
-    if (!Ret)
+    else
     {
-        ShowMessages("err, symbol enum failed (%u)\n",
-                     GetLastError());
+        //
+        // Create a symbol table from all modules
+        //
+        for (auto item : g_LoadedModules)
+        {
+            Ret = SymEnumSymbols(
+                GetCurrentProcess(),    // Process handle of the current process
+                item->BaseAddress,      // Base address of the module
+                NULL,                   // Mask (NULL -> all symbols)
+                SymEnumSymbolsCallback, // The callback function
+                NULL                    // A used-defined context can be passed here, if necessary
+            );
+
+            if (!Ret)
+            {
+                //  ShowMessages("err, symbol enum failed (%u)\n", GetLastError());
+            }
+        }
     }
 
     return 0;
@@ -880,12 +905,33 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
  * @return BOOL
  */
 BOOL CALLBACK
-SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
 {
     if (SymInfo != 0)
     {
         SymShowSymbolDetails(*SymInfo);
     }
+
+    //
+    // Continue enumeration
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Callback for showing and enumerating symbols
+ *
+ * @param SymInfo
+ * @param SymbolSize
+ * @param UserContext
+ * 
+ * @return BOOL
+ */
+BOOL CALLBACK
+SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+{
+    // SymInfo->Address
+    // SymInfo->Name
 
     //
     // Continue enumeration

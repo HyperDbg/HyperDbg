@@ -41,7 +41,7 @@ __declspec(dllexport) VOID SymSetTextMessageCallback(PVOID handler);
 __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
-__declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
+__declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask, BOOLEAN UpdateSymbolTable);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
@@ -64,6 +64,9 @@ SymShowSymbolInfo(DWORD64 ModBase);
 
 BOOL CALLBACK
 SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
+
+BOOL CALLBACK
+SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
 
 VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo);
