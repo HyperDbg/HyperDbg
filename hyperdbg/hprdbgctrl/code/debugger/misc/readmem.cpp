@@ -102,10 +102,26 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
     }
     else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
     {
+        //
+        // Shows the function name
+        //
+        SymbolShowFunctionNameBasedOnAddress(Address);
+
+        //
+        // Show diassembles
+        //
         HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
     }
     else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
     {
+        //
+        // Shows the function name
+        //
+        SymbolShowFunctionNameBasedOnAddress(Address);
+
+        //
+        // Show diassembles
+        //
         HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
     }
 

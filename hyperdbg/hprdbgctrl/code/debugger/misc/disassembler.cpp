@@ -326,6 +326,9 @@ HyperDbgDisassembler64(unsigned char * BufferToDisassemble,
     ZydisDecoder decoder;
     ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_ADDRESS_WIDTH_64);
 
+    //
+    // Disassembling buffer
+    //
     DisassembleBuffer(&decoder, BaseAddress, &BufferToDisassemble[0], Size, MaximumInstrDecoded, TRUE, ShowBranchIsTakenOrNot, Rflags);
 
     return 0;
@@ -363,6 +366,9 @@ HyperDbgDisassembler32(unsigned char * BufferToDisassemble,
     ZydisDecoder decoder;
     ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_ADDRESS_WIDTH_32);
 
+    //
+    // Disassembling buffer
+    //
     DisassembleBuffer(&decoder, (UINT32)BaseAddress, &BufferToDisassemble[0], Size, MaximumInstrDecoded, FALSE, ShowBranchIsTakenOrNot, Rflags);
 
     return 0;

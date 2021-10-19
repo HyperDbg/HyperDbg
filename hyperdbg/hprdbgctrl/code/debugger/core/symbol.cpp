@@ -70,24 +70,41 @@ SymbolPrepareDebuggerWithSymbolInfo()
 /**
  * @brief Callback for creating symbol map for disassembler
  *
- * @param SymInfo
- * @param SymbolSize
- * @param UserContext
+ * @param Address
+ * @param ModuleName
+ * @param ObjectName
  * 
- * @return BOOL
+ * @return VOID
  */
-BOOL CALLBACK
-SymbolCreateDisassemblerMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+VOID
+SymbolCreateDisassemblerMapCallback(UINT64 Address, char * ModuleName, char * ObjectName)
 {
-    // ShowMessages("%llx : %s\n", SymInfo->Address, SymInfo->Name
+    string FinalModuleName = "";
 
-    g_DisassemblerSymbolMap[SymInfo->Address] = SymInfo->Name;
+    //
+    // Convert module name to string
+    //
+    if (ModuleName != NULL)
+    {
+        FinalModuleName += std::string(ModuleName) + "!";
+    }
 
-    return TRUE;
+    //
+    // Convert object name to string
+    //
+    if (ObjectName != NULL)
+    {
+        FinalModuleName += std::string(ObjectName);
+    }
+
+    //
+    // Add to disassembler map
+    //
+    g_DisassemblerSymbolMap[Address] = FinalModuleName;
 }
 
 /**
- * @brief Update (or create) symbol map for disassembler
+ * @brief Update (or create) symbol map for the disassembler
  * 
  * @return BOOLEAN
  */
@@ -105,6 +122,65 @@ SymbolCreateDisassemblerSymbolMap()
     ScriptEngineCreateSymbolTableForDisassemblerWrapper(SymbolCreateDisassemblerMapCallback);
 
     return TRUE;
+}
+
+/**
+ * @brief shows the functions' name for the disassembler
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymbolShowFunctionNameBasedOnAddress(UINT64 Address)
+{
+    std::map<UINT64, std::string>::iterator Low, Prev;
+    UINT64                                  Pos = Address;
+
+    //
+    // Check if we already built the symbol map for disassembler or not
+    //
+    if (!g_DisassemblerSymbolMap.empty())
+    {
+        Low = g_DisassemblerSymbolMap.lower_bound(Pos);
+
+        if (Low == g_DisassemblerSymbolMap.end())
+        {
+            //
+            // Nothing found, maybe use rbegin()
+            //
+        }
+        else if (Low == g_DisassemblerSymbolMap.begin() && Low->first > Address)
+        {
+            //
+            // Nothing to do, address is below the lowest entry in symbol table
+            //
+        }
+        else if (Low->first == Address)
+        {
+            ShowMessages("%s:\n", Low->second.c_str());
+        }
+        else
+        {
+            Prev        = std::prev(Low);
+            UINT64 Diff = Address - Prev->first;
+
+            //
+            // Check, so we have a threshold boundary to add +xx to the
+            // symbols function name, in otherwords, the maximum number of
+            // bytes that a function could contain (it's definitely not the
+            // best option to find start and end of function, it's an approximate
+            // and not always might be true)
+            //
+            if (DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME > Diff)
+            {
+                ShowMessages("%s+0x%x:\n", Prev->second.c_str(), Diff & DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME);
+            }
+        }
+    }
+
+    //
+    // Nothing is showed
+    //
+    return FALSE;
 }
 
 /**

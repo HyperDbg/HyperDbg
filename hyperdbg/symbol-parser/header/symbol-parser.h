@@ -64,10 +64,10 @@ VOID
 SymShowSymbolInfo(DWORD64 ModBase);
 
 BOOL CALLBACK
-SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
+SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
 
 BOOL CALLBACK
-SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
+SymDeliverDisassemblerSymbolMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);
 
 VOID
 SymShowSymbolDetails(SYMBOL_INFO & SymInfo);

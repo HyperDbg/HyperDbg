@@ -347,6 +347,13 @@ typedef struct _MODULE_SYMBOL_DETAIL
  */
 typedef int (*Callback)(const char * Text);
 
+/**
+ * @brief Callback type that should be used to add
+ * list of Addresses to ObjectNames
+ *
+ */
+typedef VOID (*SymbolMapCallback)(UINT64 Address, char * ModuleName, char * ObjectName);
+
 //////////////////////////////////////////////////
 //               Event Details                  //
 //////////////////////////////////////////////////
@@ -863,6 +870,13 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
  */
 
 #define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
+
+/**
+ * @brief Maximum length for a function (to be used in showing distance
+ * from symbol functions in the 'u' command)
+ *
+ */
+#define DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME 0xffff
 
 /**
  * @brief different types of reading memory

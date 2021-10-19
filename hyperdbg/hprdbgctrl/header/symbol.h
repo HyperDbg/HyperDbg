@@ -19,6 +19,9 @@ VOID
 SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable);
 
 BOOLEAN
+SymbolShowFunctionNameBasedOnAddress(UINT64 Address);
+
+BOOLEAN
 SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
 
 BOOLEAN

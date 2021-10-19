@@ -21,6 +21,7 @@ BOOLEAN                                    g_AbortLoadingExecution      = FALSE;
 CHAR *                                     g_CurrentModuleName          = NULL;
 CHAR                                       g_NtModuleName[_MAX_FNAME]   = {0};
 Callback                                   g_MessageHandler             = NULL;
+SymbolMapCallback                          g_SymbolMapForDisassembler   = NULL;
 
 /**
  * @brief Set the function callback that will be called if any message
@@ -604,16 +605,29 @@ SymCreateSymbolTableForDisassembler(void * CallbackFunction)
     BOOLEAN Result = TRUE;
 
     //
+    // Set the callback function to deliver the name of module!ObjectName
+    //
+    g_SymbolMapForDisassembler = (SymbolMapCallback)CallbackFunction;
+
+    //
     // Create a symbol table from all modules
     //
     for (auto item : g_LoadedModules)
     {
+        //
+        // Set module name
+        //
+        g_CurrentModuleName = (char *)item->ModuleName;
+
+        //
+        // Call the callback for the current module
+        //
         Ret = SymEnumSymbols(
-            GetCurrentProcess(),                              // Process handle of the current process
-            item->BaseAddress,                                // Base address of the module
-            NULL,                                             // Mask (NULL -> all symbols)
-            (PSYM_ENUMERATESYMBOLS_CALLBACK)CallbackFunction, // The callback function
-            NULL                                              // A used-defined context can be passed here, if necessary
+            GetCurrentProcess(),                     // Process handle of the current process
+            item->BaseAddress,                       // Base address of the module
+            NULL,                                    // Mask (NULL -> all symbols)
+            SymDeliverDisassemblerSymbolMapCallback, // The callback function
+            NULL                                     // A used-defined context can be passed here, if necessary
         );
 
         if (!Ret)
@@ -925,6 +939,32 @@ SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID Use
     if (SymInfo != 0)
     {
         SymShowSymbolDetails(*SymInfo);
+    }
+
+    //
+    // Continue enumeration
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Callback for delivering module!ObjectName to disassembler symbol map
+ *
+ * @param SymInfo
+ * @param SymbolSize
+ * @param UserContext
+ * 
+ * @return BOOL
+ */
+BOOL CALLBACK
+SymDeliverDisassemblerSymbolMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+{
+    if (SymInfo != 0 && g_SymbolMapForDisassembler != NULL)
+    {
+        //
+        // Call the remote callback
+        //
+        g_SymbolMapForDisassembler(SymInfo->Address, g_CurrentModuleName, SymInfo->Name);
     }
 
     //

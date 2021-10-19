@@ -753,11 +753,27 @@ StartAgain:
 
                 if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
                 {
+                    //
+                    // Shows the function name
+                    //
+                    SymbolShowFunctionNameBasedOnAddress(ReadMemoryPacket->Address);
+
+                    //
+                    // Show diassembles
+                    //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
                 }
                 else if (ReadMemoryPacket->Style ==
                          DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
                 {
+                    //
+                    // Shows the function name
+                    //
+                    SymbolShowFunctionNameBasedOnAddress(ReadMemoryPacket->Address);
+
+                    //
+                    // Show diassembles
+                    //
                     HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
                 }
                 else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DB)
