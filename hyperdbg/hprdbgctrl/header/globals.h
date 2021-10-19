@@ -401,6 +401,12 @@ BOOLEAN g_BreakPrintingOutput = FALSE;
 BOOLEAN g_IsExecutingSymbolLoadingRoutines = FALSE;
 
 /**
+ * @brief Symbol table for disassembler
+ *
+ */
+std::map<UINT64, std::string> g_DisassemblerSymbolMap;
+
+/**
  * @brief Shows whether the user executed and mesaured '!measure'
  * command or not, it is because we want to use these measurements
  * later in '!hide' command

@@ -547,71 +547,86 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
  * @details mainly used by the 'x' command
  *
  * @param SearchMask
- * @param UpdateSymbolTable
  * 
  * @return UINT32
  */
 UINT32
-SymSearchSymbolForMask(const char * SearchMask, BOOLEAN UpdateSymbolTable)
+SymSearchSymbolForMask(const char * SearchMask)
 {
     BOOL    Ret        = FALSE;
     DWORD64 ModuleBase = NULL;
 
-    if (!UpdateSymbolTable)
+    //
+    // Find module base
+    //
+    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+
+    //
+    // Find the module name
+    //
+    if (ModuleBase == NULL)
     {
         //
-        // Find module base
+        // Module not found or there was an error
         //
-        ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+        return -1;
+    }
 
-        //
-        // Find the module name
-        //
-        if (ModuleBase == NULL)
-        {
-            //
-            // Module not found or there was an error
-            //
-            return -1;
-        }
+    Ret = SymEnumSymbols(
+        GetCurrentProcess(),           // Process handle of the current process
+        ModuleBase,                    // Base address of the module
+        SearchMask,                    // Mask (NULL -> all symbols)
+        SymDisplayMaskSymbolsCallback, // The callback function
+        NULL                           // A used-defined context can be passed here, if necessary
+    );
 
+    if (!Ret)
+    {
+        ShowMessages("err, symbol enum failed (%u)\n",
+                     GetLastError());
+    }
+
+    return 0;
+}
+
+/**
+ * @brief Create symbol table for disassembler 
+ * @details mainly used by disassembler for 'u' command
+ *
+ * @param CallbackFunction
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymCreateSymbolTableForDisassembler(void * CallbackFunction)
+{
+    BOOL    Ret    = FALSE;
+    BOOLEAN Result = TRUE;
+
+    //
+    // Create a symbol table from all modules
+    //
+    for (auto item : g_LoadedModules)
+    {
         Ret = SymEnumSymbols(
-            GetCurrentProcess(),           // Process handle of the current process
-            ModuleBase,                    // Base address of the module
-            SearchMask,                    // Mask (NULL -> all symbols)
-            SymDisplayMaskSymbolsCallback, // The callback function
-            NULL                           // A used-defined context can be passed here, if necessary
+            GetCurrentProcess(),                              // Process handle of the current process
+            item->BaseAddress,                                // Base address of the module
+            NULL,                                             // Mask (NULL -> all symbols)
+            (PSYM_ENUMERATESYMBOLS_CALLBACK)CallbackFunction, // The callback function
+            NULL                                              // A used-defined context can be passed here, if necessary
         );
 
         if (!Ret)
         {
-            ShowMessages("err, symbol enum failed (%u)\n",
-                         GetLastError());
-        }
-    }
-    else
-    {
-        //
-        // Create a symbol table from all modules
-        //
-        for (auto item : g_LoadedModules)
-        {
-            Ret = SymEnumSymbols(
-                GetCurrentProcess(),    // Process handle of the current process
-                item->BaseAddress,      // Base address of the module
-                NULL,                   // Mask (NULL -> all symbols)
-                SymEnumSymbolsCallback, // The callback function
-                NULL                    // A used-defined context can be passed here, if necessary
-            );
-
-            if (!Ret)
-            {
-                //  ShowMessages("err, symbol enum failed (%u)\n", GetLastError());
-            }
+            //
+            // A module did not added correctly
+            //
+            //  ShowMessages("err, symbol enum failed (%u)\n", GetLastError());
+            Result = FALSE;
         }
     }
 
-    return 0;
+    return Result;
 }
 
 /**
@@ -911,27 +926,6 @@ SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID Use
     {
         SymShowSymbolDetails(*SymInfo);
     }
-
-    //
-    // Continue enumeration
-    //
-    return TRUE;
-}
-
-/**
- * @brief Callback for showing and enumerating symbols
- *
- * @param SymInfo
- * @param SymbolSize
- * @param UserContext
- * 
- * @return BOOL
- */
-BOOL CALLBACK
-SymEnumSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
-{
-    // SymInfo->Address
-    // SymInfo->Name
 
     //
     // Continue enumeration

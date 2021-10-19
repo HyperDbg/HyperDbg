@@ -41,7 +41,8 @@ all
 //
 // Global Variables
 //
-extern UINT32 g_DisassemblerSyntax;
+extern UINT32                        g_DisassemblerSyntax;
+extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
 
 /**
  * @brief Defines the `ZydisSymbol` struct.
@@ -73,18 +74,14 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
                                    ZydisFormatterBuffer *  buffer,
                                    ZydisFormatterContext * context)
 {
-    ZyanU64 address;
-    ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
-
-    std::map<UINT64, std::string>           SymbolMap;
+    ZyanU64                                 address;
     std::map<UINT64, std::string>::iterator Iterate;
 
-    SymbolMap[0xfffff801639b1030] = "nt!ExAllocatePoolWithTag";
-    SymbolMap[0xfffff801639b1050] = "nt!ExSinaWithTag";
+    ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
 
-    Iterate = SymbolMap.find(address);
+    Iterate = g_DisassemblerSymbolMap.find(address);
 
-    if (Iterate != SymbolMap.end())
+    if (Iterate != g_DisassemblerSymbolMap.end())
     {
         ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
         ZyanString * string;

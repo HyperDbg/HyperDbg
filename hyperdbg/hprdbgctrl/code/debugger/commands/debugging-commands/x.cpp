@@ -61,5 +61,5 @@ CommandX(vector<string> SplittedCommand, string Command)
     //
     // Search for mask
     //
-    ScriptEngineSearchSymbolForMaskWrapper(Command.c_str(), FALSE);
+    ScriptEngineSearchSymbolForMaskWrapper(Command.c_str());
 }

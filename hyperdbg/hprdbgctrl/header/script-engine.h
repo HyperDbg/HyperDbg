@@ -30,7 +30,10 @@ UINT32
 ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName);
 
 UINT32
-ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask, BOOLEAN UpdateSymbolTablerds);
+ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
+
+BOOLEAN
+ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);
 
 BOOLEAN
 ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * ResultPath);

@@ -15,11 +15,12 @@
 //
 // Global Variables
 //
-extern PMODULE_SYMBOL_DETAIL g_SymbolTable;
-extern UINT32                g_SymbolTableSize;
-extern UINT32                g_SymbolTableCurrentIndex;
-extern BOOLEAN               g_IsExecutingSymbolLoadingRoutines;
-extern BOOLEAN               g_IsSerialConnectedToRemoteDebugger;
+extern PMODULE_SYMBOL_DETAIL         g_SymbolTable;
+extern UINT32                        g_SymbolTableSize;
+extern UINT32                        g_SymbolTableCurrentIndex;
+extern BOOLEAN                       g_IsExecutingSymbolLoadingRoutines;
+extern BOOLEAN                       g_IsSerialConnectedToRemoteDebugger;
+extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
 
 /**
  * @brief Initial load of symbols (for previously download symbols)
@@ -64,6 +65,45 @@ SymbolPrepareDebuggerWithSymbolInfo()
     // Load already downloaded symbol (won't download at this point)
     //
     SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, TRUE);
+}
+
+/**
+ * @brief Callback for creating symbol map for disassembler
+ *
+ * @param SymInfo
+ * @param SymbolSize
+ * @param UserContext
+ * 
+ * @return BOOL
+ */
+BOOL CALLBACK
+SymbolCreateDisassemblerMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext)
+{
+    // ShowMessages("%llx : %s\n", SymInfo->Address, SymInfo->Name
+
+    g_DisassemblerSymbolMap[SymInfo->Address] = SymInfo->Name;
+
+    return TRUE;
+}
+
+/**
+ * @brief Update (or create) symbol map for disassembler
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymbolCreateDisassemblerSymbolMap()
+{
+    //
+    //
+    //
+
+    //
+    // Get all the symbols in the callback
+    //
+    ScriptEngineCreateSymbolTableForDisassemblerWrapper(SymbolCreateDisassemblerMapCallback);
+
+    return TRUE;
 }
 
 /**
@@ -183,7 +223,7 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
     //
     // Build symbol table for disassembler
     //
-    ScriptEngineSearchSymbolForMaskWrapper(NULL, TRUE);
+    SymbolCreateDisassemblerSymbolMap();
 
     //
     // Not in loading routines anymore

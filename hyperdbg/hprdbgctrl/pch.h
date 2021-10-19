@@ -65,6 +65,7 @@
 #    include <locale>
 #    include <memory>
 #    include <psapi.h>
+#    include <DbgHelp.h>
 
 //
 // HyperDbg defined headers
