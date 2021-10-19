@@ -462,6 +462,13 @@ UINT64 g_RdtscMedian = 0;
 BOOLEAN g_AutoUnpause = TRUE;
 
 /**
+ * @brief Whether converting addresses to object names or not
+ * @details it is enabled by default
+ *
+ */
+BOOLEAN g_AddressConversion = TRUE;
+
+/**
  * @brief Whether auto-flush mode is enabled or not enabled
  * @details it is disabled by default
  *

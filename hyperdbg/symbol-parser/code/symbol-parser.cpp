@@ -226,7 +226,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (!Ret)
     {
-        ShowMessages("err, symbol init failed (%u)\n",
+        ShowMessages("err, symbol init failed (%x)\n",
                      GetLastError());
         return -1;
     }
@@ -302,7 +302,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails == NULL)
     {
-        ShowMessages("err, allocating buffer for storing symbol details (%u)\n",
+        ShowMessages("err, allocating buffer for storing symbol details (%x)\n",
                      GetLastError());
 
         return -1;
@@ -323,7 +323,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails->ModuleBase == NULL)
     {
-        //ShowMessages("err, loading symbols failed (%u)\n",
+        //ShowMessages("err, loading symbols failed (%x)\n",
         //       GetLastError());
 
         free(ModuleDetails);
@@ -394,7 +394,7 @@ SymUnloadModuleSymbol(char * ModuleName)
 
             if (!Ret)
             {
-                ShowMessages("err, unload symbol failed (%u)\n",
+                ShowMessages("err, unload symbol failed (%x)\n",
                              GetLastError());
                 return -1;
             }
@@ -447,7 +447,7 @@ SymUnloadAllSymbols()
 
         if (!Ret)
         {
-            ShowMessages("err, unload symbol failed (%u)\n",
+            ShowMessages("err, unload symbol failed (%x)\n",
                          GetLastError());
         }
 
@@ -466,7 +466,7 @@ SymUnloadAllSymbols()
 
     if (!Ret)
     {
-        ShowMessages("err, symbol cleanup failed (%u)\n", GetLastError());
+        ShowMessages("err, symbol cleanup failed (%x)\n", GetLastError());
         return 0;
     }
 
@@ -532,7 +532,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         Found = FALSE;
 
         //
-        //ShowMessages("symbol not found (%u)\n", GetLastError());
+        //ShowMessages("symbol not found (%x)\n", GetLastError());
         //
     }
 
@@ -582,7 +582,7 @@ SymSearchSymbolForMask(const char * SearchMask)
 
     if (!Ret)
     {
-        ShowMessages("err, symbol enum failed (%u)\n",
+        ShowMessages("err, symbol enum failed (%x)\n",
                      GetLastError());
     }
 
@@ -621,7 +621,7 @@ SymCreateSymbolTableForDisassembler(void * CallbackFunction)
             //
             // A module did not added correctly
             //
-            //  ShowMessages("err, symbol enum failed (%u)\n", GetLastError());
+            //  ShowMessages("err, symbol enum failed (%x)\n", GetLastError());
             Result = FALSE;
         }
     }
@@ -729,7 +729,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        ShowMessages("err, unable to open symbol file (%u)\n", GetLastError());
+        ShowMessages("err, unable to open symbol file (%x)\n", GetLastError());
         return FALSE;
     }
 
@@ -740,7 +740,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
 
     if (FileSize == INVALID_FILE_SIZE)
     {
-        ShowMessages("err, unable to get symbol file size (%u)\n", GetLastError());
+        ShowMessages("err, unable to get symbol file size (%x)\n", GetLastError());
 
         //
         // and continue ...
@@ -752,7 +752,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
     //
     if (!CloseHandle(hFile))
     {
-        ShowMessages("err, unable to close symbol file (%u)\n", GetLastError());
+        ShowMessages("err, unable to close symbol file (%x)\n", GetLastError());
 
         //
         // and continue ...
@@ -785,7 +785,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
 
     if (!Ret)
     {
-        ShowMessages("err, unable to get symbol file information (%u)\n",
+        ShowMessages("err, unable to get symbol file information (%x)\n",
                      GetLastError());
         return;
     }

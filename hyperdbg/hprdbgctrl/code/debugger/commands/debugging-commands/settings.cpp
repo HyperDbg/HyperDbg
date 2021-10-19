@@ -16,6 +16,7 @@
 //
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_AutoFlush;
+extern BOOLEAN g_AddressConversion;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern UINT32  g_DisassemblerSyntax;
 
@@ -34,6 +35,8 @@ CommandSettingsHelp()
     ShowMessages("\t\te.g : settings autounpause\n");
     ShowMessages("\t\te.g : settings autounpause on\n");
     ShowMessages("\t\te.g : settings autounpause off\n");
+    ShowMessages("\t\te.g : settings addressconversion on\n");
+    ShowMessages("\t\te.g : settings addressconversion off\n");
     ShowMessages("\t\te.g : settings autoflush on\n");
     ShowMessages("\t\te.g : settings autoflush off\n");
     ShowMessages("\t\te.g : settings syntax intel\n");
@@ -42,7 +45,67 @@ CommandSettingsHelp()
 }
 
 /**
- * @brief set the auto-flush mode to enabled and disable
+ * @brief set the address conversion enabled and disabled
+ * and query the status of this mode
+ *
+ * @param SplittedCommand
+ * @return VOID
+ */
+VOID
+CommandSettingsAddressConversion(vector<string> SplittedCommand)
+{
+    if (SplittedCommand.size() == 2)
+    {
+        //
+        // It's a query
+        //
+        if (g_AddressConversion)
+        {
+            ShowMessages("address conversion is enabled\n");
+        }
+        else
+        {
+            ShowMessages("address conversion is disabled\n");
+        }
+    }
+    else if (SplittedCommand.size() == 3)
+    {
+        //
+        // The user tries to set a value as the autoflush
+        //
+        if (!SplittedCommand.at(2).compare("on"))
+        {
+            g_AddressConversion = TRUE;
+            ShowMessages("set address conversion to enabled\n");
+        }
+        else if (!SplittedCommand.at(2).compare("off"))
+        {
+            g_AddressConversion = FALSE;
+            ShowMessages("set address conversion to disabled\n");
+        }
+        else
+        {
+            //
+            // Sth is incorrect
+            //
+            ShowMessages("incorrect use of 'settings', please use 'help settings' "
+                         "for more details\n");
+            return;
+        }
+    }
+    else
+    {
+        //
+        // Sth is incorrect
+        //
+        ShowMessages("incorrect use of 'settings', please use 'help settings' "
+                     "for more details\n");
+        return;
+    }
+}
+
+/**
+ * @brief set the auto-flush mode to enabled and disabled
  * and query the status of this mode
  *
  * @param SplittedCommand
@@ -294,6 +357,24 @@ CommandSettings(vector<string> SplittedCommand, string Command)
             // we handle it locally
             //
             CommandSettingsAutoFlush(SplittedCommand);
+        }
+    }
+    else if (!SplittedCommand.at(1).compare("addressconversion"))
+    {
+        //
+        // If it's a remote debugger then we send it to the remote debugger
+        //
+        if (g_IsConnectedToRemoteDebuggee)
+        {
+            RemoteConnectionSendCommand(Command.c_str(), strlen(Command.c_str()) + 1);
+        }
+        else
+        {
+            //
+            // If it's a connection over serial or a local debugging then
+            // we handle it locally
+            //
+            CommandSettingsAddressConversion(SplittedCommand);
         }
     }
     else

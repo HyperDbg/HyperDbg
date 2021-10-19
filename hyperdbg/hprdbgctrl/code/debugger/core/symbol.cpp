@@ -95,8 +95,9 @@ BOOLEAN
 SymbolCreateDisassemblerSymbolMap()
 {
     //
+    // Clear the map table
     //
-    //
+    g_DisassemblerSymbolMap.clear();
 
     //
     // Get all the symbols in the callback

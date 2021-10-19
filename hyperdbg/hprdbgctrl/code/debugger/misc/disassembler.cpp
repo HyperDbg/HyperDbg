@@ -43,6 +43,7 @@ all
 //
 extern UINT32                        g_DisassemblerSyntax;
 extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
+extern BOOLEAN                       g_AddressConversion;
 
 /**
  * @brief Defines the `ZydisSymbol` struct.
@@ -79,14 +80,23 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
 
     ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
 
-    Iterate = g_DisassemblerSymbolMap.find(address);
-
-    if (Iterate != g_DisassemblerSymbolMap.end())
+    //
+    // Apply addressconversion of settings here
+    //
+    if (g_AddressConversion)
     {
-        ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
-        ZyanString * string;
-        ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
-        return ZyanStringAppendFormat(string, "<%s>", Iterate->second.c_str());
+        //
+        // Check to find the symbol of address
+        //
+        Iterate = g_DisassemblerSymbolMap.find(address);
+
+        if (Iterate != g_DisassemblerSymbolMap.end())
+        {
+            ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
+            ZyanString * string;
+            ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
+            return ZyanStringAppendFormat(string, "<%s>", Iterate->second.c_str());
+        }
     }
 
     return default_print_address_absolute(formatter, buffer, context);
