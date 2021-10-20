@@ -265,6 +265,14 @@ StartAgain:
 
                 if (!PausePacket->Is32BitAddress)
                 {
+                    //
+                    // Shows the function name
+                    //
+                    SymbolShowFunctionNameBasedOnAddress(PausePacket->Rip);
+
+                    //
+                    // Show diassembles
+                    //
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,
@@ -274,6 +282,14 @@ StartAgain:
                 }
                 else
                 {
+                    //
+                    // Shows the function name
+                    //
+                    SymbolShowFunctionNameBasedOnAddress(PausePacket->Rip);
+
+                    //
+                    // Show diassembles
+                    //
                     HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
                                            PausePacket->Rip,
                                            MAXIMUM_INSTR_SIZE,

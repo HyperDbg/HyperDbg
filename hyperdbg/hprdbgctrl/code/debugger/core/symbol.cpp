@@ -20,6 +20,7 @@ extern UINT32                        g_SymbolTableSize;
 extern UINT32                        g_SymbolTableCurrentIndex;
 extern BOOLEAN                       g_IsExecutingSymbolLoadingRoutines;
 extern BOOLEAN                       g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN                       g_AddressConversion;
 extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
 
 /**
@@ -134,6 +135,15 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address)
 {
     std::map<UINT64, std::string>::iterator Low, Prev;
     UINT64                                  Pos = Address;
+
+    //
+    // Check if showing function (object) names is not prohibited
+    // form settings command
+    //
+    if (!g_AddressConversion)
+    {
+        return FALSE;
+    }
 
     //
     // Check if we already built the symbol map for disassembler or not
