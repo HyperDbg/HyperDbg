@@ -266,11 +266,6 @@ StartAgain:
                 if (!PausePacket->Is32BitAddress)
                 {
                     //
-                    // Shows the function name
-                    //
-                    SymbolShowFunctionNameBasedOnAddress(PausePacket->Rip);
-
-                    //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
@@ -282,11 +277,6 @@ StartAgain:
                 }
                 else
                 {
-                    //
-                    // Shows the function name
-                    //
-                    SymbolShowFunctionNameBasedOnAddress(PausePacket->Rip);
-
                     //
                     // Show diassembles
                     //
@@ -770,11 +760,6 @@ StartAgain:
                 if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
                 {
                     //
-                    // Shows the function name
-                    //
-                    SymbolShowFunctionNameBasedOnAddress(ReadMemoryPacket->Address);
-
-                    //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
@@ -782,11 +767,6 @@ StartAgain:
                 else if (ReadMemoryPacket->Style ==
                          DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
                 {
-                    //
-                    // Shows the function name
-                    //
-                    SymbolShowFunctionNameBasedOnAddress(ReadMemoryPacket->Address);
-
                     //
                     // Show diassembles
                     //

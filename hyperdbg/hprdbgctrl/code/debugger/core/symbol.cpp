@@ -127,11 +127,13 @@ SymbolCreateDisassemblerSymbolMap()
 
 /**
  * @brief shows the functions' name for the disassembler
+ * @param Address
+ * @param UsedBaseAddress
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-SymbolShowFunctionNameBasedOnAddress(UINT64 Address)
+SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
 {
     std::map<UINT64, std::string>::iterator Low, Prev;
     UINT64                                  Pos = Address;
@@ -157,16 +159,24 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address)
             //
             // Nothing found, maybe use rbegin()
             //
+            return FALSE;
         }
         else if (Low == g_DisassemblerSymbolMap.begin() && Low->first > Address)
         {
             //
             // Nothing to do, address is below the lowest entry in symbol table
             //
+            return FALSE;
         }
         else if (Low->first == Address)
         {
-            ShowMessages("%s:\n", Low->second.c_str());
+            if (*UsedBaseAddress != Address)
+            {
+                ShowMessages("%s:\n", Low->second.c_str());
+                *UsedBaseAddress = Address;
+            }
+
+            return TRUE;
         }
         else
         {
@@ -182,7 +192,13 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address)
             //
             if (DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME > Diff)
             {
-                ShowMessages("%s+0x%x:\n", Prev->second.c_str(), Diff & DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME);
+                if (*UsedBaseAddress != Prev->first)
+                {
+                    ShowMessages("%s+0x%x:\n", Prev->second.c_str(), Diff);
+                    *UsedBaseAddress = Prev->first;
+                }
+
+                return TRUE;
             }
         }
     }

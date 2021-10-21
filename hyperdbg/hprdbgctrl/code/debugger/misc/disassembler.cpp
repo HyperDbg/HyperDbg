@@ -125,7 +125,8 @@ DisassembleBuffer(ZydisDecoder * decoder,
                   PRFLAGS        rflags)
 {
     ZydisFormatter formatter;
-    int            instr_decoded = 0;
+    int            instr_decoded   = 0;
+    UINT64         UsedBaseAddress = NULL;
 
     if (g_DisassemblerSyntax == 1)
     {
@@ -161,6 +162,17 @@ DisassembleBuffer(ZydisDecoder * decoder,
     while (ZYAN_SUCCESS(
         ZydisDecoderDecodeBuffer(decoder, data, length, &instruction)))
     {
+        //
+        // Apply addressconversion of settings here
+        //
+        if (g_AddressConversion)
+        {
+            //
+            // Showing function names here
+            //
+            SymbolShowFunctionNameBasedOnAddress(runtime_address, &UsedBaseAddress);
+        }
+
         // ZYAN_PRINTF("%016" PRIX64 "  ", runtime_address);
         ShowMessages("%s   ", SeparateTo64BitValue(runtime_address).c_str());
         //
