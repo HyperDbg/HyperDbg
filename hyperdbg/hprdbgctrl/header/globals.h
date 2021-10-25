@@ -404,7 +404,7 @@ BOOLEAN g_IsExecutingSymbolLoadingRoutines = FALSE;
  * @brief Symbol table for disassembler
  *
  */
-std::map<UINT64, std::string> g_DisassemblerSymbolMap;
+std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
 
 /**
  * @brief Shows whether the user executed and mesaured '!measure'

@@ -12,6 +12,21 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//			        Structures		            //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Save the local function symbols' description
+ * 
+ */
+typedef struct _LOCAL_FUNCTION_DESCRIPTION
+{
+    std::string ObjectName;
+    UINT32      ObjectSize;
+
+} LOCAL_FUNCTION_DESCRIPTION, *PLOCAL_FUNCTION_DESCRIPTION;
+
+//////////////////////////////////////////////////
 //			 For symbol (pdb) parsing		    //
 //////////////////////////////////////////////////
 

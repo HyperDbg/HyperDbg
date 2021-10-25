@@ -15,13 +15,13 @@
 //
 // Global Variables
 //
-extern PMODULE_SYMBOL_DETAIL         g_SymbolTable;
-extern UINT32                        g_SymbolTableSize;
-extern UINT32                        g_SymbolTableCurrentIndex;
-extern BOOLEAN                       g_IsExecutingSymbolLoadingRoutines;
-extern BOOLEAN                       g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN                       g_AddressConversion;
-extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
+extern PMODULE_SYMBOL_DETAIL                        g_SymbolTable;
+extern UINT32                                       g_SymbolTableSize;
+extern UINT32                                       g_SymbolTableCurrentIndex;
+extern BOOLEAN                                      g_IsExecutingSymbolLoadingRoutines;
+extern BOOLEAN                                      g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN                                      g_AddressConversion;
+extern std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
 
 /**
  * @brief Initial load of symbols (for previously download symbols)
@@ -74,13 +74,26 @@ SymbolPrepareDebuggerWithSymbolInfo()
  * @param Address
  * @param ModuleName
  * @param ObjectName
+ * @param ObjectSize
  * 
  * @return VOID
  */
 VOID
-SymbolCreateDisassemblerMapCallback(UINT64 Address, char * ModuleName, char * ObjectName)
+SymbolCreateDisassemblerMapCallback(UINT64       Address,
+                                    char *       ModuleName,
+                                    char *       ObjectName,
+                                    unsigned int ObjectSize)
 {
-    string FinalModuleName = "";
+    //
+    // It has a string, should not be initialized with zero
+    //
+    LOCAL_FUNCTION_DESCRIPTION LocalFunctionDescription = {};
+    string                     FinalModuleName          = "";
+
+    if (ObjectSize == 0)
+    {
+        ObjectSize = DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME;
+    }
 
     //
     // Convert module name to string
@@ -99,9 +112,15 @@ SymbolCreateDisassemblerMapCallback(UINT64 Address, char * ModuleName, char * Ob
     }
 
     //
+    // Create the structure
+    //
+    LocalFunctionDescription.ObjectName = FinalModuleName;
+    LocalFunctionDescription.ObjectSize = ObjectSize;
+
+    //
     // Add to disassembler map
     //
-    g_DisassemblerSymbolMap[Address] = FinalModuleName;
+    g_DisassemblerSymbolMap[Address] = LocalFunctionDescription;
 }
 
 /**
@@ -135,8 +154,8 @@ SymbolCreateDisassemblerSymbolMap()
 BOOLEAN
 SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
 {
-    std::map<UINT64, std::string>::iterator Low, Prev;
-    UINT64                                  Pos = Address;
+    std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION>::iterator Low, Prev;
+    UINT64                                                 Pos = Address;
 
     //
     // Check if showing function (object) names is not prohibited
@@ -172,7 +191,7 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
         {
             if (*UsedBaseAddress != Address)
             {
-                ShowMessages("%s:\n", Low->second.c_str());
+                ShowMessages("%s:\n", Low->second.ObjectName.c_str());
                 *UsedBaseAddress = Address;
             }
 
@@ -190,11 +209,26 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
             // best option to find start and end of function, it's an approximate
             // and not always might be true)
             //
-            if (DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME > Diff)
+            if (Prev->second.ObjectSize >= Diff)
             {
                 if (*UsedBaseAddress != Prev->first)
                 {
-                    ShowMessages("%s+0x%x:\n", Prev->second.c_str(), Diff);
+                    ShowMessages("%s+0x%x:\n", Prev->second.ObjectName.c_str(), Diff);
+                    *UsedBaseAddress = Prev->first;
+                }
+
+                return TRUE;
+            }
+            else if (DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME >= Diff)
+            {
+                //
+                // We add the logic of adding Name+X+X to show that a address is x bytes
+                // after the Object Name and not within the size of the function but x
+                // bytes from the above of the function
+                //
+                if (*UsedBaseAddress != Prev->first)
+                {
+                    ShowMessages("%s+0x%x+0x%x:\n", Prev->second.ObjectName.c_str(), Diff, Diff - Prev->second.ObjectSize);
                     *UsedBaseAddress = Prev->first;
                 }
 

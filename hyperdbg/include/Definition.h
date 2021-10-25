@@ -352,7 +352,7 @@ typedef int (*Callback)(const char * Text);
  * list of Addresses to ObjectNames
  *
  */
-typedef VOID (*SymbolMapCallback)(UINT64 Address, char * ModuleName, char * ObjectName);
+typedef VOID (*SymbolMapCallback)(UINT64 Address, char * ModuleName, char * ObjectName, unsigned int ObjectSize);
 
 //////////////////////////////////////////////////
 //               Event Details                  //

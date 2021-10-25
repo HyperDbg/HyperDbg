@@ -41,9 +41,9 @@ all
 //
 // Global Variables
 //
-extern UINT32                        g_DisassemblerSyntax;
-extern std::map<UINT64, std::string> g_DisassemblerSymbolMap;
-extern BOOLEAN                       g_AddressConversion;
+extern UINT32                                       g_DisassemblerSyntax;
+extern std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION> g_DisassemblerSymbolMap;
+extern BOOLEAN                                      g_AddressConversion;
 
 /**
  * @brief Defines the `ZydisSymbol` struct.
@@ -75,8 +75,8 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
                                    ZydisFormatterBuffer *  buffer,
                                    ZydisFormatterContext * context)
 {
-    ZyanU64                                 address;
-    std::map<UINT64, std::string>::iterator Iterate;
+    ZyanU64                                                address;
+    std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION>::iterator Iterate;
 
     ZYAN_CHECK(ZydisCalcAbsoluteAddress(context->instruction, context->operand, context->runtime_address, &address));
 
@@ -95,7 +95,10 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
             ZYAN_CHECK(ZydisFormatterBufferAppend(buffer, ZYDIS_TOKEN_SYMBOL));
             ZyanString * string;
             ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
-            return ZyanStringAppendFormat(string, "<%s>", Iterate->second.c_str());
+            return ZyanStringAppendFormat(string,
+                                          "%s <%s>",
+                                          SeparateTo64BitValue(Iterate->first).c_str(),
+                                          Iterate->second.ObjectName.c_str());
         }
     }
 

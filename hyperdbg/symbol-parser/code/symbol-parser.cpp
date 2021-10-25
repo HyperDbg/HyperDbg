@@ -964,7 +964,7 @@ SymDeliverDisassemblerSymbolMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize,
         //
         // Call the remote callback
         //
-        g_SymbolMapForDisassembler(SymInfo->Address, g_CurrentModuleName, SymInfo->Name);
+        g_SymbolMapForDisassembler(SymInfo->Address, g_CurrentModuleName, SymInfo->Name, SymInfo->Size);
     }
 
     //
