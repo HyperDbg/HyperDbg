@@ -96,9 +96,9 @@ ZydisFormatterPrintAddressAbsolute(const ZydisFormatter *  formatter,
             ZyanString * string;
             ZYAN_CHECK(ZydisFormatterBufferGetString(buffer, &string));
             return ZyanStringAppendFormat(string,
-                                          "%s <%s>",
-                                          SeparateTo64BitValue(Iterate->first).c_str(),
-                                          Iterate->second.ObjectName.c_str());
+                                          "<%s (%s)>",
+                                          Iterate->second.ObjectName.c_str(),
+                                          SeparateTo64BitValue(Iterate->first).c_str());
         }
     }
 
