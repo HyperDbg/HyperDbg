@@ -29,7 +29,7 @@ AsmVmxVmcall PROC
     push    r12
     mov     r10, 48564653H          ; [HVFS]
     mov     r11, 564d43414c4cH      ; [VMCALL]
-    mov     r12, 4e4f485950455256H   ; [NOHYPERV]
+    mov     r12, 4e4f485950455256H  ; [NOHYPERV]
     vmcall                          ; VmxVmcallHandler(UINT64 VmcallNumber, UINT64 OptionalParam1, UINT64 OptionalParam2, UINT64 OptionalParam3)
     pop     r12
     pop     r11
@@ -44,7 +44,7 @@ AsmVmxVmcall ENDP
 
 AsmHypervVmcall PROC
 
-    vmcall                       ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
+    vmcall                          ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
     ret
 
 AsmHypervVmcall ENDP

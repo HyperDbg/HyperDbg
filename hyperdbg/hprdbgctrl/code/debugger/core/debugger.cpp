@@ -176,6 +176,10 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, process id is invalid (%x)\n", Error);
         break;
 
+    case DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED:
+        ShowMessages("err, the event is not applied (%x)\n", Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n", Error);
         return FALSE;

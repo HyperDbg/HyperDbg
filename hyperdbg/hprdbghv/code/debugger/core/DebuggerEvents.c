@@ -106,8 +106,6 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     //
 
     LogError("Err, couldn't find anything to return");
-
-    return 0;
 }
 
 /**
@@ -140,5 +138,5 @@ DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessI
     //
     // Perform the EPT Hook
     //
-    EptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
+    return EptHook2(Address, NULL, ProcessId, EnableForRead, EnableForWrite, FALSE);
 }

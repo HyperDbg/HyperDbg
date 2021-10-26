@@ -1802,6 +1802,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     UINT64          PagesBytes;
     UINT32          TempPid;
     UINT32          ProcessorCount;
+    BOOLEAN         ResultOfApplyingEvent = FALSE;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
@@ -1994,7 +1995,9 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
     // Now we should configure the cpu to generate the events
     //
-    if (EventDetails->EventType == HIDDEN_HOOK_READ_AND_WRITE)
+    switch (EventDetails->EventType)
+    {
+    case HIDDEN_HOOK_READ_AND_WRITE:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2011,10 +2014,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                             EventDetails->ProcessId,
-                                                             TRUE,
-                                                             TRUE);
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                     EventDetails->ProcessId,
+                                                                                     TRUE,
+                                                                                     TRUE);
+
+            if (!ResultOfApplyingEvent)
+            {
+                //
+                // The event is not applied, won't apply other EPT modifications
+                // as we want to remove this event
+                //
+                break;
+            }
         }
 
         //
@@ -2024,8 +2036,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
+
+        //
+        // Check if we should restore the event if it was not successful
+        //
+        if (!ResultOfApplyingEvent)
+        {
+            //
+            // Restore the event
+            //
+            DebuggerTerminateEvent(Event->Tag);
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+
+            goto ClearTheEventAfterCreatingEvent;
+        }
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_READ)
+    case HIDDEN_HOOK_READ:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2042,10 +2072,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                             EventDetails->ProcessId,
-                                                             TRUE,
-                                                             TRUE);
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                     EventDetails->ProcessId,
+                                                                                     TRUE,
+                                                                                     TRUE);
+
+            if (!ResultOfApplyingEvent)
+            {
+                //
+                // The event is not applied, won't apply other EPT modifications
+                // as we want to remove this event
+                //
+                break;
+            }
         }
 
         //
@@ -2055,8 +2094,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
+
+        //
+        // Check if we should restore the event if it was not successful
+        //
+        if (!ResultOfApplyingEvent)
+        {
+            //
+            // Restore the event
+            //
+            DebuggerTerminateEvent(Event->Tag);
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+
+            goto ClearTheEventAfterCreatingEvent;
+        }
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_WRITE)
+    case HIDDEN_HOOK_WRITE:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2076,10 +2133,19 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
-            DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                             EventDetails->ProcessId,
-                                                             TRUE,
-                                                             TRUE);
+            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
+                                                                                     EventDetails->ProcessId,
+                                                                                     TRUE,
+                                                                                     TRUE);
+
+            if (!ResultOfApplyingEvent)
+            {
+                //
+                // The event is not applied, won't apply other EPT modifications
+                // as we want to remove this event
+                //
+                break;
+            }
         }
 
         //
@@ -2089,8 +2155,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
+
+        //
+        // Check if we should restore the event if it was not successful
+        //
+        if (!ResultOfApplyingEvent)
+        {
+            //
+            // Restore the event
+            //
+            DebuggerTerminateEvent(Event->Tag);
+
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+
+            goto ClearTheEventAfterCreatingEvent;
+        }
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_CC)
+    case HIDDEN_HOOK_EXEC_CC:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2105,15 +2189,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        EptHook(EventDetails->OptionalParam1, EventDetails->ProcessId);
+        if (!EptHook(EventDetails->OptionalParam1, EventDetails->ProcessId))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            goto ClearTheEventAfterCreatingEvent;
+        }
 
         //
         // We set events OptionalParam1 here to make sure that our event is
         // executed not for all hooks but for this special hook
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == HIDDEN_HOOK_EXEC_DETOURS)
+    case HIDDEN_HOOK_EXEC_DETOURS:
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
@@ -2128,7 +2223,16 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         // Invoke the hooker
         //
-        EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE);
+        if (!EptHook2(EventDetails->OptionalParam1, AsmGeneralDetourHook, EventDetails->ProcessId, FALSE, FALSE, TRUE))
+        {
+            //
+            // There was an error applying this event, so we're setting
+            // the event
+            //
+            ResultsToReturnUsermode->IsSuccessful = FALSE;
+            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            goto ClearTheEventAfterCreatingEvent;
+        }
 
         //
         // We set events OptionalParam1 here to make sure that our event is
@@ -2136,8 +2240,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Also, we are sure that this is not null because we checked it before
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
+
+        break;
     }
-    else if (EventDetails->EventType == RDMSR_INSTRUCTION_EXECUTION)
+    case RDMSR_INSTRUCTION_EXECUTION:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2167,8 +2273,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Setting an indicator to MSR
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == WRMSR_INSTRUCTION_EXECUTION)
+    case WRMSR_INSTRUCTION_EXECUTION:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2198,8 +2306,11 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Setting an indicator to MSR
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == IN_INSTRUCTION_EXECUTION || EventDetails->EventType == OUT_INSTRUCTION_EXECUTION)
+    case IN_INSTRUCTION_EXECUTION:
+    case OUT_INSTRUCTION_EXECUTION:
     {
         //
         // Let's see if it is for all cores or just one core
@@ -2223,8 +2334,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Setting an indicator to MSR
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == TSC_INSTRUCTION_EXECUTION)
+    case TSC_INSTRUCTION_EXECUTION:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2249,8 +2362,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdtscExitingOnSingleCore, NULL);
         }
+
+        break;
     }
-    else if (EventDetails->EventType == PMC_INSTRUCTION_EXECUTION)
+    case PMC_INSTRUCTION_EXECUTION:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2275,8 +2390,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableRdpmcExitingOnSingleCore, NULL);
         }
+
+        break;
     }
-    else if (EventDetails->EventType == DEBUG_REGISTERS_ACCESSED)
+    case DEBUG_REGISTERS_ACCESSED:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2301,8 +2418,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
             DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToDebugRegistersExiting, NULL);
         }
+
+        break;
     }
-    else if (EventDetails->EventType == EXCEPTION_OCCURRED)
+    case EXCEPTION_OCCURRED:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2333,8 +2452,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the event's target exception
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == EXTERNAL_INTERRUPT_OCCURRED)
+    case EXTERNAL_INTERRUPT_OCCURRED:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2364,8 +2485,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the event's target interrupt
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSCALL)
+    case SYSCALL_HOOK_EFER_SYSCALL:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2407,8 +2530,10 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the event's target syscall number
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == SYSCALL_HOOK_EFER_SYSRET)
+    case SYSCALL_HOOK_EFER_SYSRET:
     {
         //
         // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
@@ -2437,37 +2562,46 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the event's target syscall number
         //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
+
+        break;
     }
-    else if (EventDetails->EventType == VMCALL_INSTRUCTION_EXECUTION)
+    case VMCALL_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for vmcalls
+        // Enable triggering events for VMCALLs
         // This event doesn't support custom optional
         // parameter(s) because it's unconditional
         // users can use condition(s) to check for
         // their custom optional parameters
         //
         g_TriggerEventForVmcalls = TRUE;
+
+        break;
     }
-    else if (EventDetails->EventType == CPUID_INSTRUCTION_EXECUTION)
+    case CPUID_INSTRUCTION_EXECUTION:
     {
         //
-        // Enable triggering events for vmcalls
+        // Enable triggering events for CPUIDs
         // This event doesn't support custom optional
         // parameter(s) because it's unconditional
         // users can use condition(s) to check for
         // their custom optional parameters
         //
         g_TriggerEventForCpuids = TRUE;
+
+        break;
     }
-    else
+    default:
     {
         //
         // Set the error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
         ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID;
-        return FALSE;
+        goto ClearTheEventAfterCreatingEvent;
+
+        break;
+    }
     }
 
     //
@@ -2476,7 +2610,22 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     ResultsToReturnUsermode->IsSuccessful = TRUE;
     ResultsToReturnUsermode->Error        = 0;
 
+    //
+    // Event was applied successfully
+    //
     return TRUE;
+
+ClearTheEventAfterCreatingEvent:
+
+    //
+    // Remove the event as it was not successfull
+    //
+    if (Event != NULL)
+    {
+        DebuggerRemoveEvent(Event->Tag);
+    }
+
+    return FALSE;
 }
 
 /**

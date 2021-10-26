@@ -1919,6 +1919,13 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGEER_ERROR_INVALID_PROCESS_ID 0xc000001e
 
+/**
+ * @brief error, for event specific reasons the event is not 
+ * applied
+ *
+ */
+#define DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED 0xc000001f
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

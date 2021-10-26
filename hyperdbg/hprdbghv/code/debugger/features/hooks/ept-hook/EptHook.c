@@ -402,6 +402,11 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
         //
         return FALSE;
     }
+
+    //
+    // sth went wrong as we're here
+    //
+    return FALSE;
 }
 
 /**
@@ -981,8 +986,9 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     if (SetHookForExec && !g_ExecuteOnlySupport)
     {
         //
-        // In the current design of hyperdbg we use execute-only pages to implement hidden hooks for exec page,
-        // so your processor doesn't have this feature and you have to implment it in other ways :(
+        // In the current design of hyperdbg we use execute-only pages
+        // to implement hidden hooks for exec page, so your processor doesn't
+        // have this feature and you have to implment it in other ways :(
         //
         return FALSE;
     }
@@ -1050,10 +1056,20 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
 
             return TRUE;
         }
+        else
+        {
+            LogInfo("Err, the page modification is not applied, make sure that you didn't put multiple EPT Hooks or Monitors on a single page");
+            return FALSE;
+        }
     }
     else
     {
-        if (EptHookPerformPageHook2(TargetAddress, HookFunction, GetCr3FromProcessId(ProcessId), SetHookForRead, SetHookForWrite, SetHookForExec) == TRUE)
+        if (EptHookPerformPageHook2(TargetAddress,
+                                    HookFunction,
+                                    GetCr3FromProcessId(ProcessId),
+                                    SetHookForRead,
+                                    SetHookForWrite,
+                                    SetHookForExec) == TRUE)
         {
             LogInfo("Hook applied (VM has not launched)");
             return TRUE;
