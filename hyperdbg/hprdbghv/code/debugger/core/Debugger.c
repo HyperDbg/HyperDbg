@@ -38,6 +38,10 @@ DebuggerGetRegValueWrapper(PGUEST_REGS GuestRegs, UINT32 /* REGS_ENUM */ RegId)
 BOOLEAN
 DebuggerInitialize()
 {
+    UINT32 ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
+
     //
     // Allocate buffer for saving events
     //
@@ -123,6 +127,31 @@ DebuggerInitialize()
     // Zero the global variables memory
     //
     RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+
+    //
+    // Intialize the local variables
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable)
+        {
+            g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable =
+                ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
+        }
+
+        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable)
+        {
+            //
+            // Out of resource, initialization of script engine's local varialbe holders failed
+            //
+            return FALSE;
+        }
+
+        //
+        // Zero the local variables memory
+        //
+        RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
+    }
 
     //
     // Initialize the stepping mechanism
@@ -524,10 +553,6 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 {
-    UINT32 ProcessorCount;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
     //
     // Register the event
     //
@@ -1020,9 +1045,10 @@ DebuggerPerformRunScript(UINT64                  Tag,
                          PGUEST_REGS             Regs,
                          PVOID                   Context)
 {
-    SYMBOL_BUFFER CodeBuffer   = {0};
-    ACTION_BUFFER ActionBuffer = {0};
-    SYMBOL        ErrorSymbol  = {0};
+    SYMBOL_BUFFER                CodeBuffer    = {0};
+    ACTION_BUFFER                ActionBuffer  = {0};
+    SYMBOL                       ErrorSymbol   = {0};
+    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
 
     if (Action != NULL)
     {
@@ -1068,6 +1094,13 @@ DebuggerPerformRunScript(UINT64                  Tag,
 
     UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
 
+    //
+    // Fill the variables list for this run
+    //
+    VariablesList.TempList            = g_TempList;
+    VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
+    VariablesList.LocalVariablesList  = g_GuestState[6].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
+
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
         //
@@ -1075,8 +1108,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
         //
         if (ScriptEngineExecute(Regs,
                                 ActionBuffer,
-                                (UINT64 *)g_TempList,
-                                (UINT64 *)g_ScriptGlobalVariables,
+                                &VariablesList,
                                 &CodeBuffer,
                                 &i,
                                 &ErrorSymbol) == TRUE)
@@ -1703,12 +1735,9 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
 BOOLEAN
 DebuggerRemoveEvent(UINT64 Tag)
 {
-    UINT32          ProcessorCount;
     PDEBUGGER_EVENT Event;
     PLIST_ENTRY     TempList  = 0;
     PLIST_ENTRY     TempList2 = 0;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     //
     // First of all, we disable event

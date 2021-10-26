@@ -123,6 +123,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     UINT16                                 InstructionLengthHint;
     PGUEST_REGS                            GuestRegs;
     UINT64                                 HardwareDebugRegisterForStepping;
+    UINT64 *                               ScriptEngineCoreSpecificLocalVariable;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

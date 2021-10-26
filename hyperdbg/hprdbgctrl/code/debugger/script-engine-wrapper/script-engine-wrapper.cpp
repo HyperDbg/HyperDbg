@@ -22,6 +22,7 @@
 // Global Variables
 //
 extern UINT64 * g_ScriptGlobalVariables;
+extern UINT64 * g_ScriptLocalVariables;
 
 //
 // *********************** Pdb parse wrapper ***********************
@@ -247,6 +248,8 @@ VOID
 ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
                         string      Expr)
 {
+    SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
+
     //
     // Allocate global variables holder
     //
@@ -254,6 +257,17 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     {
         g_ScriptGlobalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
         RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
+    }
+
+    //
+    // Allocate local variables holder, actually in reality each core should
+    // have its own set of local variables but as we never run multi-core scripts
+    // in user-mode, thus, it's okay to just have one buffer for local variables
+    //
+    if (!g_ScriptLocalVariables)
+    {
+        g_ScriptLocalVariables = (UINT64 *)malloc(MAX_VAR_COUNT * sizeof(UINT64));
+        RtlZeroMemory(g_ScriptLocalVariables, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
     //
@@ -284,9 +298,16 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             ActionBuffer.Tag                       = NULL;
 
             //
+            // Fill the variables list for this run
+            //
+            VariablesList.TempList            = g_TempList;
+            VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
+            VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
+
+            //
             // If has error, show error message and abort.
             //
-            if (ScriptEngineExecute(GuestRegs, ActionBuffer, (UINT64 *)g_TempList, (UINT64 *)g_ScriptGlobalVariables, CodeBuffer, &i, &ErrorSymbol) == TRUE)
+            if (ScriptEngineExecute(GuestRegs, ActionBuffer, &VariablesList, CodeBuffer, &i, &ErrorSymbol) == TRUE)
             {
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
 

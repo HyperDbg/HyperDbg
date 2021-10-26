@@ -262,6 +262,12 @@ CommandType g_CommandsList;
 UINT64 * g_ScriptGlobalVariables;
 
 /**
+ * @brief Holder of local variables for script engine
+ *
+ */
+UINT64 * g_ScriptLocalVariables;
+
+/**
  * @brief Is list of command initialized
  *
  */

@@ -130,6 +130,9 @@ VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
 {
     UNICODE_STRING DosDeviceName;
+    UINT32         ProcessorCount;
+
+    ProcessorCount = KeQueryActiveProcessorCount(0);
 
     RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\HyperdbgHypervisorDevice");
     IoDeleteSymbolicLink(&DosDeviceName);
@@ -154,7 +157,21 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free g_ScriptGlobalVariables
     //
-    ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+    if (g_ScriptGlobalVariables != NULL)
+    {
+        ExFreePoolWithTag(g_ScriptGlobalVariables, POOLTAG);
+    }
+
+    //
+    // Free core specific local variables
+    //
+    for (size_t i = 0; i < ProcessorCount; i++)
+    {
+        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable != NULL)
+        {
+            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+        }
+    }
 
     //
     // Free g_GuestState
