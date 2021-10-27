@@ -70,9 +70,7 @@ Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build
 
 ## How does it work?
 
-We explained about how HyperDbg internally works and how we designed its features in the [documentation](https://docs.hyperdbg.org/design). 
-
-Here's a diagram that shows how HyperDbg works:
+You can read about internal design of HyperDbg and its features in the [documentation](https://docs.hyperdbg.org/design). Here's a top-level diagram that shows how HyperDbg works:
 </br>
 
 <p align="center"><a href="https://hyperdbg.org/"><img align="center" width="70%" height="100%" src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Diagrams/Diagram-hq-v1/Diagram_v1.jpg" alt="HyperDbg Design"></a></br>
@@ -90,9 +88,9 @@ You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automat
 - Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
 
 ## Contributing
-Contributing in HyperDbg is super appreciated.
+Contributing in HyperDbg is super appreciated. We have made a list of potential [tasks](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md#things-to-work-on) that you might be intersted in contributing towards.
 
-If you want to create a pull request or contribute in HyperDbg please read [Contribution Guide](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md).
+If you want to contribute in HyperDbg please read [Contribution Guide](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md).
 
 
 ## License
