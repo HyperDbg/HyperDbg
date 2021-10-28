@@ -1443,11 +1443,14 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
  * @details Should be called from vmx non-root
  * 
  * @param VirtualAddress Virtual address to unhook
+ * @param PhysAddress Physical address to unhook (optional)
  * @param ProcessId The process id of target process
+ * @details in unhooking for some hooks only physical address is availables
+ * 
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
+EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId)
 {
     SIZE_T      PhysicalAddress;
     PLIST_ENTRY TempList = 0;
@@ -1457,7 +1460,17 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId)
         ProcessId = PsGetCurrentProcessId();
     }
 
-    PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
+    //
+    // Check if the physical address is available or not
+    //
+    if (PhysAddress == NULL)
+    {
+        PhysicalAddress = PAGE_ALIGN(VirtualAddressToPhysicalAddressByProcessId(VirtualAddress, ProcessId));
+    }
+    else
+    {
+        PhysicalAddress = PAGE_ALIGN(PhysAddress);
+    }
 
     //
     // Should be called from vmx non-root

@@ -120,7 +120,7 @@ TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), Event->ProcessId);
+        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
     }
 }
 
@@ -153,7 +153,7 @@ TerminateHiddenHookReadEvent(PDEBUGGER_EVENT Event)
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), Event->ProcessId);
+        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
     }
 }
 
@@ -186,7 +186,7 @@ TerminateHiddenHookWriteEvent(PDEBUGGER_EVENT Event)
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), Event->ProcessId);
+        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
     }
 }
 
@@ -213,7 +213,7 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
     // In this hook Event->OptionalParam1 is the virtual address of the
     // target address that we put hook on it
     //
-    EptHookUnHookSingleAddress(Event->OptionalParam1, Event->ProcessId);
+    EptHookUnHookSingleAddress(Event->OptionalParam1, NULL, Event->ProcessId);
 }
 
 /**
@@ -241,9 +241,7 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
     // this address to virtual address as the unhook routine works on
     // virtual addresses
     //
-    EptHookUnHookSingleAddress(
-        PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam1, Event->ProcessId),
-        Event->ProcessId);
+    EptHookUnHookSingleAddress(NULL, Event->OptionalParam1, Event->ProcessId);
 }
 
 /**

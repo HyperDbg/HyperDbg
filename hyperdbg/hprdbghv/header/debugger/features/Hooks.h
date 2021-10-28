@@ -219,11 +219,12 @@ EptHookUnHookAll();
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * 
  * @param VirtualAddress 
+ * @param PhysAddress 
  * @param ProcessId 
  * @return BOOLEAN 
  */
 BOOLEAN
-EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT32 ProcessId);
+EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 ProcessId);
 
 /**
  * @brief get the length of active EPT hooks (!epthook and !epthook2)
