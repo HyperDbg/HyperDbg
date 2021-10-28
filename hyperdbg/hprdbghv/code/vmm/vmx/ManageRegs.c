@@ -588,9 +588,9 @@ SetGuestCr8(UINT64 Cr8)
  * @return VOID 
  */
 VOID
-SetGuestDr0(UINT64 Dr0)
+SetGuestDr0(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr0);
+    __writedr(0, value);
 }
 
 /**
@@ -600,9 +600,9 @@ SetGuestDr0(UINT64 Dr0)
  * @return VOID 
  */
 VOID
-SetGuestDr1(UINT64 Dr1)
+SetGuestDr1(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr1);
+    __writedr(1, value);
 }
 
 /**
@@ -612,9 +612,9 @@ SetGuestDr1(UINT64 Dr1)
  * @return VOID 
  */
 VOID
-SetGuestDr2(UINT64 Dr2)
+SetGuestDr2(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr2);
+    __writedr(2, value);
 }
 
 /**
@@ -624,9 +624,9 @@ SetGuestDr2(UINT64 Dr2)
  * @return VOID 
  */
 VOID
-SetGuestDr3(UINT64 Dr3)
+SetGuestDr3(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr3);
+    __writedr(3, value);
 }
 
 /**
@@ -636,9 +636,9 @@ SetGuestDr3(UINT64 Dr3)
  * @return VOID 
  */
 VOID
-SetGuestDr6(UINT64 Dr6)
+SetGuestDr6(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr6);
+    __writedr(6, value);
 }
 
 /**
@@ -648,9 +648,9 @@ SetGuestDr6(UINT64 Dr6)
  * @return VOID 
  */
 VOID
-SetGuestDr7(UINT64 Dr7)
+SetGuestDr7(UINT64 value)
 {
-    __vmx_vmwrite(GUEST_CR0, Dr7);
+    __writedr(7, value);
 }
 
 /**
@@ -661,9 +661,8 @@ SetGuestDr7(UINT64 Dr7)
 UINT64
 GetGuestDr0()
 {
-    UINT64 Dr0;
-
-    __vmx_vmread(GUEST_CR0, &Dr0);
+    UINT64 Dr0 = 0;
+    Dr0        = __readdr(0);
     return Dr0;
 }
 
@@ -675,9 +674,8 @@ GetGuestDr0()
 UINT64
 GetGuestDr1()
 {
-    UINT64 Dr1;
-
-    __vmx_vmread(GUEST_CR0, &Dr1);
+    UINT64 Dr1 = 0;
+    Dr1        = __readdr(1);
     return Dr1;
 }
 
@@ -689,9 +687,8 @@ GetGuestDr1()
 UINT64
 GetGuestDr2()
 {
-    UINT64 Dr2;
-
-    __vmx_vmread(GUEST_CR0, &Dr2);
+    UINT64 Dr2 = 0;
+    Dr2        = __readdr(2);
     return Dr2;
 }
 
@@ -703,36 +700,33 @@ GetGuestDr2()
 UINT64
 GetGuestDr3()
 {
-    UINT64 Dr3;
-
-    __vmx_vmread(GUEST_CR0, &Dr3);
+    UINT64 Dr3 = 0;
+    Dr3        = __readdr(3);
     return Dr3;
 }
 
 /**
- * @brief Get the Guest Dr6 value
+ * @brief Get the Guest Dr6 (breakpoint status) value
  * 
  * @return UINT64
  */
 UINT64
 GetGuestDr6()
 {
-    UINT64 Dr6;
-
-    __vmx_vmread(GUEST_CR0, &Dr6);
+    UINT64 Dr6 = 0;
+    Dr6        = __readdr(6);
     return Dr6;
 }
 
 /**
- * @brief Get the Guest Dr7 value
+ * @brief Get the Guest Dr7 (breakpoint trigger) value
  * 
  * @return UINT64
  */
 UINT64
 GetGuestDr7()
 {
-    UINT64 Dr7;
-
-    __vmx_vmread(GUEST_CR0, &Dr7);
+    UINT64 Dr7 = 0;
+    Dr7        = __readdr(7);
     return Dr7;
 }

@@ -157,19 +157,19 @@ UINT64
 GetGuestDr7();
 
 VOID
-SetGuestDr0(UINT64 Dr0);
+SetGuestDr0(UINT64 value);
 
 VOID
-SetGuestDr1(UINT64 Dr1);
+SetGuestDr1(UINT64 value);
 
 VOID
-SetGuestDr2(UINT64 Dr2);
+SetGuestDr2(UINT64 value);
 
 VOID
-SetGuestDr3(UINT64 Dr3);
+SetGuestDr3(UINT64 value);
 
 VOID
-SetGuestDr6(UINT64 Dr6);
+SetGuestDr6(UINT64 value);
 
 VOID
-SetGuestDr7(UINT64 Dr7);
+SetGuestDr7(UINT64 value);
