@@ -264,8 +264,9 @@ CommandR(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("err, register %s is invalid\n", Command.c_str());
+            ShowMessages("err, invalid register\n");
         }
+
         delete (RegD);
     }
 
@@ -355,6 +356,13 @@ CommandR(vector<string> SplittedCommand, string Command)
                     //
                     ShowMessages("err, you're not connected to any debuggee\n");
                 }
+            }
+            else
+            {
+                //
+                // error
+                //
+                ShowMessages("err, invalid register\n");
             }
         }
     }
