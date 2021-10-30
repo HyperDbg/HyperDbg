@@ -460,7 +460,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead, PVOID BufferTo
     PageEntry.Global = 1;
 
     //
-    // Set the PFN of this PTE to that of the provided physical address.
+    // Set the PFN of this PTE to that of the provided physical address,
     //
     PageEntry.PageFrameNumber = PaAddressToRead.QuadPart >> 12;
 
@@ -470,9 +470,12 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead, PVOID BufferTo
     Pte->Flags = PageEntry.Flags;
 
     //
-    // Finally, invalidate the caches for the virtual address.
+    // Finally, invalidate the caches for the virtual address
+    // It's not mandatory to invalidate the address in the VM nested-virtualization
+    // because it will be automatically invalidated by the top hypervisor, however,
+    // we should use invlpg in physical computers as it won't invalidate it automatically
     //
-    //__invlpg(Va);
+    __invlpg(Va);
 
     //
     // Also invalidate it from vpids if we're in vmx root

@@ -286,6 +286,8 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         {
             //
             // The page is safe to read (present)
+            // It's not necessary to use MemoryMapperReadMemorySafeOnTargetProcess
+            // because we already switched to the process's cr3
             //
             MemoryMapperReadMemorySafe(Rip, InstructionBuffer, 3);
         }
@@ -326,19 +328,6 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
         {
             goto EmulateSYSRET;
         }
-
-        /*
-        if (Rip & 0xff00000000000000)
-        {
-            LogInfo("sysret %llx", *InstructionBuffer);
-            goto EmulateSYSRET;
-        }
-        else
-        {
-            LogInfo("syscall %llx", *InstructionBuffer);
-            goto EmulateSYSCALL;
-        }
-        */
 
         return FALSE;
     }
