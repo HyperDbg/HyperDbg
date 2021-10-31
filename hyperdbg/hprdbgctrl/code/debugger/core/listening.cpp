@@ -976,8 +976,12 @@ StartAgain:
     Status = SetCommMask(g_SerialRemoteComPortHandle, EV_RXCHAR);
     if (Status == FALSE)
     {
-        ShowMessages("err, in setting CommMask\n");
-        return FALSE;
+        // ShowMessages("warning, there is an error in setting CommMask\n");
+
+        //
+        // Somethimes, this error happens
+        //
+        // return FALSE;
     }
 
     //
@@ -987,7 +991,7 @@ StartAgain:
 
     if (Status == FALSE)
     {
-        ShowMessages("err,in setting WaitCommEvent()\n");
+        ShowMessages("err, in setting WaitCommEvent()\n");
         return FALSE;
     }
 
