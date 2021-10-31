@@ -432,7 +432,8 @@ SetPrivilege(HANDLE  hToken,          // access token handle
 
     if (GetLastError() == ERROR_NOT_ALL_ASSIGNED)
     {
-        ShowMessages("err, the token does not have the specified privilege.\n");
+        ShowMessages("err, the token does not have the specified privilege\n");
+        ShowMessages("make sure to run it with administrator privileges\n");
         return FALSE;
     }
 

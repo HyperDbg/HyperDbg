@@ -34,8 +34,8 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName);
 BOOLEAN
 InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
 {
-    SC_HANDLE schService;
-    DWORD     err;
+    SC_HANDLE SchService;
+    DWORD     LastError;
 
     //
     // NOTE: This creates an entry for a standalone driver. If this
@@ -48,7 +48,7 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
     //
     // Create a new a service object.
     //
-    schService =
+    SchService =
         CreateService(SchSCManager,          // handle of service control manager database
                       DriverName,            // address of name of service to start
                       DriverName,            // address of display name
@@ -64,30 +64,30 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
                       NULL                   // no password for service account
         );
 
-    if (schService == NULL)
+    if (SchService == NULL)
     {
-        err = GetLastError();
+        LastError = GetLastError();
 
-        if (err == ERROR_SERVICE_EXISTS)
+        if (LastError == ERROR_SERVICE_EXISTS)
         {
             //
             // Ignore this error.
             //
             return TRUE;
         }
-        else if (err == ERROR_SERVICE_MARKED_FOR_DELETE)
+        else if (LastError == ERROR_SERVICE_MARKED_FOR_DELETE)
         {
             //
             // Previous instance of the service is not fully deleted so sleep
             // and try again.
             //
-            ShowMessages("previous instance of the service is not fully deleted. Try "
+            ShowMessages("err, previous instance of the service is not fully deleted. Try "
                          "again...\n");
             return FALSE;
         }
         else
         {
-            ShowMessages("err, CreateService failed (%x)\n", err);
+            ShowMessages("err, CreateService failed (%x)\n", LastError);
 
             //
             // Indicate an error.
@@ -99,9 +99,9 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
     //
     // Close the service object.
     //
-    if (schService)
+    if (SchService)
     {
-        CloseServiceHandle(schService);
+        CloseServiceHandle(SchService);
     }
 
     //
@@ -122,7 +122,7 @@ BOOLEAN
 ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 {
     SC_HANDLE schSCManager;
-    BOOLEAN   rCode = TRUE;
+    BOOLEAN   Res = TRUE;
 
     //
     // Insure (somewhat) that the driver and service names are valid.
@@ -165,14 +165,14 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
             //
             // Start the driver service (i.e. start the driver).
             //
-            rCode = StartDriver(schSCManager, DriverName);
+            Res = StartDriver(schSCManager, DriverName);
         }
         else
         {
             //
             // Indicate an error.
             //
-            rCode = FALSE;
+            Res = FALSE;
         }
 
         break;
@@ -187,7 +187,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         //
         // Ignore all errors.
         //
-        rCode = TRUE;
+        Res = TRUE;
 
         break;
 
@@ -201,7 +201,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         //
         // Ignore all errors.
         //
-        rCode = TRUE;
+        Res = TRUE;
 
         break;
 
@@ -209,7 +209,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 
         ShowMessages("unknown ManageDriver() function. \n");
 
-        rCode = FALSE;
+        Res = FALSE;
 
         break;
     }
@@ -222,7 +222,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         CloseServiceHandle(schSCManager);
     }
 
-    return rCode;
+    return Res;
 }
 
 /**
@@ -235,15 +235,15 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
 BOOLEAN
 RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
-    SC_HANDLE schService;
-    BOOLEAN   rCode;
+    SC_HANDLE SchService;
+    BOOLEAN   Res;
 
     //
     // Open the handle to the existing service
     //
-    schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
+    SchService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
-    if (schService == NULL)
+    if (SchService == NULL)
     {
         ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
@@ -256,12 +256,12 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     //
     // Mark the service for deletion from the service control manager database
     //
-    if (DeleteService(schService))
+    if (DeleteService(SchService))
     {
         //
         // Indicate success
         //
-        rCode = TRUE;
+        Res = TRUE;
     }
     else
     {
@@ -270,18 +270,18 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         //
         // Indicate failure.  Fall through to properly close the service handle
         //
-        rCode = FALSE;
+        Res = FALSE;
     }
 
     //
     // Close the service object
     //
-    if (schService)
+    if (SchService)
     {
-        CloseServiceHandle(schService);
+        CloseServiceHandle(SchService);
     }
 
-    return rCode;
+    return Res;
 }
 
 /**
@@ -294,17 +294,17 @@ RemoveDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 BOOLEAN
 StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
-    SC_HANDLE      schService;
-    DWORD          err;
+    SC_HANDLE      SchService;
+    DWORD          LastError;
     SERVICE_STATUS serviceStatus;
     UINT64         Status = TRUE;
 
     //
     // Open the handle to the existing service.
     //
-    schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
+    SchService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
-    if (schService == NULL)
+    if (SchService == NULL)
     {
         ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
@@ -317,25 +317,42 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     //
     // Start the execution of the service (i.e. start the driver).
     //
-    if (!StartService(schService, // service identifier
+    if (!StartService(SchService, // service identifier
                       0,          // number of arguments
                       NULL        // pointer to arguments
                       ))
     {
-        err = GetLastError();
+        LastError = GetLastError();
 
-        if (err == ERROR_SERVICE_ALREADY_RUNNING)
+        if (LastError == ERROR_SERVICE_ALREADY_RUNNING)
         {
             //
             // Ignore this error
             //
         }
-        else if (err == 577)
+        else if (LastError == ERROR_PATH_NOT_FOUND)
+        {
+            //
+            // Driver not found, or anti-virus limits the access to it
+            //
+            ShowMessages("err, path to the driver not found, or the access to the driver file is limited\n");
+
+            ShowMessages("most of the time, it's because anti-virus software is not finished scanning the drivers, so, if you try to load the driver again (re-enter the previous command), the problem will be solved\n");
+
+            //
+            // Indicate failure
+            //
+            Status = FALSE;
+        }
+        else if (LastError == ERROR_INVALID_IMAGE_HASH)
         {
             ShowMessages(
-                "err (577), it's because you driver signature enforcement is enabled\n"
-                "you should disable driver signature enforcement by attaching Windbg "
-                "or from the boot menu\n");
+                "err, failed loading driver\n"
+                "it's because either the driver signature enforcement is enabled or HVCI prevents the driver from loading\n"
+                "you should disable the driver signature enforcement by attaching WinDbg or from the boot menu\n"
+                "if the driver signature enforcement is disabled, HVCI might prevent the driver from loading\n"
+                "HyperDbg is not compatible with Virtualization Based Security (VBS)\n"
+                "please follow the instructions from: https://docs.hyperdbg.org/getting-started/build-and-install \n");
 
             //
             // Indicate failure.  Fall through to properly close the service handle
@@ -344,7 +361,7 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         }
         else
         {
-            ShowMessages("err, StartService failure (%x)\n", err);
+            ShowMessages("err, StartService failure (%x)\n", LastError);
 
             //
             // Indicate failure.  Fall through to properly close the service handle
@@ -356,9 +373,9 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     //
     // Close the service object
     //
-    if (schService)
+    if (SchService)
     {
-        CloseServiceHandle(schService);
+        CloseServiceHandle(SchService);
     }
 
     return Status;
@@ -374,16 +391,16 @@ StartDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 BOOLEAN
 StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
 {
-    BOOLEAN        rCode = TRUE;
-    SC_HANDLE      schService;
+    BOOLEAN        Res = TRUE;
+    SC_HANDLE      SchService;
     SERVICE_STATUS serviceStatus;
 
     //
     // Open the handle to the existing service.
     //
-    schService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
+    SchService = OpenService(SchSCManager, DriverName, SERVICE_ALL_ACCESS);
 
-    if (schService == NULL)
+    if (SchService == NULL)
     {
         ShowMessages("err, OpenService failed (%x)\n", GetLastError());
 
@@ -393,12 +410,12 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
     //
     // Request that the service stop.
     //
-    if (ControlService(schService, SERVICE_CONTROL_STOP, &serviceStatus))
+    if (ControlService(SchService, SERVICE_CONTROL_STOP, &serviceStatus))
     {
         //
         // Indicate success.
         //
-        rCode = TRUE;
+        Res = TRUE;
     }
     else
     {
@@ -407,18 +424,18 @@ StopDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName)
         //
         // Indicate failure.  Fall through to properly close the service handle.
         //
-        rCode = FALSE;
+        Res = FALSE;
     }
 
     //
     // Close the service object.
     //
-    if (schService)
+    if (SchService)
     {
-        CloseServiceHandle(schService);
+        CloseServiceHandle(SchService);
     }
 
-    return rCode;
+    return Res;
 }
 
 /**
@@ -431,8 +448,8 @@ BOOLEAN
 SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
                 ULONG                                         BufferLength)
 {
-    HANDLE  fileHandle;
-    DWORD   driverLocLen = 0;
+    HANDLE  FileHandle;
+    DWORD   DriverLocLen = 0;
     HMODULE ProcHandle   = GetModuleHandle(NULL);
     char *  Pos;
 
@@ -445,9 +462,9 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
   // We use the location of running exe instead of
   // finding driver based on current directory
   //
-  driverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
+  DriverLocLen = GetCurrentDirectory(BufferLength, DriverLocation);
 
-  if (driverLocLen == 0) {
+  if (DriverLocLen == 0) {
 
     ShowMessages("err, GetCurrentDirectory failed (%x)\n", GetLastError());
 
@@ -479,7 +496,7 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     //
     // Insure driver file is in the specified directory.
     //
-    if ((fileHandle = CreateFile(DriverLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
+    if ((FileHandle = CreateFile(DriverLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
         INVALID_HANDLE_VALUE)
     {
         ShowMessages("%s.sys is not loaded.\n", DRIVER_NAME);
@@ -493,9 +510,9 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     //
     // Close open file handle.
     //
-    if (fileHandle)
+    if (FileHandle)
     {
-        CloseHandle(fileHandle);
+        CloseHandle(FileHandle);
     }
 
     //
