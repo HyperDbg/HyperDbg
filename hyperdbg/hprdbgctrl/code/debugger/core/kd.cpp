@@ -1465,8 +1465,11 @@ StartAgain:
         Status = SetCommMask(SerialHandle, EV_RXCHAR);
         if (Status == FALSE)
         {
-            ShowMessages("err, in setting CommMask\n");
-            return FALSE;
+            //
+            // Can be ignored
+            //
+            // ShowMessages("err, in setting CommMask\n");
+            // return FALSE;
         }
 
         //
@@ -1476,8 +1479,11 @@ StartAgain:
 
         if (Status == FALSE)
         {
-            ShowMessages("err,in setting WaitCommEvent()\n");
-            return FALSE;
+            //
+            // Can be ignored
+            //
+            // ShowMessages("err, in setting WaitCommEvent\n");
+            // return FALSE;
         }
     }
 

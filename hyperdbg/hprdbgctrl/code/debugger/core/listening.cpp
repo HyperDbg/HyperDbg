@@ -991,8 +991,11 @@ StartAgain:
 
     if (Status == FALSE)
     {
-        ShowMessages("err, in setting WaitCommEvent()\n");
-        return FALSE;
+        //
+        // Can be ignored
+        //
+        // ShowMessages("err, in setting WaitCommEvent\n");
+        // return FALSE;
     }
 
     //
