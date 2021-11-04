@@ -565,8 +565,21 @@ VOID
 KdApplyTasksPreHaltCore(UINT32 CurrentCore)
 {
     //
-    // Nothing to do !
+    // Check to unset mov to cr3 vm-exits
     //
+    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    {
+        //
+        // Unset mov to cr3 vm-exit, this flag is also use to remove the
+        // mov 2 cr3 on next halt
+        //
+        HvSetMovToCr3Vmexit(FALSE);
+
+        //
+        // Avoid future sets/unsets
+        //
+        g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
+    }
 }
 
 /**
@@ -600,14 +613,10 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
     {
         //
-        // Set mov to cr3 vm-exit
+        // Set mov to cr3 vm-exit, this flag is also use to remove the
+        // mov 2 cr3 on next halt
         //
         HvSetMovToCr3Vmexit(TRUE);
-
-        //
-        // Avoid future sets
-        //
-        g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
     }
 }
 
@@ -709,61 +718,6 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 }
 
 /**
- * @brief Switch to new process
- * @details This function will be called in vmx non-root
- * @param Dpc
- * @param DeferredContext It's the process ID
- * @param SystemArgument1
- * @param SystemArgument2
- * 
- * @return VOID 
- */
-VOID
-KdSwitchToNewProcessDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
-{
-    CR3_TYPE         CurrentProcessCr3;
-    UINT64           VirtualAddress;
-    PHYSICAL_ADDRESS PhysicalAddr;
-
-    UNREFERENCED_PARAMETER(Dpc);
-    UNREFERENCED_PARAMETER(SystemArgument1);
-    UNREFERENCED_PARAMETER(SystemArgument2);
-
-    //
-    // Switch to new process's memory layout
-    //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(DeferredContext);
-
-    //
-    // Validate if process id is valid
-    //
-    if (CurrentProcessCr3.Flags == NULL)
-    {
-        //
-        // Pid is invalid
-        //
-        LogInfo("Err, the process id is invalid (unable to switch)");
-
-        //
-        // Trigger a breakpoint to be managed by HyperDbg as sign of failure
-        //
-        DbgBreakPoint();
-
-        return NULL;
-    }
-
-    //
-    // vm-exit and halt current core with change the process
-    //
-    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3, CurrentProcessCr3.Flags, 0, 0);
-
-    //
-    // Restore the original process
-    //
-    RestoreToPreviousProcess(CurrentProcessCr3);
-}
-
-/**
  * @brief Add a DPC to dpc queue
  * @param Routine
  * @param Paramter
@@ -814,10 +768,7 @@ KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3
         NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
         ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
 
-        KdChangeCr3AndTriggerBreakpointHandler(ProcessorIndex,
-                                               GuestState,
-                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED,
-                                               ProcessCr3);
+        KdHandleBreakpointAndDebugBreakpoints(ProcessorIndex, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
     }
 }
 
@@ -841,13 +792,6 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
     }
     else
     {
-        //
-        // Debugger wants to switch to new process
-        //
-        // KdFireDpc(KdSwitchToNewProcessDpc,
-        //          PidRequest->ProcessId,
-        //          DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
-
         //
         // Set the target process id
         //
@@ -1258,42 +1202,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     {
         g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock = FALSE;
     }
-}
-
-/**
- * @brief Handle changes to cr3
- * @details This function can be used in vmx-root 
- * @param CurrentProcessorIndex
- * @param GuestRegs
- * @param Reason
- * @param TargetCr3
- * 
- * @return VOID 
- */
-VOID
-KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
-                                       PGUEST_REGS             GuestRegs,
-                                       DEBUGGEE_PAUSING_REASON Reason,
-                                       CR3_TYPE                TargetCr3)
-
-{
-    CR3_TYPE CurrentProcessCr3 = {0};
-
-    //
-    // Switch to new process's memory layout, it is because in vmx-root
-    // we are in system process layout (PID=4)
-    //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
-
-    //
-    // Trigger the breakpoint
-    //
-    KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex, GuestRegs, Reason, NULL);
-
-    //
-    // Restore the original process
-    //
-    RestoreToPreviousProcess(CurrentProcessCr3);
 }
 
 /**

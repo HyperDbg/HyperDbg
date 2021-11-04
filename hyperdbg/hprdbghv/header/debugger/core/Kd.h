@@ -88,12 +88,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
-VOID
-KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
-                                       PGUEST_REGS             GuestRegs,
-                                       DEBUGGEE_PAUSING_REASON Reason,
-                                       CR3_TYPE                TargetCr3);
-
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled);
 

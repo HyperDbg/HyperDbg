@@ -242,44 +242,38 @@
 #define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x24
 
 /**
- * @brief VMCALL to cause vm-exit and set the cr3
- * 
- */
-#define VMCALL_VM_EXIT_HALT_SYSTEM_AND_CHANGE_CR3 0x25
-
-/**
  * @brief VMCALL to signal debugger that debuggee finished
  * execution of the command
  * 
  */
-#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x26
+#define VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED 0x25
 
 /**
  * @brief VMCALL to send messages to the debugger
  * 
  */
-#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x27
+#define VMCALL_SEND_MESSAGES_TO_DEBUGGER 0x26
 
 /**
  * @brief VMCALL to send general buffers from debuggee user-mode
  * to the debugger
  * 
  */
-#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x28
+#define VMCALL_SEND_GENERAL_BUFFER_TO_DEBUGGER 0x27
 
 /**
  * @brief VMCALL to cause vm-exit and halt the system because
  * of triggering an event
  * 
  */
-#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x29
+#define VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT 0x28
 
 /**
  * @brief VMCALL to clear rdtsc exiting bit ONLY in the case of disabling
  * the events for !tsc command
  * 
  */
-#define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x2a
+#define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x29
 
 //////////////////////////////////////////////////
 //				    Functions					//

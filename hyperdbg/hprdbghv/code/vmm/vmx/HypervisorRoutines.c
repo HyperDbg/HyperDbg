@@ -200,10 +200,10 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             //
             // Check if we are in debugging thread's steppings or not
             //
-            if (g_EnableDebuggerSteppings)
-            {
-                SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
-            }
+            // if (g_EnableDebuggerSteppings)
+            // {
+            //    SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
+            // }
 
             //
             // Apply the new cr3
