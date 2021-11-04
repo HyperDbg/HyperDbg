@@ -162,7 +162,7 @@ CommandSympath(vector<string> SplittedCommand, string Command)
                 // Show the message
                 //
                 ShowMessages("symbol server/path is configured successfully\n");
-                ShowMessages("use '.sym load', '.sym reload', or '.sym download' to load pdb files\n");
+                ShowMessages("use '.sym reload' or '.sym download' to load pdb files\n");
             }
             else
             {

@@ -726,7 +726,7 @@ KdSwitchToNewProcessDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1,
         //
         // Pid is invalid
         //
-        LogInfo("Err, the process id is invalid (unable to switch)");
+        LogInfo("Err, process id is invalid (unable to switch)");
 
         //
         // Trigger a breakpoint to be managed by HyperDbg as sign of failure

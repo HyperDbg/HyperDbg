@@ -1833,24 +1833,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         }
     }
 
-    //
-    // Check if process id is valid or not, we won't touch process id here
-    // because some of the events use the exact value of DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-    //
-    if (EventDetails->ProcessId != DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES &&
-        EventDetails->ProcessId != 0)
-    {
-        //
-        // The used specified a special pid, let's check if it's valid or not
-        //
-        if (!IsProcessExist(EventDetails->ProcessId))
-        {
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_PROCESS_ID;
-            return FALSE;
-        }
-    }
-
     if (EventDetails->EventType == EXCEPTION_OCCURRED)
     {
         //
@@ -2019,7 +2001,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     {
         //
         // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
+        // or if process id is 0 then we use the cr32 of current process
         //
         if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
             EventDetails->ProcessId == 0)

@@ -7,6 +7,10 @@ EXPORTS
     KdSetHiberRange
     KdPower
 
+    HviGetDebugDeviceOptions
+    HviGetHypervisorFeatures
+    HviIsHypervisorVendorMicrosoft
+
     KdHyperDbgTest
     KdHyperDbgPrepareDebuggeeConnectionPort
     KdHyperDbgSendByte

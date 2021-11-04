@@ -50,7 +50,7 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID:
-        ShowMessages("err, the event type is invalid (%x)\n", Error);
+        ShowMessages("err, event type is invalid (%x)\n", Error);
         break;
 
     case DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT:
@@ -114,7 +114,7 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_STEPPINGS_EITHER_THREAD_NOT_FOUND_OR_DISABLED:
         ShowMessages(
-            "err, the target thread not found or the thread is disabled (%x)\n",
+            "err, target thread not found or the thread is disabled (%x)\n",
             Error);
         break;
 
@@ -131,11 +131,11 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS:
-        ShowMessages("err, unable to switch to the new process (%x)\n", Error);
+        ShowMessages("err, unable to switch to new process (%x)\n", Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT:
-        ShowMessages("err, unable to run the script on remote debuggee (%x)\n", Error);
+        ShowMessages("err, unable to run script on remote debuggee (%x)\n", Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
@@ -169,13 +169,11 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_MEMORY_TYPE_INVALID:
-        ShowMessages("err, the memory type is invalid (%x)\n", Error);
+        ShowMessages("err, memory type is invalid (%x)\n", Error);
         break;
 
     case DEBUGEER_ERROR_INVALID_PROCESS_ID:
-        ShowMessages("err, the process id is invalid, make sure to enter the "
-                     "process id in hex format (%x)\n",
-                     Error);
+        ShowMessages("err, process id is invalid (%x)\n", Error);
         break;
 
     case DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED:
