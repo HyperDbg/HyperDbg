@@ -229,3 +229,9 @@ UINT64 g_KernelTestR12;
  * 
  */
 BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
+
+/**
+ * @brief Process switch Process ID
+ * 
+ */
+UINT32 g_ProcessSwitchPid;

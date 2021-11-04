@@ -593,6 +593,22 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
 
         g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
     }
+
+    //
+    // Check to apply mov to cr3 vm-exits
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    {
+        //
+        // Set mov to cr3 vm-exit
+        //
+        HvSetMovToCr3Vmexit(TRUE);
+
+        //
+        // Avoid future sets
+        //
+        g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
+    }
 }
 
 /**
@@ -769,6 +785,43 @@ KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
 }
 
 /**
+ * @brief move to cr3 execute
+ * @param ProcessorIndex Index of processor
+ * @param GuestState Guest's gp registers
+ * @param NewCr3
+ * 
+ * 
+ * @return VOID 
+ */
+VOID
+KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3)
+{
+    CR3_TYPE ProcessCr3 = {0};
+
+    //
+    // Check if we reached to the target process
+    //
+    if (g_ProcessSwitchPid == PsGetCurrentProcessId())
+    {
+        //
+        // We need the kernel side cr3 of the target process
+        //
+
+        //
+        // Due to KVA Shadowing, we need to switch to a different directory table base
+        // if the PCID indicates this is a user mode directory table base.
+        //
+        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+        ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
+
+        KdChangeCr3AndTriggerBreakpointHandler(ProcessorIndex,
+                                               GuestState,
+                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED,
+                                               ProcessCr3);
+    }
+}
+
+/**
  * @brief change the current process
  * @param PidRequest
  * 
@@ -777,6 +830,8 @@ KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
 BOOLEAN
 KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
 {
+    ULONG CoreCount = 0;
+
     if (PidRequest->GetRemotePid)
     {
         //
@@ -789,9 +844,24 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
         //
         // Debugger wants to switch to new process
         //
-        KdFireDpc(KdSwitchToNewProcessDpc,
-                  PidRequest->ProcessId,
-                  DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
+        // KdFireDpc(KdSwitchToNewProcessDpc,
+        //          PidRequest->ProcessId,
+        //          DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
+
+        //
+        // Set the target process id
+        //
+        g_ProcessSwitchPid = PidRequest->ProcessId;
+
+        //
+        // Set mov-cr3 vmexit for all the cores
+        //
+        CoreCount = KeQueryActiveProcessorCount(0);
+
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            g_GuestState[i].DebuggingState.SetMovCr3VmExit = TRUE;
+        }
     }
 
     return TRUE;
