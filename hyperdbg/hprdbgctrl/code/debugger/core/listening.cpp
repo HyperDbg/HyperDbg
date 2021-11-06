@@ -402,8 +402,9 @@ StartAgain:
             {
                 if (ChangeProcessPacket->GetRemotePid)
                 {
-                    ShowMessages("current process id : %x\n",
-                                 ChangeProcessPacket->ProcessId);
+                    ShowMessages("process id: %x\nprocess (_EPROCESS): %s\n",
+                                 ChangeProcessPacket->ProcessId,
+                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str());
                 }
                 else
                 {

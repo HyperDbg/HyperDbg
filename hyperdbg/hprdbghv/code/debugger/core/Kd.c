@@ -755,7 +755,8 @@ KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3
     //
     // Check if we reached to the target process
     //
-    if (g_ProcessSwitchPid == PsGetCurrentProcessId())
+    if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
+        (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
         //
         // We need the kernel side cr3 of the target process
@@ -786,16 +787,50 @@ KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
     if (PidRequest->GetRemotePid)
     {
         //
-        // Debugger wants to know current pid
+        // Debugger wants to know current pid, _EPROCESS
         //
         PidRequest->ProcessId = PsGetCurrentProcessId();
+        PidRequest->Process   = PsGetCurrentProcess();
     }
     else
     {
         //
-        // Set the target process id
+        // Initialized with NULL
         //
-        g_ProcessSwitchPid = PidRequest->ProcessId;
+        g_ProcessSwitch.Process   = NULL;
+        g_ProcessSwitch.ProcessId = NULL;
+
+        //
+        // Check to avoid invalid switch
+        //
+        if (PidRequest->ProcessId == NULL && PidRequest->Process == NULL)
+        {
+            PidRequest->Result = DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER;
+            return FALSE;
+        }
+
+        //
+        // Set the target process id, eprocess to switch
+        //
+        if (PidRequest->Process != NULL)
+        {
+            if (CheckMemoryAccessSafety(PidRequest->Process, sizeof(BYTE)))
+            {
+                g_ProcessSwitch.Process = PidRequest->Process;
+            }
+            else
+            {
+                //
+                // An invalid address is specified by user
+                //
+                PidRequest->Result = DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER;
+                return FALSE;
+            }
+        }
+        else if (PidRequest->ProcessId != NULL)
+        {
+            g_ProcessSwitch.ProcessId = PidRequest->ProcessId;
+        }
 
         //
         // Set mov-cr3 vmexit for all the cores
@@ -1970,10 +2005,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 if (KdSwitchProcess(ChangeProcessPacket))
                 {
                     ChangeProcessPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
-                }
-                else
-                {
-                    ChangeProcessPacket->Result = DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS;
                 }
 
                 //

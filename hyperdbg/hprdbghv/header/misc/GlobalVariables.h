@@ -231,7 +231,7 @@ UINT64 g_KernelTestR12;
 BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
 
 /**
- * @brief Process switch Process ID
+ * @brief Process switch to EPROCESS or Process ID 
  * 
  */
-UINT32 g_ProcessSwitchPid;
+DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;

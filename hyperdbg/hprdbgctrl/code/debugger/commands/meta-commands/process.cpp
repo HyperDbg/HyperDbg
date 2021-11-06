@@ -25,9 +25,10 @@ VOID
 CommandProcessHelp()
 {
     ShowMessages(".process : show and change the current process.\n\n");
-    ShowMessages("syntax : \t.process [type (pid)] [new process id (hex)]\n");
+    ShowMessages("syntax : \t.process [type (pid | process)] [new process id (hex) | new EPROCESS address]\n");
     ShowMessages("\t\te.g : .process\n");
     ShowMessages("\t\te.g : .process pid 4\n");
+    ShowMessages("\t\te.g : .process process ffff948c`c2349280\n");
 }
 
 /**
@@ -40,7 +41,8 @@ CommandProcessHelp()
 VOID
 CommandProcess(vector<string> SplittedCommand, string Command)
 {
-    UINT64 TargetProcess = 0;
+    UINT32 TargetProcessId = 0;
+    UINT64 TargetProcess   = 0;
 
     if (SplittedCommand.size() != 3 && SplittedCommand.size() != 1)
     {
@@ -63,16 +65,37 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         // Send the packet to get current process
         //
-        KdSendSwitchProcessPacketToDebuggee(TRUE, NULL);
+        KdSendSwitchProcessPacketToDebuggee(TRUE, NULL, NULL);
     }
-    else if (SplittedCommand.size() == 3 &&
-             !SplittedCommand.at(1).compare("pid"))
+    else if (SplittedCommand.size() == 3)
     {
-        if (!ConvertStringToUInt64(SplittedCommand.at(2), &TargetProcess))
+        if (!SplittedCommand.at(1).compare("pid"))
+        {
+            if (!ConvertStringToUInt32(SplittedCommand.at(2), &TargetProcessId))
+            {
+                ShowMessages(
+                    "please specify a correct hex value for the process id that you "
+                    "want to operate on it\n\n");
+                CommandProcessHelp();
+                return;
+            }
+        }
+        else if (!SplittedCommand.at(1).compare("process"))
+        {
+            if (!ConvertStringToUInt64(SplittedCommand.at(2), &TargetProcess))
+            {
+                ShowMessages(
+                    "please specify a correct hex value for the process (nt!_EPROCESS) that you "
+                    "want to operate on it\n\n");
+                CommandProcessHelp();
+                return;
+            }
+        }
+        else
         {
             ShowMessages(
-                "please specify a correct hex value for the process that you "
-                "want to operate on it\n\n");
+                "err, unknown parameter at '%s'\n\n",
+                SplittedCommand.at(2).c_str());
             CommandProcessHelp();
             return;
         }
@@ -80,7 +103,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         // Send the packet to change process
         //
-        KdSendSwitchProcessPacketToDebuggee(FALSE, TargetProcess);
+        KdSendSwitchProcessPacketToDebuggee(FALSE, TargetProcessId, TargetProcess);
     }
     else
     {

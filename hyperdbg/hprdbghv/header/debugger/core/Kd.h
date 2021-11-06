@@ -27,6 +27,21 @@ volatile LONG DebuggerResponseLock;
  */
 volatile LONG DebuggerHandleBreakpointLock;
 
+//////////////////////////////////////////////////
+//				      Structures    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief request to change the process
+ *
+ */
+typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
+{
+    UINT32 ProcessId;
+    UINT64 Process;
+
+} DEBUGGEE_REQUEST_TO_CHANGE_PROCESS, *PDEBUGGEE_REQUEST_TO_CHANGE_PROCESS;
+
 /**
  * @brief request to pause and halt the system
  *

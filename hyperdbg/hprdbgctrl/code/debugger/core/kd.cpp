@@ -600,15 +600,17 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 }
 
 /**
- * @brief Sends a change core or '.process pid x' command packet to the debuggee
+ * @brief Sends a change process packet to the debuggee
  * @param GetRemotePid
  * @param NewPid
+ * @param NewProcess
  *
  * @return BOOLEAN
  */
 BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
-                                    UINT32  NewPid)
+                                    UINT32  NewPid,
+                                    UINT64  NewProcess)
 {
     DEBUGGEE_CHANGE_PROCESS_PACKET ProcessChangePacket = {0};
 
@@ -619,6 +621,7 @@ KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
     else
     {
         ProcessChangePacket.ProcessId = NewPid;
+        ProcessChangePacket.Process   = NewProcess;
     }
 
     //
