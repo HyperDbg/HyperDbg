@@ -118,6 +118,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                WaitForStepTrap;
     BOOLEAN                                WaitingForNmi;
     BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
+    BOOLEAN                                SetMovCr3VmExit;
     BOOLEAN                                AvoidReleaseDebugLock;
     BOOLEAN                                AvoidAcquireDebugLock;
     UINT16                                 InstructionLengthHint;

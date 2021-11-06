@@ -112,7 +112,8 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 
 BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
-                                    UINT32  NewPid);
+                                    UINT32  NewPid,
+                                    UINT64  NewProcess);
 
 BOOLEAN
 KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);

@@ -193,21 +193,22 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             __vmx_vmwrite(CR0_READ_SHADOW, *RegPtr);
             break;
         case 3:
-            NewCr3 = (*RegPtr & ~(1ULL << 63));
+
+            NewCr3          = (*RegPtr & ~(1ULL << 63));
+            NewCr3Reg.Flags = NewCr3;
 
             //
             // Check if we are in debugging thread's steppings or not
             //
-            if (g_EnableDebuggerSteppings)
-            {
-                NewCr3Reg.Flags = NewCr3;
-                SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
-            }
+            // if (g_EnableDebuggerSteppings)
+            // {
+            //    SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
+            // }
 
             //
             // Apply the new cr3
             //
-            __vmx_vmwrite(GUEST_CR3, NewCr3);
+            __vmx_vmwrite(GUEST_CR3, NewCr3Reg.Flags);
 
             //
             // Invalidate as we used VPID tags so the vm-exit won't
@@ -215,6 +216,11 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             // it manually
             //
             InvvpidSingleContext(VPID_TAG);
+
+            //
+            //
+            // Call kernel debugger handler for mov to cr3
+            KdHandleMovToCr3(ProcessorIndex, GuestState, &NewCr3Reg);
 
             break;
         case 4:

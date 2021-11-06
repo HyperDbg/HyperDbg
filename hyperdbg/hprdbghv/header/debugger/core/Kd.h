@@ -27,6 +27,21 @@ volatile LONG DebuggerResponseLock;
  */
 volatile LONG DebuggerHandleBreakpointLock;
 
+//////////////////////////////////////////////////
+//				      Structures    			//
+//////////////////////////////////////////////////
+
+/**
+ * @brief request to change the process
+ *
+ */
+typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
+{
+    UINT32 ProcessId;
+    UINT64 Process;
+
+} DEBUGGEE_REQUEST_TO_CHANGE_PROCESS, *PDEBUGGEE_REQUEST_TO_CHANGE_PROCESS;
+
 /**
  * @brief request to pause and halt the system
  *
@@ -88,12 +103,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
-VOID
-KdChangeCr3AndTriggerBreakpointHandler(UINT32                  CurrentProcessorIndex,
-                                       PGUEST_REGS             GuestRegs,
-                                       DEBUGGEE_PAUSING_REASON Reason,
-                                       CR3_TYPE                TargetCr3);
-
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled);
 
@@ -109,3 +118,6 @@ KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLe
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);
+
+VOID
+KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3);
