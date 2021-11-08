@@ -775,75 +775,174 @@ KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3
 
 /**
  * @brief change the current process
+ * @param ProcessId
+ * @param EProcess
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdSwitchProcess(UINT32 ProcessId, PEPROCESS EProcess)
+{
+    ULONG CoreCount = 0;
+
+    //
+    // Initialized with NULL
+    //
+    g_ProcessSwitch.Process   = NULL;
+    g_ProcessSwitch.ProcessId = NULL;
+
+    //
+    // Check to avoid invalid switch
+    //
+    if (ProcessId == NULL && EProcess == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the target process id, eprocess to switch
+    //
+    if (EProcess != NULL)
+    {
+        if (CheckMemoryAccessSafety(EProcess, sizeof(BYTE)))
+        {
+            g_ProcessSwitch.Process = EProcess;
+        }
+        else
+        {
+            //
+            // An invalid address is specified by user
+            //
+            return FALSE;
+        }
+    }
+    else if (ProcessId != NULL)
+    {
+        g_ProcessSwitch.ProcessId = ProcessId;
+    }
+
+    //
+    // Set mov-cr3 vmexit for all the cores
+    //
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        g_GuestState[i].DebuggingState.SetMovCr3VmExit = TRUE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief shows the process list
+ * @param PsActiveProcessHead
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KdShowProcessList(UINT64 PsActiveProcessHead)
+{
+    //
+    // Check if address is valid
+    //
+    if (CheckMemoryAccessSafety(PsActiveProcessHead, sizeof(BYTE)))
+    {
+    }
+    else
+    {
+        //
+        // An invalid address is specified by the debugger
+        //
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief change the current process
  * @param PidRequest
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-KdSwitchProcess(PDEBUGGEE_CHANGE_PROCESS_PACKET PidRequest)
+KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
 {
-    ULONG CoreCount = 0;
-
-    if (PidRequest->GetRemotePid)
+    switch (PidRequest->ActionType)
     {
+    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS:
+
         //
-        // Debugger wants to know current pid, _EPROCESS
+        // Debugger wants to know current pid and nt!_EPROCESS
         //
         PidRequest->ProcessId = PsGetCurrentProcessId();
         PidRequest->Process   = PsGetCurrentProcess();
+
+        //
+        // Operation was successful
+        //
+        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+        break;
+
+    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS:
+
+        //
+        // Perform the process switch
+        //
+        if (!KdSwitchProcess(PidRequest->ProcessId, PidRequest->Process))
+        {
+            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Operation was successful
+        //
+        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+        break;
+
+    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST:
+
+        //
+        // Show the process list
+        //
+        if (!KdShowProcessList(PidRequest->PsActiveProcessHead))
+        {
+            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            break;
+        }
+
+        //
+        // Operation was successful
+        //
+        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+        break;
+
+    default:
+
+        //
+        // Invalid type of action
+        //
+        PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+
+        break;
+    }
+
+    //
+    // Check if the above operation contains error
+    //
+    if (PidRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    {
+        return TRUE;
     }
     else
     {
-        //
-        // Initialized with NULL
-        //
-        g_ProcessSwitch.Process   = NULL;
-        g_ProcessSwitch.ProcessId = NULL;
-
-        //
-        // Check to avoid invalid switch
-        //
-        if (PidRequest->ProcessId == NULL && PidRequest->Process == NULL)
-        {
-            PidRequest->Result = DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER;
-            return FALSE;
-        }
-
-        //
-        // Set the target process id, eprocess to switch
-        //
-        if (PidRequest->Process != NULL)
-        {
-            if (CheckMemoryAccessSafety(PidRequest->Process, sizeof(BYTE)))
-            {
-                g_ProcessSwitch.Process = PidRequest->Process;
-            }
-            else
-            {
-                //
-                // An invalid address is specified by user
-                //
-                PidRequest->Result = DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER;
-                return FALSE;
-            }
-        }
-        else if (PidRequest->ProcessId != NULL)
-        {
-            g_ProcessSwitch.ProcessId = PidRequest->ProcessId;
-        }
-
-        //
-        // Set mov-cr3 vmexit for all the cores
-        //
-        CoreCount = KeQueryActiveProcessorCount(0);
-
-        for (size_t i = 0; i < CoreCount; i++)
-        {
-            g_GuestState[i].DebuggingState.SetMovCr3VmExit = TRUE;
-        }
+        return FALSE;
     }
-
-    return TRUE;
 }
 
 /**
@@ -1668,7 +1767,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
-    PDEBUGGEE_CHANGE_PROCESS_PACKET                     ChangeProcessPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET         ChangeProcessPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
@@ -1996,16 +2095,13 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS:
 
-                ChangeProcessPacket = (DEBUGGEE_CHANGE_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
-                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+                ChangeProcessPacket = (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Switch to new process
+                // Interpret the process packet
                 //
-                if (KdSwitchProcess(ChangeProcessPacket))
-                {
-                    ChangeProcessPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
-                }
+                KdInterpretProcess(ChangeProcessPacket);
 
                 //
                 // Send the result of switching process back to the debuggee
@@ -2013,7 +2109,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
                                            ChangeProcessPacket,
-                                           sizeof(DEBUGGEE_CHANGE_PROCESS_PACKET));
+                                           sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET));
 
                 break;
 

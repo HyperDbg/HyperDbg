@@ -42,28 +42,28 @@ extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
 BOOLEAN
 ListeningSerialPortInDebugger()
 {
-    PDEBUGGER_PREPARE_DEBUGGEE            InitPacket;
-    PDEBUGGER_REMOTE_PACKET               TheActualPacket;
-    PDEBUGGEE_PAUSED_PACKET               PausePacket;
-    PDEBUGGEE_MESSAGE_PACKET              MessagePacket;
-    PDEBUGGEE_CHANGE_CORE_PACKET          ChangeCorePacket;
-    PDEBUGGEE_SCRIPT_PACKET               ScriptPacket;
-    PDEBUGGEE_FORMATS_PACKET              FormatsPacket;
-    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER EventAndActionPacket;
-    PDEBUGGER_UPDATE_SYMBOL_TABLE         SymbolUpdatePacket;
-    PDEBUGGER_MODIFY_EVENTS               EventModifyAndQueryPacket;
-    PDEBUGGEE_SYMBOL_UPDATE_RESULT        SymbolReloadFinishedPacket;
-    PDEBUGGEE_CHANGE_PROCESS_PACKET       ChangeProcessPacket;
-    PDEBUGGER_FLUSH_LOGGING_BUFFERS       FlushPacket;
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION   ReadRegisterPacket;
-    PDEBUGGER_READ_MEMORY                 ReadMemoryPacket;
-    PDEBUGGER_EDIT_MEMORY                 EditMemoryPacket;
-    PDEBUGGEE_BP_PACKET                   BpPacket;
-    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET    ListOrModifyBreakpointPacket;
-    PGUEST_REGS                           Regs;
-    PGUEST_EXTRA_REGISTERS                ExtraRegs;
-    unsigned char *                       MemoryBuffer;
-    BOOLEAN                               ShowSignatureWhenDisconnected = FALSE;
+    PDEBUGGER_PREPARE_DEBUGGEE                  InitPacket;
+    PDEBUGGER_REMOTE_PACKET                     TheActualPacket;
+    PDEBUGGEE_PAUSED_PACKET                     PausePacket;
+    PDEBUGGEE_MESSAGE_PACKET                    MessagePacket;
+    PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
+    PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
+    PDEBUGGEE_FORMATS_PACKET                    FormatsPacket;
+    PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER       EventAndActionPacket;
+    PDEBUGGER_UPDATE_SYMBOL_TABLE               SymbolUpdatePacket;
+    PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
+    PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
+    PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
+    PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
+    PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
+    PGUEST_REGS                                 Regs;
+    PGUEST_EXTRA_REGISTERS                      ExtraRegs;
+    unsigned char *                             MemoryBuffer;
+    BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
 
 StartAgain:
 
@@ -395,18 +395,18 @@ StartAgain:
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS:
 
             ChangeProcessPacket =
-                (DEBUGGEE_CHANGE_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
-                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+                (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
+                                                               sizeof(DEBUGGER_REMOTE_PACKET));
 
             if (ChangeProcessPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
             {
-                if (ChangeProcessPacket->GetRemotePid)
+                if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
                 {
                     ShowMessages("process id: %x\nprocess (_EPROCESS): %s\n",
                                  ChangeProcessPacket->ProcessId,
                                  SeparateTo64BitValue(ChangeProcessPacket->Process).c_str());
                 }
-                else
+                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS)
                 {
                     ShowMessages(
                         "press 'g' to continue the debuggee, if the pid is valid then "

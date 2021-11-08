@@ -182,8 +182,10 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, the event is not applied (%x)\n", Error);
         break;
 
-    case DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER:
-        ShowMessages("err, either the process id or the EPROCESS is invalid (%x)\n", Error);
+    case DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
+        ShowMessages("err, either the process id or the EPROCESS is invalid or "
+                     "cannot get the details based on the provided parameters (%x)\n",
+                     Error);
         break;
 
     default:

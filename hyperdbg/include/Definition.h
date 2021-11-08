@@ -1501,17 +1501,31 @@ typedef struct _DEBUGGEE_CHANGE_CORE_PACKET
 } DEBUGGEE_CHANGE_CORE_PACKET, *PDEBUGGEE_CHANGE_CORE_PACKET;
 
 /**
+ * @brief Debugger process switch and process and threads detauks
+ *
+ */
+typedef enum _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE
+{
+
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS,
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
+
+} DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE;
+
+/**
  * @brief The structure of changing process packet in HyperDbg
  *
  */
-typedef struct _DEBUGGEE_CHANGE_PROCESS_PACKET
+typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
 {
-    BOOLEAN GetRemotePid;
-    UINT32  ProcessId;
-    UINT64  Process;
-    UINT32  Result;
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType;
+    UINT32                                   ProcessId;
+    UINT64                                   Process;
+    UINT64                                   PsActiveProcessHead;
+    UINT32                                   Result;
 
-} DEBUGGEE_CHANGE_PROCESS_PACKET, *PDEBUGGEE_CHANGE_PROCESS_PACKET;
+} DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, *PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;
 
 /**
  * @brief stepping types
@@ -1928,10 +1942,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
 #define DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED 0xc000001f
 
 /**
- * @brief error, for process switch, invalid parameter
+ * @brief error, for process switch or process details, invalid parameter
  *
  */
-#define DEBUGEER_ERROR_SWITCH_PROCESS_INVALID_PARAMETER 0xc0000020
+#define DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER 0xc0000020
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

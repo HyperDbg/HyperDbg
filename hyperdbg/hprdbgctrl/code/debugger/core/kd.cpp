@@ -601,28 +601,22 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 
 /**
  * @brief Sends a change process packet to the debuggee
- * @param GetRemotePid
+ * @param ActionType
  * @param NewPid
  * @param NewProcess
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
-                                    UINT32  NewPid,
-                                    UINT64  NewProcess)
+KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
+                                    UINT32                                   NewPid,
+                                    UINT64                                   NewProcess)
 {
-    DEBUGGEE_CHANGE_PROCESS_PACKET ProcessChangePacket = {0};
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ProcessChangePacket = {0};
 
-    if (GetRemotePid)
-    {
-        ProcessChangePacket.GetRemotePid = TRUE;
-    }
-    else
-    {
-        ProcessChangePacket.ProcessId = NewPid;
-        ProcessChangePacket.Process   = NewProcess;
-    }
+    ProcessChangePacket.ActionType = ActionType;
+    ProcessChangePacket.ProcessId  = NewPid;
+    ProcessChangePacket.Process    = NewProcess;
 
     //
     // Send '.process' as switch packet
@@ -631,7 +625,7 @@ KdSendSwitchProcessPacketToDebuggee(BOOLEAN GetRemotePid,
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
             (CHAR *)&ProcessChangePacket,
-            sizeof(DEBUGGEE_CHANGE_PROCESS_PACKET)))
+            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET)))
     {
         return FALSE;
     }

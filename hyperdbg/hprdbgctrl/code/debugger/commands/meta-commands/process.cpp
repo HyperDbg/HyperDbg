@@ -65,7 +65,9 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         // Send the packet to get current process
         //
-        KdSendSwitchProcessPacketToDebuggee(TRUE, NULL, NULL);
+        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
+                                            NULL,
+                                            NULL);
     }
     else if (SplittedCommand.size() == 3)
     {
@@ -103,7 +105,9 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         // Send the packet to change process
         //
-        KdSendSwitchProcessPacketToDebuggee(FALSE, TargetProcessId, TargetProcess);
+        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS,
+                                            TargetProcessId,
+                                            TargetProcess);
     }
     else
     {
