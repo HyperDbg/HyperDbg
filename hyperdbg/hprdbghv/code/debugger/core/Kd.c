@@ -2494,10 +2494,9 @@ StartAgain:
                                                   ExitInstructionLength);
 
         //
-        // Send the pause packet, along with RIP and an
-        // indication to pause to the debugger to the debugger
+        // Send the pause packet, along with RIP and an indication
+        // to pause to the debugger 
         //
-
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
                                    &PausePacket,
