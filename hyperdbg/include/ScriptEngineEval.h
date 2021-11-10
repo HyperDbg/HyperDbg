@@ -215,6 +215,8 @@ __declspec(dllimport) UINT32
 __declspec(dllimport) UINT32
     ScriptEngineSearchSymbolForMask(const char * SearchMask);
 __declspec(dllimport) BOOLEAN
+    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
+__declspec(dllimport) BOOLEAN
     ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);

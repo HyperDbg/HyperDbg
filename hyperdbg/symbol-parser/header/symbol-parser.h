@@ -42,6 +42,7 @@ __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * 
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
 __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
+__declspec(dllexport) BOOLEAN SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
 __declspec(dllexport) BOOLEAN SymCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);

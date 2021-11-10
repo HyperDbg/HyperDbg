@@ -207,7 +207,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
     {
         //
-        // start from the begining
+        // start from the beginning
         //
         MessageBufferInformation[Index].CurrentIndexToWrite = 0;
     }
@@ -717,7 +717,7 @@ LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage
         // Append time with previous message
         //
         SprintfResult = sprintf_s(LogMessage, PacketChunkSize - 1, "(%s - core : %d - vmx-root? %s)\t %s", TimeBuffer, KeGetCurrentProcessorNumberEx(0), IsVmxRootMode ? "yes" : "no", TempMessage);
-        
+
         //
         // Check if the buffer passed the limit
         //

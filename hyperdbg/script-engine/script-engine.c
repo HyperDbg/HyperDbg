@@ -80,6 +80,15 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
 }
 
 BOOLEAN
+ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+{
+    //
+    // A wrapper for search for fields in the structure
+    //
+    return SymGetFieldOffset(TypeName, FieldName, FieldOffset);
+}
+
+BOOLEAN
 ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
 {
     //

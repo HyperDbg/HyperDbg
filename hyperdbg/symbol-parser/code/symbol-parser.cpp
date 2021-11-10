@@ -183,6 +183,136 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 }
 
 /**
+ * @brief Get the offset of a field from the top of a structure 
+ * @param Base
+ * @param TypeName
+ * @param FieldName
+ * @param FieldOffset
+ * @details This function is derived from: https://github.com/0vercl0k/sic/blob/master/src/sic/sym.cc
+ * 
+ * @return BOOLEAN Whether the module is found successfully or not
+ */
+BOOLEAN
+SymGetFieldOffsetFromModule(DWORD64 Base, WCHAR * TypeName, WCHAR * FieldName, DWORD32 * FieldOffset)
+{
+    BOOLEAN Found = FALSE;
+
+    //
+    // Allocate a buffer to back the SYMBOL_INFO structure
+    //
+    const DWORD SizeOfStruct =
+        sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
+    uint8_t SymbolInfoBuffer[SizeOfStruct];
+    auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
+
+    //
+    // Initialize the fields that need initialization
+    //
+    SymbolInfo->SizeOfStruct = sizeof(SYMBOL_INFOW);
+    SymbolInfo->MaxNameLen   = MAX_SYM_NAME;
+
+    //
+    // Retrieve a type index for the type we're after
+    //
+    if (!SymGetTypeFromNameW(GetCurrentProcess(), Base, TypeName, SymbolInfo))
+    {
+        // ShowMessages("err, SymGetTypeFromName failed (%x)\n",
+        //              GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Now that we have a type, we need to enumerate its children to find the
+    // field we're after. First step is to get the number of children
+    //
+    const ULONG TypeIndex     = SymbolInfo->TypeIndex;
+    DWORD       ChildrenCount = 0;
+    if (!SymGetTypeInfo(GetCurrentProcess(), Base, TypeIndex, TI_GET_CHILDRENCOUNT, &ChildrenCount))
+    {
+        // ShowMessages("err, SymGetTypeInfo failed (%x)\n",
+        //              GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Allocate enough memory to receive the children ids
+    //
+    auto FindChildrenParamsBacking = std::make_unique<uint8_t[]>(
+        sizeof(_TI_FINDCHILDREN_PARAMS) + ((ChildrenCount - 1) * sizeof(ULONG)));
+    auto FindChildrenParams =
+        (_TI_FINDCHILDREN_PARAMS *)FindChildrenParamsBacking.get();
+
+    //
+    // Initialize the structure with the children count
+    //
+    FindChildrenParams->Count = ChildrenCount;
+
+    //
+    // Get all the children ids
+    //
+    if (!SymGetTypeInfo(GetCurrentProcess(), Base, TypeIndex, TI_FINDCHILDREN, FindChildrenParams))
+    {
+        // ShowMessages("err, SymGetTypeInfo failed (%x)\n",
+        //             GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Now that we have all the ids, we can walk them and find the one that
+    // matches the field we're looking for
+    //
+
+    for (DWORD ChildIdx = 0; ChildIdx < ChildrenCount; ChildIdx++)
+    {
+        //
+        // Grab the child name
+        //
+        const ULONG ChildId   = FindChildrenParams->ChildId[ChildIdx];
+        WCHAR *     ChildName = nullptr;
+        SymGetTypeInfo(GetCurrentProcess(), Base, ChildId, TI_GET_SYMNAME, &ChildName);
+
+        //
+        // Grab the child size - this is useful to know if a field is a bit or a
+        // normal field
+        //
+        ULONG64 ChildSize = 0;
+        SymGetTypeInfo(GetCurrentProcess(), Base, ChildId, TI_GET_LENGTH, &ChildSize);
+
+        //
+        // Does this child's name match the field we're looking for?
+        //
+        Found = FALSE;
+        if (wcscmp(ChildName, FieldName) == 0)
+        {
+            //
+            // If we have found the field, now we need to find its offset if
+            // it's a normal field, or its bit position if it is a bit
+            //
+            const IMAGEHLP_SYMBOL_TYPE_INFO Info =
+                (ChildSize == 1) ? TI_GET_BITPOSITION : TI_GET_OFFSET;
+            SymGetTypeInfo(GetCurrentProcess(), Base, ChildId, Info, FieldOffset);
+            Found = TRUE;
+        }
+
+        //
+        // Even if we have found a match, we need to clean up the memory
+        //
+        LocalFree(ChildName);
+        ChildName = nullptr;
+
+        //
+        // We can now break out of the loop if we have what we came looking for
+        //
+        if (Found)
+        {
+            break;
+        }
+    }
+
+    return Found;
+}
+
+/**
  * @brief load symbol based on a file name and GUID
  *
  * @param BaseAddress
@@ -324,8 +454,10 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
     if (ModuleDetails->ModuleBase == NULL)
     {
+        //
         //ShowMessages("err, loading symbols failed (%x)\n",
         //       GetLastError());
+        //
 
         free(ModuleDetails);
         return -1;
@@ -546,6 +678,72 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 /**
  * @brief Search and show symbols 
  * @details mainly used by the 'x' command
+ *
+ * @param TypeName
+ * @param FieldName
+ * @param FieldOffset
+ * 
+ * @return BOOLEAN Whether the module is found successfully or not
+ */
+BOOLEAN
+SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+{
+    BOOL    Ret        = FALSE;
+    DWORD64 ModuleBase = NULL;
+    UINT32  Index      = 0;
+
+    //
+    // Find module base
+    //
+    ModuleBase = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
+
+    //
+    // Find the module name
+    //
+    if (ModuleBase == NULL)
+    {
+        //
+        // Module not found or there was an error
+        //
+        return FALSE;
+    }
+
+    //
+    // Remove the *!Name from TypeName as it not supports module name
+    // at the beginning of a type name
+    //
+    while (TypeName[Index] != '\0')
+    {
+        if (TypeName[Index] == '!')
+        {
+            TypeName = (CHAR *)(TypeName + Index + 1);
+            break;
+        }
+
+        Index++;
+    }
+
+    //
+    // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
+    // wide-char
+    //
+    const size_t TypeNameSize = strlen(TypeName) + 1;
+    WCHAR *      TypeNameW    = new wchar_t[TypeNameSize];
+    mbstowcs(TypeNameW, TypeName, TypeNameSize);
+
+    //
+    // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
+    // wide-char
+    //
+    const size_t FieldNameSize = strlen(FieldName) + 1;
+    WCHAR *      FieldNameW    = new wchar_t[FieldNameSize];
+    mbstowcs(FieldNameW, FieldName, FieldNameSize);
+
+    return SymGetFieldOffsetFromModule(ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+}
+
+/**
+ * @brief Gets the offset from the symbol 
  *
  * @param SearchMask
  * 

@@ -107,6 +107,22 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
 }
 
 /**
+ * @brief ScriptEngineGetFieldOffset wrapper
+ *
+ * @param TypeName
+ * @param FieldName
+ * @param FieldOffset
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+
+{
+    return ScriptEngineGetFieldOffset(TypeName, FieldName, FieldOffset);
+}
+
+/**
  * @brief ScriptEngineCreateSymbolTableForDisassembler wrapper
  *
  * @param CallbackFunction

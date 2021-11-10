@@ -41,10 +41,12 @@ CommandProcessHelp()
 VOID
 CommandProcess(vector<string> SplittedCommand, string Command)
 {
-    UINT32 TargetProcessId = 0;
-    UINT64 TargetProcess   = 0;
+    UINT32  TargetProcessId            = 0;
+    UINT64  TargetProcess              = 0;
+    DWORD32 OffsetOfActiveProcessLinks = 0;
+    BOOLEAN ResultOfGettingOffsets     = FALSE;
 
-    if (SplittedCommand.size() != 3 && SplittedCommand.size() != 1)
+    if (SplittedCommand.size() >= 4)
     {
         ShowMessages("incorrect use of '.process'\n\n");
         CommandProcessHelp();
@@ -68,6 +70,42 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
                                             NULL,
                                             NULL);
+    }
+    else if (SplittedCommand.size() == 2)
+    {
+        if (!SplittedCommand.at(1).compare("list"))
+        {
+            //
+            // Query for ActiveProcessLinks offset from the top of nt!_EPROCESS
+            //
+            ResultOfGettingOffsets = ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS",
+                                                                       (CHAR *)"ActiveProcessLinks",
+                                                                       &OffsetOfActiveProcessLinks);
+
+            //
+            // Check if we find the nt!_EPROCESS.ActiveProcessLinks or not, otherwise,
+            // it means that the PDB for ntoskrnl.exe is not available
+            //
+            if (ResultOfGettingOffsets)
+            {
+                ShowMessages("Offset : %x\n", OffsetOfActiveProcessLinks);
+            }
+            else
+            {
+                ShowMessages("err, the need offset to iterate over processes not found, "
+                             "make sure to load ntoskrnl.exe's PDB file. use '.help .sym' for "
+                             "more information\n");
+                return;
+            }
+        }
+        else
+        {
+            ShowMessages(
+                "err, unknown parameter at '%s'\n\n",
+                SplittedCommand.at(1).c_str());
+            CommandProcessHelp();
+            return;
+        }
     }
     else if (SplittedCommand.size() == 3)
     {
