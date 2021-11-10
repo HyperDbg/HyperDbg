@@ -409,15 +409,15 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             {
                 Op1Symbol = NewSymbol();
                 free(Op1Symbol->Value);
-                Op1Symbol->Value = NewGlobalIdentifire(Op1);
-                SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
+                Op1Symbol->Value = NewGlobalIdentifier(Op1);
+                SetType(&Op1Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
             }
             else if (Op1->Type == LOCAL_UNRESOLVED_ID)
             {
                 Op1Symbol = NewSymbol();
                 free(Op1Symbol->Value);
-                Op1Symbol->Value = NewLocalIdentifire(Op1);
-                SetType(&Op1Symbol->Type, SYMBOL_ID_TYPE);
+                Op1Symbol->Value = NewLocalIdentifier(Op1);
+                SetType(&Op1Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
             }
             else
             {
@@ -1762,12 +1762,12 @@ ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
     switch (Token->Type)
     {
     case GLOBAL_ID:
-        Symbol->Value = GetGlobalIdentifireVal(Token);
-        SetType(&Symbol->Type, SYMBOL_ID_TYPE);
+        Symbol->Value = GetGlobalIdentifierVal(Token);
+        SetType(&Symbol->Type, SYMBOL_GLOBAL_ID_TYPE);
         return Symbol;
     case LOCAL_ID:
-        Symbol->Value = GetLocalIdentifireVal(Token);
-        SetType(&Symbol->Type, SYMBOL_ID_TYPE);
+        Symbol->Value = GetLocalIdentifierVal(Token);
+        SetType(&Symbol->Type, SYMBOL_LOCAL_ID_TYPE);
         return Symbol;
     case DECIMAL:
         Symbol->Value = DecimalToInt(Token->Value);
@@ -2089,7 +2089,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 }
 
 int
-GetGlobalIdentifireVal(TOKEN Token)
+GetGlobalIdentifierVal(TOKEN Token)
 {
     TOKEN CurrentToken;
     for (uintptr_t i = 0; i < IdTable->Pointer; i++)
@@ -2104,13 +2104,22 @@ GetGlobalIdentifireVal(TOKEN Token)
 }
 
 int
-GetLocalIdentifireVal(TOKEN Token)
+GetLocalIdentifierVal(TOKEN Token)
 {
+    TOKEN CurrentToken;
+    for (uintptr_t i = 0; i < IdTable->Pointer; i++)
+    {
+        CurrentToken = *(IdTable->Head + i);
+        if (!strcmp(Token->Value, CurrentToken->Value))
+        {
+            return (int)i;
+        }
+    }
     return -1;
 }
 
 int
-NewGlobalIdentifire(TOKEN Token)
+NewGlobalIdentifier(TOKEN Token)
 {
     TOKEN CurrentToken = NewToken();
     CurrentToken->Type = Token->Type;
@@ -2120,7 +2129,7 @@ NewGlobalIdentifire(TOKEN Token)
 }
 
 int
-NewLocalIdentifire(TOKEN Token)
+NewLocalIdentifier(TOKEN Token)
 {
     TOKEN CurrentToken = NewToken();
     CurrentToken->Type = Token->Type;

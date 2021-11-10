@@ -2688,12 +2688,19 @@ GetValue(PGUEST_REGS                    GuestRegs,
 {
     switch (Symbol->Type)
     {
-    case SYMBOL_ID_TYPE:
+    case SYMBOL_GLOBAL_ID_TYPE:
 
         if (ReturnReference)
             return ((UINT64)(&VariablesList->GlobalVariablesList[Symbol->Value]));
         else
             return VariablesList->GlobalVariablesList[Symbol->Value];
+
+    case SYMBOL_LOCAL_ID_TYPE:
+
+        if (ReturnReference)
+            return ((UINT64)(&VariablesList->LocalVariablesList[Symbol->Value]));
+        else
+            return VariablesList->LocalVariablesList[Symbol->Value];
 
     case SYMBOL_NUM_TYPE:
 
@@ -3745,8 +3752,11 @@ SetValue(PGUEST_REGS GuestRegs, SCRIPT_ENGINE_VARIABLES_LIST * VariablesList, PS
 {
     switch (Symbol->Type)
     {
-    case SYMBOL_ID_TYPE:
+    case SYMBOL_GLOBAL_ID_TYPE:
         VariablesList->GlobalVariablesList[Symbol->Value] = Value;
+        return;
+    case SYMBOL_LOCAL_ID_TYPE:
+        VariablesList->LocalVariablesList[Symbol->Value] = Value;
         return;
     case SYMBOL_TEMP_TYPE:
         VariablesList->TempList[Symbol->Value] = Value;

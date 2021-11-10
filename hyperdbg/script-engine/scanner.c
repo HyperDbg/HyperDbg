@@ -386,6 +386,7 @@ GetToken(char * c, char * str)
         }
 
     case '.':
+        Append(Token, *c);
         *c = sgetc(str);
         if (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'))
         {
@@ -414,7 +415,7 @@ GetToken(char * c, char * str)
                 }
                 else
                 {
-                    if (GetGlobalIdentifireVal(Token) != -1)
+                    if (GetGlobalIdentifierVal(Token) != -1)
                     {
                         Token->Type = GLOBAL_ID;
                     }
@@ -584,7 +585,7 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetLocalIdentifireVal(Token) != -1)
+                            if (GetLocalIdentifierVal(Token) != -1)
                             {
                                 Token->Type = LOCAL_ID;
                             }
@@ -628,7 +629,7 @@ GetToken(char * c, char * str)
                         }
                         else
                         {
-                            if (GetLocalIdentifireVal(Token) != -1)
+                            if (GetLocalIdentifierVal(Token) != -1)
                             {
                                 Token->Type = LOCAL_ID;
                             }
@@ -683,7 +684,7 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (GetLocalIdentifireVal(Token) != -1)
+                        if (GetLocalIdentifierVal(Token) != -1)
                         {
                             Token->Type = LOCAL_ID;
                         }
