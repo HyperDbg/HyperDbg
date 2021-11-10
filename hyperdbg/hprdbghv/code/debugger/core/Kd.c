@@ -843,11 +843,60 @@ KdSwitchProcess(UINT32 ProcessId, PEPROCESS EProcess)
 BOOLEAN
 KdShowProcessList(UINT64 PsActiveProcessHead)
 {
+    ULONG64    Process;
+    UCHAR      ImageFileName[15];
+    ULONG64    UniquePid;
+    LIST_ENTRY ActiveProcessLinks;
+
+    ULONG64 ActiveProcessHead        = 0xfffff80163c1e180; // nt!PsActiveProcessHead
+    ULONG   ImageFileNameOffset      = 0x5a8;              // nt!_EPROCESS.ImageFileName
+    ULONG   UniquePidOffset          = 0x440;              // nt!_EPROCESS.UniqueProcessId
+    ULONG   ActiveProcessLinksOffset = 0x448;              // nt!_EPROCESS.ActiveProcessLinks
+
     //
     // Check if address is valid
     //
-    if (CheckMemoryAccessSafety(PsActiveProcessHead, sizeof(BYTE)))
+    if (CheckMemoryAccessSafety(ActiveProcessHead, sizeof(BYTE)))
     {
+        //
+        // Show processes list, we read everything from the view of system
+        // process
+        //
+        MemoryMapperReadMemorySafe(ActiveProcessHead, &ActiveProcessLinks, sizeof(ActiveProcessLinks));
+
+        //
+        // Find the top of EPROCESS from nt!_EPROCESS.ActiveProcessLinks
+        //
+        Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+
+        do
+        {
+            //
+            // Read Process name, Process ID, CR3 of the target process
+            //
+            MemoryMapperReadMemorySafe(Process + ImageFileNameOffset,
+                                       &ImageFileName,
+                                       sizeof(ImageFileName));
+
+            MemoryMapperReadMemorySafe(Process + UniquePidOffset,
+                                       &UniquePid,
+                                       sizeof(UniquePid));
+
+            MemoryMapperReadMemorySafe(Process + ActiveProcessLinksOffset,
+                                       &ActiveProcessLinks,
+                                       sizeof(ActiveProcessLinks));
+
+            //
+            // Show the list of process
+            //
+            LogInfo("EPROCESS : %llx, Process Name : %s, Process ID : %x", Process, ImageFileName, UniquePid);
+
+            //
+            // Find the next process from the list of this process
+            //
+            Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+
+        } while ((ULONG64)ActiveProcessLinks.Flink != ActiveProcessHead);
     }
     else
     {
@@ -2495,7 +2544,7 @@ StartAgain:
 
         //
         // Send the pause packet, along with RIP and an indication
-        // to pause to the debugger 
+        // to pause to the debugger
         //
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,

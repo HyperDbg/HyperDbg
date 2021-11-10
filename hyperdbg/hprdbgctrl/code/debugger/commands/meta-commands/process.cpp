@@ -89,6 +89,13 @@ CommandProcess(vector<string> SplittedCommand, string Command)
             if (ResultOfGettingOffsets)
             {
                 ShowMessages("Offset : %x\n", OffsetOfActiveProcessLinks);
+
+                //
+                // Send the packet to show list of process
+                //
+                KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
+                                                    NULL,
+                                                    NULL);
             }
             else
             {
