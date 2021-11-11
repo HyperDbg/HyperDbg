@@ -55,7 +55,8 @@ CommandUnload(vector<string> SplittedCommand, string Command)
     // Check for the module
     //
     if ((SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("vmm")) ||
-        (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") && !SplittedCommand.at(1).compare("remove")))
+        (SplittedCommand.size() == 3 && !SplittedCommand.at(2).compare("vmm") &&
+         !SplittedCommand.at(1).compare("remove")))
     {
         if (!g_IsConnectedToHyperDbgLocally)
         {
@@ -77,29 +78,34 @@ CommandUnload(vector<string> SplittedCommand, string Command)
         if (g_IsDebuggerModulesLoaded)
         {
             HyperdbgUnload();
-
-            if (!SplittedCommand.at(1).compare("remove"))
-            {
-                //
-                // Stop the driver
-                //
-                if (HyperdbgStopDriver())
-                {
-                    ShowMessages("failed to stop driver\n");
-                }
-
-                //
-                // Uninstall the driver
-                //
-                if (HyperdbgUninstallDriver())
-                {
-                    ShowMessages("failed to uninstall the driver\n");
-                }
-            }
         }
         else
         {
             ShowMessages("there is nothing to unload\n");
+        }
+
+        //
+        // Check to remove the driver
+        //
+        if (!SplittedCommand.at(1).compare("remove"))
+        {
+            //
+            // Stop the driver
+            //
+            if (HyperdbgStopDriver())
+            {
+                ShowMessages("failed to stop driver\n");
+            }
+
+            //
+            // Uninstall the driver
+            //
+            if (HyperdbgUninstallDriver())
+            {
+                ShowMessages("failed to uninstall the driver\n");
+            }
+
+            ShowMessages("the driver is removed");
         }
     }
     else
