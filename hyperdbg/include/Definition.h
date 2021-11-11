@@ -1514,6 +1514,20 @@ typedef enum _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE
 } DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE;
 
 /**
+ * @brief The structure of needed information to get the details
+ * of the process from nt!_EPROCESS and location of needed variables
+ *
+ */
+typedef struct _DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS
+{
+    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG  ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
+    ULONG  UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
+    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+
+} DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS, *PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS;
+
+/**
  * @brief The structure of changing process packet in HyperDbg
  *
  */
@@ -1522,7 +1536,7 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType;
     UINT32                                   ProcessId;
     UINT64                                   Process;
-    UINT64                                   PsActiveProcessHead;
+    DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS     ProcessListSymDetails;
     UINT32                                   Result;
 
 } DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, *PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;

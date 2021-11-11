@@ -604,19 +604,30 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
  * @param ActionType
  * @param NewPid
  * @param NewProcess
+ * @param SymDetailsForProcessList
  *
  * @return BOOLEAN
  */
 BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
                                     UINT32                                   NewPid,
-                                    UINT64                                   NewProcess)
+                                    UINT64                                   NewProcess,
+                                    PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList)
 {
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ProcessChangePacket = {0};
 
     ProcessChangePacket.ActionType = ActionType;
     ProcessChangePacket.ProcessId  = NewPid;
     ProcessChangePacket.Process    = NewProcess;
+
+    //
+    // Check if the command really needs these information or not
+    // it's because some of the command don't need symbol offset informations
+    //
+    if (SymDetailsForProcessList != NULL)
+    {
+        memcpy(&ProcessChangePacket.ProcessListSymDetails, SymDetailsForProcessList, sizeof(DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS));
+    }
 
     //
     // Send '.process' as switch packet

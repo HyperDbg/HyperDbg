@@ -836,22 +836,37 @@ KdSwitchProcess(UINT32 ProcessId, PEPROCESS EProcess)
 
 /**
  * @brief shows the process list
- * @param PsActiveProcessHead
+ * @param PorcessListSymbolInfo
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-KdShowProcessList(UINT64 PsActiveProcessHead)
+KdShowProcessList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
 {
     ULONG64    Process;
-    UCHAR      ImageFileName[15];
     ULONG64    UniquePid;
     LIST_ENTRY ActiveProcessLinks;
+    UCHAR      ImageFileName[15] = {0};
+    CR3_TYPE   ProcessCr3        = {0};
 
-    ULONG64 ActiveProcessHead        = 0xfffff80163c1e180; // nt!PsActiveProcessHead
-    ULONG   ImageFileNameOffset      = 0x5a8;              // nt!_EPROCESS.ImageFileName
-    ULONG   UniquePidOffset          = 0x440;              // nt!_EPROCESS.UniqueProcessId
-    ULONG   ActiveProcessLinksOffset = 0x448;              // nt!_EPROCESS.ActiveProcessLinks
+    //
+    // Set the details derived from the symbols
+    //
+    ULONG64 ActiveProcessHead        = PorcessListSymbolInfo->PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG   ImageFileNameOffset      = PorcessListSymbolInfo->ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
+    ULONG   UniquePidOffset          = PorcessListSymbolInfo->UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
+    ULONG   ActiveProcessLinksOffset = PorcessListSymbolInfo->ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+
+    //
+    // Dirty validation of parameters
+    //
+    if (ActiveProcessHead == NULL ||
+        ImageFileNameOffset == NULL ||
+        UniquePidOffset == NULL ||
+        ActiveProcessLinksOffset == NULL)
+    {
+        return FALSE;
+    }
 
     //
     // Check if address is valid
@@ -887,9 +902,15 @@ KdShowProcessList(UINT64 PsActiveProcessHead)
                                        sizeof(ActiveProcessLinks));
 
             //
+            // Get the kernel CR3 for the target process
+            //
+            NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(Process);
+            ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
+
+            //
             // Show the list of process
             //
-            LogInfo("EPROCESS : %llx, Process Name : %s, Process ID : %x", Process, ImageFileName, UniquePid);
+            Log("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n", Process, UniquePid, ProcessCr3.Flags, ImageFileName);
 
             //
             // Find the next process from the list of this process
@@ -958,7 +979,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Show the process list
         //
-        if (!KdShowProcessList(PidRequest->PsActiveProcessHead))
+        if (!KdShowProcessList(&PidRequest->ProcessListSymDetails))
         {
             PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;

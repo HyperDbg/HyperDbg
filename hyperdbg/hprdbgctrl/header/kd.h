@@ -113,7 +113,8 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
                                     UINT32                                   NewPid,
-                                    UINT64                                   NewProcess);
+                                    UINT64                                   NewProcess,
+                                    PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS     SymDetailsForProcessList);
 
 BOOLEAN
 KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);

@@ -24,9 +24,12 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandProcessHelp()
 {
-    ShowMessages(".process : show and change the current process.\n\n");
-    ShowMessages("syntax : \t.process [type (pid | process)] [new process id (hex) | new EPROCESS address]\n");
+    ShowMessages(".process : show and change the processes. "
+                 "This command needs public symbols for ntoskrnl.exe if "
+                 "you want to see the processes list.\n\n");
+    ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new EPROCESS address]\n");
     ShowMessages("\t\te.g : .process\n");
+    ShowMessages("\t\te.g : .process list\n");
     ShowMessages("\t\te.g : .process pid 4\n");
     ShowMessages("\t\te.g : .process process ffff948c`c2349280\n");
 }
@@ -41,10 +44,14 @@ CommandProcessHelp()
 VOID
 CommandProcess(vector<string> SplittedCommand, string Command)
 {
-    UINT32  TargetProcessId            = 0;
-    UINT64  TargetProcess              = 0;
-    DWORD32 OffsetOfActiveProcessLinks = 0;
-    BOOLEAN ResultOfGettingOffsets     = FALSE;
+    UINT32                               TargetProcessId            = 0;
+    UINT64                               TargetProcess              = 0;
+    UINT64                               AddressOfActiveProcessHead = 0; // nt!PsActiveProcessHead
+    DWORD32                              OffsetOfImageFileName      = 0; // nt!_EPROCESS.ImageFileName
+    DWORD32                              OffsetOfUniqueProcessId    = 0; // nt!_EPROCESS.UniqueProcessId
+    DWORD32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
+    BOOLEAN                              ResultOfGettingOffsets     = FALSE;
+    DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS ProcessListNeededItems     = {0};
 
     if (SplittedCommand.size() >= 4)
     {
@@ -69,6 +76,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
                                             NULL,
+                                            NULL,
                                             NULL);
     }
     else if (SplittedCommand.size() == 2)
@@ -76,26 +84,39 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         if (!SplittedCommand.at(1).compare("list"))
         {
             //
-            // Query for ActiveProcessLinks offset from the top of nt!_EPROCESS
+            // Query for nt!_EPROCESS.ImageFileName, nt!_EPROCESS.UniqueProcessId,
+            // nt!_EPROCESS.UniqueProcessId offset from the top of nt!_EPROCESS,
+            // and nt!PsActiveProcessHead address and Check if we find them or not,
+            // otherwise, it means that the PDB for ntoskrnl.exe is not available
             //
-            ResultOfGettingOffsets = ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS",
-                                                                       (CHAR *)"ActiveProcessLinks",
-                                                                       &OffsetOfActiveProcessLinks);
-
-            //
-            // Check if we find the nt!_EPROCESS.ActiveProcessLinks or not, otherwise,
-            // it means that the PDB for ntoskrnl.exe is not available
-            //
-            if (ResultOfGettingOffsets)
+            if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ActiveProcessLinks", &OffsetOfActiveProcessLinks) &&
+                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ImageFileName", &OffsetOfImageFileName) &&
+                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"UniqueProcessId", &OffsetOfUniqueProcessId) &&
+                SymbolConvertNameOrExprToAddress("nt!PsActiveProcessHead", &AddressOfActiveProcessHead))
             {
-                ShowMessages("Offset : %x\n", OffsetOfActiveProcessLinks);
+                //
+                // For test offsets and addresses
+                //
+
+                /*
+                ShowMessages("Address of ActiveProcessHead : %llx\n", AddressOfActiveProcessHead);
+                ShowMessages("Offset Of ActiveProcessLinks : 0x%x\n", OffsetOfActiveProcessLinks);
+                ShowMessages("Offset Of ImageFileName : 0x%x\n", OffsetOfImageFileName);
+                ShowMessages("Offset Of UniqueProcessId : 0x%x\n", OffsetOfUniqueProcessId);
+                */
+
+                ProcessListNeededItems.PsActiveProcessHead      = AddressOfActiveProcessHead;
+                ProcessListNeededItems.ActiveProcessLinksOffset = OffsetOfActiveProcessLinks;
+                ProcessListNeededItems.ImageFileNameOffset      = OffsetOfImageFileName;
+                ProcessListNeededItems.UniquePidOffset          = OffsetOfUniqueProcessId;
 
                 //
                 // Send the packet to show list of process
                 //
                 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
                                                     NULL,
-                                                    NULL);
+                                                    NULL,
+                                                    &ProcessListNeededItems);
             }
             else
             {
@@ -129,7 +150,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         }
         else if (!SplittedCommand.at(1).compare("process"))
         {
-            if (!ConvertStringToUInt64(SplittedCommand.at(2), &TargetProcess))
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommand.at(2), &TargetProcess))
             {
                 ShowMessages(
                     "please specify a correct hex value for the process (nt!_EPROCESS) that you "
@@ -152,7 +173,8 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS,
                                             TargetProcessId,
-                                            TargetProcess);
+                                            TargetProcess,
+                                            NULL);
     }
     else
     {
