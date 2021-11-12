@@ -2039,121 +2039,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     switch (EventDetails->EventType)
     {
     case HIDDEN_HOOK_READ_AND_WRITE:
-    {
-        //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
-        //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
-            EventDetails->ProcessId == 0)
-        {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
-        }
-
-        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
-        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
-
-        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-        {
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                     EventDetails->ProcessId,
-                                                                                     TRUE,
-                                                                                     TRUE);
-
-            if (!ResultOfApplyingEvent)
-            {
-                //
-                // The event is not applied, won't apply other EPT modifications
-                // as we want to remove this event
-                //
-                break;
-            }
-        }
-
-        //
-        // We convert the Event's optional parameters physical address because
-        // vm-exit occurs and we have the physical address to compare in the case of
-        // hidden hook rw events.
-        //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
-
-        //
-        // Check if we should restore the event if it was not successful
-        //
-        if (!ResultOfApplyingEvent)
-        {
-            //
-            // Restore the event
-            //
-            DebuggerTerminateEvent(Event->Tag);
-
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
-
-            goto ClearTheEventAfterCreatingEvent;
-        }
-
-        break;
-    }
     case HIDDEN_HOOK_READ:
-    {
-        //
-        // Check if process id is equal to DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES
-        // or if process id is 0 then we use the cr3 of current process
-        //
-        if (EventDetails->ProcessId == DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES ||
-            EventDetails->ProcessId == 0)
-        {
-            EventDetails->ProcessId = PsGetCurrentProcessId();
-        }
-
-        PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
-        PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
-
-        for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-        {
-            ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
-                                                                                     EventDetails->ProcessId,
-                                                                                     TRUE,
-                                                                                     TRUE);
-
-            if (!ResultOfApplyingEvent)
-            {
-                //
-                // The event is not applied, won't apply other EPT modifications
-                // as we want to remove this event
-                //
-                break;
-            }
-        }
-
-        //
-        // We convert the Event's optional parameters physical address because
-        // vm-exit occurs and we have the physical address to compare in the case of
-        // hidden hook rw events.
-        //
-        Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
-        Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
-
-        //
-        // Check if we should restore the event if it was not successful
-        //
-        if (!ResultOfApplyingEvent)
-        {
-            //
-            // Restore the event
-            //
-            DebuggerTerminateEvent(Event->Tag);
-
-            ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
-
-            goto ClearTheEventAfterCreatingEvent;
-        }
-
-        break;
-    }
     case HIDDEN_HOOK_WRITE:
     {
         //
@@ -2166,14 +2052,15 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             EventDetails->ProcessId = PsGetCurrentProcessId();
         }
 
-        //
-        // Read should be enabled by default, we can't ignore it
-        //
         PagesBytes = PAGE_ALIGN(EventDetails->OptionalParam1);
         PagesBytes = EventDetails->OptionalParam2 - PagesBytes;
 
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
+            //
+            // In all the cases we should set both read/write, even if it's only 
+            // read we should set the write too!
+            //
             ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
                                                                                      EventDetails->ProcessId,
                                                                                      TRUE,
@@ -2196,6 +2083,8 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         Event->OptionalParam1 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam1, EventDetails->ProcessId);
         Event->OptionalParam2 = VirtualAddressToPhysicalAddressByProcessId(EventDetails->OptionalParam2, EventDetails->ProcessId);
+        Event->OptionalParam3 = EventDetails->OptionalParam1;
+        Event->OptionalParam4 = EventDetails->OptionalParam2;
 
         //
         // Check if we should restore the event if it was not successful
@@ -2853,29 +2742,13 @@ DebuggerTerminateEvent(UINT64 Tag)
         break;
     }
     case HIDDEN_HOOK_READ_AND_WRITE:
+    case HIDDEN_HOOK_READ:
+    case HIDDEN_HOOK_WRITE:
     {
         //
         // Call read and write ept hook terminator
         //
         TerminateHiddenHookReadAndWriteEvent(Event);
-
-        break;
-    }
-    case HIDDEN_HOOK_READ:
-    {
-        //
-        // Call read ept hook terminator
-        //
-        TerminateHiddenHookReadEvent(Event);
-
-        break;
-    }
-    case HIDDEN_HOOK_WRITE:
-    {
-        //
-        // Call write ept hook terminator
-        //
-        TerminateHiddenHookWriteEvent(Event);
 
         break;
     }

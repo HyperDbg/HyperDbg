@@ -1518,7 +1518,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
         else
         {
             //
-            // It's a hidden detours
+            // It's either a hidden detours or a monitor (read/write) entry
             //
             if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
             {
