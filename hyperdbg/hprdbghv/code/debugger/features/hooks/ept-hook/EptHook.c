@@ -780,6 +780,9 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
             // Means that we find the address and !epthook2 doesn't support
             // multiple breakpoints in on page
             //
+            LogInfo("Err, the page modification is not applied, make sure that you didn't "
+                    "put multiple EPT Hooks or Monitors on a single page");
+
             return FALSE;
         }
     }
@@ -1051,14 +1054,15 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
             }
             else
             {
-                LogInfo("Err, unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode, however, the hook is still works");
+                LogInfo("Err, unable to notify all cores to invalidate their TLB "
+                        "caches as you called hook on vmx-root mode, however, the "
+                        "hook is still works");
             }
 
             return TRUE;
         }
         else
         {
-            LogInfo("Err, the page modification is not applied, make sure that you didn't put multiple EPT Hooks or Monitors on a single page");
             return FALSE;
         }
     }

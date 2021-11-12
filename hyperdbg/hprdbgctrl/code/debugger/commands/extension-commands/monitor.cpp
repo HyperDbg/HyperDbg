@@ -57,6 +57,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     UINT64                             OptionalParam2 = 0; // Set the 'to' target address
     BOOLEAN                            SetFrom        = FALSE;
     BOOLEAN                            SetTo          = FALSE;
+    BOOLEAN                            SetMode        = FALSE;
     vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32                             IndexInCommandCaseSensitive = 0;
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
@@ -103,17 +104,20 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         {
             continue;
         }
-        else if (!Section.compare("r"))
+        else if (!Section.compare("r") && !SetMode)
         {
             Event->EventType = HIDDEN_HOOK_READ;
+            SetMode          = TRUE;
         }
-        else if (!Section.compare("w"))
+        else if (!Section.compare("w") && !SetMode)
         {
             Event->EventType = HIDDEN_HOOK_WRITE;
+            SetMode          = TRUE;
         }
-        else if (!Section.compare("rw") || !Section.compare("wr"))
+        else if ((!Section.compare("rw") || !Section.compare("wr")) && !SetMode)
         {
             Event->EventType = HIDDEN_HOOK_READ_AND_WRITE;
+            SetMode          = TRUE;
         }
         else
         {
@@ -164,6 +168,10 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
             }
         }
     }
+
+    //
+    // Check for invalid order of address
+    //
     if (OptionalParam1 > OptionalParam2)
     {
         //
@@ -171,6 +179,15 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         //
         ShowMessages("please choose the 'from' value first, then choose the 'to' "
                      "value\n");
+        return;
+    }
+
+    //
+    // Check if user set the mode of !monitor or not
+    //
+    if (!SetMode)
+    {
+        ShowMessages("please specify the attribute(s) that you want to monitor (r, w, rw)\n");
         return;
     }
 
