@@ -613,7 +613,7 @@ CommandEventsModifyAndQueryEvents(UINT64                      Tag,
     {
         if (Tag == DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG)
         {
-            ShowMessages("err, there is no event\n");
+            ShowMessages("there is no event\n");
         }
         else
         {

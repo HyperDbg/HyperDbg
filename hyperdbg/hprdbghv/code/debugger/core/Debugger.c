@@ -2058,7 +2058,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
         {
             //
-            // In all the cases we should set both read/write, even if it's only 
+            // In all the cases we should set both read/write, even if it's only
             // read we should set the write too!
             //
             ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress((UINT64)EventDetails->OptionalParam1 + (i * PAGE_SIZE),
@@ -2072,6 +2072,15 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 // The event is not applied, won't apply other EPT modifications
                 // as we want to remove this event
                 //
+
+                //
+                // Now we should restore the previously applied events (if any)
+                //
+                for (size_t j = 0; j < i; j++)
+                {
+                    EptHookUnHookSingleAddress((UINT64)EventDetails->OptionalParam1 + (j * PAGE_SIZE), NULL, Event->ProcessId);
+                }
+
                 break;
             }
         }
@@ -2091,11 +2100,6 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
         if (!ResultOfApplyingEvent)
         {
-            //
-            // Restore the event
-            //
-            DebuggerTerminateEvent(Event->Tag);
-
             ResultsToReturnUsermode->IsSuccessful = FALSE;
             ResultsToReturnUsermode->Error        = DebuggerGetLastError();
 
