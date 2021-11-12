@@ -38,47 +38,58 @@ ShowErrorMessage(UINT32 Error)
     switch (Error)
     {
     case DEBUGEER_ERROR_TAG_NOT_EXISTS:
-        ShowMessages("err, tag not found (%x)\n", Error);
+        ShowMessages("err, tag not found (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_INVALID_ACTION_TYPE:
-        ShowMessages("err, invalid action type (%x)\n", Error);
+        ShowMessages("err, invalid action type (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO:
-        ShowMessages("err, action buffer size is zero (%x)\n", Error);
+        ShowMessages("err, action buffer size is zero (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID:
-        ShowMessages("err, the event type is invalid (%x)\n", Error);
+        ShowMessages("err, the event type is invalid (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT:
-        ShowMessages("err, unable to create event (%x)\n", Error);
+        ShowMessages("err, unable to create event (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_INVALID_ADDRESS:
-        ShowMessages("err, invalid address (%x)\n", Error);
+        ShowMessages("err, invalid address (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_INVALID_CORE_ID:
-        ShowMessages("err, invalid core id (%x)\n", Error);
+        ShowMessages("err, invalid core id (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES:
-        ShowMessages("err, exception index exceed first 32 entries (%x)\n", Error);
+        ShowMessages("err, exception index exceed first 32 entries (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID:
-        ShowMessages("err, interrupt index is not valid (%x)\n", Error);
+        ShowMessages("err, interrupt index is not valid (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
-        ShowMessages("err, unable to hide or unhide debugger (%x)\n", Error);
+        ShowMessages("err, unable to hide or unhide debugger (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE:
-        ShowMessages("err, debugger already unhide (%x)\n", Error);
+        ShowMessages("err, debugger already unhide (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_EDIT_MEMORY_STATUS_INVALID_PARAMETER:
@@ -100,11 +111,13 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TAG:
-        ShowMessages("err, modify event with invalid tag (%x)\n", Error);
+        ShowMessages("err, modify event with invalid tag (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_MODIFY_EVENTS_INVALID_TYPE_OF_ACTION:
-        ShowMessages("err, modify event with invalid type of action (%x)\n", Error);
+        ShowMessages("err, modify event with invalid type of action (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_STEPPING_INVALID_PARAMETER:
@@ -119,27 +132,33 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_BAUDRATE:
-        ShowMessages("err, invalid baud rate (%x)\n", Error);
+        ShowMessages("err, invalid baud rate (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_SERIAL_PORT:
-        ShowMessages("err, invalid serial port (%x)\n", Error);
+        ShowMessages("err, invalid serial port (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_INVALID_CORE_IN_REMOTE_DEBUGGE:
-        ShowMessages("err, invalid core selected in switching cores (%x)\n", Error);
+        ShowMessages("err, invalid core selected in switching cores (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_UNABLE_TO_SWITCH_TO_NEW_PROCESS:
-        ShowMessages("err, unable to switch to the new process (%x)\n", Error);
+        ShowMessages("err, unable to switch to the new process (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_PREPARING_DEBUGGEE_TO_RUN_SCRIPT:
-        ShowMessages("err, unable to run the script on remote debuggee (%x)\n", Error);
+        ShowMessages("err, unable to run the script on remote debuggee (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_INVALID_REGISTER_NUMBER:
-        ShowMessages("err, invalid register number (%x)\n", Error);
+        ShowMessages("err, invalid register number (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_WITHOUT_CONTINUE:
@@ -157,19 +176,23 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ID_NOT_FOUND:
-        ShowMessages("err, breakpoint id is invalid (%x)\n", Error);
+        ShowMessages("err, breakpoint id is invalid (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ALREADY_DISABLED:
-        ShowMessages("err, breakpoint already disabled (%x)\n", Error);
+        ShowMessages("err, breakpoint already disabled (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_BREAKPOINT_ALREADY_ENABLED:
-        ShowMessages("err, breakpoint already enabled (%x)\n", Error);
+        ShowMessages("err, breakpoint already enabled (%x)\n",
+                     Error);
         break;
 
     case DEBUGGER_ERROR_MEMORY_TYPE_INVALID:
-        ShowMessages("err, the memory type is invalid (%x)\n", Error);
+        ShowMessages("err, the memory type is invalid (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_INVALID_PROCESS_ID:
@@ -179,7 +202,8 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED:
-        ShowMessages("err, the event is not applied (%x)\n", Error);
+        ShowMessages("err, the event is not applied (%x)\n",
+                     Error);
         break;
 
     case DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
@@ -188,8 +212,41 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
+        ShowMessages("err, the maximum breakpoint for a single page is hit, "
+                     "you cannot apply more breakpoints in this page (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY:
+        ShowMessages("err, the pre-allocated buffer is empty, usually this buffer will be "
+                     "filled at the next IOCTL when the debugger is continued (%x)\n",
+                     Error);
+
+    case DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
+        ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS:
+        ShowMessages("err, failed to get the PML1 entry of the target address (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE:
+        ShowMessages("err, the page modification is not applied, make sure that you don't "
+                     "put multiple EPT Hooks or Monitors on a single page (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK:
+        ShowMessages("err, could not build the EPT hook (%x)\n",
+                     Error);
+        break;
+
     default:
-        ShowMessages("err, error not found (%x)\n", Error);
+        ShowMessages("err, error not found (%x)\n",
+                     Error);
         return FALSE;
         break;
     }

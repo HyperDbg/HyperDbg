@@ -1961,6 +1961,43 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER 0xc0000020
 
+/**
+ * @brief error, maximum breakpoint for a single page is hit
+ *
+ */
+#define DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT 0xc0000021
+
+/**
+ * @brief error, there is no pre-allocated buffer
+ *
+ */
+#define DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY 0xc0000022
+
+/**
+ * @brief error, in the EPT handler, it could not split the 2MB pages to 
+ * 512 entries of 4 KB pages
+ *
+ */
+#define DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES 0xc0000023
+
+/**
+ * @brief error, failed to get PML1 entry of the target address
+ *
+ */
+#define DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS 0xc0000024
+
+/**
+ * @brief error, multiple EPT Hooks or Monitors are applied on a single page
+ *
+ */
+#define DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE 0xc0000025
+
+/**
+ * @brief error, could not build the EPT Hook
+ *
+ */
+#define DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK 0xc0000026
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)

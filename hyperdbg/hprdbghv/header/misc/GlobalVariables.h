@@ -19,6 +19,12 @@
 //////////////////////////////////////////////////
 
 /**
+ * @brief The value of last error
+ * 
+ */
+UINT32 g_LastError;
+
+/**
  * @brief Save the state and variables related to each to logical core
  * 
  */

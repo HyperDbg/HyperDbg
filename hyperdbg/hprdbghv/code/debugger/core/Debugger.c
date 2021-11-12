@@ -30,6 +30,29 @@ DebuggerGetRegValueWrapper(PGUEST_REGS GuestRegs, UINT32 /* REGS_ENUM */ RegId)
 }
 
 /**
+ * @brief Debugger get the last error
+ * 
+ * @return UINT32 Error value
+ */
+UINT32
+DebuggerGetLastError()
+{
+    return g_LastError;
+}
+
+/**
+ * @brief Debugger set the last error
+ * @param LastError The value of last error
+ * 
+ * @return VOID
+ */
+VOID
+DebuggerSetLastError(UINT32 LastError)
+{
+    g_LastError = LastError;
+}
+
+/**
  * @brief Initialize Debugger Structures and Routines
  * 
  * @return BOOLEAN Shows whether the initialization process was successful 
@@ -2066,7 +2089,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             DebuggerTerminateEvent(Event->Tag);
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
 
             goto ClearTheEventAfterCreatingEvent;
         }
@@ -2124,7 +2147,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             DebuggerTerminateEvent(Event->Tag);
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
 
             goto ClearTheEventAfterCreatingEvent;
         }
@@ -2185,7 +2208,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             DebuggerTerminateEvent(Event->Tag);
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
 
             goto ClearTheEventAfterCreatingEvent;
         }
@@ -2214,7 +2237,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // the event
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
@@ -2248,7 +2271,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // the event
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED;
+            ResultsToReturnUsermode->Error        = DebuggerGetLastError();
             goto ClearTheEventAfterCreatingEvent;
         }
 
