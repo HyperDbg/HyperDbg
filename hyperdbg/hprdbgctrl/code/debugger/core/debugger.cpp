@@ -222,6 +222,7 @@ ShowErrorMessage(UINT32 Error)
         ShowMessages("err, the pre-allocated buffer is empty, usually this buffer will be "
                      "filled at the next IOCTL when the debugger is continued (%x)\n",
                      Error);
+        break;
 
     case DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
         ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
@@ -241,6 +242,11 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK:
         ShowMessages("err, could not build the EPT hook (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE:
+        ShowMessages("err, could not find the allocation type (%x)\n",
                      Error);
         break;
 

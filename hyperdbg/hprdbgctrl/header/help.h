@@ -224,3 +224,6 @@ CommandSymHelp();
 
 VOID
 CommandXHelp();
+
+VOID
+CommandPreallocHelp();

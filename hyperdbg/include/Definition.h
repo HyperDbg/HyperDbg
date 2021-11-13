@@ -869,6 +869,33 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 /* ==============================================================================================
  */
 
+/**
+ * @brief different types of prealloc requests
+ *
+ */
+typedef enum _DEBUGGER_PREALLOC_COMMAND_TYPE
+{
+    DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR,
+} DEBUGGER_PREALLOC_COMMAND_TYPE;
+
+#define SIZEOF_DEBUGGER_PREALLOC_COMMAND \
+    sizeof(DEBUGGER_PREALLOC_COMMAND)
+
+/**
+ * @brief requests for prealloc commands
+ *
+ */
+typedef struct _DEBUGGER_PREALLOC_COMMAND
+{
+    DEBUGGER_PREALLOC_COMMAND_TYPE Type;
+    UINT64                         Count;
+    UINT32                         KernelStatus;
+
+} DEBUGGER_PREALLOC_COMMAND, *PDEBUGGER_PREALLOC_COMMAND;
+
+/* ==============================================================================================
+ */
+
 #define SIZEOF_DEBUGGER_READ_MEMORY sizeof(DEBUGGER_READ_MEMORY)
 
 /**
@@ -1998,6 +2025,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK 0xc0000026
 
+/**
+ * @brief error, could not find the type of allocation
+ *
+ */
+#define DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE 0xc0000027
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -2176,3 +2209,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_PERFROM_KERNEL_SIDE_TESTS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to reserve pre-allocated pools
+ *
+ */
+#define IOCTL_RESERVE_PRE_ALLOCATED_POOLS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x818, METHOD_BUFFERED, FILE_ANY_ACCESS)
