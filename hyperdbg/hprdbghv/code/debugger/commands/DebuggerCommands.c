@@ -1033,3 +1033,48 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
 
     return STATUS_SUCCESS;
 }
+
+/**
+ * @brief Reserve and allocate pre-allocated buffers
+ * 
+ * @param PreallocRequest Request details of needed buffers to be reserved
+ * @return NTSTATUS 
+ */
+NTSTATUS
+DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest)
+{
+    if (PreallocRequest->Type == DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR)
+    {
+        //
+        // Perform the allocations for !monitor command
+        //
+
+        //
+        // Request pages to be allocated for converting 2MB to 4KB pages
+        //
+        PoolManagerRequestAllocation(sizeof(VMM_EPT_DYNAMIC_SPLIT),
+                                     PreallocRequest->Count,
+                                     SPLIT_2MB_PAGING_TO_4KB_PAGE);
+
+        //
+        // Request pages to be allocated for paged hook details
+        //
+        PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
+                                     PreallocRequest->Count,
+                                     TRACKING_HOOKED_PAGES);
+    }
+    else
+    {
+        PreallocRequest->KernelStatus = DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE;
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    //
+    // Invalidate and perform the allocations as we're in PASSIVE_LEVEL
+    //
+    PoolManagerCheckAndPerformAllocationAndDeallocation();
+
+    PreallocRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+
+    return STATUS_SUCCESS;
+}
