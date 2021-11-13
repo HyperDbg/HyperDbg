@@ -220,7 +220,9 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY:
         ShowMessages("err, the pre-allocated buffer is empty, usually this buffer will be "
-                     "filled at the next IOCTL when the debugger is continued (%x)\n",
+                     "filled at the next IOCTL when the debugger is continued (%x)\n"
+                     "please visit the documentation for the 'prealloc' command or use "
+                     "'.help prealloc' to to reserve more pre-allocated pools\n",
                      Error);
         break;
 

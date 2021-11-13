@@ -1122,7 +1122,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
     //
     VariablesList.TempList            = g_TempList;
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = g_GuestState[6].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.LocalVariablesList  = g_GuestState[KeGetCurrentProcessorNumber()].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {
