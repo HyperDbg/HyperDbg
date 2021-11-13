@@ -35,6 +35,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_GENERAL_EVENT_DETAIL                          DebuggerNewEventRequest;
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
+    PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION              DebuggerKernelSideTestInformationRequest;
@@ -1098,6 +1099,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             TestKernelPerformTests(DebuggerKernelTestRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PERFORM_KERNEL_TESTS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_RESERVE_PRE_ALLOCATED_POOLS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_PREALLOC_COMMAND ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerReservePreallocPoolRequest = (PDEBUGGER_PREALLOC_COMMAND)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the reservation pools
+            //
+            DebuggerCommandReservePreallocatedPools(DebuggerReservePreallocPoolRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREALLOC_COMMAND;
             Status                    = STATUS_SUCCESS;
 
             //

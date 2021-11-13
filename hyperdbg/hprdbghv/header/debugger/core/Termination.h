@@ -23,12 +23,6 @@ VOID
 TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event);
 
 VOID
-TerminateHiddenHookReadEvent(PDEBUGGER_EVENT Event);
-
-VOID
-TerminateHiddenHookWriteEvent(PDEBUGGER_EVENT Event);
-
-VOID
 TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event);
 
 VOID

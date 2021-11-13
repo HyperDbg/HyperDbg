@@ -195,7 +195,9 @@ HyperdbgInterpreter(char * Command)
         //
         //  Command doesn't exist
         //
-        ShowMessages("err, couldn't resolve command at '%s'\n", FirstCommand.c_str());
+        string         CaseSensitiveCommandString(Command);
+        vector<string> CaseSensitiveSplittedCommand {Split(CaseSensitiveCommandString, ' ')};
+        ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplittedCommand.front().c_str());
     }
     else
     {
@@ -636,4 +638,7 @@ InitializeCommandsDictionary()
     g_CommandsList[".sym"] = {&CommandSym, &CommandSymHelp, DEBUGGER_COMMAND_SYM_ATTRIBUTES};
 
     g_CommandsList["x"] = {&CommandX, &CommandXHelp, DEBUGGER_COMMAND_X_ATTRIBUTES};
+
+    g_CommandsList["prealloc"]    = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+    g_CommandsList["preallocate"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
 }

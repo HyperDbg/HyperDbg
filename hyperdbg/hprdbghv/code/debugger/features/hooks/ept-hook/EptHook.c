@@ -89,7 +89,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
     if (!PhysicalBaseAddress)
     {
-        LogError("Err, target address could not be mapped to physical memory");
+        DebuggerSetLastError(DEBUGEER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -124,9 +124,9 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         if (HookedEntry->CountOfBreakpoints >= MaximumHiddenBreakpointsOnPage)
         {
             //
-            // Means that breakpoint is full!
-            // we can't apply this breakpoint
+            // Means that breakpoint is full and we can't apply this breakpoint
             //
+            DebuggerSetLastError(DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT);
             return FALSE;
         }
 
@@ -179,13 +179,16 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
         if (!TargetBuffer)
         {
-            LogError("Err, there is no pre-allocated buffer available");
+            DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
             return FALSE;
         }
 
         if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
         {
-            LogError("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
+            PoolManagerFreePool(TargetBuffer);
+
+            LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
+            DebuggerSetLastError(DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
             return FALSE;
         }
 
@@ -199,7 +202,9 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         //
         if (!TargetPage)
         {
-            LogError("Err, failed to get PML1 entry of the target address");
+            PoolManagerFreePool(TargetBuffer);
+
+            DebuggerSetLastError(DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
             return FALSE;
         }
 
@@ -215,7 +220,9 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
         if (!HookedPage)
         {
-            LogError("Err, there is no pre-allocated pool for saving hooked page details");
+            PoolManagerFreePool(TargetBuffer);
+
+            DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
             return FALSE;
         }
 
@@ -760,7 +767,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!PhysicalBaseAddress)
     {
-        LogError("Err, target address could not be mapped to physical memory");
+        DebuggerSetLastError(DEBUGEER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -780,6 +787,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
             // Means that we find the address and !epthook2 doesn't support
             // multiple breakpoints in on page
             //
+            DebuggerSetLastError(DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE);
             return FALSE;
         }
     }
@@ -792,13 +800,16 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!TargetBuffer)
     {
-        LogError("Err, there is no pre-allocated buffer available");
+        DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
     if (!EptSplitLargePage(g_EptState->EptPageTable, TargetBuffer, PhysicalBaseAddress, LogicalCoreIndex))
     {
-        LogError("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
+        PoolManagerFreePool(TargetBuffer);
+
+        LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
+        DebuggerSetLastError(DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
         return FALSE;
     }
 
@@ -812,7 +823,9 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
     //
     if (!TargetPage)
     {
-        LogError("Err, failed to get PML1 entry of the target address");
+        PoolManagerFreePool(TargetBuffer);
+
+        DebuggerSetLastError(DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
         return FALSE;
     }
 
@@ -841,7 +854,9 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!HookedPage)
     {
-        LogError("Err, there is no pre-allocated pool for saving hooked page details");
+        PoolManagerFreePool(TargetBuffer);
+
+        DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -925,7 +940,10 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
         //
         if (!EptHookInstructionMemory(HookedPage, ProcessCr3, TargetAddress, TargetAddressInSafeMemory, HookFunction))
         {
-            LogError("Err, could not build the hook");
+            PoolManagerFreePool(TargetBuffer);
+            PoolManagerFreePool(HookedPage);
+
+            DebuggerSetLastError(DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
             return FALSE;
         }
     }
@@ -1051,14 +1069,15 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
             }
             else
             {
-                LogInfo("Err, unable to notify all cores to invalidate their TLB caches as you called hook on vmx-root mode, however, the hook is still works");
+                LogInfo("Err, unable to notify all cores to invalidate their TLB "
+                        "caches as you called hook on vmx-root mode, however, the "
+                        "hook is still works");
             }
 
             return TRUE;
         }
         else
         {
-            LogInfo("Err, the page modification is not applied, make sure that you didn't put multiple EPT Hooks or Monitors on a single page");
             return FALSE;
         }
     }
@@ -1499,7 +1518,7 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
         else
         {
             //
-            // It's a hidden detours
+            // It's either a hidden detours or a monitor (read/write) entry
             //
             if (HookedEntry->PhysicalBaseAddress == PhysicalAddress)
             {

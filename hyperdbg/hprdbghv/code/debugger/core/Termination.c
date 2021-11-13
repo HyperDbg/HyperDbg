@@ -113,76 +113,10 @@ TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
     // then it won't cause any problem for other hooks
     //
 
-    TempOptionalParam1 = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam1, Event->ProcessId);
+    TempOptionalParam1 = Event->OptionalParam3;
 
     PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam2, Event->ProcessId) - PagesBytes;
-
-    for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-    {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
-    }
-}
-
-/**
- * @brief Termination function for hidden hook read
- * 
- * @param Event Target Event Object
- * @return VOID 
- */
-VOID
-TerminateHiddenHookReadEvent(PDEBUGGER_EVENT Event)
-{
-    UINT64 PagesBytes;
-    UINT64 TempOptionalParam1;
-
-    //
-    // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
-    // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
-    // all of them is empty or not and instead, we remove just a single
-    // hook, this way is better as hidden hooks and ept modifications are
-    // not dependant to a single bit and if we remove or add any other hook
-    // then it won't cause any problem for other hooks
-    //
-
-    TempOptionalParam1 = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam1, Event->ProcessId);
-
-    PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam2, Event->ProcessId) - PagesBytes;
-
-    for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
-    {
-        EptHookUnHookSingleAddress((UINT64)TempOptionalParam1 + (i * PAGE_SIZE), NULL, Event->ProcessId);
-    }
-}
-
-/**
- * @brief Termination function for hidden hook write
- * 
- * @param Event Target Event Object
- * @return VOID 
- */
-VOID
-TerminateHiddenHookWriteEvent(PDEBUGGER_EVENT Event)
-{
-    UINT64 PagesBytes;
-    UINT64 TempOptionalParam1;
-
-    //
-    // Because there are different EPT hooks, like READ, WRITE, READ WRITE,
-    // DETOURS INLINE HOOK, HIDDEN BREAKPOINT HOOK and all of them are
-    // unhooked with a same routine, we will not check whther the list of
-    // all of them is empty or not and instead, we remove just a single
-    // hook, this way is better as hidden hooks and ept modifications are
-    // not dependant to a single bit and if we remove or add any other hook
-    // then it won't cause any problem for other hooks
-    //
-
-    TempOptionalParam1 = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam1, Event->ProcessId);
-
-    PagesBytes = PAGE_ALIGN(TempOptionalParam1);
-    PagesBytes = PhysicalAddressToVirtualAddressByProcessId(Event->OptionalParam2, Event->ProcessId) - PagesBytes;
+    PagesBytes = Event->OptionalParam4 - PagesBytes;
 
     for (size_t i = 0; i <= PagesBytes / PAGE_SIZE; i++)
     {
