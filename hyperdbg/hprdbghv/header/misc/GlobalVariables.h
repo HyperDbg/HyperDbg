@@ -148,6 +148,12 @@ BOOLEAN g_IsX2Apic;
 VOID * g_ApicBase;
 
 /**
+ * @brief Count of packets sent to the debugger
+ * 
+ */
+UINT64 g_CountOfPacketsSentToDebugger;
+
+/**
  * @brief Reason that the debuggee is halted
  * 
  */

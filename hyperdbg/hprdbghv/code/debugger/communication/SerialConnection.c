@@ -26,6 +26,23 @@ SerialConnectionTest()
 }
 
 /**
+ * @brief Send end of buffer packet
+ *
+ * @return VOID 
+ */
+VOID
+SerialConnectionSendEndOfBuffer()
+{
+    //
+    // Send the end buffer
+    //
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_1, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
+    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+}
+
+/**
  * @brief Perform sending buffer over serial
  * 
  * @param Buffer buffer to send
@@ -52,10 +69,7 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length)
     //
     // Send the end buffer
     //
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_1, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+    SerialConnectionSendEndOfBuffer();
 
     return TRUE;
 }
@@ -100,10 +114,7 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
     //
     // Send the end buffer
     //
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_1, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+    SerialConnectionSendEndOfBuffer();
 
     return TRUE;
 }
@@ -163,10 +174,7 @@ SerialConnectionSendThreeBuffers(CHAR * Buffer1,
     //
     // Send the end buffer
     //
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_1, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
-    KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+    SerialConnectionSendEndOfBuffer();
 
     return TRUE;
 }

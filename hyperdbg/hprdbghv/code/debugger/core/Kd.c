@@ -248,6 +248,31 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
     return CalculatedCheckSum;
 }
 
+VOID
+KdCheckAndSetAcknowledgeBit(PDEBUGGER_REMOTE_PACKET Packet)
+{
+    //
+    // Increase the number of packets sent to the debugger
+    //
+    g_CountOfPacketsSentToDebugger++;
+
+    //
+    // Here we check whether we should query the state of debuggee or not
+    // it's because if the debugger creates events that use a high rate of
+    // logs then our user-mode handler for CTRL+C from the debugger might
+    // never get a chance to be executed, thus, we'll query the state of
+    // debugger with a single bit to make sure whether the user wants to
+    // abort and halt the execution or not
+    //
+    if (g_CountOfPacketsSentToDebugger % COUNT_OF_PACKETS_TO_QUERY_THE_STATE_OF_DEBUGGER == 0)
+    {
+        //
+        // We'll set a single bit to ask debuggee about it's state
+        //
+        Packet->NeedForAckByte = TRUE;
+    }
+}
+
 /**
  * @brief Sends a HyperDbg response packet to the debugger
  *
@@ -292,6 +317,11 @@ KdResponsePacketToDebugger(
         //
         SpinlockLock(&DebuggerResponseLock);
 
+        //
+        // Set check for debuggee's state bit
+        //
+        KdCheckAndSetAcknowledgeBit(&Packet);
+
         SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
 
         SpinlockUnlock(&DebuggerResponseLock);
@@ -309,6 +339,11 @@ KdResponsePacketToDebugger(
         // if not we use the windows spinlock
         //
         SpinlockLock(&DebuggerResponseLock);
+
+        //
+        // Set check for debuggee's state bit
+        //
+        KdCheckAndSetAcknowledgeBit(&Packet);
 
         SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
 
@@ -368,6 +403,11 @@ KdLoggingResponsePacketToDebugger(
     // if not we use the windows spinlock
     //
     SpinlockLock(&DebuggerResponseLock);
+
+    //
+    // Set check for debuggee's state bit
+    //
+    KdCheckAndSetAcknowledgeBit(&Packet);
 
     SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                      sizeof(DEBUGGER_REMOTE_PACKET),

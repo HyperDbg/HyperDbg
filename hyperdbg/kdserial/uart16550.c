@@ -93,12 +93,6 @@ KdHyperDbgPrepareDebuggeeConnectionPort(UINT32 PortAddress, UINT32 Baudrate)
     g_PortDetails.Read  = ReadPortWithIndex8;
 }
 
-VOID
-KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
-{
-    Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
-}
-
 BOOLEAN
 KdHyperDbgRecvByte(PUCHAR RecvByte)
 {
@@ -107,6 +101,12 @@ KdHyperDbgRecvByte(PUCHAR RecvByte)
         return TRUE;
     }
     return FALSE;
+}
+
+VOID
+KdHyperDbgSendByte(UCHAR Byte, BOOLEAN BusyWait)
+{
+    Uart16550PutByte(&g_PortDetails, Byte, BusyWait);
 }
 
 // ----------------------------------------------- Internal Function Prototypes

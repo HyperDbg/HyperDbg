@@ -114,6 +114,33 @@
  */
 #define COMMUNICATION_BUFFER_SIZE PacketChunkSize + 0x100
 
+/**
+ * @brief Count of packets to send a ack packet to get the state of 
+ * the debugger
+ * @details Shows after how many packets, the debuggee checks the 
+ * state of the debugger to know whether it should continue its
+ * normal execution or should break
+ */
+#define COUNT_OF_PACKETS_TO_QUERY_THE_STATE_OF_DEBUGGER 100
+
+/**
+ * @brief query the state
+ *
+ */
+#define QUERY_STATE_CHARACTER 'q'
+
+/**
+ * @brief debuggee should continue its normal execution
+ *
+ */
+#define QUERY_STATE_CONTINUE_NORMALLY 'n'
+
+/**
+ * @brief debuggee should pause
+ *
+ */
+#define QUERY_STATE_PAUSE_THE_DEBUGGEE 'p'
+
 //////////////////////////////////////////////////
 //            Breakpoint Backup                 //
 //////////////////////////////////////////////////
@@ -1467,8 +1494,8 @@ typedef struct _DEBUGGER_EVENT
 typedef struct _DEBUGGER_REMOTE_PACKET
 {
     BYTE                                    Checksum;
-    UINT64                                  Indicator; /* Shows the type of the packet, whether it's a GDB packet
-                       or a HyperDbg packet */
+    BOOLEAN                                 NeedForAckByte; // Needs to be above the indicator to won't corrupt the checksum
+    UINT64                                  Indicator;      // Shows the type of the packet, whether it's a GDB packet or a HyperDbg packet
     DEBUGGER_REMOTE_PACKET_TYPE             TypeOfThePacket;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedActionOfThePacket;
 

@@ -136,6 +136,14 @@ StartAgain:
         }
 
         //
+        // Check whether the debuggee checks for the state of debugger or not
+        //
+        if (TheActualPacket->NeedForAckByte)
+        {
+            printf("i love taylor\n");
+        }
+
+        //
         // Check if the packet type is correct
         //
         if (TheActualPacket->TypeOfThePacket !=
