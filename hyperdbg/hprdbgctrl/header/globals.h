@@ -407,6 +407,12 @@ BOOLEAN g_BreakPrintingOutput = FALSE;
 BOOLEAN g_IsExecutingSymbolLoadingRoutines = FALSE;
 
 /**
+ * @brief Debugger needs a status byte break
+ *
+ */
+BOOLEAN g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
+
+/**
  * @brief Symbol table for disassembler
  *
  */

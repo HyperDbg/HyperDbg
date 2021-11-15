@@ -29,9 +29,10 @@ extern BOOLEAN                              g_IsRunningInstruction32Bit;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-              g_DebuggeeResultOfAddingActionsToEvent;
-extern UINT64 g_ResultOfEvaluatedExpression;
-extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
+               g_DebuggeeResultOfAddingActionsToEvent;
+extern BOOLEAN g_IsDebuggerRequestPauseInDebuggerMode;
+extern UINT64  g_ResultOfEvaluatedExpression;
+extern UINT32  g_ErrorStateOfResultOfEvaluatedExpression;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -62,7 +63,9 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
     PGUEST_REGS                                 Regs;
     PGUEST_EXTRA_REGISTERS                      ExtraRegs;
-    unsigned char *                             MemoryBuffer;
+    UCHAR *                                     MemoryBuffer;
+    CHAR                                        StatusByteNormal              = QUERY_STATE_CONTINUE_NORMALLY;
+    CHAR                                        StatusBytePause               = QUERY_STATE_PAUSE_THE_DEBUGGEE;
     BOOLEAN                                     ShowSignatureWhenDisconnected = FALSE;
 
 StartAgain:
@@ -140,7 +143,39 @@ StartAgain:
         //
         if (TheActualPacket->NeedForAckByte)
         {
+            //
+            // Send the status byte
+            //
             printf("i love taylor\n");
+
+            if (g_IsDebuggerRequestPauseInDebuggerMode)
+            {
+                //
+                // The debugger needs a break
+                //
+                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
+
+                if (!KdSendPacketToDebuggee(&StatusBytePause, 1, FALSE))
+                {
+                    //
+                    // Error in sending the status byte
+                    //
+                    ShowMessages("err, sending the status byte");
+                }
+            }
+            else
+            {
+                //
+                // No need to break
+                //
+                if (!KdSendPacketToDebuggee(&StatusByteNormal, 1, FALSE))
+                {
+                    //
+                    // Error in sending the status byte
+                    //
+                    ShowMessages("err, sending the status byte");
+                }
+            }
         }
 
         //

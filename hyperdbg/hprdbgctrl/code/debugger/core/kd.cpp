@@ -35,6 +35,7 @@ extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
+extern BOOLEAN g_IsDebuggerRequestPauseInDebuggerMode;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -1364,6 +1365,11 @@ KdBreakControlCheckAndPauseDebugger()
     if (g_IsDebuggeeRunning)
     {
         //
+        // Set the status
+        //
+        g_IsDebuggerRequestPauseInDebuggerMode = TRUE;
+
+        //
         // Send the pause request to the remote computer
         //
         if (!KdSendPausePacketToDebuggee())
@@ -1442,6 +1448,11 @@ KdTheRemoteSystemIsRunning()
                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                                 .EventHandle,
                         INFINITE);
+
+    //
+    // Debugger is paused
+    //
+    g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
 }
 
 /**

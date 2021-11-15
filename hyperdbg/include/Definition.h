@@ -124,12 +124,6 @@
 #define COUNT_OF_PACKETS_TO_QUERY_THE_STATE_OF_DEBUGGER 100
 
 /**
- * @brief query the state
- *
- */
-#define QUERY_STATE_CHARACTER 'q'
-
-/**
  * @brief debuggee should continue its normal execution
  *
  */

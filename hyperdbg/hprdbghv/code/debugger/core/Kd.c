@@ -248,7 +248,51 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
     return CalculatedCheckSum;
 }
 
+/**
+ * @brief waits for the status bit of the debugger
+ *
+ * @return VOID
+ */
 VOID
+KdWaitForDebuggerStatusResponse()
+{
+    while (TRUE)
+    {
+        UCHAR RecvChar = NULL;
+
+        if (!KdHyperDbgRecvByte(&RecvChar))
+        {
+            continue;
+        }
+
+        //
+        // Status bit is received let's check it
+        //
+        if (RecvChar == QUERY_STATE_PAUSE_THE_DEBUGGEE)
+        {
+            //
+            // We should pause the debuggee
+            //
+        }
+        else
+        {
+            //
+            // Anything else is interpreted as a normal status,
+            // but the debugger sends a QUERY_STATE_CONTINUE_NORMALLY
+            //
+            break;
+        }
+    }
+}
+
+/**
+ * @brief If it's the right time, it aknowledges the debugger to
+ * send a status packet
+ *
+ * @param Packet
+ * @return BOOLEAN
+ */
+BOOLEAN
 KdCheckAndSetAcknowledgeBit(PDEBUGGER_REMOTE_PACKET Packet)
 {
     //
@@ -270,7 +314,10 @@ KdCheckAndSetAcknowledgeBit(PDEBUGGER_REMOTE_PACKET Packet)
         // We'll set a single bit to ask debuggee about it's state
         //
         Packet->NeedForAckByte = TRUE;
+        return TRUE;
     }
+
+    return FALSE;
 }
 
 /**
@@ -289,6 +336,7 @@ KdResponsePacketToDebugger(
     CHAR *                                  OptionalBuffer,
     UINT32                                  OptionalBufferLength)
 {
+    BOOLEAN                AckStatus;
     DEBUGGER_REMOTE_PACKET Packet = {0};
 
     //
@@ -320,9 +368,14 @@ KdResponsePacketToDebugger(
         //
         // Set check for debuggee's state bit
         //
-        KdCheckAndSetAcknowledgeBit(&Packet);
+        AckStatus = KdCheckAndSetAcknowledgeBit(&Packet);
 
         SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+
+        if (AckStatus)
+        {
+            KdWaitForDebuggerStatusResponse();
+        }
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -343,9 +396,14 @@ KdResponsePacketToDebugger(
         //
         // Set check for debuggee's state bit
         //
-        KdCheckAndSetAcknowledgeBit(&Packet);
+        AckStatus = KdCheckAndSetAcknowledgeBit(&Packet);
 
         SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+
+        if (AckStatus)
+        {
+            KdWaitForDebuggerStatusResponse();
+        }
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -375,6 +433,7 @@ KdLoggingResponsePacketToDebugger(
     UINT32 OptionalBufferLength,
     UINT32 OperationCode)
 {
+    BOOLEAN                AckStatus;
     DEBUGGER_REMOTE_PACKET Packet = {0};
 
     //
@@ -407,7 +466,7 @@ KdLoggingResponsePacketToDebugger(
     //
     // Set check for debuggee's state bit
     //
-    KdCheckAndSetAcknowledgeBit(&Packet);
+    AckStatus = KdCheckAndSetAcknowledgeBit(&Packet);
 
     SerialConnectionSendThreeBuffers((CHAR *)&Packet,
                                      sizeof(DEBUGGER_REMOTE_PACKET),
@@ -415,6 +474,11 @@ KdLoggingResponsePacketToDebugger(
                                      sizeof(UINT32),
                                      OptionalBuffer,
                                      OptionalBufferLength);
+
+    if (AckStatus)
+    {
+        KdWaitForDebuggerStatusResponse();
+    }
 
     SpinlockUnlock(&DebuggerResponseLock);
 
