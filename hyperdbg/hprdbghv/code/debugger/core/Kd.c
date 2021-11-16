@@ -251,11 +251,13 @@ KdComputeDataChecksum(PVOID Buffer, UINT32 Length)
 /**
  * @brief waits for the status bit of the debugger
  *
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 KdWaitForDebuggerStatusResponse()
 {
+    BOOLEAN Result = FALSE;
+
     while (TRUE)
     {
         UCHAR RecvChar = NULL;
@@ -273,16 +275,40 @@ KdWaitForDebuggerStatusResponse()
             //
             // We should pause the debuggee
             //
+
+            //
+            // Insert a DPC to pause the debugger
+            //
+            KdFireDpc(KdPauseDebuggeeByDpc,
+                      NULL,
+                      DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT);
+
+            Result = TRUE;
+            break;
+        }
+        else if (RecvChar == QUERY_STATE_CONTINUE_NORMALLY)
+        {
+            Result = FALSE;
+            break;
         }
         else
         {
             //
-            // Anything else is interpreted as a normal status,
-            // but the debugger sends a QUERY_STATE_CONTINUE_NORMALLY
+            // Generally, we should never reach here, the only think that came
+            // to my mind is that the user-mode CTRL+C packet finds its way
+            // here before we sending our status BYTE, but this think never
+            // happens in my tests so we let it unimplemented but if we ever
+            // hit this breakpoint then we can investigate and solve the problem
+            // here, sth like ignoring the pause packet here or set some synchronization
+            // objects to avoid sending pause packet and status byte simultaneously
             //
+            DbgBreakPoint();
+            Result = FALSE;
             break;
         }
     }
+
+    return Result;
 }
 
 /**
@@ -822,6 +848,33 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
 }
 
 /**
+ * @brief Pause the debugger by a DPC
+ * @details This function should be called in vmx non-root
+ * @param Dpc
+ * @param DeferredContext It's the process ID
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * 
+ * @return VOID 
+ */
+VOID
+KdPauseDebuggeeByDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    CR3_TYPE         CurrentProcessCr3;
+    UINT64           VirtualAddress;
+    PHYSICAL_ADDRESS PhysicalAddr;
+
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    //
+    // vm-exit and halt current core
+    //
+    AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM, 0, 0, 0);
+}
+
+/**
  * @brief Add a DPC to dpc queue
  * @param Routine
  * @param Paramter
@@ -1056,7 +1109,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -1067,14 +1120,14 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         if (!KdSwitchProcess(PidRequest->ProcessId, PidRequest->Process))
         {
-            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
         }
 
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -1085,14 +1138,14 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         if (!KdShowProcessList(&PidRequest->ProcessListSymDetails))
         {
-            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
         }
 
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -1101,7 +1154,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Invalid type of action
         //
-        PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+        PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
 
         break;
     }
@@ -1109,7 +1162,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
     //
     // Check if the above operation contains error
     //
-    if (PidRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (PidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         return TRUE;
     }
@@ -1354,7 +1407,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
 {
     DEBUGGEE_FORMATS_PACKET FormatsPacket = {0};
 
-    FormatsPacket.Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    FormatsPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     FormatsPacket.Value  = Value;
 
     //
@@ -1840,7 +1893,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         if (!DebuggerIsTagValid(ModifyAndQueryEvent->Tag))
         {
-            ModifyAndQueryEvent->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_TAG_NOT_EXISTS;
         }
         else
         {
@@ -1859,7 +1912,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
             //
             // The function was successful
             //
-            ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
         }
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
@@ -1882,7 +1935,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
     {
@@ -1904,7 +1957,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
@@ -2125,7 +2178,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                         //
                         UnlockTheNewCore = TRUE;
 
-                        ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                     }
                     else
                     {
@@ -2137,7 +2190,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // The operating core and the target core is the same, no need for further action
                     //
-                    ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
 
                 //
@@ -2187,7 +2240,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (KdReadRegisters(GuestRegs, ReadRegisterPacket))
                 {
-                    ReadRegisterPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
@@ -2222,11 +2275,11 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                      (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
                                                      &ReturnSize))
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
                 }
 
                 ReadMemoryPacket->ReturnLength = ReturnSize;
@@ -2250,11 +2303,11 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
                 {
-                    EditMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
-                    EditMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                    EditMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
                 }
 
                 //
@@ -2304,7 +2357,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Set status
                     //
-                    ScriptPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
@@ -2775,5 +2828,5 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     //
     // Set the status
     //
-    PausePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    PausePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }

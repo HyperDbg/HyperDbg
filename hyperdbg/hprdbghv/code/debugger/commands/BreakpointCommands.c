@@ -599,7 +599,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
         //
         // Core is invalid (Set the error)
         //
-        BpDescriptorArg->Result = DEBUGEER_ERROR_INVALID_CORE_ID;
+        BpDescriptorArg->Result = DEBUGGER_ERROR_INVALID_CORE_ID;
         return FALSE;
     }
 
@@ -676,7 +676,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Show that operation was successful
     //
-    BpDescriptorArg->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    BpDescriptorArg->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return TRUE;
 }
@@ -833,7 +833,7 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
     //
     // Operation was successful
     //
-    ListOrModifyBreakpoints->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    ListOrModifyBreakpoints->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return TRUE;
 }

@@ -43,7 +43,7 @@ BreakController(DWORD CtrlType)
         //
         // Check if we should ignore the request or not
         //
-        if (g_IsSerialConnectedToRemoteDebugger || g_IsSerialConnectedToRemoteDebugger)
+        if (g_IsSerialConnectedToRemoteDebugger)
         {
             //
             // Handled (ignored)

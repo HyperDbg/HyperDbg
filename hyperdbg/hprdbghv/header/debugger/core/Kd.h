@@ -114,6 +114,10 @@ KdResponsePacketToDebugger(
     UINT32                                  OptionalBufferLength);
 
 BOOLEAN
+KdRecvBuffer(CHAR *   BufferToSave,
+             UINT32 * LengthReceived);
+
+BOOLEAN
 KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLength, UINT32 OperationCode);
 
 BOOLEAN
@@ -121,3 +125,9 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 
 VOID
 KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3);
+
+VOID
+KdPauseDebuggeeByDpc(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
+
+VOID
+KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber);

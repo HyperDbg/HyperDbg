@@ -238,12 +238,12 @@ CommandHide(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (FinalRequestBuffer->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (FinalRequestBuffer->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         ShowMessages("transparent debugging successfully enabled :)\n");
     }
     else if (FinalRequestBuffer->KernelStatus ==
-             DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER)
+             DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER)
     {
         ShowMessages("unable to hide the debugger (transparent-debugging) :(\n");
         free(FinalRequestBuffer);

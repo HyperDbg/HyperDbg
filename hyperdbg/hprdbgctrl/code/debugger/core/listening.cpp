@@ -413,7 +413,7 @@ StartAgain:
                 (DEBUGGEE_CHANGE_CORE_PACKET *)(((CHAR *)TheActualPacket) +
                                                 sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeCorePacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            if (ChangeCorePacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 ShowMessages("current operating core changed to 0x%x\n",
                              ChangeCorePacket->NewCore);
@@ -441,7 +441,7 @@ StartAgain:
                 (DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET *)(((CHAR *)TheActualPacket) +
                                                                sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ChangeProcessPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            if (ChangeProcessPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
                 {
@@ -480,7 +480,7 @@ StartAgain:
                 (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
                                                    sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (FlushPacket->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            if (FlushPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // The amount of message that are deleted are the amount of
@@ -513,7 +513,7 @@ StartAgain:
             ScriptPacket = (DEBUGGEE_SCRIPT_PACKET *)(((CHAR *)TheActualPacket) +
                                                       sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (ScriptPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            if (ScriptPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Nothing to do
@@ -623,7 +623,7 @@ StartAgain:
             // Set the result of query
             //
             if (EventModifyAndQueryPacket->KernelStatus !=
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // There was an error
@@ -667,7 +667,7 @@ StartAgain:
             // Show messages as the result of updating symbols
             //
             if (SymbolReloadFinishedPacket->KernelStatus !=
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // There was an error
@@ -702,7 +702,7 @@ StartAgain:
                                                            DEBUGGER_REMOTE_PACKET));
 
             if (ReadRegisterPacket->KernelStatus ==
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Show the result of reading registers like rax=0000000000018b01
@@ -792,7 +792,7 @@ StartAgain:
                                          sizeof(DEBUGGER_REMOTE_PACKET));
 
             if (ReadMemoryPacket->KernelStatus ==
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
@@ -877,7 +877,7 @@ StartAgain:
                                          sizeof(DEBUGGER_REMOTE_PACKET));
 
             if (EditMemoryPacket->KernelStatus ==
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Show the result of reading memory like mem=0000000000018b01
@@ -905,7 +905,7 @@ StartAgain:
             BpPacket = (DEBUGGEE_BP_PACKET *)(((CHAR *)TheActualPacket) +
                                               sizeof(DEBUGGER_REMOTE_PACKET));
 
-            if (BpPacket->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+            if (BpPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Everything was okay, nothing to do
@@ -934,7 +934,7 @@ StartAgain:
                                                       sizeof(DEBUGGER_REMOTE_PACKET));
 
             if (ListOrModifyBreakpointPacket->Result ==
-                DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+                DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
                 // Everything was okay, nothing to do
