@@ -29,10 +29,11 @@ extern BOOLEAN                              g_IsRunningInstruction32Bit;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-               g_DebuggeeResultOfAddingActionsToEvent;
-extern BOOLEAN g_IsDebuggerRequestPauseInDebuggerMode;
-extern UINT64  g_ResultOfEvaluatedExpression;
-extern UINT32  g_ErrorStateOfResultOfEvaluatedExpression;
+                     g_DebuggeeResultOfAddingActionsToEvent;
+extern BOOLEAN       g_IsDebuggerRequestPauseInDebuggerMode;
+extern UINT64        g_ResultOfEvaluatedExpression;
+extern UINT32        g_ErrorStateOfResultOfEvaluatedExpression;
+extern volatile LONG g_PausingPacketLock;
 
 /**
  * @brief Check if the remote debuggee needs to pause the system
@@ -148,7 +149,12 @@ StartAgain:
             //
             printf("i love taylor\n");
 
-            if (g_IsDebuggerRequestPauseInDebuggerMode)
+            //
+            // Check if the status is pausing or not, also check to get the lock of the spinlock
+            // to make sure that we only send either the status byte or the pausing packet over
+            // serial
+            //
+            if (g_IsDebuggerRequestPauseInDebuggerMode && SpinlockTryLock(&g_PausingPacketLock))
             {
                 //
                 // The debugger needs a break
@@ -162,6 +168,11 @@ StartAgain:
                     //
                     ShowMessages("err, sending the status byte");
                 }
+
+                //
+                // Unlock the lock
+                //
+                SpinlockUnlock(&g_PausingPacketLock);
             }
             else
             {

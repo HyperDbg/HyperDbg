@@ -25,19 +25,20 @@ extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugg
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-               g_DebuggeeResultOfAddingActionsToEvent;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
-extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
-extern BOOLEAN g_IsDebuggeeRunning;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
-extern BOOLEAN g_SerialConnectionAlreadyClosed;
-extern BOOLEAN g_IgnoreNewLoggingMessages;
-extern BOOLEAN g_SharedEventStatus;
-extern BOOLEAN g_IsRunningInstruction32Bit;
-extern BOOLEAN g_IsDebuggerRequestPauseInDebuggerMode;
-extern BYTE    g_EndOfBufferCheckSerial[4];
-extern ULONG   g_CurrentRemoteCore;
+                     g_DebuggeeResultOfAddingActionsToEvent;
+extern BOOLEAN       g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN       g_IsSerialConnectedToRemoteDebugger;
+extern BOOLEAN       g_IsDebuggerConntectedToNamedPipe;
+extern BOOLEAN       g_IsDebuggeeRunning;
+extern BOOLEAN       g_IsDebuggerModulesLoaded;
+extern BOOLEAN       g_SerialConnectionAlreadyClosed;
+extern BOOLEAN       g_IgnoreNewLoggingMessages;
+extern BOOLEAN       g_SharedEventStatus;
+extern BOOLEAN       g_IsRunningInstruction32Bit;
+extern BOOLEAN       g_IsDebuggerRequestPauseInDebuggerMode;
+extern BYTE          g_EndOfBufferCheckSerial[4];
+extern ULONG         g_CurrentRemoteCore;
+extern volatile LONG g_PausingPacketLock;
 
 /**
  * @brief compares the buffer with a string
@@ -942,13 +943,31 @@ BOOLEAN
 KdSendPausePacketToDebuggee()
 {
     //
-    // Send pause packet to debuggee
+    // Check if the status is pausing or not, also check to get the lock of the spinlock
+    // to make sure that we only send either the status byte or the pausing packet over
+    // serial
     //
-    if (!KdCommandPacketToDebuggee(
-            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
-            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE))
+    if (g_IsDebuggerRequestPauseInDebuggerMode && SpinlockTryLock(&g_PausingPacketLock))
     {
-        return FALSE;
+        //
+        // We get the lock here
+        //
+        g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
+
+        //
+        // Send pause packet to debuggee
+        //
+        if (!KdCommandPacketToDebuggee(
+                DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,
+                DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_USER_MODE_PAUSE))
+        {
+            return FALSE;
+        }
+
+        //
+        // Unlock the lock
+        //
+        SpinlockUnlock(&g_PausingPacketLock);
     }
 
     //
@@ -1448,11 +1467,6 @@ KdTheRemoteSystemIsRunning()
                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                                 .EventHandle,
                         INFINITE);
-
-    //
-    // Debugger is paused
-    //
-    g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
 }
 
 /**

@@ -13,7 +13,23 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//			    	 Functions                  //
+//				 Spinlock Funtions				//
+//////////////////////////////////////////////////
+
+BOOLEAN
+SpinlockTryLock(volatile LONG * Lock);
+
+void
+SpinlockLock(volatile LONG * Lock);
+
+void
+SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
+
+void
+SpinlockUnlock(volatile LONG * Lock);
+
+//////////////////////////////////////////////////
+//			    Common Functions                //
 //////////////////////////////////////////////////
 
 VOID

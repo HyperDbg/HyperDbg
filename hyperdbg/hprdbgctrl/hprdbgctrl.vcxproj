@@ -126,6 +126,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />
     <ClCompile Include="code\debugger\core\break-control.cpp" />
     <ClCompile Include="code\debugger\core\debugger.cpp" />
