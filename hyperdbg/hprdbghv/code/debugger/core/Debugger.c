@@ -1029,25 +1029,36 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
         TempList                             = TempList->Flink;
         PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
 
-        //
-        // Perform the action
-        //
-        switch (CurrentAction->ActionType)
+        if (g_HaltDebuggeeOnNextEvent)
         {
-        case BREAK_TO_DEBUGGER:
-            DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
-            break;
-        case RUN_SCRIPT:
-            DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
-            break;
-        case RUN_CUSTOM_CODE:
-            DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
-            break;
-        default:
+            g_HaltDebuggeeOnNextEvent = FALSE;
+            KdHandleBreakpointAndDebugBreakpoints(KeGetCurrentProcessorNumber(),
+                                                  Regs,
+                                                  DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+                                                  NULL);
+        }
+        else
+        {
             //
-            // Invalid action type
+            // Perform the action
             //
-            break;
+            switch (CurrentAction->ActionType)
+            {
+            case BREAK_TO_DEBUGGER:
+                DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
+                break;
+            case RUN_SCRIPT:
+                DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
+                break;
+            case RUN_CUSTOM_CODE:
+                DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
+                break;
+            default:
+                //
+                // Invalid action type
+                //
+                break;
+            }
         }
     }
 }

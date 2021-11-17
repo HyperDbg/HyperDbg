@@ -154,13 +154,8 @@ StartAgain:
             // to make sure that we only send either the status byte or the pausing packet over
             // serial
             //
-            if (g_IsDebuggerRequestPauseInDebuggerMode && SpinlockTryLock(&g_PausingPacketLock))
+            if (g_IsDebuggerRequestPauseInDebuggerMode)
             {
-                //
-                // The debugger needs a break
-                //
-                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
-
                 if (!KdSendPacketToDebuggee(&StatusBytePause, 1, FALSE))
                 {
                     //
@@ -170,9 +165,9 @@ StartAgain:
                 }
 
                 //
-                // Unlock the lock
+                // The debugger needs a break
                 //
-                SpinlockUnlock(&g_PausingPacketLock);
+                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
             }
             else
             {

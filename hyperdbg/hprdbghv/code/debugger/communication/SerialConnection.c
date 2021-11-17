@@ -26,6 +26,51 @@ SerialConnectionTest()
 }
 
 /**
+ * @brief compares the buffer with a string
+ *
+ * @param CurrentLoopIndex Number of previously read bytes
+ * @param Buffer
+ * @return BOOLEAN
+ */
+BOOLEAN
+SerialConnectionCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
+{
+    UINT32 ActualBufferLength;
+
+    ActualBufferLength = *CurrentLoopIndex;
+
+    //
+    // End of buffer is 4 character long
+    //
+    if (*CurrentLoopIndex <= 3)
+    {
+        return FALSE;
+    }
+
+    if (Buffer[ActualBufferLength] == SERIAL_END_OF_BUFFER_CHAR_4 &&
+        Buffer[ActualBufferLength - 1] == SERIAL_END_OF_BUFFER_CHAR_3 &&
+        Buffer[ActualBufferLength - 2] == SERIAL_END_OF_BUFFER_CHAR_2 &&
+        Buffer[ActualBufferLength - 3] == SERIAL_END_OF_BUFFER_CHAR_1)
+    {
+        //
+        // Clear the end character
+        //
+        Buffer[ActualBufferLength - 3] = NULL;
+        Buffer[ActualBufferLength - 2] = NULL;
+        Buffer[ActualBufferLength - 1] = NULL;
+        Buffer[ActualBufferLength]     = NULL;
+
+        //
+        // Set the new length
+        //
+        *CurrentLoopIndex = ActualBufferLength - 3;
+
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/**
  * @brief Send end of buffer packet
  *
  * @return VOID 
@@ -40,6 +85,63 @@ SerialConnectionSendEndOfBuffer()
     KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_2, TRUE);
     KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_3, TRUE);
     KdHyperDbgSendByte(SERIAL_END_OF_BUFFER_CHAR_4, TRUE);
+}
+
+/**
+ * @brief Receive packet from the debugger
+ *
+ * @param BufferToSave
+ * @param LengthReceived
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+SerialConnectionRecvBuffer(CHAR *   BufferToSave,
+                           UINT32 * LengthReceived)
+{
+    UINT32 Loop = 0;
+
+    //
+    // Read data and store in a buffer
+    //
+    while (TRUE)
+    {
+        UCHAR RecvChar = NULL;
+
+        if (!KdHyperDbgRecvByte(&RecvChar))
+        {
+            continue;
+        }
+
+        //
+        // We already now that the maximum packet size is MaxSerialPacketSize
+        // Check to make sure that we don't pass the boundaries
+        //
+        if (!(MaxSerialPacketSize > Loop))
+        {
+            //
+            // Invalid buffer (size of buffer exceeds the limitation)
+            //
+            LogError("Err, a buffer received in debuggee which exceeds the buffer limitation");
+            return FALSE;
+        }
+
+        BufferToSave[Loop] = RecvChar;
+
+        if (SerialConnectionCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave))
+        {
+            break;
+        }
+
+        Loop++;
+    }
+
+    //
+    // Set the length
+    //
+    *LengthReceived = Loop;
+
+    return TRUE;
 }
 
 /**

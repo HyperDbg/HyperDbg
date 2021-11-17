@@ -947,13 +947,8 @@ KdSendPausePacketToDebuggee()
     // to make sure that we only send either the status byte or the pausing packet over
     // serial
     //
-    if (g_IsDebuggerRequestPauseInDebuggerMode && SpinlockTryLock(&g_PausingPacketLock))
+    if (g_IsDebuggerRequestPauseInDebuggerMode)
     {
-        //
-        // We get the lock here
-        //
-        g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
-
         //
         // Send pause packet to debuggee
         //
@@ -963,17 +958,17 @@ KdSendPausePacketToDebuggee()
         {
             return FALSE;
         }
-
-        //
-        // Unlock the lock
-        //
-        SpinlockUnlock(&g_PausingPacketLock);
     }
 
     //
     // Handle the paused state (show rip, instructions, etc.)
     //
     KdInterpretPausedDebuggee();
+
+    //
+    // We get the lock here
+    //
+    g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
 
     return TRUE;
 }

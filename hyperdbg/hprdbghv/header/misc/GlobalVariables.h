@@ -247,3 +247,9 @@ BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
  * 
  */
 DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
+
+/**
+ * @brief request to pause the debuggee on next event 
+ * 
+ */
+BOOLEAN g_HaltDebuggeeOnNextEvent;

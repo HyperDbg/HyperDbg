@@ -114,10 +114,6 @@ KdResponsePacketToDebugger(
     UINT32                                  OptionalBufferLength);
 
 BOOLEAN
-KdRecvBuffer(CHAR *   BufferToSave,
-             UINT32 * LengthReceived);
-
-BOOLEAN
 KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLength, UINT32 OperationCode);
 
 BOOLEAN
