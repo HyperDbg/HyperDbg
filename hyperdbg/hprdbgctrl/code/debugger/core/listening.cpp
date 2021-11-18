@@ -156,6 +156,16 @@ StartAgain:
             //
             if (g_IsDebuggerRequestPauseInDebuggerMode)
             {
+                //
+                // The debugger needs a break
+                //
+                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
+
+                //
+                // Abort any buffered data
+                //
+                PurgeComm(g_SerialRemoteComPortHandle, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR | PURGE_RXABORT);
+
                 if (!KdSendPacketToDebuggee(&StatusBytePause, 1, FALSE))
                 {
                     //
@@ -163,11 +173,6 @@ StartAgain:
                     //
                     ShowMessages("err, sending the status byte");
                 }
-
-                //
-                // The debugger needs a break
-                //
-                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
             }
             else
             {

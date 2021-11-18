@@ -294,8 +294,6 @@ KdWaitForDebuggerStatusResponse()
             break;
         }
     }
-
-    return Result;
 }
 
 /**
