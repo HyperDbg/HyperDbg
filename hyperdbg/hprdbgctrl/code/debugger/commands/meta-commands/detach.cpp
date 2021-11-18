@@ -95,7 +95,7 @@ DetachFromProcess()
     //
     // Check if attaching was successful then we can set the attached to true
     //
-    if (DetachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
         g_DebuggingState.ConnectedProcessId          = NULL;

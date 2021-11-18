@@ -81,7 +81,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         //
         if (!CheckMemoryAccessSafety(Address, Size))
         {
-            ReadMemRequest->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            ReadMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
 
@@ -130,7 +130,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         ReadMemRequest->KernelStatus = DEBUGGER_ERROR_MEMORY_TYPE_INVALID;
         return FALSE;
     }
-    ReadMemRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    ReadMemRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     *ReturnSize                  = Size;
 
     return TRUE;
@@ -394,7 +394,7 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     // Set the resutls
     //
-    EditMemRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }
@@ -449,7 +449,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
         if (!CheckMemoryAccessSafety(EditMemRequest->Address,
                                      EditMemRequest->ByteSize * EditMemRequest->CountOf64Chunks))
         {
-            EditMemRequest->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+            EditMemRequest->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
 
@@ -495,7 +495,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     // Set the resutls
     //
-    EditMemRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return TRUE;
 }
@@ -965,7 +965,7 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     //
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = LogMarkAllAsRead(TRUE);
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
-    DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }
@@ -985,7 +985,7 @@ DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SI
     //
     AsmVmxVmcall(VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED, 0, 0, 0);
 
-    DebuggerFinishedExecutionRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerFinishedExecutionRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }
@@ -1007,7 +1007,7 @@ DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER Debugger
                  DebuggerSendUsermodeMessageRequest->Length,
                  0);
 
-    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }
@@ -1029,7 +1029,7 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
                  0,
                  0);
 
-    DebuggeeBufferRequest->KernelResult = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }
@@ -1065,7 +1065,7 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     }
     else
     {
-        PreallocRequest->KernelStatus = DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE;
+        PreallocRequest->KernelStatus = DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE;
         return STATUS_UNSUCCESSFUL;
     }
 
@@ -1074,7 +1074,7 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     //
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
-    PreallocRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    PreallocRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
     return STATUS_SUCCESS;
 }

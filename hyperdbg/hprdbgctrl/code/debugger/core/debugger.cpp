@@ -37,57 +37,57 @@ ShowErrorMessage(UINT32 Error)
 {
     switch (Error)
     {
-    case DEBUGEER_ERROR_TAG_NOT_EXISTS:
+    case DEBUGGER_ERROR_TAG_NOT_EXISTS:
         ShowMessages("err, tag not found (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_INVALID_ACTION_TYPE:
+    case DEBUGGER_ERROR_INVALID_ACTION_TYPE:
         ShowMessages("err, invalid action type (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO:
+    case DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO:
         ShowMessages("err, action buffer size is zero (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID:
+    case DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID:
         ShowMessages("err, the event type is invalid (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT:
+    case DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT:
         ShowMessages("err, unable to create event (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_INVALID_ADDRESS:
+    case DEBUGGER_ERROR_INVALID_ADDRESS:
         ShowMessages("err, invalid address (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_INVALID_CORE_ID:
+    case DEBUGGER_ERROR_INVALID_CORE_ID:
         ShowMessages("err, invalid core id (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES:
+    case DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES:
         ShowMessages("err, exception index exceed first 32 entries (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID:
+    case DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID:
         ShowMessages("err, interrupt index is not valid (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
+    case DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER:
         ShowMessages("err, unable to hide or unhide debugger (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE:
+    case DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE:
         ShowMessages("err, debugger already unhide (%x)\n",
                      Error);
         break;
@@ -195,30 +195,30 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
-    case DEBUGEER_ERROR_INVALID_PROCESS_ID:
+    case DEBUGGER_ERROR_INVALID_PROCESS_ID:
         ShowMessages("err, the process id is invalid, make sure to enter the "
                      "process id in hex format (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED:
+    case DEBUGGER_ERROR_EVENT_IS_NOT_APPLIED:
         ShowMessages("err, the event is not applied (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
+    case DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
         ShowMessages("err, either the process id or the EPROCESS is invalid or "
                      "cannot get the details based on the provided parameters (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
+    case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
         ShowMessages("err, the maximum breakpoint for a single page is hit, "
                      "you cannot apply more breakpoints in this page (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY:
+    case DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY:
         ShowMessages("err, the pre-allocated buffer is empty, usually this buffer will be "
                      "filled at the next IOCTL when the debugger is continued (%x)\n"
                      "please visit the documentation for the 'prealloc' command or use "
@@ -226,28 +226,28 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
+    case DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES:
         ShowMessages("err, could not convert 2MB large page to 4KB pages (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS:
+    case DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS:
         ShowMessages("err, failed to get the PML1 entry of the target address (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE:
+    case DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE:
         ShowMessages("err, the page modification is not applied, make sure that you don't "
                      "put multiple EPT Hooks or Monitors on a single page (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK:
+    case DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK:
         ShowMessages("err, could not build the EPT hook (%x)\n",
                      Error);
         break;
 
-    case DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE:
+    case DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE:
         ShowMessages("err, could not find the allocation type (%x)\n",
                      Error);
         break;
@@ -328,7 +328,7 @@ DebuggerPauseDebuggee()
         return FALSE;
     }
 
-    if (PauseRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         //
         // Nothing to show, the request was successfully processed

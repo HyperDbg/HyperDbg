@@ -456,6 +456,11 @@ UINT64 g_RdtscStandardDeviation = 0;
  */
 UINT64 g_RdtscMedian = 0;
 
+/**
+ * @brief Shows whether the user is running 't', 'p', or 'i' command
+ */
+BOOLEAN g_IsInstrumentingInstructions = FALSE;
+
 //////////////////////////////////////////////////
 //			     	 Settings			        //
 //////////////////////////////////////////////////

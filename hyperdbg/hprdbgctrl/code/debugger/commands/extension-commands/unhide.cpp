@@ -82,12 +82,12 @@ CommandUnhide(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (UnhideRequest.KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (UnhideRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         ShowMessages("transparent debugging successfully disabled :)\n");
     }
     else if (UnhideRequest.KernelStatus ==
-             DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE)
+             DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE)
     {
         ShowMessages("debugger is not in transparent-mode\n");
     }
