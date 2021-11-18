@@ -965,11 +965,6 @@ KdSendPausePacketToDebuggee()
     //
     KdInterpretPausedDebuggee();
 
-    //
-    // We get the lock here
-    //
-    g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
-
     return TRUE;
 }
 
@@ -1390,16 +1385,6 @@ KdBreakControlCheckAndPauseDebugger()
         {
             ShowMessages("err, unable to pause the debuggee\n");
         }
-
-        //
-        // Signal the event
-        //
-        g_SyncronizationObjectsHandleTable
-            [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
-                .IsOnWaitingState = FALSE;
-        SetEvent(g_SyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
-                         .EventHandle);
     }
 }
 

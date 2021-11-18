@@ -1029,37 +1029,35 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
         TempList                             = TempList->Flink;
         PDEBUGGER_EVENT_ACTION CurrentAction = CONTAINING_RECORD(TempList, DEBUGGER_EVENT_ACTION, ActionsList);
 
-        if (g_HaltDebuggeeOnNextEvent)
+        //
+        // Perform the action
+        //
+        switch (CurrentAction->ActionType)
         {
-            g_HaltDebuggeeOnNextEvent = FALSE;
-            KdHandleBreakpointAndDebugBreakpoints(KeGetCurrentProcessorNumber(),
-                                                  Regs,
-                                                  DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
-                                                  NULL);
-        }
-        else
-        {
+        case BREAK_TO_DEBUGGER:
+            DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
+            break;
+        case RUN_SCRIPT:
+            DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
+            break;
+        case RUN_CUSTOM_CODE:
+            DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
+            break;
+        default:
             //
-            // Perform the action
+            // Invalid action type
             //
-            switch (CurrentAction->ActionType)
-            {
-            case BREAK_TO_DEBUGGER:
-                DebuggerPerformBreakToDebugger(Event->Tag, CurrentAction, Regs, Context);
-                break;
-            case RUN_SCRIPT:
-                DebuggerPerformRunScript(Event->Tag, CurrentAction, NULL, Regs, Context);
-                break;
-            case RUN_CUSTOM_CODE:
-                DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
-                break;
-            default:
-                //
-                // Invalid action type
-                //
-                break;
-            }
+            break;
         }
+    }
+
+    if (g_HaltDebuggeeOnNextEvent)
+    {
+        g_HaltDebuggeeOnNextEvent = FALSE;
+        KdHandleBreakpointAndDebugBreakpoints(KeGetCurrentProcessorNumber(),
+                                              Regs,
+                                              DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
+                                              NULL);
     }
 }
 

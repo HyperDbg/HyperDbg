@@ -147,7 +147,6 @@ StartAgain:
             //
             // Send the status byte
             //
-            printf("i love taylor\n");
 
             //
             // Check if the status is pausing or not, also check to get the lock of the spinlock
@@ -157,12 +156,8 @@ StartAgain:
             if (g_IsDebuggerRequestPauseInDebuggerMode)
             {
                 //
-                // The debugger needs a break
-                //
-                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
-
-                //
-                // Abort any buffered data
+                // Abort any buffered data to avoid submiting invalid buffers that might be pending
+                // to be sent
                 //
                 PurgeComm(g_SerialRemoteComPortHandle, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR | PURGE_RXABORT);
 
@@ -403,14 +398,34 @@ StartAgain:
             default:
 
                 //
-                // Signal the event relating to commands that are waiting for
-                // the details of a halted debuggeee
+                // We get the lock here
+                //
+                g_IsDebuggerRequestPauseInDebuggerMode = FALSE;
+
+                if (g_SyncronizationObjectsHandleTable
+                        [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                            .IsOnWaitingState == TRUE)
+                {
+                    //
+                    // Signal the event relating to commands that are waiting for
+                    // the details of a halted debuggeee
+                    //
+                    g_SyncronizationObjectsHandleTable
+                        [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                            .IsOnWaitingState = FALSE;
+                    SetEvent(g_SyncronizationObjectsHandleTable
+                                 [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                                     .EventHandle);
+                }
+
+                //
+                // Signal the event
                 //
                 g_SyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                    [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                         .IsOnWaitingState = FALSE;
                 SetEvent(g_SyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
+                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                                  .EventHandle);
 
                 break;

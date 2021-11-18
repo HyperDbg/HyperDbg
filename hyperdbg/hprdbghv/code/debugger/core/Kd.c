@@ -228,23 +228,8 @@ KdWaitForDebuggerStatusResponse()
         if (RecvChar == QUERY_STATE_PAUSE_THE_DEBUGGEE)
         {
             //
-            // We should pause the debuggee
+            // We should pause the debuggee (on next trigger of the event)
             //
-            DbgBreakPoint();
-
-            while (TRUE)
-            {
-                if (KdHyperDbgRecvByte(&RecvChar))
-                {
-                    continue;
-                }
-                else
-                {
-                    DbgBreakPoint();
-                    break;
-                }
-            }
-
             g_HaltDebuggeeOnNextEvent = TRUE;
 
             //
@@ -275,6 +260,8 @@ KdWaitForDebuggerStatusResponse()
             //
             DbgBreakPoint();
 
+            g_HaltDebuggeeOnNextEvent = TRUE;
+
             while (TRUE)
             {
                 if (KdHyperDbgRecvByte(&RecvChar))
@@ -283,12 +270,9 @@ KdWaitForDebuggerStatusResponse()
                 }
                 else
                 {
-                    DbgBreakPoint();
                     break;
                 }
             }
-
-            g_HaltDebuggeeOnNextEvent = TRUE;
 
             Result = FALSE;
             break;
