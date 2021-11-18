@@ -108,7 +108,7 @@ CommandPte(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (PteRead.KernelStatus != DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (PteRead.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         ShowErrorMessage(PteRead.KernelStatus);
         return;

@@ -258,7 +258,7 @@ AttachToProcess(UINT32 TargetPid, UINT32 TargetTid)
     //
     // Check if attaching was successful then we can set the attached to true
     //
-    if (AttachRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
         g_DebuggingState.ConnectedProcessId          = TargetPid;
