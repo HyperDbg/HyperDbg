@@ -43,10 +43,14 @@ SerialConnectionCheckPort(UINT32 SerialPort);
 BOOLEAN
 SerialConnectionCheckBaudrate(DWORD Baudrate);
 
-VOID
+BOOLEAN
 SerialConnectionSend(CHAR * Buffer, UINT32 Length);
 
-VOID
+BOOLEAN
+SerialConnectionRecvBuffer(CHAR *   BufferToSave,
+                           UINT32 * LengthReceived);
+
+BOOLEAN
 SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, UINT32 Length2);
 
 BOOLEAN

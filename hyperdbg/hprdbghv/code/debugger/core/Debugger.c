@@ -2083,6 +2083,17 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
                 break;
             }
+            else
+            {
+                //
+                // We applied the hook and the pre-allocated buffers are used
+                // for this hook, as here is a safe PASSIVE_LEVEL we can force
+                // the Windows to reallocate some pools for us, thus, if this
+                // hook is continued to other pages, we still have pre-alloated
+                // buffers ready for our future hooks
+                //
+                PoolManagerCheckAndPerformAllocationAndDeallocation();
+            }
         }
 
         //
