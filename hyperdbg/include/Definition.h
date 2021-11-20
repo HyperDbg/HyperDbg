@@ -1467,8 +1467,7 @@ typedef struct _DEBUGGER_EVENT
 typedef struct _DEBUGGER_REMOTE_PACKET
 {
     BYTE                                    Checksum;
-    UINT64                                  Indicator; /* Shows the type of the packet, whether it's a GDB packet
-                       or a HyperDbg packet */
+    UINT64                                  Indicator; /* Shows the type of the packet */
     DEBUGGER_REMOTE_PACKET_TYPE             TypeOfThePacket;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedActionOfThePacket;
 

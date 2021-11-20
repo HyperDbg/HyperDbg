@@ -938,8 +938,8 @@ StartAgain:
         //
         // It's not a HyperDbg packet, it's probably a GDB packet
         //
-        ShowMessages("invalid packet received\n");
-        DebugBreak();
+        ShowMessages("err, invalid packet received\n");
+        // DebugBreak();
     }
 
     //

@@ -1,6 +1,10 @@
 LIBRARY kdserial
 
 EXPORTS
+
+    DllInitialize PRIVATE
+    DllUnload PRIVATE
+
     KdInitialize
     KdReceivePacket
     KdSendPacket
