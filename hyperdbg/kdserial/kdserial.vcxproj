@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="common.c" />
     <ClCompile Include="hardware.c" />
     <ClCompile Include="ioaccess.c" />
     <ClCompile Include="uartio.c" />

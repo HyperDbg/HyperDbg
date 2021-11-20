@@ -94,7 +94,8 @@ CommandUnload(vector<string> SplittedCommand, string Command)
             //
             if (HyperdbgStopDriver())
             {
-                ShowMessages("failed to stop driver\n");
+                ShowMessages("err, failed to stop driver\n");
+                return;
             }
 
             //
@@ -102,10 +103,11 @@ CommandUnload(vector<string> SplittedCommand, string Command)
             //
             if (HyperdbgUninstallDriver())
             {
-                ShowMessages("failed to uninstall the driver\n");
+                ShowMessages("err, failed to uninstall the driver\n");
+                return;
             }
 
-            ShowMessages("the driver is removed");
+            ShowMessages("the driver is removed\n");
         }
     }
     else
