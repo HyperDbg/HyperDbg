@@ -1247,8 +1247,8 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
                                  // shows the length of xxx
 
-    UINT64 KernelStatus; /* DEBUGEER_OPERATION_WAS_SUCCESSFULL ,
-                          DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
+    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFULL ,
+                          DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
 } DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE,
@@ -1467,8 +1467,7 @@ typedef struct _DEBUGGER_EVENT
 typedef struct _DEBUGGER_REMOTE_PACKET
 {
     BYTE                                    Checksum;
-    UINT64                                  Indicator; /* Shows the type of the packet, whether it's a GDB packet
-                       or a HyperDbg packet */
+    UINT64                                  Indicator; /* Shows the type of the packet */
     DEBUGGER_REMOTE_PACKET_TYPE             TypeOfThePacket;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedActionOfThePacket;
 
@@ -1776,7 +1775,7 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * request was successful
  *
  */
-#define DEBUGEER_OPERATION_WAS_SUCCESSFULL 0xFFFFFFFF
+#define DEBUGGER_OPERATION_WAS_SUCCESSFULL 0xFFFFFFFF
 
 //////////////////////////////////////////////////
 //		    	Debugger Error Codes            //
@@ -1786,67 +1785,67 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * @brief error, the tag not exist
  *
  */
-#define DEBUGEER_ERROR_TAG_NOT_EXISTS 0xc0000000
+#define DEBUGGER_ERROR_TAG_NOT_EXISTS 0xc0000000
 
 /**
  * @brief error, invalid type of action
  *
  */
-#define DEBUGEER_ERROR_INVALID_ACTION_TYPE 0xc0000001
+#define DEBUGGER_ERROR_INVALID_ACTION_TYPE 0xc0000001
 
 /**
  * @brief error, the action buffer size is invalid
  *
  */
-#define DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO 0xc0000002
+#define DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO 0xc0000002
 
 /**
  * @brief error, the event type is unknown
  *
  */
-#define DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID 0xc0000003
+#define DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID 0xc0000003
 
 /**
  * @brief error, enable to create event
  *
  */
-#define DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
+#define DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT 0xc0000004
 
 /**
  * @brief error, invalid address specified for debugger
  *
  */
-#define DEBUGEER_ERROR_INVALID_ADDRESS 0xc0000005
+#define DEBUGGER_ERROR_INVALID_ADDRESS 0xc0000005
 
 /**
  * @brief error, the core id is invalid
  *
  */
-#define DEBUGEER_ERROR_INVALID_CORE_ID 0xc0000006
+#define DEBUGGER_ERROR_INVALID_CORE_ID 0xc0000006
 
 /**
  * @brief error, the index is greater than 32 in !exception command
  *
  */
-#define DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES 0xc0000007
+#define DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES 0xc0000007
 
 /**
  * @brief error, the index for !interrupt command is not between 32 to 256
  *
  */
-#define DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID 0xc0000008
+#define DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID 0xc0000008
 
 /**
  * @brief error, unable to hide the debugger and enter to transparent-mode
  *
  */
-#define DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER 0xc0000009
+#define DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER 0xc0000009
 
 /**
  * @brief error, the debugger is already in transparent-mode
  *
  */
-#define DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE 0xc000000a
+#define DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE 0xc000000a
 
 /**
  * @brief error, invalid parameters in !e* e* commands
@@ -1973,63 +1972,63 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * @brief error, the process id is invalid
  *
  */
-#define DEBUGEER_ERROR_INVALID_PROCESS_ID 0xc000001e
+#define DEBUGGER_ERROR_INVALID_PROCESS_ID 0xc000001e
 
 /**
  * @brief error, for event specific reasons the event is not 
  * applied
  *
  */
-#define DEBUGEER_ERROR_EVENT_IS_NOT_APPLIED 0xc000001f
+#define DEBUGGER_ERROR_EVENT_IS_NOT_APPLIED 0xc000001f
 
 /**
  * @brief error, for process switch or process details, invalid parameter
  *
  */
-#define DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER 0xc0000020
+#define DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER 0xc0000020
 
 /**
  * @brief error, maximum breakpoint for a single page is hit
  *
  */
-#define DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT 0xc0000021
+#define DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT 0xc0000021
 
 /**
  * @brief error, there is no pre-allocated buffer
  *
  */
-#define DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY 0xc0000022
+#define DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY 0xc0000022
 
 /**
  * @brief error, in the EPT handler, it could not split the 2MB pages to 
  * 512 entries of 4 KB pages
  *
  */
-#define DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES 0xc0000023
+#define DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES 0xc0000023
 
 /**
  * @brief error, failed to get PML1 entry of the target address
  *
  */
-#define DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS 0xc0000024
+#define DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS 0xc0000024
 
 /**
  * @brief error, multiple EPT Hooks or Monitors are applied on a single page
  *
  */
-#define DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE 0xc0000025
+#define DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE 0xc0000025
 
 /**
  * @brief error, could not build the EPT Hook
  *
  */
-#define DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK 0xc0000026
+#define DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK 0xc0000026
 
 /**
  * @brief error, could not find the type of allocation
  *
  */
-#define DEBUGEER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE 0xc0000027
+#define DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE 0xc0000027
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

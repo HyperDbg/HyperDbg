@@ -89,7 +89,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
     if (!PhysicalBaseAddress)
     {
-        DebuggerSetLastError(DEBUGEER_ERROR_INVALID_ADDRESS);
+        DebuggerSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -126,7 +126,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
             //
             // Means that breakpoint is full and we can't apply this breakpoint
             //
-            DebuggerSetLastError(DEBUGEER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT);
+            DebuggerSetLastError(DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT);
             return FALSE;
         }
 
@@ -179,7 +179,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 
         if (!TargetBuffer)
         {
-            DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+            DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
             return FALSE;
         }
 
@@ -188,7 +188,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
             PoolManagerFreePool(TargetBuffer);
 
             LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
-            DebuggerSetLastError(DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
+            DebuggerSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
             return FALSE;
         }
 
@@ -204,7 +204,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         {
             PoolManagerFreePool(TargetBuffer);
 
-            DebuggerSetLastError(DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
+            DebuggerSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
             return FALSE;
         }
 
@@ -222,7 +222,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
         {
             PoolManagerFreePool(TargetBuffer);
 
-            DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+            DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
             return FALSE;
         }
 
@@ -767,7 +767,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!PhysicalBaseAddress)
     {
-        DebuggerSetLastError(DEBUGEER_ERROR_INVALID_ADDRESS);
+        DebuggerSetLastError(DEBUGGER_ERROR_INVALID_ADDRESS);
         return FALSE;
     }
 
@@ -787,7 +787,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
             // Means that we find the address and !epthook2 doesn't support
             // multiple breakpoints in on page
             //
-            DebuggerSetLastError(DEBUGEER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE);
+            DebuggerSetLastError(DEBUGGER_ERROR_EPT_MULTIPLE_HOOKS_IN_A_SINGLE_PAGE);
             return FALSE;
         }
     }
@@ -800,7 +800,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
 
     if (!TargetBuffer)
     {
-        DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -809,7 +809,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
         PoolManagerFreePool(TargetBuffer);
 
         LogDebugInfo("Err, could not split page for the address : 0x%llx", PhysicalBaseAddress);
-        DebuggerSetLastError(DEBUGEER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
+        DebuggerSetLastError(DEBUGGER_ERROR_EPT_COULD_NOT_SPLIT_THE_LARGE_PAGE_TO_4KB_PAGES);
         return FALSE;
     }
 
@@ -825,7 +825,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
     {
         PoolManagerFreePool(TargetBuffer);
 
-        DebuggerSetLastError(DEBUGEER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
+        DebuggerSetLastError(DEBUGGER_ERROR_EPT_FAILED_TO_GET_PML1_ENTRY_OF_TARGET_ADDRESS);
         return FALSE;
     }
 
@@ -856,7 +856,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
     {
         PoolManagerFreePool(TargetBuffer);
 
-        DebuggerSetLastError(DEBUGEER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
+        DebuggerSetLastError(DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY);
         return FALSE;
     }
 
@@ -943,7 +943,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
             PoolManagerFreePool(TargetBuffer);
             PoolManagerFreePool(HookedPage);
 
-            DebuggerSetLastError(DEBUGEER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
+            DebuggerSetLastError(DEBUGGER_ERROR_COULD_NOT_BUILD_THE_EPT_HOOK);
             return FALSE;
         }
     }

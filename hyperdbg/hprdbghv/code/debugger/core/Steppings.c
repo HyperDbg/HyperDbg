@@ -868,7 +868,7 @@ SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest)
     }
     else if (FoundAWorkingThread)
     {
-        DebuggerSteppingRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        DebuggerSteppingRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else
     {
@@ -1258,7 +1258,7 @@ SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Indicate that we received the request
     //
-    AttachOrDetachRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    AttachOrDetachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }
 
 /**

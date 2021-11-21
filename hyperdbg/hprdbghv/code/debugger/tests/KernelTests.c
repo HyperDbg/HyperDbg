@@ -105,7 +105,7 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 
     LogInfo("All the kernel events are triggered");
 
-    KernelTestRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    KernelTestRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }
 
 /**

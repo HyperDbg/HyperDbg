@@ -362,7 +362,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (EditMemoryRequest.Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (EditMemoryRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         //
         // Was successful, nothing to do

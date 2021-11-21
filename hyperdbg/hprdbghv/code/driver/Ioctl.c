@@ -413,7 +413,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // Set the status
                 //
-                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             }
             else
             {
@@ -422,11 +422,11 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 if (DebuggerHideAndUnhideRequest->IsHide)
                 {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
+                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER;
                 }
                 else
                 {
-                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGEER_ERROR_DEBUGGER_ALREADY_UHIDE;
+                    DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_ERROR_DEBUGGER_ALREADY_UHIDE;
                 }
             }
 

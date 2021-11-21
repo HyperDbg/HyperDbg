@@ -453,7 +453,7 @@ CommandEventsHandleModifiedEvent(
     UINT64                  Tag,
     PDEBUGGER_MODIFY_EVENTS ModifyEventRequest)
 {
-    if (ModifyEventRequest->KernelStatus == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (ModifyEventRequest->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         //
         // Successfull, nothing to show but we should also

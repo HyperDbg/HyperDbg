@@ -1851,7 +1851,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_CORE_ID;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_CORE_ID;
             return FALSE;
         }
     }
@@ -1869,7 +1869,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         if (!IsProcessExist(EventDetails->ProcessId))
         {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_PROCESS_ID;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_PROCESS_ID;
             return FALSE;
         }
     }
@@ -1889,7 +1889,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // exiting which is completely different
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EXCEPTION_INDEX_EXCEED_FIRST_32_ENTRIES;
             return FALSE;
         }
     }
@@ -1905,7 +1905,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             // of the pin-based external interrupt exiting controls
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INTERRUPT_INDEX_IS_NOT_VALID;
             return FALSE;
         }
     }
@@ -1928,7 +1928,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
     }
@@ -1953,7 +1953,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
             //
 
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
 
@@ -1963,7 +1963,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         if (EventDetails->OptionalParam1 >= EventDetails->OptionalParam2)
         {
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ADDRESS;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
         }
     }
@@ -2018,7 +2018,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_UNABLE_TO_CREATE_EVENT;
+        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_UNABLE_TO_CREATE_EVENT;
         return FALSE;
     }
 
@@ -2082,6 +2082,17 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
                 }
 
                 break;
+            }
+            else
+            {
+                //
+                // We applied the hook and the pre-allocated buffers are used
+                // for this hook, as here is a safe PASSIVE_LEVEL we can force
+                // the Windows to reallocate some pools for us, thus, if this
+                // hook is continued to other pages, we still have pre-alloated
+                // buffers ready for our future hooks
+                //
+                PoolManagerCheckAndPerformAllocationAndDeallocation();
             }
         }
 
@@ -2531,7 +2542,7 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         // Set the error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_EVENT_TYPE_IS_INVALID;
+        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_EVENT_TYPE_IS_INVALID;
         goto ClearTheEventAfterCreatingEvent;
 
         break;
@@ -2589,7 +2600,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         // Set the appropriate error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_TAG_NOT_EXISTS;
 
         //
         // Show that the
@@ -2608,7 +2619,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
             // Set the appropriate error
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -2646,7 +2657,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
             // Set the appropriate error
             //
             ResultsToReturnUsermode->IsSuccessful = FALSE;
-            ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
+            ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_ACTION_BUFFER_SIZE_IS_ZERO;
 
             //
             // Show that the
@@ -2688,7 +2699,7 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
         // Set the appropriate error
         //
         ResultsToReturnUsermode->IsSuccessful = FALSE;
-        ResultsToReturnUsermode->Error        = DEBUGEER_ERROR_INVALID_ACTION_TYPE;
+        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         //
         // Show that the
@@ -3029,7 +3040,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
         //
         if (!DebuggerIsTagValid(DebuggerEventModificationRequest->Tag))
         {
-            DebuggerEventModificationRequest->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            DebuggerEventModificationRequest->KernelStatus = DEBUGGER_ERROR_TAG_NOT_EXISTS;
             return FALSE;
         }
 
@@ -3058,7 +3069,7 @@ DebuggerParseEventsModificationFromUsermode(PDEBUGGER_MODIFY_EVENTS DebuggerEven
     //
     // The function was successful
     //
-    DebuggerEventModificationRequest->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerEventModificationRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     return TRUE;
 }
 

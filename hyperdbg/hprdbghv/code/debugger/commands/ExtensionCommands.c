@@ -39,14 +39,14 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
                 //
                 // Invalid address
                 //
-                AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             }
             else
             {
                 //
                 // Operation was successful
                 //
-                AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             }
         }
         else
@@ -56,7 +56,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
             //
             // We don't know a way for checking physical address validity
             //
-            AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
         }
     }
     else
@@ -73,7 +73,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
             //
             // Process id is invalid
             //
-            AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_PROCESS_ID;
+            AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
             return;
         }
 
@@ -89,14 +89,14 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
                 //
                 // Invalid address
                 //
-                AddressDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             }
             else
             {
                 //
                 // Operation was successful
                 //
-                AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             }
         }
         else
@@ -106,7 +106,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
             //
             // We don't know a way for checking physical address validity
             //
-            AddressDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
         }
     }
 }
@@ -128,7 +128,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
         //
         // Address is not valid (doesn't have Physical Address)
         //
-        PteDetails->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+        PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
         return FALSE;
     }
 
@@ -172,7 +172,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
         PteDetails->PteValue          = Pte->Flags;
     }
 
-    PteDetails->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     return TRUE;
 }
 

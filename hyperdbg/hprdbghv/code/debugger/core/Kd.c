@@ -183,51 +183,6 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
 }
 
 /**
- * @brief compares the buffer with a string
- *
- * @param CurrentLoopIndex Number of previously read bytes
- * @param Buffer
- * @return BOOLEAN
- */
-BOOLEAN
-KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer)
-{
-    UINT32 ActualBufferLength;
-
-    ActualBufferLength = *CurrentLoopIndex;
-
-    //
-    // End of buffer is 4 character long
-    //
-    if (*CurrentLoopIndex <= 3)
-    {
-        return FALSE;
-    }
-
-    if (Buffer[ActualBufferLength] == SERIAL_END_OF_BUFFER_CHAR_4 &&
-        Buffer[ActualBufferLength - 1] == SERIAL_END_OF_BUFFER_CHAR_3 &&
-        Buffer[ActualBufferLength - 2] == SERIAL_END_OF_BUFFER_CHAR_2 &&
-        Buffer[ActualBufferLength - 3] == SERIAL_END_OF_BUFFER_CHAR_1)
-    {
-        //
-        // Clear the end character
-        //
-        Buffer[ActualBufferLength - 3] = NULL;
-        Buffer[ActualBufferLength - 2] = NULL;
-        Buffer[ActualBufferLength - 1] = NULL;
-        Buffer[ActualBufferLength]     = NULL;
-
-        //
-        // Set the new length
-        //
-        *CurrentLoopIndex = ActualBufferLength - 3;
-
-        return TRUE;
-    }
-    return FALSE;
-}
-
-/**
  * @brief calculate the checksum of recived buffer from debugger
  *
  * @param Buffer
@@ -377,63 +332,6 @@ KdLoggingResponsePacketToDebugger(
                                      OptionalBufferLength);
 
     SpinlockUnlock(&DebuggerResponseLock);
-
-    return TRUE;
-}
-
-/**
- * @brief Receive packet from the debugger
- *
- * @param BufferToSave
- * @param LengthReceived
- *
- * @return BOOLEAN
- */
-BOOLEAN
-KdRecvBuffer(CHAR *   BufferToSave,
-             UINT32 * LengthReceived)
-{
-    UINT32 Loop = 0;
-
-    //
-    // Read data and store in a buffer
-    //
-    while (TRUE)
-    {
-        UCHAR RecvChar = NULL;
-
-        if (!KdHyperDbgRecvByte(&RecvChar))
-        {
-            continue;
-        }
-
-        //
-        // We already now that the maximum packet size is MaxSerialPacketSize
-        // Check to make sure that we don't pass the boundaries
-        //
-        if (!(MaxSerialPacketSize > Loop))
-        {
-            //
-            // Invalid buffer (size of buffer exceeds the limitation)
-            //
-            LogError("Err, a buffer received in debuggee which exceeds the buffer limitation");
-            return FALSE;
-        }
-
-        BufferToSave[Loop] = RecvChar;
-
-        if (KdCheckForTheEndOfTheBuffer(&Loop, (BYTE *)BufferToSave))
-        {
-            break;
-        }
-
-        Loop++;
-    }
-
-    //
-    // Set the length
-    //
-    *LengthReceived = Loop;
 
     return TRUE;
 }
@@ -952,7 +850,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -963,14 +861,14 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         if (!KdSwitchProcess(PidRequest->ProcessId, PidRequest->Process))
         {
-            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
         }
 
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -981,14 +879,14 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         if (!KdShowProcessList(&PidRequest->ProcessListSymDetails))
         {
-            PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
         }
 
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
         break;
 
@@ -997,7 +895,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Invalid type of action
         //
-        PidRequest->Result = DEBUGEER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
+        PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
 
         break;
     }
@@ -1005,7 +903,7 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
     //
     // Check if the above operation contains error
     //
-    if (PidRequest->Result == DEBUGEER_OPERATION_WAS_SUCCESSFULL)
+    if (PidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
         return TRUE;
     }
@@ -1250,7 +1148,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
 {
     DEBUGGEE_FORMATS_PACKET FormatsPacket = {0};
 
-    FormatsPacket.Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    FormatsPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     FormatsPacket.Value  = Value;
 
     //
@@ -1736,7 +1634,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         if (!DebuggerIsTagValid(ModifyAndQueryEvent->Tag))
         {
-            ModifyAndQueryEvent->KernelStatus = DEBUGEER_ERROR_TAG_NOT_EXISTS;
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_ERROR_TAG_NOT_EXISTS;
         }
         else
         {
@@ -1755,7 +1653,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
             //
             // The function was successful
             //
-            ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
         }
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
@@ -1778,7 +1676,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
     {
@@ -1800,7 +1698,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
@@ -1860,7 +1758,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
         //
         // Receive the buffer in polling mode
         //
-        if (!KdRecvBuffer(&RecvBuffer, &RecvBufferLength))
+        if (!SerialConnectionRecvBuffer(&RecvBuffer, &RecvBufferLength))
         {
             //
             // Invalid buffer
@@ -1892,6 +1790,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // nothing to do, just wait again
                 //
                 LogError("Err, unknown packet received from the debugger\n");
+                continue;
             }
 
             //
@@ -2021,7 +1920,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                         //
                         UnlockTheNewCore = TRUE;
 
-                        ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                     }
                     else
                     {
@@ -2033,7 +1932,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // The operating core and the target core is the same, no need for further action
                     //
-                    ChangeCorePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
 
                 //
@@ -2083,7 +1982,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (KdReadRegisters(GuestRegs, ReadRegisterPacket))
                 {
-                    ReadRegisterPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
@@ -2118,11 +2017,11 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                      (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
                                                      &ReturnSize))
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
                 }
 
                 ReadMemoryPacket->ReturnLength = ReturnSize;
@@ -2146,11 +2045,11 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
                 {
-                    EditMemoryPacket->KernelStatus = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
-                    EditMemoryPacket->KernelStatus = DEBUGEER_ERROR_INVALID_ADDRESS;
+                    EditMemoryPacket->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
                 }
 
                 //
@@ -2200,7 +2099,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Set status
                     //
-                    ScriptPacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+                    ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
                 }
                 else
                 {
@@ -2376,9 +2275,10 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
         else
         {
             //
-            // It's not a HyperDbg packet, it's probably a GDB packet
+            // It's not a HyperDbg packet, the packet is probably deformed
             //
-            DbgBreakPoint();
+            LogError("Err, it's not a HyperDbg packet, the packet is probably deformed\n");
+            continue;
         }
 
         //
@@ -2671,5 +2571,5 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     //
     // Set the status
     //
-    PausePacket->Result = DEBUGEER_OPERATION_WAS_SUCCESSFULL;
+    PausePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }

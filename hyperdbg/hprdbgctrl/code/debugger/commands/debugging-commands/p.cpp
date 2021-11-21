@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN g_IsInstrumentingInstructions;
 
 /**
  * @brief help of p command
@@ -83,6 +84,11 @@ CommandP(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
+        //
+        // Indicate that we're instrumenting
+        //
+        g_IsInstrumentingInstructions = TRUE;
+
         for (size_t i = 0; i < StepCount; i++)
         {
             //
@@ -105,7 +111,20 @@ CommandP(vector<string> SplittedCommand, string Command)
                     ShowMessages("\n");
                 }
             }
+
+            //
+            // Check if user pressed CTRL+C
+            //
+            if (!g_IsInstrumentingInstructions)
+            {
+                break;
+            }
         }
+
+        //
+        // We're not instrumenting instructions anymore
+        //
+        g_IsInstrumentingInstructions = FALSE;
     }
     else
     {

@@ -22,6 +22,7 @@ extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsExecutingSymbolLoadingRoutines;
+extern BOOLEAN g_IsInstrumentingInstructions;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -43,7 +44,7 @@ BreakController(DWORD CtrlType)
         //
         // Check if we should ignore the request or not
         //
-        if (g_IsSerialConnectedToRemoteDebugger || g_IsSerialConnectedToRemoteDebugger)
+        if (g_IsSerialConnectedToRemoteDebugger)
         {
             //
             // Handled (ignored)
@@ -72,7 +73,14 @@ BreakController(DWORD CtrlType)
         //
         if (g_IsSerialConnectedToRemoteDebuggee)
         {
-            KdBreakControlCheckAndPauseDebugger();
+            if (g_IsInstrumentingInstructions)
+            {
+                g_IsInstrumentingInstructions = FALSE;
+            }
+            else
+            {
+                KdBreakControlCheckAndPauseDebugger();
+            }
         }
         else if (!g_IsDebuggerModulesLoaded && !g_IsConnectedToRemoteDebuggee)
         {

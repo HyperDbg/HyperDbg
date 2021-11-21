@@ -474,8 +474,8 @@ HPRDBGCTRL_API int
 HyperdbgInstallVmmDriver()
 {
     //
-    // The driver is not started yet so let us the install driver.
-    // First setup full path to driver name.
+    // The driver is not started yet so let us the install driver
+    // First setup full path to driver name
     //
 
     if (!SetupDriverName(g_DriverLocation, sizeof(g_DriverLocation)))
@@ -488,7 +488,7 @@ HyperdbgInstallVmmDriver()
         ShowMessages("unable to install driver\n");
 
         //
-        // Error - remove driver.
+        // Error - remove driver
         //
         ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
@@ -508,13 +508,17 @@ HPRDBGCTRL_API int
 HyperdbgStopDriver()
 {
     //
-    // Unload the driver if loaded.  Ignore any errors.
+    // Unload the driver if loaded
     //
-    if (g_DriverLocation[0] != (TCHAR)0)
+    if (g_DriverLocation[0] != (TCHAR)0 &&
+        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_STOP))
     {
-        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_STOP);
+        return 0;
     }
-    return 0;
+    else
+    {
+        return 1;
+    }
 }
 
 /**
@@ -527,13 +531,17 @@ HPRDBGCTRL_API int
 HyperdbgUninstallDriver()
 {
     //
-    // Unload the driver if loaded.  Ignore any errors.
+    // Unload the driver if loaded.  Ignore any errors
     //
-    if (g_DriverLocation[0] != (TCHAR)0)
+    if (g_DriverLocation[0] != (TCHAR)0 &&
+        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE))
     {
-        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        return 0;
     }
-    return 0;
+    else
+    {
+        return 1;
+    }
 }
 
 /**
@@ -630,10 +638,10 @@ HyperdbgLoadVmm()
 #if !UseDbgPrintInsteadOfUsermodeMessageTracking
     HANDLE Thread = CreateThread(NULL, 0, ThreadFunc, NULL, 0, &ThreadId);
 
-    if (Thread)
-    {
-        // ShowMessages("thread Created successfully\n");
-    }
+    // if (Thread)
+    // {
+    // ShowMessages("thread Created successfully\n");
+    // }
 
 #endif
 

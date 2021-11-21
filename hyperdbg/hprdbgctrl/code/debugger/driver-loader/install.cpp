@@ -182,12 +182,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         //
         // Stop the driver.
         //
-        StopDriver(schSCManager, DriverName);
-
-        //
-        // Ignore all errors.
-        //
-        Res = TRUE;
+        Res = StopDriver(schSCManager, DriverName);
 
         break;
 
@@ -196,12 +191,7 @@ ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
         //
         // Remove the driver service.
         //
-        RemoveDriver(schSCManager, DriverName);
-
-        //
-        // Ignore all errors.
-        //
-        Res = TRUE;
+        Res = RemoveDriver(schSCManager, DriverName);
 
         break;
 
