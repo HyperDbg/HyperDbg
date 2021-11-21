@@ -2,14 +2,15 @@ PUBLIC AsmVmxSaveState
 PUBLIC AsmVmxRestoreState
 
 EXTERN VmxVirtualizeCurrentSystem:PROC
-EXTERN KeIpiGenericCall:PROC
-EXTERN InveptAllContexts:PROC
 
 .code _text
 
 ;------------------------------------------------------------------------
 
 AsmVmxSaveState PROC
+
+    push 0 ; add it because the alignment of the RSP when calling the target function
+     ; should be aligned to 16 (otherwise cause performance issues)
 
     pushfq	; save r/eflag
     
@@ -33,7 +34,6 @@ AsmVmxSaveState PROC
     ; It a x64 FastCall function so the first parameter should go to rcx
     
     mov rcx, rsp
-    
     call VmxVirtualizeCurrentSystem
     
     int 3	; we should never reach here as we execute vmlaunch in the above function.
@@ -65,6 +65,7 @@ AsmVmxRestoreState PROC
     pop rax
     
     popfq	; restore r/eflags
+    add rsp, 08h ; because we pushed an etra qword to make it aligned
     ret
     
 AsmVmxRestoreState ENDP

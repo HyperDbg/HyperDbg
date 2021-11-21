@@ -1,6 +1,5 @@
 PUBLIC AsmGeneralDetourHook
 PUBLIC AsmDebuggerSpinOnThread
-EXTERN ExAllocatePoolWithTagOrig:QWORD
 EXTERN DebuggerEventEptHook2GeneralDetourEventHandler:PROC
 
 .code _text
@@ -30,11 +29,10 @@ SaveTheRegisters:
     mov rcx, rsp		    ; Fast call argument to PGUEST_REGS
     mov rdx, [rsp +080h]    ; Fast call argument (second) - CalledFrom
     sub rdx, 5              ; as we used (call $ + 5) so we subtract it by 5 
-    sub	rsp, 28h		; Free some space for Shadow Section
-    
+    sub	rsp, 20h		; Free some space for Shadow Section
     call	DebuggerEventEptHook2GeneralDetourEventHandler
     
-    add	rsp, 28h		; Restore the state
+    add	rsp, 20h		; Restore the state
     mov  [rsp +080h], rax ; the return address of the above function is where we should continue
     
 RestoreTheRegisters:

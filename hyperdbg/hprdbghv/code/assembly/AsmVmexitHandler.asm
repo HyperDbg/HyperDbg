@@ -120,15 +120,15 @@ AsmVmexitHandler ENDP
 
 AsmVmxoffHandler PROC
     
-    sub rsp, 028h ; shadow space
+    sub rsp, 020h ; shadow space
     call VmxReturnStackPointerForVmxoff
-    add rsp, 028h ; remove for shadow space
+    add rsp, 020h ; remove for shadow space
     
     mov [rsp+88h], rax  ; now, rax contains rsp
     
-    sub rsp, 028h      ; shadow space
+    sub rsp, 020h      ; shadow space
     call VmxReturnInstructionPointerForVmxoff
-    add rsp, 028h      ; remove for shadow space
+    add rsp, 020h      ; remove for shadow space
     
     mov rdx, rsp       ; save current rsp
     
