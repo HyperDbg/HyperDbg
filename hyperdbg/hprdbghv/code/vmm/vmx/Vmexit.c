@@ -254,6 +254,41 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         //
+        // This type of vm-exit, can be either because of an !exception event,
+        // or it might be because we triggered APIC or X2APIC to generate an
+        // NMI, we want to halt the debuggee. We perform the checks here to
+        // avoid triggering an event for NMIs when the debuggee requested it
+        //
+        if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
+            InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
+        {
+            //
+            // Check if we're waiting for an NMI on this core and if the guest is NOT in
+            // a instrument step-in ('i' command) routine
+            //
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi &&
+                !g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+            {
+                g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
+                KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+                break;
+            }
+        }
+
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+        {
+            //
+            // We ignore it because an MTF should handle it as it's an instrumentation step-in
+            //
+            break;
+        }
+
+        //
+        // *** When we reached here it means that this is not a NMI cause by guest,
+        // probably an event ***
+        //
+
+        //
         // Trigger the event
         //
         // As the context to event trigger, we send the vector
