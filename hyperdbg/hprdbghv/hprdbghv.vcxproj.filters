@@ -114,6 +114,12 @@
     <Filter Include="header\memory">
       <UniqueIdentifier>{7d72077e-4c3d-471b-8465-c235fc9b9488}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\objects">
+      <UniqueIdentifier>{a45b1913-fee5-41fc-924b-6777b68ada6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\objects">
+      <UniqueIdentifier>{250da7cd-f78f-498e-b176-7079b17c3954}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -245,6 +251,12 @@
     <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\objects\Process.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\objects\Thread.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -366,6 +378,12 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Process.h">
+      <Filter>header\debugger\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Thread.h">
+      <Filter>header\debugger\objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,10 +1,11 @@
 /**
- * @file KernelTests.h
+ * @file Process.h
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief Kernel Test headers
- * @details 
+ * @brief Header for kernel debugger functions for processes
+ * @details
+ * 
  * @version 0.1
- * @date 2021-04-06
+ * @date 2021-11-23
  * 
  * @copyright This project is released under the GNU Public License v3.
  * 
@@ -16,7 +17,7 @@
 //////////////////////////////////////////////////
 
 VOID
-TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest);
+ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3);
 
-UINT32
-TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest);
+BOOLEAN
+ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);

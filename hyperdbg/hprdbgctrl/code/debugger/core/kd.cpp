@@ -600,7 +600,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 }
 
 /**
- * @brief Sends a change process packet to the debuggee
+ * @brief Sends a change process or show process details packet to the debuggee
  * @param ActionType
  * @param NewPid
  * @param NewProcess
@@ -650,6 +650,63 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
     WaitForSingleObject(
         g_SyncronizationObjectsHandleTable
             [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+                .EventHandle,
+        INFINITE);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends a change thread or show threads detail packet to the debuggee
+ * @param ActionType
+ * @param NewTid
+ * @param NewThread
+ * @param SymDetailsForThreadList
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE ActionType,
+                                   UINT32                                  NewTid,
+                                   UINT64                                  NewThread,
+                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS    SymDetailsForThreadList)
+{
+    DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET ThreadChangePacket = {0};
+
+    ThreadChangePacket.ActionType = ActionType;
+    ThreadChangePacket.ThreadId   = NewTid;
+    ThreadChangePacket.Thread     = NewThread;
+
+    //
+    // Check if the command really needs these information or not
+    // it's because some of the command don't need symbol offset informations
+    //
+    if (SymDetailsForThreadList != NULL)
+    {
+        memcpy(&ThreadChangePacket.ThreadListSymDetails, SymDetailsForThreadList, sizeof(DEBUGGEE_THREAD_LIST_NEEDED_DETAILS));
+    }
+
+    //
+    // Send '.thread' as switch packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD,
+            (CHAR *)&ThreadChangePacket,
+            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of thread change received
+    //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
+            .IsOnWaitingState = TRUE;
+    WaitForSingleObject(
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
                 .EventHandle,
         INFINITE);
 

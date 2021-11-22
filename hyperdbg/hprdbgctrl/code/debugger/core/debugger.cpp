@@ -212,6 +212,12 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER:
+        ShowMessages("err, either the thread id or the ETHREAD is invalid or "
+                     "cannot get the details based on the provided parameters (%x)\n",
+                     Error);
+        break;
+
     case DEBUGGER_ERROR_MAXIMUM_BREAKPOINT_FOR_A_SINGLE_PAGE_IS_HIT:
         ShowMessages("err, the maximum breakpoint for a single page is hit, "
                      "you cannot apply more breakpoints in this page (%x)\n",

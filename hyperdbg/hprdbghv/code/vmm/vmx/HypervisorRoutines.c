@@ -220,7 +220,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             //
             //
             // Call kernel debugger handler for mov to cr3
-            KdHandleMovToCr3(ProcessorIndex, GuestState, &NewCr3Reg);
+            ProcessHandleMovToCr3(ProcessorIndex, GuestState, &NewCr3Reg);
 
             break;
         case 4:

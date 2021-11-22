@@ -27,7 +27,7 @@ CommandProcessHelp()
     ShowMessages(".process : show and change the processes. "
                  "This command needs public symbols for ntoskrnl.exe if "
                  "you want to see the processes list.\n\n");
-    ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new EPROCESS address]\n");
+    ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new nt!_EPROCESS address]\n");
     ShowMessages("\t\te.g : .process\n");
     ShowMessages("\t\te.g : .process list\n");
     ShowMessages("\t\te.g : .process pid 4\n");
@@ -171,7 +171,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         //
         // Send the packet to change process
         //
-        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS,
+        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH,
                                             TargetProcessId,
                                             TargetProcess,
                                             NULL);

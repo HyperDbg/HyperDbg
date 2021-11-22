@@ -1,10 +1,11 @@
 /**
- * @file KernelTests.h
+ * @file Thread.h
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief Kernel Test headers
- * @details 
+ * @brief Header for kernel debugger functions for threads
+ * @details
+ * 
  * @version 0.1
- * @date 2021-04-06
+ * @date 2021-11-23
  * 
  * @copyright This project is released under the GNU Public License v3.
  * 
@@ -15,8 +16,5 @@
 //				   Functions					//
 //////////////////////////////////////////////////
 
-VOID
-TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest);
-
-UINT32
-TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest);
+BOOLEAN
+ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);

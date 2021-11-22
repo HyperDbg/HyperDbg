@@ -54,6 +54,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
     PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
@@ -407,7 +408,7 @@ StartAgain:
                                  SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
                                  &ChangeProcessPacket->ProcessName);
                 }
-                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS)
+                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH)
                 {
                     ShowMessages(
                         "press 'g' to continue the debuggee, if the pid is valid then "
@@ -428,6 +429,48 @@ StartAgain:
                     .IsOnWaitingState = FALSE;
             SetEvent(g_SyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+                             .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD:
+
+            ChangeThreadPacket =
+                (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) +
+                                                              sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS)
+                {
+                    ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                                 ChangeThreadPacket->ThreadId,
+                                 ChangeThreadPacket->ProcessId,
+                                 SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
+                                 SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
+                                 &ChangeThreadPacket->ProcessName);
+                }
+                else if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH)
+                {
+                    ShowMessages(
+                        "press 'g' to continue the debuggee, if the tid is valid then "
+                        "the debuggee will be automatically paused when it attached to "
+                        "the target thread\n");
+                }
+            }
+            else
+            {
+                ShowErrorMessage(ChangeThreadPacket->Result);
+            }
+
+            //
+            // Signal the event relating to receiving result of thread change
+            //
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
+                    .IsOnWaitingState = FALSE;
+            SetEvent(g_SyncronizationObjectsHandleTable
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
                              .EventHandle);
 
             break;
