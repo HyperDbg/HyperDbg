@@ -119,7 +119,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
     BOOLEAN                                SetMovCr3VmExit;
     BOOLEAN                                BreakStarterCore;
-    BOOLEAN                                IgnoreUnlockingCore;
     UINT16                                 InstructionLengthHint;
     PGUEST_REGS                            GuestRegs;
     UINT64                                 HardwareDebugRegisterForStepping;

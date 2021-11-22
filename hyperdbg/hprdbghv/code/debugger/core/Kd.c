@@ -1192,16 +1192,9 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
-    // We'll check if it's not already the main core (because of instrumentation
-    // step in, we might come here twice)
+    // Lock handling breaks
     //
-    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
-    {
-        //
-        // Lock handling breaks
-        //
-        SpinlockLock(&DebuggerHandleBreakpointLock);
-    }
+    SpinlockLock(&DebuggerHandleBreakpointLock);
 
     //
     // Check if we should ignore this break request or not
@@ -1283,17 +1276,12 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     g_DebuggeeHaltTag     = NULL;
 
     //
-    // Unlock handling breaks (if it's not the guaranteed step-in and it's the main core)
+    // Unlock handling breaks
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore &&
-        !g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreUnlockingCore)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
     {
         g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
         SpinlockUnlock(&DebuggerHandleBreakpointLock);
-    }
-    else
-    {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreUnlockingCore = FALSE;
     }
 }
 
@@ -1326,17 +1314,12 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, NULL);
 
     //
-    // Unlock handling breaks (if it's not the guaranteed step-in and it's the main core)
+    // Unlock handling breaks
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore &&
-        !g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreUnlockingCore)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
     {
         g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
         SpinlockUnlock(&DebuggerHandleBreakpointLock);
-    }
-    else
-    {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreUnlockingCore = FALSE;
     }
 }
 
@@ -1361,11 +1344,6 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Set an indicator of wait for MTF
     //
     g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = TRUE;
-
-    //
-    // Ignore unlocking core
-    //
-    g_GuestState[CoreId].DebuggingState.IgnoreUnlockingCore = TRUE;
 
     //
     // Not unset again
