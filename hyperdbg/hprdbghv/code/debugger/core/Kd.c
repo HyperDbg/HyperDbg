@@ -842,10 +842,11 @@ KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
     case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS:
 
         //
-        // Debugger wants to know current pid and nt!_EPROCESS
+        // Debugger wants to know current pid, nt!_EPROCESS and process name
         //
         PidRequest->ProcessId = PsGetCurrentProcessId();
         PidRequest->Process   = PsGetCurrentProcess();
+        MemoryMapperReadMemorySafe(GetProcessNameFromEprocess(PsGetCurrentProcess()), &PidRequest->ProcessName, 16);
 
         //
         // Operation was successful

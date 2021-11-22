@@ -402,9 +402,10 @@ StartAgain:
             {
                 if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
                 {
-                    ShowMessages("process id: %x\nprocess (_EPROCESS): %s\n",
+                    ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
                                  ChangeProcessPacket->ProcessId,
-                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str());
+                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
+                                 &ChangeProcessPacket->ProcessName);
                 }
                 else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS)
                 {
