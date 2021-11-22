@@ -275,6 +275,9 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             }
         }
 
+        //
+        // Also, avoid exception when we're running instrumentation step-in
+        //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             //

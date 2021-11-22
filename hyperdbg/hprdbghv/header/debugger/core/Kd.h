@@ -48,7 +48,7 @@ typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
  */
 typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
 {
-    volatile BOOLEAN                        PauseBreaksUntilASpecialMessageSent;
+    volatile BOOLEAN                        PauseBreaksUntilSpecialMessageSent;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse;
 
 } DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
@@ -79,8 +79,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PGUEST_REGS                       GuestRegs,
-                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
-                            BOOLEAN                           MainCore);
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 

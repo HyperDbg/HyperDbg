@@ -106,9 +106,8 @@ typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-    BOOLEAN                                MainDebuggingCore;
     volatile LONG                          Lock;
-    volatile BOOLEAN                       CurrentOperatingCore;
+    volatile BOOLEAN                       MainDebuggingCore;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE  MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE InstrumentationStepInTrace;
@@ -119,8 +118,8 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                WaitingForNmi;
     BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
     BOOLEAN                                SetMovCr3VmExit;
-    BOOLEAN                                AvoidReleaseDebugLock;
-    BOOLEAN                                AvoidAcquireDebugLock;
+    BOOLEAN                                BreakStarterCore;
+    BOOLEAN                                IgnoreUnlockingCore;
     UINT16                                 InstructionLengthHint;
     PGUEST_REGS                            GuestRegs;
     UINT64                                 HardwareDebugRegisterForStepping;
