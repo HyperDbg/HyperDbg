@@ -270,7 +270,7 @@ KdResponsePacketToDebugger(
         SpinlockUnlock(&DebuggerResponseLock);
     }
 
-    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent &&
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent &&
         g_IgnoreBreaksToDebugger.SpeialEventResponse == Response)
     {
         //
@@ -523,23 +523,23 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
  * are continued (except current core)
  * @param CurrentCore
  * @param SpeialEventResponse
- * @param PauseBreaksUntilASpecialMessageSent
+ * @param PauseBreaksUntilSpecialMessageSent
  * 
  * @return VOID 
  */
 VOID
 KdContinueDebuggee(UINT32                                  CurrentCore,
-                   BOOLEAN                                 PauseBreaksUntilASpecialMessageSent,
+                   BOOLEAN                                 PauseBreaksUntilSpecialMessageSent,
                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse)
 {
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
 
-    if (PauseBreaksUntilASpecialMessageSent)
+    if (PauseBreaksUntilSpecialMessageSent)
     {
-        g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent = TRUE;
-        g_IgnoreBreaksToDebugger.SpeialEventResponse                 = SpeialEventResponse;
+        g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent = TRUE;
+        g_IgnoreBreaksToDebugger.SpeialEventResponse                = SpeialEventResponse;
     }
 
     //
@@ -1068,12 +1068,12 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     // automatically but as we want to not have two operating cores
     // at the same time so we unset it here too)
     //
-    g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = FALSE;
+    g_GuestState[CurrentCore].DebuggingState.MainDebuggingCore = FALSE;
 
     //
     // Set new operating core
     //
-    g_GuestState[NewCore].DebuggingState.CurrentOperatingCore = TRUE;
+    g_GuestState[NewCore].DebuggingState.MainDebuggingCore = TRUE;
 
     //
     // Unlock the new core
@@ -1192,41 +1192,30 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     //
-    // Lock handling breakpoints
+    // Lock handling breaks
     //
-    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidAcquireDebugLock)
-    {
-        SpinlockLock(&DebuggerHandleBreakpointLock);
-        g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = TRUE;
-    }
-    else
-    {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidAcquireDebugLock = FALSE;
-    }
+    SpinlockLock(&DebuggerHandleBreakpointLock);
 
     //
     // Check if we should ignore this break request or not
     //
-    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilASpecialMessageSent)
+    if (g_IgnoreBreaksToDebugger.PauseBreaksUntilSpecialMessageSent)
     {
         //
         // Unlock the above core
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock)
-        {
-            if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
-            {
-                g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
-                SpinlockUnlock(&DebuggerHandleBreakpointLock);
-            }
-        }
-        else
-        {
-            g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock = FALSE;
-        }
+        SpinlockUnlock(&DebuggerHandleBreakpointLock);
 
+        //
+        // Not continue anymore as the break should be ignored
+        //
         return;
     }
+
+    //
+    // Set it as the main core
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = TRUE;
 
     //
     // Lock current core
@@ -1273,7 +1262,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, EventDetails, TRUE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, EventDetails);
 
     //
     // Clear the halting reason
@@ -1287,22 +1276,12 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     g_DebuggeeHaltTag     = NULL;
 
     //
-    // Check if we should release the lock of debugging main core, or not
+    // Unlock handling breaks
     //
-    if (!g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
     {
-        //
-        // Unlock handling breaks
-        //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
-        {
-            g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
-            SpinlockUnlock(&DebuggerHandleBreakpointLock);
-        }
-    }
-    else
-    {
-        g_GuestState[CurrentProcessorIndex].DebuggingState.AvoidReleaseDebugLock = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
+        SpinlockUnlock(&DebuggerHandleBreakpointLock);
     }
 }
 
@@ -1317,9 +1296,12 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    /*
-    LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
-    */
+    // LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
+
+    //
+    // Not the main debugging core
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
 
     //
     // Lock current core
@@ -1329,7 +1311,16 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // All the cores should go and manage through the following function
     //
-    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, NULL, FALSE);
+    KdManageSystemHaltOnVmxRoot(CurrentProcessorIndex, GuestRegs, NULL);
+
+    //
+    // Unlock handling breaks
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore)
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.MainDebuggingCore = FALSE;
+        SpinlockUnlock(&DebuggerHandleBreakpointLock);
+    }
 }
 
 /**
@@ -1353,18 +1344,6 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Set an indicator of wait for MTF
     //
     g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = TRUE;
-
-    //
-    // This is a tricky part, we should avoid releasing the lock of debug handling.
-    // it's true as other cores are currently spinning on spinlocks but for example in
-    // !exception command, a high rate of cores are triggering events and in that
-    // case, if we release the, lock the other cores might get the chance to get the
-    // lock and completely ruin our assumption (that we're waiting for 'i' instruction)
-    // to re-take the handle as the main core but meanwhile other core triggers the
-    // event and get the main core handle
-    //
-    g_GuestState[CoreId].DebuggingState.AvoidAcquireDebugLock = TRUE;
-    g_GuestState[CoreId].DebuggingState.AvoidReleaseDebugLock = TRUE;
 
     //
     // Not unset again
@@ -2352,8 +2331,7 @@ KdIsGuestOnUsermode32Bit()
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PGUEST_REGS                       GuestRegs,
-                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
-                            BOOLEAN                           MainCore)
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     DEBUGGEE_PAUSED_PACKET PausePacket;
     ULONG                  ExitInstructionLength  = 0;
@@ -2371,17 +2349,12 @@ StartAgain:
     // We check for receiving buffer (unhalting) only on the
     // first core and not on every cores
     //
-    if (MainCore)
+    if (g_GuestState[CurrentCore].DebuggingState.MainDebuggingCore)
     {
         //
         // *** Current Operating Core  ***
         //
         RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_PAUSED_PACKET));
-
-        //
-        // Set as current operating core
-        //
-        g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = TRUE;
 
         //
         // Set the halt reason
@@ -2478,22 +2451,15 @@ StartAgain:
         KdDispatchAndPerformCommandsFromDebugger(CurrentCore, GuestRegs);
 
         //
-        // Check if it's a change core event or not
+        // Check if it's a change core event or not, otherwise finish the execution
+        // and continue debuggee
         //
-        if (!g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore)
+        if (!g_GuestState[CurrentCore].DebuggingState.MainDebuggingCore)
         {
             //
-            // Set main core to FALSE
+            // It's a core switch, start again
             //
-            MainCore = FALSE;
             goto StartAgain;
-        }
-        else
-        {
-            //
-            // Unset the current operating core
-            //
-            g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore = FALSE;
         }
     }
     else
@@ -2511,12 +2477,11 @@ StartAgain:
         //
         // Check if it's a change core event or not
         //
-        if (g_GuestState[CurrentCore].DebuggingState.CurrentOperatingCore)
+        if (g_GuestState[CurrentCore].DebuggingState.MainDebuggingCore)
         {
             //
             // It's a core change event
             //
-            MainCore             = TRUE;
             g_DebuggeeHaltReason = DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED;
 
             goto StartAgain;
