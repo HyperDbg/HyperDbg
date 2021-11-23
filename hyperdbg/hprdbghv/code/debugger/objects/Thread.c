@@ -13,6 +13,19 @@
 #include "..\hprdbghv\pch.h"
 
 /**
+ * @brief handle thread changes
+ * @param CurrentCore
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadHandleThreadChange(UINT32 CurrentCore)
+{
+    LogInfo("Current Thread Id : 0x%x", PsGetCurrentThreadId());
+    return TRUE;
+}
+
+/**
  * @brief make evnvironment ready to change the thread
  * @param ThreadId
  * @param EThread
@@ -253,7 +266,7 @@ ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorInde
         // are hypervisor and we can easily ignore mov to debug register (0 in
         // this case), however we should somehow hide this process in the future
         //
-        AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+        HvSetMovDebugRegsExiting(TRUE);
     }
     else
     {
@@ -270,7 +283,7 @@ ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorInde
         //
         // Disable mov to debug regs vm-exit
         //
-        AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+        HvSetMovDebugRegsExiting(FALSE);
 
         //
         // Disable load debug controls and save debug controls because

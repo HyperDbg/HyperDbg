@@ -102,23 +102,22 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
             __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
         }
     }
-    else if (g_KernelDebuggerState == TRUE &&
-             InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
-    {
-        //
-        // Handle debug events (breakpoint, traps, hardware debug register when kernel
-        // debugger is attached.)
-        //
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
-    }
     else if (InterruptExit.Vector == EXCEPTION_VECTOR_DEBUG_BREAKPOINT)
     {
         //
         // Check whether it is because of thread change detection or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState)
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
         {
-            SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
+            ThreadHandleThreadChange(CurrentProcessorIndex);
+        }
+        else if (g_KernelDebuggerState == TRUE)
+        {
+            //
+            // Handle debug events (breakpoint, traps, hardware debug register when kernel
+            // debugger is attached.)
+            //
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
         }
         else
         {
