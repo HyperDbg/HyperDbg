@@ -13,6 +13,67 @@
 #include "..\hprdbghv\pch.h"
 
 /**
+ * @brief make evnvironment ready to change the thread
+ * @param ThreadId
+ * @param EThread
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadSwitch(UINT32 ThreadId, PETHREAD EThread)
+{
+    ULONG CoreCount = 0;
+
+    //
+    // Initialized with NULL
+    //
+    g_ThreadSwitch.Thread   = NULL;
+    g_ThreadSwitch.ThreadId = NULL;
+
+    //
+    // Check to avoid invalid switch
+    //
+    if (ThreadId == NULL && EThread == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the target thread id, ethread to switch
+    //
+    if (EThread != NULL)
+    {
+        if (CheckMemoryAccessSafety(EThread, sizeof(BYTE)))
+        {
+            g_ThreadSwitch.Thread = EThread;
+        }
+        else
+        {
+            //
+            // An invalid address is specified by user
+            //
+            return FALSE;
+        }
+    }
+    else if (ThreadId != NULL)
+    {
+        g_ThreadSwitch.ThreadId = ThreadId;
+    }
+
+    //
+    // Set the change thread alert for all the cores
+    //
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        g_GuestState[i].DebuggingState.SetThreadChangeEvent = TRUE;
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief change the current thread
  * @param TidRequest
  * 
@@ -46,11 +107,11 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Perform the thread switch
         //
-        // if (!ThreadSwitch(TidRequest->ThreadId, TidRequest->Thread))
-        //{
-        //    TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
-        //    break;
-        //}
+        if (!ThreadSwitch(TidRequest->ThreadId, TidRequest->Thread))
+        {
+            TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
+            break;
+        }
 
         //
         // Operation was successful
@@ -97,5 +158,135 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
     else
     {
         return FALSE;
+    }
+}
+
+/**
+ * @brief Enable or disable the thread change monitoring detection 
+ * on the running core
+ * @details should be called on vmx root
+ * 
+ * @param Enable 
+ * @return VOID 
+ */
+VOID
+ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorIndex, BOOLEAN Enable)
+{
+    UINT64 MsrGsBase;
+
+    if (Enable)
+    {
+        //
+        // Enable Thread Change Detection
+        // *** Read the address of GS:188 to g_CurrentThreadLocation ***
+        //
+
+        //
+        // We are in kernel, so we should read MSR GS_BASE
+        // IA32_GS_BASE             0xC0000101
+        // IA32_KERNEL_GS_BASE      0xC0000102
+        // IA32_KERNEL_GS_BASE is currently user's gs as
+        // we are in the kernel-mode, if we need to intercept
+        // from user-mode then IA32_KERNEL_GS_BASE should be used
+        // but it's not for our case
+        //
+        MsrGsBase = __readmsr(MSR_GS_BASE);
+
+        //
+        // Now, we have the gs base on MSR
+        // while in Windows gs:188 has the address
+        // of where the store current _ETHREAD, so
+        // we have to 188 to the gs base
+        //
+        MsrGsBase += 0x188;
+
+        //
+        // Set the global value for current thread of this processor
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs = MsrGsBase;
+
+        //
+        // Set interception state
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState = TRUE;
+
+        //
+        // Enable load debug controls and save debug controls because we don't
+        // want dr7 and dr0 remove their configuration on vm-exits and also
+        // we'll be able to change the dr7 of the guest on VMCS
+        //
+        HvSetLoadDebugControls(TRUE);
+        HvSetSaveDebugControls(TRUE);
+
+        //
+        // Intercept #DBs by changing exception bitmap (one core)
+        //
+        HvSetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+
+        //
+        // Note, this function is running as a DPC routines, means that
+        // we're currently on DISPATCH_LEVEL so after modifying debug
+        // registers and after disabling mov to dr (using vmcall),
+        // nothing is able to change debug registers so it's safe
+        //
+
+        //
+        // Set debug register to fire an exception in the case of
+        // read/write on the gs:188 as we intercept it on
+        // hypervisor side by exception bitmap on #DBs
+        // However, this call is somehow useless because I also set it
+        // on Mov 2 Debug regs handler (vm-exit), but we set from here
+        // to make sure that the vm-exit handler set this break on access
+        //
+        DebugRegistersSet(
+            DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT,
+            BREAK_ON_WRITE_ONLY,
+            FALSE,
+            g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs);
+
+        //
+        // Enables mov to debug registers exitings in primary cpu-based controls
+        // it is because I realized that some other routines in Windows like
+        // KiSaveProcessorControlState and KiRestoreProcessorControlState and
+        // other functions directly change the debug registers, probably
+        // because we should not modify debug registers directly, by the way, we
+        // are hypervisor and we can easily ignore mov to debug register (0 in
+        // this case), however we should somehow hide this process in the future
+        //
+        AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+    }
+    else
+    {
+        //
+        // Disable Thread Change Detection
+        // *** Remove side changes ***
+        //
+
+        //
+        // We should not ignore debug registers change anymore
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState = FALSE;
+
+        //
+        // Disable mov to debug regs vm-exit
+        //
+        AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+        //
+        // Disable load debug controls and save debug controls because
+        // no longer needed
+        //
+        HvSetLoadDebugControls(FALSE);
+        HvSetSaveDebugControls(FALSE);
+
+        //
+        // Disable intercepting #DBs
+        //
+        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_DEBUG_BREAKPOINT);
+
+        //
+        // No longer need to store such gs:188 value
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs = NULL;
     }
 }

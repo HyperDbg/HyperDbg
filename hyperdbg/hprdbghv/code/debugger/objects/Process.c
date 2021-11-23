@@ -48,7 +48,7 @@ ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE N
 }
 
 /**
- * @brief change the current process
+ * @brief make evnvironment ready to change the process
  * @param ProcessId
  * @param EProcess
  * 

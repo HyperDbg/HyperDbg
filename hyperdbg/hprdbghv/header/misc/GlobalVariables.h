@@ -241,3 +241,9 @@ BOOLEAN g_IsUnsafeSyscallOrSysretHandling;
  * 
  */
 DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
+
+/**
+ * @brief Thread switch to ETHREAD or Thread ID 
+ * 
+ */
+DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;

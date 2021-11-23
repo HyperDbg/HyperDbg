@@ -63,18 +63,6 @@ typedef struct _DEBUGGER_STEPPING_THREAD_DETAILS
 } DEBUGGER_STEPPING_THREAD_DETAILS, *PDEBUGGER_STEPPING_THREAD_DETAILS;
 
 //////////////////////////////////////////////////
-//				   	Enums 		     			//
-//////////////////////////////////////////////////
-
-typedef enum _DEBUG_REGISTER_TYPE
-{
-    BREAK_ON_INSTRUCTION_FETCH,
-    BREAK_ON_WRITE_ONLY,
-    BREAK_ON_IO_READ_OR_WRITE_NOT_SUPPORTED,
-    BREAK_ON_READ_AND_WRITE_BUT_NOT_FETCH
-} DEBUG_REGISTER_TYPE;
-
-//////////////////////////////////////////////////
 //					Variables					//
 //////////////////////////////////////////////////
 
@@ -113,20 +101,11 @@ SteppingsHandleCr3Vmexits(CR3_TYPE NewCr3, UINT32 ProcessorIndex);
 VOID
 SteppingsHandlesDebuggedThread(PDEBUGGER_STEPPING_THREAD_DETAILS ThreadSteppingDetail, UINT32 ProcessorIndex);
 
-BOOLEAN
-SteppingsSetDebugRegister(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress);
-
 VOID
 SteppingsAttachOrDetachToThread(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachOrDetachRequest);
 
 NTSTATUS
 SteppingsPerformAction(PDEBUGGER_STEPPINGS DebuggerSteppingRequest);
-
-VOID
-SteppingsDpcEnableOrDisableThreadChangeMonitorOnCurrentCore(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);
-
-VOID
-SteppingsEnableOrDisableThreadChangeMonitorOnAllCores(BOOLEAN Enable);
 
 VOID
 SteppingsHandleThreadChanges(PGUEST_REGS GuestRegs, UINT32 ProcessorIndex);

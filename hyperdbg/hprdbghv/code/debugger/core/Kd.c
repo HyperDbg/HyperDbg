@@ -417,10 +417,10 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
                         //
                         // Also, we should re-apply the hardware debug breakpoint on this thread
                         //
-                        SteppingsSetDebugRegister(0,
-                                                  BREAK_ON_INSTRUCTION_FETCH,
-                                                  FALSE,
-                                                  g_HardwareDebugRegisterDetailsForStepOver.Address);
+                        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                                          BREAK_ON_INSTRUCTION_FETCH,
+                                          FALSE,
+                                          g_HardwareDebugRegisterDetailsForStepOver.Address);
                     }
                 }
             }
@@ -478,6 +478,22 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
         //
         g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
     }
+
+    //
+    // Check to unset change thread alerts
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent == TRUE)
+    {
+        //
+        // Disable thread change alerts
+        //
+        ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(CurrentCore, FALSE);
+
+        //
+        // Avoid future sets/unsets
+        //
+        g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent = FALSE;
+    }
 }
 
 /**
@@ -497,10 +513,10 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     if (g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping != NULL)
     {
-        SteppingsSetDebugRegister(0,
-                                  BREAK_ON_INSTRUCTION_FETCH,
-                                  FALSE,
-                                  g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
+        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          FALSE,
+                          g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
 
         g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
     }
@@ -515,6 +531,17 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
         // mov 2 cr3 on next halt
         //
         HvSetMovToCr3Vmexit(TRUE);
+    }
+
+    //
+    // Check to apply thread change alerts
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent == TRUE)
+    {
+        //
+        // Enable alert for thread changes
+        //
+        ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(CurrentCore, TRUE);
     }
 }
 

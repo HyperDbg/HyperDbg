@@ -18,3 +18,6 @@
 
 BOOLEAN
 ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
+
+VOID
+ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorIndex, BOOLEAN Enable);

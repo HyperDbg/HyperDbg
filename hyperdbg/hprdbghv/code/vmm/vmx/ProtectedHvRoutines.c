@@ -79,6 +79,14 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     }
 
     //
+    // Check for intercepting #DB by threads tracer
+    //
+    if (g_GuestState[CurrentCoreId].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
+    {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+    }
+
+    //
     // Check for possible EPT Hooks (Hidden Breakpoints)
     //
     if (EptHookGetCountOfEpthooks(FALSE) != 0)

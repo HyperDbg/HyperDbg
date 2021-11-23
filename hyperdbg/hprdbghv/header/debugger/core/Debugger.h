@@ -98,6 +98,17 @@ typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 } DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
 
 /**
+ * @brief Structure to save the state of tracing threads
+ * 
+ */
+typedef struct _DEBUGGEE_THREAD_TRACE_DETAILS
+{
+    UINT64  CurrentThreadLocationOnGs;
+    BOOLEAN DebugRegisterInterceptionState;
+
+} DEBUGGEE_THREAD_TRACE_DETAILS, *PDEBUGGEE_THREAD_TRACE_DETAILS;
+
+/**
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.
@@ -110,6 +121,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE  MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE InstrumentationStepInTrace;
+    DEBUGGEE_THREAD_TRACE_DETAILS          ThreadTracingDetails;
     BOOLEAN                                EnableExternalInterruptsOnContinue;
     BOOLEAN                                EnableExternalInterruptsOnContinueMtf;
     BOOLEAN                                DisableTrapFlagOnContinue;
@@ -117,6 +129,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                WaitingForNmi;
     BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
     BOOLEAN                                SetMovCr3VmExit;
+    BOOLEAN                                SetThreadChangeEvent;
     BOOLEAN                                BreakStarterCore;
     UINT16                                 InstructionLengthHint;
     PGUEST_REGS                            GuestRegs;

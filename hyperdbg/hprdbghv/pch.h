@@ -65,6 +65,7 @@
 #include "..\hprdbghv\header\debugger\communication\SerialConnection.h"
 #include "..\hprdbghv\header\debugger\objects\Process.h"
 #include "..\hprdbghv\header\debugger\objects\Thread.h"
+#include "..\hprdbghv\header\components\registers\DebugRegisters.h"
 #include "..\hprdbghv\header\vmm\vmx\HypervisorRoutines.h"
 #include "..\hprdbghv\header\vmm\vmx\ProtectedHvRoutines.h"
 #include "..\hprdbghv\header\vmm\vmx\IoHandler.h"
