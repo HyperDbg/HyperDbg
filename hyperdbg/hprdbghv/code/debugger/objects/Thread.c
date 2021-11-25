@@ -15,14 +15,28 @@
 /**
  * @brief handle thread changes
  * @param CurrentCore
+ * @param GuestState
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-ThreadHandleThreadChange(UINT32 CurrentCore)
+ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
 {
-    LogInfo("Current Thread Id : 0x%x", PsGetCurrentThreadId());
-    return TRUE;
+    //
+    // Check if we reached to the target thread or not
+    //
+    if ((g_ThreadSwitch.ThreadId != NULL && g_ThreadSwitch.ThreadId == PsGetCurrentThreadId()) ||
+        (g_ThreadSwitch.Thread != NULL && g_ThreadSwitch.Thread == PsGetCurrentThread()))
+    {
+        //
+        // Halt the debuggee, we have found the target thread
+        //
+        KdHandleBreakpointAndDebugBreakpoints(CurrentCore, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL);
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 /**
@@ -254,7 +268,7 @@ ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorInde
         DebugRegistersSet(
             DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT,
             BREAK_ON_WRITE_ONLY,
-            FALSE,
+            TRUE,
             g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs);
 
         //

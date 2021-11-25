@@ -23,4 +23,4 @@ VOID
 ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorIndex, BOOLEAN Enable);
 
 BOOLEAN
-ThreadHandleThreadChange(UINT32 CurrentCore);
+ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState);

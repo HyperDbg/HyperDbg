@@ -27,7 +27,7 @@ ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE N
     CR3_TYPE ProcessCr3 = {0};
 
     //
-    // Check if we reached to the target process
+    // Check if we reached to the target process or not
     //
     if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
         (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))

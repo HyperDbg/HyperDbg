@@ -109,7 +109,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
         {
-            ThreadHandleThreadChange(CurrentProcessorIndex);
+            ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
         else if (g_KernelDebuggerState == TRUE)
         {
