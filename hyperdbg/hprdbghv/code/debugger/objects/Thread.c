@@ -101,6 +101,87 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread)
 }
 
 /**
+ * @brief shows the threads list
+ * @param ThreadListSymbolInfo
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
+{
+    ULONG64    Thread = NULL;
+    UINT64     ThreadListHead;
+    LIST_ENTRY ThreadLinks = {0};
+
+    UINT64 ThreadListHeadOffset  = ThreadListSymbolInfo->ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
+    UINT64 ThreadListEntryOffset = ThreadListSymbolInfo->ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
+    DbgBreakPoint();
+    //
+    // Validate params
+    //
+    if (ThreadListHeadOffset == 0 || ThreadListEntryOffset == 0)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the target process
+    //
+    if (ThreadListSymbolInfo->Process == NULL)
+    {
+        //
+        // Means that it's for the current process
+        //
+        ThreadListHead = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
+    }
+    else
+    {
+        //
+        // Means that the user specified a special process
+        //
+        ThreadListHead = (UINT64)ThreadListSymbolInfo->Process + ThreadListHeadOffset;
+    }
+
+    //
+    // Check if the process's thread list head is valid or not
+    //
+    if (!CheckMemoryAccessSafety(ThreadListHead, sizeof(BYTE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Show thread list, we read everything from the view of system process
+    //
+    MemoryMapperReadMemorySafe(ThreadListHead, &ThreadLinks, sizeof(ThreadLinks));
+
+    //
+    // Find the top of ETHREAD from nt!_ETHREAD.ThreadListEntry
+    //
+    Thread = (ULONG64)ThreadLinks.Flink - ThreadListEntryOffset;
+
+    do
+    {
+        //
+        // Show the list of process
+        //
+        Log("THREAD\t%llx\n", Thread);
+
+        MemoryMapperReadMemorySafe(Thread + ThreadListEntryOffset,
+                                   &ThreadLinks,
+                                   sizeof(ThreadLinks));
+
+        //
+        // Find the next process from the list of this process
+        //
+        Thread = (ULONG64)ThreadLinks.Flink - ThreadListEntryOffset;
+
+    } while ((ULONG64)ThreadLinks.Flink != ThreadListHead);
+
+    return TRUE;
+}
+
+/**
  * @brief change the current thread
  * @param TidRequest
  * 
@@ -150,13 +231,13 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
     case DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST:
 
         //
-        // Show the thread list
+        // Show the threads list
         //
-        // if (!ThreadShowList(&TidRequest->ThreadListSymDetails))
-        // {
-        //   TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
-        //  break;
-        // }
+        if (!ThreadShowList(&TidRequest->ThreadListSymDetails))
+        {
+            TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
+            break;
+        }
 
         //
         // Operation was successful

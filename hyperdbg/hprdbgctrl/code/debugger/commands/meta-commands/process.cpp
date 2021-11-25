@@ -86,7 +86,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
             //
             // Query for nt!_EPROCESS.ImageFileName, nt!_EPROCESS.UniqueProcessId,
             // nt!_EPROCESS.UniqueProcessId offset from the top of nt!_EPROCESS,
-            // and nt!PsActiveProcessHead address and Check if we find them or not,
+            // and nt!PsActiveProcessHead address and check if we find them or not,
             // otherwise, it means that the PDB for ntoskrnl.exe is not available
             //
             if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ActiveProcessLinks", &OffsetOfActiveProcessLinks) &&

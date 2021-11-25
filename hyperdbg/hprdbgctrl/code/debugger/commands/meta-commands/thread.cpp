@@ -47,6 +47,8 @@ CommandThread(vector<string> SplittedCommand, string Command)
     UINT32                              TargetThreadId        = 0;
     UINT64                              TargetThread          = 0;
     DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems = {0};
+    UINT32                              ThreadListHeadOffset  = 0; // nt!_EPROCESS.ThreadListHead
+    UINT32                              ThreadListEntryOffset = 0; // nt!_ETHREAD.ThreadListEntry
 
     if (SplittedCommand.size() >= 4)
     {
@@ -79,8 +81,32 @@ CommandThread(vector<string> SplittedCommand, string Command)
         if (!SplittedCommand.at(1).compare("list"))
         {
             //
-            // Not implemented yet !
+            // Query for nt!_EPROCESS.ThreadListHead, nt!_ETHREAD.ThreadListEntry,
+            // from the top of nt!_EPROCESS, and nt!_ETHREAD address and check if
+            // we find them or not, otherwise, it means that the PDB for ntoskrnl.exe
+            // is not available
             //
+            if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ThreadListHead", &ThreadListHeadOffset) &&
+                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset))
+            {
+                ThreadListNeededItems.ThreadListHeadOffset  = ThreadListHeadOffset;
+                ThreadListNeededItems.ThreadListEntryOffset = ThreadListEntryOffset;
+
+                //
+                // Send the packet to list threads
+                //
+                KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST,
+                                                   NULL,
+                                                   NULL,
+                                                   &ThreadListNeededItems);
+            }
+            else
+            {
+                ShowMessages("err, the need offset to iterate over threads not found, "
+                             "make sure to load ntoskrnl.exe's PDB file. use '.help .sym' for "
+                             "more information\n");
+                return;
+            }
         }
         else
         {

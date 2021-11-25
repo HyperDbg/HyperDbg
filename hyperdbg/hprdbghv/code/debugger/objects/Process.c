@@ -109,7 +109,7 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess)
 }
 
 /**
- * @brief shows the process list
+ * @brief shows the processes list
  * @param PorcessListSymbolInfo
  * 
  * @return BOOLEAN 
