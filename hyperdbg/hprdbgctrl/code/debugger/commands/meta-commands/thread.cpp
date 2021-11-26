@@ -49,6 +49,7 @@ CommandThread(vector<string> SplittedCommand, string Command)
     DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems = {0};
     UINT32                              ThreadListHeadOffset  = 0; // nt!_EPROCESS.ThreadListHead
     UINT32                              ThreadListEntryOffset = 0; // nt!_ETHREAD.ThreadListEntry
+    UINT32                              CidOffset             = 0; // nt!_ETHREAD.Cid
 
     if (SplittedCommand.size() >= 4)
     {
@@ -87,10 +88,12 @@ CommandThread(vector<string> SplittedCommand, string Command)
             // is not available
             //
             if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ThreadListHead", &ThreadListHeadOffset) &&
-                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset))
+                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset) &&
+                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"Cid", &CidOffset))
             {
                 ThreadListNeededItems.ThreadListHeadOffset  = ThreadListHeadOffset;
                 ThreadListNeededItems.ThreadListEntryOffset = ThreadListEntryOffset;
+                ThreadListNeededItems.CidOffset             = CidOffset;
 
                 //
                 // Send the packet to list threads

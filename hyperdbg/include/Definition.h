@@ -1602,6 +1602,7 @@ typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 {
     UINT32 ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
     UINT32 ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
+    UINT32 CidOffset;             // nt!_ETHREAD.Cid
     UINT64 Process;
 
 } DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;

@@ -112,14 +112,18 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     ULONG64    Thread = NULL;
     UINT64     ThreadListHead;
     LIST_ENTRY ThreadLinks = {0};
+    CLIENT_ID  ThreadCid   = {0};
 
-    UINT64 ThreadListHeadOffset  = ThreadListSymbolInfo->ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
-    UINT64 ThreadListEntryOffset = ThreadListSymbolInfo->ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
-    DbgBreakPoint();
+    UINT32 ThreadListHeadOffset  = ThreadListSymbolInfo->ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
+    UINT32 ThreadListEntryOffset = ThreadListSymbolInfo->ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
+    UINT32 CidOffset             = ThreadListSymbolInfo->CidOffset;             // nt!_ETHREAD.Cid
+
     //
     // Validate params
     //
-    if (ThreadListHeadOffset == 0 || ThreadListEntryOffset == 0)
+    if (ThreadListHeadOffset == 0 ||
+        ThreadListEntryOffset == 0 ||
+        CidOffset == 0)
     {
         return FALSE;
     }
@@ -132,7 +136,8 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
         //
         // Means that it's for the current process
         //
-        ThreadListHead = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
+        ThreadListSymbolInfo->Process = PsGetCurrentProcess();
+        ThreadListHead                = (UINT64)PsGetCurrentProcess() + ThreadListHeadOffset;
     }
     else
     {
@@ -151,6 +156,13 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     }
 
     //
+    // Show the message of show the process
+    //
+    Log("PROCESS\t%llx\tIMAGE\t%s\n",
+        ThreadListSymbolInfo->Process,
+        GetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
+
+    //
     // Show thread list, we read everything from the view of system process
     //
     MemoryMapperReadMemorySafe(ThreadListHead, &ThreadLinks, sizeof(ThreadLinks));
@@ -163,9 +175,16 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     do
     {
         //
+        // Show thread list, we read everything from the view of system process
+        //
+        MemoryMapperReadMemorySafe(Thread + CidOffset,
+                                   &ThreadCid,
+                                   sizeof(ThreadCid));
+
+        //
         // Show the list of process
         //
-        Log("THREAD\t%llx\n", Thread);
+        Log("\tTHREAD\t%llx (%llx.%llx)\n", Thread, ThreadCid.UniqueProcess, ThreadCid.UniqueThread);
 
         MemoryMapperReadMemorySafe(Thread + ThreadListEntryOffset,
                                    &ThreadLinks,
