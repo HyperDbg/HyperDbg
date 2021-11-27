@@ -207,13 +207,13 @@ ShowErrorMessage(UINT32 Error)
         break;
 
     case DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER:
-        ShowMessages("err, either the process id or the EPROCESS is invalid or "
+        ShowMessages("err, either the process id or the _EPROCESS is invalid or "
                      "cannot get the details based on the provided parameters (%x)\n",
                      Error);
         break;
 
     case DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER:
-        ShowMessages("err, either the thread id or the ETHREAD is invalid or "
+        ShowMessages("err, either the thread id, _ETHREAD, or _EPROCESS is invalid or "
                      "cannot get the details based on the provided parameters (%x)\n",
                      Error);
         break;

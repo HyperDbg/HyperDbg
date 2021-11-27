@@ -27,11 +27,52 @@ CommandThreadHelp()
     ShowMessages(".thread : show and change the threads. "
                  "This command needs public symbols for ntoskrnl.exe if "
                  "you want to see the threads list.\n\n");
-    ShowMessages("syntax : \t.thread [type (tid | thread | list)] [new thread id (hex) | new nt!_ETHREAD address]\n");
+    ShowMessages("syntax : \t.thread [type (tid | thread | list)] [new "
+                 "thread id (hex) | new nt!_ETHREAD address | list (process)] [process's nt!_EPROCESS]\n");
     ShowMessages("\t\te.g : .thread\n");
-    ShowMessages("\t\te.g : .thread list\n");
     ShowMessages("\t\te.g : .thread tid 48a4\n");
     ShowMessages("\t\te.g : .thread thread ffff948c`c8970200\n");
+    ShowMessages("\t\te.g : .thread list\n");
+    ShowMessages("\t\te.g : .thread list process ffff948c`a1279880\n");
+}
+
+BOOLEAN
+CommandThreadListThreads(UINT64 Eprocess)
+{
+    UINT32                              ThreadListHeadOffset  = 0; // nt!_EPROCESS.ThreadListHead
+    UINT32                              ThreadListEntryOffset = 0; // nt!_ETHREAD.ThreadListEntry
+    UINT32                              CidOffset             = 0; // nt!_ETHREAD.Cid
+    DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems = {0};
+
+    //
+    // Query for nt!_EPROCESS.ThreadListHead, nt!_ETHREAD.ThreadListEntry,
+    // from the top of nt!_EPROCESS, and nt!_ETHREAD address and check if
+    // we find them or not, otherwise, it means that the PDB for ntoskrnl.exe
+    // is not available
+    //
+    if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ThreadListHead", &ThreadListHeadOffset) &&
+        ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset) &&
+        ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"Cid", &CidOffset))
+    {
+        ThreadListNeededItems.ThreadListHeadOffset  = ThreadListHeadOffset;
+        ThreadListNeededItems.ThreadListEntryOffset = ThreadListEntryOffset;
+        ThreadListNeededItems.CidOffset             = CidOffset;
+        ThreadListNeededItems.Process               = Eprocess;
+
+        //
+        // Send the packet to list threads
+        //
+        KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST,
+                                           NULL,
+                                           NULL,
+                                           &ThreadListNeededItems);
+
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
 }
 
 /**
@@ -44,14 +85,11 @@ CommandThreadHelp()
 VOID
 CommandThread(vector<string> SplittedCommand, string Command)
 {
-    UINT32                              TargetThreadId        = 0;
-    UINT64                              TargetThread          = 0;
-    DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems = {0};
-    UINT32                              ThreadListHeadOffset  = 0; // nt!_EPROCESS.ThreadListHead
-    UINT32                              ThreadListEntryOffset = 0; // nt!_ETHREAD.ThreadListEntry
-    UINT32                              CidOffset             = 0; // nt!_ETHREAD.Cid
+    UINT32 TargetThreadId = 0;
+    UINT64 TargetThread   = 0;
+    UINT64 TargetProcess  = 0;
 
-    if (SplittedCommand.size() >= 4)
+    if (SplittedCommand.size() >= 5)
     {
         ShowMessages("incorrect use of '.thread'\n\n");
         CommandThreadHelp();
@@ -82,28 +120,10 @@ CommandThread(vector<string> SplittedCommand, string Command)
         if (!SplittedCommand.at(1).compare("list"))
         {
             //
-            // Query for nt!_EPROCESS.ThreadListHead, nt!_ETHREAD.ThreadListEntry,
-            // from the top of nt!_EPROCESS, and nt!_ETHREAD address and check if
-            // we find them or not, otherwise, it means that the PDB for ntoskrnl.exe
-            // is not available
+            // Sending null as the nt!_EPROCESS indicates that the target process is
+            // the current process (Current nt!_EPROCESS)
             //
-            if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ThreadListHead", &ThreadListHeadOffset) &&
-                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset) &&
-                ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"Cid", &CidOffset))
-            {
-                ThreadListNeededItems.ThreadListHeadOffset  = ThreadListHeadOffset;
-                ThreadListNeededItems.ThreadListEntryOffset = ThreadListEntryOffset;
-                ThreadListNeededItems.CidOffset             = CidOffset;
-
-                //
-                // Send the packet to list threads
-                //
-                KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST,
-                                                   NULL,
-                                                   NULL,
-                                                   &ThreadListNeededItems);
-            }
-            else
+            if (!CommandThreadListThreads(NULL))
             {
                 ShowMessages("err, the need offset to iterate over threads not found, "
                              "make sure to load ntoskrnl.exe's PDB file. use '.help .sym' for "
@@ -144,6 +164,13 @@ CommandThread(vector<string> SplittedCommand, string Command)
                 return;
             }
         }
+        else if (!SplittedCommand.at(1).compare("list") && !SplittedCommand.at(2).compare("process"))
+        {
+            ShowMessages(
+                "please specify a hex value for the process\n\n");
+            CommandThreadHelp();
+            return;
+        }
         else
         {
             ShowMessages(
@@ -160,6 +187,50 @@ CommandThread(vector<string> SplittedCommand, string Command)
                                            TargetThreadId,
                                            TargetThread,
                                            NULL);
+    }
+    else if (SplittedCommand.size() == 4)
+    {
+        if (!SplittedCommand.at(1).compare("list"))
+        {
+            if (!SplittedCommand.at(2).compare("process"))
+            {
+                if (!SymbolConvertNameOrExprToAddress(SplittedCommand.at(3), &TargetProcess))
+                {
+                    ShowMessages(
+                        "please specify a correct hex value for the process (nt!_EPROCESS) that you "
+                        "want to see its threads\n\n");
+                    CommandThreadHelp();
+                    return;
+                }
+
+                //
+                // List the target process's threads
+                //
+                if (!CommandThreadListThreads(TargetProcess))
+                {
+                    ShowMessages("err, the need offset to iterate over threads not found, "
+                                 "make sure to load ntoskrnl.exe's PDB file. use '.help .sym' for "
+                                 "more information\n");
+                    return;
+                }
+            }
+            else
+            {
+                ShowMessages(
+                    "err, unknown parameter at '%s'\n\n",
+                    SplittedCommand.at(2).c_str());
+                CommandThreadHelp();
+                return;
+            }
+        }
+        else
+        {
+            ShowMessages(
+                "err, unknown parameter at '%s'\n\n",
+                SplittedCommand.at(1).c_str());
+            CommandThreadHelp();
+            return;
+        }
     }
     else
     {
