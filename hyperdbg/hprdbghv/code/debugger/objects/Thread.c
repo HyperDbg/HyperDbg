@@ -114,16 +114,20 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     LIST_ENTRY ThreadLinks = {0};
     CLIENT_ID  ThreadCid   = {0};
 
-    UINT32 ThreadListHeadOffset  = ThreadListSymbolInfo->ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
-    UINT32 ThreadListEntryOffset = ThreadListSymbolInfo->ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
-    UINT32 CidOffset             = ThreadListSymbolInfo->CidOffset;             // nt!_ETHREAD.Cid
+    UINT32 ThreadListHeadOffset       = ThreadListSymbolInfo->ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
+    UINT32 ThreadListEntryOffset      = ThreadListSymbolInfo->ThreadListEntryOffset;    // nt!_ETHREAD.ThreadListEntry
+    UINT32 CidOffset                  = ThreadListSymbolInfo->CidOffset;                // nt!_ETHREAD.Cid
+    UINT32 ActiveProcessLinksOffset   = ThreadListSymbolInfo->ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+    UINT64 PsActiveProcessHeadAddress = ThreadListSymbolInfo->PsActiveProcessHead;      // nt!PsActiveProcessHead
 
     //
     // Validate params
     //
-    if (ThreadListHeadOffset == 0 ||
-        ThreadListEntryOffset == 0 ||
-        CidOffset == 0)
+    if (ThreadListHeadOffset == NULL ||
+        ThreadListEntryOffset == NULL ||
+        CidOffset == NULL ||
+        ActiveProcessLinksOffset == NULL ||
+        PsActiveProcessHeadAddress == NULL)
     {
         return FALSE;
     }
@@ -151,6 +155,16 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     // Check if the process's thread list head is valid or not
     //
     if (!CheckMemoryAccessSafety(ThreadListHead, sizeof(BYTE)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if the nt!_EPROCESS is valid or not (available in the system or not)
+    //
+    if (!ProcessCheckIfEprocessIsValid(ThreadListSymbolInfo->Process,
+                                       PsActiveProcessHeadAddress,
+                                       ActiveProcessLinksOffset))
     {
         return FALSE;
     }

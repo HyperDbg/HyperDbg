@@ -1600,9 +1600,11 @@ typedef enum _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE
  */
 typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 {
-    UINT32 ThreadListHeadOffset;  // nt!_EPROCESS.ThreadListHead
-    UINT32 ThreadListEntryOffset; // nt!_ETHREAD.ThreadListEntry
-    UINT32 CidOffset;             // nt!_ETHREAD.Cid
+    UINT32 ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
+    UINT32 ThreadListEntryOffset;    // nt!_ETHREAD.ThreadListEntry
+    UINT32 CidOffset;                // nt!_ETHREAD.Cid
+    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
     UINT64 Process;
 
 } DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;

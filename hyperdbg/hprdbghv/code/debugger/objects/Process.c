@@ -109,6 +109,80 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess)
 }
 
 /**
+ * @brief checks whether the given nt!_EPROCESS is valid or not
+ * @param Eprocess target nt!_EPROCESS
+ * @param ActiveProcessHead nt!PsActiveProcessHead
+ * @param ActiveProcessLinksOffset nt!_EPROCESS.ActiveProcessLinks
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
+{
+    ULONG64    Process;
+    LIST_ENTRY ActiveProcessLinks;
+
+    //
+    // Dirty validation of parameters
+    //
+    if (ActiveProcessHead == NULL ||
+        ActiveProcessLinksOffset == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if address is valid
+    //
+    if (CheckMemoryAccessSafety(ActiveProcessHead, sizeof(BYTE)))
+    {
+        //
+        // Show processes list, we read everything from the view of system
+        // process
+        //
+        MemoryMapperReadMemorySafe(ActiveProcessHead, &ActiveProcessLinks, sizeof(ActiveProcessLinks));
+
+        //
+        // Find the top of EPROCESS from nt!_EPROCESS.ActiveProcessLinks
+        //
+        Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+
+        do
+        {
+            //
+            // Read the next process
+            //
+            MemoryMapperReadMemorySafe(Process + ActiveProcessLinksOffset,
+                                       &ActiveProcessLinks,
+                                       sizeof(ActiveProcessLinks));
+
+            //
+            // Check if we find the process
+            //
+            if (Process == Eprocess)
+            {
+                return TRUE;
+            }
+
+            //
+            // Find the next process from the list of this process
+            //
+            Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+
+        } while ((ULONG64)ActiveProcessLinks.Flink != ActiveProcessHead);
+    }
+    else
+    {
+        //
+        // An invalid address is specified
+        //
+        return FALSE;
+    }
+
+    return FALSE;
+}
+
+/**
  * @brief shows the processes list
  * @param PorcessListSymbolInfo
  * 

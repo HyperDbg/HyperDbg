@@ -21,3 +21,6 @@ ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE N
 
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);
+
+BOOLEAN
+ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG ActiveProcessLinksOffset);

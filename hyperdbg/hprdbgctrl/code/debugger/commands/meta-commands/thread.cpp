@@ -39,10 +39,12 @@ CommandThreadHelp()
 BOOLEAN
 CommandThreadListThreads(UINT64 Eprocess)
 {
-    UINT32                              ThreadListHeadOffset  = 0; // nt!_EPROCESS.ThreadListHead
-    UINT32                              ThreadListEntryOffset = 0; // nt!_ETHREAD.ThreadListEntry
-    UINT32                              CidOffset             = 0; // nt!_ETHREAD.Cid
-    DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems = {0};
+    UINT32                              ThreadListHeadOffset       = 0; // nt!_EPROCESS.ThreadListHead
+    UINT32                              ThreadListEntryOffset      = 0; // nt!_ETHREAD.ThreadListEntry
+    UINT32                              CidOffset                  = 0; // nt!_ETHREAD.Cid
+    DWORD32                             OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
+    UINT64                              AddressOfActiveProcessHead = 0; // nt!PsActiveProcessHead
+    DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems      = {0};
 
     //
     // Query for nt!_EPROCESS.ThreadListHead, nt!_ETHREAD.ThreadListEntry,
@@ -52,12 +54,16 @@ CommandThreadListThreads(UINT64 Eprocess)
     //
     if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ThreadListHead", &ThreadListHeadOffset) &&
         ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"ThreadListEntry", &ThreadListEntryOffset) &&
-        ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"Cid", &CidOffset))
+        ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_ETHREAD", (CHAR *)"Cid", &CidOffset) &&
+        ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ActiveProcessLinks", &OffsetOfActiveProcessLinks) &&
+        SymbolConvertNameOrExprToAddress("nt!PsActiveProcessHead", &AddressOfActiveProcessHead))
     {
-        ThreadListNeededItems.ThreadListHeadOffset  = ThreadListHeadOffset;
-        ThreadListNeededItems.ThreadListEntryOffset = ThreadListEntryOffset;
-        ThreadListNeededItems.CidOffset             = CidOffset;
-        ThreadListNeededItems.Process               = Eprocess;
+        ThreadListNeededItems.ThreadListHeadOffset     = ThreadListHeadOffset;
+        ThreadListNeededItems.ThreadListEntryOffset    = ThreadListEntryOffset;
+        ThreadListNeededItems.CidOffset                = CidOffset;
+        ThreadListNeededItems.ActiveProcessLinksOffset = OffsetOfActiveProcessLinks;
+        ThreadListNeededItems.PsActiveProcessHead      = AddressOfActiveProcessHead;
+        ThreadListNeededItems.Process                  = Eprocess;
 
         //
         // Send the packet to list threads
