@@ -272,6 +272,19 @@ ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
 }
 
 /**
+ * @brief routines ONLY for disabling !dr command 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores()
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores, NULL);
+}
+
+/**
  * @brief routines for !pmc 
  * @details causes vm-exit on all execution of rdpmc 
  * @return VOID 

@@ -1099,37 +1099,6 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 }
 
 /**
- * @brief Set or unset the Mov to Debug Registers Exiting
- * 
- * @param Set Set or unset the Mov to Debug Registers Exiting
- * @return VOID 
- */
-VOID
-HvSetMovDebugRegsExiting(BOOLEAN Set)
-{
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (Set)
-    {
-        CpuBasedVmExecControls |= CPU_BASED_MOV_DR_EXITING;
-    }
-    else
-    {
-        CpuBasedVmExecControls &= ~CPU_BASED_MOV_DR_EXITING;
-    }
-
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
-}
-
-/**
  * @brief Set the NMI Exiting
  * 
  * @param Set Set or unset the NMI Exiting
@@ -1293,4 +1262,16 @@ VOID
 HvSetRdtscExiting(BOOLEAN Set)
 {
     ProtectedHvSetRdtscExiting(Set);
+}
+
+/**
+ * @brief Set or unset the Mov to Debug Registers Exiting
+ * 
+ * @param Set Set or unset the Mov to Debug Registers Exiting
+ * @return VOID 
+ */
+VOID
+HvSetMovDebugRegsExiting(BOOLEAN Set)
+{
+    ProtectedHvSetMovDebugRegsExiting(Set);
 }
