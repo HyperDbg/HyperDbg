@@ -24,13 +24,16 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandProcessHelp()
 {
-    ShowMessages(".process : show and change the processes. "
+    ShowMessages(".process, .process2 : show and change the processes. "
                  "This command needs public symbols for ntoskrnl.exe if "
-                 "you want to see the processes list.\n\n");
+                 "you want to see the processes list. Please visit the "
+                 "documentation to know about the difference between '.process' "
+                 "and '.process2'.\n\n");
     ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new nt!_EPROCESS address]\n");
     ShowMessages("\t\te.g : .process\n");
     ShowMessages("\t\te.g : .process list\n");
     ShowMessages("\t\te.g : .process pid 4\n");
+    ShowMessages("\t\te.g : .process2 pid 4\n");
     ShowMessages("\t\te.g : .process process ffff948c`c2349280\n");
 }
 

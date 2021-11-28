@@ -27,8 +27,8 @@ CommandThreadHelp()
     ShowMessages(".thread, .thread2 : show and change the threads. "
                  "This command needs public symbols for ntoskrnl.exe if "
                  "you want to see the threads list. Please visit the "
-                 "documentation to know about the difference between .thread "
-                 "and .thread2.\n\n");
+                 "documentation to know about the difference between '.thread' "
+                 "and '.thread2'.\n\n");
     ShowMessages("syntax : \t.thread [type (tid | thread | list)] [new "
                  "thread id (hex) | new nt!_ETHREAD address | list (process)] [process's nt!_EPROCESS]\n");
     ShowMessages("\t\te.g : .thread\n");
