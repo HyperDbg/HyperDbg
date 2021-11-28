@@ -417,10 +417,10 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
                         //
                         // Also, we should re-apply the hardware debug breakpoint on this thread
                         //
-                        SteppingsSetDebugRegister(0,
-                                                  BREAK_ON_INSTRUCTION_FETCH,
-                                                  FALSE,
-                                                  g_HardwareDebugRegisterDetailsForStepOver.Address);
+                        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                                          BREAK_ON_INSTRUCTION_FETCH,
+                                          FALSE,
+                                          g_HardwareDebugRegisterDetailsForStepOver.Address);
                     }
                 }
             }
@@ -465,18 +465,39 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
     //
     // Check to unset mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
     {
         //
-        // Unset mov to cr3 vm-exit, this flag is also use to remove the
-        // mov 2 cr3 on next halt
+        // Disable process change detection
         //
-        HvSetMovToCr3Vmexit(FALSE);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                  FALSE,
+                                                  g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
 
         //
         // Avoid future sets/unsets
         //
-        g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+    }
+
+    //
+    // Check to unset change thread alerts
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
+    {
+        //
+        // Disable thread change alerts
+        //
+        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                 FALSE,
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
+
+        //
+        // Avoid future sets/unsets
+        //
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = FALSE;
     }
 }
 
@@ -497,10 +518,10 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     if (g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping != NULL)
     {
-        SteppingsSetDebugRegister(0,
-                                  BREAK_ON_INSTRUCTION_FETCH,
-                                  FALSE,
-                                  g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
+        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          FALSE,
+                          g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping);
 
         g_GuestState[CurrentCore].DebuggingState.HardwareDebugRegisterForStepping = NULL;
     }
@@ -508,13 +529,27 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     // Check to apply mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
     {
         //
-        // Set mov to cr3 vm-exit, this flag is also use to remove the
-        // mov 2 cr3 on next halt
+        // Enable process change detection
         //
-        HvSetMovToCr3Vmexit(TRUE);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                  TRUE,
+                                                  g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
+    }
+
+    //
+    // Check to apply thread change alerts
+    //
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
+    {
+        //
+        // Enable alert for thread changes
+        //
+        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                 TRUE,
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 }
 
@@ -634,283 +669,6 @@ KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
     }
 
     KeInsertQueueDpc(&g_DebuggeeDpc, NULL, NULL);
-}
-
-/**
- * @brief move to cr3 execute
- * @param ProcessorIndex Index of processor
- * @param GuestState Guest's gp registers
- * @param NewCr3
- * 
- * 
- * @return VOID 
- */
-VOID
-KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3)
-{
-    CR3_TYPE ProcessCr3 = {0};
-
-    //
-    // Check if we reached to the target process
-    //
-    if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
-        (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
-    {
-        //
-        // We need the kernel side cr3 of the target process
-        //
-
-        //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base.
-        //
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
-
-        KdHandleBreakpointAndDebugBreakpoints(ProcessorIndex, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
-    }
-}
-
-/**
- * @brief change the current process
- * @param ProcessId
- * @param EProcess
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-KdSwitchProcess(UINT32 ProcessId, PEPROCESS EProcess)
-{
-    ULONG CoreCount = 0;
-
-    //
-    // Initialized with NULL
-    //
-    g_ProcessSwitch.Process   = NULL;
-    g_ProcessSwitch.ProcessId = NULL;
-
-    //
-    // Check to avoid invalid switch
-    //
-    if (ProcessId == NULL && EProcess == NULL)
-    {
-        return FALSE;
-    }
-
-    //
-    // Set the target process id, eprocess to switch
-    //
-    if (EProcess != NULL)
-    {
-        if (CheckMemoryAccessSafety(EProcess, sizeof(BYTE)))
-        {
-            g_ProcessSwitch.Process = EProcess;
-        }
-        else
-        {
-            //
-            // An invalid address is specified by user
-            //
-            return FALSE;
-        }
-    }
-    else if (ProcessId != NULL)
-    {
-        g_ProcessSwitch.ProcessId = ProcessId;
-    }
-
-    //
-    // Set mov-cr3 vmexit for all the cores
-    //
-    CoreCount = KeQueryActiveProcessorCount(0);
-
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        g_GuestState[i].DebuggingState.SetMovCr3VmExit = TRUE;
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief shows the process list
- * @param PorcessListSymbolInfo
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-KdShowProcessList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
-{
-    ULONG64    Process;
-    ULONG64    UniquePid;
-    LIST_ENTRY ActiveProcessLinks;
-    UCHAR      ImageFileName[15] = {0};
-    CR3_TYPE   ProcessCr3        = {0};
-
-    //
-    // Set the details derived from the symbols
-    //
-    ULONG64 ActiveProcessHead        = PorcessListSymbolInfo->PsActiveProcessHead;      // nt!PsActiveProcessHead
-    ULONG   ImageFileNameOffset      = PorcessListSymbolInfo->ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
-    ULONG   UniquePidOffset          = PorcessListSymbolInfo->UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
-    ULONG   ActiveProcessLinksOffset = PorcessListSymbolInfo->ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
-
-    //
-    // Dirty validation of parameters
-    //
-    if (ActiveProcessHead == NULL ||
-        ImageFileNameOffset == NULL ||
-        UniquePidOffset == NULL ||
-        ActiveProcessLinksOffset == NULL)
-    {
-        return FALSE;
-    }
-
-    //
-    // Check if address is valid
-    //
-    if (CheckMemoryAccessSafety(ActiveProcessHead, sizeof(BYTE)))
-    {
-        //
-        // Show processes list, we read everything from the view of system
-        // process
-        //
-        MemoryMapperReadMemorySafe(ActiveProcessHead, &ActiveProcessLinks, sizeof(ActiveProcessLinks));
-
-        //
-        // Find the top of EPROCESS from nt!_EPROCESS.ActiveProcessLinks
-        //
-        Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
-
-        do
-        {
-            //
-            // Read Process name, Process ID, CR3 of the target process
-            //
-            MemoryMapperReadMemorySafe(Process + ImageFileNameOffset,
-                                       &ImageFileName,
-                                       sizeof(ImageFileName));
-
-            MemoryMapperReadMemorySafe(Process + UniquePidOffset,
-                                       &UniquePid,
-                                       sizeof(UniquePid));
-
-            MemoryMapperReadMemorySafe(Process + ActiveProcessLinksOffset,
-                                       &ActiveProcessLinks,
-                                       sizeof(ActiveProcessLinks));
-
-            //
-            // Get the kernel CR3 for the target process
-            //
-            NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(Process);
-            ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
-
-            //
-            // Show the list of process
-            //
-            Log("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n", Process, UniquePid, ProcessCr3.Flags, ImageFileName);
-
-            //
-            // Find the next process from the list of this process
-            //
-            Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
-
-        } while ((ULONG64)ActiveProcessLinks.Flink != ActiveProcessHead);
-    }
-    else
-    {
-        //
-        // An invalid address is specified by the debugger
-        //
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief change the current process
- * @param PidRequest
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-KdInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
-{
-    switch (PidRequest->ActionType)
-    {
-    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS:
-
-        //
-        // Debugger wants to know current pid and nt!_EPROCESS
-        //
-        PidRequest->ProcessId = PsGetCurrentProcessId();
-        PidRequest->Process   = PsGetCurrentProcess();
-
-        //
-        // Operation was successful
-        //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-
-        break;
-
-    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS:
-
-        //
-        // Perform the process switch
-        //
-        if (!KdSwitchProcess(PidRequest->ProcessId, PidRequest->Process))
-        {
-            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
-            break;
-        }
-
-        //
-        // Operation was successful
-        //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-
-        break;
-
-    case DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST:
-
-        //
-        // Show the process list
-        //
-        if (!KdShowProcessList(&PidRequest->ProcessListSymDetails))
-        {
-            PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
-            break;
-        }
-
-        //
-        // Operation was successful
-        //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-
-        break;
-
-    default:
-
-        //
-        // Invalid type of action
-        //
-        PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
-
-        break;
-    }
-
-    //
-    // Check if the above operation contains error
-    //
-    if (PidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
 }
 
 /**
@@ -1715,6 +1473,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET         ChangeProcessPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET          ChangeThreadPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
@@ -2049,7 +1808,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Interpret the process packet
                 //
-                KdInterpretProcess(ChangeProcessPacket);
+                ProcessInterpretProcess(ChangeProcessPacket);
 
                 //
                 // Send the result of switching process back to the debuggee
@@ -2058,6 +1817,26 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_PROCESS,
                                            ChangeProcessPacket,
                                            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD:
+
+                ChangeThreadPacket = (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                                   sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Interpret the thread packet
+                //
+                ThreadInterpretThread(ChangeThreadPacket);
+
+                //
+                // Send the result of switching thread back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD,
+                                           ChangeThreadPacket,
+                                           sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET));
 
                 break;
 

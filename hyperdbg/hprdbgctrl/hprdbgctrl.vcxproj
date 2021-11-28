@@ -127,6 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />
+    <ClCompile Include="code\debugger\commands\meta-commands\thread.cpp" />
     <ClCompile Include="code\debugger\core\break-control.cpp" />
     <ClCompile Include="code\debugger\core\debugger.cpp" />
     <ClCompile Include="code\debugger\core\interpreter.cpp" />

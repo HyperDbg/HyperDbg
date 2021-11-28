@@ -104,6 +104,7 @@
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
     <ClCompile Include="code\common\Spinlock.c" />
+    <ClCompile Include="code\components\registers\DebugRegisters.c" />
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
@@ -119,6 +120,8 @@
     <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c" />
     <ClCompile Include="code\debugger\features\hooks\syscall-hook\SsdtHook.c" />
+    <ClCompile Include="code\debugger\objects\Process.c" />
+    <ClCompile Include="code\debugger\objects\Thread.c" />
     <ClCompile Include="code\debugger\script-engine\ScriptEngine.c" />
     <ClCompile Include="code\debugger\tests\KernelTests.c" />
     <ClCompile Include="code\debugger\transparency\Transparency.c" />
@@ -162,6 +165,7 @@
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\Trace.h" />
+    <ClInclude Include="header\components\registers\DebugRegisters.h" />
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
@@ -175,6 +179,8 @@
     <ClInclude Include="header\debugger\core\Steppings.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
     <ClInclude Include="header\debugger\features\Hooks.h" />
+    <ClInclude Include="header\debugger\objects\Process.h" />
+    <ClInclude Include="header\debugger\objects\Thread.h" />
     <ClInclude Include="header\debugger\tests\KernelTests.h" />
     <ClInclude Include="header\debugger\transparency\Transparency.h" />
     <ClInclude Include="header\devices\Apic.h" />

@@ -114,6 +114,24 @@
     <Filter Include="header\memory">
       <UniqueIdentifier>{7d72077e-4c3d-471b-8465-c235fc9b9488}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\objects">
+      <UniqueIdentifier>{a45b1913-fee5-41fc-924b-6777b68ada6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\objects">
+      <UniqueIdentifier>{250da7cd-f78f-498e-b176-7079b17c3954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components">
+      <UniqueIdentifier>{f54cce1c-42c4-4de5-b281-605d86f54d24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\components\registers">
+      <UniqueIdentifier>{abd2d5cf-8f42-4aae-a8c2-ea77c40fd87b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components">
+      <UniqueIdentifier>{6d4d41d1-afae-48ce-9a7b-a9e9160e647a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\components\registers">
+      <UniqueIdentifier>{035d2800-79f5-4650-808a-f320d57db543}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -245,6 +263,15 @@
     <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\objects\Process.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\objects\Thread.c">
+      <Filter>code\debugger\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="code\components\registers\DebugRegisters.c">
+      <Filter>code\components\registers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -366,6 +393,15 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Process.h">
+      <Filter>header\debugger\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\objects\Thread.h">
+      <Filter>header\debugger\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="header\components\registers\DebugRegisters.h">
+      <Filter>header\components\registers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

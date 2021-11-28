@@ -275,6 +275,13 @@
  */
 #define VMCALL_DISABLE_RDTSC_EXITING_ONLY_FOR_TSC_EVENTS 0x29
 
+/**
+ * @brief VMCALL to clear mov 2 hw dr exiting bit ONLY in the case of disabling
+ * the events for !dr command
+ * 
+ */
+#define VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x2a
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

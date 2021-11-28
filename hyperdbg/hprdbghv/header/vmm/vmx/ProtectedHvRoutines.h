@@ -41,6 +41,11 @@ typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
     //
     PASSING_OVER_TSC_EVENTS,
 
+    //
+    // for external mov to hardware debug registers exitings
+    //
+    PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS,
+
 } PROTECTED_HV_RESOURCES_PASSING_OVERS;
 //////////////////////////////////////////////////
 //                   Functions                  //
@@ -81,3 +86,13 @@ ProtectedHvSetRdtscExiting(BOOLEAN Set);
 
 VOID
 ProtectedHvDisableRdtscExitingForDisablingTscCommands();
+
+//
+// Mov to HW Debug Regs Exiting Functions
+//
+
+VOID
+ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set);
+
+VOID
+ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();

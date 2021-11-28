@@ -43,6 +43,9 @@ VOID
 ExtensionCommandDisableRdtscExitingForClearingEventsAllCores();
 
 VOID
+ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
+
+VOID
 ExtensionCommandEnableRdpmcExitingAllCores();
 
 VOID
