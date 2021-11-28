@@ -221,20 +221,26 @@ StartAgain:
             g_IsRunningInstruction32Bit = PausePacket->Is32BitAddress;
 
             //
-            // Check whether the pausing was because of triggering an event
-            // or not
+            // Show additional messages before showing assembly and pausing
             //
-            if (PausePacket->EventTag != NULL)
+            switch (PausePacket->PausingReason)
             {
-                if (PausePacket->PausingReason ==
-                    DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT)
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
+
+                if (PausePacket->EventTag != NULL)
                 {
                     //
                     // It's a breakpoint id
                     //
-                    ShowMessages("breakpoint 0x%x hit\n", PausePacket->EventTag);
+                    ShowMessages("breakpoint 0x%x hit\n",
+                                 PausePacket->EventTag);
                 }
-                else
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
+
+                if (PausePacket->EventTag != NULL)
                 {
                     //
                     // It's an event tag
@@ -242,6 +248,23 @@ StartAgain:
                     ShowMessages("event 0x%x triggered\n",
                                  PausePacket->EventTag - DebuggerEventTagStartSeed);
                 }
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+
+                ShowMessages("switched to the specified process\n");
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
+
+                ShowMessages("switched to the specified thread\n");
+
+                break;
+
+            default:
+                break;
             }
 
             if (PausePacket->PausingReason !=
@@ -296,30 +319,8 @@ StartAgain:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED:
-
-                //
-                // Unpause the debugger to get commands
-                //
-                g_SyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_SyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
-                                 .EventHandle);
-
-                break;
-
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
-
-                if (PausePacket->PausingReason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED)
-                {
-                    ShowMessages("switched to the specified process\n");
-                }
-                else if (PausePacket->PausingReason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED)
-                {
-                    ShowMessages("switched to the specified thread\n");
-                }
 
                 //
                 // Unpause the debugger to get commands

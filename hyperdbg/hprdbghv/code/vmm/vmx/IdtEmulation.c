@@ -232,6 +232,16 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
+            //
+            // This way of handling has a problem, if the user set to change
+            // the thread and instead of using 'g', it pressed the 'p' to
+            // set or a trap happens somewhere then will be ignored
+            // it because we don't know the origin of this debug breakpoint
+            // and it only happens on '.thread2' command, the correct way
+            // to handle it is to find the exact hw debug register that caused
+            // this vm-exit, but it's a really rare case, so we left it without
+            // handling this case
+            //
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
         else if (g_KernelDebuggerState == TRUE)
