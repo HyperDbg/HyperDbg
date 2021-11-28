@@ -13,36 +13,22 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief move to cr3 execute
+ * @brief handle process changes
  * @param ProcessorIndex Index of processor
  * @param GuestState Guest's gp registers
- * @param NewCr3
  * 
  * 
  * @return VOID 
  */
 VOID
-ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3)
+ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
 {
-    CR3_TYPE ProcessCr3 = {0};
-
     //
     // Check if we reached to the target process or not
     //
     if ((g_ProcessSwitch.ProcessId != NULL && g_ProcessSwitch.ProcessId == PsGetCurrentProcessId()) ||
         (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
-        //
-        // We need the kernel side cr3 of the target process
-        //
-
-        //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base.
-        //
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
-
         KdHandleBreakpointAndDebugBreakpoints(ProcessorIndex, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
     }
 }
@@ -51,11 +37,12 @@ ProcessHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE N
  * @brief make evnvironment ready to change the process
  * @param ProcessId
  * @param EProcess
+ * @param IsSwitchByClockIntrrupt
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess)
+ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrrupt)
 {
     ULONG CoreCount = 0;
 
@@ -95,17 +82,144 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess)
         g_ProcessSwitch.ProcessId = ProcessId;
     }
 
-    //
-    // Set mov-cr3 vmexit for all the cores
-    //
     CoreCount = KeQueryActiveProcessorCount(0);
 
-    for (size_t i = 0; i < CoreCount; i++)
+    //
+    // Check the switching method
+    //
+    if (!IsSwitchByClockIntrrupt)
     {
-        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit = TRUE;
+        //
+        // Set mov-cr3 vmexit for all the cores
+        //
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
+            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
+        }
+    }
+    else
+    {
+        //
+        // This is based on clk interrupt
+        //
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = TRUE;
+            g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = TRUE;
+        }
     }
 
     return TRUE;
+}
+
+/**
+ * @brief Enable or disable the process change monitoring detection 
+ * on the running core based on intercepting clock interrupts
+ * @details should be called on vmx root
+ * 
+ * @param CurrentProcessorIndex 
+ * @param Enable 
+ * @return VOID 
+ */
+VOID
+ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
+                                                 BOOLEAN Enable)
+{
+    if (Enable)
+    {
+        //
+        // Indicate that we're waiting for clock interrupt vm-exits
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = TRUE;
+
+        //
+        // Set external-interrupt vm-exits
+        //
+        HvSetExternalInterruptExiting(TRUE);
+    }
+    else
+    {
+        //
+        // Indicate that we're not waiting for clock interrupt vm-exits
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange = FALSE;
+
+        //
+        // Unset external-interrupt vm-exits
+        //
+        HvSetExternalInterruptExiting(FALSE);
+    }
+}
+
+/**
+ * @brief Enable or disable the process change monitoring detection 
+ * on the running core based on mov-to-cr3 vm-exits
+ * @details should be called on vmx root
+ * 
+ * @param CurrentProcessorIndex 
+ * @param Enable 
+ * @return VOID 
+ */
+VOID
+ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
+                                    BOOLEAN Enable)
+{
+    if (Enable)
+    {
+        //
+        // Indicate that we're waiting for mov-to-cr3 vm-exits
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = TRUE;
+
+        //
+        // Set mov to cr3 vm-exit, this flag is also use to remove the
+        // mov 2 cr3 on next halt
+        //
+        HvSetMovToCr3Vmexit(TRUE);
+    }
+    else
+    {
+        //
+        // Indicate that we're not waiting for mov-to-cr3 vm-exits
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits = FALSE;
+
+        //
+        // Unset mov to cr3 vm-exit, this flag is also use to remove the
+        // mov 2 cr3 on next halt
+        //
+        HvSetMovToCr3Vmexit(FALSE);
+    }
+}
+
+/**
+ * @brief Enable or disable the process change monitoring detection 
+ * on the running core
+ * @details should be called on vmx root
+ * 
+ * @param CurrentProcessorIndex 
+ * @param Enable 
+ * @param CheckByClockInterrupts 
+ * @return VOID 
+ */
+VOID
+ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
+                                          BOOLEAN Enable,
+                                          BOOLEAN CheckByClockInterrupts)
+{
+    //
+    // Check whether we should intercept mov-to-cr3 vm-exits or intercept
+    // the clock interrupts
+    //
+    if (!CheckByClockInterrupts)
+    {
+        ProcessDetectChangeByMov2Cr3Vmexits(CurrentProcessorIndex, Enable);
+    }
+    else
+    {
+        ProcessDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
+    }
 }
 
 /**
@@ -310,7 +424,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Perform the process switch
         //
-        if (!ProcessSwitch(PidRequest->ProcessId, PidRequest->Process))
+        if (!ProcessSwitch(PidRequest->ProcessId, PidRequest->Process, PidRequest->IsSwitchByClkIntr))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;

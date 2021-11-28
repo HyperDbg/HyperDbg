@@ -81,7 +81,7 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     //
     // Check for intercepting #DB by threads tracer
     //
-    if (g_GuestState[CurrentCoreId].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
+    if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
     }
@@ -257,9 +257,10 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
         }
 
         //
-        // Check if it should remain active for thread changing or not
+        // Check if it should remain active for thread or process changing or not
         //
-        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange)
+        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
+            g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
         {
             return;
         }

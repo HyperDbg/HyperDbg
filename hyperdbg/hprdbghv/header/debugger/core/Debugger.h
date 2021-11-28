@@ -98,27 +98,29 @@ typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 } DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
 
 /**
- * @brief Structure to save the state of tracing threads
- * 
- */
-typedef struct _DEBUGGEE_THREAD_TRACE_DETAILS
-{
-    UINT64  CurrentThreadLocationOnGs;
-    BOOLEAN DebugRegisterInterceptionState;
-    BOOLEAN InterceptClockInterruptsForThreadChange;
-
-} DEBUGGEE_THREAD_TRACE_DETAILS, *PDEBUGGEE_THREAD_TRACE_DETAILS;
-
-/**
  * @brief Structure to save the state of adding trace for threads 
  * and processes
  * 
  */
 typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
 {
-    BOOLEAN SetMovCr3VmExit;
-    BOOLEAN SetThreadChangeEvent;
-    BOOLEAN SetByClockInterrupt;
+    BOOLEAN InitialSetProcessChangeEvent;
+    BOOLEAN InitialSetThreadChangeEvent;
+
+    BOOLEAN InitialSetByClockInterrupt;
+
+    //
+    // For threads
+    //
+    UINT64  CurrentThreadLocationOnGs;
+    BOOLEAN DebugRegisterInterceptionState;
+    BOOLEAN InterceptClockInterruptsForThreadChange;
+
+    //
+    // For processes
+    //
+    BOOLEAN IsWatingForMovCr3VmExits;
+    BOOLEAN InterceptClockInterruptsForProcessChange;
 
 } DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS, *PDEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS;
 
@@ -135,7 +137,6 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
-    DEBUGGEE_THREAD_TRACE_DETAILS              ThreadTracingDetails;
     BOOLEAN                                    EnableExternalInterruptsOnContinue;
     BOOLEAN                                    EnableExternalInterruptsOnContinueMtf;
     BOOLEAN                                    DisableTrapFlagOnContinue;

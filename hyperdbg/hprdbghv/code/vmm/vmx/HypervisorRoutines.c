@@ -218,9 +218,12 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             InvvpidSingleContext(VPID_TAG);
 
             //
-            //
             // Call kernel debugger handler for mov to cr3
-            ProcessHandleMovToCr3(ProcessorIndex, GuestState, &NewCr3Reg);
+            //
+            if (g_GuestState[ProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+            {
+                ProcessHandleProcessChange(ProcessorIndex, GuestState);
+            }
 
             break;
         case 4:

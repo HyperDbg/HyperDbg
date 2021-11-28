@@ -51,6 +51,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
     DWORD32                              OffsetOfUniqueProcessId    = 0; // nt!_EPROCESS.UniqueProcessId
     DWORD32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
     BOOLEAN                              ResultOfGettingOffsets     = FALSE;
+    BOOLEAN                              IsSetByClkIntr             = FALSE;
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS ProcessListNeededItems     = {0};
 
     if (SplittedCommand.size() >= 4)
@@ -77,6 +78,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
                                             NULL,
                                             NULL,
+                                            FALSE,
                                             NULL);
     }
     else if (SplittedCommand.size() == 2)
@@ -116,6 +118,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
                                                     NULL,
                                                     NULL,
+                                                    FALSE,
                                                     &ProcessListNeededItems);
             }
             else
@@ -169,11 +172,24 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         }
 
         //
+        // Check for switching method
+        //
+        if (!SplittedCommand.at(0).compare(".process2"))
+        {
+            IsSetByClkIntr = FALSE;
+        }
+        else
+        {
+            IsSetByClkIntr = TRUE;
+        }
+
+        //
         // Send the packet to change process
         //
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH,
                                             TargetProcessId,
                                             TargetProcess,
+                                            IsSetByClkIntr,
                                             NULL);
     }
     else

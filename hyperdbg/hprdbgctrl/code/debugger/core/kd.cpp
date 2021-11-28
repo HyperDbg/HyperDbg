@@ -604,6 +604,7 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
  * @param ActionType
  * @param NewPid
  * @param NewProcess
+ * @param SetChangeByClockInterrupt
  * @param SymDetailsForProcessList
  *
  * @return BOOLEAN
@@ -612,13 +613,15 @@ BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
                                     UINT32                                   NewPid,
                                     UINT64                                   NewProcess,
+                                    BOOLEAN                                  SetChangeByClockInterrupt,
                                     PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList)
 {
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ProcessChangePacket = {0};
 
-    ProcessChangePacket.ActionType = ActionType;
-    ProcessChangePacket.ProcessId  = NewPid;
-    ProcessChangePacket.Process    = NewProcess;
+    ProcessChangePacket.ActionType        = ActionType;
+    ProcessChangePacket.ProcessId         = NewPid;
+    ProcessChangePacket.Process           = NewProcess;
+    ProcessChangePacket.IsSwitchByClkIntr = SetChangeByClockInterrupt;
 
     //
     // Check if the command really needs these information or not

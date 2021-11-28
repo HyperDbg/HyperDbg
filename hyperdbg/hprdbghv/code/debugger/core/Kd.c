@@ -465,37 +465,39 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
     //
     // Check to unset mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
     {
         //
-        // Unset mov to cr3 vm-exit, this flag is also use to remove the
-        // mov 2 cr3 on next halt
+        // Disable process change detection
         //
-        HvSetMovToCr3Vmexit(FALSE);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                  FALSE,
+                                                  g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
 
         //
         // Avoid future sets/unsets
         //
-        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt   = FALSE;
     }
 
     //
     // Check to unset change thread alerts
     //
-    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
     {
         //
         // Disable thread change alerts
         //
         ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
                                                  FALSE,
-                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt);
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
 
         //
         // Avoid future sets/unsets
         //
-        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent = FALSE;
-        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt  = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = FALSE;
     }
 }
 
@@ -527,26 +529,27 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     // Check to apply mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetProcessChangeEvent == TRUE)
     {
         //
-        // Set mov to cr3 vm-exit, this flag is also use to remove the
-        // mov 2 cr3 on next halt
+        // Enable process change detection
         //
-        HvSetMovToCr3Vmexit(TRUE);
+        ProcessEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                  TRUE,
+                                                  g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 
     //
     // Check to apply thread change alerts
     //
-    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent == TRUE)
     {
         //
         // Enable alert for thread changes
         //
         ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
                                                  TRUE,
-                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt);
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt);
     }
 }
 

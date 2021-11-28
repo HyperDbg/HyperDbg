@@ -107,7 +107,7 @@ IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 Cu
         //
         // Check whether it is because of thread change detection or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }

@@ -1574,6 +1574,7 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType;
     UINT32                                   ProcessId;
     UINT64                                   Process;
+    BOOLEAN                                  IsSwitchByClkIntr;
     UCHAR                                    ProcessName[16];
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS     ProcessListSymDetails;
     UINT32                                   Result;

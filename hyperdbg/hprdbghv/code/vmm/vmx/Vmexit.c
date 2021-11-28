@@ -339,14 +339,21 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // Windows fires a clk interrupt on core 0 and fires IPI on other cores
         // to change a thread
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange &&
+        if ((g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange || g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
             ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
              (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
         {
             //
             // We only handle interrupts that are related to the clock-timer interrupt
             //
-            ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
+            {
+                ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+            }
+            else
+            {
+                ProcessHandleProcessChange(CurrentProcessorIndex, GuestRegs);
+            }
         }
         else
         {
@@ -459,7 +466,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // because on detecting thread scheduling we ignore the hardware debug
         // registers modifications
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
+        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 

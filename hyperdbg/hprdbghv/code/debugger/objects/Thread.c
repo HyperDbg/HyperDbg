@@ -95,8 +95,8 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent = TRUE;
-        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt  = CheckByClockInterrupt;
+        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetThreadChangeEvent = TRUE;
+        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.InitialSetByClockInterrupt  = CheckByClockInterrupt;
     }
 
     return TRUE;
@@ -314,7 +314,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
  * @return VOID 
  */
 VOID
-TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
+ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
                                      BOOLEAN Enable)
 {
     UINT64 MsrGsBase;
@@ -348,12 +348,12 @@ TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
         //
         // Set the global value for current thread of this processor
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs = MsrGsBase;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = MsrGsBase;
 
         //
         // Set interception state
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState = TRUE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = TRUE;
 
         //
         // Enable load debug controls and save debug controls because we don't
@@ -387,7 +387,7 @@ TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
             DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT,
             BREAK_ON_WRITE_ONLY,
             TRUE,
-            g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs);
+            g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs);
 
         //
         // Enables mov to debug registers exitings in primary cpu-based controls
@@ -410,7 +410,7 @@ TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
         //
         // We should not ignore debug registers change anymore
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState = FALSE;
 
         //
         // Disable mov to debug regs vm-exit
@@ -432,7 +432,7 @@ TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
         //
         // No longer need to store such gs:188 value
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs = NULL;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.CurrentThreadLocationOnGs = NULL;
     }
 }
 
@@ -446,7 +446,7 @@ TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
  * @return VOID 
  */
 VOID
-TheadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
+ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
                                                BOOLEAN Enable)
 {
     if (Enable)
@@ -454,7 +454,7 @@ TheadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
         //
         // We should get the clock interrupts
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange = TRUE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = TRUE;
 
         //
         // Intercept external interrupts (for monitoring clock interrupts)
@@ -466,7 +466,7 @@ TheadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
         //
         // We should ignore intercepting any further clock interrupts
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange = FALSE;
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange = FALSE;
 
         //
         // Undo intercepting external interrupts
@@ -495,10 +495,10 @@ ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
     //
     if (!CheckByClockInterrupts)
     {
-        TheadDetectChangeByDebugRegisterOnGs(CurrentProcessorIndex, Enable);
+        ThreadDetectChangeByDebugRegisterOnGs(CurrentProcessorIndex, Enable);
     }
     else
     {
-        TheadDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
+        ThreadDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
     }
 }
