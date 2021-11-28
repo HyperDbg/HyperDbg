@@ -33,9 +33,15 @@ ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
         //
         KdHandleBreakpointAndDebugBreakpoints(CurrentCore, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED, NULL);
 
+        //
+        // Found
+        //
         return TRUE;
     }
 
+    //
+    // Not found
+    //
     return FALSE;
 }
 
@@ -315,7 +321,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
  */
 VOID
 ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
-                                     BOOLEAN Enable)
+                                      BOOLEAN Enable)
 {
     UINT64 MsrGsBase;
 
@@ -447,7 +453,7 @@ ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
  */
 VOID
 ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
-                                               BOOLEAN Enable)
+                                                BOOLEAN Enable)
 {
     if (Enable)
     {

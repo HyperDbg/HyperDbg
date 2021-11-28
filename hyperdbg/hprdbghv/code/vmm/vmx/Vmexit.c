@@ -317,7 +317,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             //
             // Call the Exception Bitmap and NMI Handler
             //
-            IdtEmulationHandleExceptionAndNmi(InterruptExit, CurrentProcessorIndex, GuestRegs);
+            IdtEmulationHandleExceptionAndNmi(CurrentProcessorIndex, InterruptExit, GuestRegs);
         }
 
         break;
@@ -332,42 +332,18 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         // Call External Interrupt Handler
         //
-        IdtEmulationHandleExternalInterrupt(InterruptExit, CurrentProcessorIndex);
+        IdtEmulationHandleExternalInterrupt(CurrentProcessorIndex, InterruptExit, GuestRegs);
 
         //
-        // Check whether intercepting this process or thread is active or not,
-        // Windows fires a clk interrupt on core 0 and fires IPI on other cores
-        // to change a thread
+        // Trigger the event
         //
-        if ((g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange || g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
-            ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
-             (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
-        {
-            //
-            // We only handle interrupts that are related to the clock-timer interrupt
-            //
-            if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
-            {
-                ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
-            }
-            else
-            {
-                ProcessHandleProcessChange(CurrentProcessorIndex, GuestRegs);
-            }
-        }
-        else
-        {
-            //
-            // Trigger the event
-            //
-            // As the context to event trigger, we send the vector index
-            //
-            // Keep in mind that interrupt might be inseted in pending list
-            // because the guest is not in a interruptible state and will
-            // be re-injected when the guest is ready for interrupts
-            //
-            DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
-        }
+        // As the context to event trigger, we send the vector index
+        //
+        // Keep in mind that interrupt might be inseted in pending list
+        // because the guest is not in a interruptible state and will
+        // be re-injected when the guest is ready for interrupts
+        //
+        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
 
         break;
     }

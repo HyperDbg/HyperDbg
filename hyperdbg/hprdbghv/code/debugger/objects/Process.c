@@ -20,7 +20,7 @@
  * 
  * @return VOID 
  */
-VOID
+BOOLEAN
 ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
 {
     //
@@ -30,7 +30,17 @@ ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
         (g_ProcessSwitch.Process != NULL && g_ProcessSwitch.Process == PsGetCurrentProcess()))
     {
         KdHandleBreakpointAndDebugBreakpoints(ProcessorIndex, GuestState, DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED, NULL);
+
+        //
+        // Found
+        //
+        return TRUE;
     }
+
+    //
+    // Not found
+    //
+    return FALSE;
 }
 
 /**

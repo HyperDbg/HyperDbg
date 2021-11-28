@@ -16,7 +16,7 @@
 //				   Functions					//
 //////////////////////////////////////////////////
 
-VOID
+BOOLEAN
 ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState);
 
 BOOLEAN

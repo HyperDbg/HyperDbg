@@ -14,13 +14,13 @@
 /**
  * @brief Handle Nmi and expection vm-exits
  * 
- * @param InterruptExit vm-exit information for interrupt
  * @param CurrentProcessorIndex index of processor
+ * @param InterruptExit vm-exit information for interrupt
  * @param GuestRegs guest registers
  * @return VOID 
  */
 VOID
-IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
 {
     ULONG ErrorCode = 0;
 
@@ -249,19 +249,69 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO Inter
 }
 
 /**
- * @brief external-interrupt vm-exit handler
+ * @brief Handle process or thread switches
  * 
- * @param InterruptExit interrupt info from vm-exit
  * @param CurrentProcessorIndex processor index
+ * @param InterruptExit interrupt info from vm-exit
+ * @param GuestRegs guest context
+ * 
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex)
+IdtEmulationCheckProcessOrThreadChange(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
+{
+    //
+    // Check whether intercepting this process or thread is active or not,
+    // Windows fires a clk interrupt on core 0 and fires IPI on other cores
+    // to change a thread
+    //
+    if ((g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange || g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
+        ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
+         (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
+    {
+        //
+        // We only handle interrupts that are related to the clock-timer interrupt
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
+        {
+            return ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+        }
+        else
+        {
+            return ProcessHandleProcessChange(CurrentProcessorIndex, GuestRegs);
+        }
+    }
+
+    //
+    // Not handled here
+    //
+    return FALSE;
+}
+
+/**
+ * @brief external-interrupt vm-exit handler
+ * 
+ * @param CurrentProcessorIndex processor index
+ * @param InterruptExit interrupt info from vm-exit
+ * @param GuestRegs guest contexts
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
 {
     BOOLEAN                Interruptible         = TRUE;
     INTERRUPTIBILITY_STATE InterruptibilityState = {0};
     RFLAGS                 GuestRflags           = {0};
     ULONG                  ErrorCode             = 0;
+
+    //
+    // Check process or thread change detections
+    // we cannot ignore injecting the interrupt to the guest if the target interrupt
+    // and process or thread proved to cause a system halt. it halts the system as
+    // we Windows expects to switch the thread while we're forcing it to not do it
+    //
+    IdtEmulationCheckProcessOrThreadChange(CurrentProcessorIndex, InterruptExit, GuestRegs);
 
     //
     // In order to enable External Interrupt Exiting we have to set
@@ -273,7 +323,6 @@ IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
-
     if ((g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue ||
          g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf))
     {
