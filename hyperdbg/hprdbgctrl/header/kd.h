@@ -120,6 +120,7 @@ BOOLEAN
 KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE ActionType,
                                    UINT32                                  NewTid,
                                    UINT64                                  NewThread,
+                                   BOOLEAN                                 CheckByClockInterrupt,
                                    PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS    SymDetailsForThreadList);
 
 BOOLEAN

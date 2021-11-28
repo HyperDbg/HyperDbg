@@ -105,8 +105,22 @@ typedef struct _DEBUGGEE_THREAD_TRACE_DETAILS
 {
     UINT64  CurrentThreadLocationOnGs;
     BOOLEAN DebugRegisterInterceptionState;
+    BOOLEAN InterceptClockInterruptsForThreadChange;
 
 } DEBUGGEE_THREAD_TRACE_DETAILS, *PDEBUGGEE_THREAD_TRACE_DETAILS;
+
+/**
+ * @brief Structure to save the state of adding trace for threads 
+ * and processes
+ * 
+ */
+typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
+{
+    BOOLEAN SetMovCr3VmExit;
+    BOOLEAN SetThreadChangeEvent;
+    BOOLEAN SetByClockInterrupt;
+
+} DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS, *PDEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS;
 
 /**
  * @brief Saves the debugger state
@@ -116,25 +130,24 @@ typedef struct _DEBUGGEE_THREAD_TRACE_DETAILS
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
-    volatile LONG                          Lock;
-    volatile BOOLEAN                       MainDebuggingCore;
-    PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE  MsrState;
-    PDEBUGGEE_BP_DESCRIPTOR                SoftwareBreakpointState;
-    DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE InstrumentationStepInTrace;
-    DEBUGGEE_THREAD_TRACE_DETAILS          ThreadTracingDetails;
-    BOOLEAN                                EnableExternalInterruptsOnContinue;
-    BOOLEAN                                EnableExternalInterruptsOnContinueMtf;
-    BOOLEAN                                DisableTrapFlagOnContinue;
-    BOOLEAN                                WaitForStepTrap;
-    BOOLEAN                                WaitingForNmi;
-    BOOLEAN                                DoNotNmiNotifyOtherCoresByThisCore;
-    BOOLEAN                                SetMovCr3VmExit;
-    BOOLEAN                                SetThreadChangeEvent;
-    BOOLEAN                                BreakStarterCore;
-    UINT16                                 InstructionLengthHint;
-    PGUEST_REGS                            GuestRegs;
-    UINT64                                 HardwareDebugRegisterForStepping;
-    UINT64 *                               ScriptEngineCoreSpecificLocalVariable;
+    volatile LONG                              Lock;
+    volatile BOOLEAN                           MainDebuggingCore;
+    PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
+    PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
+    DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
+    DEBUGGEE_THREAD_TRACE_DETAILS              ThreadTracingDetails;
+    BOOLEAN                                    EnableExternalInterruptsOnContinue;
+    BOOLEAN                                    EnableExternalInterruptsOnContinueMtf;
+    BOOLEAN                                    DisableTrapFlagOnContinue;
+    BOOLEAN                                    WaitForStepTrap;
+    BOOLEAN                                    WaitingForNmi;
+    BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
+    DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
+    BOOLEAN                                    BreakStarterCore;
+    UINT16                                     InstructionLengthHint;
+    PGUEST_REGS                                GuestRegs;
+    UINT64                                     HardwareDebugRegisterForStepping;
+    UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

@@ -1620,6 +1620,7 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET
     UINT32                                  ProcessId;
     UINT64                                  Thread;
     UINT64                                  Process;
+    BOOLEAN                                 CheckByClockInterrupt;
     UCHAR                                   ProcessName[16];
     DEBUGGEE_THREAD_LIST_NEEDED_DETAILS     ThreadListSymDetails;
     UINT32                                  Result;

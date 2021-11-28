@@ -661,6 +661,7 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
  * @param ActionType
  * @param NewTid
  * @param NewThread
+ * @param CheckByClockInterrupt
  * @param SymDetailsForThreadList
  *
  * @return BOOLEAN
@@ -669,13 +670,15 @@ BOOLEAN
 KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE ActionType,
                                    UINT32                                  NewTid,
                                    UINT64                                  NewThread,
+                                   BOOLEAN                                 CheckByClockInterrupt,
                                    PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS    SymDetailsForThreadList)
 {
     DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET ThreadChangePacket = {0};
 
-    ThreadChangePacket.ActionType = ActionType;
-    ThreadChangePacket.ThreadId   = NewTid;
-    ThreadChangePacket.Thread     = NewThread;
+    ThreadChangePacket.ActionType            = ActionType;
+    ThreadChangePacket.ThreadId              = NewTid;
+    ThreadChangePacket.Thread                = NewThread;
+    ThreadChangePacket.CheckByClockInterrupt = CheckByClockInterrupt;
 
     //
     // Check if the command really needs these information or not

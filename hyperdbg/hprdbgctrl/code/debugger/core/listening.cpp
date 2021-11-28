@@ -294,10 +294,32 @@ StartAgain:
             {
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
-            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
-            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED:
+
+                //
+                // Unpause the debugger to get commands
+                //
+                g_SyncronizationObjectsHandleTable
+                    [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                        .IsOnWaitingState = FALSE;
+                SetEvent(g_SyncronizationObjectsHandleTable
+                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                                 .EventHandle);
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
+
+                if (PausePacket->PausingReason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED)
+                {
+                    ShowMessages("switched to the specified process\n");
+                }
+                else if (PausePacket->PausingReason == DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED)
+                {
+                    ShowMessages("switched to the specified thread\n");
+                }
 
                 //
                 // Unpause the debugger to get commands

@@ -24,13 +24,16 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandThreadHelp()
 {
-    ShowMessages(".thread : show and change the threads. "
+    ShowMessages(".thread, .thread2 : show and change the threads. "
                  "This command needs public symbols for ntoskrnl.exe if "
-                 "you want to see the threads list.\n\n");
+                 "you want to see the threads list. Please visit the "
+                 "documentation to know about the difference between .thread "
+                 "and .thread2.\n\n");
     ShowMessages("syntax : \t.thread [type (tid | thread | list)] [new "
                  "thread id (hex) | new nt!_ETHREAD address | list (process)] [process's nt!_EPROCESS]\n");
     ShowMessages("\t\te.g : .thread\n");
     ShowMessages("\t\te.g : .thread tid 48a4\n");
+    ShowMessages("\t\te.g : .thread2 tid 48a4\n");
     ShowMessages("\t\te.g : .thread thread ffff948c`c8970200\n");
     ShowMessages("\t\te.g : .thread list\n");
     ShowMessages("\t\te.g : .thread list process ffff948c`a1279880\n");
@@ -71,6 +74,7 @@ CommandThreadListThreads(UINT64 Eprocess)
         KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST,
                                            NULL,
                                            NULL,
+                                           FALSE,
                                            &ThreadListNeededItems);
 
         return TRUE;
@@ -91,9 +95,10 @@ CommandThreadListThreads(UINT64 Eprocess)
 VOID
 CommandThread(vector<string> SplittedCommand, string Command)
 {
-    UINT32 TargetThreadId = 0;
-    UINT64 TargetThread   = 0;
-    UINT64 TargetProcess  = 0;
+    UINT32  TargetThreadId = 0;
+    UINT64  TargetThread   = 0;
+    UINT64  TargetProcess  = 0;
+    BOOLEAN CheckByClkIntr = FALSE;
 
     if (SplittedCommand.size() >= 5)
     {
@@ -119,6 +124,7 @@ CommandThread(vector<string> SplittedCommand, string Command)
         KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS,
                                            NULL,
                                            NULL,
+                                           FALSE,
                                            NULL);
     }
     else if (SplittedCommand.size() == 2)
@@ -186,12 +192,28 @@ CommandThread(vector<string> SplittedCommand, string Command)
             return;
         }
 
+        if (!SplittedCommand.at(0).compare(".thread2"))
+        {
+            //
+            // Check by changes to gs:[188]
+            //
+            CheckByClkIntr = FALSE;
+        }
+        else
+        {
+            //
+            // Check on clock interrupt changes
+            //
+            CheckByClkIntr = TRUE;
+        }
+
         //
         // Send the packet to change the thread
         //
         KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH,
                                            TargetThreadId,
                                            TargetThread,
+                                           CheckByClkIntr,
                                            NULL);
     }
     else if (SplittedCommand.size() == 4)

@@ -330,31 +330,37 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
 
         //
-        // Check whether stepping is enabled or not
-        //
-        if (g_EnableDebuggerSteppings)
-        {
-            //
-            // Call the thread finder as a part of stepping handler
-            //
-            SteppingsHandleClockInterruptOnTargetProcess(GuestRegs, CurrentProcessorIndex, &InterruptExit);
-        }
-
-        //
         // Call External Interrupt Handler
         //
         IdtEmulationHandleExternalInterrupt(InterruptExit, CurrentProcessorIndex);
 
         //
-        // Trigger the event
+        // Check whether intercepting this process or thread is active or not,
+        // Windows fires a clk interrupt on core 0 and fires IPI on other cores
+        // to change a thread
         //
-        // As the context to event trigger, we send the vector index
-        //
-        // Keep in mind that interrupt might be inseted in pending list
-        // because the guest is not in a interruptible state and will
-        // be re-injected when the guest is ready for interrupts
-        //
-        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange &&
+            ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
+             (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
+        {
+            //
+            // We only handle interrupts that are related to the clock-timer interrupt
+            //
+            ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
+        }
+        else
+        {
+            //
+            // Trigger the event
+            //
+            // As the context to event trigger, we send the vector index
+            //
+            // Keep in mind that interrupt might be inseted in pending list
+            // because the guest is not in a interruptible state and will
+            // be re-injected when the guest is ready for interrupts
+            //
+            DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
+        }
 
         break;
     }
@@ -453,7 +459,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // because on detecting thread scheduling we ignore the hardware debug
         // registers modifications
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggerUserModeSteppingDetails.DebugRegisterInterceptionState)
+        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.DebugRegisterInterceptionState)
         {
             HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 

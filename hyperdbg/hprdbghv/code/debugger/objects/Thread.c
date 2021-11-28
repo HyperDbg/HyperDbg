@@ -43,11 +43,12 @@ ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
  * @brief make evnvironment ready to change the thread
  * @param ThreadId
  * @param EThread
+ * @param CheckByClockInterrupt
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-ThreadSwitch(UINT32 ThreadId, PETHREAD EThread)
+ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 {
     ULONG CoreCount = 0;
 
@@ -94,7 +95,8 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread)
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        g_GuestState[i].DebuggingState.SetThreadChangeEvent = TRUE;
+        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent = TRUE;
+        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt  = CheckByClockInterrupt;
     }
 
     return TRUE;
@@ -248,7 +250,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Perform the thread switch
         //
-        if (!ThreadSwitch(TidRequest->ThreadId, TidRequest->Thread))
+        if (!ThreadSwitch(TidRequest->ThreadId, TidRequest->Thread, TidRequest->CheckByClockInterrupt))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
             break;
@@ -304,14 +306,16 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
 
 /**
  * @brief Enable or disable the thread change monitoring detection 
- * on the running core
+ * on the running core based on putting a HW breakpoint on the gs:[188]
  * @details should be called on vmx root
  * 
+ * @param CurrentProcessorIndex 
  * @param Enable 
  * @return VOID 
  */
 VOID
-ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorIndex, BOOLEAN Enable)
+TheadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
+                                     BOOLEAN Enable)
 {
     UINT64 MsrGsBase;
 
@@ -429,5 +433,72 @@ ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(UINT32 CurrentProcessorInde
         // No longer need to store such gs:188 value
         //
         g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.CurrentThreadLocationOnGs = NULL;
+    }
+}
+
+/**
+ * @brief Enable or disable the thread change monitoring detection 
+ * on the running core based on intercepting clock interrupts
+ * @details should be called on vmx root
+ * 
+ * @param CurrentProcessorIndex 
+ * @param Enable 
+ * @return VOID 
+ */
+VOID
+TheadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
+                                               BOOLEAN Enable)
+{
+    if (Enable)
+    {
+        //
+        // We should get the clock interrupts
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange = TRUE;
+
+        //
+        // Intercept external interrupts (for monitoring clock interrupts)
+        //
+        HvSetExternalInterruptExiting(TRUE);
+    }
+    else
+    {
+        //
+        // We should ignore intercepting any further clock interrupts
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange = FALSE;
+
+        //
+        // Undo intercepting external interrupts
+        //
+        HvSetExternalInterruptExiting(FALSE);
+    }
+}
+
+/**
+ * @brief Enable or disable the thread change monitoring detection 
+ * on the running core
+ * @details should be called on vmx root
+ * 
+ * @param CurrentProcessorIndex 
+ * @param Enable 
+ * @param CheckByClockInterrupts 
+ * @return VOID 
+ */
+VOID
+ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
+                                         BOOLEAN Enable,
+                                         BOOLEAN CheckByClockInterrupts)
+{
+    //
+    // Check if it's a HW breakpoint on gs:[188] or a clock interception
+    //
+    if (!CheckByClockInterrupts)
+    {
+        TheadDetectChangeByDebugRegisterOnGs(CurrentProcessorIndex, Enable);
+    }
+    else
+    {
+        TheadDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
     }
 }

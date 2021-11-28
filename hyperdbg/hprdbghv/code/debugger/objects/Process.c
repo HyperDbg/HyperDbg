@@ -102,7 +102,7 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess)
 
     for (size_t i = 0; i < CoreCount; i++)
     {
-        g_GuestState[i].DebuggingState.SetMovCr3VmExit = TRUE;
+        g_GuestState[i].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit = TRUE;
     }
 
     return TRUE;

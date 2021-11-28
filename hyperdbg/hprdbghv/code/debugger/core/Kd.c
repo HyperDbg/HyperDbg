@@ -465,7 +465,7 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
     //
     // Check to unset mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit == TRUE)
     {
         //
         // Unset mov to cr3 vm-exit, this flag is also use to remove the
@@ -476,23 +476,26 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
         //
         // Avoid future sets/unsets
         //
-        g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit = FALSE;
     }
 
     //
     // Check to unset change thread alerts
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent == TRUE)
     {
         //
         // Disable thread change alerts
         //
-        ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(CurrentCore, FALSE);
+        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                 FALSE,
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt);
 
         //
         // Avoid future sets/unsets
         //
-        g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent = FALSE;
+        g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt  = FALSE;
     }
 }
 
@@ -524,7 +527,7 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     // Check to apply mov to cr3 vm-exits
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetMovCr3VmExit == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetMovCr3VmExit == TRUE)
     {
         //
         // Set mov to cr3 vm-exit, this flag is also use to remove the
@@ -536,12 +539,14 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
     //
     // Check to apply thread change alerts
     //
-    if (g_GuestState[CurrentCore].DebuggingState.SetThreadChangeEvent == TRUE)
+    if (g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetThreadChangeEvent == TRUE)
     {
         //
         // Enable alert for thread changes
         //
-        ThreadEnableOrDisableThreadChangeMonitorOnSingleCore(CurrentCore, TRUE);
+        ThreadEnableOrDisableThreadChangeMonitor(CurrentCore,
+                                                 TRUE,
+                                                 g_GuestState[CurrentCore].DebuggingState.ThreadOrProcessTracingDetails.SetByClockInterrupt);
     }
 }
 

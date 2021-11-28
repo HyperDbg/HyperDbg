@@ -255,6 +255,14 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
                 return;
             }
         }
+
+        //
+        // Check if it should remain active for thread changing or not
+        //
+        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadTracingDetails.InterceptClockInterruptsForThreadChange)
+        {
+            return;
+        }
     }
 
     //
