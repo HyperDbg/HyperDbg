@@ -35,6 +35,7 @@ extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
+extern BOOLEAN g_IgnorePauseRequests;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -1598,6 +1599,11 @@ StartAgain:
     if (!g_SerialConnectionAlreadyClosed)
     {
         //
+        // Ignore handling breaks
+        //
+        g_IgnorePauseRequests = TRUE;
+
+        //
         // The next step is getting symbol details
         //
         ShowMessages("getting symbol details...\n");
@@ -1637,6 +1643,11 @@ StartAgain:
         // Now, the user can press ctrl+c to pause the debuggee
         //
         ShowMessages("press CTRL+C to pause the debuggee\n");
+
+        //
+        // Process CTRL+C breaks again
+        //
+        g_IgnorePauseRequests = FALSE;
 
         //
         // Wait for event on this thread
@@ -1921,6 +1932,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
         {
             //
+            // Ignore handling CTRL+C breaks
+            //
+            g_IgnorePauseRequests = TRUE;
+
+            //
             // initialize and load symbols (pdb) and send the details to the debugger
             //
             ShowMessages("synchronizing modules' symbol details\n");
@@ -2008,6 +2024,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         CloseHandle(g_DebuggeeStopCommandEventHandle);
         g_DebuggeeStopCommandEventHandle = NULL;
+
+        //
+        // Handle CTRL+C breaks again
+        //
+        g_IgnorePauseRequests = FALSE;
 
         //
         // Finish it here
