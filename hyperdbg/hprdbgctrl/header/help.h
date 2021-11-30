@@ -196,6 +196,9 @@ VOID
 CommandProcessHelp();
 
 VOID
+CommandThreadHelp();
+
+VOID
 CommandEvalHelp();
 
 VOID

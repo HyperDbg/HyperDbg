@@ -183,6 +183,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_PROCESS_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_THREAD_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_SLEEP_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_ABSOLUTE_LOCAL
 
@@ -518,6 +521,9 @@ CommandCore(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandProcess(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandThread(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandEval(vector<string> SplittedCommand, string Command);

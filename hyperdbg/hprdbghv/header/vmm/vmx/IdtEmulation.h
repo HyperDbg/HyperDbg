@@ -52,10 +52,10 @@ typedef union _VMEXIT_INTERRUPT_INFO
 } VMEXIT_INTERRUPT_INFO, *PVMEXIT_INTERRUPT_INFO;
 
 VOID
-IdtEmulationHandleExceptionAndNmi(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
 
 BOOLEAN
-IdtEmulationHandleExternalInterrupt(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex);
+IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
 
 VOID
 IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex);

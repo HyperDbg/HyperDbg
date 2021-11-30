@@ -454,7 +454,11 @@ InitializeCommandsDictionary()
     g_CommandsList[".detach"] = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
     g_CommandsList["detach"]  = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
 
-    g_CommandsList[".process"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList[".process"]  = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+    g_CommandsList[".process2"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
+
+    g_CommandsList[".thread"]  = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
+    g_CommandsList[".thread2"] = {&CommandThread, &CommandThreadHelp, DEBUGGER_COMMAND_THREAD_ATTRIBUTES};
 
     g_CommandsList["sleep"] = {&CommandSleep, &CommandSleepHelp, DEBUGGER_COMMAND_SLEEP_ATTRIBUTES};
 

@@ -844,7 +844,7 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
         // For this purpose, first we disable all the events by
         // disabling all of them
         //
-        ExtensionCommandDisableMovDebugRegistersExitingAllCores();
+        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
 
         //
         // Then we iterate through the list of this event to re-apply
@@ -897,7 +897,7 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
         //
         // Disable it on all cores
         //
-        ExtensionCommandDisableMovDebugRegistersExitingAllCores();
+        ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores();
     }
 }
 

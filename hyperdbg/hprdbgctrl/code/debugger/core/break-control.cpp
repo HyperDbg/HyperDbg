@@ -18,11 +18,10 @@ extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_IsDebuggerModulesLoaded;
 extern BOOLEAN g_AutoUnpause;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsConnectedToRemoteDebugger;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsExecutingSymbolLoadingRoutines;
 extern BOOLEAN g_IsInstrumentingInstructions;
+extern BOOLEAN g_IgnorePauseRequests;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -36,19 +35,16 @@ BreakController(DWORD CtrlType)
     switch (CtrlType)
     {
         //
-        // Handle the CTRL + C & CTRL + Break signal.
+        // Handle the CTRL + C & CTRL + Break signal
         //
     case CTRL_BREAK_EVENT:
     case CTRL_C_EVENT:
 
         //
-        // Check if we should ignore the request or not
+        // check if we should ignore the break requests or not
         //
-        if (g_IsSerialConnectedToRemoteDebugger)
+        if (g_IgnorePauseRequests)
         {
-            //
-            // Handled (ignored)
-            //
             return TRUE;
         }
 

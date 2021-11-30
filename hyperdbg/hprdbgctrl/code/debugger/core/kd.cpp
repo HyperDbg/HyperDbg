@@ -35,6 +35,7 @@ extern BOOLEAN g_SerialConnectionAlreadyClosed;
 extern BOOLEAN g_IgnoreNewLoggingMessages;
 extern BOOLEAN g_SharedEventStatus;
 extern BOOLEAN g_IsRunningInstruction32Bit;
+extern BOOLEAN g_IgnorePauseRequests;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
@@ -600,10 +601,11 @@ KdSendAddActionToEventPacketToDebuggee(PDEBUGGER_GENERAL_ACTION GeneralAction,
 }
 
 /**
- * @brief Sends a change process packet to the debuggee
+ * @brief Sends a change process or show process details packet to the debuggee
  * @param ActionType
  * @param NewPid
  * @param NewProcess
+ * @param SetChangeByClockInterrupt
  * @param SymDetailsForProcessList
  *
  * @return BOOLEAN
@@ -612,13 +614,15 @@ BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
                                     UINT32                                   NewPid,
                                     UINT64                                   NewProcess,
+                                    BOOLEAN                                  SetChangeByClockInterrupt,
                                     PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList)
 {
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ProcessChangePacket = {0};
 
-    ProcessChangePacket.ActionType = ActionType;
-    ProcessChangePacket.ProcessId  = NewPid;
-    ProcessChangePacket.Process    = NewProcess;
+    ProcessChangePacket.ActionType        = ActionType;
+    ProcessChangePacket.ProcessId         = NewPid;
+    ProcessChangePacket.Process           = NewProcess;
+    ProcessChangePacket.IsSwitchByClkIntr = SetChangeByClockInterrupt;
 
     //
     // Check if the command really needs these information or not
@@ -650,6 +654,66 @@ KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Act
     WaitForSingleObject(
         g_SyncronizationObjectsHandleTable
             [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+                .EventHandle,
+        INFINITE);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends a change thread or show threads detail packet to the debuggee
+ * @param ActionType
+ * @param NewTid
+ * @param NewThread
+ * @param CheckByClockInterrupt
+ * @param SymDetailsForThreadList
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE ActionType,
+                                   UINT32                                  NewTid,
+                                   UINT64                                  NewThread,
+                                   BOOLEAN                                 CheckByClockInterrupt,
+                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS    SymDetailsForThreadList)
+{
+    DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET ThreadChangePacket = {0};
+
+    ThreadChangePacket.ActionType            = ActionType;
+    ThreadChangePacket.ThreadId              = NewTid;
+    ThreadChangePacket.Thread                = NewThread;
+    ThreadChangePacket.CheckByClockInterrupt = CheckByClockInterrupt;
+
+    //
+    // Check if the command really needs these information or not
+    // it's because some of the command don't need symbol offset informations
+    //
+    if (SymDetailsForThreadList != NULL)
+    {
+        memcpy(&ThreadChangePacket.ThreadListSymDetails, SymDetailsForThreadList, sizeof(DEBUGGEE_THREAD_LIST_NEEDED_DETAILS));
+    }
+
+    //
+    // Send '.thread' as switch packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD,
+            (CHAR *)&ThreadChangePacket,
+            sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of thread change received
+    //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
+            .IsOnWaitingState = TRUE;
+    WaitForSingleObject(
+        g_SyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
                 .EventHandle,
         INFINITE);
 
@@ -1535,6 +1599,11 @@ StartAgain:
     if (!g_SerialConnectionAlreadyClosed)
     {
         //
+        // Ignore handling breaks
+        //
+        g_IgnorePauseRequests = TRUE;
+
+        //
         // The next step is getting symbol details
         //
         ShowMessages("getting symbol details...\n");
@@ -1574,6 +1643,11 @@ StartAgain:
         // Now, the user can press ctrl+c to pause the debuggee
         //
         ShowMessages("press CTRL+C to pause the debuggee\n");
+
+        //
+        // Process CTRL+C breaks again
+        //
+        g_IgnorePauseRequests = FALSE;
 
         //
         // Wait for event on this thread
@@ -1858,6 +1932,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
         {
             //
+            // Ignore handling CTRL+C breaks
+            //
+            g_IgnorePauseRequests = TRUE;
+
+            //
             // initialize and load symbols (pdb) and send the details to the debugger
             //
             ShowMessages("synchronizing modules' symbol details\n");
@@ -1945,6 +2024,11 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         CloseHandle(g_DebuggeeStopCommandEventHandle);
         g_DebuggeeStopCommandEventHandle = NULL;
+
+        //
+        // Handle CTRL+C breaks again
+        //
+        g_IgnorePauseRequests = FALSE;
 
         //
         // Finish it here

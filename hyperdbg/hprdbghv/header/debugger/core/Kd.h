@@ -43,12 +43,23 @@ typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_PROCESS
 } DEBUGGEE_REQUEST_TO_CHANGE_PROCESS, *PDEBUGGEE_REQUEST_TO_CHANGE_PROCESS;
 
 /**
+ * @brief request to change the thread
+ *
+ */
+typedef struct _DEBUGGEE_REQUEST_TO_CHANGE_THREAD
+{
+    UINT32 ThreadId;
+    UINT64 Thread;
+
+} DEBUGGEE_REQUEST_TO_CHANGE_THREAD, *PDEBUGGEE_REQUEST_TO_CHANGE_THREAD;
+
+/**
  * @brief request to pause and halt the system
  *
  */
 typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
 {
-    volatile BOOLEAN                        PauseBreaksUntilASpecialMessageSent;
+    volatile BOOLEAN                        PauseBreaksUntilSpecialMessageSent;
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION SpeialEventResponse;
 
 } DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
@@ -79,8 +90,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PGUEST_REGS                       GuestRegs,
-                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails,
-                            BOOLEAN                           MainCore);
+                            PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
@@ -118,6 +128,3 @@ KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLe
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);
-
-VOID
-KdHandleMovToCr3(UINT32 ProcessorIndex, PGUEST_REGS GuestState, PCR3_TYPE NewCr3);

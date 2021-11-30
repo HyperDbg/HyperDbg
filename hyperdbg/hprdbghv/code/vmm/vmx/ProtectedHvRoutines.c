@@ -79,6 +79,14 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     }
 
     //
+    // Check for intercepting #DB by threads tracer
+    //
+    if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+    }
+
+    //
     // Check for possible EPT Hooks (Hidden Breakpoints)
     //
     if (EptHookGetCountOfEpthooks(FALSE) != 0)
@@ -247,6 +255,15 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
                 return;
             }
         }
+
+        //
+        // Check if it should remain active for thread or process changing or not
+        //
+        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
+            g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange)
+        {
+            return;
+        }
     }
 
     //
@@ -385,6 +402,84 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
 }
 
 /**
+ * @brief Set vm-exit for mov to debug registers 
+ * @details Should be called in vmx-root
+ * 
+ * @param Set Set or unset the vm-exits
+ * @param PassOver Adds some pass over to the checks
+ * thus we won't check for dr
+
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    ULONG CpuBasedVmExecControls = 0;
+    ULONG CurrentCoreId          = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check if the integrity check is because of clearing
+        // events or not, if it's for clearing events, the debugger
+        // will automatically set
+        //
+        if (!(PassOver & PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS))
+        {
+            CurrentCoreId = KeGetCurrentProcessorNumber();
+
+            //
+            // we have to check for !dr events and decide whether to
+            // ignore this event or not
+            //
+            if (DebuggerEventListCountByCore(&g_Events->DebugRegistersAccessedEventsHead, CurrentCoreId) != 0)
+            {
+                //
+                // We should ignore this unset, because !dr is enabled for this core
+                //
+
+                return;
+            }
+        }
+
+        //
+        // Check if thread switching is enabled or not
+        //
+        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        {
+            //
+            // We should ignore it as we want this to switch to new thread
+            //
+            return;
+        }
+    }
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_MOV_DR_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_MOV_DR_EXITING;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
  * @brief Set the RDTSC/P Exiting
  * 
  * @param Set Set or unset the RDTSC/P Exiting
@@ -405,4 +500,27 @@ VOID
 ProtectedHvDisableRdtscExitingForDisablingTscCommands()
 {
     ProtectedHvSetTscVmexit(FALSE, PASSING_OVER_TSC_EVENTS);
+}
+
+/**
+ * @brief Set MOV to HW Debug Regs Exiting
+ * 
+ * @param Set Set or unset the MOV to HW Debug Regs Exiting
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set)
+{
+    ProtectedHvSetMovDebugRegsVmexit(Set, PASSING_OVER_NONE);
+}
+
+/**
+ * @brief Clear events of !dr
+ * 
+ * @return VOID 
+ */
+VOID
+ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
+{
+    ProtectedHvSetMovDebugRegsVmexit(FALSE, PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS);
 }

@@ -54,6 +54,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
     PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
@@ -220,20 +221,26 @@ StartAgain:
             g_IsRunningInstruction32Bit = PausePacket->Is32BitAddress;
 
             //
-            // Check whether the pausing was because of triggering an event
-            // or not
+            // Show additional messages before showing assembly and pausing
             //
-            if (PausePacket->EventTag != NULL)
+            switch (PausePacket->PausingReason)
             {
-                if (PausePacket->PausingReason ==
-                    DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT)
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
+
+                if (PausePacket->EventTag != NULL)
                 {
                     //
                     // It's a breakpoint id
                     //
-                    ShowMessages("breakpoint 0x%x hit\n", PausePacket->EventTag);
+                    ShowMessages("breakpoint 0x%x hit\n",
+                                 PausePacket->EventTag);
                 }
-                else
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
+
+                if (PausePacket->EventTag != NULL)
                 {
                     //
                     // It's an event tag
@@ -241,6 +248,23 @@ StartAgain:
                     ShowMessages("event 0x%x triggered\n",
                                  PausePacket->EventTag - DebuggerEventTagStartSeed);
                 }
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+
+                ShowMessages("switched to the specified process\n");
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
+
+                ShowMessages("switched to the specified thread\n");
+
+                break;
+
+            default:
+                break;
             }
 
             if (PausePacket->PausingReason !=
@@ -293,9 +317,10 @@ StartAgain:
             {
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT:
-            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED:
             case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED:
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED:
 
                 //
                 // Unpause the debugger to get commands
@@ -402,16 +427,17 @@ StartAgain:
             {
                 if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS)
                 {
-                    ShowMessages("process id: %x\nprocess (_EPROCESS): %s\n",
+                    ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
                                  ChangeProcessPacket->ProcessId,
-                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str());
+                                 SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
+                                 &ChangeProcessPacket->ProcessName);
                 }
-                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS)
+                else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH)
                 {
                     ShowMessages(
-                        "press 'g' to continue the debuggee, if the pid is valid then "
-                        "the debuggee will be automatically paused when it attached to "
-                        "the target process\n");
+                        "press 'g' to continue the debuggee, if the pid or the"
+                        "process object address is valid then the debuggee will "
+                        "be automatically paused when it attached to the target process\n");
                 }
             }
             else
@@ -427,6 +453,48 @@ StartAgain:
                     .IsOnWaitingState = FALSE;
             SetEvent(g_SyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT]
+                             .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD:
+
+            ChangeThreadPacket =
+                (DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET *)(((CHAR *)TheActualPacket) +
+                                                              sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (ChangeThreadPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_DETAILS)
+                {
+                    ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                                 ChangeThreadPacket->ThreadId,
+                                 ChangeThreadPacket->ProcessId,
+                                 SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
+                                 SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
+                                 &ChangeThreadPacket->ProcessName);
+                }
+                else if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH)
+                {
+                    ShowMessages(
+                        "press 'g' to continue the debuggee, if the tid or the"
+                        "thread object address is valid then the debuggee will "
+                        "be automatically paused when it attached to the target thread\n");
+                }
+            }
+            else
+            {
+                ShowErrorMessage(ChangeThreadPacket->Result);
+            }
+
+            //
+            // Signal the event relating to receiving result of thread change
+            //
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
+                    .IsOnWaitingState = FALSE;
+            SetEvent(g_SyncronizationObjectsHandleTable
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT]
                              .EventHandle);
 
             break;

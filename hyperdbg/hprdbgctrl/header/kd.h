@@ -114,7 +114,15 @@ BOOLEAN
 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
                                     UINT32                                   NewPid,
                                     UINT64                                   NewProcess,
-                                    PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS     SymDetailsForProcessList);
+                                    BOOLEAN                                  SetChangeByClockInterrupt,
+                                    PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList);
+
+BOOLEAN
+KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE ActionType,
+                                   UINT32                                  NewTid,
+                                   UINT64                                  NewThread,
+                                   BOOLEAN                                 CheckByClockInterrupt,
+                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS    SymDetailsForThreadList);
 
 BOOLEAN
 KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);

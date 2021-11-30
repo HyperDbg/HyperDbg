@@ -792,6 +792,35 @@ DpcRoutineDisableRdtscExitingForClearingTscEventsAllCores(KDPC * Dpc, PVOID Defe
 }
 
 /**
+ * @brief Disables mov to debug registers exiting 
+ * ONLY for clearing !dr events
+ * 
+ * @param Dpc 
+ * @param DeferredContext 
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disables mov 2 hw debug regs exiting ONLY for clearing events
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables rdpmc exiting in primary cpu-based controls
  * 
  * @param Dpc 

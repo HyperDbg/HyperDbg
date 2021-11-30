@@ -24,13 +24,16 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandProcessHelp()
 {
-    ShowMessages(".process : show and change the processes. "
+    ShowMessages(".process, .process2 : show and change the processes. "
                  "This command needs public symbols for ntoskrnl.exe if "
-                 "you want to see the processes list.\n\n");
-    ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new EPROCESS address]\n");
+                 "you want to see the processes list. Please visit the "
+                 "documentation to know about the difference between '.process' "
+                 "and '.process2'.\n\n");
+    ShowMessages("syntax : \t.process [type (pid | process | list)] [new process id (hex) | new nt!_EPROCESS address]\n");
     ShowMessages("\t\te.g : .process\n");
     ShowMessages("\t\te.g : .process list\n");
     ShowMessages("\t\te.g : .process pid 4\n");
+    ShowMessages("\t\te.g : .process2 pid 4\n");
     ShowMessages("\t\te.g : .process process ffff948c`c2349280\n");
 }
 
@@ -51,6 +54,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
     DWORD32                              OffsetOfUniqueProcessId    = 0; // nt!_EPROCESS.UniqueProcessId
     DWORD32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
     BOOLEAN                              ResultOfGettingOffsets     = FALSE;
+    BOOLEAN                              IsSetByClkIntr             = FALSE;
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS ProcessListNeededItems     = {0};
 
     if (SplittedCommand.size() >= 4)
@@ -77,6 +81,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
                                             NULL,
                                             NULL,
+                                            FALSE,
                                             NULL);
     }
     else if (SplittedCommand.size() == 2)
@@ -86,7 +91,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
             //
             // Query for nt!_EPROCESS.ImageFileName, nt!_EPROCESS.UniqueProcessId,
             // nt!_EPROCESS.UniqueProcessId offset from the top of nt!_EPROCESS,
-            // and nt!PsActiveProcessHead address and Check if we find them or not,
+            // and nt!PsActiveProcessHead address and check if we find them or not,
             // otherwise, it means that the PDB for ntoskrnl.exe is not available
             //
             if (ScriptEngineGetFieldOffsetWrapper((CHAR *)"nt!_EPROCESS", (CHAR *)"ActiveProcessLinks", &OffsetOfActiveProcessLinks) &&
@@ -116,6 +121,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                 KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
                                                     NULL,
                                                     NULL,
+                                                    FALSE,
                                                     &ProcessListNeededItems);
             }
             else
@@ -169,11 +175,24 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         }
 
         //
+        // Check for switching method
+        //
+        if (!SplittedCommand.at(0).compare(".process2"))
+        {
+            IsSetByClkIntr = FALSE;
+        }
+        else
+        {
+            IsSetByClkIntr = TRUE;
+        }
+
+        //
         // Send the packet to change process
         //
-        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_SWITCH_PROCESS,
+        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH,
                                             TargetProcessId,
                                             TargetProcess,
+                                            IsSetByClkIntr,
                                             NULL);
     }
     else
