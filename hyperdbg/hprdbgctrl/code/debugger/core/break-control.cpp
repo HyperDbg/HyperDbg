@@ -35,7 +35,7 @@ BreakController(DWORD CtrlType)
     switch (CtrlType)
     {
         //
-        // Handle the CTRL + C & CTRL + Break signal.
+        // Handle the CTRL + C & CTRL + Break signal
         //
     case CTRL_BREAK_EVENT:
     case CTRL_C_EVENT:
