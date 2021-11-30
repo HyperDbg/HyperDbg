@@ -115,6 +115,13 @@ BOOLEAN g_IsEndOfMessageReceived = FALSE;
  */
 BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
 
+/**
+ * @brief Show whether the pause request (CTRL+C or CTRL+BREAK) 
+ * should be ignored or not
+ *
+ */
+BOOLEAN g_IgnorePauseRequests = FALSE;
+
 //////////////////////////////////////////////////
 //		 Serial Debugging Variables             //
 //////////////////////////////////////////////////

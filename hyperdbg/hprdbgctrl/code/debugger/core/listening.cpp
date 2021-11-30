@@ -435,9 +435,9 @@ StartAgain:
                 else if (ChangeProcessPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH)
                 {
                     ShowMessages(
-                        "press 'g' to continue the debuggee, if the pid is valid then "
-                        "the debuggee will be automatically paused when it attached to "
-                        "the target process\n");
+                        "press 'g' to continue the debuggee, if the pid or the"
+                        "process object address is valid then the debuggee will "
+                        "be automatically paused when it attached to the target process\n");
                 }
             }
             else
@@ -477,9 +477,9 @@ StartAgain:
                 else if (ChangeThreadPacket->ActionType == DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PERFORM_SWITCH)
                 {
                     ShowMessages(
-                        "press 'g' to continue the debuggee, if the tid is valid then "
-                        "the debuggee will be automatically paused when it attached to "
-                        "the target thread\n");
+                        "press 'g' to continue the debuggee, if the tid or the"
+                        "thread object address is valid then the debuggee will "
+                        "be automatically paused when it attached to the target thread\n");
                 }
             }
             else
