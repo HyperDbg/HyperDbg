@@ -490,7 +490,7 @@ InterpretScript(vector<string> * SplittedCommand,
 
         if (IsInState)
         {
-            if (OpenBracket == 0 && Section.find("{") == string::npos)
+            if (OpenBracket == 0 && Section.find('{') == string::npos)
             {
                 //
                 // Check if the buffer is ended or not
@@ -534,7 +534,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find("{") != string::npos)
+            if (Section.find('{') != string::npos)
             {
                 //
                 // We find a { between the script
@@ -554,7 +554,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "}"
             //
-            if (Section.find("}") != string::npos)
+            if (Section.find('}') != string::npos)
             {
                 //
                 // We find a } between the script
@@ -602,7 +602,7 @@ InterpretScript(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind("{", 0) == 0)
+        if (IsTextVisited && Section.rfind('{', 0) == 0)
         {
             //
             // Section starts with {
@@ -611,7 +611,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find("{") != string::npos)
+            if (Section.find('{') != string::npos)
             {
                 //
                 // We find a { between the script
@@ -649,7 +649,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "}"
             //
-            if (Section.find("}") != string::npos)
+            if (Section.find('}') != string::npos)
             {
                 //
                 // We find a } between the script
@@ -733,7 +733,7 @@ InterpretScript(vector<string> * SplittedCommand,
             //
             // Check if script contains bracket "{"
             //
-            if (Section.find("{") != string::npos)
+            if (Section.find('{') != string::npos)
             {
                 //
                 // We find a { between the script
@@ -771,7 +771,7 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 // Check if script contains bracket "}"
                 //
-                if (Section.find("}") != string::npos)
+                if (Section.find('}') != string::npos)
                 {
                     //
                     // We find a } between the script
@@ -1026,7 +1026,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind("{", 0) == 0)
+        if (IsTextVisited && Section.rfind('{', 0) == 0)
         {
             //
             // Section starts with {
@@ -1236,7 +1236,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
         {
             Temp = Section.erase(0, 2);
         }
-        else if (Section.rfind("x", 0) == 0 || Section.rfind("X", 0) == 0)
+        else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
         {
             Temp = Section.erase(0, 1);
         }
@@ -1405,7 +1405,7 @@ InterpretOutput(vector<string> * SplittedCommand,
             continue;
         }
 
-        if (IsTextVisited && Section.rfind("{", 0) == 0)
+        if (IsTextVisited && Section.rfind('{', 0) == 0)
         {
             //
             // Section starts with {
