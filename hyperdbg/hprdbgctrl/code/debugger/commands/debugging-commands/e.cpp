@@ -185,7 +185,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
             {
                 Section = Section.erase(0, 2);
             }
-            else if (Section.rfind("x", 0) == 0 || Section.rfind("X", 0) == 0)
+            else if (Section.rfind('x', 0) == 0 || Section.rfind('X', 0) == 0)
             {
                 Section = Section.erase(0, 1);
             }

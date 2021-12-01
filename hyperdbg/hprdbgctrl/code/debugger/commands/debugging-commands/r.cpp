@@ -274,7 +274,7 @@ CommandR(vector<string> SplittedCommand, string Command)
     // if command contains a '=' means user wants modify the register
     //
 
-    else if (Command.find("=", 0))
+    else if (Command.find('=', 0))
     {
         PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
             new DEBUGGEE_REGISTER_READ_DESCRIPTION;

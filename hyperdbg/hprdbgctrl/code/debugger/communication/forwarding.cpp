@@ -230,7 +230,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
         //
         // Check if the port is included in the description string or not
         //
-        if (Description.find(":") != std::string::npos)
+        if (Description.find(':') != std::string::npos)
         {
             //
             // Split the ip and port by : delimiter

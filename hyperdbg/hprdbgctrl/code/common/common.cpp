@@ -240,8 +240,8 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
     {
         TextToConvert = TextToConvert.erase(0, 2);
     }
-    else if (TextToConvert.rfind("x", 0) == 0 ||
-             TextToConvert.rfind("X", 0) == 0)
+    else if (TextToConvert.rfind('x', 0) == 0 ||
+             TextToConvert.rfind('X', 0) == 0)
     {
         TextToConvert = TextToConvert.erase(0, 1);
     }
@@ -290,8 +290,8 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
     {
         TextToConvert = TextToConvert.erase(0, 2);
     }
-    else if (TextToConvert.rfind("x", 0) == 0 ||
-             TextToConvert.rfind("X", 0) == 0)
+    else if (TextToConvert.rfind('x', 0) == 0 ||
+             TextToConvert.rfind('X', 0) == 0)
     {
         TextToConvert = TextToConvert.erase(0, 1);
     }

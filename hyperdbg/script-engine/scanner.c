@@ -408,7 +408,7 @@ GetToken(char * c, char * str)
             }
             else
             {
-                if (strstr(Token->Value, "!"))
+                if (strstr(Token->Value, '!'))
                 {
                     Token->Type = UNKNOWN;
                     return Token;
@@ -578,7 +578,7 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (strstr(Token->Value, "!"))
+                        if (strstr(Token->Value, '!'))
                         {
                             Token->Type = UNKNOWN;
                             return Token;
@@ -622,7 +622,7 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (strstr(Token->Value, "!"))
+                        if (strstr(Token->Value, '!'))
                         {
                             Token->Type = UNKNOWN;
                             return Token;
@@ -677,7 +677,7 @@ GetToken(char * c, char * str)
                 }
                 else
                 {
-                    if (strstr(Token->Value, "!"))
+                    if (strstr(Token->Value, '!'))
                     {
                         Token->Type = UNKNOWN;
                         return Token;
