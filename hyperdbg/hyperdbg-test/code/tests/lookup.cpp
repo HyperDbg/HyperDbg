@@ -138,7 +138,7 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
     //
     // Replace tags with addresses
     //
-    for (auto CurrentCase : TestCases)
+    for (auto & CurrentCase : TestCases)
     {
         //
         // Template instantiations for
@@ -146,12 +146,12 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
         //
         smatch Match;
         regex  r("\\[(.*?)\\]");
-        string Subject = CurrentCase;
+        string Subject = std::move(CurrentCase);
 
         int i = 1;
         while (regex_search(Subject, Match, r))
         {
-            for (auto item : LookupTable)
+            for (auto & item : LookupTable)
             {
                 string Temp = ConvertToString(item.Tag);
                 Temp        = "[" + Temp + "]";
@@ -182,7 +182,7 @@ TestCreateLookupTable(HANDLE PipeHandle, PVOID KernelInformation, UINT32 KernelI
 
         string OutputCommand = "cmd:" + NewCase;
 
-        SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)OutputCommand.c_str(), strlen(OutputCommand.c_str()) + 1);
+        SentMessageResult = NamedPipeClientSendMessage(PipeHandle, (char *)OutputCommand.c_str(), OutputCommand.length() + 1);
         if (!SentMessageResult)
         {
             //

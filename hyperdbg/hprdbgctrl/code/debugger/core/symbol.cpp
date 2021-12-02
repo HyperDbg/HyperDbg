@@ -114,7 +114,7 @@ SymbolCreateDisassemblerMapCallback(UINT64       Address,
     //
     // Create the structure
     //
-    LocalFunctionDescription.ObjectName = FinalModuleName;
+    LocalFunctionDescription.ObjectName = std::move(FinalModuleName);
     LocalFunctionDescription.ObjectSize = ObjectSize;
 
     //

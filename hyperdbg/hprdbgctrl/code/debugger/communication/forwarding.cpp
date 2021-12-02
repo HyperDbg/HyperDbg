@@ -236,10 +236,9 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             // Split the ip and port by : delimiter
             //
             IpPortDelimiter = ":";
-            Ip              = Description.substr(0, Description.find(IpPortDelimiter));
-            Port            = Description.substr(Description.find(IpPortDelimiter) + 1,
-                                      Description.find(IpPortDelimiter) +
-                                          Description.size());
+            size_t find     = Description.find(IpPortDelimiter);
+            Ip              = Description.substr(0, find);
+            Port            = Description.substr(find + 1, find + Description.size());
 
             //
             // Connect to server, in this function 0 means there was no error
