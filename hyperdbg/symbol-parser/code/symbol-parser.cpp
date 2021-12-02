@@ -109,7 +109,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 
         strcpy(ModuleName, Token.c_str());
 
-        if (strlen(ModuleName) == 0)
+        if (ModuleName[0] == '\0')
         {
             //
             // Invalid name
@@ -1056,7 +1056,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     // Image name
     //
-    if (strlen(ModuleInfo.ImageName) > 0)
+    if (ModuleInfo.ImageName[0] != '\0')
     {
         ShowMessages("image name: %s\n", ModuleInfo.ImageName);
     }
@@ -1064,7 +1064,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     // Loaded image name
     //
-    if (strlen(ModuleInfo.LoadedImageName) > 0)
+    if (ModuleInfo.LoadedImageName[0] != '\0')
     {
         ShowMessages("loaded image name: %s\n", ModuleInfo.LoadedImageName);
     }
@@ -1072,7 +1072,7 @@ SymShowSymbolInfo(DWORD64 ModuleBase)
     //
     // Loaded PDB name
     //
-    if (strlen(ModuleInfo.LoadedPdbName) > 0)
+    if (ModuleInfo.LoadedPdbName[0] != '\0')
     {
         ShowMessages("PDB file name: %s\n", ModuleInfo.LoadedPdbName);
     }

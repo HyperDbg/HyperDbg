@@ -63,9 +63,9 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
     //
     // allocate buffer for transfering messages
     //
-    unsigned char * OutputBuffer = (unsigned char *)malloc(Size);
+    unsigned char * OutputBuffer = (unsigned char *)malloc(Size * sizeof(unsigned char));
 
-    ZeroMemory(OutputBuffer, Size);
+    ZeroMemory(OutputBuffer, Size * sizeof(unsigned char));
 
     Status = DeviceIoControl(g_DeviceHandle,              // Handle to device
                              IOCTL_DEBUGGER_READ_MEMORY,  // IO Control code

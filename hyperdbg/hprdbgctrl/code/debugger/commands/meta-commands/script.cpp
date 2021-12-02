@@ -42,7 +42,6 @@ CommandScript(vector<string> SplittedCommand, string Command)
 {
     std::string Line;
     BOOLEAN     IsOpened = FALSE;
-    string      NewPath;
     int         CommandExecutionResult = 0;
 
     if (SplittedCommand.size() == 1)

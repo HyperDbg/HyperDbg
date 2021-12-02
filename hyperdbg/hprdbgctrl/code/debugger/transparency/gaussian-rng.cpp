@@ -165,7 +165,7 @@ GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * Sta
     double         DataMedian;
 
     vector<double> OriginalData  = Data;
-    vector<double> ChangableData = Data;
+    vector<double> ChangableData = std::move(Data);
 
     Mad     = MedianAbsoluteDeviationTest(ChangableData);
     Medians = Median(OriginalData);

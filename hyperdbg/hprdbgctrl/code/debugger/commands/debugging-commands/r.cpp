@@ -324,6 +324,7 @@ CommandR(vector<string> SplittedCommand, string Command)
                         //
                         // return to show that this item contains an script
                         //
+                        delete RegD;
                         return;
                     }
 
