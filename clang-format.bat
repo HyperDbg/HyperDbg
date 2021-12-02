@@ -1,19 +1,25 @@
 @echo off
 
-set LLVM_PATH="c:\Program Files\LLVM\bin"
+set vswhere="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+set clang_format=
 
 cls 
  
 setlocal enableextensions enabledelayedexpansion
-  
-for /r %%f in ( *.cpp *.hpp *.h *.c ) do (
+
+for /f "tokens=*" %%i in ('%vswhere% -latest -find VC\Tools\LLVM\**\bin\clang-format.exe') do ( 
+  echo clang-format found : %%i 
+   %%i --version 
+  set "clang_format="%%i""
+)
+
+for /r %%f in ( *.cc *.cpp *.hpp *.h *.c ) do (
   set file_path=%%~pf
     
-  :: discard the dependencies directory
-  if /I "!file_path!"=="!file_path:dependencies%=!" (
+  :: discard the third_party directory
+  if /I "!file_path!"=="!file_path:third_party%=!" (
      echo formatting [%%f]
-
-     call %LLVM_PATH%\clang-format.exe -i -style=file "%%f" 
+     call !clang_format! -i -style=file "%%f" 
   )
 )
 
