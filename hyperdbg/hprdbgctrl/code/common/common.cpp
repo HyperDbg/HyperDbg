@@ -117,13 +117,13 @@ Split(const string & s, const char & c)
     {
         if (n != c)
             buff += n;
-        else if (n == c && buff != "")
+        else if (n == c && !buff.empty())
         {
             v.push_back(buff);
-            buff = "";
+            buff.clear();
         }
     }
-    if (buff != "")
+    if (!buff.empty())
         v.push_back(buff);
 
     return v;

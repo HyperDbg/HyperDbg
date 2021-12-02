@@ -745,4 +745,6 @@ HyperdbgUnload()
     g_IsDebuggerModulesLoaded = FALSE;
 
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
+
+    return 0;
 }

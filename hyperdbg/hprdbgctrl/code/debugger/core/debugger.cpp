@@ -1242,7 +1242,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
         }
         else
         {
-            Temp = Section;
+            Temp = std::move(Section);
         }
 
         //
