@@ -85,6 +85,11 @@ main(int argc, char * argv[])
 
         string CurrentCommand = "";
 
+        //
+        // Clear multiline
+        //
+        Reset = true;
+
     GetMultiLinecCommand:
 
         string TempCommand = "";
@@ -94,6 +99,7 @@ main(int argc, char * argv[])
         if (cin.fail() || cin.eof())
         {
             cin.clear(); // reset cin state
+
             printf("\n\n");
 
             //
