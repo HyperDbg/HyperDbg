@@ -86,6 +86,7 @@ You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automat
 - Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
 - Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
 - Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
+- Soroush Meghdadi Zanjani
 
 ## Contributing
 Contributing in HyperDbg is super appreciated. We have made a list of potential [tasks](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md#things-to-work-on) that you might be intersted in contributing towards.
