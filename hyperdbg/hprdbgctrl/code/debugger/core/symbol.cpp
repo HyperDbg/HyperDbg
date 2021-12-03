@@ -385,13 +385,13 @@ SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result)
     BOOLEAN IsFound            = FALSE;
     BOOLEAN HasError           = NULL;
     UINT64  Address            = NULL;
-    string  ConstTextToConvert = TextToConvert;
 
     if (!ConvertStringToUInt64(TextToConvert, &Address))
     {
         //
         // Check for symbol object names
         //
+        string ConstTextToConvert = TextToConvert;
         Address = ScriptEngineConvertNameToAddressWrapper(ConstTextToConvert.c_str(), &IsFound);
 
         if (!IsFound)

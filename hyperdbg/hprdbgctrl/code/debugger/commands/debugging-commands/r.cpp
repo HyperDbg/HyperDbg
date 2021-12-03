@@ -230,8 +230,6 @@ CommandR(vector<string> SplittedCommand, string Command)
         //erase '=' from the string now we have just the name of register
         //
         Command.erase(0, 1);
-        PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-            new DEBUGGEE_REGISTER_READ_DESCRIPTION;
         ReplaceAll(Command, "@", "");
         ReplaceAll(Command, " ", "");
         if (RegistersMap.find(Command) != RegistersMap.end())
@@ -247,6 +245,8 @@ CommandR(vector<string> SplittedCommand, string Command)
         }
         if (Reg != -1)
         {
+            PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+                new DEBUGGEE_REGISTER_READ_DESCRIPTION;
             RegD->RegisterID = Reg;
 
             //
@@ -266,18 +266,14 @@ CommandR(vector<string> SplittedCommand, string Command)
         {
             ShowMessages("err, invalid register\n");
         }
-
-        delete (RegD);
     }
 
     //
     // if command contains a '=' means user wants modify the register
     //
 
-    else if (Command.find('=', 0))
+    else if (Command.find('=', 0) != string::npos)
     {
-        PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-            new DEBUGGEE_REGISTER_READ_DESCRIPTION;
         Command.erase(0, 1);
         Tmp = Split(Command, '=');
         if (Tmp.size() == 2)
@@ -302,6 +298,8 @@ CommandR(vector<string> SplittedCommand, string Command)
             }
             if (Reg != -1)
             {
+                PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
+                    new DEBUGGEE_REGISTER_READ_DESCRIPTION;
                 RegD->RegisterID = Reg;
 
                 //
@@ -357,6 +355,7 @@ CommandR(vector<string> SplittedCommand, string Command)
                     //
                     ShowMessages("err, you're not connected to any debuggee\n");
                 }
+                delete RegD;
             }
             else
             {

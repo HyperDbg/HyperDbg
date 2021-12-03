@@ -47,8 +47,6 @@ VOID
 CommandSym(vector<string> SplittedCommand, string Command)
 {
     UINT64 BaseAddress = NULL;
-    string Delimiter   = "";
-    string PathToPdb   = "";
 
     if (SplittedCommand.size() == 1)
     {
@@ -169,6 +167,8 @@ CommandSym(vector<string> SplittedCommand, string Command)
 
         if (!SplittedCommand.at(2).compare("base"))
         {
+            string Delimiter = "";
+            string PathToPdb = "";
             if (!ConvertStringToUInt64(SplittedCommand.at(3), &BaseAddress))
             {
                 ShowMessages("please add a valid hex address to be used as the base address\n\n");

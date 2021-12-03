@@ -42,9 +42,7 @@ CommandSympath(vector<string> SplittedCommand, string Command)
 {
     inipp::Ini<char> Ini;
     inipp::Ini<char> Ini2;
-    string           SymbolServer         = "";
     WCHAR            ConfigPath[MAX_PATH] = {0};
-    string           Delimiter            = "*";
     string           Token;
 
     //
@@ -70,6 +68,7 @@ CommandSympath(vector<string> SplittedCommand, string Command)
         //
         // Ini.generate(std::cout);
 
+        string SymbolServer = "";
         inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
 
         Is.close();
@@ -111,7 +110,8 @@ CommandSympath(vector<string> SplittedCommand, string Command)
         //
         // Check if the string contains '*'
         //
-        if (Command.find('*') != std::string::npos)
+        char Delimiter = '*';
+        if (Command.find(Delimiter) != std::string::npos)
         {
             //
             // Found
