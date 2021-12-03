@@ -28,8 +28,11 @@ extern BOOLEAN g_IsConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_BreakPrintingOutput;
+extern BOOLEAN g_IsInterpreterOnString;
+extern BOOLEAN g_IsInterpreterPreviousCharacterABackSlash;
 
-extern ULONG g_CurrentRemoteCore;
+extern UINT32 g_InterpreterCountOfOpenCurlyBrackets;
+extern ULONG  g_CurrentRemoteCore;
 
 extern string g_ServerPort;
 extern string g_ServerIp;
@@ -327,6 +330,98 @@ HyperdbgShowSignature()
         // in vmi-mode
         //
         ShowMessages("HyperDbg> ");
+    }
+}
+
+/**
+ * @brief check for multi-line commands
+ * 
+ * @param CurrentCommand 
+ * @param Reset 
+ * @return bool return true if the command needs extra input, otherwise
+ * return false
+ */
+bool
+HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
+{
+    if (Reset)
+    {
+        g_IsInterpreterOnString                    = FALSE;
+        g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+        g_InterpreterCountOfOpenCurlyBrackets      = 0;
+    }
+
+    for (size_t i = 0; i < CurrentCommand.length(); i++)
+    {
+        switch (CurrentCommand.at(i))
+        {
+        case '"':
+
+            if (g_IsInterpreterPreviousCharacterABackSlash)
+            {
+                g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+                break; // it's an escaped \" double-quote
+            }
+
+            if (g_IsInterpreterOnString)
+                g_IsInterpreterOnString = FALSE;
+            else
+                g_IsInterpreterOnString = TRUE;
+
+            break;
+
+        case '{':
+
+            if (g_IsInterpreterPreviousCharacterABackSlash)
+                g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+
+            if (!g_IsInterpreterOnString)
+                g_InterpreterCountOfOpenCurlyBrackets++;
+
+            break;
+
+        case '}':
+
+            if (g_IsInterpreterPreviousCharacterABackSlash)
+                g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+
+            if (!g_IsInterpreterOnString && g_InterpreterCountOfOpenCurlyBrackets > 0)
+                g_InterpreterCountOfOpenCurlyBrackets--;
+
+            break;
+
+        case '\\':
+
+            if (g_IsInterpreterPreviousCharacterABackSlash)
+                g_IsInterpreterPreviousCharacterABackSlash = FALSE; // it's not a escape character (two backslashes \\ )
+            else
+                g_IsInterpreterPreviousCharacterABackSlash = TRUE;
+
+            break;
+
+        default:
+
+            if (g_IsInterpreterPreviousCharacterABackSlash)
+                g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+
+            break;
+        }
+    }
+
+    if (g_IsInterpreterOnString == FALSE && g_InterpreterCountOfOpenCurlyBrackets == 0)
+    {
+        //
+        // either the command is finished or it's a single
+        // line command
+        //
+        return false;
+    }
+    else
+    {
+        //
+        // There still other lines, this command is incomplete
+        //
+        return true;
     }
 }
 

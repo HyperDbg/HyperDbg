@@ -31,6 +31,49 @@ CommandScriptHelp()
 }
 
 /**
+ * @brief Run the command
+ *
+ * @return VOID
+ */
+VOID
+CommandScriptRunCommand(char * LineContent)
+{
+    int CommandExecutionResult = 0;
+
+    //
+    // Check if the it's a command or not
+    //
+    InterpreterRemoveComments(LineContent);
+
+    if (IsEmptyString(LineContent))
+    {
+        return;
+    }
+
+    //
+    // Show current running command
+    //
+    HyperdbgShowSignature();
+
+    ShowMessages("%s\n", LineContent);
+
+    CommandExecutionResult = HyperdbgInterpreter(LineContent);
+
+    ShowMessages("\n");
+
+    //
+    // if the debugger encounters an exit state then the return will be 1
+    //
+    if (CommandExecutionResult == 1)
+    {
+        //
+        // Exit from the debugger
+        //
+        exit(0);
+    }
+}
+
+/**
  * @brief .script command handler
  *
  * @param SplittedCommand
@@ -41,8 +84,9 @@ VOID
 CommandScript(vector<string> SplittedCommand, string Command)
 {
     std::string Line;
-    BOOLEAN     IsOpened = FALSE;
-    int         CommandExecutionResult = 0;
+    BOOLEAN     IsOpened         = FALSE;
+    bool        Reset            = false;
+    string      CommandToExecute = "";
 
     if (SplittedCommand.size() == 1)
     {
@@ -80,38 +124,73 @@ CommandScript(vector<string> SplittedCommand, string Command)
         //
         g_ExecutingScript = TRUE;
 
+        //
+        // Reset multiline command
+        //
+        Reset = true;
+
         while (std::getline(File, Line))
         {
-            char * LineContent = (char *)Line.c_str();
             //
-            // Check if the it's a command or not
+            // Check for multiline commands
             //
-            InterpreterRemoveComments(LineContent);
-
-            if (IsEmptyString(LineContent))
+            if (HyperDbgCheckMultilineCommand(Line, Reset))
             {
+                //
+                // if the reset is true, we should make the saving buffer empty
+                //
+                if (Reset)
+                {
+                    CommandToExecute.clear();
+                }
+
+                //
+                // The command is expected to be continued
+                //
+                Reset = false;
+
+                //
+                // Append to the previous command
+                //
+                CommandToExecute += Line + "\n";
+
                 continue;
             }
-
-            //
-            // Show current running command
-            //
-            ShowMessages("\n%s\n", LineContent);
-
-            CommandExecutionResult = HyperdbgInterpreter(LineContent);
-
-            ShowMessages("\n");
-
-            //
-            // if the debugger encounters an exit state then the return will be 1
-            //
-            if (CommandExecutionResult == 1)
+            else
             {
                 //
-                // Exit from the debugger
+                // Reset for the next commands round
                 //
-                exit(0);
+                Reset = true;
+
+                //
+                // Append this line too
+                //
+                CommandToExecute += Line;
             }
+
+            //
+            // Run the command
+            //
+            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+
+            //
+            // Clear the command
+            //
+            CommandToExecute.clear();
+        }
+
+        //
+        // Check for some probably not ended commands
+        //
+        if (!CommandToExecute.empty())
+        {
+            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+
+            //
+            // Clear the command
+            //
+            CommandToExecute.clear();
         }
 
         //
