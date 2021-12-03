@@ -29,4 +29,5 @@ __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
 __declspec(dllexport) int HyperdbgInterpreter(char * Command);
 __declspec(dllexport) void HyperdbgShowSignature();
 __declspec(dllexport) bool HyperdbgContinuePreviousCommand();
+__declspec(dllexport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
 }

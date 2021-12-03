@@ -12,6 +12,25 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//	         Interpreter Variables              //
+//////////////////////////////////////////////////
+
+/**
+ * @brief shows whether the interpreter is currently on a string or not
+ */
+BOOLEAN g_IsInterpreterOnString = FALSE;
+
+/**
+ * @brief Is interpreter ecountered a back slash at previous run
+ */
+BOOLEAN g_IsInterpreterPreviousCharacterABackSlash = FALSE;
+
+/**
+ * @brief Keeps the trace of curly brackets in the interpreter
+ */
+UINT32 g_InterpreterCountOfOpenCurlyBrackets = 0;
+
+//////////////////////////////////////////////////
 //		 Remote and Local Connection            //
 //////////////////////////////////////////////////
 
