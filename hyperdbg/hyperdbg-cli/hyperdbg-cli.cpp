@@ -84,7 +84,6 @@ main(int argc, char * argv[])
         HyperdbgShowSignature();
 
         string CurrentCommand = "";
-        Reset                 = true;
 
     GetMultiLinecCommand:
 
@@ -130,6 +129,11 @@ main(int argc, char * argv[])
         }
         else
         {
+            //
+            // Reset for future commands
+            //
+            Reset = true;
+
             //
             // Either the multi-line is finished or it's a
             // single line command
