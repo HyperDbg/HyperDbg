@@ -44,6 +44,7 @@
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
 #include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\common\Common.h"
+#include "..\hprdbghv\header\common\List.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\devices\Apic.h"
 #include "..\hprdbghv\header\debugger\core\Kd.h"

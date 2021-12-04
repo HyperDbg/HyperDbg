@@ -403,6 +403,9 @@
     <ClInclude Include="header\components\registers\DebugRegisters.h">
       <Filter>header\components\registers</Filter>
     </ClInclude>
+    <ClInclude Include="header\common\List.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">

@@ -12,6 +12,107 @@
 #include "..\hprdbghv\pch.h"
 
 /**
+* @brief Check whether there is any Breakpoint on the current Guest RIP
+* @param [in] HookedEntry
+* @param [in] GuestRip
+* @return BOOLEAN
+*/
+static BOOLEAN
+DbgpIsBreakpointSet(_In_ PEPT_HOOKED_PAGE_DETAIL HookedEntry,
+                    _In_ ULONG64                 GuestRip)
+{
+    for (size_t BpIndex = 0; BpIndex < HookedEntry->CountOfBreakpoints; BpIndex++)
+    {
+        if (HookedEntry->BreakpointAddresses[BpIndex] == GuestRip)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+* @brief Handle EPT breakpoint
+* @param [in, out] HookedEntry 
+* @param [in, out] CurrentVmState
+* @param [in] GuestRip 
+* @param [in, out] GuestRegs 
+* 
+* @return BOOLEAN True if the bp handled successfully by ept violation
+*/
+BOOLEAN
+DbgHandleEptHookBreakpoints(_Inout_ PEPT_HOOKED_PAGE_DETAIL HookedEntry,
+                            _Inout_ PVIRTUAL_MACHINE_STATE  CurrentVmState,
+                            _In_ ULONG64                    GuestRip,
+                            _Inout_ PGUEST_REGS             GuestRegs)
+{
+    if (DbgpIsBreakpointSet(HookedEntry, GuestRip) == FALSE)
+        return FALSE;
+
+    //
+    // We found an address that matches the details, let's trigger the event
+    //
+
+    //
+    // As the context to event trigger, we send the rip
+    // of where triggered this event
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
+
+    //
+    // Restore to its orginal entry for one instruction
+    //
+    // EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_ALL_CONTEXTS);
+
+    //
+    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+    //
+    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
+
+    //
+    // We have to set Monitor trap flag and give it the HookedEntry to work with
+    //
+    HvSetMonitorTrapFlag(TRUE);
+
+    //
+    // The following codes are added because we realized if the execution takes long then
+    // the execution might be switched to another routines, thus, MTF might conclude on
+    // another routine and we might (and will) trigger the same instruction soon
+    //
+    // The following code is not necessary on local debugging (VMI Mode), however, I don't
+    // know why? just things are not reasonable here for me
+    // another weird thing that I observed is the fact if you don't touch the routine related
+    // to the I/O in and out instructions in VMWare then it works perfectly, just touching I/O
+    // for serial is problematic, it might be a VMWare nested-virtualization bug, however, the
+    // below approached proved to be work on both Debug Mode and WMI Mode
+    // If you remove the below codes then when epthook is triggered then the execution stucks
+    // on the same instruction on where the hooks is triggered, so 'p' and 't' commands for
+    // steppings won't work
+    //
+
+    //
+    // Change guest interrupt-state
+    //
+    HvSetExternalInterruptExiting(TRUE);
+
+    //
+    // Do not vm-exit on interrupt windows
+    //
+    HvSetInterruptWindowExiting(FALSE);
+
+    //
+    // Indicate that we should enable external interruts and configure external interrupt
+    // window exiting somewhere at MTF
+    //
+    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+
+    //
+    // Indicate that we handled the ept violation
+    //
+    return TRUE;
+}
+
+/**
  * @brief Check if the breakpoint vm-exit relates to !epthook command or not
  * 
  * @param CurrentProcessorIndex  
@@ -21,10 +122,12 @@
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64 GuestRip, PGUEST_REGS GuestRegs)
+BreakpointCheckAndHandleEptHookBreakpoints(_In_ UINT32         CurrentProcessorIndex,
+                                           _In_ ULONG64        GuestRip,
+                                           _Inout_ PGUEST_REGS GuestRegs)
 {
-    PLIST_ENTRY TempList           = 0;
-    BOOLEAN     IsHandledByEptHook = FALSE;
+    BOOLEAN                IsHandledByEptHook = FALSE;
+    PVIRTUAL_MACHINE_STATE CurrentGuestState  = &g_GuestState[CurrentProcessorIndex];
 
     //
     // ***** Check breakpoint for !epthook *****
@@ -33,94 +136,22 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
     //
     // Check whether the breakpoint was due to a !epthook command or not
     //
-    TempList = &g_EptState->HookedPagesList;
 
-    while (&g_EptState->HookedPagesList != TempList->Flink)
+    LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
-        TempList                            = TempList->Flink;
-        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
-
         if (HookedEntry->IsExecutionHook)
         {
-            for (size_t i = 0; i < HookedEntry->CountOfBreakpoints; i++)
-            {
-                if (HookedEntry->BreakpointAddresses[i] == GuestRip)
-                {
-                    //
-                    // We found an address that matches the details, let's trigger the event
-                    //
-
-                    //
-                    // As the context to event trigger, we send the rip
-                    // of where triggered this event
-                    //
-                    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
-
-                    //
-                    // Restore to its orginal entry for one instruction
-                    //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
-
-                    //
-                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
-                    //
-                    g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = HookedEntry;
-
-                    //
-                    // We have to set Monitor trap flag and give it the HookedEntry to work with
-                    //
-                    HvSetMonitorTrapFlag(TRUE);
-
-                    //
-                    // The following codes are added because we realized if the execution takes long then
-                    // the execution might be switched to another routines, thus, MTF might conclude on
-                    // another routine and we might (and will) trigger the same instruction soon
-                    //
-                    // The following code is not necessary on local debugging (VMI Mode), however, I don't
-                    // know why? just things are not reasonable here for me
-                    // another weird thing that I observed is the fact if you don't touch the routine related
-                    // to the I/O in and out instructions in VMWare then it works perfectly, just touching I/O
-                    // for serial is problematic, it might be a VMWare nested-virtualization bug, however, the
-                    // below approached proved to be work on both Debug Mode and WMI Mode
-                    // If you remove the below codes then when epthook is triggered then the execution stucks
-                    // on the same instruction on where the hooks is triggered, so 'p' and 't' commands for
-                    // steppings won't work
-                    //
-
-                    //
-                    // Change guest interrupt-state
-                    //
-                    HvSetExternalInterruptExiting(TRUE);
-
-                    //
-                    // Do not vm-exit on interrupt windows
-                    //
-                    HvSetInterruptWindowExiting(FALSE);
-
-                    //
-                    // Indicate that we should enable external interruts and configure external interrupt
-                    // window exiting somewhere at MTF
-                    //
-                    g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
-
-                    //
-                    // Indicate that we handled the ept violation
-                    //
-                    IsHandledByEptHook = TRUE;
-
-                    //
-                    // Get out of the loop
-                    //
-                    break;
-                }
-            }
+            IsHandledByEptHook = DbgHandleEptHookBreakpoints(HookedEntry,
+                                                             CurrentGuestState,
+                                                             GuestRip,
+                                                             GuestRegs);
         }
     }
 
     //
     // Don't increment rip
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentGuestState->IncrementRip = FALSE;
 
     return IsHandledByEptHook;
 }

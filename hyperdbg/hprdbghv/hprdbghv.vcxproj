@@ -78,6 +78,9 @@
       <AdditionalLibraryDirectories>%(AdditionalDependencies)</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)\build\debug\kdserial.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <DriverSign>
+      <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
+    </DriverSign>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
@@ -162,6 +165,7 @@
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
+    <ClInclude Include="header\common\List.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
     <ClInclude Include="header\common\Trace.h" />
