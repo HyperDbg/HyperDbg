@@ -563,3 +563,75 @@ GetConfigFilePath(PWCHAR ConfigPath)
     //
     PathCombineW(ConfigPath, CurrentPath, CONFIG_FILE_NAME);
 }
+
+/**
+ * @brief Split path and arguments and handle strings between quotes
+ *
+ * @param Qargs
+ * @param Command
+ * @return VOID
+ */
+VOID
+SplitPathAndArgs(std::vector<std::string> & Qargs, std::string Command)
+{
+    int  Len = Command.length();
+    bool Qot = false, Sqot = false;
+    int  ArgLen;
+
+    for (int i = 0; i < Len; i++)
+    {
+        int start = i;
+        if (Command[i] == '\"')
+        {
+            Qot = true;
+        }
+        else if (Command[i] == '\'')
+            Sqot = true;
+
+        if (Qot)
+        {
+            i++;
+            start++;
+            while (i < Len && Command[i] != '\"')
+                i++;
+            if (i < Len)
+                Qot = false;
+            ArgLen = i - start;
+            i++;
+        }
+        else if (Sqot)
+        {
+            i++;
+            while (i < Len && Command[i] != '\'')
+                i++;
+            if (i < Len)
+                Sqot = false;
+            ArgLen = i - start;
+            i++;
+        }
+        else
+        {
+            while (i < Len && Command[i] != ' ')
+                i++;
+            ArgLen = i - start;
+        }
+
+        string Temp = Command.substr(start, ArgLen);
+        if (!Temp.empty() && Temp != " ")
+        {
+            Qargs.push_back(Temp);
+        }
+    }
+
+    /*
+    for (int i = 0; i < Qargs.size(); i++)
+    {
+        std::cout << Qargs[i] << std::endl;
+    }
+
+    std::cout << Qargs.size();
+
+    if (Qot || Sqot)
+        std::cout << "One of the quotes is open\n";
+    */
+}
