@@ -198,7 +198,7 @@ GetToken(char * c, char * str)
             do
             {
                 *c = sgetc(str);
-            } while (*c != '\n' && *c != EOF);
+            } while (*c != '\n' && (int)*c != EOF);
 
             Token->Type = COMMENT;
             *c          = sgetc(str);
@@ -219,7 +219,7 @@ GetToken(char * c, char * str)
                         return Token;
                     }
                 }
-                if (*c == EOF)
+                if ((int)*c == EOF)
                     break;
             } while (1);
 
@@ -724,7 +724,7 @@ Scan(char * str, char * c)
         //
         // check end of string
         //
-        if (*c == EOF)
+        if ((int)*c == EOF)
         {
             Token->Type = END_OF_STACK;
             strcpy(Token->Value, "$");

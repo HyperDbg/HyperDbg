@@ -1316,23 +1316,26 @@ WcharToChar(const wchar_t * src, char * dest, size_t dest_len)
 
     i = 0;
 
-    while (src[i] != '\0' && i < (dest_len - 1))
+    while (i < (dest_len - 1))
     {
-        Code = src[i];
-        if (Code < 128)
-            dest[i] = (char)Code;
-        else
+        if (src[i] != '\0')
         {
-            dest[i] = '?';
-            if (Code >= 0xD800 && Code <= 0xD8FF)
+            Code = src[i];
+            if (Code < 128)
+                dest[i] = (char)Code;
+            else
             {
-                //
-                // Lead surrogate, skip the next code unit, which is the trail
-                //
-                i++;
+                dest[i] = '?';
+                if (Code >= 0xD800 && Code <= 0xD8FF)
+                {
+                    //
+                    // Lead surrogate, skip the next code unit, which is the trail
+                    //
+                    i++;
+                }
             }
+            i++;
         }
-        i++;
     }
 
     return i - 1;

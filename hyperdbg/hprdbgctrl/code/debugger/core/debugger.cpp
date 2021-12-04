@@ -279,9 +279,9 @@ DebuggerGetNtoskrnlBase()
     UINT64               NtoskrnlBase = NULL;
     PRTL_PROCESS_MODULES Modules      = NULL;
 
-    Modules = (PRTL_PROCESS_MODULES)malloc(1024 * 1024);
+    Modules = (PRTL_PROCESS_MODULES)malloc(1024 * 1024 * sizeof(PRTL_PROCESS_MODULES));
 
-    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11, Modules, 1024 * 1024, NULL);
+    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11, Modules, 1024 * 1024 * sizeof(PRTL_PROCESS_MODULES), NULL);
 
     for (int i = 0; i < Modules->NumberOfModules; i++)
     {

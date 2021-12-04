@@ -45,7 +45,6 @@ ShowMessages(const char * Fmt, ...)
 {
     va_list ArgList;
     va_list Args;
-    char    TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
 
     if (g_MessageHandler == NULL)
     {
@@ -55,6 +54,7 @@ ShowMessages(const char * Fmt, ...)
     }
     else
     {
+        char TempMessage[COMMUNICATION_BUFFER_SIZE + TCP_END_OF_BUFFER_CHARS_COUNT] = {0};
         va_start(ArgList, Fmt);
         int sprintfresult = vsprintf_s(TempMessage, Fmt, ArgList);
         va_end(ArgList);
@@ -80,7 +80,6 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 {
     string Token;
     char   ModuleName[_MAX_FNAME] = {0};
-    string Delimiter              = "!";
     int    Index                  = 0;
     char   Ch                     = NULL;
 
@@ -100,7 +99,8 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
     //
     // Check if the string contains '!'
     //
-    if (SearchMaskString.find('!') != std::string::npos)
+    char Delimiter = '!';
+    if (SearchMaskString.find(Delimiter) != std::string::npos)
     {
         //
         // Found
