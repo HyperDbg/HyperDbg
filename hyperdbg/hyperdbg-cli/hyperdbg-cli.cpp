@@ -84,7 +84,11 @@ main(int argc, char * argv[])
         HyperdbgShowSignature();
 
         string CurrentCommand = "";
-        Reset                 = true;
+
+        //
+        // Clear multiline
+        //
+        Reset = true;
 
     GetMultiLinecCommand:
 
@@ -95,6 +99,7 @@ main(int argc, char * argv[])
         if (cin.fail() || cin.eof())
         {
             cin.clear(); // reset cin state
+
             printf("\n\n");
 
             //
@@ -130,6 +135,11 @@ main(int argc, char * argv[])
         }
         else
         {
+            //
+            // Reset for future commands
+            //
+            Reset = true;
+
             //
             // Either the multi-line is finished or it's a
             // single line command

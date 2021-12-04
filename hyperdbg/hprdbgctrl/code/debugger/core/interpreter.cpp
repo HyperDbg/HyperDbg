@@ -52,16 +52,6 @@ HyperdbgInterpreter(char * Command)
     CommandType::iterator Iterator;
 
     //
-    // Remove the comments
-    //
-    InterpreterRemoveComments(Command);
-
-    //
-    // Convert to string
-    //
-    string CommandString(Command);
-
-    //
     // Check if it's the first command and whether the mapping of command is
     // initialized or not
     //
@@ -83,6 +73,16 @@ HyperdbgInterpreter(char * Command)
         LogopenSaveToFile(Command);
         LogopenSaveToFile("\n");
     }
+
+    //
+    // Remove the comments
+    //
+    InterpreterRemoveComments(Command);
+
+    //
+    // Convert to string
+    //
+    string CommandString(Command);
 
     //
     // Convert to lower case
