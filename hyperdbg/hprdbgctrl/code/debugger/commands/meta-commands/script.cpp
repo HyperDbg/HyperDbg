@@ -27,7 +27,14 @@ VOID
 CommandScriptHelp()
 {
     ShowMessages(".script : run a HyperDbg script.\n\n");
-    ShowMessages("syntax : \.script [FilePath]\n");
+    ShowMessages("syntax : \.script [FilePath] [Arg 1..n]]\n");
+    ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg\n");
+    ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg 95 85 @rsp\n");
+    ShowMessages("\t\te.g : .script list\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\"\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax @rcx+55 $pid\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" 12 55 @rip\n");
 }
 
 /**
@@ -83,10 +90,11 @@ CommandScriptRunCommand(char * LineContent)
 VOID
 CommandScript(vector<string> SplittedCommand, string Command)
 {
-    std::string Line;
-    BOOLEAN     IsOpened         = FALSE;
-    bool        Reset            = false;
-    string      CommandToExecute = "";
+    std::string    Line;
+    BOOLEAN        IsOpened         = FALSE;
+    bool           Reset            = false;
+    string         CommandToExecute = "";
+    vector<string> PathAndArgs;
 
     if (SplittedCommand.size() == 1)
     {
@@ -111,9 +119,25 @@ CommandScript(vector<string> SplittedCommand, string Command)
     Trim(Command);
 
     //
-    // Parse the script file
+    // Split Path and args
     //
-    ifstream File(Command);
+    SplitPathAndArgs(PathAndArgs, Command);
+
+    /*
+    for (auto item : PathAndArgs)
+    {
+        //
+        // The first argument is the path
+        //
+        printf("Arg : %s\n", item.c_str());
+    }
+    */
+
+    //
+    // Parse the script file,
+    // the first argument is the path
+    //
+    ifstream File(PathAndArgs.at(0));
 
     if (File.is_open())
     {

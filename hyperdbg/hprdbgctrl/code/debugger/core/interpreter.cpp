@@ -200,7 +200,16 @@ HyperdbgInterpreter(char * Command)
         //
         string         CaseSensitiveCommandString(Command);
         vector<string> CaseSensitiveSplittedCommand {Split(CaseSensitiveCommandString, ' ')};
-        ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplittedCommand.front().c_str());
+
+        if (!HelpCommand)
+        {
+            ShowMessages("err, couldn't resolve command at '%s'\n", CaseSensitiveSplittedCommand.front().c_str());
+        }
+        else
+        {
+            ShowMessages("err, couldn't find the help for the command at '%s'\n",
+                         CaseSensitiveSplittedCommand.at(1).c_str());
+        }
     }
     else
     {
@@ -584,6 +593,7 @@ InitializeCommandsDictionary()
     g_CommandsList["unload"] = {&CommandUnload, &CommandUnloadHelp, DEBUGGER_COMMAND_UNLOAD_ATTRIBUTES};
 
     g_CommandsList[".script"] = {&CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
+    g_CommandsList["script"]  = {&CommandScript, &CommandScriptHelp, DEBUGGER_COMMAND_SCRIPT_ATTRIBUTES};
 
     g_CommandsList["output"] = {&CommandOutput, &CommandOutputHelp, DEBUGGER_COMMAND_OUTPUT_ATTRIBUTES};
 
