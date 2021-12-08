@@ -39,6 +39,28 @@ typedef enum _PML
     PML4    // Page Map Level 4
 } PML;
 
+/**
+ * @brief Memory wrapper for reading safe from the memory
+ * 
+ */
+typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ
+{
+    MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY,
+    MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
+} MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ;
+
+/**
+ * @brief Memory wrapper for writing safe into the memory
+ * 
+ */
+typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE
+{
+    MEMORY_MAPPER_WRAPPER_WRITE_PHYSICAL_MEMORY,
+    MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE,
+    MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE,
+
+} MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE;
+
 //////////////////////////////////////////////////
 //					Structures					//
 //////////////////////////////////////////////////

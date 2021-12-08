@@ -3,7 +3,7 @@
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief This file shows the functions to map memory to reserved system ranges
  * 
- * also some of the functions derived from hvpp
+ * @details also some of the functions derived from hvpp
  * - https://github.com/wbenny/hvpp
  * 
  * @version 0.1
@@ -598,16 +598,60 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
 }
 
 /**
- * @brief Read memory safely by mapping the buffer by physical address (It's a wrapper)
+ * @brief Wrapper to read the memory safely by mapping the
+ * buffer by physical address (It's a wrapper)
  * 
- * @param PaAddressToRead Physical Address to read
+ * @param TypeOfRead Type of read
+ * @param AddressToRead Physical Address to read
+ * @return UINT64 returns the target physical address and NULL if it fails
+ */
+UINT64
+inline MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    UINT64                                 AddressToRead)
+{
+    PHYSICAL_ADDRESS PhysicalAddress = {0};
+
+    switch (TypeOfRead)
+    {
+    case MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY:
+
+        PhysicalAddress.QuadPart = AddressToRead;
+
+        break;
+
+    case MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY:
+
+        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(AddressToRead);
+
+        break;
+
+    default:
+
+        return NULL;
+        break;
+    }
+
+    return PhysicalAddress.QuadPart;
+}
+
+/**
+ * @brief Wrapper to read the memory safely by mapping the
+ * buffer by physical address (It's a wrapper)
+ * 
+ * @param TypeOfRead Type of read
+ * @param AddressToRead Address to read
  * @param BufferToSaveMemory Destination to save 
  * @param SizeToRead Size
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
 BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 BufferToSaveMemory, SIZE_T SizeToRead)
+MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    UINT64                                 AddressToRead,
+    UINT64                                 BufferToSaveMemory,
+    SIZE_T                                 SizeToRead)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
     UINT64           AddressToCheck;
@@ -629,7 +673,7 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
     // Check whether we should apply multiple accesses or not
     //
     AddressToCheck =
-        (CHAR *)PaAddressToRead + SizeToRead - ((CHAR *)PAGE_ALIGN(PaAddressToRead));
+        (CHAR *)AddressToRead + SizeToRead - ((CHAR *)PAGE_ALIGN(AddressToRead));
 
     if (AddressToCheck > PAGE_SIZE)
     {
@@ -645,7 +689,7 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
             if (i == 0)
             {
                 ReadSize =
-                    (UINT64)PAGE_ALIGN(PaAddressToRead + PAGE_SIZE) - PaAddressToRead;
+                    (UINT64)PAGE_ALIGN(AddressToRead + PAGE_SIZE) - AddressToRead;
             }
             else if (i == PageCount)
             {
@@ -658,15 +702,16 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
 
             /*
             LogInfo("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
-                    PaAddressToRead,
-                    PaAddressToRead + ReadSize,
+                    AddressToRead,
+                    AddressToRead + ReadSize,
                     ReadSize);
             */
 
             //
             // One access is enough (page+size won't pass from the PAGE_ALIGN boundary)
             //
-            PhysicalAddress.QuadPart = PaAddressToRead;
+            PhysicalAddress.QuadPart = MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(TypeOfRead,
+                                                                                                      AddressToRead);
 
             if (!MemoryMapperReadMemorySafeByPte(
                     PhysicalAddress,
@@ -683,7 +728,7 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
             // Apply the changes to the next addresses (if any)
             //
             SizeToRead         = SizeToRead - ReadSize;
-            PaAddressToRead    = PaAddressToRead + ReadSize;
+            AddressToRead      = AddressToRead + ReadSize;
             BufferToSaveMemory = BufferToSaveMemory + ReadSize;
         }
 
@@ -694,7 +739,8 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
         //
         // One access is enough (page+size won't pass from the PAGE_ALIGN boundary)
         //
-        PhysicalAddress.QuadPart = PaAddressToRead;
+        PhysicalAddress.QuadPart = MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(TypeOfRead,
+                                                                                                  AddressToRead);
 
         return MemoryMapperReadMemorySafeByPte(
             PhysicalAddress,
@@ -705,6 +751,28 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
             g_GuestState[ProcessorIndex].IsOnVmxRootMode);
     }
 }
+
+/**
+ * @brief Read memory safely by mapping the buffer by physical address (It's a wrapper)
+ * 
+ * @param PaAddressToRead Physical Address to read
+ * @param BufferToSaveMemory Destination to save 
+ * @param SizeToRead Size
+ * @return BOOLEAN if it was successful the returns TRUE and if it was 
+ * unsuccessful then it returns FALSE
+ */
+BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 BufferToSaveMemory, SIZE_T SizeToRead)
+{
+    //
+    // Call the wrapper
+    //
+    return MemoryMapperReadMemorySafeByPhysicalAddressWrapper(MEMORY_MAPPER_WRAPPER_READ_PHYSICAL_MEMORY,
+                                                              PaAddressToRead,
+                                                              BufferToSaveMemory,
+                                                              SizeToRead);
+}
+
 /**
  * @brief Read memory safely by mapping the buffer (It's a wrapper)
  * 
@@ -717,13 +785,10 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 Buffe
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
 {
-    PHYSICAL_ADDRESS PhysicalAddress;
-
-    PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(VaAddressToRead);
-
-    return MemoryMapperReadMemorySafeByPhysicalAddress(PhysicalAddress.QuadPart,
-                                                       BufferToSaveMemory,
-                                                       SizeToRead);
+    return MemoryMapperReadMemorySafeByPhysicalAddressWrapper(MEMORY_MAPPER_WRAPPER_READ_VIRTUAL_MEMORY,
+                                                              VaAddressToRead,
+                                                              BufferToSaveMemory,
+                                                              SizeToRead);
 }
 
 /**
@@ -788,7 +853,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     BOOLEAN  Result;
 
     //
-    // Move to guest process
+    // *** Move to guest process ***
     //
 
     //
@@ -817,74 +882,86 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
 }
 
 /**
- * @brief Write memory by mapping the buffer (It's a wrapper)
- *
- * @details this function CAN be called from vmx-root mode
+ * @brief Decides about making the address and converting the address
+ * to physical address based on the passed parameters
  * 
- * @param Destination Destination Virtual Address
- * @param Source Source Virtual Address
- * @param SizeToWrite Size
- * @param TargetProcessCr3 CR3 of target process
+ * @param TypeOfWrite Type of memory write
+ * @param DestinationAddr Destination Address
+ * @param TargetProcessCr3 The process CR3 (might be null)
+ * @param TargetProcessId The process PID (might be null)
  * 
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ * @return UINT64 returns the target physical address and NULL if it fails 
  */
-BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, CR3_TYPE TargetProcessCr3)
+UINT64
+inline MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                                      UINT64                                 DestinationAddr,
+                                                      PCR3_TYPE                              TargetProcessCr3,
+                                                      UINT32                                 TargetProcessId)
 {
-    PHYSICAL_ADDRESS PhysicalAddress;
+    PHYSICAL_ADDRESS PhysicalAddress = {0};
 
-    if (TargetProcessCr3.Flags == NULL)
+    switch (TypeOfWrite)
     {
-        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(Destination);
-    }
-    else
-    {
-        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessCr3(Destination, TargetProcessCr3);
+    case MEMORY_MAPPER_WRAPPER_WRITE_PHYSICAL_MEMORY:
+
+        PhysicalAddress.QuadPart = DestinationAddr;
+
+        break;
+
+    case MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE:
+
+        if (TargetProcessId == NULL)
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(DestinationAddr);
+        }
+        else
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId(DestinationAddr, TargetProcessId);
+        }
+
+        break;
+
+    case MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE:
+
+        if (TargetProcessCr3->Flags == NULL)
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(DestinationAddr);
+        }
+        else
+        {
+            PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessCr3(DestinationAddr, *TargetProcessCr3);
+        }
+
+        break;
+
+    default:
+        return NULL;
+
+        break;
     }
 
-    return MemoryMapperWriteMemorySafeByPhysicalAddress(PhysicalAddress.QuadPart, Source, SizeToWrite);
+    return PhysicalAddress.QuadPart;
 }
 
 /**
  * @brief Write memory safely by mapping the buffer (It's a wrapper)
- *
- * @details this function should not be called from vmx-root mode
  * 
- * @param Destination Destination Virtual Address
- * @param Source Source Virtual Address
- * @param SizeToWrite Size
- * @param TargetProcessId Target Process Id
- * 
- * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
- */
-BOOLEAN
-MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId)
-{
-    PHYSICAL_ADDRESS PhysicalAddress;
-
-    if (TargetProcessId == NULL)
-    {
-        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(Destination);
-    }
-    else
-    {
-        PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddressByProcessId(Destination, TargetProcessId);
-    }
-
-    return MemoryMapperWriteMemorySafeByPhysicalAddress(PhysicalAddress.QuadPart, Source, SizeToWrite);
-}
-
-/**
- * @brief Write memory safely by mapping the buffer (It's a wrapper)
- * 
- * @param DestinationPa Destination Physical Address
+ * @param TypeOfWrite Type of memory write
+ * @param DestinationAddr Destination Address
  * @param Source Source Address
  * @param SizeToWrite Size
+ * @param TargetProcessCr3 The process CR3 (might be null)
+ * @param TargetProcessId The process PID (might be null)
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite)
+MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                   UINT64                                 DestinationAddr,
+                                   UINT64                                 Source,
+                                   SIZE_T                                 SizeToWrite,
+                                   PCR3_TYPE                              TargetProcessCr3,
+                                   UINT32                                 TargetProcessId)
 {
     ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
     UINT64           AddressToCheck;
@@ -906,7 +983,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
     // Check whether it needs multiple accesses to different pages or no
     //
     AddressToCheck =
-        (CHAR *)DestinationPa + SizeToWrite - ((CHAR *)PAGE_ALIGN(DestinationPa));
+        (CHAR *)DestinationAddr + SizeToWrite - ((CHAR *)PAGE_ALIGN(DestinationAddr));
 
     if (AddressToCheck > PAGE_SIZE)
     {
@@ -922,7 +999,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
             if (i == 0)
             {
                 WriteSize =
-                    (UINT64)PAGE_ALIGN(DestinationPa + PAGE_SIZE) - DestinationPa;
+                    (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
             }
             else if (i == PageCount)
             {
@@ -935,15 +1012,15 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
 
             /*
             LogInfo("Addr From : %llx to Addr To : %llx | WriteSize : %llx\n",
-                   DestinationPa,
-                   DestinationPa + WriteSize,
+                   DestinationAddr,
+                   DestinationAddr + WriteSize,
                    WriteSize);
             */
 
-            //
-            // One access is enough to write
-            //
-            PhysicalAddress.QuadPart = DestinationPa;
+            PhysicalAddress.QuadPart = MemoryMapperWriteMemorySafeWrapperAddressMaker(TypeOfWrite,
+                                                                                      DestinationAddr,
+                                                                                      TargetProcessCr3,
+                                                                                      TargetProcessId);
 
             if (!MemoryMapperWriteMemorySafeByPte(
                     Source,
@@ -956,9 +1033,9 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
                 return FALSE;
             }
 
-            SizeToWrite   = SizeToWrite - WriteSize;
-            DestinationPa = DestinationPa + WriteSize;
-            Source        = Source + WriteSize;
+            SizeToWrite     = SizeToWrite - WriteSize;
+            DestinationAddr = DestinationAddr + WriteSize;
+            Source          = Source + WriteSize;
         }
 
         return TRUE;
@@ -968,8 +1045,10 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
         //
         // One access is enough to write
         //
-        PhysicalAddress.QuadPart = DestinationPa;
-
+        PhysicalAddress.QuadPart = MemoryMapperWriteMemorySafeWrapperAddressMaker(TypeOfWrite,
+                                                                                  DestinationAddr,
+                                                                                  TargetProcessCr3,
+                                                                                  TargetProcessId);
         return MemoryMapperWriteMemorySafeByPte(
             Source,
             PhysicalAddress,
@@ -978,6 +1057,75 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
             g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
             g_GuestState[ProcessorIndex].IsOnVmxRootMode);
     }
+}
+
+/**
+ * @brief Write memory by mapping the buffer (It's a wrapper)
+ *
+ * @details this function CAN be called from vmx-root mode
+ * 
+ * @param Destination Destination Virtual Address
+ * @param Source Source Virtual Address
+ * @param SizeToWrite Size
+ * @param TargetProcessCr3 CR3 of target process
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, CR3_TYPE TargetProcessCr3)
+{
+    return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE,
+                                              Destination,
+                                              Source,
+                                              SizeToWrite,
+                                              &TargetProcessCr3,
+                                              NULL);
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer (It's a wrapper)
+ *
+ * @details this function should not be called from vmx-root mode
+ * 
+ * @param Destination Destination Virtual Address
+ * @param Source Source Virtual Address
+ * @param SizeToWrite Size
+ * @param TargetProcessId Target Process Id
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
+ */
+BOOLEAN
+MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId)
+{
+    return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_UNSAFE,
+                                              Destination,
+                                              Source,
+                                              SizeToWrite,
+                                              NULL,
+                                              TargetProcessId);
+}
+
+/**
+ * @brief Write memory safely by mapping the buffer 
+ * 
+ * @param DestinationPa Destination Physical Address
+ * @param Source Source Address
+ * @param SizeToWrite Size
+ * 
+ * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
+ */
+BOOLEAN
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite)
+{
+    //
+    // Call the wrapper for safe memory read
+    //
+    return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_PHYSICAL_MEMORY,
+                                              DestinationPa,
+                                              Source,
+                                              SizeToWrite,
+                                              NULL,
+                                              NULL);
 }
 
 /**
