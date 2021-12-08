@@ -192,7 +192,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
     {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
         return;
     }
 
