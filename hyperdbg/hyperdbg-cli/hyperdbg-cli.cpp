@@ -15,7 +15,6 @@
 #include <iostream>
 #include "Definition.h"
 #include "Configuration.h"
-#include "details.h"
 
 #pragma comment(lib, "HPRDBGCTRL.lib")
 
@@ -52,7 +51,7 @@ main(int argc, char * argv[])
     string PreviousCommand;
     bool   Reset = false;
 
-    printf("HyperDbg Debugger [core version: v%s]\n", Version);
+    printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");
     printf("HyperDbg is released under the GNU Public License v3 (GPLv3).\n\n");
 

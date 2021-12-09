@@ -67,6 +67,12 @@
 #    include <psapi.h>
 
 //
+// Scope definitions
+//
+#    define SCRIPT_ENGINE_USER_MODE
+#    define HYPERDBG_USER_MODE
+
+//
 // HyperDbg defined headers
 //
 #    include "ScriptEngineCommonDefinitions.h"

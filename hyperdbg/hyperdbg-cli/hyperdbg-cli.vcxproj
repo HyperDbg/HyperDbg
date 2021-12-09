@@ -100,9 +100,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="details.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="hyperdbg-cli.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

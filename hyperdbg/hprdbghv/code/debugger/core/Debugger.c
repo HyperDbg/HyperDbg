@@ -15,7 +15,6 @@
 //
 // Include parser
 //
-#define SCRIPT_ENGINE_KERNEL_MODE
 #include "ScriptEngineEval.h"
 
 /**
