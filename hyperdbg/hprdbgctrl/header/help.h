@@ -230,3 +230,9 @@ CommandXHelp();
 
 VOID
 CommandPreallocHelp();
+
+VOID
+CommandDtHelp();
+
+VOID
+CommandKHelp();
