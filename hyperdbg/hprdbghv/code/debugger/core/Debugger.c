@@ -866,15 +866,24 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             //
 
             //
-            // Context is the physical address
+            // Context should be checked in physical address
             //
-            if (!(Context >= CurrentEvent->OptionalParam1 && Context < CurrentEvent->OptionalParam2))
+            if (!(((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->PhysicalAddress >= CurrentEvent->OptionalParam1 &&
+                  ((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->PhysicalAddress < CurrentEvent->OptionalParam2))
             {
                 //
                 // The value is not withing our expected range
                 //
                 continue;
             }
+            else
+            {
+                //
+                // Fix the context to virtual address
+                //
+                Context = ((PEPT_HOOKS_TEMPORARY_CONTEXT)(Context))->VirtualAddress;
+            }
+
             break;
 
         case HIDDEN_HOOK_EXEC_CC:

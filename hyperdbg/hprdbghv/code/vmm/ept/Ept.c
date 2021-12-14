@@ -684,10 +684,13 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
     {
         TempList                            = TempList->Flink;
         PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
+
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
             // We found an address that matches the details
+            //
+
             //
             // Returning true means that the caller should return to the ept state to
             // the previous state when this instruction is executed
@@ -696,6 +699,11 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
             //
             if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr))
             {
+                //
+                // Restore to its orginal entry for one instruction
+                //
+                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+
                 //
                 // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                 //
@@ -740,10 +748,12 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
             break;
         }
     }
+
     //
     // Redo the instruction
     //
     g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+
     return IsHandled;
 }
 
