@@ -36,6 +36,10 @@
     (*((PUINT8)(Code) + 0) == 0x0F && \
      *((PUINT8)(Code) + 1) == 0x05)
 
+/**
+ * @brief Special signatures
+ * 
+ */
 #define IMAGE_DOS_SIGNATURE    0x5A4D     // MZ
 #define IMAGE_OS2_SIGNATURE    0x454E     // NE
 #define IMAGE_OS2_SIGNATURE_LE 0x454C     // LE
@@ -45,6 +49,16 @@
 //////////////////////////////////////////////////
 //				   Structure					//
 //////////////////////////////////////////////////
+
+/**
+ * @brief Temporary $context used in some EPT hook commands
+ * 
+ */
+typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
+{
+    UINT64 PhysicalAddress;
+    UINT64 VirtualAddress;
+} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
 
 /**
  * @brief SSDT structure
@@ -62,6 +76,10 @@ typedef struct _SSDTStruct
     PCHAR pArgumentTable;
 } SSDTStruct, *PSSDTStruct;
 
+/**
+ * @brief Details of detours style EPT hooks
+ * 
+ */
 typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
 {
     LIST_ENTRY OtherHooksList;
@@ -69,6 +87,10 @@ typedef struct _HIDDEN_HOOKS_DETOUR_DETAILS
     PVOID      ReturnAddress;
 } HIDDEN_HOOKS_DETOUR_DETAILS, *PHIDDEN_HOOKS_DETOUR_DETAILS;
 
+/**
+ * @brief Module entry
+ * 
+ */
 typedef struct _SYSTEM_MODULE_ENTRY
 {
     HANDLE Section;
@@ -83,12 +105,21 @@ typedef struct _SYSTEM_MODULE_ENTRY
     UCHAR  FullPathName[256];
 } SYSTEM_MODULE_ENTRY, *PSYSTEM_MODULE_ENTRY;
 
+/**
+ * @brief System Information for modules
+ * 
+ */
 typedef struct _SYSTEM_MODULE_INFORMATION
 {
     ULONG               Count;
     SYSTEM_MODULE_ENTRY Module[0];
+
 } SYSTEM_MODULE_INFORMATION, *PSYSTEM_MODULE_INFORMATION;
 
+/**
+ * @brief System information class
+ * 
+ */
 typedef enum _SYSTEM_INFORMATION_CLASS
 {
     SystemModuleInformation         = 11,

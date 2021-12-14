@@ -1114,12 +1114,16 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
  * if there was an unexpected ept violation
  */
 BOOLEAN
-EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDetails, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, SIZE_T PhysicalAddress)
+EptHookHandleHookedPage(PGUEST_REGS                          Regs,
+                        EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
+                        VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
+                        SIZE_T                               PhysicalAddress)
 {
-    ULONG64 GuestRip;
-    ULONG64 ExactAccessedAddress;
-    ULONG64 AlignedVirtualAddress;
-    ULONG64 AlignedPhysicalAddress;
+    ULONG64                     GuestRip;
+    ULONG64                     ExactAccessedVirtualAddress;
+    ULONG64                     AlignedVirtualAddress;
+    ULONG64                     AlignedPhysicalAddress;
+    EPT_HOOKS_TEMPORARY_CONTEXT TemporaryContext = {0};
 
     //
     // Get alignment
@@ -1128,21 +1132,27 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
     AlignedPhysicalAddress = PAGE_ALIGN(PhysicalAddress);
 
     //
-    // Let's read the exact address that was accesses
+    // Let's read the exact address that was accessed
     //
-    ExactAccessedAddress = AlignedVirtualAddress + PhysicalAddress - AlignedPhysicalAddress;
+    ExactAccessedVirtualAddress = AlignedVirtualAddress + PhysicalAddress - AlignedPhysicalAddress;
 
     //
-    // Reading guest's RIP
+    // Create the temporary context
     //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
+    TemporaryContext.PhysicalAddress = PhysicalAddress;
+    TemporaryContext.VirtualAddress  = ExactAccessedVirtualAddress;
 
     if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
     {
         //
+        // Reading guest's RIP
+        //
+        __vmx_vmread(GUEST_RIP, &GuestRip);
+
+        //
         // Generally, we should never reach here, we didn't implement HyperDbg like this ;)
         //
-        LogError("Err, Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedAddress);
+        LogError("Err, Guest RIP : 0x%llx tries to execute the page at : 0x%llx", GuestRip, ExactAccessedVirtualAddress);
     }
     else if (!ViolationQualification.EptWriteable && ViolationQualification.WriteAccess)
     {
@@ -1157,12 +1167,12 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
         //
         // Trigger the event related to Monitor Write
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, PhysicalAddress);
+        DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, &TemporaryContext);
 
         //
         // And also search the read/write event
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE, Regs, PhysicalAddress);
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE, Regs, &TemporaryContext);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
@@ -1177,12 +1187,12 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
         //
         // Trigger the event related to Monitor Read
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, PhysicalAddress);
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ, Regs, &TemporaryContext);
 
         //
         // And also search the read/write event
         //
-        DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE, Regs, PhysicalAddress);
+        DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE, Regs, &TemporaryContext);
     }
     else
     {
@@ -1191,11 +1201,6 @@ EptHookHandleHookedPage(PGUEST_REGS Regs, EPT_HOOKED_PAGE_DETAIL * HookedEntryDe
         //
         return FALSE;
     }
-
-    //
-    // Restore to its orginal entry for one instruction
-    //
-    EptSetPML1AndInvalidateTLB(HookedEntryDetails->EntryAddress, HookedEntryDetails->OriginalEntry, INVEPT_SINGLE_CONTEXT);
 
     //
     // Means that restore the Entry to the previous state after current instruction executed in the guest

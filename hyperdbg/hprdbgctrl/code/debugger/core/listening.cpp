@@ -371,7 +371,7 @@ StartAgain:
 
                 break;
 
-            default:
+            case DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER:
 
                 //
                 // Signal the event relating to commands that are waiting for
@@ -383,6 +383,12 @@ StartAgain:
                 SetEvent(g_SyncronizationObjectsHandleTable
                              [DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS]
                                  .EventHandle);
+
+                break;
+
+            default:
+
+                ShowMessages("err, unknown pausing reason is received\n");
 
                 break;
             }

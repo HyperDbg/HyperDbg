@@ -96,7 +96,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
         {
             if (!ConvertStringToUInt32(Section, &Pid))
             {
-                ShowMessages("err, you should enter a valid proc id\n\n");
+                ShowMessages("err, you should enter a valid process id\n\n");
                 return;
             }
             IsNextProcessId = FALSE;

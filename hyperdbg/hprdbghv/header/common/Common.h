@@ -583,10 +583,16 @@ UINT64
 VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3);
 
 UINT64
+VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress);
+
+UINT64
 PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId);
 
 UINT64
 PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3);
+
+UINT64
+PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress);
 
 int
 MathPower(int Base, int Exp);

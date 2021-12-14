@@ -750,4 +750,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["prealloc"]    = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
     g_CommandsList["preallocate"] = {&CommandPrealloc, &CommandPreallocHelp, DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES};
+
+    g_CommandsList["k"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
+
+    g_CommandsList["dt"] = {&CommandDt, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
 }

@@ -394,6 +394,12 @@
     <ClCompile Include="code\debugger\commands\meta-commands\thread.cpp">
       <Filter>code\debugger\commands\meta-commands</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\dt.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">

@@ -343,6 +343,12 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PREALLOC_ATTRIBUTES NULL
 
+#define DEBUGGER_COMMAND_K_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
+#define DEBUGGER_COMMAND_DT_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -557,3 +563,9 @@ CommandX(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandPrealloc(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandDt(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandK(vector<string> SplittedCommand, string Command);

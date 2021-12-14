@@ -562,6 +562,48 @@ ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length)
 }
 
 //
+// Convert virtual address to physical address
+//
+UINT64
+ScriptEngineFunctionVirtualToPhysical(UINT64 Address)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    //
+    // There is no conversion in user-mode
+    //
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    return VirtualAddressToPhysicalAddressOnTargetProcess(Address);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+//
+// Convert physical address to virtual address
+//
+UINT64
+ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    //
+    // There is no conversion in user-mode
+    //
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    return PhysicalAddressToVirtualAddressOnTargetProcess(Address);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+//
 // *** Keywords ***
 //
 
@@ -4506,6 +4548,40 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal0;
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_PHYSICAL_TO_VIRTUAL:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionPhysicalToVirtual(GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE));
+
+        SetValue(GuestRegs, VariablesList, Des, DesVal);
+
+        return HasError;
+
+    case FUNC_VIRTUAL_TO_PHYSICAL:
+        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        DesVal = ScriptEngineFunctionVirtualToPhysical(GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE));
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;

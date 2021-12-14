@@ -11,11 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="details.h">
-      <Filter>header</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="hyperdbg-cli.cpp">
       <Filter>code</Filter>
     </ClCompile>

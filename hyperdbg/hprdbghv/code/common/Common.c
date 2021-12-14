@@ -382,6 +382,32 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
 }
 
 /**
+ * @brief Converts Physical Address to Virtual Address based
+ * on current process's kernel cr3
+ *   
+ * @details this function should NOT be called from vmx-root mode
+ *
+ * @param PhysicalAddress The target physical address
+ * @return UINT64 Returns the virtual address
+ */
+UINT64
+PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
+{
+    CR3_TYPE GuestCr3;
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    UINT64 Temp = (UINT64)PhysicalAddress;
+
+    return PhysicalAddressToVirtualAddressByCr3(PhysicalAddress, GuestCr3);
+}
+
+/**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process id's kernel cr3
  *
@@ -429,8 +455,6 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
 /**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process's kernel cr3
- *
- * @details this function should NOT be called from vmx-root mode
  * 
  * @param VirtualAddress The target virtual address
  * @param TargetCr3 The target's process cr3
@@ -467,6 +491,56 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
     // Restore the original process
     //
     RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return PhysicalAddress;
+}
+
+/**
+ * @brief Converts Virtual Address to Physical Address based
+ * on the current process's kernel cr3
+ * 
+ * @param VirtualAddress The target virtual address
+ * @return UINT64 Returns the physical address
+ */
+UINT64
+VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
+{
+    CR3_TYPE CurrentCr3;
+    CR3_TYPE GuestCr3;
+    UINT64   PhysicalAddress;
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    //
+    // Switch to new process's memory layout
+    //
+    CurrentCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+
+    //
+    // Validate if process id is valid
+    //
+    if (CurrentCr3.Flags == NULL)
+    {
+        //
+        // Pid is invalid
+        //
+        return NULL;
+    }
+
+    //
+    // Read the physical address based on new cr3
+    //
+    PhysicalAddress = MmGetPhysicalAddress(VirtualAddress).QuadPart;
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentCr3);
 
     return PhysicalAddress;
 }
