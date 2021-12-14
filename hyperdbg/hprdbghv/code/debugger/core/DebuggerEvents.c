@@ -63,7 +63,8 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 VOID
 DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
 {
-    PLIST_ENTRY TempList = 0;
+    PLIST_ENTRY                 TempList    = 0;
+    EPT_HOOKS_TEMPORARY_CONTEXT TempContext = {0};
 
     //
     // test
@@ -78,10 +79,16 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     //
 
     //
+    // Create temporary context
+    //
+    TempContext.VirtualAddress  = CalledFrom;
+    TempContext.PhysicalAddress = VirtualAddressToPhysicalAddress(CalledFrom);
+
+    //
     // As the context to event trigger, we send the address of function
     // which is current hidden hook is triggered for it
     //
-    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, VirtualAddressToPhysicalAddress(CalledFrom));
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS, Regs, &TempContext);
 
     //
     // Iterate through the list of hooked pages details to find

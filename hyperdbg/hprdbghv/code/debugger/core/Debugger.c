@@ -887,20 +887,41 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             break;
 
         case HIDDEN_HOOK_EXEC_CC:
+
+            //
+            // Here we check if it's HIDDEN_HOOK_EXEC_CC then it means
+            // so we have to make sure to perform its actions only if
+            // the hook is triggered for the address described in
+            // event, note that address in event is a virtual address
+            //
+            if (Context != CurrentEvent->OptionalParam1)
+            {
+                //
+                // Context is the virtual address
+                //
+
+                //
+                // The hook is not for this (virtual) address
+                //
+                continue;
+            }
+
+            break;
+
         case HIDDEN_HOOK_EXEC_DETOURS:
+
             //
-            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS or its
-            // HIDDEN_HOOK_EXEC_CC then it means that it's detours hidden
-            // hook exec so we have to make sure to perform its actions
-            // , only if the hook is triggered for the address described in
-            // event, note that address in event is a physical address and
-            // the address that the function that triggers these events and
-            // sent here as the context is also converted to its physical form
-            //
+            // Here we check if it's HIDDEN_HOOK_EXEC_DETOURS
+            // then it means that it's detours hidden hook exec so we have
+            // to make sure to perform its actions, only if the hook is triggered
+            // for the address described in event, note that address in event is
+            // a physical address and the address that the function that triggers
+            // these events and sent here as the context is also converted to its
+            // physical form
             // This way we are sure that no one can bypass our hook by remapping
             // address to another virtual address as everything is physical
             //
-            if (Context != CurrentEvent->OptionalParam1)
+            if (((PEPT_HOOKS_TEMPORARY_CONTEXT)Context)->PhysicalAddress != CurrentEvent->OptionalParam1)
             {
                 //
                 // Context is the physical address
@@ -911,6 +932,14 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+            else
+            {
+                //
+                // Convert it to virtual address
+                //
+                Context = ((PEPT_HOOKS_TEMPORARY_CONTEXT)Context)->VirtualAddress;
+            }
+
             break;
 
         case RDMSR_INSTRUCTION_EXECUTION:
