@@ -580,7 +580,6 @@ typedef struct _VIRTUAL_MACHINE_STATE
     UINT64  VmcsRegionPhysicalAddress;                                     // VMCS region physical address
     UINT64  VmcsRegionVirtualAddress;                                      // VMCS region virtual address
     UINT64  VmmStack;                                                      // Stack for VMM in VM-Exit State
-    UINT64  VmmStackNmi;                                                      // Stack for VMM in VM-Exit State NMI handler
     UINT64  MsrBitmapVirtualAddress;                                       // Msr Bitmap Virtual Address
     UINT64  MsrBitmapPhysicalAddress;                                      // Msr Bitmap Physical Address
     UINT64  IoBitmapVirtualAddressA;                                       // I/O Bitmap Virtual Address (A)

@@ -175,8 +175,7 @@ VmxAllocateVmmStack(INT ProcessorID)
     //
     // Allocate stack for the VM Exit Handler
     //
-    g_GuestState[ProcessorID].VmmStack    = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    g_GuestState[ProcessorID].VmmStackNmi = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    g_GuestState[ProcessorID].VmmStack = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
 
     if (g_GuestState[ProcessorID].VmmStack == NULL ||
         g_GuestState[ProcessorID].VmmStack == NULL)
@@ -185,10 +184,8 @@ VmxAllocateVmmStack(INT ProcessorID)
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
-    RtlZeroMemory(g_GuestState[ProcessorID].VmmStackNmi, VMM_STACK_SIZE);
 
     LogDebugInfo("VMM Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
-    LogDebugInfo("VMM Stack for logical processor (NMI Handler) : 0x%llx", g_GuestState[ProcessorID].VmmStackNmi);
 
     return TRUE;
 }

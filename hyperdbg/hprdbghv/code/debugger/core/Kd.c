@@ -136,8 +136,7 @@ KdUninitializeKernelDebugger()
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled)
 {
-    ULONG   CurrentCoreIndex;
-    ULONG64 NewStack;
+    ULONG CurrentCoreIndex;
 
     CurrentCoreIndex = KeGetCurrentProcessorNumber();
 
@@ -177,20 +176,11 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.CalledFromNMIHandler = TRUE;
 
     //
-    // Switch to new stack
-    //
-    NewStack = (ULONG64)g_GuestState[CurrentCoreIndex].VmmStackNmi + VMM_STACK_SIZE - 1;
-
-    UINT64 PrevStack = AsmDebuggerSwitchToNewStack(NewStack);
-
-    //
     // This way of handling has a problem, sometimes the guest is not made the guest
     // registers available and in those cases we pass null to the debugger, but in order
     // to avoid complexity we handle it this way
     //
     KdHandleNmi(CurrentCoreIndex, g_GuestState[CurrentCoreIndex].DebuggingState.GuestRegs);
-
-    AsmDebuggerRestoreThePreviousStack(PrevStack);
 
     //
     // Remove the indication of calling from NMI handle
