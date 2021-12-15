@@ -1,5 +1,7 @@
 PUBLIC AsmGeneralDetourHook
 PUBLIC AsmDebuggerSpinOnThread
+PUBLIC AsmDebuggerSwitchToNewStack
+PUBLIC AsmDebuggerRestoreThePreviousStack
 EXTERN DebuggerEventEptHook2GeneralDetourEventHandler:PROC
 
 .code _text
@@ -144,5 +146,30 @@ NopLoop:
     ret 
     
 AsmDebuggerSpinOnThread ENDP 
+
+;------------------------------------------------------------------------
+
+AsmDebuggerSwitchToNewStack PROC PUBLIC
+
+    pop r11 ; r11 is a volatile register that will save the return address
+    mov rax, rsp ; return pointer of current stack
+    mov rsp, rcx ; switch to new stack
+    sub rsp, 020h ; go upper to the stack
+
+    jmp R11 ; return to the caller
+    
+AsmDebuggerSwitchToNewStack ENDP 
+
+;------------------------------------------------------------------------
+
+AsmDebuggerRestoreThePreviousStack PROC PUBLIC
+
+    pop r11 ; r11 is a volatile register that will save the return address
+    mov rsp, rcx ; switch to new stack
+
+    push r11
+    ret ; return to the caller
+    
+AsmDebuggerRestoreThePreviousStack ENDP 
 
 END                     

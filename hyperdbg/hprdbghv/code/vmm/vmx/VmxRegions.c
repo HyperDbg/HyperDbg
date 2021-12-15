@@ -172,22 +172,23 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxAllocateVmmStack(INT ProcessorID)
 {
-    UINT64 VmmStack;
-
     //
     // Allocate stack for the VM Exit Handler
     //
-    VmmStack                           = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    g_GuestState[ProcessorID].VmmStack = VmmStack;
+    g_GuestState[ProcessorID].VmmStack    = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    g_GuestState[ProcessorID].VmmStackNmi = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
 
-    if (g_GuestState[ProcessorID].VmmStack == NULL)
+    if (g_GuestState[ProcessorID].VmmStack == NULL ||
+        g_GuestState[ProcessorID].VmmStack == NULL)
     {
         LogError("Err, insufficient memory in allocationg vmm stack");
         return FALSE;
     }
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
+    RtlZeroMemory(g_GuestState[ProcessorID].VmmStackNmi, VMM_STACK_SIZE);
 
     LogDebugInfo("VMM Stack for logical processor : 0x%llx", g_GuestState[ProcessorID].VmmStack);
+    LogDebugInfo("VMM Stack for logical processor (NMI Handler) : 0x%llx", g_GuestState[ProcessorID].VmmStackNmi);
 
     return TRUE;
 }

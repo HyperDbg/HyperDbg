@@ -294,11 +294,30 @@ extern unsigned long long
 AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
 
 /**
- * @brief Nop loop spin to halt the thread and wait
+ * @brief Switch to a new stack
+ * 
+ * @param NewStack 
+ * @return unsigned long long
+ */
+extern unsigned long long
+AsmDebuggerSwitchToNewStack(unsigned long long NewStack);
+
+/**
+ * @brief Switch to previous stack
+ * 
+ * @param PrevStack 
+ * @return unsigned long long
+ */
+extern void
+AsmDebuggerRestoreThePreviousStack(unsigned long long PrevStack);
+
+/**
+ * @brief Switch to a new stack
  * 
  */
 extern void
 AsmDebuggerSpinOnThread();
+
 //
 // ====================  Kernel Test Functions ====================
 // File : AsmKernelSideTests.asm

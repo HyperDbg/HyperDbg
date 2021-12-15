@@ -142,6 +142,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     BOOLEAN                                    DisableTrapFlagOnContinue;
     BOOLEAN                                    WaitForStepTrap;
     BOOLEAN                                    WaitingForNmi;
+    BOOLEAN                                    CalledFromNMIHandler;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
     BOOLEAN                                    BreakStarterCore;

@@ -61,8 +61,9 @@ KdInitializeKernelDebugger()
     //
     // Initialize list of breakpoints and breakpoint id
     //
-    InitializeListHead(&g_BreakpointsListHead);
     g_MaximumBreakpointId = 0;
+
+    InitializeListHead(&g_BreakpointsListHead);
 
     //
     // Indicate that kernel debugger is active
@@ -135,7 +136,8 @@ KdUninitializeKernelDebugger()
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled)
 {
-    UINT32 CurrentCoreIndex;
+    ULONG   CurrentCoreIndex;
+    ULONG64 NewStack;
 
     CurrentCoreIndex = KeGetCurrentProcessorNumber();
 
@@ -156,9 +158,9 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
 
     //
     // We should check whether the NMI is in vmx-root mode or not
-    // if it's not in vmx-root mode then it's not relate to use
+    // if it's not in vmx-root mode then it's not related to us
     //
-    if (!g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi)
+    if (g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi == FALSE)
     {
         return Handled;
     }
@@ -170,11 +172,30 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
 
     //
+    // Indicate that it's called from NMI handle
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.CalledFromNMIHandler = TRUE;
+
+    //
+    // Switch to new stack
+    //
+    NewStack = (ULONG64)g_GuestState[CurrentCoreIndex].VmmStackNmi + VMM_STACK_SIZE - 1;
+
+    UINT64 PrevStack = AsmDebuggerSwitchToNewStack(NewStack);
+
+    //
     // This way of handling has a problem, sometimes the guest is not made the guest
     // registers available and in those cases we pass null to the debugger, but in order
     // to avoid complexity we handle it this way
     //
     KdHandleNmi(CurrentCoreIndex, g_GuestState[CurrentCoreIndex].DebuggingState.GuestRegs);
+
+    AsmDebuggerRestoreThePreviousStack(PrevStack);
+
+    //
+    // Remove the indication of calling from NMI handle
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.CalledFromNMIHandler = FALSE;
 
     //
     // Also, return true to show that it's handled
@@ -834,6 +855,14 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     g_GuestState[NewCore].DebuggingState.MainDebuggingCore = TRUE;
 
     //
+    // Check if the target core is halted from a vmx-root routine or not
+    //
+    if (g_GuestState[NewCore].DebuggingState.CalledFromNMIHandler)
+    {
+        Log("The new core is halted from an NMI handler, in some cases the context (registers) might be wrong\n");
+    }
+
+    //
     // Unlock the new core
     // *** We should not unlock the spinlock here as the other core might
     // simultaneously start sending packets and corrupt our packets ***
@@ -994,10 +1023,17 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
         g_DebuggeeHaltTag     = EventDetails->Tag;
     }
 
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == TRUE)
     {
         //
-        // Halt all other Core by interrupting them to nmi
+        // Unset to avoid future not notifying events
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = FALSE;
+    }
+    else
+    {
+        //
+        // Halt all other cores by interrupting them with nmi
         //
 
         //
@@ -1008,13 +1044,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
         ApicTriggerGenericNmi(CurrentProcessorIndex);
 
         SpinlockUnlock(&DebuggerResponseLock);
-    }
-    else
-    {
-        //
-        // Unset to avoid future not notifying events
-        //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = FALSE;
     }
 
     //
@@ -1054,6 +1083,10 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
+    //
+    // Test
+    //
+
     // LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
 
     //
@@ -1696,6 +1729,20 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
                                                                  sizeof(DEBUGGER_REMOTE_PACKET));
+
+                ULONG tmp = KeQueryActiveProcessorCount(0);
+                for (size_t i = 0; i < tmp; i++)
+                {
+                    if (g_GuestState[i].DebuggingState.CalledFromNMIHandler)
+                    {
+                        LogInfo("NMI NMI NMI NMI : %d", i);
+                    }
+                    else
+                    {
+                        LogInfo("Not called from nmi handler %d", i);
+                    }
+                }
+
                 //
                 // Flush the buffers
                 //
