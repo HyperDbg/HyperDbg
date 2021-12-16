@@ -12,11 +12,17 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//					Constants					//
+//////////////////////////////////////////////////
+
+#define IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI 0x55
+
+//////////////////////////////////////////////////
 //					Functions					//
 //////////////////////////////////////////////////
 
 VOID
-VmxMechanismCreateImmediateVmexit();
+VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex);
 
 VOID
-VmxMechanismDisableImmediateVmexit();
+VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs);

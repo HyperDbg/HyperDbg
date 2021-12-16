@@ -34,21 +34,7 @@ VmxHandleXsetbv(UINT32 Reg, UINT64 Value)
 VOID
 VmxHandleVmxPreemptionTimerVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs)
 {
-    //
-    // Check for possible halt requests
-    //
-    if (g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        //
-        // Handle break of the core
-        //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentCoreIndex, GuestRegs);
-    }
-    else
-    {
-        VmxMechanismDisableImmediateVmexit();
-        LogError("Why vm-exit for VMX preemption timer happened?");
-    }
+    LogError("Why vm-exit for VMX preemption timer happened?");
 
     //
     // Not increase the RIP by default

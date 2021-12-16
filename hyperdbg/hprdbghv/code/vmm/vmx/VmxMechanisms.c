@@ -12,12 +12,12 @@
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Create an immediate vm-exit after vm-entry
- * 
+ * @brief Create an immediate vm-exit after vm-entry by using
+ * VMX Preemption Timer
  * @return VOID 
  */
 VOID
-VmxMechanismCreateImmediateVmexit()
+VmxMechanismCreateImmediateVmexitByVmxPreemptionTimer()
 {
     //
     // Activate VMX preemption timer on pin-based controls
@@ -33,12 +33,13 @@ VmxMechanismCreateImmediateVmexit()
 }
 
 /**
- * @brief Disable the immediate vm-exit after vm-entry
+ * @brief Disable the immediate vm-exit after vm-entry by using
+ * VMX Preemption Timer
  * 
  * @return VOID 
  */
 VOID
-VmxMechanismDisableImmediateVmexit()
+VmxMechanismDisableImmediateVmexitByVmxPreemptionTimer()
 {
     CounterClearPreemptionTimer();
 
@@ -46,4 +47,88 @@ VmxMechanismDisableImmediateVmexit()
     // Disable the VMX preemption timer on pin-based controls
     //
     HvSetVmxPreemptionTimerExiting(FALSE);
+}
+
+/**
+ * @brief Create an immediate vm-exit after vm-entry by using
+ * self-ipi
+ * 
+ * @return VOID 
+ */
+VOID
+VmxMechanismCreateImmediateVmexitBySelfIpi()
+{
+    //
+    // Send self-ipi on the target vector using xAPIC or x2APIC
+    //
+    ApicSelfIpi(IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI);
+}
+
+/**
+ * @brief Create an immediate vm-exit after vm-entry 
+ * 
+ * @param CurrentCoreIndex
+ * @return VOID 
+ */
+VOID
+VmxMechanismCreateImmediateVmexit(UINT32 CurrentCoreIndex)
+{
+    //
+    // I didn't test vm-exit by preemption timer as my machine
+    // or maybe VMware workstation's nested virtualization didn't
+    // support VMX Preemption Timer, that's why we use self-ipi
+    // method by default
+    //
+
+    //
+    // Indicate wait for an immediate vm-exit
+    //
+    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = TRUE;
+
+    //
+    // Self-ipi current core
+    //
+    VmxMechanismCreateImmediateVmexitBySelfIpi();
+
+    //
+    // Set vm-exit on external interrupts
+    //
+    HvSetExternalInterruptExiting(TRUE);
+}
+
+/**
+ * @brief Handle immediate vm-exit after vm-entry 
+ * @param CurrentCoreIndex
+ * @param GuestRegs
+ * 
+ * @return VOID 
+ */
+VOID
+VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs)
+{
+    //
+    // Not waiting for immediate vm-exit anymore
+    //
+    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = TRUE;
+
+    //
+    // Not increment the RIP
+    //
+    g_GuestState[CurrentCoreIndex].IncrementRip = FALSE;
+
+    //
+    // Disable vm-exit on external interrupts
+    //
+    HvSetExternalInterruptExiting(FALSE);
+
+    //
+    // Check for possible halt requests
+    //
+    if (g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+    {
+        //
+        // Handle break of the core
+        //
+        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentCoreIndex, GuestRegs);
+    }
 }

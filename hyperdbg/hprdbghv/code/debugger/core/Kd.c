@@ -188,7 +188,7 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     //         instruction in vmx-root mode, then we injected an immediate
     //         vm-exit and we won't miss any cpu cycle in the guest
     //
-    VmxMechanismCreateImmediateVmexit();
+    VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
 
     //
     // Also, return true to show that it's handled
@@ -989,11 +989,6 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
     // In these two cases we should check for the possible halting of the core
     //
-
-    //
-    // Disable the immediate vm-exit mechanism as no need to it anymore
-    //
-    VmxMechanismDisableImmediateVmexit();
 
     //
     // Handle halt of the current core as an NMI
