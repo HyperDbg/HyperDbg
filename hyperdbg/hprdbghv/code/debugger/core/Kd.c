@@ -1451,6 +1451,31 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 }
 
 /**
+ * @brief Query state of the system 
+ *
+ * @return VOID 
+ */
+VOID
+KdQuerySystemState()
+{
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            LogInfo("Core : %d - called from an NMI that is called in VMX-root mode", i);
+        }
+        else
+        {
+            LogInfo("Core : %d - not called from an NMI handler (through the immediate VM-exit mechanism)", i);
+        }
+    }
+}
+
+/**
  * @brief Perform modify and query events
  * @param ModifyAndQueryEvent 
  * 
@@ -1589,6 +1614,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
@@ -1829,6 +1855,48 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
                                            FlushPacket,
                                            sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY:
+
+                TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                                          sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Dispatch the request
+                //
+
+                switch (TestQueryPacket->RequestIndex)
+                {
+                case TEST_QUERY_HALTING_CORE_STATUS:
+
+                    //
+                    // Query the state of the system
+                    //
+                    KdQuerySystemState();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+                    break;
+
+                default:
+
+                    //
+                    // Query index not found
+                    //
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+                    break;
+                }
+
+                //
+                // Send the result of query system state to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY,
+                                           TestQueryPacket,
+                                           sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER));
 
                 break;
 

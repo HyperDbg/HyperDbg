@@ -320,6 +320,45 @@ KdSendFlushPacketToDebuggee()
 }
 
 /**
+ * @brief Send a test query request to the debuggee
+ * 
+ * @param Option
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex)
+{
+    DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER TestQueryPacket = {0};
+
+    TestQueryPacket.RequestIndex = RequestIndex;
+
+    //
+    // Send 'test query' command as query packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY,
+            (CHAR *)&TestQueryPacket,
+            sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of test query is received
+    //
+    g_SyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_TEST_QUERY]
+            .IsOnWaitingState = TRUE;
+    WaitForSingleObject(g_SyncronizationObjectsHandleTable
+                            [DEBUGGER_SYNCRONIZATION_OBJECT_TEST_QUERY]
+                                .EventHandle,
+                        INFINITE);
+
+    return TRUE;
+}
+
+/**
  * @brief Send symbol reload packet to the debuggee
  *
  * @return BOOLEAN

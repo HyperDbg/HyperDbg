@@ -92,6 +92,9 @@ BOOLEAN
 KdSendFlushPacketToDebuggee();
 
 BOOLEAN
+KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
+
+BOOLEAN
 KdSendSymbolReloadPacketToDebuggee();
 
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
