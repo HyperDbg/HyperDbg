@@ -232,7 +232,7 @@ VOID
 HvSetInterruptWindowExiting(BOOLEAN Set);
 
 /**
- * @brief Set the nmi-Window exiting
+ * @brief Set NMI-window exiting
  * 
  * @param Set 
  * @return VOID 

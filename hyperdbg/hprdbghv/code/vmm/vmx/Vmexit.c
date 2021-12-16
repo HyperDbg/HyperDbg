@@ -47,14 +47,8 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
 
     //
-    // Set the registers
-    //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = GuestRegs;
-
-    //
     // read the exit reason and exit qualification
     //
-
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
 
@@ -284,6 +278,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_PENDING_VIRT_NMI:
+    {
+        //
+        // Call the NMI-window exiting handler
+        //
+        IdtEmulationHandleNmiWindowExiting(CurrentProcessorIndex, GuestRegs);
+
+        break;
+    }
     case EXIT_REASON_MONITOR_TRAP_FLAG:
     {
         //
@@ -409,14 +412,39 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
 
     //
-    // Clear the registers
+    // Check for possible halt requests
     //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = NULL;
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+    {
+        //
+        // It's not a good place to check, however, it works
+        // The reason why it's not a good place is because other instructions
+        // until we reach to the vm-entry might also receive NMI, so we loose
+        // the handling of the NMI and the core will run its normal execution
+        // when it's not supposed to run.
+        // We should replace this routine with something that will immediately
+        // cause vm-exit after the vm-entry. This way, we'll be sure that
+        // if an NMI is received after this check, we still have a chance to
+        // handle it, btw, let it be like this as it works for now and leave
+        // handling it to the future
+        //
+
+        //
+        // Handle break of the core
+        //
+        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+    }
 
     //
     // Set indicator of Vmx non root mode to false
     //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
+
+    //
+    // Check for vmxoff request
+    //
+    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
+        Result = TRUE;
 
     //
     // Restore the previous time
@@ -432,9 +460,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, g_GuestState[CurrentProcessorIndex].TransparencyState.PreviousTimeStampCounter);
         }
     }
-
-    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
-        Result = TRUE;
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE

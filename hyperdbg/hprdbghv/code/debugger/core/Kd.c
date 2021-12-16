@@ -171,21 +171,10 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
 
     //
-    // Indicate that it's called from NMI handle
+    // Indicate that it's called from NMI handle, and it relates to
+    // halting the debuggee
     //
-    g_GuestState[CurrentCoreIndex].DebuggingState.CalledFromNMIHandler = TRUE;
-
-    //
-    // This way of handling has a problem, sometimes the guest is not made the guest
-    // registers available and in those cases we pass null to the debugger, but in order
-    // to avoid complexity we handle it this way
-    //
-    KdHandleNmi(CurrentCoreIndex, g_GuestState[CurrentCoreIndex].DebuggingState.GuestRegs);
-
-    //
-    // Remove the indication of calling from NMI handle
-    //
-    g_GuestState[CurrentCoreIndex].DebuggingState.CalledFromNMIHandler = FALSE;
+    g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
 
     //
     // Also, return true to show that it's handled
@@ -845,14 +834,6 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
     g_GuestState[NewCore].DebuggingState.MainDebuggingCore = TRUE;
 
     //
-    // Check if the target core is halted from a vmx-root routine or not
-    //
-    if (g_GuestState[NewCore].DebuggingState.CalledFromNMIHandler)
-    {
-        Log("The new core is halted from an NMI handler, in some cases the context (registers) might be wrong\n");
-    }
-
-    //
     // Unlock the new core
     // *** We should not unlock the spinlock here as the other core might
     // simultaneously start sending packets and corrupt our packets ***
@@ -957,6 +938,108 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
 }
 
 /**
+ * @brief Tries to get the lock and won't return until successfully get the lock
+ * 
+ * @param UINT32 CurrentProcessorIndex
+ * @param GuestRegs Guest registers
+ * 
+ * @return VOID
+ */
+VOID
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    //
+    // During the debugging of HyperDbg, we realized that whenever an
+    // event is set, one core might (and will) get the lock of the
+    // debugging and other cores that are triggering the same event
+    // go to the wait for the debugging lock
+    // As we send NMIs to all cores to notify them and halt them,
+    // a core might be in VMX-root and receive the NMI
+    // Handling the NMI and halting from the NMI handlers is not
+    // possible as the stack of the Windows' NMI handler routine
+    // is not big enough to handle HyperDbg's command dispatching
+    // routines, so if the user switches to the cores that are halted
+    // from an NMI handler then we ran out of stack and debugger crashes
+    // It is also not possible to change the stack to a bigger stack because
+    // we're not really interested in allocating other memories for the stack
+    // and also the target stack will not be a valid Windows stack as it's
+    // supposed to run with NMI handling routines.
+    //
+    // By the way, I conclude to let the NMI handler finish its normal
+    // execution and then we check for the possible pausing reasons.
+    //
+    // The pausing scenario should be checked two cases,
+    //      1. If the current core is stucked in spinlock of getting
+    //          the debug lock
+    //      2. If the current core is making it self ready for the vm-entry
+    //
+    // In these two cases we should check for the possible halting of the core
+    //
+
+    //
+    // Handle halt of the current core as an NMI
+    //
+    KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+
+    //
+    // Set the indication to false as we handled it
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
+}
+
+/**
+ * @brief Tries to get the lock and won't return until successfully get the lock
+ * 
+ * @param UINT32 CurrentProcessorIndex
+ * @param LONG Lock variable
+ * @param GuestRegs Guest registers
+ * 
+ * @return VOID
+ */
+VOID
+KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * Lock, PGUEST_REGS GuestRegs)
+{
+    unsigned wait = 1;
+
+    //
+    // *** Lock handling breaks ***
+    //
+
+    while (!SpinlockTryLock(Lock))
+    {
+        for (unsigned i = 0; i < wait; ++i)
+        {
+            _mm_pause();
+        }
+
+        //
+        // check the condition of passing the execution to NMIs
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle break of the core
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+        }
+
+        //
+        // Don't call "pause" too many times. If the wait becomes too big,
+        // clamp it to the MaxWait.
+        //
+
+        if (wait * 2 > 65536)
+        {
+            wait = 65536;
+        }
+        else
+        {
+            wait = wait * 2;
+        }
+    }
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -971,7 +1054,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock handling breaks
     //
-    SpinlockLock(&DebuggerHandleBreakpointLock);
+    KdCustomDebuggerBreakSpinlockLock(CurrentProcessorIndex, &DebuggerHandleBreakpointLock, GuestRegs);
 
     //
     // Check if we should ignore this break request or not
@@ -1719,19 +1802,6 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
                                                                  sizeof(DEBUGGER_REMOTE_PACKET));
-
-                ULONG tmp = KeQueryActiveProcessorCount(0);
-                for (size_t i = 0; i < tmp; i++)
-                {
-                    if (g_GuestState[i].DebuggingState.CalledFromNMIHandler)
-                    {
-                        LogInfo("NMI NMI NMI NMI : %d", i);
-                    }
-                    else
-                    {
-                        LogInfo("Not called from nmi handler %d", i);
-                    }
-                }
 
                 //
                 // Flush the buffers

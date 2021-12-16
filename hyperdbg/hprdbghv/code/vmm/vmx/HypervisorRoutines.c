@@ -827,7 +827,7 @@ HvReadExceptionBitmap()
 /**
  * @brief Set Interrupt-window exiting
  * 
- * @param Set Set or unset the Interrupt Window-exiting
+ * @param Set Set or unset the Interrupt-window exiting
  * @return VOID 
  */
 VOID
@@ -859,9 +859,9 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 }
 
 /**
- * @brief Set the nmi-Window exiting
+ * @brief Set NMI-window exiting
  * 
- * @param Set Set or unset the Interrupt Window-exiting
+ * @param Set Set or unset the NMI-window exiting
  * @return VOID 
  */
 VOID
@@ -875,7 +875,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
 
     //
-    // nmi-window exiting
+    // interrupt-window exiting
     //
     if (Set)
     {

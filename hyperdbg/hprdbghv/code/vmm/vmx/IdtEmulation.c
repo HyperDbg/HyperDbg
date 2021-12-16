@@ -494,6 +494,19 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
 }
 
 /**
+ * @brief Handle NMI-window exitings
+ * 
+ * @param CurrentProcessorIndex processor index
+ * @param GuestRegs guest context
+ * @return VOID 
+ */
+VOID
+IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    LogError("Why NMI-window exiting happens?");
+}
+
+/**
  * @brief Handle interrupt-window exitings
  * 
  * @param CurrentProcessorIndex processor index
