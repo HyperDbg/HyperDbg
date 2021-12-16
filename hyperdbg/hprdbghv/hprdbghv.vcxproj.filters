@@ -272,6 +272,9 @@
     <ClCompile Include="code\components\registers\DebugRegisters.c">
       <Filter>code\components\registers</Filter>
     </ClCompile>
+    <ClCompile Include="code\vmm\vmx\VmxMechanisms.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -402,6 +405,9 @@
     </ClInclude>
     <ClInclude Include="header\components\registers\DebugRegisters.h">
       <Filter>header\components\registers</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,7 +19,7 @@
  * @return VOID 
  */
 VOID
-ApicXTriggerNmi(UINT32 Low, UINT32 High)
+XApicIcrWrite(UINT32 Low, UINT32 High)
 {
     *(UINT32 *)((uintptr_t)g_ApicBase + ICROffset + 0x10) = High;
     *(UINT32 *)((uintptr_t)g_ApicBase + ICROffset)        = Low;
@@ -33,7 +33,7 @@ ApicXTriggerNmi(UINT32 Low, UINT32 High)
  * @return VOID 
  */
 VOID
-ApicX2TriggerNmi(UINT32 Low, UINT32 High)
+X2ApicIcrWrite(UINT32 Low, UINT32 High)
 {
     __writemsr(X2_MSR_BASE + TO_X2(ICROffset), ((UINT64)High << 32) | Low);
 }
@@ -63,11 +63,11 @@ ApicTriggerGenericNmi(UINT32 CurrentCoreIndex)
 
     if (g_IsX2Apic)
     {
-        ApicX2TriggerNmi((4 << 8) | (1 << 14) | (3 << 18), 0);
+        X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
     }
     else
     {
-        ApicXTriggerNmi((4 << 8) | (1 << 14) | (3 << 18), 0);
+        XApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);
     }
 }
 
@@ -114,4 +114,26 @@ ApicUninitialize()
     //
     if (g_ApicBase)
         MmUnmapIoSpace(g_ApicBase, 0x1000);
+}
+
+/**
+ * @brief Self IPI the current core
+ * 
+ * @param Vector
+ * @return VOID 
+ */
+VOID
+ApicSelfIpi(UINT32 Vector)
+{
+    //
+    // Check and apply self-IPI to x2APIC and xAPIC
+    //
+    if (g_IsX2Apic)
+    {
+        X2ApicIcrWrite(APIC_DEST_SELF | APIC_DEST_PHYSICAL | APIC_DM_FIXED | Vector, 0);
+    }
+    else
+    {
+        XApicIcrWrite(APIC_DEST_SELF | APIC_DEST_PHYSICAL | APIC_DM_FIXED | Vector, 0);
+    }
 }

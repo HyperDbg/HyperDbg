@@ -827,7 +827,7 @@ HvReadExceptionBitmap()
 /**
  * @brief Set Interrupt-window exiting
  * 
- * @param Set Set or unset the Interrupt Window-exiting
+ * @param Set Set or unset the Interrupt-window exiting
  * @return VOID 
  */
 VOID
@@ -859,9 +859,9 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 }
 
 /**
- * @brief Set the nmi-Window exiting
+ * @brief Set NMI-window exiting
  * 
- * @param Set Set or unset the Interrupt Window-exiting
+ * @param Set Set or unset the NMI-window exiting
  * @return VOID 
  */
 VOID
@@ -875,7 +875,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
 
     //
-    // nmi-window exiting
+    // interrupt-window exiting
     //
     if (Set)
     {
@@ -1132,6 +1132,37 @@ HvSetNmiExiting(BOOLEAN Set)
     //
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
     __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+}
+
+/**
+ * @brief Set the VMX preemption timer
+ * 
+ * @param Set Set or unset the VMX preemption timer
+ * @return VOID 
+ */
+VOID
+HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
+{
+    ULONG PinBasedControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
+
+    if (Set)
+    {
+        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+    }
+    else
+    {
+        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
 }
 
 /**

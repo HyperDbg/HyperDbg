@@ -134,19 +134,19 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     volatile LONG                              Lock;
     volatile BOOLEAN                           MainDebuggingCore;
+    volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
+    BOOLEAN                                    WaitForStepTrap;
+    BOOLEAN                                    WaitingForNmi;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
     PDEBUGGEE_BP_DESCRIPTOR                    SoftwareBreakpointState;
     DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE     InstrumentationStepInTrace;
     BOOLEAN                                    EnableExternalInterruptsOnContinue;
     BOOLEAN                                    EnableExternalInterruptsOnContinueMtf;
     BOOLEAN                                    DisableTrapFlagOnContinue;
-    BOOLEAN                                    WaitForStepTrap;
-    BOOLEAN                                    WaitingForNmi;
     BOOLEAN                                    DoNotNmiNotifyOtherCoresByThisCore;
     DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS ThreadOrProcessTracingDetails;
     BOOLEAN                                    BreakStarterCore;
     UINT16                                     InstructionLengthHint;
-    PGUEST_REGS                                GuestRegs;
     UINT64                                     HardwareDebugRegisterForStepping;
     UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
 

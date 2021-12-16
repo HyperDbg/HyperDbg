@@ -75,6 +75,7 @@
 #include "..\hprdbghv\header\vmm\vmx\HypervisorRoutines.h"
 #include "..\hprdbghv\header\vmm\vmx\ProtectedHvRoutines.h"
 #include "..\hprdbghv\header\vmm\vmx\IoHandler.h"
+#include "..\hprdbghv\header\vmm\vmx\VmxMechanisms.h"
 #include "..\hprdbghv\header\debugger\core\Steppings.h"
 #include "..\hprdbghv\header\debugger\core\Termination.h"
 #include "ScriptEngineCommonDefinitions.h"

@@ -232,7 +232,7 @@ VOID
 HvSetInterruptWindowExiting(BOOLEAN Set);
 
 /**
- * @brief Set the nmi-Window exiting
+ * @brief Set NMI-window exiting
  * 
  * @param Set 
  * @return VOID 
@@ -267,6 +267,15 @@ HvSetMovDebugRegsExiting(BOOLEAN Set);
  */
 VOID
 HvSetNmiExiting(BOOLEAN Set);
+
+/**
+ * @brief Set the VMX Preemptiom Timer
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
 
 /**
  * @brief Set bits in I/O Bitmap

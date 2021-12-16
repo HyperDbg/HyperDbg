@@ -294,11 +294,12 @@ extern unsigned long long
 AsmDebuggerConditionCodeHandler(unsigned long long Param1, unsigned long long Param2, unsigned long long Param3);
 
 /**
- * @brief Nop loop spin to halt the thread and wait
+ * @brief Spin on thread
  * 
  */
 extern void
 AsmDebuggerSpinOnThread();
+
 //
 // ====================  Kernel Test Functions ====================
 // File : AsmKernelSideTests.asm

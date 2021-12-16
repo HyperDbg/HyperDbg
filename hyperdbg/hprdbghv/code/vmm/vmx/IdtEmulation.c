@@ -381,13 +381,30 @@ IdtEmulationCheckProcessOrThreadChange(UINT32 CurrentProcessorIndex, VMEXIT_INTE
  * 
  * @return BOOLEAN 
  */
-BOOLEAN
+VOID
 IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
 {
     BOOLEAN                Interruptible         = TRUE;
     INTERRUPTIBILITY_STATE InterruptibilityState = {0};
     RFLAGS                 GuestRflags           = {0};
     ULONG                  ErrorCode             = 0;
+
+    //
+    // Check for immediate vm-exit mechanism
+    //
+    if (InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI &&
+        g_GuestState[CurrentProcessorIndex].WaitForImmediateVmexit)
+    {
+        //
+        // Hanlde immediate vm-exit mechanism
+        //
+        VmxMechanismHandleImmediateVmexit(CurrentProcessorIndex, GuestRegs);
+
+        //
+        // No need to continue, it's a HyperDbg mechanism
+        //
+        return;
+    }
 
     //
     // Check process or thread change detections
@@ -407,6 +424,7 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
+
     if ((g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue ||
          g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf))
     {
@@ -484,13 +502,19 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
     // be re-injected when the guest is ready for interrupts
     //
     DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
+}
 
-    //
-    // Signalize whether the interrupt was handled and re-injected or the
-    // guest is not in a state of handling the interrupt and we have to
-    // wait for a interrupt windows-exiting
-    //
-    return Interruptible;
+/**
+ * @brief Handle NMI-window exitings
+ * 
+ * @param CurrentProcessorIndex processor index
+ * @param GuestRegs guest context
+ * @return VOID 
+ */
+VOID
+IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    LogError("Why NMI-window exiting happens?");
 }
 
 /**

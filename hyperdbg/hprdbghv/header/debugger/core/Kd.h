@@ -113,6 +113,9 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
+VOID
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled);
 

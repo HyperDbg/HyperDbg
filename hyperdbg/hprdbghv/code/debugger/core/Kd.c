@@ -61,8 +61,9 @@ KdInitializeKernelDebugger()
     //
     // Initialize list of breakpoints and breakpoint id
     //
-    InitializeListHead(&g_BreakpointsListHead);
     g_MaximumBreakpointId = 0;
+
+    InitializeListHead(&g_BreakpointsListHead);
 
     //
     // Indicate that kernel debugger is active
@@ -135,7 +136,7 @@ KdUninitializeKernelDebugger()
 BOOLEAN
 KdNmiCallback(PVOID Context, BOOLEAN Handled)
 {
-    UINT32 CurrentCoreIndex;
+    ULONG CurrentCoreIndex;
 
     CurrentCoreIndex = KeGetCurrentProcessorNumber();
 
@@ -156,9 +157,9 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
 
     //
     // We should check whether the NMI is in vmx-root mode or not
-    // if it's not in vmx-root mode then it's not relate to use
+    // if it's not in vmx-root mode then it's not related to us
     //
-    if (!g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi)
+    if (g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi == FALSE)
     {
         return Handled;
     }
@@ -170,11 +171,24 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
 
     //
-    // This way of handling has a problem, sometimes the guest is not made the guest
-    // registers available and in those cases we pass null to the debugger, but in order
-    // to avoid complexity we handle it this way
+    // Indicate that it's called from NMI handle, and it relates to
+    // halting the debuggee
     //
-    KdHandleNmi(CurrentCoreIndex, g_GuestState[CurrentCoreIndex].DebuggingState.GuestRegs);
+    g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
+
+    //
+    // If the core was in the middle of spinning on the spinlock
+    // of getting the debug lock, this mechansim is not needed,
+    // but if the core is not spinning there or the core is processing
+    // a random vm-exit, then we inject an immediate vm-exit after vm-entry
+    // this is used for two reasons.
+    //
+    //      1. first, we will get the registers (context) to halt the core
+    //      2. second, it guarantees that if the NMI arrives within any
+    //         instruction in vmx-root mode, then we injected an immediate
+    //         vm-exit and we won't miss any cpu cycle in the guest
+    //
+    VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
 
     //
     // Also, return true to show that it's handled
@@ -938,6 +952,108 @@ KdSendCommandFinishedSignal(UINT32      CurrentProcessorIndex,
 }
 
 /**
+ * @brief Tries to get the lock and won't return until successfully get the lock
+ * 
+ * @param UINT32 CurrentProcessorIndex
+ * @param GuestRegs Guest registers
+ * 
+ * @return VOID
+ */
+VOID
+KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    //
+    // During the debugging of HyperDbg, we realized that whenever an
+    // event is set, one core might (and will) get the lock of the
+    // debugging and other cores that are triggering the same event
+    // go to the wait for the debugging lock
+    // As we send NMIs to all cores to notify them and halt them,
+    // a core might be in VMX-root and receive the NMI
+    // Handling the NMI and halting from the NMI handlers is not
+    // possible as the stack of the Windows' NMI handler routine
+    // is not big enough to handle HyperDbg's command dispatching
+    // routines, so if the user switches to the cores that are halted
+    // from an NMI handler then we ran out of stack and debugger crashes
+    // It is also not possible to change the stack to a bigger stack because
+    // we're not really interested in allocating other memories for the stack
+    // and also the target stack will not be a valid Windows stack as it's
+    // supposed to run with NMI handling routines.
+    //
+    // By the way, I conclude to let the NMI handler finish its normal
+    // execution and then we check for the possible pausing reasons.
+    //
+    // The pausing scenario should be checked two cases,
+    //      1. If the current core is stucked in spinlock of getting
+    //          the debug lock
+    //      2. If the current core is making it self ready for the vm-entry
+    //
+    // In these two cases we should check for the possible halting of the core
+    //
+
+    //
+    // Handle halt of the current core as an NMI
+    //
+    KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+
+    //
+    // Set the indication to false as we handled it
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = FALSE;
+}
+
+/**
+ * @brief Tries to get the lock and won't return until successfully get the lock
+ * 
+ * @param UINT32 CurrentProcessorIndex
+ * @param LONG Lock variable
+ * @param GuestRegs Guest registers
+ * 
+ * @return VOID
+ */
+VOID
+KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * Lock, PGUEST_REGS GuestRegs)
+{
+    unsigned wait = 1;
+
+    //
+    // *** Lock handling breaks ***
+    //
+
+    while (!SpinlockTryLock(Lock))
+    {
+        for (unsigned i = 0; i < wait; ++i)
+        {
+            _mm_pause();
+        }
+
+        //
+        // check the condition of passing the execution to NMIs
+        //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle break of the core
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+        }
+
+        //
+        // Don't call "pause" too many times. If the wait becomes too big,
+        // clamp it to the MaxWait.
+        //
+
+        if (wait * 2 > 65536)
+        {
+            wait = 65536;
+        }
+        else
+        {
+            wait = wait * 2;
+        }
+    }
+}
+
+/**
  * @brief Handle #DBs and #BPs for kernel debugger
  * @details This function can be used in vmx-root 
  * 
@@ -952,7 +1068,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock handling breaks
     //
-    SpinlockLock(&DebuggerHandleBreakpointLock);
+    KdCustomDebuggerBreakSpinlockLock(CurrentProcessorIndex, &DebuggerHandleBreakpointLock, GuestRegs);
 
     //
     // Check if we should ignore this break request or not
@@ -994,10 +1110,17 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
         g_DebuggeeHaltTag     = EventDetails->Tag;
     }
 
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == FALSE)
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore == TRUE)
     {
         //
-        // Halt all other Core by interrupting them to nmi
+        // Unset to avoid future not notifying events
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = FALSE;
+    }
+    else
+    {
+        //
+        // Halt all other cores by interrupting them with nmi
         //
 
         //
@@ -1008,13 +1131,6 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
         ApicTriggerGenericNmi(CurrentProcessorIndex);
 
         SpinlockUnlock(&DebuggerResponseLock);
-    }
-    else
-    {
-        //
-        // Unset to avoid future not notifying events
-        //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.DoNotNmiNotifyOtherCoresByThisCore = FALSE;
     }
 
     //
@@ -1054,6 +1170,10 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
 VOID
 KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
+    //
+    // Test
+    //
+
     // LogInfo("NMI Arrived on : %d \n",CurrentProcessorIndex);
 
     //
@@ -1331,6 +1451,31 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 }
 
 /**
+ * @brief Query state of the system 
+ *
+ * @return VOID 
+ */
+VOID
+KdQuerySystemState()
+{
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            LogInfo("Core : %d - called from an NMI that is called in VMX-root mode", i);
+        }
+        else
+        {
+            LogInfo("Core : %d - not called from an NMI handler (through the immediate VM-exit mechanism)", i);
+        }
+    }
+}
+
+/**
  * @brief Perform modify and query events
  * @param ModifyAndQueryEvent 
  * 
@@ -1469,6 +1614,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                               EditMemoryPacket;
@@ -1696,6 +1842,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
                                                                  sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Flush the buffers
                 //
@@ -1708,6 +1855,48 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
                                            FlushPacket,
                                            sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY:
+
+                TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                                          sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Dispatch the request
+                //
+
+                switch (TestQueryPacket->RequestIndex)
+                {
+                case TEST_QUERY_HALTING_CORE_STATUS:
+
+                    //
+                    // Query the state of the system
+                    //
+                    KdQuerySystemState();
+
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+                    break;
+
+                default:
+
+                    //
+                    // Query index not found
+                    //
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+                    break;
+                }
+
+                //
+                // Send the result of query system state to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY,
+                                           TestQueryPacket,
+                                           sizeof(DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER));
 
                 break;
 

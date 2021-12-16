@@ -146,6 +146,7 @@
     <ClCompile Include="code\vmm\vmx\Vmcall.c" />
     <ClCompile Include="code\vmm\vmx\Vmexit.c" />
     <ClCompile Include="code\vmm\vmx\Vmx.c" />
+    <ClCompile Include="code\vmm\vmx\VmxMechanisms.c" />
     <ClCompile Include="code\vmm\vmx\VmxRegions.c" />
   </ItemGroup>
   <ItemGroup>
@@ -201,6 +202,7 @@
     <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h" />
     <ClInclude Include="header\vmm\vmx\Vmcall.h" />
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
+    <ClInclude Include="header\vmm\vmx\VmxMechanisms.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

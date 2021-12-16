@@ -47,14 +47,8 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
 
     //
-    // Set the registers
-    //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = GuestRegs;
-
-    //
     // read the exit reason and exit qualification
     //
-
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
 
@@ -284,6 +278,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_PENDING_VIRT_NMI:
+    {
+        //
+        // Call the NMI-window exiting handler
+        //
+        IdtEmulationHandleNmiWindowExiting(CurrentProcessorIndex, GuestRegs);
+
+        break;
+    }
     case EXIT_REASON_MONITOR_TRAP_FLAG:
     {
         //
@@ -392,6 +395,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
+    {
+        //
+        // Handle the VMX preemption timer vm-exit
+        //
+        VmxHandleVmxPreemptionTimerVmexit(CurrentProcessorIndex, GuestRegs);
+        break;
+    }
     default:
     {
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
@@ -409,14 +420,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
 
     //
-    // Clear the registers
-    //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.GuestRegs = NULL;
-
-    //
     // Set indicator of Vmx non root mode to false
     //
     g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
+
+    //
+    // Check for vmxoff request
+    //
+    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
+        Result = TRUE;
 
     //
     // Restore the previous time
@@ -432,9 +444,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             __writemsr(MSR_IA32_TIME_STAMP_COUNTER, g_GuestState[CurrentProcessorIndex].TransparencyState.PreviousTimeStampCounter);
         }
     }
-
-    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
-        Result = TRUE;
 
     //
     // By default it's FALSE, if we want to exit vmx then it's TRUE

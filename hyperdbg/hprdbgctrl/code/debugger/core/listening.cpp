@@ -56,6 +56,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
@@ -535,6 +536,35 @@ StartAgain:
                     .IsOnWaitingState = FALSE;
             SetEvent(g_SyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT]
+                             .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY:
+
+            TestQueryPacket =
+                (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) +
+                                                        sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (TestQueryPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // Nothing to show, everything is shown from the kernel
+                //
+            }
+            else
+            {
+                ShowErrorMessage(TestQueryPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of test query
+            //
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_TEST_QUERY]
+                    .IsOnWaitingState = FALSE;
+            SetEvent(g_SyncronizationObjectsHandleTable
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_TEST_QUERY]
                              .EventHandle);
 
             break;

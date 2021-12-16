@@ -11,6 +11,11 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of test command
  *
@@ -21,9 +26,10 @@ CommandTestHelp()
 {
     ShowMessages(
         "test : Test essential features of HyperDbg in current machine.\n");
-    ShowMessages("syntax : \ttest\n");
+    ShowMessages("syntax : \ttest [query]\n");
 
     ShowMessages("\t\te.g : test\n");
+    ShowMessages("\t\te.g : test query\n");
 }
 
 /**
@@ -195,28 +201,19 @@ WaitForResponse:
 }
 
 /**
- * @brief test command handler
+ * @brief test command for VMI mode
  *
- * @param SplittedCommand
- * @param Command
  * @return VOID
  */
 VOID
-CommandTest(vector<string> SplittedCommand, string Command)
+CommandTestInVmiMode()
 {
     BOOL  Status;
     ULONG ReturnedLength;
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION
     KernelSideTestInformationRequestArray;
 
-    if (SplittedCommand.size() != 1)
-    {
-        ShowMessages("incorrect use of 'test'\n\n");
-        CommandTestHelp();
-        return;
-    }
-
-    else if (!g_DeviceHandle)
+    if (!g_DeviceHandle)
     {
         ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
@@ -272,4 +269,57 @@ CommandTest(vector<string> SplittedCommand, string Command)
     // Free the kernel-side buffer
     //
     free(KernelSideTestInformationRequestArray);
+}
+
+/**
+ * @brief test command for query the state
+ *
+ * @return VOID
+ */
+VOID
+CommandTestQueryState()
+{
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, query state of the debuggee is only possible when you connected "
+                     "in debugger mode\n");
+        return;
+    }
+
+    //
+    // Send the query to the debuggee
+    //
+    KdSendTestQueryPacketToDebuggee(TEST_QUERY_HALTING_CORE_STATUS);
+}
+
+/**
+ * @brief test command handler
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID
+CommandTest(vector<string> SplittedCommand, string Command)
+{
+    if (SplittedCommand.size() == 1)
+    {
+        //
+        // For testing in vmi mode
+        //
+        CommandTestInVmiMode();
+    }
+    else if (SplittedCommand.size() == 2 && !SplittedCommand.at(1).compare("query"))
+    {
+        //
+        // Query the state of debuggee in debugger mode
+        //
+        CommandTestQueryState();
+    }
+    else
+    {
+        ShowMessages("incorrect use of 'test'\n\n");
+        CommandTestHelp();
+        return;
+    }
 }

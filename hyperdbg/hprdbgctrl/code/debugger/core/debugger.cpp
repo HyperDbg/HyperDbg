@@ -258,6 +258,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_INVALID_TEST_QUERY_INDEX:
+        ShowMessages("err, invalid index specified for test query command (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

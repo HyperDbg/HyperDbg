@@ -58,4 +58,7 @@ BOOLEAN
 IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
 
 VOID
+IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
+VOID
 IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex);
