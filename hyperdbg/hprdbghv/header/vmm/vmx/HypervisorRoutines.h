@@ -269,6 +269,15 @@ VOID
 HvSetNmiExiting(BOOLEAN Set);
 
 /**
+ * @brief Set the VMX Preemptiom Timer
+ * 
+ * @param Set 
+ * @return VOID 
+ */
+VOID
+HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
+
+/**
  * @brief Set bits in I/O Bitmap
  * 
  * @param Port 

@@ -177,6 +177,20 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
 
     //
+    // If the core was in the middle of spinning on the spinlock
+    // of getting the debug lock, this mechansim is not needed,
+    // but if the core is not spinning there or the core is processing
+    // a random vm-exit, then we inject an immediate vm-exit after vm-entry
+    // this is used for two reasons.
+    //
+    //      1. first, we will get the registers (context) to halt the core
+    //      2. second, it guarantees that if the NMI arrives within any
+    //         instruction in vmx-root mode, then we injected an immediate
+    //         vm-exit and we won't miss any cpu cycle in the guest
+    //
+    VmxMechanismCreateImmediateVmexit();
+
+    //
     // Also, return true to show that it's handled
     //
     return TRUE;
@@ -975,6 +989,11 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
     // In these two cases we should check for the possible halting of the core
     //
+
+    //
+    // Disable the immediate vm-exit mechanism as no need to it anymore
+    //
+    VmxMechanismDisableImmediateVmexit();
 
     //
     // Handle halt of the current core as an NMI

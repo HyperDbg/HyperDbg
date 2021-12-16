@@ -1135,6 +1135,37 @@ HvSetNmiExiting(BOOLEAN Set)
 }
 
 /**
+ * @brief Set the VMX preemption timer
+ * 
+ * @param Set Set or unset the VMX preemption timer
+ * @return VOID 
+ */
+VOID
+HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
+{
+    ULONG PinBasedControls = 0;
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
+
+    if (Set)
+    {
+        PinBasedControls |= PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+    }
+    else
+    {
+        PinBasedControls &= ~PIN_BASED_VM_EXECUTION_CONTROLS_ACTIVE_VMX_TIMER;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
+}
+
+/**
  * @brief Set bits in I/O Bitmap
  * 
  * @param Port Port

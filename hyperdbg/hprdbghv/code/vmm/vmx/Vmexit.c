@@ -395,6 +395,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
+    case EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
+    {
+        //
+        // Handle the VMX preemption timer vm-exit
+        //
+        VmxHandleVmxPreemptionTimerVmexit(CurrentProcessorIndex, GuestRegs);
+        break;
+    }
     default:
     {
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
@@ -409,30 +417,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     if (!g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted && g_GuestState[CurrentProcessorIndex].IncrementRip)
     {
         HvResumeToNextInstruction();
-    }
-
-    //
-    // Check for possible halt requests
-    //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        //
-        // It's not a good place to check, however, it works
-        // The reason why it's not a good place is because other instructions
-        // until we reach to the vm-entry might also receive NMI, so we loose
-        // the handling of the NMI and the core will run its normal execution
-        // when it's not supposed to run.
-        // We should replace this routine with something that will immediately
-        // cause vm-exit after the vm-entry. This way, we'll be sure that
-        // if an NMI is received after this check, we still have a chance to
-        // handle it, btw, let it be like this as it works for now and leave
-        // handling it to the future
-        //
-
-        //
-        // Handle break of the core
-        //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
     }
 
     //

@@ -64,3 +64,32 @@ CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
     GuestRegs->rax = 0x00000000ffffffff & Pmc;
     GuestRegs->rdx = 0x00000000ffffffff & (Pmc >> 32);
 }
+
+/**
+ * @brief Set the timer value for preemption timer
+ * 
+ * @param TimerValue Value of the timer
+ * @return VOID 
+ */
+VOID
+CounterSetPreemptionTimer(UINT32 TimerValue)
+{
+    //
+    // Set the time value
+    //
+    __vmx_vmwrite(GUEST_PREEMPTION_TIMER, TimerValue);
+}
+
+/**
+ * @brief Clears the preemption timer 
+ * 
+ * @return VOID 
+ */
+VOID
+CounterClearPreemptionTimer()
+{
+    //
+    // Set the time value to NULL
+    //
+    __vmx_vmwrite(GUEST_PREEMPTION_TIMER, NULL);
+}

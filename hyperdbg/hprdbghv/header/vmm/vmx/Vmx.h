@@ -701,6 +701,9 @@ VOID
 VmxHandleXsetbv(UINT32 Reg, UINT64 Value);
 
 VOID
+VmxHandleVmxPreemptionTimerVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs);
+
+VOID
 VmxVmptrst();
 
 VOID
