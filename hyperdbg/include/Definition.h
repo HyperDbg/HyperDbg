@@ -406,10 +406,6 @@ const unsigned char BuildVersion[] =
 //////////////////////////////////////////////////
 
 /**
- * @brief The processor is not important
- */
-#define DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT 0xffffffff
-
 /**
  * @brief Maximum Number of Event Handles
  */

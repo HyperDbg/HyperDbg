@@ -166,12 +166,6 @@ PVOID g_DebuggeeHaltContext;
 UINT64 g_DebuggeeHaltTag;
 
 /**
- * @brief Dpc state for debuggee
- * 
- */
-PKDPC g_DebuggeeDpc;
-
-/**
  * @brief NMI handler pointer for KeDeregisterNmiCallback 
  * 
  */

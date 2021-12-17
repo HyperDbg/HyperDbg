@@ -392,9 +392,19 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
     //
     // Check for immediate vm-exit mechanism
     //
-    if (InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI &&
-        g_GuestState[CurrentProcessorIndex].WaitForImmediateVmexit)
+    if (g_GuestState[CurrentProcessorIndex].WaitForImmediateVmexit &&
+        InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
     {
+        //
+        // Disable vm-exit on external interrupts
+        //
+        HvSetExternalInterruptExiting(FALSE);
+
+        //
+        // Not increase the RIP
+        //
+        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
         //
         // Hanlde immediate vm-exit mechanism
         //

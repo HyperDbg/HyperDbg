@@ -112,16 +112,6 @@ VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs
     g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = TRUE;
 
     //
-    // Not increment the RIP
-    //
-    g_GuestState[CurrentCoreIndex].IncrementRip = FALSE;
-
-    //
-    // Disable vm-exit on external interrupts
-    //
-    HvSetExternalInterruptExiting(FALSE);
-
-    //
     // Check for possible halt requests
     //
     if (g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)

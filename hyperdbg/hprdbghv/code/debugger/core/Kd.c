@@ -21,6 +21,10 @@
 VOID
 KdInitializeKernelDebugger()
 {
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
     //
     // Initialize APIC
     //
@@ -29,12 +33,15 @@ KdInitializeKernelDebugger()
     //
     // Allocate DPC routine
     //
-    g_DebuggeeDpc = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
-
-    if (g_DebuggeeDpc == NULL)
+    for (size_t i = 0; i < CoreCount; i++)
     {
-        LogError("Err, allocating dpc holder for debuggee");
-        return;
+        g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
+
+        if (g_GuestState[i].KdDpcObject == NULL)
+        {
+            LogError("Err, allocating dpc holder for debuggee");
+            return;
+        }
     }
 
     //
@@ -81,6 +88,10 @@ KdInitializeKernelDebugger()
 VOID
 KdUninitializeKernelDebugger()
 {
+    ULONG CoreCount;
+
+    CoreCount = KeQueryActiveProcessorCount(0);
+
     if (g_KernelDebuggerState)
     {
         //
@@ -117,13 +128,75 @@ KdUninitializeKernelDebugger()
         //
         // Free DPC holder
         //
-        ExFreePoolWithTag(g_DebuggeeDpc, POOLTAG);
+        for (size_t i = 0; i < CoreCount; i++)
+        {
+            ExFreePoolWithTag(g_GuestState[i].KdDpcObject, POOLTAG);
+        }
 
         //
         // Uinitialize APIC related function
         //
         ApicUninitialize();
     }
+}
+
+/**
+ * @brief A dpc to halt a core that is previously tried to halt in
+ * NMI handler in VMX root mode
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * 
+ * @return VOID 
+ */
+VOID
+KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // vm-exit and halt current core because it was tried
+    // to be halted from an NMI in VMX root mode
+    //
+    AsmVmxVmcall(VMCALL_HALT_CURRENT_CORE_AS_RESULT_OF_NMI_IN_VMX_ROOT, 0, 0, 0);
+}
+
+/**
+ * @brief A test function for DPC
+ * @param Dpc
+ * @param DeferredContext
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * 
+ * @return VOID 
+ */
+VOID
+KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    LogInfo("I'm here %x\n", DeferredContext);
+}
+
+/**
+ * @brief Add a DPC to dpc queue
+ * @param Routine
+ * @param Paramter
+ * @param ProcessorNumber
+ * 
+ * @return VOID 
+ */
+VOID
+KdFireDpc(PVOID Routine, PVOID Paramter)
+{
+    ULONG CurrentCore;
+
+    CurrentCore = KeGetCurrentProcessorNumber();
+
+    KeInitializeDpc(g_GuestState[CurrentCore].KdDpcObject, Routine, Paramter);
+
+    KeInsertQueueDpc(g_GuestState[CurrentCore].KdDpcObject, NULL, NULL);
 }
 
 /**
@@ -181,6 +254,7 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     // of getting the debug lock, this mechansim is not needed,
     // but if the core is not spinning there or the core is processing
     // a random vm-exit, then we inject an immediate vm-exit after vm-entry
+    // or inject a DPC
     // this is used for two reasons.
     //
     //      1. first, we will get the registers (context) to halt the core
@@ -188,7 +262,8 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     //         instruction in vmx-root mode, then we injected an immediate
     //         vm-exit and we won't miss any cpu cycle in the guest
     //
-    VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
+    // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
+    KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
 
     //
     // Also, return true to show that it's handled
@@ -643,46 +718,6 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
     // Unlock the current core
     //
     SpinlockUnlock(&g_GuestState[CurrentCore].DebuggingState.Lock);
-}
-
-/**
- * @brief A test function for DPC
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
- * 
- * @return VOID 
- */
-VOID
-KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
-{
-    UNREFERENCED_PARAMETER(Dpc);
-    UNREFERENCED_PARAMETER(SystemArgument1);
-    UNREFERENCED_PARAMETER(SystemArgument2);
-
-    LogInfo("I'm here %x\n", DeferredContext);
-}
-
-/**
- * @brief Add a DPC to dpc queue
- * @param Routine
- * @param Paramter
- * @param ProcessorNumber
- * 
- * @return VOID 
- */
-VOID
-KdFireDpc(PVOID Routine, PVOID Paramter, UINT32 ProcessorNumber)
-{
-    KeInitializeDpc(&g_DebuggeeDpc, Routine, Paramter);
-
-    if (ProcessorNumber != DEBUGGER_PROCESSOR_CORE_NOT_IMPORTANT)
-    {
-        KeSetTargetProcessorDpc(&g_DebuggeeDpc, ProcessorNumber);
-    }
-
-    KeInsertQueueDpc(&g_DebuggeeDpc, NULL, NULL);
 }
 
 /**

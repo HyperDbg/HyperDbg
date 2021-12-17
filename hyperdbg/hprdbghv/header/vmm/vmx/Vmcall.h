@@ -282,6 +282,13 @@
  */
 #define VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x2a
 
+/**
+ * @brief VMCALL to halt the current core because an NMI to halt this core is
+ * received while the core was on vmx-root
+ * 
+ */
+#define VMCALL_HALT_CURRENT_CORE_AS_RESULT_OF_NMI_IN_VMX_ROOT 0x2b
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

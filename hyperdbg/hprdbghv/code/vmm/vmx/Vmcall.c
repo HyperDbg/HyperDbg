@@ -425,6 +425,22 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_HALT_CURRENT_CORE_AS_RESULT_OF_NMI_IN_VMX_ROOT:
+    {
+        //
+        // Check for possible halt requests
+        //
+        if (g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle break of the core
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentCoreIndex, GuestRegs);
+        }
+
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     default:
     {
         LogError("Err, unsupported VMCALL");

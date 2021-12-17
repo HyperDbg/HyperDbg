@@ -575,6 +575,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
     BOOLEAN HasLaunched;                                                   // Indicate whether the core is virtualized or not
     BOOLEAN IgnoreMtfUnset;                                                // Indicate whether the core should ignore unsetting the MTF or not
     BOOLEAN WaitForImmediateVmexit;                                        // Whether the current core is waiting for an immediate vm-exit or not
+    PKDPC   KdDpcObject;                                                   // DPC object to be used in kernel debugger
     UINT64  LastVmexitRip;                                                 // RIP in the current VM-exit
     UINT64  VmxonRegionPhysicalAddress;                                    // Vmxon region physical address
     UINT64  VmxonRegionVirtualAddress;                                     // VMXON region virtual address
