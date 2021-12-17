@@ -263,7 +263,7 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     //         vm-exit and we won't miss any cpu cycle in the guest
     //
     // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
-    KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
+    // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
 
     //
     // Also, return true to show that it's handled
