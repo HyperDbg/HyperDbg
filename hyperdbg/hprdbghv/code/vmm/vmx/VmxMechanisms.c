@@ -109,16 +109,10 @@ VmxMechanismHandleImmediateVmexit(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs
     //
     // Not waiting for immediate vm-exit anymore
     //
-    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = TRUE;
+    g_GuestState[CurrentCoreIndex].WaitForImmediateVmexit = FALSE;
 
     //
-    // Check for possible halt requests
+    // Set vm-exit on external interrupts
     //
-    if (g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        //
-        // Handle break of the core
-        //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentCoreIndex, GuestRegs);
-    }
+    HvSetExternalInterruptExiting(FALSE);
 }

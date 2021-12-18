@@ -52,6 +52,21 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 /*
+* @brief Windows IRQ Levels
+*/
+#define PASSIVE_LEVEL  0  // Passive release level
+#define LOW_LEVEL      0  // Lowest interrupt level
+#define APC_LEVEL      1  // APC interrupt level
+#define DISPATCH_LEVEL 2  // Dispatcher level
+#define CMCI_LEVEL     5  // CMCI handler level
+#define CLOCK_LEVEL    13 // Interval clock level
+#define IPI_LEVEL      14 // Interprocessor interrupt level
+#define DRS_LEVEL      14 // Deferred Recovery Service level
+#define POWER_LEVEL    14 // Power failure level
+#define PROFILE_LEVEL  15 // timer used for profiling.
+#define HIGH_LEVEL     15 // Highest interrupt level
+
+/*
 * @brief Segment register and corresponding GDT meaning in Windows
 */
 #define KGDT64_NULL      (0 * 16)     // NULL descriptor
