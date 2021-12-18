@@ -135,6 +135,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     volatile LONG                              Lock;
     volatile BOOLEAN                           MainDebuggingCore;
     volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
+    BOOLEAN                                    IgnoreOneMtf;
     BOOLEAN                                    WaitForStepTrap;
     BOOLEAN                                    WaitingForNmi;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;

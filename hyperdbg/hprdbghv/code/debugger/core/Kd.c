@@ -141,26 +141,6 @@ KdUninitializeKernelDebugger()
 }
 
 /**
- * @brief A dpc to halt a core that is previously tried to halt in
- * NMI handler in VMX root mode
- * @param Dpc
- * @param DeferredContext
- * @param SystemArgument1
- * @param SystemArgument2
- * 
- * @return VOID 
- */
-VOID
-KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
-{
-    //
-    // vm-exit and halt current core because it was tried
-    // to be halted from an NMI in VMX root mode
-    //
-    AsmVmxVmcall(VMCALL_HALT_CURRENT_CORE_AS_RESULT_OF_NMI_IN_VMX_ROOT, 0, 0, 0);
-}
-
-/**
  * @brief A test function for DPC
  * @param Dpc
  * @param DeferredContext
@@ -262,8 +242,9 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     //         instruction in vmx-root mode, then we injected an immediate
     //         vm-exit and we won't miss any cpu cycle in the guest
     //
-    // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
     // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
+    // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
+    HvSetMonitorTrapFlag(TRUE);
 
     //
     // Also, return true to show that it's handled
@@ -1026,6 +1007,11 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
 
     //
+    // Early disable of MTF, we reached here
+    //
+    HvSetMonitorTrapFlag(FALSE);
+
+    //
     // Handle halt of the current core as an NMI
     //
     KdHandleNmi(CurrentProcessorIndex, GuestRegs);
@@ -1065,7 +1051,11 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
         // check the condition of passing the execution to NMIs
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        {
+        { //
+            // We should ignore one MTF as we touched MTF and it's not usable anymore
+            //
+            g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = TRUE;
+
             //
             // Handle break of the core
             //

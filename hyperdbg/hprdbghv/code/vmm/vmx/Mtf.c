@@ -76,7 +76,17 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     // *** Regular Monitor Trap Flag functionalities ***
     //
 
-    if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
+    //
+    // check the condition of passing the execution to NMIs
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+    {
+        //
+        // Handle break of the core
+        //
+        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+    }
+    else if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
     {
         //
         // Restore the previous state
@@ -161,6 +171,13 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     {
         SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
         g_GuestState[CurrentProcessorIndex].MtfTest = FALSE;
+    }
+    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf)
+    {
+        //
+        // Nothing to do, just ignore
+        //
+        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
     }
     else if (!IsMtfForReApplySoftwareBreakpoint)
     {

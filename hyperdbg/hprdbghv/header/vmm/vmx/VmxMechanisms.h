@@ -15,7 +15,7 @@
 //					Constants					//
 //////////////////////////////////////////////////
 
-#define IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI 0xff
+#define IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI IPI_INTERRUPT
 
 //////////////////////////////////////////////////
 //					Functions					//

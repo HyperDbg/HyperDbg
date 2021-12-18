@@ -411,17 +411,6 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     }
 
     //
-    // Check for possible halt requests
-    //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        //
-        // Handle break of the core
-        //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
-    }
-
-    //
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //
