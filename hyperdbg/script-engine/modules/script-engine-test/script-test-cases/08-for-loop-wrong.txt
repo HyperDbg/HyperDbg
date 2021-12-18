@@ -1,0 +1,24 @@
+3
+ for (@rax= @r10 + +@r8 << 0y1000 << $ip; 0n2 + @rsp <> @r12 << (@rsi) | $buffer | $teb & $ip ^ @rdi ^ 0y100 ^ @rax | @r9;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+6
+ for (; $proc + $teb & @rsp << @rsp))(@rbx) + 3 & 0n13 >> 0x2 & ~+~0n12;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+7
+ for (; @rsp + @rdi <= @rdi << @rsp ^ $buffer >> -$ip;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+8
+ for (; $buffer >> $thread ^ $proc << $proc & @rsp & +@r8 <= $buffer >> $thread ^ $proc << $proc & @rsp & +@r8;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+17
+ for (; $buffer + @rdi ! (@r10) + $buffer & @r8 << -$proc;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+41
+ for (x= @r13 + $proc << $ip & (@r10) & @r11 & 0y10010 | @r9; 0n6 + @r10 << @rbx <= 0n6 + @r10 << @rbx;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$

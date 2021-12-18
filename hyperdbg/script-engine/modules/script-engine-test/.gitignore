@@ -90,6 +90,7 @@ StyleCopReport.xml
 *.tmp_proj
 *_wpftmp.csproj
 *.log
+*.tlog
 *.vspscc
 *.vssscc
 .builds
@@ -142,7 +143,9 @@ _TeamCity*
 !.axoCover/settings.json
 
 # Coverlet is a free, cross platform Code Coverage Tool
-coverage*[.json, .xml, .info]
+coverage*.json
+coverage*.xml
+coverage*.info
 
 # Visual Studio code coverage results
 *.coverage
@@ -291,6 +294,17 @@ node_modules/
 # Visual Studio 6 auto-generated workspace file (contains which files were open etc.)
 *.vbw
 
+# Visual Studio 6 auto-generated project file (contains which files were open etc.)
+*.vbp
+
+# Visual Studio 6 workspace and project file (working project files containing files to include in project)
+*.dsw
+*.dsp
+
+# Visual Studio 6 technical files 
+*.ncb
+*.aps
+
 # Visual Studio LightSwitch build output
 **/*.HTMLClient/GeneratedArtifacts
 **/*.DesktopClient/GeneratedArtifacts
@@ -356,23 +370,26 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# VS Code
-**/.vscode/
+# Fody - auto-generated XML schema
+FodyWeavers.xsd
 
-# HyperDbg builds
-/hyperdbg/build/*
+# VS Code files for those working on multiple tools
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
 
-# Exceptions
-!/hyperdbg/libraries/*
-!/hyperdbg/libraries/pdbex/*
-!/hyperdbg/libraries/zydis/*
-!/hyperdbg/libraries/DIA/*
-!/hyperdbg/libraries/DIA/x84/*
-!/hyperdbg/libraries/DIA/x64/*
+# Local History for Visual Studio Code
+.history/
 
-# KdSerial Libraries
-!/hyperdbg/libraries/kdserial/*
-!/hyperdbg/libraries/kdserial/x86/*
-!/hyperdbg/libraries/kdserial/x64/*
-!/hyperdbg/libraries/kdserial/arm/*
-!/hyperdbg/libraries/kdserial/arm64/*
+# Windows Installer files from build outputs
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# JetBrains Rider
+*.sln.iml
