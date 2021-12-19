@@ -387,6 +387,11 @@ const unsigned char BuildVersion[] =
 #define TEST_CASE_FILE_NAME "test-cases.txt"
 
 /**
+ * @brief Test cases file name
+ */
+#define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "script-test-cases"
+
+/**
  * @brief Maximum test cases to communicate between debugger and debuggee process
  */
 #define TEST_CASE_MAXIMUM_NUMBER_OF_KERNEL_TEST_CASES 200

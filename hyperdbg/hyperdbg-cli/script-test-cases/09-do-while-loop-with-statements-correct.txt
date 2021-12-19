@@ -1,0 +1,8 @@
+54
+ do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( 0y1100 >> @r9 << @rsp >> @r12 >= 0y1100 >> @r9 << @rsp >> @r12) ;
+1000
+$end$
+76
+ do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( -@rbx + @r8 >> $teb >> $teb > -@rbx + @r8 >> $teb >> $teb) ;
+1
+$end$

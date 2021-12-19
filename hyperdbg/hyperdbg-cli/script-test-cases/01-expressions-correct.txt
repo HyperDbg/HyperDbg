@@ -1,0 +1,92 @@
+3
+x = (~~@r10) >> @rsi & $ip - @rdx << 17; test_statement(x);
+0
+$end$
+4
+x = @r11 + @rsi - -$ip + $proc + @r13 << @r9 - @r13 | @r9 - ~0x2 << @rsp + @rdx; test_statement(x);
+10000D00
+$end$
+5
+x = @r11 + @rax + @r10 + -$proc << @r9 << (@r10) + $thread & 0n4 - 21 + $ip; test_statement(x);
+3000000
+$end$
+7
+x = $thread + +@r12 + @r11 + $ip >> 0n8 - @r13 + (@rsp) << @rsp + -0y1010 >> +17 & @r8 + ($proc) + @rbx >> -@rdi << +@r9 >> $buffer >> $teb & 0n9 + @r11 >> 17 & @rdi; test_statement(x);
+0
+$end$
+9
+x = 0y10 - @r8 - $ip + 0x13 - @rbp + @rsp + @rdi | 0 << $ip + @r12 & $teb << 15 >> 0y10001 & +0y1010 << @r12 >> @rbx >> 16 ^ @r8 & @r9 >> -20 >> @r9; test_statement(x);
+13
+$end$
+13
+x = @rdx + $thread - $proc >> @rsi + 0n16 + $buffer >> @rax + @rbp << (@r10) >> @rax << $buffer >> @r8 >> @r12 | @r12 - -@r12 + @rsi + $thread; test_statement(x);
+21
+$end$
+14
+x = @r12 - @rdx + 0x2 - $thread + @r13 + @r9 << @r9 << @r12 & +@r13 - @r11 + @rdi & @r9 << 0n1 << @rdx >> 13 << -@rax >> @r9 & 0y1100 << @r12 >> $buffer >> 4; test_statement(x);
+0
+$end$
+15
+x = +@r8 + $thread; test_statement(x);
+9
+$end$
+16
+x = @r8 + @r11 - $proc + @r8 & @r8 << @r11 + 0n4; test_statement(x);
+0
+$end$
+18
+x = @r9 - @r11 - 17 | @rdx - $ip + @r12 + @rsi >> @r13 + ~~0n10 & -0x6 + @rsi >> 7 >> @r12 ^ @r13 << -$thread ^ @r8 >> 0y10000; test_statement(x);
+FFFFFFEF
+$end$
+22
+x = $buffer - ~$buffer + 0x4 - @r8 + @rsi << 0xB - @rbx + ~@rdi + 17 << @r8 << +$ip << -@r13 | $thread - @r13 + $thread + @rax >> @rdx + @rsp << @rsi; test_statement(x);
+FFFFFF80
+$end$
+26
+x = @rax * $thread >> $proc - -$teb << $buffer << @r8 ^ $buffer + @rbx + @rsp ^ 0x7 << @rbp << 7; test_statement(x);
+E009
+$end$
+28
+x = ~+@rax * @rsp >> @r10; test_statement(x);
+FFFFFFFF
+$end$
+31
+x = @rsp - @r12 & $proc - $ip << @r13 + $buffer << @rax ^ $buffer - @rax + 0n2 << 0y1011 << $buffer << $proc & $teb >> $proc ^ 1 ^ @rsp & +@rax & +@rsp ^ -5 | @rbp + $thread; test_statement(x);
+FFFFFFFF
+$end$
+33
+x = @rsi << $thread - @rdx >> 0x1 - 0n11 + 17 << @rdi + @rax << -@r11; test_statement(x);
+0
+$end$
+35
+x = $teb + @rsi - @rbp + @rdi + $ip; test_statement(x);
+9
+$end$
+40
+x = -$buffer - $buffer << @rbx - @r9 + 0n10; test_statement(x);
+0
+$end$
+45
+x = 0x6 + +@rsi - 10 + ~(@rdx) + 13 ^ @rbx - @rdx + @r10 + @r12 >> @r13 + $teb & $ip ^ @rsi + $teb; test_statement(x);
+B
+$end$
+46
+x = @rdx * @r13 << +$proc + @rdi; test_statement(x);
+2A00
+$end$
+48
+x = $buffer * @rsp - $ip << @r9 - ~@r10 + @rbp >> @rbp - -0xB + -~$proc + 0y101 << -$buffer + ~@rsp >> @rdx + +@r8 << 13 >> $thread >> @r11; test_statement(x);
+0
+$end$
+50
+x = -@rsi * @r8; test_statement(x);
+FFFFFFC1
+$end$
+51
+x = ~@r10 - @r9 & (0n18) - ~-(0y1010) & @r11 + +-@r10 >> ~@r13 ^ @rsi + @r11 & 2; test_statement(x);
+2
+$end$
+52
+x = 0n17 - -$thread + 12 + @r8 >> $teb - 0n8 | @rbp << @r8 | $teb << +@rsi >> 0x11 >> @rsp | @rbx >> @rdx >> $teb; test_statement(x);
+C00
+$end$

@@ -1,0 +1,16 @@
+77
+ while  (@rbx >> @rax >> +$thread >> (0x12) > @rbx >> @rax >> +$thread >> (0x12))  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; }  }
+0
+$end$
+168
+ while  (@r12 + +$teb != @r12 + +$teb)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; }  }
+0
+$end$
+217
+ while  (0y111 + @r12 >> @rdx << @r11 == 0y111 + @r12 >> @rdx << @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; }  }
+1000
+$end$
+292
+ while  (@rdx + 0 >> 0y10011 <= @rdx + 0 >> 0y10011)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; }  }
+1000
+$end$

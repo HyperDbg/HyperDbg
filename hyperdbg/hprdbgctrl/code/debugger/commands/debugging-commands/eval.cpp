@@ -40,16 +40,23 @@ CommandEvalHelp()
 BOOLEAN
 CommandEvalCheckTestcase()
 {
-    string  Line;
-    BOOLEAN IsOpened      = FALSE;
-    UINT64  ExpectedValue = 0;
-    BOOLEAN ExpectError   = FALSE;
-    string  Expr          = "";
+    string                   Line;
+    BOOLEAN                  IsOpened      = FALSE;
+    UINT64                   ExpectedValue = 0;
+    BOOLEAN                  ExpectError   = FALSE;
+    string                   Expr          = "";
+    std::vector<std::string> TestFiles;
 
-    std::vector<std::string> TestFiles =
-        ListDirectory(
-            "C:\\Users\\Sina\\Desktop\\HyperDbg\\HyperDbg\\hyperdbg\\script-engine\\modules\\script-engine-test\\script-test-cases",
-            "*.txt");
+    try
+    {
+        TestFiles = ListDirectory(SCRIPT_ENGINE_TEST_CASES_DIRECTORY, "*.txt");
+    }
+    catch (const std::exception &)
+    {
+        ShowMessages("err, test-cases not found, make sure to run test-environment.py "
+                     "before running test cases\n");
+        return FALSE;
+    }
 
     for (auto item : TestFiles)
     {
@@ -209,7 +216,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
         //
         if (!CommandEvalCheckTestcase())
         {
-            ShowMessages("err, script test cases has problem encoding files\n");
+            ShowMessages("testing script engine test-cases was not successful!\n");
         }
 
         return;

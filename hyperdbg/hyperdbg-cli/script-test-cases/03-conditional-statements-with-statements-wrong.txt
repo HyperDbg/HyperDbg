@@ -1,0 +1,432 @@
+1
+ if (@rsi + @rdx << @rdi << $ip >> ($buffer) << -0y1011 >> 0y110 >> @r10 & $thread << (@rbp) >> @rsp ^ $buffer >> +@rbp ^ @r13 ^ @r11 ^ 0n15 | +~@rdi << +@rbp >> +13 >> @r8 | +@r10 >> $thread == $teb + $ip ^ @r12 >> $proc >> (@rsp) & @rbx >> @r8 & 5 ^ ~@r13 >> @rdi ^ @r13 & +@rbx ^ @rbp ^ @r13)  { test_statement(0x2649);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rbp ^ @r9 != $proc ^ @r12 ^ @rsp | @r11 ^ @r10 | ($thread)) ; x = $proc ^ $teb ^ 3 ;  break; }
+$error$
+$end$
+2
+ if (@rdi + @r13 & +@rbp >> $ip & @r8 >> @r13 ^ 0n13 >> @r9 & @r10 >> @rbp ^ @rsp >> @r13 ^ $teb))@rdi + @r13 & +@rbp >> $ip & @r8 >> @r13 ^ 0n13 >> @r9 & @r10 >> @rbp ^ @rsp >> @r13 ^ $teb)  { test_statement(0x74);  /* This is a comment */ }
+$error$
+$end$
+3
+ if (@rdx + 0x10 << $thread << @rbx >> @rax << @r11 >> 0n18 & 22 << 0y110 ^ (@rdx) >> @r11 ^ 0n7 >< @rsp & @rdi << ~0xD & $thread >> -@rsp | @rbp | -@r12 & $thread | @r13 ^ @rsi)  { test_statement(0xED0); } elsif ($ip << +2 ^ @rdi >> 2 & @rbp ^ 0x1 ^ @r8 ^ $ip $ip << +2 ^ @rdi >> 2 & @rbp ^ 0x1 ^ @r8 ^ $ip) { test_statement(0x2CE); x = @r8 & 0y10001 ^ @rbp ; ;  // /* This is a comment  } elsif (@r9 & @rdi & @rsp ^ -@rsi ^ @r11 | $teb & -@r12 ^ +@r11)@r9 & @rdi & @rsp ^ -@rsi ^ @r11 | $teb & -@r12 ^ +@r11) { test_statement(0x143A);  if (@rbp | @r10 != @rbp | @r10)  { test_statement(0x246A); } elsif ($ip ! @r8) { test_statement(0x1D2D); } else { test_statement(0x1A2); }  for (@rax= @r11; 11 ; $ip;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  for (@rax= @r10; 0x7(($ip;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a not closed comment } elsif (@rsp & ~@rax <= @rsp & ~@rax) { test_statement(0x51); } else { test_statement(0x1EE8);  while  (@rax ; 0n13 | @r13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } }
+$error$
+$end$
+4
+ if (@rbp + @rbx ^ (0xB) << @rdx & @rax & ~$proc ^ @r12 >> @rax & 0x6 & ~@r9 < @rbp + @rbx ^ (0xB) << @rdx & @rax & ~$proc ^ @r12 >> @rax & 0x6 & ~@r9)  { test_statement(0x265A); } else { test_statement(0x22A); }
+$error$
+$end$
+6
+ if ($proc + @rsp >> @r9 << +~@rbp >> @r12 >> 0n15 & $proc == $teb << 0n16 >> @r12 >> @r8 >> 0x2 | -$proc >> @r12 & @r10 >> @rbp)  { test_statement(0x1C1B);  if (0x3 ^ ~~@r8 ^ $ip <= +$thread ^ -@r13)  { test_statement(0xE61); } elsif ($buffer)@rbx) { test_statement(0x1877); } elsif (@r8 | @rdx @r8 | @rdx) { test_statement(0x183D); } elsif (@rbp < $thread) { test_statement(0x2160); } x = $proc & @r11 ^ -23 ;  /* This is a comment */ } elsif (~$proc ^ +-0y11 & $thread & @rdx ^ -@r9 ^ @r9 ^ ~16 | $thread >> @r13 & @r11 & +$proc = ~$proc ^ +-0y11 & $thread & @rdx ^ -@r9 ^ @r9 ^ ~16 | $thread >> @r13 & @r11 & +$proc) { test_statement(0x27F);  if (@rsi | @rsi | @r13)@rsi | @rsi | @r13)  { test_statement(0x1A6); } elsif ($proc <= $proc) { test_statement(0x41B); } elsif (0y0 < @r11) { test_statement(0x1AB2); } elsif (($buffer) != +$teb) { test_statement(0x1D6E); }  This is a not opened comment */  // /* This is a comment  }
+$error$
+$end$
+7
+ if (0n9 + $proc << @r13 << @r13 >> 0n0 << @rbx & ($teb) << 0y1 >> @r12 & 0x0 & @r9 & +$buffer < 0n9 + $proc << @r13 << @r13 >> 0n0 << @rbx & ($teb) << 0y1 >> @r12 & 0x0 & @r9 & +$buffer)  { test_statement(0x88C); x = @r13 >> +@r8 & @rbp ^ @rdx ; } else { test_statement(0x1D09); }
+$error$
+$end$
+8
+ if (@rax + @r10 << @rdi << 12 >> @r8 << 21 >> 0y10011 | $ip << @r13 & 0y1010 >> @r12 & 0x10 & $buffer | @rdi >> $teb & 0x5 & $proc <> $proc + +(@r10) | -@rbp >> @rsi & $teb >> $teb & @r12 ^ +$buffer >> @r9)  { test_statement(0x2556);  /* This is a comment */  This is a not opened comment */ } else { test_statement(0x382);  for (@rax= @r12 ^ @rbx; @r12 ^ $proc((@r12 ^ $proc;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  if (@rbx = @rbx)  { test_statement(0x2BD); } else { test_statement(0x1BC); }  break;  while  (@rdi < @rdi)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */  // /* This is a comment   This is a not opened comment */ }
+$error$
+$end$
+9
+ if ((@rdi) ^ @r13 << @rsi | ~$proc >> @rax ^ @r8 & @rbp & @rdi ^ $proc)(@rdi) ^ @r13 << @rsi | ~$proc >> @rax ^ @r8 & @rbp & @rdi ^ $proc)  { test_statement(0x17E);  // /* This is a comment  } else { test_statement(0x1B07); }
+$error$
+$end$
+10
+ if (@r11 + $thread >> ($ip) << @r13 & (@rbp) >> @r11 >> @rbp > 0n11 << @r11 << $ip & $ip | @r11 << @rdi ^ @r9 >> $teb ^ 1 & -@rax)  { test_statement(0x6CF);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rax & +@rsp ^ +22 | $thread | @rsp >= @r11) ; ; ; } elsif (0n8 | @rdx & @r10 & @rdx ^ +-@r10 ^ $thread | $thread ^ @r13 ^ @r9 | @r12 ^ $buffer | @rbx | $buffer ! 0n8 | @rdx & @r10 & @rdx ^ +-@r10 ^ $thread | $thread ^ @r13 ^ @r9 | @r12 ^ $buffer | @rbx | $buffer) { test_statement(0x1CEA);  while  (0y0 ^ $ip($thread ^ 17)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } }
+$error$
+$end$
+11
+ if (--13 ^ $teb << -@r10 >> @r9 ^ @rbp >> @r10 & @rbx | @r10 << 0y10000 >> $thread >> @r11 & @rdx >> @r12 ^ @r11 ^ 0x11 & @rsp ^ $proc ^ @r10 <> @r8 + @r10 << 4 >> @r10 ^ @r13 >> @rdi & @r12 & @rbp & @r11 ^ @rdx >> $buffer & @rbp)  { test_statement(0x20F3); } elsif (0n13 << @rdx ^ $buffer ^ @rsp & ((@rsi)) 0n13 << @rdx ^ $buffer ^ @rsp & ((@rsi))) { test_statement(0x134E); } elsif ($buffer >> 0n10 | @r13 & +~-$ip ^ 0xB | 0n9 ^ @rax | @rsp 0xD >> @r11 | @r8 | (@r12) ^ 5 | @rbp) { test_statement(0xEB0); } elsif ($proc & @r11 < @rbp ^ @rsp ^ @rbp) { test_statement(0x948);  if ($ip = 0y1)  { test_statement(0x448); } elsif (~$ip = ~$ip) { test_statement(0x1D94); } else { test_statement(0xB84); } } elsif ($ip < @r13 ^ $teb) { test_statement(0x243F); }
+$error$
+$end$
+12
+ if (+@r9 + @rbx >> 0y0 << @rbp ^ $buffer >> $thread & @rsp >> @rbx | @r11 << 16 >> @rsp 20 ^ @r13 << 0xC & -0y10010)  { test_statement(0x1E26); }
+$error$
+$end$
+13
+ if (@rbp + (@r12) << @r13 & $proc & $thread ^ $teb << ~@rax & @r9 & @rbp ^ $proc & -@r9 ^ @r10 & ~@rbp ^ @r12 ^ ~$proc(($thread + @r8 << $buffer >> @r11 >> 12 ^ $buffer << 0n3 & @rdi & ~~~@rdx & (@rsp) ^ $teb >> (@rdx))  { test_statement(0x1715); } else { test_statement(0x1C8C); @rax = @r8 | $thread ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( +@rdi | @r9 != +@rdi | @r9) ;  break; }
+$error$
+$end$
+14
+ if (($ip) + 11 >> @rsp << 0x3 & ((@rbp)) << $thread >> @r11 ^ @r12 = $proc & 0y10 & ~23 & ~$buffer & @rdx ^ @rsi >> $buffer & @r10 >> @r9 & @r8 ^ @rdx)  { test_statement(0x1048); } else { test_statement(0x80C); }
+$error$
+$end$
+15
+ if (@r8 + @rdi >> @rax << @r8 | $proc >> $proc >> @rsp ^ @rdi >> 2 & @rsi & (-$ip) ^ @rbx | @r13 >> -@rsi < @r8 + @rdi >> @rax << @r8 | $proc >> $proc >> @rsp ^ @rdi >> 2 & @rsi & (-$ip) ^ @rbx | @r13 >> -@rsi)  { test_statement(0x2C9); } elsif (@rax << 0n13 >> -@rdx >> @rdx != 0n0 << 0n14 & ~$buffer ^ @rsi ^ @rbx ^ $teb ^ 0n16) { test_statement(0x2651); } elsif (0xC >> @rdx & @rbx & @r8 ^ @rdx & ~@rax | ~0n6 ^ 0x6 < 0y10 | (~@r13) ^ @r13 ^ @r8 | @rsi) { test_statement(0x9D); x = @r8 ^ 0y10000 ;  if (@r8 > @r8)  { test_statement(0x1A0B); }  for (; 0n19 <= 0n19;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (@r13 & @rbp ^ ~@rsi ^ +@rsp >= @r10 & +@rdx ^ @rbx) { test_statement(0xD55); } elsif (@rbx ^ @r8 | -@rdx ! $thread) { test_statement(0x253A); }
+$error$
+$end$
+16
+ if (@rsi + @rax << 0xE & @rsp >> 6 >> @r11 @r12 ^ +@r10 >> @rax >> @r13 | $proc)  { test_statement(0x15E9);  break; } elsif ($ip << 6 >> -0n18 & @rdx >> @r8 = $ip << 6 >> -0n18 & @rdx >> @r8) { test_statement(0x20A7); x = @r13 & 0x0 | @rbp | @rbx | 0xA ; } else { test_statement(0x1C8E); }
+$error$
+$end$
+17
+ if (@rbx + @rsp & @rax << @r9 ^ @r12 << 10 | @rsi >> 0y1011 & @r10 >> @r12 ^ @rax >> $teb & 22 ; @rdx >> @rbx ^ $proc << @r10 & $buffer ^ $proc ^ @rsp & 0n1)  { test_statement(0x951);  // /* This is a comment   for (; $thread <> (0x6) ^ ~~2 | @rax;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a comment */ } elsif ($thread ^ 2 ^ 0xB | @r8 >> @r9 ^ $thread & +~@r12 | 14 | @rdi(0n1 << @rsi >> $buffer >> @rax & $ip ^ @r13 >> $teb & 0y1110 & @rbp | 0x1 & 0n10 & @rbp ^ $proc & @r13 ^ @r12 | @rbx & $teb) { test_statement(0x6BC); @rax = $ip & $buffer ^ $thread | @rdx ; x = @r12 ^ 0y1011 | $thread ; ;  break;  for (; @r9 > @r9;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a not closed comment } elsif (-@r12 >> ~@r8 ^ ~@r9 ^ @r12 ^ $ip | ~@r12 & @r8 ^ $teb ^ @r12 > @rdx ^ 0n15 ^ @r11 | $teb ^ @rbx | 0n3) { test_statement(0x128C); x = $teb ^ @rdx ; } else { test_statement(0x603);  break; }
+$error$
+$end$
+18
+ if (@rdi + @rsi & $buffer << $proc >> 0n14 = (-~@r13) + @rsi << $thread ^ (@rax) << ~@rsi >> $teb ^ @rsp >> 0n18 & -@rsp & @rsp ^ @rsi | @r9 << @r8 | $teb >> @r13 & @rbp | $proc ^ (@r13) ^ @rbx)  { test_statement(0x123C);  for (@rax= $proc; @r9 & 0y1101 ^ $buffer | $thread | @rsi == @rax & $buffer ^ @r8 ^ $proc;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x1170); }
+$error$
+$end$
+19
+ if (~@rbp & @r13 & @rax >> $buffer ^ @rdi << @rdi >> @rdx >> $buffer & --0n6 & @r12 @r10 << $teb >> @rsp << 0n12 >> @r8 & ~@rsp << @r9 ^ @r12 << @rsp | @rdi << @rdx >> @rbx >> ~@rdi & +$thread >> ~@r11 & 0xD | $ip)  { test_statement(0x2633); } else { test_statement(0x82C); }
+$error$
+$end$
+20
+ if (-0n4 & @r11 << (@rdi) >> @r11 | @rbp << @rax & @r10 | @r11 >> $proc & @r12 & @r9 | @rsi & @r12 ^ @r12 | @r12 < @rbx << ~@rdi & -0x6 << @r9 >> @r8 >> 4 & @rbp | @r13 >> (@rdi) >> 0y1110 & ~(+@r12) >> @rdx & 0y1 ^ -0n5 >> (@rbx) & 16 & ~(0n2) ^ $ip)  { test_statement(0xA3C); }
+$error$
+$end$
+21
+ if (@rbx + @r13 ^ @rdi << @r9 >> @rbp & $teb | @rsi << +@r12 >> @r12 >> @r11 & $buffer & $buffer ^ $thread >> $teb & -$teb ^ @r10 ^ $proc(@r8 << @r8 << -$proc >> @r10 >> 0n2 >> 0n11 ^ @rsi & $teb ^ $proc & @rsi)  { test_statement(0x82);  // /* This is a comment  } elsif ($buffer << @rsp ^ @rax <> $buffer << @rsp ^ @rax) { test_statement(0x1501); }
+$error$
+$end$
+22
+ if (@r8 << $proc & 7 << @rsp >> @rax & $thread >> $teb | @rbx << @rax >> $thread >> 0n4 | @r13 & 0n18 ^ @rbx & @r10 ^ 0y10010 ^ $teb | 0y1000 ; -@rsp + -$teb << $teb | @rdx << @r11 & 0y101 >> @r12 & $thread ^ @rax ^ @rax & 0x7)  { test_statement(0x9F9);  break; } else { test_statement(0x1E34);  /* This is a comment */ }
+$error$
+$end$
+23
+ if (@rdx >> @rdi << @rdx | @r12 << +~$buffer & ~@r8 >> $buffer | -(~$proc) | $thread & @r12 | $teb ^ @rdx = @rdi + $teb << @r11 >> @rsi << +@r12)  { test_statement(0x3B2);  /* This is a comment */  for (x= (~@r8) ^ @r10 | @rdi | @rbp; @rbx | 0n6 | @r9 >= ~~-@r13;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @r11 | 0n12 ; @rdi) ;  This is a not opened comment */ } else { test_statement(0x1816); ; }
+$error$
+$end$
+24
+ if ($teb + @rbx << @r12 << @rdi >> $ip >> 0x8 >> @rdi & 0y1 >> @r10 <= @r10 << @r11 & @rax << $ip | @r10 << $buffer & 0y10011 & @r9 & @r12)  { test_statement(0x2358); @rax = -$ip >> 0x11 | @rax | ~@rax ; ; } else { test_statement(0x17BF); }
+$error$
+$end$
+25
+ if ($ip <= $ip)  { test_statement(0xAB7); } elsif (0n13 << @rsi >> @rbx & @rsp >> @rsi & @r11 > $buffer << @rbx >> @rsi & @r8 & @rbx & 0y1011 | @rdi >> 0n1 & $buffer & @rbx | @rax | @r10) { test_statement(0x1FC6); } else { test_statement(0x26F3); }
+$error$
+$end$
+26
+ if (@rax + @r10 >> @r11 << 2 < 15 + $proc >> @rdx & @rax >> @rbx & @rax >> @rdx ^ 0y111 >> 2 >> 21 ^ 22 ^ ~0n2 & ~+@r10 ^ -@r8 | 0x7 ^ @rsp)  { test_statement(0x707);  /* This is a not closed comment } elsif (0n2 & 0x3 >> $thread & @r9 & ~@r10 ; ~@rsi >> $ip ^ @rbx >> $proc & -0n8 & 0 ^ @r10 & @rbp) { test_statement(0x250C); } else { test_statement(0x11F9); @rax = 0n2 & $thread ^ +~@r11 | @rax ^ 0n4 | 0y10011 | $proc ;  This is a not opened comment */  for (; @r10 == $ip;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */ }
+$error$
+$end$
+27
+ if (@rsi + @rsp & @rsi << (@r8) >> @rsp ^ @rsi > $teb << @rdi)  { test_statement(0x1B11); ; ; } elsif (@r12 << 0x3 >> $proc >> 0n5 > @rdx << $buffer | $proc ^ $teb) { test_statement(0x5EF);  break;  for (; 0n1 | @r11 <= $thread;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } ; } else { test_statement(0x14F5);  break;  break; }
+$error$
+$end$
+28
+ if (+@rax + ~@r12 & @r12 << (@r9) & @rsi >> @rsp ^ @rbx >> @r8 & ~@r11 >> @rsp | $buffer & @r12 & @rsi & $buffer = $thread + @rsi >> @rdx >> @rbx >> @r10 & 0xC << @rax >> @r10 >> @rbx & $ip >> @rsi & 0y10 ^ @rax >> @r11 >> $teb)  { test_statement(0x203D);  break;  This is a not opened comment */  for (x= $buffer; $thread != $thread;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (@r12 >> @r11 ^ @r12 & 4 & (@r11) ^ @r12 | $buffer >> +@rbx & @r10 & @rdx ^ @rsp & @r10 | 0n10 & (@rsi) ^ @rbp ^ -$teb | -@rbp ^ -@rbp @r10 | @rsp & $buffer ^ @rdx & 0y1011) { test_statement(0xDAB);  // /* This is a comment  } elsif (@rbp >> @rbp ^ -@r13 ^ @rax ^ @rbx @r11 >> $proc) { test_statement(0x1B11); ; x = @rsp ; } else { test_statement(0x1BFE); }
+$error$
+$end$
+29
+ if (+@r8 << @r8 & @r13 << $teb ^ @rsi >> -$buffer & $ip >> @r10 & @rbp ^ @r10 >> -~-$thread ^ ~@rax & -@rax ^ ~@rsi ^ 0y110 ! 20 << @r13 << @rbx & $proc & $buffer)  { test_statement(0x6BF); } elsif (~@rdi @r9 << $proc) { test_statement(0xB57); } else { test_statement(0x7F1);  break; }
+$error$
+$end$
+30
+ if (7 << @r10 << ~@r13 >= +$teb & @rdi >> $thread | 0y1000 | @r8 >> @rdx ^ (@r8) & @rax)  { test_statement(0x16A7); x = $buffer >> ~@r11 ;  if (@rbp ^ @r10)@r9 ^ @rax | $buffer | $thread)  { test_statement(0x5BE); } elsif (@r13 | @rsi = @rdi) { test_statement(0x1705); } elsif (@rdx))@rdx) { test_statement(0xDC6); }  This is a not opened comment */ @rax = @r9 | +@r10 ;  This is a not opened comment */ } elsif ($thread << @rsp & @r9 >> @rdx & @r11 < @rbp << -$proc ^ @r10 & @r12 | @r10) { test_statement(0x6C7); }
+$error$
+$end$
+31
+ if (@r9 + -@rax | (@rsp) ^ $proc >> 3 & -@r12 ^ @rbx ^ @rbp ^ @rdx))0y10000 + @r11 << @r8 ^ @rbx << 17 & (@r13) & (-(@rsi)) ^ (@r12) & @rdx)  { test_statement(0x10DD); ;  This is a not opened comment */ } elsif (@rdx & @rsi & ~@rdi & 0y1101 | @rbx >> $proc & 0y11 ^ 0n7 ^ $teb))$buffer << @rax >> @r9 & @r8 >> @rbp ^ 0n0 ^ 4) { test_statement(0xEC8);  if (@rbx | @r12 > 0 ^ @r9)  { test_statement(0x24E2); } else { test_statement(0x2652); }  /* This is a not closed comment }
+$error$
+$end$
+32
+ if (0y1101 >> 0xA << 12 | @rsi >> $teb >> @r8 & $thread | @r10 ^ @r12 & @rsi | ~@rbx | @rbp ^ @rdi | $ip | @r8 0y1101 >> 0xA << 12 | @rsi >> $teb >> @r8 & $thread | @r10 ^ @r12 & @rsi | ~@rbx | @rbp ^ @rdi | $ip | @r8)  { test_statement(0x1097); } else { test_statement(0x1FF0); }
+$error$
+$end$
+33
+ if (0n3 << @r11 | @rax >> @rax & $teb & 16 ^ @r12 >> @rdx & $proc & -@rbx ^ @r9 | @r9 ^ $buffer & $thread <> 0n3 << @r11 | @rax >> @rax & $teb & 16 ^ @r12 >> @rdx & $proc & -@rbx ^ @r9 | @r9 ^ $buffer & $thread)  { test_statement(0x24F3); } elsif (~-~@rsi >> 23 & $ip & @r12(~-~@rsi >> 23 & $ip & @r12) { test_statement(0x176);  while  (0y100 | @r9 | ($buffer) == 0n15)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x825); }
+$error$
+$end$
+34
+ if (@r8 + @rdi << @r13 >> $thread & @rdx ; $buffer + $thread << $proc << $ip | @rax << @r9 >> @rax ^ (@r12) >> @r12)  { test_statement(0x142A); } elsif (@r12 << @rbx ^ @r8 < @rsi >> @rbp) { test_statement(0x197); } elsif (@rdx >> +@r8 & @r10 & @r12 ^ @rbp | 0xC & @r13 ^ @r9 ^ (@rbp) | @rbx != $thread & $buffer ^ 0n12 & $thread | -+@rdi & @rbx ^ 0 | @r11 | 0y1110 | @r9) { test_statement(0x150D); ; } else { test_statement(0xE5E); ; }
+$error$
+$end$
+35
+ if ($ip & -0x3 << $thread >> @r9 >> ~$proc & @rbx ^ ~0y10 & @r12 >> 16 & $ip | @rbp ^ @rdx >> @r9 | $proc >> @rbp & @r9 & -$ip ^ @rbx ; (@rbx) & @r13 << @r13 >> @rsi ^ ~$ip >> @r10 >> $ip & (@r9) ^ @r12 ^ $proc & @r10 | @r10 << @r12 >> @r8 ^ -@rsp & $ip & +$teb ^ $teb ^ -@r13 | @r10)  { test_statement(0xC94);  if (@r10 & @r11 | $proc ^ @rax < @rdx & @rsp ^ @rbx ^ $thread | 0 | @r9 | @r10)  { test_statement(0x5BC); } elsif ($buffer ^ @r8 | @rbx | ~@r11($buffer ^ @r8 | @rbx | ~@r11) { test_statement(0x20A1); } elsif (+@rbp <> @rsp | 0x2) { test_statement(0xF26); } else { test_statement(0x26D7); }  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @r9 = 15 ^ +0n9) ; ;  This is a not opened comment */  for (@rax= @r10; @r8 == 0x10;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif ((@r13) >> @r11 >> @r10 | -@rsi >> @r11 <= (@r13) >> @r11 >> @r10 | -@rsi >> @r11) { test_statement(0x1BBC);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @r11 < $teb ^ @r10) ; }
+$error$
+$end$
+36
+ if (@r10 + 0n15 & @rdi << @rax & @rax & $teb ^ $buffer >> $thread & 0y101 >> $ip & @rsi & -~@rdi <= 0x4 + @rsi >> @r8 >> $teb >> @rdi & $thread)  { test_statement(0xA5A);  /* This is a comment */  /* This is a comment */  for (@rax= @rbp | @r10; $ip | +$proc $ip | +$proc;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $ip ! $teb) ; }
+$error$
+$end$
+37
+ if ($teb + $buffer | @r8 << @rdx >> ~0xF & $buffer >> @r11 & 0n13 & @r10 ^ @rdi >> @r13 | $proc >> @rbp & ($buffer) & @r12 <= $teb + $buffer | @r8 << @rdx >> ~0xF & $buffer >> @r11 & 0n13 & @r10 ^ @rdi >> @r13 | $proc >> @rbp & ($buffer) & @r12)  { test_statement(0x18DE); } elsif (@r13 | @r9 & 0y101 | 0n12 ^ +@rax | $teb ^ @rbx | -@r11 | @rdx = @rbx & $teb ^ @rbx >> $thread & @rsi) { test_statement(0xA9F);  if (@rdi ^ (@r12) | $proc | @rsp))@rdi ^ (@r12) | $proc | @rsp)  { test_statement(0x1D92); }  /* This is a not closed comment  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rax != @r13) ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( 0n13 != 0x10) ; } elsif ($thread >> @rdx & @rbx & @rax | 0n13 & ~@rsi | @r12 | +$proc | @r8 <= $thread >> @rdx & @rbx & @rax | 0n13 & ~@rsi | @r12 | +$proc | @r8) { test_statement(0x1EDB); } elsif (-@r11 & @rax | ($buffer) ^ @rbp | @rsp > $buffer ^ $teb | ~@rsi ^ 0n18 | 0n12) { test_statement(0x2345); } elsif ($proc | +0y11 < @rsp ^ 0xE) { test_statement(0x1D20);  /* This is a not closed comment }
+$error$
+$end$
+38
+ if (@rsi + @rsi << $thread << @r11 & $teb << @r10 >> 17 >> @r10 | @r9 ^ @rax | @r9 >> @rbp & $teb ^ @r9 ^ @rsp | @rbp & @r10 ; @rdx << @rsp)  { test_statement(0x277); @rax = (0y1) ; } else { test_statement(0x1A05);  /* This is a not closed comment x = @r12 ^ +~@r10 | +@r9 | 5 ; }
+$error$
+$end$
+39
+ if ($ip >> $buffer & $proc <> $ip >> $buffer & $proc)  { test_statement(0x1067);  break;  break; } elsif (@r13 << $ip >> @rdx | 0x8 ^ @r9 & @rbp ^ $ip <= @rdi << 0n13 >> -~$proc >> @r9) { test_statement(0x1399); } elsif (@rdi ^ -$proc & @rdx >= @rdi ^ -$proc & @rdx) { test_statement(0x75E);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $buffer | 0n14 == $thread) ;  if ($thread((@rsi)  { test_statement(0x1FED); } elsif ($thread $thread) { test_statement(0x207E); }  for (x= @r11; $buffer < $buffer;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  break;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rbx == @rbx) ;  for (; $teb @rsi;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (@rax & @rax ^ 0n16 ^ @r8 | @rsi = -$proc ^ $thread | @r9 ^ @r10) { test_statement(0x2205);  /* This is a not closed comment } elsif (@r13 ^ @r10 > @r13 ^ @r10) { test_statement(0x202B); } elsif (@rdx | @r8 = (-@r10) | @r10) { test_statement(0xD81); }
+$error$
+$end$
+40
+ if (@rax << $teb & $thread >> @r9 = @rsp + @rdx & @rsp << 5 | $proc << -~$teb)  { test_statement(0x121D); }
+$error$
+$end$
+41
+ if (0n9 + @r10 << @rdi << @r9 >> @r10 | @rbx << @r13 & @r11 >> @rax | @r13 >> 6 | +$buffer & 0x10 | $buffer | @r11 >< @r9 << @rsi << @rdi ^ @rdx << 0xB & @rdx)  { test_statement(0xD9C);  /* This is a comment */  // /* This is a comment   /* This is a comment */ } elsif ($proc << @rsi >> 0y110 & @rbp & 0xA ^ @rbx >> +@rsp & @r13 & ($teb)))@rbp & @rbp >> @r9 ^ +@rdx & @rsi) { test_statement(0x962);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rax(@rbx | $thread | 0x11) ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( -@r11 | @r11 < @rdi) ;  if (-$teb))$teb)  { test_statement(0x3AD); } }
+$error$
+$end$
+42
+ if (~$ip + @r12 << (0n6) == 0y10001 + $thread << 15 << $buffer & -@rsp << @rbp >> +~@r9)  { test_statement(0x1C0D);  /* This is a not closed comment } else { test_statement(0x24B1);  while  ((@rbx) | @rbp(@rsi ^ 16 | +($ip) | @rbx)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  while  ($buffer ; @r13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  for (; +12)@rdx;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  // /* This is a comment  }
+$error$
+$end$
+43
+ if (@rbp ^ $ip >> @r9 >> (@r11) ^ @rsi & @rdi & $ip ^ ~@r12 & $buffer ^ @rdi ^ @r10 > @rdi + @rbp << @rsi << +@r10 ^ @rax << +@rbp & @r9 >> @r11 & @rsp)  { test_statement(0x2505); } elsif (@r8 << $teb ^ @rdi >> @r12 & +@rax | ~~@rsi >> $buffer & @r8 ^ 12 & -@rax ^ $thread))@r8 ^ @rsi >> 0y1101 ^ @rax ^ $proc) { test_statement(0x1435); }
+$error$
+$end$
+44
+ if (0n6 + (@rbx) & @rbp >> $thread >> -@r12 & @r8 >> $proc ^ +@rdi >> $ip ^ @r10 >> @r13 <> 0n6 + (@rbx) & @rbp >> $thread >> -@r12 & @r8 >> $proc ^ +@rdi >> $ip ^ @r10 >> @r13)  { test_statement(0x1E64); ; } elsif (0y1100 >> -@r12 >> @rbp & @r11 & $teb ^ @rsi >> -@rbx & @rbx & @r8 ^ @r8 = 0y1100 >> -@r12 >> @rbp & @r11 & $teb ^ @rsi >> -@rbx & @rbx & @r8 ^ @r8) { test_statement(0x142A); } else { test_statement(0x1808); }
+$error$
+$end$
+45
+ if (@r11 + @rsi << @rdx >> @r9 << @rbx & @rsp >> @rbx >> 2 & $thread <= @r11 + @rsi << @rdx >> @r9 << @rbx & @rsp >> @rbx >> 2 & $thread)  { test_statement(0x1627);  while  (0n11 & +@rdx ^ @rax ^ 20 <> 0n11 & +@rdx ^ @rax ^ 20)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x1F58);  if (@r10 ^ @rbp > @r8 ^ @r11 | @rbx)  { test_statement(0x201C); } elsif (0y10011 | 4 <= 0y10011 | 4) { test_statement(0x881); } elsif (@rbp)(@r11)) { test_statement(0x571); } elsif ($ip 0x8) { test_statement(0xDC0); } elsif ($buffer <> $teb) { test_statement(0x139C); } }
+$error$
+$end$
+46
+ if (@rsi << @r8 & 2 & $buffer & (@rax) & @rsi ^ @rsp << @rax & 0y111 >> -$teb | $proc << @r11 & @r13 >> @r11 & @r8 ^ @rdi & @rsp & $ip ^ @r9 & @r9 | @r11 >> @rax & @r11 ^ $ip & $buffer | @r13 & -$proc | $buffer | $buffer | @r10(@r8 >> @rdi >> $teb >> @rbp | (17) << 0x3)  { test_statement(0x496);  if (@r11((@rsp) ^ (@r10) ^ @rbp)  { test_statement(0x1D5B); } } elsif (@rdi >> @rdi <= $proc ^ $proc >> $ip | $proc & $proc & @r11 ^ ~$buffer ^ @rdi) { test_statement(0x2580); }
+$error$
+$end$
+47
+ if (17 + $proc >> @rbx << @rbx <= 17 + $proc >> @rbx << @rbx)  { test_statement(0x11A4);  if (@rsi & @rax >< @rsi & @rax)  { test_statement(0x13DC); } else { test_statement(0x1447); } } else { test_statement(0x26BE);  while  (@rdi ! @rbp | -6 | @r10)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  // /* This is a comment   while  (0n11 > 0n12)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  while  (@r13 @r10)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  for (; @rbx ! @rbx;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */ }
+$error$
+$end$
+48
+ if ($ip + $thread << @r11 << @r10 ^ @r9 ^ ~-$ip ^ $thread & @r13 | @r11 >> $proc & $buffer >> $proc & @r11 ^ @r10 >> ~$ip & @r10 & 0y1 ^ @r12 ^ @rdx ^ +0n17 <= $proc & 6 << @r9 | $proc ^ @r12 & $teb & 0n10)  { test_statement(0x1A82);  /* This is a comment */ } else { test_statement(0x26A9); }
+$error$
+$end$
+49
+ if (+$buffer + ~@rdi << @r9 << 16 & $proc & ~@r11 >> @r10 & @rsi & @rsp | @r13 >> 0n1 >> 0n18 <= +$buffer + ~@rdi << @r9 << 16 & $proc & ~@r11 >> @r10 & @rsi & @rsp | @r13 >> 0n1 >> 0n18)  { test_statement(0x2A5); } elsif (@rax >> 0y100 | 0n12 >> @r9 & @rdi | 0y10001 & @r9 != 22 >> @rbx & $proc >> -@r10 & @rsi) { test_statement(0x1EAD); } elsif (0n6 >> $proc & 0n11 & $buffer | 0n19 & ~@rax | @rbp | @r8 | @rbx <= @rbx >> @r8) { test_statement(0x24CF); }
+$error$
+$end$
+50
+ if (@r11 + @r13 << @rdx << @r8 ^ @rax << @r13 >> 0x6 >> 10 & @r9 | @rdi($ip + $thread >> @rax & @r11 >> @r13 & 0y100 & $teb & @r8 ^ +-$thread >> @rsp >> @r8 & $proc >> @rbp | $proc << $thread >> @rdi)  { test_statement(0xFBA); }
+$error$
+$end$
+51
+ if (@r9 & @rax << ($proc) >> 15 >> $teb & @r8 >> @r9 & $thread & ~5 | $ip | @rax & @rsp & @r8 | @rdi ^ @r10 ^ $ip >< $thread + 0y101 >> @r12 << @r9 >> $teb & $buffer << @r10 >> (@r10) >> (@rsi) | $proc >> @rax | +@rdx >> @r8)  { test_statement(0x1CD1); } elsif (@rdx << ~+$proc & $ip ^ $proc >> 0y10000 & (@r9) & @r10 ^ 0n5 ^ @rbx | $ip >> $teb | $buffer & (~-@rax) == $teb >> $proc & @r10 >> @rsp & 0n12 & ~0y11 | @r10 >> @r13 ^ +@rbp & @rbx | 0y1010 & @rbx ^ @rsi ^ @r10 | @rbx ^ @rsp | 0n3 | @rsp) { test_statement(0x1D0E); } else { test_statement(0x47E); }
+$error$
+$end$
+52
+ if ((@rdi) + @rbx << @rax >> $teb >> @r13 >> -@rdi | @rsp & 13 >> 0xA | @r8 & -@rax & $teb ^ @rax ^ @rsi | @r11 & $buffer >< (@rdi) + @rbx << @rax >> $teb >> @r13 >> -@rdi | @rsp & 13 >> 0xA | @r8 & -@rax & $teb ^ @rax ^ @rsi | @r11 & $buffer)  { test_statement(0x8B9);  /* This is a not closed comment  while  ($buffer | @r11 <= @r9 ^ 0xD)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a comment */ } elsif ($buffer << +$ip & +@rax >> $buffer & ~@r13 ^ @rax >> $thread & -@r11 & -@rsi ^ 0xE == ~$ip & ~$ip >> @r10) { test_statement(0x1671);  break; } else { test_statement(0x1B19);  break; }
+$error$
+$end$
+53
+ if ($ip + @rsp << @r11 << @rsp >> 0y10010 << $thread >> $thread >> @rbx >< @rbx + 0xF << -@r11 << 0x1 & -@r9 << @rsi >> $teb | @r8 << 0n14 >> -0xC >> @r9)  { test_statement(0x179D); } elsif (@rbx << @rsp & @r11 >> 0y101 & @r8 | +@r13 & (@rbx) & $buffer ^ @rdx ^ $thread ^ 0n4 | +$thread & +-@rdx | +$teb | @rdx @r9 << ~@rdx >> 23 & $thread | @rbp | 0xE | 0x13 ^ @r9 | @r9 | @r11) { test_statement(0xE04);  break; } else { test_statement(0x1D57); }
+$error$
+$end$
+54
+ if (@r10 & $teb << $thread | @rax << @r10 >> @rdi >> @rdi | @rbx >> (@r10) & ~$teb & @rsi | $thread)@r13 + @rsi & -@r10 << 0y11 >> @r11 & 0y110 >> @rbp | (~$thread) << @r10)  { test_statement(0x2229);  while  ((@r13) & @rsi | @rsi $thread & @r11 ^ ~+@rdx ^ $proc)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x2201); }
+$error$
+$end$
+55
+ if (@r10 << @r8 >> @rax & @rdi ^ @r10 << $thread >> @rbp & @r8 < $teb + 0n1 << $thread << $buffer >> $buffer << $ip)  { test_statement(0x427);  while  (@rbp ^ @rsp ^ @rax | @r11)@rsp & @r13 ^ $proc ^ @rdx)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */  if (0xE | 0n14 <> +@rdx)  { test_statement(0x1059); } elsif (~+@r9)-@r11) { test_statement(0x1836); } elsif (0n15 <> @r13) { test_statement(0x246D); }  if (~$buffer < ~$buffer)  { test_statement(0x111C); } elsif ($teb($ip) { test_statement(0xD44); }  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @r13 != $proc) ; } elsif (@rdx << @rax & ~20 >> @r12 & @r9 != @r10 >> 0n1 >> @r8 & @r11 >> ~@rdx & @r10 & ~@rsp | (@r9) >> @rax & $teb & $proc) { test_statement(0x1AE);  while  ($thread 0n1)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  break;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( -+@rdx))$thread) ; ;  for (; @r10 <> @rsi;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  break; } else { test_statement(0x1BBE);  /* This is a not closed comment }
+$error$
+$end$
+56
+ if (~$ip + @r12 >> @r10 << $ip == 0x5 + @rbp << @rsi ^ -@r11 << @rax)  { test_statement(0x1167); } elsif (@r9 ^ 0y111 & +0xF & 0y10 ^ @rdx & @r9 | $buffer >> 7 | 0x10 | @rdx ^ 7)0y1101 << @r9 >> @rsi >> @r11 & @r10 | @r10 >> 16 & @r9 | @r13 ^ @r9 | @r11 | -$ip) { test_statement(0x1719); x = +@r8 & @rsp ;  // /* This is a comment   do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rsp ! $thread) ;  /* This is a not closed comment  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( 0y1110 == @rbx) ; } elsif (@rsp & @r9 ; @rsp & @r9) { test_statement(0x102F); x = @r10 | $ip ; } elsif (@r12 & $thread ^ @rbp | @rbx ^ 0xC | @r8(($teb ^ @rbp ^ @r12 | @rbp ^ @r11 | 0n2) { test_statement(0x283); } else { test_statement(0xEA0); }
+$error$
+$end$
+57
+ if (0y1001 >> @rdx ^ $proc << $thread & @rsp >> 0n4 ^ +0xD >> $teb & $ip & ~@rdx ^ @rsi ^ @r11 < 0y1001 >> @rdx ^ $proc << $thread & @rsp >> 0n4 ^ +0xD >> $teb & $ip & ~@rdx ^ @rsi ^ @r11)  { test_statement(0x25D); } elsif ((@r8) >> @rsp >> +@r8 & 0n2 & @rbx & @rsp ^ 0x4 >> @rbp ^ $proc | @r8 >> @rsp ^ @r12 < (@r8) >> @rsp >> +@r8 & 0n2 & @rbx & @rsp ^ 0x4 >> @rbp ^ $proc | @r8 >> @rsp ^ @r12) { test_statement(0x1252); @rax = 13 & @rax ^ +@rax ^ @rax ;  for (x= ~~@rdi | @rsp; ~+0xA | @r11))(@rdx) | $ip;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (($buffer) >> @r13 & @r9 ^ 0 ^ +$proc ^ ~$teb ($buffer) >> @r13 & @r9 ^ 0 ^ +$proc ^ ~$teb) { test_statement(0x2140);  break; } else { test_statement(0x221); }
+$error$
+$end$
+58
+ if (@r8 << @rdx << @r9 & @rbx << @rax >> 0n1 & ~+$teb & $teb & @r11 ^ $teb & @r11 ^ @rdx >> @r13 ^ @rbx & $teb <= @r8 << @rdx << @r9 & @rbx << @rax >> 0n1 & ~+$teb & $teb & @r11 ^ $teb & @r11 ^ @rdx >> @r13 ^ @rbx & $teb)  { test_statement(0x1991); } elsif ($buffer << 0y10001 >> $thread >> +@rsp ^ $ip >> $thread ^ $proc ^ @rax | $thread >> +@r12 & @rdx ^ @r9 & @rbp != $buffer << 0y10001 >> $thread >> +@rsp ^ $ip >> $thread ^ $proc ^ @rax | $thread >> +@r12 & @rdx ^ @r9 & @rbp) { test_statement(0x22B5); }
+$error$
+$end$
+59
+ if (@r10 + 0y111 << @r10 >> @r9 << @rbx >> -@r9 | $ip << @rsp | 21 >> @rsp & $teb & (@rbx)(($buffer >> -@r8 << -0xB >> $thread ^ @rsp << $teb >> ~$thread >> $teb & @r13 & ~@r12 ^ @rax)  { test_statement(0x78E); }
+$error$
+$end$
+60
+ if (0y10011 + @rdx << @rdx << $proc >> @rdx >> @rdx >> @rdx & @r10 << @r13 >> 5 >> -~@r9((+0 + +@rax << 0n11 << (@r10) >> $proc << @r8 & @r10 | @r10 << $thread & @r11 >> 16 & @r10 & @r8 | 0x10 >> 0n12 & @rsi & @rbx ^ @rsp & @rsi)  { test_statement(0x1CAD); }
+$error$
+$end$
+61
+ if (~@r9 + @r13 ^ @r13 & ~$teb ^ @r13 ^ @rsp & @r8 == 0x5 + @r8 >> 0x10 >> @rax & @r12 << ~-1 ^ @rdx >> 0n8)  { test_statement(0x8A4);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $teb | -@r12 ! @rax) ; } elsif (@rsp << @rbp >> @rdi >> @r13 & $proc >> $proc != @rsi << @rsi >> @r8 >> @r8 & @rsp >> 0y1101) { test_statement(0x17B4);  /* This is a not closed comment  break;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rbp((@r8) ; } else { test_statement(0x2030);  /* This is a not closed comment }
+$error$
+$end$
+62
+ if (@rsp + @r11 >> @r10 >> $teb >> @rsp & @rdx << @r8 >> @rsi((@rsp + @r11 >> @r10 >> $teb >> @rsp & @rdx << @r8 >> @rsi)  { test_statement(0x15A7); } elsif ($buffer & @r10 & @r9 & @rbp ^ $ip & @rsi ^ (@r11) <> $buffer & 0xA >> 0y10001 & $thread & (14)) { test_statement(0x92B); @rax = @r12 & @r10 ^ $proc | 11 ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rdi @rdi) ; } else { test_statement(0x20C7); }
+$error$
+$end$
+63
+ if (0y1111 + @r13 << 3 >> +@rbx >> @r10 >> $ip ^ @r13 << @r10 | 0x1 << $teb >> $ip & ~$thread & @r11 & @rbx <= 0y1111 + @r13 << 3 >> +@rbx >> @r10 >> $ip ^ @r13 << @r10 | 0x1 << $teb >> $ip & ~$thread & @r11 & @rbx)  { test_statement(0x1EBF); } elsif (+22 << $teb & @rsp & $teb | @rdi)+22 << $teb & @rsp & $teb | @rdi) { test_statement(0xEE1); } elsif ($buffer & @rdi & @r13 | @rdi & @rdi | @rbx < @rsi ^ @r9 & @r12 ^ $thread ^ -0n18) { test_statement(0x19A0); } elsif (0x8)0x8) { test_statement(0x214D); } elsif ($proc ^ ~@r11 | -@rdi | 0n18 <= $teb) { test_statement(0x2595);  // /* This is a comment  }
+$error$
+$end$
+64
+ if (@r12 + $teb << @rsi >> -0x7 << @rdi ^ $teb == $proc << @r9 >> @rbp << @rdx ^ @rax << @r9 >> @r8 >> $teb | @rdx ^ 10 >> @r8 & @r13 ^ @rsi ^ @r10 ^ @rsp)  { test_statement(0x983); ; } else { test_statement(0x24FC); @rax = @rdx & (+@r13) | @rbp ; }
+$error$
+$end$
+65
+ if (~$buffer + $thread << @r10 << 0x7 >> @rbx << 0n14 >> @r8 ^ 20 >> @r12 >> 0n17 & @rdx >> @r12((~$buffer + $thread << @r10 << 0x7 >> @rbx << 0n14 >> @r8 ^ 20 >> @r12 >> 0n17 & @rdx >> @r12)  { test_statement(0x691); } elsif (@rbp & $ip & @r9(@rbx ^ ~@rax >> @rsi & ~@rdx ^ @rbx & @rdi ^ @rdx ^ @r10 | 0n14) { test_statement(0x20E); } elsif (@rbp >> $thread @rbp >> $thread) { test_statement(0x22EB); } elsif (@r11 ^ @rax ^ @r11 | $teb | @r13 | @rdx <= @r8 ^ ($proc) ^ @r13) { test_statement(0x62E); } else { test_statement(0x1C03); x = 0x0 ;  // /* This is a comment  }
+$error$
+$end$
+66
+ if (@rsi + $buffer << $buffer << (@rsi) >> $buffer << $buffer @rsp << @rbp << @rsp >> $buffer << $thread >> @rdi >> 0y10)  { test_statement(0x71D); } elsif (~@r12 >> @rsp & @rbx ^ $proc ^ 0n17 | @rbx >> (0n2) & @r11 | 0n1 ^ $thread != ~@r12 >> @rsp & @rbx ^ $proc ^ 0n17 | @rbx >> (0n2) & @r11 | 0n1 ^ $thread) { test_statement(0x13F4);  if (@rsp <> 0y1)  { test_statement(0x1420); } else { test_statement(0x863); } } elsif (@rsi >> 21 & @r9 & @r9 | (@r9) & @rax | @r8 >< @r8 >> @r11) { test_statement(0x1D7E);  This is a not opened comment */ } elsif (@rsi & @r11 != @rsi ^ @r11 | 0x4) { test_statement(0x1E3F);  if (@rbx <> @r8)  { test_statement(0x56F); } else { test_statement(0x1EC0); }  This is a not opened comment */ } elsif ($proc ^ @r11(@r11 ^ $ip) { test_statement(0xF91); }
+$error$
+$end$
+67
+ if (5 + @rax << ~@rbx >> @r9 & -@rsp >> -@rbx >> @rsp ^ +~$thread << @rsi & @rax >> @r10 ^ $proc & @r8 & @rdx | $proc << ~@rdx | @rdi >> 0y11 & @r11 | $ip & @rdx | @r9 ^ @rsp <= @rdi + 0xF >> @r11 & 0n1 >> 0x3 | @rdx << @r13 >> @rbp & @rsi >> 11 & $ip ^ $ip >> @rsp)  { test_statement(0x505);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( +-$teb & $proc | @r8 ^ 0n1 | 0y1011 | 0x1 ; $teb & @rdi ^ 0n7 | $teb ^ @r10) ; x = @rdi ^ @r9 ; } else { test_statement(0x5A6); @rax = 0n9 | @rdx ^ @r8 ; }
+$error$
+$end$
+68
+ if (7 << @r11 >> @rsi << -@r13 >> +@rbp >> ~-@r10 0x10 & @r13 << $ip ^ @rsp | @r11 & $thread >> $buffer)  { test_statement(0x2261); } elsif (@rdx << $teb >> @r9 ^ $thread ^ @r11 < 0y0 >> @rsp >> @rdx ^ @rsp ^ +$ip & @rax ^ $buffer) { test_statement(0x21D0); } elsif ($ip & $ip ^ 0n15 & @r10 | ((@rbx)) & $teb | $ip | @rbx < @r8 >> 0n16 ^ (@rsi) ^ @r11 | @r13) { test_statement(0x188A); } else { test_statement(0x1AF1);  break;  break; }
+$error$
+$end$
+69
+ if (~@rsi << @r8 >> +0xE << 20 >> @r10 >> @rsi & @rbx << @rsp >> $buffer >> ~@rsi & @r11 >> @r11 & +@r12 & (@rsp) ^ $ip << $ip >> (-@r10) >> $teb ^ 22 & $thread & @rdx(((@r9) + @r8 << @rdi & 0n8 << 0n13 >> @rbp)  { test_statement(0x4D4);  if (@r9 | @r13 ^ $proc | @r11 | 2 <> @r9 | @r13 ^ $proc | @r11 | 2)  { test_statement(0x14E0); } elsif (@rdi ^ @r9 | 17 ; (-$buffer) | -@r9 | @rdx) { test_statement(0x1359); } ; }
+$error$
+$end$
+70
+ if ($teb << $proc << @r8 <> 0n12 + $proc << 0x7 << $thread >> @r12 >> @r10 ^ $teb << @r13 & $ip & @rbp & @rbx | @rbp >> $thread >> $teb)  { test_statement(0x1AAB);  /* This is a not closed comment @rax = ~@rdx ^ $proc | @r10 ^ @rbp ; } elsif (0x2 | $teb >> @rdx ^ 0n0 & @rdx ^ @rbp ^ @r10 | $buffer | $teb ^ $ip == 0n15 << $proc >> @rsp >> @rbx & @r8 >> @rax ^ 15 & +$ip) { test_statement(0x1C70);  /* This is a comment */ } elsif (@rbp >> $teb & $thread & ++@rdx(($ip | $teb) { test_statement(0x1115); } else { test_statement(0x1938); }
+$error$
+$end$
+71
+ if (@rsp + ~@r8 << 0n0 << 0x13 >> @rdx >> @r12 >> @r12 & @r12 ^ $thread << @rsp ^ 0n13 ; (@rbx) << $ip << $ip ^ $proc & @r8)  { test_statement(0x209F); x = $buffer >> ~0n9 | 23 & 0n7 | @r11 | @r9 ; } else { test_statement(0x215D); }
+$error$
+$end$
+72
+ if (($teb) >> $ip << 2 & 0n6 << 0y0 & $ip >> @r9 | 0y1001 >> $proc >> @r10 & @rbx & @rax ^ 0n4 & @r10 & $buffer ^ @rdi | 11 >> (@r9) ^ $ip >< ($teb) >> $ip << 2 & 0n6 << 0y0 & $ip >> @r9 | 0y1001 >> $proc >> @r10 & @rbx & @rax ^ 0n4 & @r10 & $buffer ^ @rdi | 11 >> (@r9) ^ $ip)  { test_statement(0x2357); } else { test_statement(0x1F05); x = 0y1100 ^ @r12 ^ +$proc | @r10 ^ 0y101 | @r9 | (@rax) ; }
+$error$
+$end$
+73
+ if (@r8 >> -@rdx << +@r11 >> @r10 >> @rdi & @rsp << ~@r11 >> -@r9 >> @rdx & @rdx != @r10 ^ 0n8 << $ip & @rbp & 0x5 ^ $buffer & @rdx | @r8 << @rsp & $proc | @r11)  { test_statement(0x1F65);  if (0x10 ^ 0n18 | @r9 ^ @rsp | @r11 | @r12 != 0x10 ^ 0n18 | @r9 ^ @rsp | @r11 | @r12)  { test_statement(0x1AE6); } elsif (0n15 <> 0n15) { test_statement(0x17CB); } elsif ($thread | @rbp($thread | @rbp) { test_statement(0x1F6C); } elsif (@rsi = ~-@r9) { test_statement(0xB7B); }  /* This is a not closed comment  if ($teb | $proc(@rdi)  { test_statement(0xA44); } elsif ($proc ! @r8) { test_statement(0x1DE9); } else { test_statement(0xDBB); }  if (0n11(0n11)  { test_statement(0x2B3); } elsif (@rsp > @rbp) { test_statement(0x1A2F); }  for (@rax= $ip; @rbp > @rbp;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  for (; @rsp((@r13;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x253D); @rax = $ip & ~@r10 ; }
+$error$
+$end$
+74
+ if ($teb + @r11((@rdi + 0x10 ^ 0n19 & @r12 | @rdx & 10 & $thread | $proc >> 0x10)  { test_statement(0x8B8); } elsif (@r9 & $thread & @rsi & 0x13 ^ @rdi >> @rax & 22 ^ @r10 & 0y110 | @r11 >> @r12 & @rsi ^ @rdx & 0n5 ^ @rdi != (0xB) >> $buffer >> 0n7) { test_statement(0x133C); x = @rax ^ -$ip | -$buffer ^ $buffer ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rdi | @r9 > $ip | $buffer) ;  /* This is a not closed comment @rax = @r13 ;  This is a not opened comment */ @rax = @r8 ; } else { test_statement(0x1C23);  if (0x11 ^ $thread > @r10)  { test_statement(0x3AC); } elsif (@r9 | @r12 >= $ip) { test_statement(0x11EB); } elsif (~+0xB ~+0xB) { test_statement(0x38D); } }
+$error$
+$end$
+75
+ if (0x5 << 14 << 0n0 >> (@rsp) & @r9 >> 0n13 >> @rdi & +0n16 & (@rsi) & @r12 | (@r13) & @r12 == 0x7 & +0n11 >> $thread | 6 << @r12 & ~0y100 & @rbp & @rsp)  { test_statement(0x13ED);  break;  // /* This is a comment  x = 0n18 | $ip ; } elsif ($teb << 0y10010((15 << @r9 ^ $teb >> @rdx ^ @r11) { test_statement(0x6CB); }
+$error$
+$end$
+76
+ if (@rdx + @rbp >> $proc & 0n6 << @r13 >> $proc ^ $ip >> @r12 & @rbx & @r9 & @r9 | ~@rsi << @rbp)@r9 << $teb << @r12 & 0y10011 << @rsp ^ @rdx ^ @r13 >> ~0 & 0x7)  { test_statement(0x12C8); }
+$error$
+$end$
+77
+ if (0x2 + 0x2 & 0x12 << @rsi & 0y1100 >> 0n19 | 0x13 >> $ip >> $buffer ^ @r8)+@r11 + @r9 << @r13 << 0x12 & @rbp & 0xF >> -@rax ^ @r10 ^ @r12 >> @r13 & $thread & 13)  { test_statement(0x2616);  /* This is a comment */ } elsif (@r13 << @r10 & @r11 >> $proc <> @rsp >> @rbp) { test_statement(0x1FFB); } else { test_statement(0x22F8); }
+$error$
+$end$
+78
+ if (@rdx + $proc << @rdi & 0n16 << @rdx & @rdx ^ $ip >> 22 >> ~$thread & @r12 ^ @r9 != $buffer << ~@rdi << @rsp & @rdi | @rdx << -@rdx & 0n3 >> @r10 ^ +0y1000 ^ -@r10)  { test_statement(0x25C);  /* This is a comment */ @rax = $ip & @rax ^ 0y1011 | @rbx | +0n3 ;  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $proc >= 0xF) ;  /* This is a not closed comment } else { test_statement(0x54A); }
+$error$
+$end$
+79
+ if (0n3 & $proc >> $thread ^ +@rsi << -0x10 >> $ip & -@r10 >> $buffer & 3 & @r11 | 0y0 << -$buffer >> @r10 ^ @rbp >> 0x5 & $ip ^ @r8 & 0y10001 | $proc & @rax & ~0xF ^ ~0y1010 & 0 ^ ($buffer) ^ @r13 >< 0n3 & $proc >> $thread ^ +@rsi << -0x10 >> $ip & -@r10 >> $buffer & 3 & @r11 | 0y0 << -$buffer >> @r10 ^ @rbp >> 0x5 & $ip ^ @r8 & 0y10001 | $proc & @rax & ~0xF ^ ~0y1010 & 0 ^ ($buffer) ^ @r13)  { test_statement(0x6D5); }
+$error$
+$end$
+80
+ if (@rbx << (@rax) << @rsp >> 0y1101 << @rax & $thread >> @rbp >> @r9 & 0xF >> @r8 ^ @r9 << 0y1011 & @rsp >> @rsi <> @rbp + $proc >> $buffer & @r9 << 0n5 ^ (~@rbx) << $buffer >> ~@rsi >> (@r12) ^ -@rsi & @r12 & @rbx)  { test_statement(0x256B);  while  ($thread ^ $thread ^ $ip ; @r13 ^ @rsi ^ @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (@rbp & (@r13) >> @rdx & @r12 & @rdx | 0n10 & 0n1 & @r8 ^ 0n4 & @r10 ^ -$proc ^ $buffer = @rbp & (@r13) >> @rdx & @r12 & @rdx | 0n10 & 0n1 & @r8 ^ 0n4 & @r10 ^ -$proc ^ $buffer) { test_statement(0x233E);  /* This is a not closed comment } elsif ((@rsp) & $proc & 21 | @rdx & $teb | $proc ^ $buffer < (@rsp) & $proc & 21 | @rdx & $teb | $proc ^ $buffer) { test_statement(0x212E);  for (x= 0n12 | (@rsp); @rbp <> @r9;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } }
+$error$
+$end$
+81
+ if ($buffer >> 0x9 << $thread >> @r12 >> 22 & ($teb) << 13 | 0y110 >> @rbx > (0xC) + -@rbp << @r12 << +@r11 >> @rbp << ~$thread >> 0x8)  { test_statement(0xD3B); } else { test_statement(0x7D2); }
+$error$
+$end$
+82
+ if ($buffer + @r11 << @rax >> $proc << @rsp >> 0xB | @r11 << +@r8(($buffer + @r11 << @rax >> $proc << @rsp >> 0xB | @r11 << +@r8)  { test_statement(0x1CD2); }
+$error$
+$end$
+83
+ if (($teb) + @r8 << (@rdx) << @r9 & @r11 & @r11 >> $proc & 0xB & @rax ^ 0x11 >> @rdi | @r10 >> 0x2 >> +$proc ^ +$ip & $buffer & +$buffer ^ 0n16 <> 0n5 + @rsp >> $proc << @rax & $proc << 0n1 | @r12 << @rax & $proc)  { test_statement(0x1422); } else { test_statement(0x1CF8); }
+$error$
+$end$
+84
+ if (@rdi & 0xB << @r13 >> @r9 >> @r9 & +0y111 >> @rax <> @rdi & 0xB << @r13 >> @r9 >> @r9 & +0y111 >> @rax)  { test_statement(0x1D06); } elsif (0xA >> $ip = @r9 << @r12 & @r10 >> @r10 | $thread >> $thread & @rbx & (0xD)) { test_statement(0x1C04); } elsif (@r11 >> @r10 & @r12 & @r8 ^ $buffer & @rsp ^ 0y1001 | $thread & 0n0 | @r10 ^ @r11 | 0 | 1(@r11 >> @r10 & @r12 & @r8 ^ $buffer & @rsp ^ 0y1001 | $thread & 0n0 | @r10 ^ @r11 | 0 | 1) { test_statement(0x2214); } else { test_statement(0x26AB); }
+$error$
+$end$
+85
+ if (@rbx + @r13 >> 0y1111 << @r9 >> 17 >> @r11 & @rdx << @rbp >> @rsi >< @rbx + @r13 >> 0y1111 << @r9 >> 17 >> @r11 & @rdx << @rbp >> @rsi)  { test_statement(0x411);  /* This is a comment */  for (x= ~0n3; @rsi | @rbp = $ip ^ $teb | $thread | $teb;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  for (@rax= @rbx | $ip; @r13 ; @r13;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  if (17 ; $thread)  { test_statement(0xAAD); } elsif (@r9 <= @r9) { test_statement(0x6CE); } } elsif (@r13 << $thread & @r9 >> @r11 & @rdx & @r13 | 0n14 ^ 0x3 & 0n0 | @rax ^ @r10 @r13 << $thread & @r9 >> @r11 & @rdx & @r13 | 0n14 ^ 0x3 & 0n0 | @rax ^ @r10) { test_statement(0x1AA9);  /* This is a comment */  /* This is a comment */  if (@r11 ! $proc)  { test_statement(0x44); } elsif (@rdi == @rdi) { test_statement(0x26ED); } elsif ($proc((@r9) { test_statement(0xF51); } else { test_statement(0x413); } } else { test_statement(0x38A); }
+$error$
+$end$
+86
+ if (@rsp << @r11 << $proc & @rsp >> 0y110 & @r13 >> @rdi & $proc ^ $proc << @r11 & @rsi & @rdx ^ @rdx >> @rsi & $teb & 0x3 ^ @rbp >= $thread + 0n3 ^ (3) & @r9 >> @r13 & $buffer & @r10 ^ -@rbp & @r8 | @r8 & 0n5 >> @rdi)  { test_statement(0x18A8); } elsif (@rbx >> -@r9 ^ @r10 >> @rbx & @r8 & @rsi ^ @rsi & @rbp ^ $buffer ^ 0n1)0x1 << @r9) { test_statement(0x7A1); } elsif ($buffer >> @rdi ^ $thread <> $buffer >> @rdi ^ $thread) { test_statement(0x23A); } elsif ($ip & @rsp | 0y111 ^ @rdx | @r10 <> $ip & @rsp | 0y111 ^ @rdx | @r10) { test_statement(0x26C8); } else { test_statement(0x39B);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $teb((@r9 | 0x5) ; }
+$error$
+$end$
+87
+ if (0y10 << -@r9 >> $teb >> @rsp ^ @r9 >> 0y1110 & @r9 >> @rsi ^ (0y1100) >> $proc & @rsi ^ @rsp ^ @rdi | -@r12 << 0y0 & @r13 >> @rsp | 3 & 1 & @r11 ^ $ip & ~@r11 ^ @r10 ^ +@rsp | 0x13 & @rbp ^ @rbp(0y10 << -@r9 >> $teb >> @rsp ^ @r9 >> 0y1110 & @r9 >> @rsi ^ (0y1100) >> $proc & @rsi ^ @rsp ^ @rdi | -@r12 << 0y0 & @r13 >> @rsp | 3 & 1 & @r11 ^ $ip & ~@r11 ^ @r10 ^ +@rsp | 0x13 & @rbp ^ @rbp)  { test_statement(0x12A1);  while  ($thread & 0y11 | ~@rsp ^ $thread | -0x6($ip ^ +0xB | $teb ^ $proc | 0y111 | 0x12)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x1D38); }
+$error$
+$end$
+88
+ if (@r13 <= @rdx + @r8 | @r10 >> @rax ^ +$thread & @rax & @rax ^ (-0n11))  { test_statement(0xC3A);  // /* This is a comment  } elsif ((@rsp) << @r11 >> $buffer >> @r13(0n12 << (@r9) & 0y1001 & 0xD ^ 0x11) { test_statement(0x26FA); } else { test_statement(0x169F);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $proc != 0n1 | 16 | +@r8) ; }
+$error$
+$end$
+89
+ if (0y11 + 22 & @rdx << @r10 & @r10 ^ @r10 >> (@r8) >> @rax & 0y1111 ^ $ip >> -@r8)0y11 + 22 & @rdx << @r10 & @r10 ^ @r10 >> (@r8) >> @rax & 0y1111 ^ $ip >> -@r8)  { test_statement(0x1DFF); } elsif (0n18 >> @rax & 0n19 & 7 ^ -$thread >> $teb & +@r10 & @rbp | @r10 & -@r13 & +@r12 ^ +@r9 ^ ~0y10000(0n18 >> @rax & 0n19 & 7 ^ -$thread >> $teb & +@r10 & @rbp | @r10 & -@r13 & +@r12 ^ +@r9 ^ ~0y10000) { test_statement(0x1622); } elsif (@rax ^ @rbx & @rbp ^ $thread ^ @r13 < @rax ^ @rbx & @rbp ^ $thread ^ @r13) { test_statement(0x2635); } else { test_statement(0xA2C);  // /* This is a comment   This is a not opened comment */ x = @rbx ;  for (; @r9 ! 0n2;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  while  ($buffer <> $buffer)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } }
+$error$
+$end$
+90
+ if (@r11 >> 0x13 << @rdi | 0n13 << @rsi >> @r9 | @rbp & @rbx ^ @rdx ^ $proc ^ -$ip | 20 & @r11 ^ @r10($ip + @rbp >> $teb << 0y10010 >> $thread & 14 >> @r9)  { test_statement(0x1416); } elsif (@r11 << 15 & $teb >= @r10 << -$buffer >> 22 >> @r13 & ~@r10 >> ~17 | @r9 & @r8 ^ 0x5 & 0y1000 ^ ~@rbx) { test_statement(0x21DF);  break; }
+$error$
+$end$
+91
+ if (@r8 >> @r8 >> 10 & @r12 << $thread >> @rbp))@rdi | @rax | @r11 | $ip ^ $teb)  { test_statement(0x24E2);  while  (~@r13 & @r9 ^ @r13 | $ip ; @rdi | @rsp | $proc | 13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a comment */ }
+$error$
+$end$
+92
+ if ($teb >> @r10 << $thread ^ @r12 << ~$buffer & @r10 & $proc & @rbp | 0y1001 >> 0x11 >> 0n19 & @r11 ^ ~@r10 & @r8 & +@rbx ^ $thread ^ @r12 ^ 0xE <= $ip | $proc << @r10 >> $thread & @rax ^ 6 & @r10 & $thread)  { test_statement(0x158B); }
+$error$
+$end$
+93
+ if ((@rbx) + 0n16 << @rdx << @rax >> @r8 >> @rdi | @r12 >> 0y10 >> 0n2 <= (@rbx) + 0n16 << @rdx << @rax >> @r8 >> @rdi | @r12 >> 0y10 >> 0n2)  { test_statement(0x9E7); }
+$error$
+$end$
+94
+ if (@rbx << -+@rdi << $teb | @r9 ^ @r8 & $proc & 7 ^ @rbp & @rsp ^ @rbp | (@r10) >> $ip($ip + @rbx << $thread >> @r11 << 15)  { test_statement(0x1632); } else { test_statement(0x3A1);  // /* This is a comment   for (@rax= +0y1 | 20; @r12 | @rsp < @rdx | $proc;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */  // /* This is a comment   // /* This is a comment   break;  // /* This is a comment  }
+$error$
+$end$
+95
+ if (@r13 << @rbx >> @r13 ^ @rbp << +7 & $proc & @r9 & $proc == @r9 + @r9 >> $ip << $teb | @r13 << 0n12 ^ $proc >> -$teb)  { test_statement(0x821);  // /* This is a comment  } else { test_statement(0xE1B);  /* This is a not closed comment  if (@rax ! @rax)  { test_statement(0x602); } elsif (@rsp ! @rsp) { test_statement(0x23C4); } elsif (@rbx <> (-@rbp)) { test_statement(0x1A); } else { test_statement(0x100E); } }
+$error$
+$end$
+96
+ if (+@rbx >> 23 << @rdx & +$proc << @rdx & @r11 >> @r13 | @rsp << @rdi >> @r11 >> @rdi & -12 ^ @r8 ; +@rbx >> 23 << @rdx & +$proc << @rdx & @r11 >> @r13 | @rsp << @rdi >> @r11 >> @rdi & -12 ^ @r8)  { test_statement(0x1542);  while  ($buffer & $ip ^ @r12 ^ @rdx | @rax($buffer & $ip ^ @r12 ^ @rdx | @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  /* This is a comment */ } elsif (@rbx << ~$ip ^ @rbx >> @rdi <= ~4 << @rax >> 0y10000 >> ~$ip) { test_statement(0x2191); } elsif (@r11 >> @rsp & @rbx & @rsp >= @r8 >> @r13) { test_statement(0xD2F);  for (@rax= @r11 | @rsp; @r11 < @r10;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } }
+$error$
+$end$
+97
+ if (@rdi + $proc >> 0x13 & @rbp >> 0n4 & @rsi >> @r8 & $proc & @r12 | @r10 << $proc ^ 0n14 >> @rsi | @r13 >> @rax ^ $thread ^ +$thread ^ 0n4 <= @rdi + $proc >> 0x13 & @rbp >> 0n4 & @rsi >> @r8 & $proc & @r12 | @r10 << $proc ^ 0n14 >> @rsi | @r13 >> @rax ^ $thread ^ +$thread ^ 0n4)  { test_statement(0x1B4C);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( $proc & 0n6 ^ @rdx ^ 4 = ~@r8) ; }
+$error$
+$end$
+98
+ if (@rdx >< @r10 << @rdi & @rax)  { test_statement(0x1F84);  break; } else { test_statement(0xC97);  // /* This is a comment   if (0n6 | 0n9($teb)  { test_statement(0x10BC); } else { test_statement(0x1A4A); } }
+$error$
+$end$
+99
+ if ($proc & @r11 << @rdi & $teb >> $teb & @rbp ^ +@rdx << -+0y111 >> 0y1111 ^ @rbx & 13 ^ @r12 | 0n5 & 0n0)$proc & @r11 << @rdi & $teb >> $teb & @rbp ^ +@rdx << -+0y111 >> 0y1111 ^ @rbx & 13 ^ @r12 | 0n5 & 0n0)  { test_statement(0xB2B); } else { test_statement(0x2C0); }
+$error$
+$end$
+100
+ if (@rdi + @r10 & @r12 >> @r9 | @rbp >> $buffer & @r8 != @rdi + @r10 & @r12 >> @r9 | @rbp >> $buffer & @r8)  { test_statement(0x2101);  while  (@rax ^ @r8 ^ @rsp = @r11 & @rbp ^ @rbp ^ ~@rsp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  This is a not opened comment */  /* This is a not closed comment ; } elsif (0n6 << $buffer >> 0n5 ^ $ip >> @rdx | 0x4 & 0n1 ^ @r13 & 0n19 ^ @rsi ^ (0y10) != 0n6 << $buffer >> 0n5 ^ $ip >> @rdx | 0x4 & 0n1 ^ @r13 & 0n19 ^ @rsi ^ (0y10)) { test_statement(0xC0E);  if (($proc) <> $thread ^ $teb | @r8 | @rbp)  { test_statement(0x2234); } elsif (+0n0 | @rax <> +0n0 | @rax) { test_statement(0x765); } else { test_statement(0x7CD); } } elsif ((@rsi) >> @rbp & $buffer & 0y1100 ^ @rsp ^ @r11 ^ $teb >< $thread >> $ip & +@rdi & +@r13 ^ 0n3 & @r11 ^ +0y111 | +@r10 ^ ~+-@rbx ^ 0n17) { test_statement(0x1882);  while  (0xB | @r8 0xB | @r8)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } x = @r10 | -@rdi ;  while  (--0xB != @r13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } else { test_statement(0x738);  /* This is a not closed comment  This is a not opened comment */ }
+$error$
+$end$
+101
+ if ($buffer + @r12 << 0n2 << 17 >> @rax << $buffer >> $ip & 2 << @rdi >> @rbx | @rsp << @rdi & @rbp >> $buffer & @r12 | @rbx < @rdi << -@rax >> +@r10 << @rax >> -@r11 >> @rax & $buffer >> @r8 & 0n12 & 0n15 ^ @rsp >> 0n15 >> -$buffer & @r8 & @r9 & @rsi)  { test_statement(0x506); }
+$error$
+$end$
+102
+ if (@rsi + 15 << (~-$ip) << $thread ^ @rsi >> @r11 & @rax & 0n19 & $buffer ^ $buffer ^ @rbp & @rsi <= $ip << +@rbp << ~$ip >> @r10 << @r11 >> @rsi | -@rdi >> @r11 >> ~@r8 ^ $ip & @r10 & @rdi ^ @rax)  { test_statement(0x7B6); } else { test_statement(0x1A7); ; }
+$error$
+$end$
+103
+ if (@rbx + @r8 & 7 << $ip & +@rdi | @rdi << 0xF & @rbp <> $ip << @r12 ^ 0x7 << (+$proc) >> @rsp ^ +$ip & 0y1110 & @r8 ^ $ip ^ -0)  { test_statement(0xE0B);  while  (@rbp ! @rbp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } } elsif (-$buffer << 0x9 & $buffer >> @rsp & ($buffer) & @r8 ^ @rdx >> -+0xA ^ @rsp & $proc ^ @r11 | @r13 >> $thread & @r9 & @r8 | @r12 & 0y10000 | @r10 ^ @r13 | @rbx ; -$buffer << 0x9 & $buffer >> @rsp & ($buffer) & @r8 ^ @rdx >> -+0xA ^ @rsp & $proc ^ @r11 | @r13 >> $thread & @r9 & @r8 | @r12 & 0y10000 | @r10 ^ @r13 | @rbx) { test_statement(0xDEE);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @r12 <> $ip ^ @r10 | @r12) ; }
+$error$
+$end$
+104
+ if (@rbx + @r8 << @r10 << +(16) & @rdi >> @rbp & @r8 >> @rdi ^ -$buffer ^ @rbp >> @rbx & (@r13) ^ (@r10) ^ @rdx ^ @rsi == $thread << @r11 << $buffer >> $proc & @r12 & $teb >> @rbp & $proc ^ @r9 >> $teb & @rbx & @r13 & @rbx | 0x8 & +@rbp & @rdi & ~+@r12 ^ @rax & (@rax) & 0y0 | @r8 >> @r10 | $teb ^ 13 ^ ~@rdi)  { test_statement(0x1404); } elsif ($thread >> +~@r9 >> @rbx ^ @rdx >> @rax & @r9 & $teb ^ $ip == @rax & (@r10) >> 7 & @r12 & ($thread) ^ ~@rsp & @rsi | $teb >> $proc & $buffer & @rsi | +((@rax)) & @r13 ^ @rax | $teb ^ @r13) { test_statement(0x4FA); } elsif (@rsi >> @rbp & 4 & +$proc ^ @rsp & 0y10011 | @r12 ^ @rsi @r11 >> $thread & +@r11 & @rbx ^ @rbp & ~@r13 | @r12 & @r10 | @rbx ^ 0n12) { test_statement(0x19DA); }
+$error$
+$end$
+105
+ if ($buffer + @rax << 5 >> -$buffer << @rsp ^ 22 >> $thread >> @r8 & $ip & @r11 = $ip << @r13 << (~$proc) >> $thread | @rsi << @rdx >> +@r11 & @r11 | 0n17 | -@r8 | @rdx ^ 4 | @rdi | @r9)  { test_statement(0xF8); }
+$error$
+$end$
+106
+ if ($proc >= @rsp << @r13 << $teb ^ @rbp << @rsi >> ~$teb >> @r8 ^ @rdx >> @r10 & @r11)  { test_statement(0x145C);  This is a not opened comment */  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rdx ^ $proc = -@rsi ^ $buffer | @rdi | @rsp) ; } elsif (0x6 >> @rsi <= @r12 << @r10 & 6 >> $proc) { test_statement(0xE6F); } else { test_statement(0x29B); }
+$error$
+$end$
+107
+ if ($teb << $ip << @rdi >> 0n15 & @r11 ^ @r13 >> @r8 & $ip >> @rsi >= @rdx << $thread << @r12 ^ 0x2 | @r13 << -0y1 >> $ip & +@rbp >> @r11 & @rsp ^ @r12 >> @rbp)  { test_statement(0x1D90);  if ($thread ^ @rbx ^ @rbp | @r12 ^ 0y1101 | ~@rdi == ~+0n12 | @rsi ^ @r10)  { test_statement(0xB29); } elsif (@r8 | $proc | @rdi ; 2 | @rsi) { test_statement(0x1B70); } elsif (@rsi | @rsi >< $proc) { test_statement(0x4C1); } } elsif ($proc << @r11 >> @r8 >> 0y111 > $proc << @r11 >> @r8 >> 0y111) { test_statement(0x9BF);  /* This is a comment */  /* This is a not closed comment } elsif (0x3 <= 0x3) { test_statement(0x21D7);  while  (@rdi)@r9 | @rbp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  break;  /* This is a not closed comment  /* This is a not closed comment  /* This is a comment */  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( @rax <= @rax) ; } elsif (-@rbp ^ $thread ; 0xF & $proc ^ $thread ^ +@r13 | 13 ^ $teb | $ip) { test_statement(0x1928);  do  {  tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } } while ( 0y1010(0y1010) ; } elsif (+$ip ^ $teb | 0y1 | $thread >< $thread) { test_statement(0x2429);  break; } else { test_statement(0x21D4); }
+$error$
+$end$
+108
+ if ($proc >> @rsi << @r10 >> @r12 >> @rbx & $proc << $thread >> @rsi >> ~0n1 ^ @rbx >> @r10 & @r11 >> $thread & @rdx | 0y1011 << @rdi ^ @rsp >> $thread & @rbp ; @rax)  { test_statement(0x1060); } elsif (@r12 << $thread >> 0n3 >> @r11 & $teb ^ $buffer >> @r8 ^ $proc & @rax | @r10 >> $ip | @rbp ^ ~~@rax ^ @r11 | @r13 ^ @rdi >= @rax << $ip & @r9 | @r11 | $thread ^ @r12) { test_statement(0x624); } else { test_statement(0x26D2); }
+$error$
+$end$
+109
+ if (@r10 + @rbp << $buffer << $thread & @r8 << @r13 >> 0y1111 >> -@r13 & $ip >> $buffer & -@rax | (0n14) & @rsp >> +$ip <= @r11 | $ip << @r13 >> @rbx | @r10 ^ @r8 | $proc & 0y110 ^ @r9 | 11 ^ +@rbx | @rdx | +$teb)  { test_statement(0x6C5); } elsif (0x2 >> 17 >> $teb 0x2 >> 17 >> $teb) { test_statement(0x1EF8);  while  (@r12 <= @r12)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }  // /* This is a comment   This is a not opened comment */ } else { test_statement(0x23BE);  // /* This is a comment  }
+$error$
+$end$

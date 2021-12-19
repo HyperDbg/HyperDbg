@@ -1,0 +1,4 @@
+5
+ if (@rdi != @rdi)  { test_statement(0x1EB0); }
+0
+$end$
