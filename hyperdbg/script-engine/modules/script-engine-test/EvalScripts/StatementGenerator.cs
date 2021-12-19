@@ -134,21 +134,21 @@ namespace EvalScripts
                     Depth -= 1;
 
                     return Result;
-                    
+
                 case 8:
 
                     Result = " // /* This is a comment ";
                     Depth -= 1;
 
                     return Result;
-                    
+
                 case 9:
 
                     Result = " /* This is a not closed comment";
                     Depth -= 1;
 
                     return Result;
-                    
+
                 case 10:
 
                     Result = " This is a not opened comment */";
@@ -354,7 +354,7 @@ namespace EvalScripts
 
         public static string SIMPLE_ASSIGNMENT()
         {
-            var RandomNum = Rand.Next(2);
+            var RandomNum = Rand.Next(5);
             string Result = string.Empty;
 
             Depth += 1;
@@ -364,20 +364,31 @@ namespace EvalScripts
                 RandomNum = 1;
             }
 
-            if (RandomNum == 0)
+            switch (RandomNum)
             {
-                Result = L_VALUE() + "= " + EXPRESSION() + SIMPLE_ASSIGNMENTP();
-                Depth -= 1;
+                case 0:
 
-                return Result;
-            }
-            else
-            {
-                Result = "";
-                Depth -= 1;
+                    Result = L_VALUE() + " = " + EXPRESSION() + SIMPLE_ASSIGNMENTP();
+                    Depth -= 1;
 
-                return Result;
+                    return Result;
+
+                case 1:
+
+                    Result = "";
+                    Depth -= 1;
+
+                    return Result;
+
+                default:
+
+                    Result = "val = 10";
+                    Depth -= 1;
+
+                    return Result;
+
             }
+
 
         }
 
@@ -391,6 +402,7 @@ namespace EvalScripts
         public static string INC_DEC()
         {
             string Result = string.Empty;
+            var RandomNum = Rand.Next(4);
 
             Depth += 1;
 
@@ -927,7 +939,7 @@ namespace EvalScripts
 
             if (RandomNum == 0)
             {
-                Result = "x";  // id
+                Result = "val";  // id
                 return Result;
             }
             else if (RandomNum == 1)

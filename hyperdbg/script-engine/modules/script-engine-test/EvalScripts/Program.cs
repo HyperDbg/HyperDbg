@@ -220,7 +220,6 @@ namespace EvalScripts
                 TestCaseWithoutErrorFile.WriteLine(Script);
                 TestCaseWithoutErrorFile.WriteLine(Result);
                 TestCaseWithoutErrorFile.WriteLine("$end$");
-                TestCaseWithoutErrorFile.Flush();
 
                 return true;
 
@@ -232,7 +231,6 @@ namespace EvalScripts
                 TestCaseWithErrorFile.WriteLine(Script);
                 TestCaseWithErrorFile.WriteLine(Result);
                 TestCaseWithErrorFile.WriteLine("$end$");
-                TestCaseWithErrorFile.Flush();
 
                 return false;
 
@@ -289,16 +287,15 @@ namespace EvalScripts
             // Generate test-cases
             //
 
-            // Generate("01-expressions", ACTION_TYPE.CREATE_EXPRESSIONS, 100000, 200);
-            // Generate("02-conditional-statements", ACTION_TYPE.CREATE_CONDITIONAL_STATEMENTS, 1000, 1000);
-            // Generate("03-conditional-statements-with-statements", ACTION_TYPE.CREATE_CONDITIONAL_STATEMENTS_COMBINED_WITH_OTHER_STATEMENT, 100, 5000);
-            // Generate("04-while-loop", ACTION_TYPE.CREATE_WHILE_LOOP, 1000, 200); 
-            // Generate("05-while-loop-with-statements", ACTION_TYPE.CREATE_WHILE_LOOP_COMBINED_WITH_OTHER_STATEMENT, 100, 500); 
-            // Generate("06-do-while-loop", ACTION_TYPE.CREATE_DO_WHILE_LOOP, 1000, 500); 
-            // Generate("07-do-while-loop-with-statements", ACTION_TYPE.CREATE_DO_WHILE_LOOP_COMBINED_WITH_OTHER_STATEMENT, 300, 1000); 
-
+             Generate("01-expressions", ACTION_TYPE.CREATE_EXPRESSIONS, 100000, 200);
+             Generate("02-conditional-statements", ACTION_TYPE.CREATE_CONDITIONAL_STATEMENTS, 1000, 1000);
+             Generate("03-conditional-statements-with-statements", ACTION_TYPE.CREATE_CONDITIONAL_STATEMENTS_COMBINED_WITH_OTHER_STATEMENT, 100, 5000);
+             Generate("04-while-loop", ACTION_TYPE.CREATE_WHILE_LOOP, 1000, 200); 
+             Generate("05-while-loop-with-statements", ACTION_TYPE.CREATE_WHILE_LOOP_COMBINED_WITH_OTHER_STATEMENT, 100, 500); 
+             Generate("06-do-while-loop", ACTION_TYPE.CREATE_DO_WHILE_LOOP, 1000, 500); 
+             Generate("07-do-while-loop-with-statements", ACTION_TYPE.CREATE_DO_WHILE_LOOP_COMBINED_WITH_OTHER_STATEMENT, 300, 1000); 
              Generate("08-for-loop", ACTION_TYPE.CREATE_FOR_LOOP, 100, 200); // wrong
-            // Generate("09-for-loop-with-statements", ACTION_TYPE.CREATE_FOR_LOOP_COMBINED_WITH_OTHER_STATEMENT, 10, 200); // wrong
+             Generate("09-for-loop-with-statements", ACTION_TYPE.CREATE_FOR_LOOP_COMBINED_WITH_OTHER_STATEMENT, 10, 200); // wrong
 
         }
     }

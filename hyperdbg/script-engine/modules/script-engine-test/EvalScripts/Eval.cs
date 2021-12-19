@@ -75,6 +75,7 @@ namespace EvalScripts
                 string FinalCode = @"
                 
                 int tmp = 0;
+                int val = 0;
                 void test_statement(int Token) {
                     tmp = Token;
                 }
