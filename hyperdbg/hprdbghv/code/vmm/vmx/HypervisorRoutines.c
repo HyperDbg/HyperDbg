@@ -338,18 +338,23 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
         case MSR_IA32_SYSENTER_CS:
             __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
             break;
+
         case MSR_IA32_SYSENTER_ESP:
             __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
             break;
+
         case MSR_IA32_SYSENTER_EIP:
             __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
             break;
+
         case MSR_GS_BASE:
             __vmx_vmread(GUEST_GS_BASE, &Msr);
             break;
+
         case MSR_FS_BASE:
             __vmx_vmread(GUEST_FS_BASE, &Msr);
             break;
+
         default:
 
             //
@@ -473,19 +478,25 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         case MSR_IA32_SYSENTER_CS:
             __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Content);
             break;
+
         case MSR_IA32_SYSENTER_ESP:
             __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Content);
             break;
+
         case MSR_IA32_SYSENTER_EIP:
             __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Content);
             break;
+
         case MSR_GS_BASE:
             __vmx_vmwrite(GUEST_GS_BASE, Msr.Content);
             break;
+
         case MSR_FS_BASE:
             __vmx_vmwrite(GUEST_FS_BASE, Msr.Content);
             break;
+
         default:
+
             //
             // Perform the WRMSR
             //
@@ -499,6 +510,7 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         // Msr is invalid, inject #GP
         //
         EventInjectGeneralProtection();
+        return;
     }
 }
 
@@ -772,7 +784,7 @@ HvFilterMsrReadBitmap(UINT32 CoreIndex)
     ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
 
     //
-    // Ignore Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
+    // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
     ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
     ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
@@ -780,7 +792,7 @@ HvFilterMsrReadBitmap(UINT32 CoreIndex)
 
 /**
  * @brief Filter to avoid msr set for MSRs that are
- * not valid or should be ignored (wrmsr
+ * not valid or should be ignored (wrmsr)
  * @param CoreIndex
  * @return VOID 
  */
@@ -793,7 +805,7 @@ HvFilterMsrWriteBitmap(UINT32 CoreIndex)
     ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 3072);
 
     //
-    // Ignore Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
+    // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
     ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
     ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
