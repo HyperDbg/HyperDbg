@@ -333,15 +333,37 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        //
-        // Check for invalid MSRs between 0x0 to 0xfff
-        //
-        if (/* TargetMsr >= 0x0 && */ TargetMsr <= 0xfff && TestBit(TargetMsr, g_MsrBitmapInvalidMsrs) != NULL)
+        switch (TargetMsr)
         {
-            EventInjectGeneralProtection();
-        }
-        else
-        {
+        case MSR_IA32_SYSENTER_CS:
+            __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
+            break;
+        case MSR_IA32_SYSENTER_ESP:
+            __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
+            break;
+        case MSR_IA32_SYSENTER_EIP:
+            __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
+            break;
+        case MSR_GS_BASE:
+            __vmx_vmread(GUEST_GS_BASE, &Msr);
+            break;
+        case MSR_FS_BASE:
+            __vmx_vmread(GUEST_FS_BASE, &Msr);
+            break;
+        default:
+
+            //
+            // Check whether the MSR should cause #GP or not
+            //
+            if (/* TargetMsr >= 0x0 && */ TargetMsr <= 0xfff && TestBit(TargetMsr, g_MsrBitmapInvalidMsrs) != NULL)
+            {
+                //
+                // Invalid MSR between 0x0 to 0xfff
+                //
+                EventInjectGeneralProtection();
+                return;
+            }
+
             //
             // Msr is valid
             //
@@ -358,12 +380,22 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
                 Msr.Content           = MsrEFER.Flags;
             }
 
-            GuestRegs->rax = NULL;
-            GuestRegs->rdx = NULL;
-
-            GuestRegs->rax = Msr.Low;
-            GuestRegs->rdx = Msr.High;
+            break;
         }
+
+        GuestRegs->rax = NULL;
+        GuestRegs->rdx = NULL;
+
+        GuestRegs->rax = Msr.Low;
+        GuestRegs->rdx = Msr.High;
+    }
+    else
+    {
+        //
+        // MSR is invalid, inject #GP
+        //
+        EventInjectGeneralProtection();
+        return;
     }
 }
 
@@ -403,35 +435,70 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        if (TargetMsr == MSR_IA32_DS_AREA ||
-            TargetMsr == MSR_FS_BASE ||
-            TargetMsr == MSR_GS_BASE ||
-            TargetMsr == MSR_KERNEL_GS_BASE ||
-            TargetMsr == MSR_LSTAR ||
-            TargetMsr == MSR_IA32_SYSENTER_EIP ||
-            TargetMsr == MSR_IA32_SYSENTER_ESP)
+        //
+        // If the source register contains a non-canonical address and ECX specifies
+        // one of the following MSRs:
+        //
+        // IA32_DS_AREA, IA32_FS_BASE, IA32_GS_BASE, IA32_KERNEL_GS_BASE, IA32_LSTAR,
+        // IA32_SYSENTER_EIP, IA32_SYSENTER_ESP
+        //
+        switch (TargetMsr)
         {
-            //
-            // If the source register contains a non-canonical address and ECX specifies
-            // one of the following MSRs:
-            //
-            // IA32_DS_AREA, IA32_FS_BASE, IA32_GS_BASE, IA32_KERNEL_GS_BASE, IA32_LSTAR,
-            // IA32_SYSENTER_EIP, IA32_SYSENTER_ESP
-            //
+        case MSR_IA32_DS_AREA:
+        case MSR_FS_BASE:
+        case MSR_GS_BASE:
+        case MSR_KERNEL_GS_BASE:
+        case MSR_LSTAR:
+        case MSR_IA32_SYSENTER_EIP:
+        case MSR_IA32_SYSENTER_ESP:
+
             if (!CheckCanonicalVirtualAddress(Msr.Content, &UnusedIsKernel))
             {
                 //
                 // Address is not canonical, inject #GP
                 //
                 EventInjectGeneralProtection();
+
                 return;
             }
+
+            break;
         }
 
         //
-        // Perform the WRMSR
+        // Perform MSR change
         //
-        __writemsr(GuestRegs->rcx, Msr.Content);
+        switch (TargetMsr)
+        {
+        case MSR_IA32_SYSENTER_CS:
+            __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Content);
+            break;
+        case MSR_IA32_SYSENTER_ESP:
+            __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Content);
+            break;
+        case MSR_IA32_SYSENTER_EIP:
+            __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Content);
+            break;
+        case MSR_GS_BASE:
+            __vmx_vmwrite(GUEST_GS_BASE, Msr.Content);
+            break;
+        case MSR_FS_BASE:
+            __vmx_vmwrite(GUEST_FS_BASE, Msr.Content);
+            break;
+        default:
+            //
+            // Perform the WRMSR
+            //
+            __writemsr(GuestRegs->rcx, Msr.Content);
+            break;
+        }
+    }
+    else
+    {
+        //
+        // Msr is invalid, inject #GP
+        //
+        EventInjectGeneralProtection();
     }
 }
 
@@ -692,17 +759,16 @@ HvRestoreRegisters()
 
 /**
  * @brief Filter to avoid msr set for MSRs that are
- * not valid or should be ignored
+ * not valid or should be ignored (RDMSR)
  * @param CoreIndex
  * @return VOID 
  */
 VOID
-HvFilterMsrBitmap(UINT32 CoreIndex)
+HvFilterMsrReadBitmap(UINT32 CoreIndex)
 {
     //
-    // Ignore IA32_GS_BASE (0xC0000101), and IA32_KERNEL_GS_BASE (0xC0000102)
+    // Ignore IA32_KERNEL_GS_BASE (0xC0000102)
     //
-    ClearBit(0x101, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
     ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
 
     //
@@ -710,6 +776,27 @@ HvFilterMsrBitmap(UINT32 CoreIndex)
     //
     ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
     ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
+}
+
+/**
+ * @brief Filter to avoid msr set for MSRs that are
+ * not valid or should be ignored (wrmsr
+ * @param CoreIndex
+ * @return VOID 
+ */
+VOID
+HvFilterMsrWriteBitmap(UINT32 CoreIndex)
+{
+    //
+    // Ignore IA32_KERNEL_GS_BASE (0xC0000102)
+    //
+    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 3072);
+
+    //
+    // Ignore Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
+    //
+    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
 }
 
 /**
@@ -731,9 +818,9 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask)
         memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0xff, 2048);
 
         //
-        // Filter MSR Bitmap's invalid MSRs
+        // Filter MSR Bitmap for special MSRs
         //
-        HvFilterMsrBitmap(CoreIndex);
+        HvFilterMsrReadBitmap(CoreIndex);
     }
     else
     {
@@ -776,6 +863,11 @@ HvPerformMsrBitmapWriteChange(UINT64 MsrMask)
         // Means all the bitmaps should be put to 1
         //
         memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0xff, 2048);
+
+        //
+        // Filter MSR Bitmap for special MSRs
+        //
+        HvFilterMsrWriteBitmap(CoreIndex);
     }
     else
     {
