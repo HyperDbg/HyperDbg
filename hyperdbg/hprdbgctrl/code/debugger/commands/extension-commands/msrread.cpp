@@ -82,7 +82,7 @@ CommandMsrread(vector<string> SplittedCommand, string Command)
     //
     for (auto Section : SplittedCommand)
     {
-        if (!Section.compare("!msrread"))
+        if (!Section.compare("!msrread") || !Section.compare("!msread"))
         {
             continue;
         }

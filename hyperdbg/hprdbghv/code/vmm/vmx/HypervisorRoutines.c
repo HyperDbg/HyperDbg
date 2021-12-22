@@ -299,7 +299,8 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 VOID
 HvHandleMsrRead(PGUEST_REGS GuestRegs)
 {
-    MSR Msr = {0};
+    MSR    Msr = {0};
+    UINT32 TargetMsr;
 
     //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
@@ -311,6 +312,7 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     // The value of ECX is in the range C0000000H - C0001FFFH and bit n in read bitmap for high MSRs is 1,
     //   where n is the value of ECX & 00001FFFH.
     //
+    TargetMsr = GuestRegs->rcx & 0xffffffff;
 
     //
     // Execute WRMSR or RDMSR on behalf of the guest. Important that this
@@ -328,25 +330,41 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
     //
-    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)) || (GuestRegs->rcx >= RESERVED_MSR_RANGE_LOW && (GuestRegs->rcx <= RESERVED_MSR_RANGE_HI)))
+    if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
+        (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        Msr.Content = __readmsr(GuestRegs->rcx);
-    }
+        //
+        // Check for invalid MSRs between 0x0 to 0xfff
+        //
+        if (/* TargetMsr >= 0x0 && */ TargetMsr <= 0xfff && TestBit(TargetMsr, g_MsrBitmapInvalidMsrs) != NULL)
+        {
+            EventInjectGeneralProtection();
+        }
+        else
+        {
+            //
+            // Msr is valid
+            //
+            Msr.Content = __readmsr(TargetMsr);
 
-    //
-    // Check if it's EFER MSR then we show a false SCE state so the
-    // patchguard won't cause BSOD
-    //
-    if (GuestRegs->rcx == MSR_EFER)
-    {
-        EFER_MSR MsrEFER;
-        MsrEFER.Flags         = Msr.Content;
-        MsrEFER.SyscallEnable = TRUE;
-        Msr.Content           = MsrEFER.Flags;
-    }
+            //
+            // Check if it's EFER MSR then we show a false SCE state
+            //
+            if (GuestRegs->rcx == MSR_EFER)
+            {
+                EFER_MSR MsrEFER;
+                MsrEFER.Flags         = Msr.Content;
+                MsrEFER.SyscallEnable = TRUE;
+                Msr.Content           = MsrEFER.Flags;
+            }
 
-    GuestRegs->rax = Msr.Low;
-    GuestRegs->rdx = Msr.High;
+            GuestRegs->rax = NULL;
+            GuestRegs->rdx = NULL;
+
+            GuestRegs->rax = Msr.Low;
+            GuestRegs->rdx = Msr.High;
+        }
+    }
 }
 
 /**
@@ -358,7 +376,9 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
 VOID
 HvHandleMsrWrite(PGUEST_REGS GuestRegs)
 {
-    MSR msr = {0};
+    MSR     Msr = {0};
+    UINT32  TargetMsr;
+    BOOLEAN UnusedIsKernel;
 
     //
     // Execute WRMSR or RDMSR on behalf of the guest. Important that this
@@ -372,15 +392,46 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     // to installation of a hypervisor and the hypervisor can emulate the
     // results.
     //
+    TargetMsr = GuestRegs->rcx & 0xffffffff;
+
+    Msr.Low  = (ULONG)GuestRegs->rax;
+    Msr.High = (ULONG)GuestRegs->rdx;
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
     //
-    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)) || (GuestRegs->rcx >= RESERVED_MSR_RANGE_LOW && (GuestRegs->rcx <= RESERVED_MSR_RANGE_HI)))
+    if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
+        (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        msr.Low  = (ULONG)GuestRegs->rax;
-        msr.High = (ULONG)GuestRegs->rdx;
-        __writemsr(GuestRegs->rcx, msr.Content);
+        if (TargetMsr == MSR_IA32_DS_AREA ||
+            TargetMsr == MSR_FS_BASE ||
+            TargetMsr == MSR_GS_BASE ||
+            TargetMsr == MSR_KERNEL_GS_BASE ||
+            TargetMsr == MSR_LSTAR ||
+            TargetMsr == MSR_IA32_SYSENTER_EIP ||
+            TargetMsr == MSR_IA32_SYSENTER_ESP)
+        {
+            //
+            // If the source register contains a non-canonical address and ECX specifies
+            // one of the following MSRs:
+            //
+            // IA32_DS_AREA, IA32_FS_BASE, IA32_GS_BASE, IA32_KERNEL_GS_BASE, IA32_LSTAR,
+            // IA32_SYSENTER_EIP, IA32_SYSENTER_ESP
+            //
+            if (!CheckCanonicalVirtualAddress(Msr.Content, &UnusedIsKernel))
+            {
+                //
+                // Address is not canonical, inject #GP
+                //
+                EventInjectGeneralProtection();
+                return;
+            }
+        }
+
+        //
+        // Perform the WRMSR
+        //
+        __writemsr(GuestRegs->rcx, Msr.Content);
     }
 }
 
@@ -640,6 +691,28 @@ HvRestoreRegisters()
 }
 
 /**
+ * @brief Filter to avoid msr set for MSRs that are
+ * not valid or should be ignored
+ * @param CoreIndex
+ * @return VOID 
+ */
+VOID
+HvFilterMsrBitmap(UINT32 CoreIndex)
+{
+    //
+    // Ignore IA32_GS_BASE (0xC0000101), and IA32_KERNEL_GS_BASE (0xC0000102)
+    //
+    ClearBit(0x101, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
+    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
+
+    //
+    // Ignore Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
+    //
+    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
+    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
+}
+
+/**
  * @brief Change MSR Bitmap for read
  * @details should be called in vmx-root mode
  * @param 
@@ -656,6 +729,11 @@ HvPerformMsrBitmapReadChange(UINT64 MsrMask)
         // Means all the bitmaps should be put to 1
         //
         memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0xff, 2048);
+
+        //
+        // Filter MSR Bitmap's invalid MSRs
+        //
+        HvFilterMsrBitmap(CoreIndex);
     }
     else
     {

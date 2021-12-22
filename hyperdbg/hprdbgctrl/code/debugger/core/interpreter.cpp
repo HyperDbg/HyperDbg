@@ -649,6 +649,7 @@ InitializeCommandsDictionary()
     g_CommandsList["!cpuid"] = {&CommandCpuid, &CommandCpuidHelp, DEBUGGER_COMMAND_CPUID_ATTRIBUTES};
 
     g_CommandsList["!msrread"] = {&CommandMsrread, &CommandMsrreadHelp, DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES};
+    g_CommandsList["!msread"] = {&CommandMsrread, &CommandMsrreadHelp, DEBUGGER_COMMAND_MSRREAD_ATTRIBUTES};
 
     g_CommandsList["!msrwrite"] = {&CommandMsrwrite, &CommandMsrwriteHelp, DEBUGGER_COMMAND_MSRWRITE_ATTRIBUTES};
 

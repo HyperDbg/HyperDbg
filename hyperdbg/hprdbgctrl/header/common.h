@@ -79,6 +79,9 @@ GetConfigFilePath(PWCHAR ConfigPath);
 VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, std::string Command);
 
+std::vector<std::string>
+ListDirectory(const std::string & Directory, const std::string & Extension);
+
 BOOLEAN
 IsEmptyString(char * Text);
 

@@ -565,6 +565,36 @@ GetConfigFilePath(PWCHAR ConfigPath)
 }
 
 /**
+ * @brief Create a list of special files in a directory
+ *
+ * @param Directory
+ * @param Extension
+ * @return std::vector<std::string>
+ */
+std::vector<std::string>
+ListDirectory(const std::string & Directory, const std::string & Extension)
+{
+    WIN32_FIND_DATAA         FindData;
+    HANDLE                   Find     = INVALID_HANDLE_VALUE;
+    std::string              FullPath = Directory + "\\" + Extension;
+    std::vector<std::string> DirList;
+
+    Find = FindFirstFileA(FullPath.c_str(), &FindData);
+
+    if (Find == INVALID_HANDLE_VALUE)
+        throw std::runtime_error("invalid handle value! please check your path...");
+
+    while (FindNextFileA(Find, &FindData) != 0)
+    {
+        DirList.push_back(Directory + "\\" + std::string(FindData.cFileName));
+    }
+
+    FindClose(Find);
+
+    return DirList;
+}
+
+/**
  * @brief Split path and arguments and handle strings between quotes
  *
  * @param Qargs

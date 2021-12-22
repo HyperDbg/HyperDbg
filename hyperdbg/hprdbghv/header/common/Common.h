@@ -642,6 +642,9 @@ GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
 BOOLEAN
 CheckCpuSupportRtm();
 
+UINT64 *
+AllocateInvalidMsrBimap();
+
 UINT32
 Getx86VirtualAddressWidth();
 

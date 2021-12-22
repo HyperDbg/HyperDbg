@@ -1,0 +1,660 @@
+1
+for (; ;x) { }
+$error$
+$end$
+2
+for (; ;x) { }
+$error$
+$end$
+3
+for (; ;x) { }
+$error$
+$end$
+4
+for (; ;@rax) { }
+$error$
+$end$
+5
+for (; ;@rax) { }
+$error$
+$end$
+6
+for (; ;@rax) { }
+$error$
+$end$
+7
+for (; ;@rax) { }
+$error$
+$end$
+8
+for (; ;@rax) { for (; ;@rax) { } ; }
+$error$
+$end$
+9
+for (; ;x) { continue ; }
+$error$
+$end$
+10
+for (; ;@rax) { }
+$error$
+$end$
+11
+for (; ;x) { ; }
+$error$
+$end$
+12
+for (; ;x) { }
+$error$
+$end$
+13
+for (; ;x) { }
+$error$
+$end$
+14
+for (; ;@rax) { }
+$error$
+$end$
+15
+for (; ;x) { continue ; }
+$error$
+$end$
+16
+for (; ;x) { }
+$error$
+$end$
+17
+for (; ;x) { }
+$error$
+$end$
+18
+for (; ;x) { for (; ;@rax) { } }
+$error$
+$end$
+19
+for (; ;@rax) { }
+$error$
+$end$
+20
+for (; ;x) { }
+$error$
+$end$
+21
+for (; ;x) { do  {} while ( ) ; do  {} while ( ) ; do  {do  {} while ( ) ; } while ( ) ; }
+$error$
+$end$
+22
+for (; ;x) { }
+$error$
+$end$
+23
+for (; ;@rax) { }
+$error$
+$end$
+24
+for (; ;@rax) { if ()  {} }
+$error$
+$end$
+25
+for (; ;@rax) { continue ; }
+$error$
+$end$
+26
+for (; ;@rax) { }
+$error$
+$end$
+27
+for (; ;@rax) { }
+$error$
+$end$
+28
+for (; ;@rax) { while  ()  { if ()  {if ()  {}elsif () {} }else {break ; } break ; for (; ;@rax) { } ; continue ;  } }
+$error$
+$end$
+29
+for (; ;@rax) { }
+$error$
+$end$
+30
+for (; ;@rax) { }
+$error$
+$end$
+31
+for (; ;@rax) { }
+$error$
+$end$
+32
+for (; ;@rax) { while  ()  {  } break ; }
+$error$
+$end$
+33
+for (; ;@rax) { ; }
+$error$
+$end$
+34
+for (; ;@rax) { do  {} while ( ) ; }
+$error$
+$end$
+35
+for (; ;x) { }
+$error$
+$end$
+36
+for (; ;x) { }
+$error$
+$end$
+37
+for (; ;x) { }
+$error$
+$end$
+38
+for (; ;@rax) { }
+$error$
+$end$
+39
+for (; ;@rax) { }
+$error$
+$end$
+40
+for (; ;x) { ; }
+$error$
+$end$
+41
+for (; ;@rax) { }
+$error$
+$end$
+42
+for (; ;@rax) { }
+$error$
+$end$
+43
+for (; ;x) { }
+$error$
+$end$
+44
+for (; ;x) { }
+$error$
+$end$
+45
+for (; ;x) { }
+$error$
+$end$
+46
+for (; ;@rax) { }
+$error$
+$end$
+47
+for (; ;x) { }
+$error$
+$end$
+48
+for (; ;@rax) { }
+$error$
+$end$
+49
+for (; ;x) { }
+$error$
+$end$
+50
+for (; ;x) { }
+$error$
+$end$
+51
+for (; ;x) { while  ()  {  } }
+$error$
+$end$
+52
+for (; ;x) { }
+$error$
+$end$
+53
+for (; ;@rax) { }
+$error$
+$end$
+54
+for (; ;x) { }
+$error$
+$end$
+55
+for (; ;@rax) { ; }
+$error$
+$end$
+56
+for (; ;x) { }
+$error$
+$end$
+57
+for (; ;x) { }
+$error$
+$end$
+58
+for (; ;x) { continue ; break ; ; break ; continue ; while  ()  {  } }
+$error$
+$end$
+59
+for (; ;x) { }
+$error$
+$end$
+60
+for (; ;x) { }
+$error$
+$end$
+61
+for (; ;x) { ; if ()  {for (; ;x) { } }elsif () {break ; } }
+$error$
+$end$
+62
+for (; ;x) { }
+$error$
+$end$
+63
+for (; ;@rax) { continue ; }
+$error$
+$end$
+64
+for (; ;x) { ; ; }
+$error$
+$end$
+65
+for (; ;@rax) { break ; }
+$error$
+$end$
+66
+for (; ;@rax) { for (; ;@rax) { for (; ;x) { } } }
+$error$
+$end$
+67
+for (; ;@rax) { }
+$error$
+$end$
+68
+for (; ;x) { ; continue ; }
+$error$
+$end$
+69
+for (; ;@rax) { }
+$error$
+$end$
+70
+for (; ;x) { continue ; while  ()  {  } }
+$error$
+$end$
+71
+for (; ;@rax) { continue ; }
+$error$
+$end$
+72
+for (; ;x) { }
+$error$
+$end$
+73
+for (; ;@rax) { break ; }
+$error$
+$end$
+74
+for (; ;x) { }
+$error$
+$end$
+75
+for (; ;@rax) { ; while  ()  {  } }
+$error$
+$end$
+76
+for (; ;x) { continue ; while  ()  { do  {} while ( ) ; for (; ;x) { break ; break ; } while  ()  {  }  } break ; }
+$error$
+$end$
+77
+for (; ;x) { while  ()  {  } }
+$error$
+$end$
+78
+for (; ;x) { do  {} while ( ) ; }
+$error$
+$end$
+79
+for (; ;@rax) { break ; }
+$error$
+$end$
+80
+for (; ;@rax) { }
+$error$
+$end$
+81
+for (; ;x) { }
+$error$
+$end$
+82
+for (; ;x) { }
+$error$
+$end$
+83
+for (; ;x) { }
+$error$
+$end$
+84
+for (; ;@rax) { do  {continue ; } while ( ) ; }
+$error$
+$end$
+85
+for (; ;@rax) { do  {while  ()  {  } } while ( ) ; do  {} while ( ) ; continue ; continue ; }
+$error$
+$end$
+86
+for (; ;@rax) { }
+$error$
+$end$
+87
+for (; ;x) { }
+$error$
+$end$
+88
+for (; ;x) { break ; do  {} while ( ) ; ; continue ; }
+$error$
+$end$
+89
+for (; ;x) { }
+$error$
+$end$
+90
+for (; ;x) { }
+$error$
+$end$
+91
+for (; ;@rax) { continue ; }
+$error$
+$end$
+92
+for (; ;@rax) { }
+$error$
+$end$
+93
+for (; ;x) { }
+$error$
+$end$
+94
+for (; ;@rax) { continue ; while  ()  {  } }
+$error$
+$end$
+95
+for (; ;@rax) { ; }
+$error$
+$end$
+96
+for (; ;x) { for (; ;@rax) { } }
+$error$
+$end$
+97
+for (; ;@rax) { }
+$error$
+$end$
+98
+for (x= 0n19 / 0y10010 % 0n13; ;x) { if ()  {}else {if ()  {}else {} } }
+$error$
+$end$
+99
+for (; ;x) { }
+$error$
+$end$
+100
+for (; ;@rax) { }
+$error$
+$end$
+101
+for (; ;@rax) { }
+$error$
+$end$
+102
+for (; ;@rax) { }
+$error$
+$end$
+103
+for (; ;x) { }
+$error$
+$end$
+104
+for (; ;x) { ; }
+$error$
+$end$
+105
+for (; ;x) { }
+$error$
+$end$
+106
+for (; ;@rax) { }
+$error$
+$end$
+107
+for (; ;x) { }
+$error$
+$end$
+108
+for (; ;@rax) { }
+$error$
+$end$
+109
+for (; ;x) { }
+$error$
+$end$
+110
+for (; ;x) { }
+$error$
+$end$
+111
+for (; ;x) { break ; }
+$error$
+$end$
+112
+for (; ;@rax) { }
+$error$
+$end$
+113
+for (; ;@rax) { ; do  {} while ( ) ; }
+$error$
+$end$
+114
+for (; ;x) { }
+$error$
+$end$
+115
+for (; ;x) { }
+$error$
+$end$
+116
+for (; ;x) { }
+$error$
+$end$
+117
+for (; ;@rax) { }
+$error$
+$end$
+118
+for (; ;x) { }
+$error$
+$end$
+119
+for (; ;@rax) { }
+$error$
+$end$
+120
+for (; ;@rax) { }
+$error$
+$end$
+121
+for (; ;@rax) { ; if ()  {}elsif () {}elsif () {while  ()  {  } for (; ;@rax) { } }else {} ; ; }
+$error$
+$end$
+122
+for (; ;@rax) { }
+$error$
+$end$
+123
+for (; ;x) { ; }
+$error$
+$end$
+124
+for (; ;@rax) { do  {} while ( ) ; ; }
+$error$
+$end$
+125
+for (; ;x) { }
+$error$
+$end$
+126
+for (; ;x) { }
+$error$
+$end$
+127
+for (; ;x) { }
+$error$
+$end$
+128
+for (; ;@rax) { }
+$error$
+$end$
+129
+for (; ;@rax) { }
+$error$
+$end$
+130
+for (; ;x) { }
+$error$
+$end$
+131
+for (; ;@rax) { while  ()  {  } }
+$error$
+$end$
+132
+for (; ;x) { break ; }
+$error$
+$end$
+133
+for (; ;x) { }
+$error$
+$end$
+134
+for (; ;x) { do  {for (; ;x) { } } while ( ) ; }
+$error$
+$end$
+135
+for (; ;@rax) { }
+$error$
+$end$
+136
+for (; ;@rax) { }
+$error$
+$end$
+137
+for (; ;x) { ; }
+$error$
+$end$
+138
+for (; ;x) { ; }
+$error$
+$end$
+139
+for (; ;@rax) { }
+$error$
+$end$
+140
+for (; ;x) { if ()  {} }
+$error$
+$end$
+141
+for (; ;x) { }
+$error$
+$end$
+142
+for (; ;x) { while  ()  { break ; while  ()  {  }  } }
+$error$
+$end$
+143
+for (; ;x) { }
+$error$
+$end$
+144
+for (; ;@rax) { }
+$error$
+$end$
+145
+for (; ;x) { }
+$error$
+$end$
+146
+for (; ;x) { }
+$error$
+$end$
+147
+for (; ;@rax) { }
+$error$
+$end$
+148
+for (; ;@rax) { }
+$error$
+$end$
+149
+for (@rax= 0o15; ;x) { }
+$error$
+$end$
+150
+for (; ;x) { }
+$error$
+$end$
+151
+for (; ;@rax) { while  ()  { while  ()  {  } if ()  {}elsif () {}elsif () {break ; x = 0x7 & 0x6 ; while  ()  { @rax = 0x2 ;  } break ; }else {}  } }
+$error$
+$end$
+152
+for (; ;x) { }
+$error$
+$end$
+153
+for (; ;@rax) { }
+$error$
+$end$
+154
+for (; ;@rax) { continue ; }
+$error$
+$end$
+155
+for (; ;@rax) { }
+$error$
+$end$
+156
+for (; ;@rax) { for (@rax= 0o15 % +0x4 - -0y1 % 0o7 / (0x6) / 0x8 / 0x9 / 0x8 * ~0x0 * 0x9 % 0x1 - +0x5; ;x) { } }
+$error$
+$end$
+157
+for (; ;@rax) { }
+$error$
+$end$
+158
+for (; ;x) { }
+$error$
+$end$
+159
+for (; ;x) { continue ; }
+$error$
+$end$
+160
+for (; ;@rax) { while  ()  {  } }
+$error$
+$end$
+161
+for (; ;x) { }
+$error$
+$end$
+162
+for (; ;x) { for (; ;@rax) { break ; } }
+$error$
+$end$
+163
+for (; ;x) { continue ; }
+$error$
+$end$
+164
+for (; ;@rax) { }
+$error$
+$end$
+165
+for (; ;x) { continue ; }
+$error$
+$end$

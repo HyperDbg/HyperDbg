@@ -1,0 +1,228 @@
+1
+ while  ($teb + @r9 | @rbx ^ 11 >> @rsi ^ @r12 & @rdx(($buffer << $ip & @rax << 0y11 >> -@r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+4
+ while  (@r12 << @r12 >< $proc >> @r10 << @r8 >> 1 | @rsp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+14
+ while  (@r13 + @r9 << ~$ip << ~@r13 ! $ip + +@rax << 0xE & @rsp >> @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+15
+ while  (@r11 + $proc >> 0xC & @rax >> @r9 & @r8 ; 20 << (@r12) << @rdx & @r11 & -@r10 >> @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+25
+ while  (@rax + @rdi >> 0x11 ^ @r12 << @r8 >> ~@rsp >> $thread ; @rax + @rdi >> 0x11 ^ @r12 << @r8 >> ~@rsp >> $thread)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+27
+ while  (@rsp >> @r10 << @r8 & -$ip <> @rbp & 0 ^ @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+28
+ while  ($proc | @r11 << @r12 & @rbp >> +@rax & $thread(($proc | @r11 << @r12 & @rbp >> +@rax & $thread)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+37
+ while  (0xB + @rax & @r12 << @r9 >> @rsp & $thread >> @r8 & @rbp)0xB + @rax & @r12 << @r9 >> @rsp & $thread >> @r8 & @rbp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+44
+ while  (@rax << @r9 << @rsp ^ $teb & $thread & @r10 (0y1101) + @r13 & @rbx & (16) >> @rsp & @rbx ^ -@rbp & @r12)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+45
+ while  (0x11 & @r9 << @rsp >> -~@r8 ^ $buffer << $ip = +~21 + (-@r11) >> @r8 << @r8 >> @rsp >> @r10)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+47
+ while  (@rax + $teb << 0n6 << ~@r12 >< $proc + @rbx << @rsp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+48
+ while  ((@rsi) | @r8 << @r8 >> $proc ^ $ip >> @rsi ^ @rbp | @rdx & --@r11 & @r12)0y0 + @r9 >> $teb >> @rsi & $thread ^ 0y100)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+50
+ while  (-(0x10) + $thread << $ip << 0x9 ^ ~@r9 & 5 >> 14 & @rax & $ip ^ (@rsi) @rsp + $proc ^ @rdi ^ $teb & 11 & $teb)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+51
+ while  (23 ! @r10 ^ 0y10 >> 0x13 | @rdi >> $proc ^ @r8 | @rdx >> @rbx & 0y10000 & 0n4 ^ @rdx ^ @r9 ^ ~@r10 | $thread)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+57
+ while  (@rbp << @rsp << @rbp ^ @r11 << @rsp >> 0n8 >> $proc ^ @r13 >> @rdx ^ $ip = @rbx + @rbp ^ @rsi << -@rsi)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+64
+ while  (@rbx)@rbx << 0n8 << @rbx >> @r9)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+71
+ while  (@r11 << @rbp & @r10 << @r11 & $proc & 0n2 & ~$buffer)@r11 << @rbp & @r10 << @r11 & $proc & 0n2 & ~$buffer)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+78
+ while  (($teb) + @rbx << @rdi << +0xC == 0y1 << @rdi << @r13 | @rsp << ~@r10 >> $proc >> $teb)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+80
+ while  ($buffer & +@r8 & @r10 & @rdi & @r11 ^ @rdx & -$ip))$buffer & +@r8 & @r10 & @rdi & @r11 ^ @rdx & -$ip)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+81
+ while  (@r8 + @rdi >> -@rsp >> (0xC) >> $buffer ! @r8 + @rdi >> -@rsp >> (0xC) >> $buffer)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+85
+ while  (0x13 ^ 0y110 >> @r9 >> @r13 & $thread(0x13 ^ 0y110 >> @r9 >> @r13 & $thread)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+93
+ while  (@r13 + @rax << @rdx >> 0x4 & $proc << $buffer ^ @rsp ^ @r10 >> 0y1111 <= @rsp | @r9 << @rdx)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+95
+ while  (+@rdx >> @r12 >> @rbx)@rbp + 0x4 >> @r13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+96
+ while  (~~@r9 | (@rsi) ! @rsi + @r8 | @r8 >> -@rdx >> @r8)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+97
+ while  (@r8 + $buffer @rdx << @rsi & 23 | (@rbp) << 0n18 >> @rax >> @rdi & @r11 >> @r13 & @rdi & @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+99
+ while  ($teb << 0 & @rbx >> @rax)$teb << 0 & @rbx >> @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+100
+ while  ($thread ^ +$teb << 0n0 & $thread & $teb & $teb > 0n16 + @r11 | @rbp | @rbp & 17 | 0n7 ^ @r13 | @r10 ^ 15 | 0x3 | @r9)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+101
+ while  ($ip << ~0n10 << @r8 >> @rdi << @rax >> +($proc) & @rbx << 0xD ^ @r11 >> @rax >> 0x2 ^ 0n6 = $proc << ~@r11 & $buffer)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+105
+ while  (5 + @r8 >> @r8 << @rdx >> 0y1010 >= @rsi >> @rdx & @r13 >> @rdi & @rbp | @r13 >> 0xD & $proc & @r13 & 0y1100)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+108
+ while  ($ip + 0n13 >> $thread >> $ip >> $thread $ip + 0x13 << 0n19 << @r9 >> @r12 & @r11 ^ @r8)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+112
+ while  (@r11 + 0n4 << @r10 ^ @r10 << 0n3 ^ @rbx & @rax <= @r11 + 0n4 << @r10 ^ @r10 << 0n3 ^ @rbx & @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+114
+ while  (@r11 << @r8 << @rbx >> -$teb ^ @rsi << 7 & @r9 >> @rdi & @r11 & @r8))(@r8) + @rax << @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+121
+ while  (@rbx << @rsi >> 5 >> @r10 & 0y10 & @r9 >> 21 & @rbp & $proc ^ @r13 >> 0n11 & 0y10010 >> @rsi & @r8 >< ~$buffer)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+125
+ while  (-@r10 >> @rbx >> @r13)-@r10 >> @rbx >> @r13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+127
+ while  (0y111 << 0n1 << @rsi >> 0x2 >> -(@rdi)))$proc + @rsi << @r9 & @r13 << @r11 & @r13 >> @rsp ^ @rdi >> ~@r12 & ~@rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+129
+ while  (@r13 << 0xA << @rsp & @rdx & @rbp >> @rax))@r13 << 0xA << @rsp & @rdx & @rbp >> @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+138
+ while  (0x6 + (@r12) >> 0x1 << @r8 & @rbp << @rsp >> $ip >> @rsi & $teb ! $proc + 0x3 << @rbx | 0n9 >> @rsp & @r10 & 0n15)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+139
+ while  ($buffer + ~@r13 >> @r8 << @rbp & @r13 << @r9 & -@r11 >> @rsi ^ @r8 << @rdx ^ ~@r12 >> -@rdx >< 0x13)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+141
+ while  (@rdi << @rax << @rdi & 0n0 << +$proc & -@rbx >> ~-$thread == @r8 + @rbp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+145
+ while  (0y10000 << 0x11 << $buffer >> 15 << 21 >> 0x7 ^ 2 != 0y10000 << 0x11 << $buffer >> 15 << 21 >> 0x7 ^ 2)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+146
+ while  (-0x6 + @rax << @r11 >> ~~0y1011 & @r8 >> ++@r11 >> $thread & 7 >> $teb != (@r9) + 0y1001 | @rsp << @r11 >> @rbx >> 2)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+147
+ while  (-@rax << @rdi))-@rax << @rdi)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+156
+ while  ($ip + @rsp >< @r12 << +~@rsp >> 0x10 << $ip >> @r9 ^ @rdi ^ $teb >> @rdx & @r9 ^ @rbp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+157
+ while  ($thread + +@rax << @r8 << @rsi >> +@rbx ^ (0x13) << 0n1 & $ip = @r8 >> +@r9 << @rax >> @rdx >> @rbx)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+170
+ while  (@rbx + $buffer & @rsp ^ @r8 << @rdi & @rsp < @rbx + $buffer & @rsp ^ @r8 << @rdi & @rsp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+174
+ while  ($buffer >> 11 << @rsp | 6 & ($ip) >> 0n5)@rsp + 0y1110 << $thread << @rsi ^ (12) >> ($teb) & (($buffer)) & @rdi)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+178
+ while  (@rbp <= @r9 << @rsi << ($proc) >> @rax << ~@rdi ^ ~($teb) >> @rax >> $thread ^ @r8 & $ip & 1 ^ $teb ^ $thread ^ @rsp)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+184
+ while  ($ip + @r8 < 0n11 >> (@r11) << (0) & @r13 << @r12 & @r13 >> @r13 & @rax & @rdi)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+189
+ while  ($teb & @r9 >> @r9 >> @r11 & @rbp >> @r12 & $teb = $thread + 0x10 << @rdx >> $thread & $teb & @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+190
+ while  (0n6 << 0xA)@rbp + 0y10 & (+0y1011) << @rsp & @rax)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+200
+ while  (@r9 << @r8 ! @r9 << @r8)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+210
+ while  (+@rsi + @rbx << 0y101 >> 0y0 & @r13 & $ip & @rsi & $proc > @rsp & $buffer << 0xC & @rbx >> 0n15 & (@r9))  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+215
+ while  (@rsi << -0y10000 ^ @r13 >> $proc >> $teb)@rsi << -0y10000 ^ @r13 >> $proc >> $teb)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+223
+ while  (@r12 + @rdx >> @rax << -@r10 & $teb >> @r9(~+@rbx & 4 & $proc & @r11)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+224
+ while  (@rsi << (0y1001) ^ $buffer ^ @r11 >> -@r13))@r13 & @rbx ^ $ip >> @r13 >> @rsi & @r11 >> @r12 & 0y1010 | @rsi << $teb)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+227
+ while  (@r9 >> -0n5(($teb + @rdi << $thread & @rbp << 0xD)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+238
+ while  (@rax + 0y101 >> 0x3 << 0x0 ^ $proc >> @rbx >> 0x3 > @rax + 0y101 >> 0x3 << 0x0 ^ $proc >> @rbx >> 0x3)  { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$

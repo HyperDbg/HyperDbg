@@ -1,0 +1,8 @@
+6
+x = 0n15 * @r10 + ++@r12 + @rbx >> @rbp - @rdx << 0n13 + -@rbp << @r12 & $ip << @r11 + ~$thread << @r13 << @r9; test_statement(x);
+$error$
+$end$
+29
+x = @rdi << 0y1000 - -$proc >> $buffer - 0x9 + $ip + ++~@rdi >> $proc >> @rdx << @r12 & @rsi << @rdi << @rsp >> @r11 | @r13 - @r13 >> 0y1111 + (0n8) >> ~@rdi >> @r10 & 0y10; test_statement(x);
+$error$
+$end$

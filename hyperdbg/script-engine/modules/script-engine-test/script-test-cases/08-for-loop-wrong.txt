@@ -1,0 +1,12 @@
+11
+ for (; $teb + @r8 << @rax << @r11 = $teb + @r8 << @rax << @r11;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+15
+ for (; @r12 >> @r12 <> 23 & ~@r8 << @rbp ^ @r13 << @r9 >> $teb ^ @rdx >> 0n11 & $buffer ^ @rax & $thread ^ @r11;@rax--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$
+20
+ for (; @rbx + @r12(@r9 + @rsp & 0y101 << $proc & ~@rbp >> @rax | $proc & @rdx >> @r11 ^ 0y11 ^ 0n15 & @rsi;x--) { tmp_counter = tmp_counter + 1; if (tmp_counter >= 0x1000) { break; } }
+$error$
+$end$

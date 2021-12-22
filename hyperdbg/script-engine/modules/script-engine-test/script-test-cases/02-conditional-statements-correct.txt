@@ -1,0 +1,24 @@
+6
+ if (@rsi <= @rbx + @rdi)  { test_statement(0x97B); }
+97B
+$end$
+87
+ if (@r11 > @r11)  { test_statement(0xA76); }
+0
+$end$
+114
+ if (@rbp >> -@r9 <= 0x11 + $proc)  { test_statement(0x1CB8); }
+1CB8
+$end$
+143
+ if (@r9 + 0n19 << $ip >> 0n7 >> $proc >> @rbx != @r9 + 0n19 << $ip >> 0n7 >> $proc >> @rbx)  { test_statement(0x1C9C); }
+0
+$end$
+411
+ if (@r9 + 0y10000 << $thread <= @r10 + $thread << @rbx << @r11 >> @rdx << @r11)  { test_statement(0x26EE); }
+26EE
+$end$
+449
+ if (@rdi << @rdx << 0n15 != @rdi << @rdx << 0n15)  { test_statement(0x11D0); }
+0
+$end$

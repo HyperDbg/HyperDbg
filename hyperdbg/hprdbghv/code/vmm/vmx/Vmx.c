@@ -137,6 +137,16 @@ VmxInitialize()
     }
 
     //
+    // Create a bitmap of the MSRs that cause #GP
+    //
+    g_MsrBitmapInvalidMsrs = AllocateInvalidMsrBimap();
+
+    if (g_MsrBitmapInvalidMsrs == NULL)
+    {
+        return FALSE;
+    }
+
+    //
     // As we want to support more than 32 processor (64 logical-core)
     // we let windows execute our routine for us
     //
@@ -875,6 +885,11 @@ VmxPerformTermination()
     //
     // ****** De-allocatee global variables ******
     //
+
+    //
+    // Free the buffer related to MSRs that cause #GP
+    //
+    ExFreePoolWithTag(g_MsrBitmapInvalidMsrs, POOLTAG);
 
     //
     // Free Identity Page Table
