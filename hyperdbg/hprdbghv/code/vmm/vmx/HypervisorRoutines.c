@@ -299,7 +299,8 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 VOID
 HvHandleMsrRead(PGUEST_REGS GuestRegs)
 {
-    MSR Msr = {0};
+    MSR    Msr = {0};
+    UINT32 TargetMsr;
 
     //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
@@ -311,6 +312,7 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     // The value of ECX is in the range C0000000H - C0001FFFH and bit n in read bitmap for high MSRs is 1,
     //   where n is the value of ECX & 00001FFFH.
     //
+    TargetMsr = GuestRegs->rcx & 0xffffffff;
 
     //
     // Execute WRMSR or RDMSR on behalf of the guest. Important that this
@@ -328,25 +330,28 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
     //
-    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)) || (GuestRegs->rcx >= RESERVED_MSR_RANGE_LOW && (GuestRegs->rcx <= RESERVED_MSR_RANGE_HI)))
+    if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
+        (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        Msr.Content = __readmsr(GuestRegs->rcx);
-    }
+        Msr.Content = __readmsr(TargetMsr);
 
-    //
-    // Check if it's EFER MSR then we show a false SCE state so the
-    // patchguard won't cause BSOD
-    //
-    if (GuestRegs->rcx == MSR_EFER)
-    {
-        EFER_MSR MsrEFER;
-        MsrEFER.Flags         = Msr.Content;
-        MsrEFER.SyscallEnable = TRUE;
-        Msr.Content           = MsrEFER.Flags;
-    }
+        //
+        // Check if it's EFER MSR then we show a false SCE state
+        //
+        if (GuestRegs->rcx == MSR_EFER)
+        {
+            EFER_MSR MsrEFER;
+            MsrEFER.Flags         = Msr.Content;
+            MsrEFER.SyscallEnable = TRUE;
+            Msr.Content           = MsrEFER.Flags;
+        }
 
-    GuestRegs->rax = Msr.Low;
-    GuestRegs->rdx = Msr.High;
+        GuestRegs->rax = NULL;
+        GuestRegs->rdx = NULL;
+
+        GuestRegs->rax = Msr.Low;
+        GuestRegs->rdx = Msr.High;
+    }
 }
 
 /**
