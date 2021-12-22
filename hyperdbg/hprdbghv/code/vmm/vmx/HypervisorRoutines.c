@@ -365,13 +365,6 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
             GuestRegs->rdx = Msr.High;
         }
     }
-    else
-    {
-        //
-        // MSR is invalid, we should inject #GP to the guest
-        //
-        EventInjectGeneralProtection();
-    }
 }
 
 /**
@@ -410,7 +403,6 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-
         if (TargetMsr == MSR_IA32_DS_AREA ||
             TargetMsr == MSR_FS_BASE ||
             TargetMsr == MSR_GS_BASE ||
@@ -440,14 +432,6 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         // Perform the WRMSR
         //
         __writemsr(GuestRegs->rcx, Msr.Content);
-    }
-    else
-    {
-        //
-        // MSR is invalid, we should inject #GP to the guest
-        //
-        EventInjectGeneralProtection();
-        return;
     }
 }
 
