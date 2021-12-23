@@ -137,12 +137,13 @@
     <ClCompile Include="code\vmm\vmx\Counters.c" />
     <ClCompile Include="code\vmm\vmx\CrossVmexits.c" />
     <ClCompile Include="code\vmm\vmx\Events.c" />
-    <ClCompile Include="code\vmm\vmx\HypervisorRoutines.c" />
+    <ClCompile Include="code\vmm\vmx\Hv.c" />
     <ClCompile Include="code\vmm\vmx\IdtEmulation.c" />
     <ClCompile Include="code\vmm\vmx\IoHandler.c" />
     <ClCompile Include="code\vmm\vmx\ManageRegs.c" />
+    <ClCompile Include="code\vmm\vmx\MsrHandlers.c" />
     <ClCompile Include="code\vmm\vmx\Mtf.c" />
-    <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c" />
+    <ClCompile Include="code\vmm\vmx\ProtectedHv.c" />
     <ClCompile Include="code\vmm\vmx\Vmcall.c" />
     <ClCompile Include="code\vmm\vmx\Vmexit.c" />
     <ClCompile Include="code\vmm\vmx\Vmx.c" />
@@ -162,7 +163,6 @@
   <ItemGroup>
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
-    <ClInclude Include="header\common\Ia32MsrDefinitions.h" />
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
@@ -195,12 +195,13 @@
     <ClInclude Include="header\vmm\ept\Vpid.h" />
     <ClInclude Include="header\vmm\vmx\Counters.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
-    <ClInclude Include="header\vmm\vmx\HypervisorRoutines.h" />
+    <ClInclude Include="header\vmm\vmx\Hv.h" />
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
     <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
+    <ClInclude Include="header\vmm\vmx\MsrHandlers.h" />
     <ClInclude Include="header\vmm\vmx\Mtf.h" />
-    <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h" />
+    <ClInclude Include="header\vmm\vmx\ProtectedHv.h" />
     <ClInclude Include="header\vmm\vmx\Vmcall.h" />
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h" />

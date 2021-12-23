@@ -187,3 +187,9 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
 
 VOID
 IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags);
+
+VOID
+IoHandlePerformIoBitmapChange(UINT64 Port);
+
+VOID
+IoHandlePerformIoBitmapReset();

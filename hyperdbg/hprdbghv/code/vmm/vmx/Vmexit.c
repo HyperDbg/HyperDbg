@@ -149,7 +149,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_MSR_READ:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
-        HvHandleMsrRead(GuestRegs);
+
+        //
+        // Handle vm-exit and perform changes
+        //
+        MsrHandleRdmsrVmexit(GuestRegs);
 
         //
         // As the context to event trigger, we send the ecx
@@ -162,7 +166,11 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     case EXIT_REASON_MSR_WRITE:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
-        HvHandleMsrWrite(GuestRegs);
+
+        //
+        // Handle vm-exit and perform changes
+        //
+        MsrHandleWrmsrVmexit(GuestRegs);
 
         //
         // As the context to event trigger, we send the ecx

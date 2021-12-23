@@ -250,3 +250,74 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, IO_EXIT_
     //
     IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
 }
+
+/**
+ * @brief Set bits in I/O Bitmap
+ * 
+ * @param Port Port
+ * @param ProcessorID Processor ID
+ * @return BOOLEAN Returns true if the I/O Bitmap is succcessfully applied or false if not applied
+ */
+BOOLEAN
+IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
+{
+    if (Port <= 0x7FFF)
+    {
+        SetBit(Port, g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+    }
+    else if ((0x8000 <= Port) && (Port <= 0xFFFF))
+    {
+        SetBit(Port - 0x8000, g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+    }
+    else
+    {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Change I/O Bitmap 
+ * @details should be called in vmx-root mode
+ * @param IoPort Port 
+ * @return VOID 
+ */
+VOID
+IoHandlePerformIoBitmapChange(UINT64 Port)
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
+    {
+        //
+        // Means all the bitmaps should be put to 1
+        //
+        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+    }
+    else
+    {
+        //
+        // Means only one i/o bitmap is target
+        //
+        IoHandleSetIoBitmap(Port, CoreIndex);
+    }
+}
+
+/**
+ * @brief Reset I/O Bitmap 
+ * @details should be called in vmx-root mode
+ * @return VOID 
+ */
+VOID
+IoHandlePerformIoBitmapReset()
+{
+    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+
+    //
+    // Means all the bitmaps should be put to 0
+    //
+    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+}
