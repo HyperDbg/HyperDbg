@@ -359,6 +359,12 @@ MigrationBackup/
 # VS Code
 **/.vscode/
 
+# HyperDbg builds
+/hyperdbg/build/*
+
+# HyperDbg script engine test cases
+/hyperdbg/hyperdbg-cli/script-test-cases/*
+
 # Exceptions
 !/hyperdbg/libraries/*
 !/hyperdbg/libraries/pdbex/*

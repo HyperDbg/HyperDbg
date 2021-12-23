@@ -170,9 +170,6 @@
     <ClCompile Include="code\vmm\vmx\Events.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
-    <ClCompile Include="code\vmm\vmx\HypervisorRoutines.c">
-      <Filter>code\vmm\vmx</Filter>
-    </ClCompile>
     <ClCompile Include="code\vmm\vmx\IdtEmulation.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
@@ -260,9 +257,6 @@
     <ClCompile Include="code\memory\PoolManager.c">
       <Filter>code\memory</Filter>
     </ClCompile>
-    <ClCompile Include="code\vmm\vmx\ProtectedHvRoutines.c">
-      <Filter>code\vmm\vmx</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\objects\Process.c">
       <Filter>code\debugger\objects</Filter>
     </ClCompile>
@@ -273,6 +267,15 @@
       <Filter>code\components\registers</Filter>
     </ClCompile>
     <ClCompile Include="code\vmm\vmx\VmxMechanisms.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
+    <ClCompile Include="code\vmm\vmx\MsrHandlers.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
+    <ClCompile Include="code\vmm\vmx\ProtectedHv.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
+    <ClCompile Include="code\vmm\vmx\Hv.c">
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
   </ItemGroup>
@@ -320,9 +323,6 @@
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\Events.h">
-      <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
-    <ClInclude Include="header\vmm\vmx\HypervisorRoutines.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h">
@@ -394,9 +394,6 @@
     <ClInclude Include="header\memory\PoolManager.h">
       <Filter>header\memory</Filter>
     </ClInclude>
-    <ClInclude Include="header\vmm\vmx\ProtectedHvRoutines.h">
-      <Filter>header\vmm\vmx</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\objects\Process.h">
       <Filter>header\debugger\objects</Filter>
     </ClInclude>
@@ -407,6 +404,15 @@
       <Filter>header\components\registers</Filter>
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h">
+      <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\MsrHandlers.h">
+      <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\Hv.h">
+      <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\ProtectedHv.h">
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
   </ItemGroup>

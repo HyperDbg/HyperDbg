@@ -341,7 +341,7 @@ ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
         // from user-mode then IA32_KERNEL_GS_BASE should be used
         // but it's not for our case
         //
-        MsrGsBase = __readmsr(MSR_GS_BASE);
+        MsrGsBase = __readmsr(IA32_GS_BASE);
 
         //
         // Now, we have the gs base on MSR

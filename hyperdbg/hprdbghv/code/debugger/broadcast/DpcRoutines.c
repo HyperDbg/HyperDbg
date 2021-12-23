@@ -192,7 +192,8 @@ DpcRoutinePerformReadMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument
     //
     // read on MSR
     //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Value = __readmsr(g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Msr);
+    g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Value =
+        __readmsr(g_GuestState[CurrentProcessorIndex].DebuggingState.MsrState.Msr);
 
     //
     // As this function is designed for a single,

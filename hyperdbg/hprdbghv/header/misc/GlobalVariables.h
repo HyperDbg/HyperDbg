@@ -241,3 +241,9 @@ DEBUGGEE_REQUEST_TO_CHANGE_PROCESS g_ProcessSwitch;
  * 
  */
 DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
+
+/**
+ * @brief Bitmap of MSRs that cause #GP 
+ * 
+ */
+UINT64 * g_MsrBitmapInvalidMsrs;

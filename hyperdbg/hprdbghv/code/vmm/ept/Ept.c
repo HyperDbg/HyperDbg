@@ -23,7 +23,7 @@ EptCheckFeatures()
     IA32_VMX_EPT_VPID_CAP_REGISTER VpidRegister;
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
 
-    VpidRegister.Flags = __readmsr(MSR_IA32_VMX_EPT_VPID_CAP);
+    VpidRegister.Flags = __readmsr(IA32_VMX_EPT_VPID_CAP);
     MTRRDefType.Flags  = __readmsr(MSR_IA32_MTRR_DEF_TYPE);
 
     if (!VpidRegister.PageWalkLength4 || !VpidRegister.MemoryTypeWriteBack || !VpidRegister.Pde2MbPages)

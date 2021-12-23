@@ -1,5 +1,5 @@
 /**
- * @file HypervisorRoutines.h
+ * @file Hv.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief This file contains the headers for Hypervisor Routines which have to be called by external codes
  * @details DO NOT DIRECTLY CALL VMX FUNCTIONS, instead use these routines
@@ -26,30 +26,6 @@
  */
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
-
-/**
- * @brief Set Msr Bitmap
- * 
- * @param Msr 
- * @param ProcessorID 
- * @param ReadDetection 
- * @param WriteDetection 
- * @return BOOLEAN 
- */
-BOOLEAN
-HvSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
-
-/**
- * @brief UnSet Msr Bitmap
- * 
- * @param Msr 
- * @param ProcessorID 
- * @param ReadDetection 
- * @param WriteDetection 
- * @return BOOLEAN 
- */
-BOOLEAN
-HvUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 /**
  * @brief Returns the Cpu Based and Secondary Processor Based Controls and other 
@@ -90,24 +66,6 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
  */
 VOID
 HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex);
-
-/**
- * @brief Handle Guest's Msr read
- * 
- * @param GuestRegs 
- * @return VOID 
- */
-VOID
-HvHandleMsrRead(PGUEST_REGS GuestRegs);
-
-/**
- * @brief Handle Guest's Msr write
- * 
- * @param GuestRegs 
- * @return VOID 
- */
-VOID
-HvHandleMsrWrite(PGUEST_REGS GuestRegs);
 
 /**
  * @brief Resume GUEST_RIP to next instruction
@@ -152,40 +110,6 @@ HvSetSaveDebugControls(BOOLEAN Set);
  */
 VOID
 HvRestoreRegisters();
-
-/**
- * @brief Change MSR Bitmap for read
- * 
- * @param MsrMask 
- * @return VOID 
- */
-VOID
-HvPerformMsrBitmapReadChange(UINT64 MsrMask);
-
-/**
- * @brief Reset MSR Bitmap for read
- * 
- * @return VOID 
- */
-VOID
-HvPerformMsrBitmapReadReset();
-
-/**
- * @brief Change MSR Bitmap for write
- * 
- * @param MsrMask 
- * @return VOID 
- */
-VOID
-HvPerformMsrBitmapWriteChange(UINT64 MsrMask);
-
-/**
- * @brief Reset MSR Bitmap for write
- * 
- * @return VOID 
- */
-VOID
-HvPerformMsrBitmapWriteReset();
 
 /**
  * @brief Set vm-exit for rdpmc instructions
@@ -276,33 +200,6 @@ HvSetNmiExiting(BOOLEAN Set);
  */
 VOID
 HvSetVmxPreemptionTimerExiting(BOOLEAN Set);
-
-/**
- * @brief Set bits in I/O Bitmap
- * 
- * @param Port 
- * @param ProcessorID 
- * @return BOOLEAN 
- */
-BOOLEAN
-HvSetIoBitmap(UINT64 Port, UINT32 ProcessorID);
-
-/**
- * @brief Change I/O Bitmap
- * 
- * @param Port 
- * @return VOID 
- */
-VOID
-HvPerformIoBitmapChange(UINT64 Port);
-
-/**
- * @brief Reset I/O Bitmap
- * 
- * @return VOID 
- */
-VOID
-HvPerformIoBitmapReset();
 
 /**
  * @brief Set exception bitmap in VMCS 

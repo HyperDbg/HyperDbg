@@ -1090,3 +1090,37 @@ VmxrootCompatibleWcslen(const wchar_t * S)
     //
     __writecr3(OriginalCr3.Flags);
 }
+
+/**
+ * @brief Allocates a buffer and tests for the MSRs that cause #GP
+ * 
+ * @return UINT64 Allocated buffer for MSR Bitmap
+ */
+UINT64 *
+AllocateInvalidMsrBimap()
+{
+    UINT64 * InvalidMsrBitmap;
+
+    InvalidMsrBitmap = ExAllocatePoolWithTag(NonPagedPool, 0x1000 / 0x8, POOLTAG);
+
+    if (InvalidMsrBitmap == NULL)
+    {
+        return NULL;
+    }
+
+    RtlZeroMemory(InvalidMsrBitmap, 0x1000 / 0x8);
+
+    for (size_t i = 0; i < 0x1000; ++i)
+    {
+        __try
+        {
+            __readmsr(i);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            SetBit(i, InvalidMsrBitmap);
+        }
+    }
+
+    return InvalidMsrBitmap;
+}

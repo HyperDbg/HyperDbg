@@ -547,6 +547,7 @@ def evaluate(s):
     return v
 
 
+'''
 if __name__ == '__main__':
 #    global depth
     
@@ -559,6 +560,33 @@ if __name__ == '__main__':
         sentence = EXPRESSION()
         if len(sentence)<=150:
             res = 'x = ' + sentence + '; test_statement(x);'
+            val = evaluate(sentence)
+            if type(val)=='int' and not(abs(val)<=65536):
+                continue
+            f.write(str(counter)+'\n')
+            f.write(res+'\n')
+            f.write(str(val)+'\n')
+            f.write('$end$'+'\n')
+            print(counter)
+            print(res)
+            print(val)
+            print()
+            counter+=1
+    
+    f.close()
+'''
+if __name__ == '__main__':
+#    global depth
+    
+    f = open('script-test-cases.txt', 'w')
+    counter = 1
+
+    initCounter = counter
+    while counter-initCounter<1000:
+        depth = 0
+        sentence = FOR_STATEMENT()
+        if len(sentence)<=150:
+            res = sentence 
             val = evaluate(sentence)
             if type(val)=='int' and not(abs(val)<=65536):
                 continue

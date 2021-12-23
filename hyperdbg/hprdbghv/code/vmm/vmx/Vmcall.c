@@ -179,13 +179,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_CHANGE_MSR_BITMAP_READ:
     {
-        HvPerformMsrBitmapReadChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapReadChange(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_CHANGE_MSR_BITMAP_WRITE:
     {
-        HvPerformMsrBitmapWriteChange(OptionalParam1);
+        MsrHandlePerformMsrBitmapWriteChange(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -221,7 +221,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_CHANGE_IO_BITMAP:
     {
-        HvPerformIoBitmapChange(OptionalParam1);
+        IoHandlePerformIoBitmapChange(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -265,13 +265,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_RESET_MSR_BITMAP_READ:
     {
-        HvPerformMsrBitmapReadReset();
+        MsrHandlePerformMsrBitmapReadReset();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_RESET_MSR_BITMAP_WRITE:
     {
-        HvPerformMsrBitmapWriteReset();
+        MsrHandlePerformMsrBitmapWriteReset();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -283,7 +283,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_RESET_IO_BITMAP:
     {
-        HvPerformIoBitmapReset();
+        IoHandlePerformIoBitmapReset();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
