@@ -147,7 +147,7 @@
 
 /**
  * @brief Control Features in IA-32 Processor (R/W) 
- * See Table 35-2 (If CPUID.01H:ECX.\[bit 5\])
+ * See Table 35-2 (If CPUID.01H:ECX.[bit 5])
  *
  */
 #define IA32_FEATURE_CONTROL 0x3a
@@ -322,7 +322,7 @@
 #define IA32_SMM_MONITOR_CTL 0x9b
 
 /**
- * @brief If IA32_VMX_MISC\[bit 15\])
+ * @brief If IA32_VMX_MISC[bit 15])
  *
  */
 #define IA32_SMBASE 0x9e
@@ -599,25 +599,25 @@
 #define MSR_MCG_MISC 0x18a
 
 /**
- * @brief See Table 35-2 If CPUID.0AH:EAX\[15:8\] = 8
+ * @brief See Table 35-2 If CPUID.0AH:EAX[15:8] = 8
  *
  */
 #define IA32_PERFEVTSEL4 0x18a
 
 /**
- * @brief See Table 35-2 If CPUID.0AH:EAX\[15:8\] = 8
+ * @brief See Table 35-2 If CPUID.0AH:EAX[15:8] = 8
  *
  */
 #define IA32_PERFEVTSEL5 0x18b
 
 /**
- * @brief See Table 35-2 If CPUID.0AH:EAX\[15:8\] = 8
+ * @brief See Table 35-2 If CPUID.0AH:EAX[15:8] = 8
  *
  */
 #define IA32_PERFEVTSEL6 0x18c
 
 /**
- * @brief See Table 35-2 If CPUID.0AH:EAX\[15:8\] = 8
+ * @brief See Table 35-2 If CPUID.0AH:EAX[15:8] = 8
  *
  */
 #define IA32_PERFEVTSEL7 0x18d
@@ -739,26 +739,26 @@
 #define MSR_TURBO_POWER_CURRENT_LIMIT 0x1ac
 
 /**
- * @brief Maximum Ratio Limit of Turbo Mode RO if MSR_PLATFORM_INFO.\[28\] = 0, 
- * RW if MSR_PLATFORM_INFO.\[28\] = 1
+ * @brief Maximum Ratio Limit of Turbo Mode RO if MSR_PLATFORM_INFO.[28] = 0, 
+ * RW if MSR_PLATFORM_INFO.[28] = 1
  *
  */
 #define MSR_TURBO_RATIO_LIMIT 0x1ad
 
 /**
- * @brief if CPUID.6H:ECX\[3\] = 1
+ * @brief if CPUID.6H:ECX[3] = 1
  *
  */
 #define IA32_ENERGY_PERF_BIAS 0x1b0
 
 /**
- * @brief If CPUID.06H: EAX\[6\] = 1
+ * @brief If CPUID.06H: EAX[6] = 1
  *
  */
 #define IA32_PACKAGE_THERM_STATUS 0x1b1
 
 /**
- * @brief If CPUID.06H: EAX\[6\] = 1
+ * @brief If CPUID.06H: EAX[6] = 1
  *
  */
 #define IA32_PACKAGE_THERM_INTERRUPT 0x1b2
@@ -863,7 +863,7 @@
 #define IA32_SMRR_PHYSBASE 0x1f2
 
 /**
- * @brief If IA32_MTRR_CAP\[SMRR\]  = 1
+ * @brief If IA32_MTRR_CAP[SMRR]  = 1
  *
  */
 #define IA32_SMRR_PHYSMASK 0x1f3
@@ -985,25 +985,25 @@
 #define IA32_MTRR_PHYSMASK7 0x20f
 
 /**
- * @brief if IA32_MTRR_CAP\[7:0\] >  8
+ * @brief if IA32_MTRR_CAP[7:0] >  8
  *
  */
 #define IA32_MTRR_PHYSBASE8 0x210
 
 /**
- * @brief if IA32_MTRR_CAP\[7:0\] >  8
+ * @brief if IA32_MTRR_CAP[7:0] >  8
  *
  */
 #define IA32_MTRR_PHYSMASK8 0x211
 
 /**
- * @brief if IA32_MTRR_CAP\[7:0\] >  9
+ * @brief if IA32_MTRR_CAP[7:0] >  9
  *
  */
 #define IA32_MTRR_PHYSBASE9 0x212
 
 /**
- * @brief if IA32_MTRR_CAP\[7:0\] >  9
+ * @brief if IA32_MTRR_CAP[7:0] >  9
  *
  */
 #define IA32_MTRR_PHYSMASK9 0x213
@@ -3340,96 +3340,96 @@
 
 /**
  * @brief Reporting Register of Basic VMX Capabilities (R/O) See Table 35-2. 
- * See Appendix A.1, Basic VMX Information (If CPUID.01H:ECX.\[bit 9\])
+ * See Appendix A.1, Basic VMX Information (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_BASIC 0x480
 
 /**
  * @brief Capability Reporting Register of Pin-based VM-execution  Controls (R/O) 
- * See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.\[bit 9\])
+ * See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_PINBASED_CTLS 0x481
 
 /**
  * @brief Capability Reporting Register of Primary Processor-based  
- * VM-execution Controls (R/O) See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.\[bit 9\])
+ * VM-execution Controls (R/O) See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_PROCBASED_CTLS 0x482
 
 /**
  * @brief Capability Reporting Register of VM-exit Controls (R/O) See Appendix A.4, 
- * VM-Exit Controls (If CPUID.01H:ECX.\[bit 9\])
+ * VM-Exit Controls (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_EXIT_CTLS 0x483
 
 /**
  * @brief Capability Reporting Register of VM-entry Controls (R/O) See Appendix A.5, 
- * VM-Entry Controls (If CPUID.01H:ECX.\[bit 9\])
+ * VM-Entry Controls (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_ENTRY_CTLS 0x484
 
 /**
  * @brief Reporting Register of Miscellaneous VMX Capabilities (R/O) See Appendix A.6, 
- * Miscellaneous Data (If CPUID.01H:ECX.\[bit 9\])
+ * Miscellaneous Data (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_MISC 0x485
 
 /**
  * @brief Capability Reporting Register of CR0 Bits Fixed to 0 (R/O) See Appendix A.7,
- *  VMX-Fixed Bits in CR0 (If CPUID.01H:ECX.\[bit 9\])
+ *  VMX-Fixed Bits in CR0 (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_CR0_FIXED0 0x486
 
 /**
- * @brief If CPUID.01H:ECX.\[bit 5\] = 1
+ * @brief If CPUID.01H:ECX.[bit 5] = 1
  *
  */
 #define IA32_VMX_CRO_FIXED0 0x486
 
 /**
  * @brief Capability Reporting Register of CR0 Bits Fixed to 1 (R/O) See Appendix A.7, 
- * VMX-Fixed Bits in CR0 (If CPUID.01H:ECX.\[bit 9\])
+ * VMX-Fixed Bits in CR0 (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_CR0_FIXED1 0x487
 
 /**
- * @brief If CPUID.01H:ECX.\[bit 5\] = 1
+ * @brief If CPUID.01H:ECX.[bit 5] = 1
  *
  */
 #define IA32_VMX_CRO_FIXED1 0x487
 
 /**
  * @brief Capability Reporting Register of CR4 Bits Fixed to 0 (R/O) See Appendix A.8, 
- * VMX-Fixed Bits in CR4 (If CPUID.01H:ECX.\[bit 9\])
+ * VMX-Fixed Bits in CR4 (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_CR4_FIXED0 0x488
 
 /**
  * @brief Capability Reporting Register of CR4 Bits Fixed to 1 (R/O) See Appendix A.8, 
- * VMX-Fixed Bits in CR4 (If CPUID.01H:ECX.\[bit 9\])
+ * VMX-Fixed Bits in CR4 (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_CR4_FIXED1 0x489
 
 /**
  * @brief Capability Reporting Register of VMCS Field Enumeration (R/O) See Appendix A.9, 
- * VMCS Enumeration (If CPUID.01H:ECX.\[bit 9\])
+ * VMCS Enumeration (If CPUID.01H:ECX.[bit 9])
  *
  */
 #define IA32_VMX_VMCS_ENUM 0x48a
 
 /**
  * @brief Capability Reporting Register of Secondary Processor-based  VM-execution Controls (R/O) 
- * See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.\[bit 9\] and  IA32_VMX_PROCBASED_CTLS\[bit 63\])
+ * See Appendix A.3, VM-Execution Controls (If CPUID.01H:ECX.[bit 9] and  IA32_VMX_PROCBASED_CTLS[bit 63])
  *
  */
 #define IA32_VMX_PROCBASED_CTLS2 0x48b
@@ -3441,8 +3441,8 @@
 #define IA32_VMX_EPT_VPID_ENUM 0x48c
 
 /**
- * @brief If ( CPUID.01H:ECX.\[bit 5\],  IA32_VMX_PROCBASED_C TLS\[bit 63\], and either  
- * IA32_VMX_PROCBASED_C TLS2\[bit 33\] or  IA32_VMX_PROCBASED_C TLS2\[bit 37\])
+ * @brief If ( CPUID.01H:ECX.[bit 5],  IA32_VMX_PROCBASED_C TLS[bit 63], and either  
+ * IA32_VMX_PROCBASED_C TLS2[bit 33] or  IA32_VMX_PROCBASED_C TLS2[bit 37])
  *
  */
 #define IA32_VMX_EPT_VPID_CAP 0x48c
@@ -3478,55 +3478,55 @@
 #define IA32_VMX_FMFUNC 0x491
 
 /**
- * @brief If( CPUID.01H:ECX.\[bit 5\] =  1 and IA32_VMX_BASIC\[bit 55\] )
+ * @brief If( CPUID.01H:ECX.[bit 5] =  1 and IA32_VMX_BASIC[bit 55] )
  *
  */
 #define IA32_VMX_VMFUNC 0x491
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  0) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  0) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC0 0x4c1
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  1) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  1) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC1 0x4c2
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  2) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  2) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC2 0x4c3
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  3) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  3) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC3 0x4c4
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  4) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  4) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC4 0x4c5
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  5) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  5) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC5 0x4c6
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  6) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  6) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC6 0x4c7
 
 /**
- * @brief (If CPUID.0AH: EAX\[15:8\] >  7) & IA32_PERF_CAPABILITIES\[ 13\] = 1
+ * @brief (If CPUID.0AH: EAX[15:8] >  7) & IA32_PERF_CAPABILITIES[ 13] = 1
  *
  */
 #define IA32_A_PMC7 0x4c8
@@ -3539,7 +3539,7 @@
 
 /**
  * @brief SMM Delayed (SMM-RO) Reports the interruptible state of all logical processors in the  package . 
- * Available only while in SMM and  MSR_SMM_MCA_CAP\[LONG_FLOW_INDICATION\] == 1.
+ * Available only while in SMM and  MSR_SMM_MCA_CAP[LONG_FLOW_INDICATION] == 1.
  *
  */
 #define MSR_SMM_DELAYED 0x4e2
@@ -4013,7 +4013,7 @@
 #define IA32_X2APIC_APICID 0x802
 
 /**
- * @brief x2APIC Version. If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief x2APIC Version. If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_VERSION 0x803
@@ -4031,7 +4031,7 @@
 #define IA32_X2APIC_PPR 0x80a
 
 /**
- * @brief x2APIC End of Interrupt. If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief x2APIC End of Interrupt. If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_EOI 0x80b
@@ -4049,151 +4049,151 @@
 #define IA32_X2APIC_SIVR 0x80f
 
 /**
- * @brief x2APIC In-Service register bits \[31:0\] (R/O)
+ * @brief x2APIC In-Service register bits [31:0] (R/O)
  *
  */
 #define IA32_X2APIC_ISR0 0x810
 
 /**
- * @brief x2APIC In-Service register bits \[63:32\] (R/O)
+ * @brief x2APIC In-Service register bits [63:32] (R/O)
  *
  */
 #define IA32_X2APIC_ISR1 0x811
 
 /**
- * @brief x2APIC In-Service register bits \[95:64\] (R/O)
+ * @brief x2APIC In-Service register bits [95:64] (R/O)
  *
  */
 #define IA32_X2APIC_ISR2 0x812
 
 /**
- * @brief x2APIC In-Service register bits \[127:96\] (R/O)
+ * @brief x2APIC In-Service register bits [127:96] (R/O)
  *
  */
 #define IA32_X2APIC_ISR3 0x813
 
 /**
- * @brief x2APIC In-Service register bits \[159:128\] (R/O)
+ * @brief x2APIC In-Service register bits [159:128] (R/O)
  *
  */
 #define IA32_X2APIC_ISR4 0x814
 
 /**
- * @brief x2APIC In-Service register bits \[191:160\] (R/O)
+ * @brief x2APIC In-Service register bits [191:160] (R/O)
  *
  */
 #define IA32_X2APIC_ISR5 0x815
 
 /**
- * @brief x2APIC In-Service register bits \[223:192\] (R/O)
+ * @brief x2APIC In-Service register bits [223:192] (R/O)
  *
  */
 #define IA32_X2APIC_ISR6 0x816
 
 /**
- * @brief x2APIC In-Service register bits \[255:224\] (R/O)
+ * @brief x2APIC In-Service register bits [255:224] (R/O)
  *
  */
 #define IA32_X2APIC_ISR7 0x817
 
 /**
- * @brief x2APIC Trigger Mode register bits \[31:0\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [31:0] (R/O)
  *
  */
 #define IA32_X2APIC_TMR0 0x818
 
 /**
- * @brief x2APIC Trigger Mode register bits \[63:32\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [63:32] (R/O)
  *
  */
 #define IA32_X2APIC_TMR1 0x819
 
 /**
- * @brief x2APIC Trigger Mode register bits \[95:64\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [95:64] (R/O)
  *
  */
 #define IA32_X2APIC_TMR2 0x81a
 
 /**
- * @brief x2APIC Trigger Mode register bits \[127:96\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [127:96] (R/O)
  *
  */
 #define IA32_X2APIC_TMR3 0x81b
 
 /**
- * @brief x2APIC Trigger Mode register bits \[159:128\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [159:128] (R/O)
  *
  */
 #define IA32_X2APIC_TMR4 0x81c
 
 /**
- * @brief x2APIC Trigger Mode register bits \[191:160\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [191:160] (R/O)
  *
  */
 #define IA32_X2APIC_TMR5 0x81d
 
 /**
- * @brief x2APIC Trigger Mode register bits \[223:192\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [223:192] (R/O)
  *
  */
 #define IA32_X2APIC_TMR6 0x81e
 
 /**
- * @brief x2APIC Trigger Mode register bits \[255:224\] (R/O)
+ * @brief x2APIC Trigger Mode register bits [255:224] (R/O)
  *
  */
 #define IA32_X2APIC_TMR7 0x81f
 
 /**
- * @brief x2APIC Interrupt Request register bits \[31:0\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [31:0] (R/O)
  *
  */
 #define IA32_X2APIC_IRR0 0x820
 
 /**
- * @brief x2APIC Interrupt Request register bits \[63:32\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [63:32] (R/O)
  *
  */
 #define IA32_X2APIC_IRR1 0x821
 
 /**
- * @brief x2APIC Interrupt Request register bits \[95:64\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [95:64] (R/O)
  *
  */
 #define IA32_X2APIC_IRR2 0x822
 
 /**
- * @brief x2APIC Interrupt Request register bits \[127:96\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [127:96] (R/O)
  *
  */
 #define IA32_X2APIC_IRR3 0x823
 
 /**
- * @brief x2APIC Interrupt Request register bits \[159:128\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [159:128] (R/O)
  *
  */
 #define IA32_X2APIC_IRR4 0x824
 
 /**
- * @brief x2APIC Interrupt Request register bits \[191:160\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [191:160] (R/O)
  *
  */
 #define IA32_X2APIC_IRR5 0x825
 
 /**
- * @brief x2APIC Interrupt Request register bits \[223:192\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [223:192] (R/O)
  *
  */
 #define IA32_X2APIC_IRR6 0x826
 
 /**
- * @brief x2APIC Interrupt Request register bits \[255:224\] (R/O)
+ * @brief x2APIC Interrupt Request register bits [255:224] (R/O)
  *
  */
 #define IA32_X2APIC_IRR7 0x827
 
 /**
- * @brief Error Status Register. If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief Error Status Register. If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_ESR 0x828
@@ -4229,19 +4229,19 @@
 #define IA32_X2APIC_LVT_PMI 0x834
 
 /**
- * @brief If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_LVT_LINT0 0x835
 
 /**
- * @brief If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_LVT_LINT1 0x836
 
 /**
- * @brief If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_LVT_ERROR 0x837
@@ -4265,7 +4265,7 @@
 #define IA32_X2APIC_DIV_CONF 0x83e
 
 /**
- * @brief If ( CPUID.01H:ECX.\[bit 21\]  = 1 )
+ * @brief If ( CPUID.01H:ECX.[bit 21]  = 1 )
  *
  */
 #define IA32_X2APIC_SELF_IPI 0x83f
@@ -4517,19 +4517,19 @@
 #define MSR_W_PMON_BOX_OVF_CTRL 0xc82
 
 /**
- * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.\[bit 12\] = 1 )
+ * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.[bit 12] = 1 )
  *
  */
 #define IA32_QM_EVTSEL 0xc8d
 
 /**
- * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.\[bit 12\] = 1 )
+ * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.[bit 12] = 1 )
  *
  */
 #define IA32_QM_CTR 0xc8e
 
 /**
- * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.\[bit 12\] = 1 )
+ * @brief If ( CPUID.(EAX=07H,  ECX=0):EBX.[bit 12] = 1 )
  *
  */
 #define IA32_PQR_ASSOC 0xc8f
@@ -6397,7 +6397,7 @@
 #define MSR_EMON_L3_GL_CTL 0x107d8
 
 /**
- * @brief If (  CPUID.80000001.EDX.\[bit  20\] or  CPUID.80000001.EDX.\[bit 29\])
+ * @brief If (  CPUID.80000001.EDX.[bit  20] or  CPUID.80000001.EDX.[bit 29])
  *
  */
 #define IA32_EFER 0xc0000080
