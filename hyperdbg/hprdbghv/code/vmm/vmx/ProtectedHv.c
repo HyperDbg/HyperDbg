@@ -1,5 +1,5 @@
 /**
- * @file ProtectedHvRoutines.c
+ * @file ProtectedHv.c
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief File for protected hypervisor resources
  * @details Protected Hypervisor Routines are those resource that 

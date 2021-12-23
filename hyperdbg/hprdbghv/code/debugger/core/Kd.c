@@ -156,7 +156,7 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
     UNREFERENCED_PARAMETER(SystemArgument1);
     UNREFERENCED_PARAMETER(SystemArgument2);
 
-    LogInfo("I'm here %x\n", DeferredContext);
+    LogInfo("I'm here %llx\n", DeferredContext);
 }
 
 /**
