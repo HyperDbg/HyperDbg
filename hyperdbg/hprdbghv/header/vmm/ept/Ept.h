@@ -74,7 +74,7 @@
  * @brief VMX EPT & VPID Capabilities MSR
  * 
  */
-#define MSR_IA32_VMX_EPT_VPID_CAP 0x0000048C
+#define IA32_VMX_EPT_VPID_CAP 0x0000048C
 
 /**
  * @brief MTRR Def MSR

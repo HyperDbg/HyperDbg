@@ -14,50 +14,6 @@
 #pragma once
 
 //////////////////////////////////////////////////
-//				    Constants					//
-//////////////////////////////////////////////////
-
-//
-// Intel based MSRs
-//
-#define MSR_IA32_APIC_BASE               0x0000001B
-#define MSR_IA32_FEATURE_CONTROL         0x0000003A
-#define MSR_IA32_SYSENTER_CS             0x00000174
-#define MSR_IA32_SYSENTER_ESP            0x00000175
-#define MSR_IA32_SYSENTER_EIP            0x00000176
-#define MSR_IA32_DEBUGCTL                0x000001D9
-#define MSR_IA32_VMX_BASIC               0x00000480
-#define MSR_IA32_VMX_PINBASED_CTLS       0x00000481
-#define MSR_IA32_VMX_PROCBASED_CTLS      0x00000482
-#define MSR_IA32_VMX_EXIT_CTLS           0x00000483
-#define MSR_IA32_VMX_ENTRY_CTLS          0x00000484
-#define MSR_IA32_VMX_MISC                0x00000485
-#define MSR_IA32_VMX_CR0_FIXED0          0x00000486
-#define MSR_IA32_VMX_CR0_FIXED1          0x00000487
-#define MSR_IA32_VMX_CR4_FIXED0          0x00000488
-#define MSR_IA32_VMX_CR4_FIXED1          0x00000489
-#define MSR_IA32_VMX_VMCS_ENUM           0x0000048A
-#define MSR_IA32_VMX_PROCBASED_CTLS2     0x0000048B
-#define MSR_IA32_VMX_EPT_VPID_CAP        0x0000048C
-#define MSR_IA32_VMX_TRUE_PINBASED_CTLS  0x0000048D
-#define MSR_IA32_VMX_TRUE_PROCBASED_CTLS 0x0000048E
-#define MSR_IA32_VMX_TRUE_EXIT_CTLS      0x0000048F
-#define MSR_IA32_VMX_TRUE_ENTRY_CTLS     0x00000490
-#define MSR_IA32_VMX_VMFUNC              0x00000491
-#define MSR_IA32_DS_AREA                0x00000600
-
-//
-// AMD-based MSRs
-//
-#define MSR_EFER           0xC0000080
-#define MSR_STAR           0xC0000081
-#define MSR_LSTAR          0xC0000082
-#define MSR_FMASK          0xC0000084
-#define MSR_FS_BASE        0xC0000100
-#define MSR_GS_BASE        0xC0000101
-#define MSR_KERNEL_GS_BASE 0xC0000102
-
-//////////////////////////////////////////////////
 //				    Structures					//
 //////////////////////////////////////////////////
 

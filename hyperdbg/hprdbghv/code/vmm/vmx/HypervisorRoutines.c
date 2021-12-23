@@ -335,23 +335,23 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
     {
         switch (TargetMsr)
         {
-        case MSR_IA32_SYSENTER_CS:
+        case IA32_SYSENTER_CS:
             __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
             break;
 
-        case MSR_IA32_SYSENTER_ESP:
+        case IA32_SYSENTER_ESP:
             __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
             break;
 
-        case MSR_IA32_SYSENTER_EIP:
+        case IA32_SYSENTER_EIP:
             __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
             break;
 
-        case MSR_GS_BASE:
+        case IA32_GS_BASE:
             __vmx_vmread(GUEST_GS_BASE, &Msr);
             break;
 
-        case MSR_FS_BASE:
+        case IA32_FS_BASE:
             __vmx_vmread(GUEST_FS_BASE, &Msr);
             break;
 
@@ -377,7 +377,7 @@ HvHandleMsrRead(PGUEST_REGS GuestRegs)
             //
             // Check if it's EFER MSR then we show a false SCE state
             //
-            if (GuestRegs->rcx == MSR_EFER)
+            if (GuestRegs->rcx == IA32_EFER)
             {
                 EFER_MSR MsrEFER;
                 MsrEFER.Flags         = Msr.Content;
@@ -449,13 +449,13 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         //
         switch (TargetMsr)
         {
-        case MSR_IA32_DS_AREA:
-        case MSR_FS_BASE:
-        case MSR_GS_BASE:
-        case MSR_KERNEL_GS_BASE:
-        case MSR_LSTAR:
-        case MSR_IA32_SYSENTER_EIP:
-        case MSR_IA32_SYSENTER_ESP:
+        case IA32_DS_AREA:
+        case IA32_FS_BASE:
+        case IA32_GS_BASE:
+        case IA32_KERNEL_GSBASE:
+        case IA32_LSTAR:
+        case IA32_SYSENTER_EIP:
+        case IA32_SYSENTER_ESP:
 
             if (!CheckCanonicalVirtualAddress(Msr.Content, &UnusedIsKernel))
             {
@@ -475,23 +475,23 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         //
         switch (TargetMsr)
         {
-        case MSR_IA32_SYSENTER_CS:
+        case IA32_SYSENTER_CS:
             __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Content);
             break;
 
-        case MSR_IA32_SYSENTER_ESP:
+        case IA32_SYSENTER_ESP:
             __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Content);
             break;
 
-        case MSR_IA32_SYSENTER_EIP:
+        case IA32_SYSENTER_EIP:
             __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Content);
             break;
 
-        case MSR_GS_BASE:
+        case IA32_GS_BASE:
             __vmx_vmwrite(GUEST_GS_BASE, Msr.Content);
             break;
 
-        case MSR_FS_BASE:
+        case IA32_FS_BASE:
             __vmx_vmwrite(GUEST_FS_BASE, Msr.Content);
             break;
 
@@ -744,13 +744,13 @@ HvRestoreRegisters()
     // Restore FS Base
     //
     __vmx_vmread(GUEST_FS_BASE, &FsBase);
-    __writemsr(MSR_FS_BASE, FsBase);
+    __writemsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
     __vmx_vmread(GUEST_GS_BASE, &GsBase);
-    __writemsr(MSR_GS_BASE, GsBase);
+    __writemsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR

@@ -70,8 +70,8 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
-    LogDebugInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
 
     //
     //Changing Revision Identifier
@@ -145,8 +145,8 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.All = __readmsr(MSR_IA32_VMX_BASIC);
-    LogDebugInfo("Revision Identifier (MSR_IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
 
     //
     //Changing Revision Identifier
