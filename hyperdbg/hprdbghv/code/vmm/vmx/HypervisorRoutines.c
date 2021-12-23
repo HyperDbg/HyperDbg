@@ -444,7 +444,7 @@ HvHandleMsrWrite(PGUEST_REGS GuestRegs)
         // If the source register contains a non-canonical address and ECX specifies
         // one of the following MSRs:
         //
-        // IA32_DS_AREA, IA32_FS_BASE, IA32_GS_BASE, IA32_KERNEL_GS_BASE, IA32_LSTAR,
+        // IA32_DS_AREA, IA32_FS_BASE, IA32_GS_BASE, IA32_KERNEL_GSBASE, IA32_LSTAR,
         // IA32_SYSENTER_EIP, IA32_SYSENTER_ESP
         //
         switch (TargetMsr)
@@ -779,7 +779,7 @@ VOID
 HvFilterMsrReadBitmap(UINT32 CoreIndex)
 {
     //
-    // Ignore IA32_KERNEL_GS_BASE (0xC0000102)
+    // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
     ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
 
@@ -800,7 +800,7 @@ VOID
 HvFilterMsrWriteBitmap(UINT32 CoreIndex)
 {
     //
-    // Ignore IA32_KERNEL_GS_BASE (0xC0000102)
+    // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
     ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 3072);
 
@@ -809,6 +809,12 @@ HvFilterMsrWriteBitmap(UINT32 CoreIndex)
     //
     ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
     ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+
+    //
+    // Ignore IA32_SPEC_CTRL (0x00000048), and IA32_PRED_CMD (0x00000049)
+    //
+    ClearBit(0x48, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x49, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
 }
 
 /**

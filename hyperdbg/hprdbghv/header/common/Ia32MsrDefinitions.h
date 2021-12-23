@@ -246,6 +246,27 @@
 #define MSR_LASTBRANCH_7_FROM_IP 0x47
 
 /**
+ * @brief IA32_SPEC_CTRL[bit 0] – Indirect Branch Restricted Speculation (IBRS)
+ * If IBRS is set, near returns and near indirect jumps/calls will not allow their
+ * predicted target address to be controlled by code that executed in a less privileged 
+ * prediction mode before the IBRS mode was last written with a value of 1 or on another
+ * logical processor so long as all RSB entries from the previous less privileged 
+ * prediction mode are overwritten.
+ * 
+ */
+#define IA32_SPEC_CTRL 0x48
+
+/**
+ * @brief IA32_PRED_CMD,  bit0 – Indirect Branch Prediction Barrier (IBPB)
+ * Setting of IBPB ensures that earlier code's behavior does not control later
+ * indirect branch predictions.  It is used when context switching to new 
+ * untrusted address space.  Unlike IBRS, it is a command MSR and does not 
+ * retain its state.
+ *
+ */
+#define IA32_PRED_CMD 0x49
+
+/**
  * @brief Last Branch Record 0 (R/W)  One of 16 pairs of last branch record registers on  
  * the last branch record stack (6C0H-6CFH). This  part of the stack contains pointers 
  * to the  destination instruction for one of the last 16  branches, exceptions, or 
