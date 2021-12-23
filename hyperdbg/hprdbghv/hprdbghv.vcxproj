@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="header\common\Common.h" />
     <ClInclude Include="header\common\Dpc.h" />
+    <ClInclude Include="header\common\Ia32MsrDefinitions.h" />
     <ClInclude Include="header\common\LengthDisassemblerEngine.h" />
     <ClInclude Include="header\common\Logging.h" />
     <ClInclude Include="header\common\Msr.h" />
