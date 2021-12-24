@@ -247,3 +247,9 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
  * 
  */
 UINT64 * g_MsrBitmapInvalidMsrs;
+
+/**
+ * @brief Address of ZwQueryInformationProcess
+ * 
+ */
+QUERY_INFO_PROCESS g_ZwQueryInformationProcess;

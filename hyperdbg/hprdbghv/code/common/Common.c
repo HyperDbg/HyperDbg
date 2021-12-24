@@ -145,6 +145,8 @@ GetCr3FromProcessId(UINT32 ProcessId)
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(TargetEprocess);
     ProcessCr3.Flags             = CurrentProcess->DirectoryTableBase;
 
+    ObDereferenceObject(TargetEprocess);
+
     return ProcessCr3;
 }
 
@@ -188,6 +190,8 @@ SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
     // Change to a new cr3 (of target process)
     //
     __writecr3(GuestCr3);
+
+    ObDereferenceObject(TargetEprocess);
 
     return CurrentProcessCr3;
 }
@@ -634,6 +638,8 @@ IsProcessExist(UINT32 ProcId)
     }
     else
     {
+        ObDereferenceObject(TargetEprocess);
+
         return TRUE;
     }
 }

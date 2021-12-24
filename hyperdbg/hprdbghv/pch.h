@@ -79,6 +79,7 @@
 #include "..\hprdbghv\header\vmm\vmx\VmxMechanisms.h"
 #include "..\hprdbghv\header\debugger\core\Steppings.h"
 #include "..\hprdbghv\header\debugger\core\Termination.h"
+#include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
 #include "ScriptEngineCommonDefinitions.h"
 
 //

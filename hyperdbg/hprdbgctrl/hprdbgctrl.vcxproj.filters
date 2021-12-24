@@ -54,6 +54,9 @@
     <Filter Include="code\debugger\misc">
       <UniqueIdentifier>{1acac1bd-b4c9-43de-abce-1513fe16609a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\user-level">
+      <UniqueIdentifier>{99209a5e-ea79-45ff-b830-1da660afcb75}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -399,6 +402,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\commands\debugging-commands\dt.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\usermode-debugging.cpp">
+      <Filter>code\debugger\user-level</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
