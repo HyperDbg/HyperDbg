@@ -64,16 +64,16 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         return FALSE;
     }
 
-    if (NULL == g_ZwQueryInformationProcess)
+    if (g_ZwQueryInformationProcess == NULL)
     {
         UNICODE_STRING RoutineName;
 
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
         g_ZwQueryInformationProcess =
-            (QUERY_INFO_PROCESS)MmGetSystemRoutineAddress(&RoutineName);
+            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
 
-        if (NULL == g_ZwQueryInformationProcess)
+        if (g_ZwQueryInformationProcess == NULL)
         {
             LogError("Err, cannot resolve ZwQueryInformationProcess");
             return FALSE;
@@ -223,7 +223,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
         g_ZwQueryInformationProcess =
-            (QUERY_INFO_PROCESS)MmGetSystemRoutineAddress(&RoutineName);
+            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
 
         if (NULL == g_ZwQueryInformationProcess)
         {
@@ -250,4 +250,216 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
     }
 
     return FALSE;
+}
+
+ULONG64
+UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
+{
+    KAPC_STATE     State;
+    UNICODE_STRING Name;
+    PPEB           Peb = NULL;
+    PPEB_LDR_DATA  Ldr = NULL;
+
+    //
+    // Process PEB, function is unexported and undocumented
+    //
+    Peb = (PPEB)g_PsGetProcessPeb(Proc);
+
+    if (!Peb)
+    {
+        return NULL;
+    }
+
+    KeStackAttachProcess(Proc, &State);
+
+    Ldr = (PPEB_LDR_DATA)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return NULL;
+    }
+
+    //
+    // loop the linked list
+    //
+    for (PLIST_ENTRY List = (PLIST_ENTRY)Ldr->ModuleListLoadOrder.Flink;
+         List != &Ldr->ModuleListLoadOrder;
+         List = (PLIST_ENTRY)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+
+        LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+
+        /*
+        if (RtlCompareUnicodeString(&Entry->BaseDllName, &ModuleName, TRUE) == NULL)
+        {
+            ULONG64 BaseAddr = (ULONG64)Entry->DllBase;
+            KeUnstackDetachProcess(&State);
+            return BaseAddr;
+        }
+        */
+    }
+
+    KeUnstackDetachProcess(&State);
+
+    //
+    // Failed
+    //
+    return NULL;
+}
+
+ULONG
+UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
+{
+    KAPC_STATE      State;
+    UNICODE_STRING  Name;
+    PPEB32          Peb = NULL;
+    PPEB_LDR_DATA32 Ldr = NULL;
+
+    //
+    // get process PEB for the x86 part, function is unexported and undocumented
+    //
+    Peb = (PPEB32)g_PsGetProcessWow64Process(Proc);
+
+    if (!Peb)
+    {
+        return NULL;
+    }
+
+    KeStackAttachProcess(Proc, &State);
+
+    Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return 0;
+    }
+
+    //
+    // loop the linked list
+    //
+    for (PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr->InLoadOrderModuleList.Flink;
+         List != &Ldr->InLoadOrderModuleList;
+         List = (PLIST_ENTRY32)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY32 Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+
+        //
+        // since the PEB is x86, the DLL is x86, and so the base address is in x86 (4 byte as compared to 8 byte)
+        // and the UNICODE STRING is in 32 bit(UNICODE_STRING32), and because there is no viable conversion
+        // we are just going to force everything in
+        //
+        UNICODE_STRING DLLname;
+        DLLname.Length        = Entry->BaseDllName.Length;
+        DLLname.MaximumLength = Entry->BaseDllName.MaximumLength;
+        DLLname.Buffer        = (PWCH)Entry->BaseDllName.Buffer;
+
+        LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+
+        /*
+           if (RtlCompareUnicodeString(&DLLname, &ModuleName, TRUE) == NULL)
+        {
+            ULONG BaseAddr = Entry->DllBase;
+            KeUnstackDetachProcess(&State);
+            return BaseAddr;
+        }
+        */
+    }
+
+    KeUnstackDetachProcess(&State);
+
+    //
+    // Failed
+    //
+    return NULL;
+}
+
+/**
+ * @brief Get the base address of loaded module from process Id
+ * @details This function should be called in vmx non-root
+ * 
+ * @param ProcessId 
+ * @param BaseAddress 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetBaseOfModuleFromProcessId(HANDLE ProcessId, PUINT64 BaseAddress)
+{
+    UNICODE_STRING FunctionName;
+
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    {
+        //
+        // if the process not found
+        //
+        return FALSE;
+    }
+
+    ObDereferenceObject(SourceProcess);
+
+    //
+    // Find address of PsGetProcessPeb
+    //
+    if (g_PsGetProcessPeb == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessPeb");
+        g_PsGetProcessPeb = (PsGetProcessPeb)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessPeb == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+            return FALSE;
+        }
+    }
+
+    //
+    // Find address of PsGetProcessWow64Process
+    //
+    if (g_PsGetProcessWow64Process == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessWow64Process");
+        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessWow64Process == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+            return FALSE;
+        }
+    }
+
+    //
+    // check whether the target process is 32-bit or 64-bit
+    //
+    if (g_PsGetProcessWow64Process(SourceProcess))
+    {
+        //
+        // x86 process, walk x86 module list
+        //
+        UNICODE_STRING Temp = {0};
+        UserAccessGetModuleBasex86(SourceProcess, Temp);
+    }
+    else if (g_PsGetProcessPeb(SourceProcess))
+    {
+        //
+        // x64 process, walk x64 module list
+        //
+        UNICODE_STRING Temp = {0};
+        UserAccessGetModuleBasex64(SourceProcess, Temp);
+    }
+    else
+    {
+        //
+        // Wtf?
+        //
+        return FALSE;
+    }
+
+    return TRUE;
 }

@@ -22,6 +22,8 @@
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
+    UINT64 temp = 0;
+
     PIO_STACK_LOCATION                                      IrpStack;
     PREGISTER_NOTIFY_BUFFER                                 RegisterEventRequest;
     PDEBUGGER_READ_MEMORY                                   DebuggerReadMemRequest;
@@ -653,6 +655,12 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         case IOCTL_DEBUGGER_FLUSH_LOGGING_BUFFERS:
 
+            DbgBreakPoint();
+            UserAccessGetBaseOfModuleFromProcessId(7428, &temp);
+
+            DbgBreakPoint();
+            //UserAccessGetBaseOfModuleFromProcessId(6196, &temp);
+            break;
             //
             // First validate the parameters.
             //
