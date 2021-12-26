@@ -11,11 +11,29 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+/**
+ * @brief Attach to a target process
+ * @param FileName
+ * @param ProcessInformation
+ * 
+ * @return BOOLEAN
+ */
 BOOLEAN
-UsermodeDebuggingAttach(std::wstring FileName, PPROCESS_INFORMATION ProcessInformation)
+UsermodeDebuggingAttach(WCHAR * FileName, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
+    DWORD        PeEntryPoint;
+
+    //
+    // Get the entrypoint of the PE
+    // TODO: fix Is32Bit entry of PE which constant TRUE
+    //
+    if (!PeGetEntryPoint(FileName, TRUE, &PeEntryPoint))
+    {
+        ShowMessages("err, invalid PE file\n");
+        return FALSE;
+    }
 
     memset(&StartupInfo, 0, sizeof(StartupInfo));
     StartupInfo.cb = sizeof(STARTUPINFOA);
@@ -23,7 +41,7 @@ UsermodeDebuggingAttach(std::wstring FileName, PPROCESS_INFORMATION ProcessInfor
     //
     // Create process suspended
     //
-    CreateProcessResult = CreateProcessW(FileName.c_str(),
+    CreateProcessResult = CreateProcessW(FileName,
                                          NULL,
                                          NULL,
                                          NULL,
@@ -39,6 +57,10 @@ UsermodeDebuggingAttach(std::wstring FileName, PPROCESS_INFORMATION ProcessInfor
         ShowMessages("err, start process failed (%x)", GetLastError());
         return FALSE;
     }
+
+    //
+    // Get loaded exe's PEB (base address of loaded module)
+    //
 
     return TRUE;
 }

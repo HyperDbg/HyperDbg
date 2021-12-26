@@ -119,6 +119,7 @@
     <ClInclude Include="header\kd.h" />
     <ClInclude Include="header\list.h" />
     <ClInclude Include="header\namedpipe.h" />
+    <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\script-engine.h" />
     <ClInclude Include="header\symbol.h" />
     <ClInclude Include="header\tests.h" />
@@ -138,6 +139,7 @@
     <ClCompile Include="code\debugger\core\symbol.cpp" />
     <ClCompile Include="code\debugger\misc\disassembler.cpp" />
     <ClCompile Include="code\debugger\misc\readmem.cpp" />
+    <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\usermode-debugging.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
