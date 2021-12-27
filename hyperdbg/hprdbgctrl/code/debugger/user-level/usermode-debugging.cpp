@@ -23,17 +23,7 @@ UsermodeDebuggingAttach(WCHAR * FileName, PPROCESS_INFORMATION ProcessInformatio
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
-    DWORD        PeEntryPoint;
 
-    //
-    // Get the entrypoint of the PE
-    // TODO: fix Is32Bit entry of PE which constant TRUE
-    //
-    if (!PeGetEntryPoint(FileName, TRUE, &PeEntryPoint))
-    {
-        ShowMessages("err, invalid PE file\n");
-        return FALSE;
-    }
 
     memset(&StartupInfo, 0, sizeof(StartupInfo));
     StartupInfo.cb = sizeof(STARTUPINFOA);

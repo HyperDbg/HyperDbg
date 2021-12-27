@@ -354,11 +354,17 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
         // we are just going to force everything in
         //
         UNICODE_STRING DLLname;
-        DLLname.Length        = Entry->BaseDllName.Length;
-        DLLname.MaximumLength = Entry->BaseDllName.MaximumLength;
-        DLLname.Buffer        = (PWCH)Entry->BaseDllName.Buffer;
+        UINT64         BaseAddress       = NULL;
+        UINT64         EntrypointAddress = NULL;
 
-        LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+        BaseAddress       = Entry->DllBase;
+        EntrypointAddress = Entry->EntryPoint;
+
+        DLLname.Length        = Entry->FullDllName.Length;
+        DLLname.MaximumLength = Entry->FullDllName.MaximumLength;
+        DLLname.Buffer        = (PWCH)Entry->FullDllName.Buffer;
+
+        LogInfo("%ws  Base: %llx | Entry: %llx", DLLname.Buffer, BaseAddress, EntrypointAddress);
 
         /*
            if (RtlCompareUnicodeString(&DLLname, &ModuleName, TRUE) == NULL)

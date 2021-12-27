@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 BOOLEAN
-PeShowSectionInformationAndDump(WCHAR * AddressOfFile, CHAR * SectionToShow, BOOLEAN Is32Bit);
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit);
 
 BOOLEAN
-PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint);
+PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit);

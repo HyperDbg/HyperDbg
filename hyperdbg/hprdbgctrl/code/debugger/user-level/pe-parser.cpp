@@ -52,7 +52,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
             Temp = 0;
         }
         if (i % 4 == 0)
-            ShowMessages("|");
+            ShowMessages("| ");
     }
     if (i % 16 != 0)
     {
@@ -72,7 +72,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
  * @return BOOLEAN
  */
 BOOLEAN
-PeShowSectionInformationAndDump(WCHAR * AddressOfFile, CHAR * SectionToShow, BOOLEAN Is32Bit)
+PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * SectionToShow, BOOLEAN Is32Bit)
 {
     int                     i      = 0;
     BOOLEAN                 Result = FALSE;
@@ -241,7 +241,7 @@ PeShowSectionInformationAndDump(WCHAR * AddressOfFile, CHAR * SectionToShow, BOO
         ShowMessages("Intel i860");
         break;
     case 0x14c:
-        ShowMessages("Intel i386,i486,i586");
+        ShowMessages("Intel i386, i486, i586");
         break;
     case 0x200:
         ShowMessages("Intel Itanium processor");
@@ -268,15 +268,15 @@ PeShowSectionInformationAndDump(WCHAR * AddressOfFile, CHAR * SectionToShow, BOO
     //
     ShowMessages("\n%-36s", "Characteristics : ");
     if ((Header.Characteristics & 0x0002) == 0x0002)
-        ShowMessages("Executable Image ,");
+        ShowMessages("Executable Image, ");
     if ((Header.Characteristics & 0x0020) == 0x0020)
-        ShowMessages("Application can address > 2GB ,");
+        ShowMessages("Application can address > 2GB, ");
     if ((Header.Characteristics & 0x1000) == 0x1000)
-        ShowMessages("System file (Kernel Mode Driver(I think)) ,");
+        ShowMessages("System file (Kernel Mode Driver(I think)), ");
     if ((Header.Characteristics & 0x2000) == 0x2000)
-        ShowMessages("Dll file ,");
+        ShowMessages("Dll file, ");
     if ((Header.Characteristics & 0x4000) == 0x4000)
-        ShowMessages("Application runs only in Uniprocessor ,");
+        ShowMessages("Application runs only in Uniprocessor, ");
 
     //
     // Determine Time Stamp
@@ -475,24 +475,22 @@ Finished:
 }
 
 /**
- * @brief Get the entrypoint of exe
+ * @brief Detect whether PE is a 32-bit PE or 64-bit PE
  * @param AddressOfFile
  * @param Is32Bit
- * @param EntryPoint
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
+PeIsPE32BitOr64Bit(const WCHAR * AddressOfFile, PBOOLEAN Is32Bit)
 {
     BOOLEAN                 Result = FALSE;
     HANDLE                  MapObjectHandle, FileHandle; // File Mapping Object
     LPVOID                  BaseAddr;                    // Pointer to the base memory of mapped file
     PIMAGE_DOS_HEADER       DosHeader;                   // Pointer to DOS Header
     PIMAGE_NT_HEADERS32     NtHeader32 = NULL;           // Pointer to NT Header 32 bit
-    PIMAGE_NT_HEADERS64     NtHeader64 = NULL;           // Pointer to NT Header 64 bit
     IMAGE_OPTIONAL_HEADER32 OpHeader32;                  // Optional Header of PE files present in NT Header structure
-    IMAGE_OPTIONAL_HEADER64 OpHeader64;                  // Optional Header of PE files present in NT Header structure
+    IMAGE_FILE_HEADER       Header;                      // Pointer to image file header of NT Header
 
     //
     // Open the EXE File
@@ -500,6 +498,7 @@ PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
     FileHandle = CreateFileW(AddressOfFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (FileHandle == INVALID_HANDLE_VALUE)
     {
+        ShowMessages("err, unable to read the file (%x)\n", GetLastError());
         return FALSE;
     };
 
@@ -512,6 +511,8 @@ PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
     if (MapObjectHandle == NULL)
     {
         CloseHandle(FileHandle);
+
+        ShowMessages("err, unable to create file mappings (%x)\n", GetLastError());
         return FALSE;
     }
 
@@ -520,6 +521,8 @@ PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
     if (BaseAddr == NULL)
     {
         CloseHandle(FileHandle);
+
+        ShowMessages("err, unable to create map view of file (%x)\n", GetLastError());
         return FALSE;
     }
 
@@ -534,6 +537,8 @@ PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
     if (DosHeader->e_magic != IMAGE_DOS_SIGNATURE)
     {
         Result = FALSE;
+
+        ShowMessages("err, the selected file is not in a valid PE format\n");
         goto Finished;
     }
 
@@ -543,57 +548,53 @@ PeGetEntryPoint(WCHAR * AddressOfFile, BOOLEAN Is32Bit, DWORD * EntryPoint)
     // Get the Base of NT Header(PE Header) 	= DosHeader + RVA address of PE
     // header
     //
-    if (Is32Bit)
-    {
-        NtHeader32 = (PIMAGE_NT_HEADERS32)((UINT64)(DosHeader) + (DosHeader->e_lfanew));
-    }
-    else
-    {
-        NtHeader64 = (PIMAGE_NT_HEADERS64)((UINT64)(DosHeader) + (DosHeader->e_lfanew));
-    }
+
+    NtHeader32 = (PIMAGE_NT_HEADERS32)((UINT64)(DosHeader) + (DosHeader->e_lfanew));
 
     //
     // Identify for valid PE file
     //
-    if (Is32Bit && NtHeader32->Signature == IMAGE_NT_SIGNATURE)
-    {
-        //
-        // Valid PE32
-        //
-    }
-    else if (!Is32Bit && NtHeader64->Signature == IMAGE_NT_SIGNATURE)
-    {
-        //
-        // Valid PE64
-        //
-    }
-    else
+    if (NtHeader32->Signature != IMAGE_NT_SIGNATURE)
     {
         Result = FALSE;
+
+        ShowMessages("err, invalid image NT signature\n");
         goto Finished;
     }
 
-    if (Is32Bit)
-    {
-        //
-        // Info about Optional Header
-        //
-        OpHeader32  = NtHeader32->OptionalHeader;
-        *EntryPoint = OpHeader32.AddressOfEntryPoint;
-    }
-    else
-    {
-        //
-        // Info about Optional Header
-        //
-        OpHeader64  = NtHeader64->OptionalHeader;
-        *EntryPoint = OpHeader64.AddressOfEntryPoint;
-    }
+    //
+    // Info about Optional Header
+    //
+    OpHeader32 = NtHeader32->OptionalHeader;
 
     //
-    // Set result to true
+    // Get the IMAGE FILE HEADER Structure
     //
-    Result = TRUE;
+    Header = NtHeader32->FileHeader;
+
+    //
+    // Only few are determined (for remaining refer
+    // to the above specification)
+    //
+    switch (Header.Machine)
+    {
+    case IMAGE_FILE_MACHINE_I386:
+        *Is32Bit = TRUE;
+        Result   = TRUE;
+        goto Finished;
+        break;
+    case IMAGE_FILE_MACHINE_AMD64:
+        *Is32Bit = FALSE;
+        Result   = TRUE;
+        goto Finished;
+        break;
+    default:
+        ShowMessages("err, PE file is not i386 or AMD64; thus, it's not supported "
+                     "in HyperDbg\n");
+        Result = FALSE;
+        goto Finished;
+        break;
+    }
 
 Finished:
     //

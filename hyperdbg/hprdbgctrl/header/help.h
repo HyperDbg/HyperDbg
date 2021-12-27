@@ -236,3 +236,6 @@ CommandDtHelp();
 
 VOID
 CommandKHelp();
+
+VOID
+CommandPeHelp();

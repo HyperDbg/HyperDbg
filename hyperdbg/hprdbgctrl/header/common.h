@@ -77,6 +77,9 @@ VOID
 GetConfigFilePath(PWCHAR ConfigPath);
 
 VOID
+StringToWString(std::wstring & ws, const std::string & s);
+
+VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, std::string Command);
 
 std::vector<std::string>
