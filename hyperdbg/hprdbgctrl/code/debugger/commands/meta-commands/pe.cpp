@@ -21,8 +21,8 @@ using namespace std;
 VOID
 CommandPeHelp()
 {
-    ShowMessages(".logopen : save commands and results in a file.\n\n");
-    ShowMessages("syntax : \t.logopen [header | section] [Section Name] [FilePath]\n");
+    ShowMessages(".pe : parse Portable Executable (PE) files and dump sections.\n\n");
+    ShowMessages("syntax : \t.pe [header | section] [Section Name] [FilePath]\n");
     ShowMessages("\t\te.g : .pe header c:\\reverse files\\myfile.exe\n");
     ShowMessages("\t\te.g : .pe section .text c:\\reverse files\\myfile.exe\n");
     ShowMessages("\t\te.g : .pe section .rdata c:\\reverse files\\myfile.exe\n");
