@@ -13,6 +13,7 @@ HyperDbg is a large-scale project that requires a lot of time and effort from th
 - Adding an assembler to the project
 - Enhancing HyperDbg's [Transparent Mode](https://docs.hyperdbg.org/using-hyperdbg/prerequisites/operation-modes#transparent-mode), especially anti-hypervisor methods
 - Making a SoftICE-style GUI
+- Enhancing and adding more features to the ['.pe'](https://docs.hyperdbg.org/commands/meta-commands/.pe) command
 - Anything else you might find interesting ;)
 
 This list will be updated frequently.
