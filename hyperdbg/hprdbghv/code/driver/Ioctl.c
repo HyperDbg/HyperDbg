@@ -42,7 +42,6 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER            DebuggerSendUsermodeMessageRequest;
     PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggerSendBufferFromDebuggeeToDebuggerRequest;
     PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS               DebuggerAttachOrDetachToThreadRequest;
-    PDEBUGGER_STEPPINGS                                     DebuggerSteppingsRequest;
     PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
     PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
@@ -725,52 +724,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             // Perform the flush
             //
-            SteppingsAttachOrDetachToThread(DebuggerAttachOrDetachToThreadRequest);
+            //SteppingsAttachOrDetachToThread(DebuggerAttachOrDetachToThreadRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
-            Status                    = STATUS_SUCCESS;
-
-            //
-            // Avoid zeroing it
-            //
-            DoNotChangeInformation = TRUE;
-
-            break;
-
-        case IOCTL_DEBUGGER_STEPPINGS:
-
-            //
-            // First validate the parameters.
-            //
-            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGER_STEPPINGS ||
-                Irp->AssociatedIrp.SystemBuffer == NULL)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                LogError("Err, invalid parameter to IOCTL dispatcher");
-                break;
-            }
-
-            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
-            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
-
-            if (!InBuffLength || !OutBuffLength)
-            {
-                Status = STATUS_INVALID_PARAMETER;
-                break;
-            }
-
-            //
-            // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
-            //
-            DebuggerSteppingsRequest = (PDEBUGGER_STEPPINGS)Irp->AssociatedIrp.SystemBuffer;
-
-            //
-            // Perform the steppings action
-            //
-            SteppingsPerformAction(DebuggerSteppingsRequest);
-
-            Irp->IoStatus.Information = SIZEOF_DEBUGGER_STEPPINGS;
             Status                    = STATUS_SUCCESS;
 
             //

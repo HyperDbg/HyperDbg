@@ -209,9 +209,6 @@
     <ClCompile Include="code\debugger\commands\ExtensionCommands.c">
       <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\communication\GdbStub.c">
-      <Filter>code\debugger\communication</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\communication\SerialConnection.c">
       <Filter>code\debugger\communication</Filter>
     </ClCompile>
@@ -240,9 +237,6 @@
       <Filter>code\debugger\core</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\core\Kd.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\Steppings.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\core\Termination.c">
@@ -285,6 +279,9 @@
       <Filter>code\vmm\vmx</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\user-level\UserAccess.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\Attaching.c">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
   </ItemGroup>
@@ -361,9 +358,6 @@
     <ClInclude Include="header\debugger\commands\ExtensionCommands.h">
       <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\communication\GdbStub.h">
-      <Filter>header\debugger\communication</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\communication\SerialConnection.h">
       <Filter>header\debugger\communication</Filter>
     </ClInclude>
@@ -389,9 +383,6 @@
       <Filter>header\debugger\core</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\Kd.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Steppings.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\Termination.h">
@@ -425,6 +416,9 @@
       <Filter>header\vmm\vmx</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\user-level\UserAccess.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\Attaching.h">
       <Filter>header\debugger\user-level</Filter>
     </ClInclude>
   </ItemGroup>

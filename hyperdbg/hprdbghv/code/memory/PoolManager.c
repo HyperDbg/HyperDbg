@@ -59,11 +59,6 @@ PoolManagerInitialize()
     PoolManagerRequestAllocation(sizeof(HIDDEN_HOOKS_DETOUR_DETAILS), 5, DETOUR_HOOK_DETAILS);
 
     //
-    // Request pages for thread steppings detail
-    //
-    PoolManagerRequestAllocation(sizeof(DEBUGGER_STEPPING_THREAD_DETAILS), 2, THREAD_STEPPINGS_DETAIIL);
-
-    //
     // Request pages for breakpoint detail
     //
     PoolManagerRequestAllocation(sizeof(DEBUGGEE_BP_DESCRIPTOR),

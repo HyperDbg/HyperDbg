@@ -600,68 +600,6 @@ EptLogicalProcessorInitialize()
 }
 
 /**
- * @brief Initialize Secondary EPT for an individual logical processor
- * @details Creates an identity mapped page table and sets up an EPTP to be applied to the VMCS later
- * this identity map will be used in debugger mechanisms
- * 
- * @return BOOLEAN 
- */
-BOOLEAN
-EptInitializeSeconadaryEpt()
-{
-    PVMM_EPT_PAGE_TABLE PageTable;
-    EPTP                EPTP = {0};
-
-    //
-    // Allocate the identity mapped page table
-    //
-    PageTable = EptAllocateAndCreateIdentityPageTable();
-    if (!PageTable)
-    {
-        LogError("Err, unable to allocate memory for EPT");
-        return FALSE;
-    }
-
-    //
-    // Virtual address to the page table to keep track of it for later freeing
-    //
-    g_EptState->SecondaryEptPageTable = PageTable;
-
-    //
-    // For performance, we let the processor know it can cache the EPT
-    //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
-
-    //
-    // We are not utilizing the 'access' and 'dirty' flag features
-    //
-    EPTP.EnableAccessAndDirtyFlags = FALSE;
-
-    //
-    // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
-    // see Section 28.2.2
-    //
-    EPTP.PageWalkLength = 3;
-
-    //
-    // The physical page number of the page table we will be using
-    //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
-
-    //
-    // We will write the EPTP to the VMCS later
-    //
-    g_EptState->SecondaryEptPointer = EPTP;
-
-    //
-    // Set the secondary table to initialized state
-    //
-    g_EptState->SecondaryInitialized = TRUE;
-
-    return TRUE;
-}
-
-/**
  * @brief Check if this exit is due to a violation caused by a currently hooked page
  * @details If the memory access attempt was RW and the page was marked executable, the page is swapped with
  * the original page.
