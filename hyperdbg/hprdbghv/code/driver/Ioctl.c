@@ -722,9 +722,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerAttachOrDetachToThreadRequest = (PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)Irp->AssociatedIrp.SystemBuffer;
 
             //
-            // Perform the flush
+            // Perform the attach to the target process
             //
-            //SteppingsAttachOrDetachToThread(DebuggerAttachOrDetachToThreadRequest);
+            AttachingTargetProcess(DebuggerAttachOrDetachToThreadRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
             Status                    = STATUS_SUCCESS;

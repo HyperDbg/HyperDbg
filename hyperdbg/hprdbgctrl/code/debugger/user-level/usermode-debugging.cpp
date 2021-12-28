@@ -223,9 +223,9 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMA
  * @param TargetPid
  * @param TargetTid
  * @param TargetFileAddress
- * @return VOID
+ * @return BOOLEAN
  */
-VOID
+BOOLEAN
 UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR * TargetFileAddress)
 {
     BOOLEAN                                  Status;
@@ -240,7 +240,7 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     {
         ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
-        return;
+        return FALSE;
     }
 
     //
@@ -302,7 +302,7 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     if (!Status)
     {
         ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
+        return FALSE;
     }
 
     //
@@ -313,5 +313,21 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
         g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
         g_DebuggingState.ConnectedProcessId          = TargetPid;
         g_DebuggingState.ConnectedThreadId           = TargetTid;
+
+        ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
+        ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
+        ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
+
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
     }
+    else
+    {
+        ShowErrorMessage(AttachRequest.Result);
+        return FALSE;
+    }
+
+    return FALSE;
 }

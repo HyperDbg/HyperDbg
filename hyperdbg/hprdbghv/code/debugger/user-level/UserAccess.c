@@ -252,8 +252,17 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
     return FALSE;
 }
 
-ULONG64
-UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
+/**
+ * @brief Get the base address and entrypoint of the process (x64)
+ * @details This function should be called in vmx non-root
+ * 
+ * @param Proc 
+ * @param BaseAddress 
+ * @param Entrypoint 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetMainModuleBaseAndEntrypointX64(PEPROCESS Proc, PUINT64 BaseAddress, PUINT64 Entrypoint)
 {
     KAPC_STATE     State;
     UNICODE_STRING Name;
@@ -267,7 +276,7 @@ UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
 
     if (!Peb)
     {
-        return NULL;
+        return FALSE;
     }
 
     KeStackAttachProcess(Proc, &State);
@@ -277,7 +286,7 @@ UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
     if (!Ldr)
     {
         KeUnstackDetachProcess(&State);
-        return NULL;
+        return FALSE;
     }
 
     //
@@ -290,16 +299,17 @@ UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
         PLDR_DATA_TABLE_ENTRY Entry =
             CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
 
-        LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+        //
+        // The first module is the main module, no need further walk
+        //
 
-        /*
-        if (RtlCompareUnicodeString(&Entry->BaseDllName, &ModuleName, TRUE) == NULL)
-        {
-            ULONG64 BaseAddr = (ULONG64)Entry->DllBase;
-            KeUnstackDetachProcess(&State);
-            return BaseAddr;
-        }
-        */
+        // LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+
+        *BaseAddress = Entry->DllBase;
+        *Entrypoint  = Entry->EntryPoint;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
     }
 
     KeUnstackDetachProcess(&State);
@@ -307,11 +317,20 @@ UserAccessGetModuleBasex64(PEPROCESS Proc, UNICODE_STRING ModuleName)
     //
     // Failed
     //
-    return NULL;
+    return FALSE;
 }
 
-ULONG
-UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
+/**
+ * @brief Get the base address and entrypoint of the process (x86)
+ * @details This function should be called in vmx non-root
+ * 
+ * @param Proc 
+ * @param BaseAddress 
+ * @param Entrypoint 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetMainModuleBaseAndEntrypointX86(PEPROCESS Proc, PUINT64 BaseAddress, PUINT64 Entrypoint)
 {
     KAPC_STATE      State;
     UNICODE_STRING  Name;
@@ -325,7 +344,7 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
 
     if (!Peb)
     {
-        return NULL;
+        return FALSE;
     }
 
     KeStackAttachProcess(Proc, &State);
@@ -335,7 +354,7 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
     if (!Ldr)
     {
         KeUnstackDetachProcess(&State);
-        return 0;
+        return FALSE;
     }
 
     //
@@ -354,26 +373,27 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
         // we are just going to force everything in
         //
         UNICODE_STRING DLLname;
-        UINT64         BaseAddress       = NULL;
+        UINT64         BaseAddr          = NULL;
         UINT64         EntrypointAddress = NULL;
 
-        BaseAddress       = Entry->DllBase;
+        BaseAddr          = Entry->DllBase;
         EntrypointAddress = Entry->EntryPoint;
 
         DLLname.Length        = Entry->FullDllName.Length;
         DLLname.MaximumLength = Entry->FullDllName.MaximumLength;
         DLLname.Buffer        = (PWCH)Entry->FullDllName.Buffer;
 
-        LogInfo("%ws  Base: %llx | Entry: %llx", DLLname.Buffer, BaseAddress, EntrypointAddress);
+        //
+        // The first module is the main module, no need further walk
+        //
 
-        /*
-           if (RtlCompareUnicodeString(&DLLname, &ModuleName, TRUE) == NULL)
-        {
-            ULONG BaseAddr = Entry->DllBase;
-            KeUnstackDetachProcess(&State);
-            return BaseAddr;
-        }
-        */
+        // LogInfo("%ws  Base: %llx | Entry: %llx", DLLname.Buffer, BaseAddr, EntrypointAddress);
+
+        *BaseAddress = Entry->DllBase;
+        *Entrypoint  = Entry->EntryPoint;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
     }
 
     KeUnstackDetachProcess(&State);
@@ -381,7 +401,7 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
     //
     // Failed
     //
-    return NULL;
+    return FALSE;
 }
 
 /**
@@ -389,16 +409,21 @@ UserAccessGetModuleBasex86(PEPROCESS Proc, UNICODE_STRING ModuleName)
  * @details This function should be called in vmx non-root
  * 
  * @param ProcessId 
+ * @param Is32Bit
  * @param BaseAddress 
+ * @param Entrypoint
+ * 
  * @return BOOLEAN 
  */
 BOOLEAN
-UserAccessGetBaseOfModuleFromProcessId(HANDLE ProcessId, PUINT64 BaseAddress)
+UserAccessGetBaseOfModuleFromProcessId(HANDLE   ProcessId,
+                                       PBOOLEAN Is32Bit,
+                                       PUINT64  BaseAddress,
+                                       PUINT64  Entrypoint)
 {
     UNICODE_STRING FunctionName;
-
-    PEPROCESS  SourceProcess;
-    KAPC_STATE State = {0};
+    PEPROCESS      SourceProcess;
+    KAPC_STATE     State = {0};
 
     if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
@@ -448,16 +473,25 @@ UserAccessGetBaseOfModuleFromProcessId(HANDLE ProcessId, PUINT64 BaseAddress)
         //
         // x86 process, walk x86 module list
         //
-        UNICODE_STRING Temp = {0};
-        UserAccessGetModuleBasex86(SourceProcess, Temp);
+
+        *Is32Bit = TRUE;
+
+        if (UserAccessGetMainModuleBaseAndEntrypointX86(SourceProcess, BaseAddress, Entrypoint))
+        {
+            return TRUE;
+        }
     }
     else if (g_PsGetProcessPeb(SourceProcess))
     {
         //
         // x64 process, walk x64 module list
         //
-        UNICODE_STRING Temp = {0};
-        UserAccessGetModuleBasex64(SourceProcess, Temp);
+        *Is32Bit = FALSE;
+
+        if (UserAccessGetMainModuleBaseAndEntrypointX64(SourceProcess, BaseAddress, Entrypoint))
+        {
+            return TRUE;
+        }
     }
     else
     {
@@ -467,5 +501,5 @@ UserAccessGetBaseOfModuleFromProcessId(HANDLE ProcessId, PUINT64 BaseAddress)
         return FALSE;
     }
 
-    return TRUE;
+    return FALSE;
 }

@@ -36,5 +36,5 @@ UsermodeDebuggingListProcessThreads(DWORD OwnerPID);
 BOOLEAN
 UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid);
 
-VOID
+BOOLEAN
 UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR * TargetFileAddress);

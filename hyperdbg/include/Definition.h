@@ -1479,9 +1479,12 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
     BOOLEAN IsAttach;
     BOOLEAN IsStartingNewProcess;
-    UINT64  Result;
     UINT32  ProcessId;
     UINT64  ThreadId;
+    BOOLEAN Is32Bit;
+    UINT64  BaseAddressOfMainModule;
+    UINT64  EntrypoinOfMainModule;
+    UINT64  Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
@@ -2269,6 +2272,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  *
  */
 #define DEBUGGER_ERROR_INVALID_TEST_QUERY_INDEX 0xc0000029
+
+/**
+ * @brief error, failed to attach to the target user-mode process
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS 0xc000002a
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
