@@ -116,6 +116,9 @@
     <ClInclude Include="header\pe-parser.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\usermode-debugging.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

@@ -124,6 +124,7 @@
     <ClInclude Include="header\symbol.h" />
     <ClInclude Include="header\tests.h" />
     <ClInclude Include="header\transparency.h" />
+    <ClInclude Include="header\usermode-debugging.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>

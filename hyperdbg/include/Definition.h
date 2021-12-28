@@ -1478,6 +1478,7 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
     BOOLEAN IsAttach;
+    BOOLEAN IsStartingNewProcess;
     UINT64  Result;
     UINT32  ProcessId;
     UINT64  ThreadId;

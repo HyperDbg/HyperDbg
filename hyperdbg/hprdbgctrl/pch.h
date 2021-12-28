@@ -95,6 +95,7 @@
 #    include "header/forwarding.h"
 #    include "header/kd.h"
 #    include "header/pe-parser.h"
+#    include "header/usermode-debugging.h"
 
 #endif // PCH_H
 
