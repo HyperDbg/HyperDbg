@@ -235,7 +235,7 @@ ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
             //
             // Split the ip and port by : delimiter
             //
-            IpPortDelimiter = ":";
+            IpPortDelimiter = ':';
             size_t find     = Description.find(IpPortDelimiter);
             Ip              = Description.substr(0, find);
             Port            = Description.substr(find + 1, find + Description.size());

@@ -77,7 +77,7 @@ const char *
 SymTagStr(ULONG Tag);
 
 BOOLEAN
-SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BOOLEAN IsSilentLoad);
+SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad);
 
 VOID
 SymbolAbortLoading();

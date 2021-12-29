@@ -380,7 +380,7 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
-SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result)
+SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 {
     BOOLEAN IsFound            = FALSE;
     BOOLEAN HasError           = NULL;

@@ -126,7 +126,7 @@ VOID
 CommandFlushRequestFlush();
 
 UINT64
-GetCommandAttributes(string FirstCommand);
+GetCommandAttributes(const string & FirstCommand);
 
 VOID
 AttachToProcess(UINT32 TargetPid, UINT32 TargetTid);

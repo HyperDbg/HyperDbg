@@ -849,8 +849,9 @@ SetType(unsigned long long * Val, unsigned char Type)
 unsigned long long int
 DecimalToInt(char * str)
 {
+    size_t                 len = strlen(str);
     unsigned long long int acc = 0;
-    for (int i = 0; i < strlen(str); i++)
+    for (int i = 0; i < len; i++)
     {
         acc *= 10;
         acc += (str[i] - '0');
@@ -864,7 +865,8 @@ DecimalToSignedInt(char * str)
     long long int acc = 0;
     if (str[0] == '-')
     {
-        for (int i = 1; i < strlen(str); i++)
+        size_t len = strlen(str);
+        for (int i = 1; i < len; i++)
         {
             acc *= 10;
             acc += (str[i] - '0');
@@ -873,7 +875,8 @@ DecimalToSignedInt(char * str)
     }
     else
     {
-        for (int i = 0; i < strlen(str); i++)
+        size_t len = strlen(str);
+        for (int i = 0; i < len; i++)
         {
             acc *= 10;
             acc += (str[i] - '0');
@@ -886,8 +889,9 @@ unsigned long long int
 HexToInt(char * str)
 {
     char                   temp;
+    size_t                 len = strlen(str);
     unsigned long long int acc = 0;
-    for (int i = 0; i < strlen(str); i++)
+    for (int i = 0; i < len; i++)
     {
         acc <<= 4;
         if (str[i] >= '0' && str[i] <= '9')
@@ -910,8 +914,9 @@ HexToInt(char * str)
 unsigned long long int
 OctalToInt(char * str)
 {
+    size_t                 len = strlen(str);
     unsigned long long int acc = 0;
-    for (int i = 0; i < strlen(str); i++)
+    for (int i = 0; i < len; i++)
     {
         acc <<= 3;
         acc += (str[i] - '0');
@@ -921,8 +926,9 @@ OctalToInt(char * str)
 unsigned long long int
 BinaryToInt(char * str)
 {
+    size_t                 len = strlen(str);
     unsigned long long int acc = 0;
-    for (int i = 0; i < strlen(str); i++)
+    for (int i = 0; i < len; i++)
     {
         acc <<= 1;
         acc += (str[i] - '0');

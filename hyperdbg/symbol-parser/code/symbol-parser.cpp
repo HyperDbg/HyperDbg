@@ -1600,7 +1600,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
  * return BOOLEAN
  */
 BOOLEAN
-SymbolPDBDownload(std::string SymName, std::string GUID, std::string SymPath, BOOLEAN IsSilentLoad)
+SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad)
 {
     vector<string> SplitedsymPath = Split(SymPath, '*');
     if (SplitedsymPath.size() < 2)
