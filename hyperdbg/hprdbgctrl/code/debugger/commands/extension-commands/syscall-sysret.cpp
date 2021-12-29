@@ -84,13 +84,14 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     BOOLEAN                            GetSyscallNumber            = FALSE;
     vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
+    string                             Cmd;
 
     //
     // Interpret and fill the general event and action fields
     //
     //
-    auto command = SplittedCommand.at(0);
-    if (!command.compare("!syscall") || !command.compare("!syscall2"))
+    Cmd = SplittedCommand.at(0);
+    if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
         if (!InterpretGeneralEventAndActionsFields(
                 &SplittedCommand,
@@ -139,7 +140,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // and we don't wanna deal with dynamic mapping of rcx (user stack)
     // in vmx-root
     //
-    if (!command.compare("!syscall") || !command.compare("!syscall2"))
+    if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
     {
         for (auto Section : SplittedCommand)
         {
@@ -163,7 +164,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                     //
                     ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 
-                    if (!command.compare("!syscall") || !command.compare("!syscall2"))
+                    if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
                     {
                         CommandSyscallHelp();
                     }
@@ -185,7 +186,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 
-                if (!command.compare("!syscall") || !command.compare("!syscall2"))
+                if (!Cmd.compare("!syscall") || !Cmd.compare("!syscall2"))
                 {
                     CommandSyscallHelp();
                 }
@@ -206,7 +207,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     //
     // Set whether it's !syscall or !syscall2 or !sysret or !sysret2
     //
-    if (!command.compare("!syscall2") || !command.compare("!sysret2"))
+    if (!Cmd.compare("!syscall2") || !Cmd.compare("!sysret2"))
     {
         //
         // It's a !syscall2 or !sysret2

@@ -208,7 +208,7 @@ NewTokenList(void)
 void
 RemoveTokenList(TOKEN_LIST TokenList)
 {
-   /* TOKEN Token;l
+    /* TOKEN Token;l
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
@@ -216,7 +216,7 @@ RemoveTokenList(TOKEN_LIST TokenList)
     }
     free(TokenList->Head);*/
     //free(TokenList);
-   
+
     return;
 }
 
@@ -573,8 +573,6 @@ IsType8Func(TOKEN Operator)
     return 0;
 }
 
-
-
 /**
 *
 *
@@ -849,39 +847,43 @@ SetType(unsigned long long * Val, unsigned char Type)
 unsigned long long int
 DecimalToInt(char * str)
 {
-    size_t                 len = strlen(str);
-    unsigned long long int acc = 0;
-    for (int i = 0; i < len; i++)
+    unsigned long long int Acc = 0;
+    size_t                 Len;
+
+    Len = strlen(str);
+    for (int i = 0; i < Len; i++)
     {
-        acc *= 10;
-        acc += (str[i] - '0');
+        Acc *= 10;
+        Acc += (str[i] - '0');
     }
-    return acc;
+    return Acc;
 }
 
 unsigned long long int
 DecimalToSignedInt(char * str)
 {
-    long long int acc = 0;
+    long long int Acc = 0;
+    size_t        Len;
+
     if (str[0] == '-')
     {
-        size_t len = strlen(str);
-        for (int i = 1; i < len; i++)
+        Len = strlen(str);
+        for (int i = 1; i < Len; i++)
         {
-            acc *= 10;
-            acc += (str[i] - '0');
+            Acc *= 10;
+            Acc += (str[i] - '0');
         }
-        return -acc;
+        return -Acc;
     }
     else
     {
-        size_t len = strlen(str);
-        for (int i = 0; i < len; i++)
+        Len = strlen(str);
+        for (int i = 0; i < Len; i++)
         {
-            acc *= 10;
-            acc += (str[i] - '0');
+            Acc *= 10;
+            Acc += (str[i] - '0');
         }
-        return acc;
+        return Acc;
     }
 }
 
@@ -890,10 +892,10 @@ HexToInt(char * str)
 {
     char                   temp;
     size_t                 len = strlen(str);
-    unsigned long long int acc = 0;
+    unsigned long long int Acc = 0;
     for (int i = 0; i < len; i++)
     {
-        acc <<= 4;
+        Acc <<= 4;
         if (str[i] >= '0' && str[i] <= '9')
         {
             temp = str[i] - '0';
@@ -906,32 +908,38 @@ HexToInt(char * str)
         {
             temp = str[i] - 'A' + 10;
         }
-        acc += temp;
+        Acc += temp;
     }
 
-    return acc;
+    return Acc;
 }
 unsigned long long int
 OctalToInt(char * str)
 {
-    size_t                 len = strlen(str);
-    unsigned long long int acc = 0;
-    for (int i = 0; i < len; i++)
+    size_t                 Len;
+    unsigned long long int Acc = 0;
+
+    Len = strlen(str);
+
+    for (int i = 0; i < Len; i++)
     {
-        acc <<= 3;
-        acc += (str[i] - '0');
+        Acc <<= 3;
+        Acc += (str[i] - '0');
     }
-    return acc;
+    return Acc;
 }
 unsigned long long int
 BinaryToInt(char * str)
 {
-    size_t                 len = strlen(str);
-    unsigned long long int acc = 0;
-    for (int i = 0; i < len; i++)
+    size_t                 Len;
+    unsigned long long int Acc = 0;
+
+    Len = strlen(str);
+
+    for (int i = 0; i < Len; i++)
     {
-        acc <<= 1;
-        acc += (str[i] - '0');
+        Acc <<= 1;
+        Acc += (str[i] - '0');
     }
-    return acc;
+    return Acc;
 }

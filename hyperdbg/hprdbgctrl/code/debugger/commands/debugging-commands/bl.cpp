@@ -36,7 +36,7 @@ CommandBlHelp()
  * @return VOID
  */
 VOID
-CommandBl(const vector<string> & SplittedCommand, string Command)
+CommandBl(vector<string> SplittedCommand, string Command)
 {
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
 

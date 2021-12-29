@@ -33,7 +33,7 @@ CommandPreallocHelp()
  * @return VOID
  */
 VOID
-CommandPrealloc(const vector<string> & SplittedCommand, string Command)
+CommandPrealloc(vector<string> SplittedCommand, string Command)
 {
     BOOL                      Status;
     ULONG                     ReturnedLength;

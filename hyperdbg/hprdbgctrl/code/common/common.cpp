@@ -522,13 +522,15 @@ IsFileExistW(const wchar_t * FileName)
 BOOLEAN
 IsEmptyString(char * Text)
 {
+    size_t Len;
+
     if (Text == NULL || Text[0] == '\0')
     {
         return TRUE;
     }
 
-    size_t len = strlen(Text);
-    for (size_t i = 0; i < len; i++)
+    Len = strlen(Text);
+    for (size_t i = 0; i < Len; i++)
     {
         if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != ' \n')
         {

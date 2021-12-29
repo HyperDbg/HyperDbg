@@ -531,7 +531,7 @@ VOID
 CommandProcess(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandThread(const vector<string> & SplittedCommand, string Command);
+CommandThread(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandEval(vector<string> SplittedCommand, string Command);
@@ -543,13 +543,13 @@ VOID
 CommandBp(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandBl(const vector<string> & SplittedCommand, string Command);
+CommandBl(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandBe(const vector<string> & SplittedCommand, string Command);
+CommandBe(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandBd(const vector<string> & SplittedCommand, string Command);
+CommandBd(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandBc(vector<string> SplittedCommand, string Command);
@@ -564,7 +564,7 @@ VOID
 CommandX(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandPrealloc(const vector<string> & SplittedCommand, string Command);
+CommandPrealloc(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandDt(vector<string> SplittedCommand, string Command);
