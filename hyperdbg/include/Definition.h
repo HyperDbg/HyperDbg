@@ -1150,36 +1150,6 @@ typedef struct _DEBUGGER_READ_MEMORY
 /* ==============================================================================================
  */
 
-#define SIZEOF_DEBUGGER_STEPPINGS sizeof(DEBUGGER_STEPPINGS)
-
-/**
- * @brief Actions to debugging thread's
- *
- */
-typedef enum _DEBUGGER_STEPPINGS_ACTIONS_ENUM
-{
-    STEPPINGS_ACTION_STEP_INTO,
-    STEPPINGS_ACTION_STEP_OUT,
-    STEPPINGS_ACTION_CONTINUE
-
-} DEBUGGER_STEPPINGS_ACTIONS_ENUM;
-
-/**
- * @brief request for step-in and step-out
- *
- */
-typedef struct _DEBUGGER_STEPPINGS
-{
-    UINT32                          KernelStatus;
-    UINT32                          ProcessId;
-    UINT32                          ThreadId;
-    DEBUGGER_STEPPINGS_ACTIONS_ENUM SteppingAction;
-
-} DEBUGGER_STEPPINGS, *PDEBUGGER_STEPPINGS;
-
-/* ==============================================================================================
- */
-
 #define SIZEOF_DEBUGGER_FLUSH_LOGGING_BUFFERS \
     sizeof(DEBUGGER_FLUSH_LOGGING_BUFFERS)
 
@@ -1508,9 +1478,13 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
     BOOLEAN IsAttach;
-    UINT64  Result;
+    BOOLEAN IsStartingNewProcess;
     UINT32  ProcessId;
     UINT64  ThreadId;
+    BOOLEAN Is32Bit;
+    UINT64  BaseAddressOfMainModule;
+    UINT64  EntrypoinOfMainModule;
+    UINT64  Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
@@ -2299,6 +2273,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGGER_ERROR_INVALID_TEST_QUERY_INDEX 0xc0000029
 
+/**
+ * @brief error, failed to attach to the target user-mode process
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS 0xc000002a
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -2415,72 +2395,65 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80e, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, steppings (step-in & step-out)
- *
- */
-#define IOCTL_DEBUGGER_STEPPINGS \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80f, METHOD_BUFFERED, FILE_ANY_ACCESS)
-
-/**
  * @brief ioctl, print states (Deprecated)
  *
  *
  */
 #define IOCTL_DEBUGGER_PRINT \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x810, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80f, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, prepare debuggee
  *
  */
 #define IOCTL_PREPARE_DEBUGGEE \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x810, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, pause and halt the system
  *
  */
 #define IOCTL_PAUSE_PACKET_RECEIVED \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x812, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x811, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, send a signal that execution of command finished
  *
  */
 #define IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x813, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x812, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, send user-mode messages to the debugger
  *
  */
 #define IOCTL_SEND_USERMODE_MESSAGES_TO_DEBUGGER \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x814, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x813, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, send general buffer from debuggee to debugger
  *
  */
 #define IOCTL_SEND_GENERAL_BUFFER_FROM_DEBUGGEE_TO_DEBUGGER \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x814, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, collects a buffer from kernel-side testing informations
  *
  */
 #define IOCTL_SEND_GET_KERNEL_SIDE_TEST_INFORMATION \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x815, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, to perform kernel-side tests
  *
  */
 #define IOCTL_PERFROM_KERNEL_SIDE_TESTS \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x816, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
  * @brief ioctl, to reserve pre-allocated pools
  *
  */
 #define IOCTL_RESERVE_PRE_ALLOCATED_POOLS \
-    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x818, METHOD_BUFFERED, FILE_ANY_ACCESS)
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)

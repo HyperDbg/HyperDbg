@@ -113,6 +113,12 @@
     <ClInclude Include="header\transparency.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="header\pe-parser.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\usermode-debugging.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -405,6 +411,12 @@
     </ClCompile>
     <ClCompile Include="code\debugger\user-level\usermode-debugging.cpp">
       <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\pe-parser.cpp">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp">
+      <Filter>code\debugger\commands\meta-commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

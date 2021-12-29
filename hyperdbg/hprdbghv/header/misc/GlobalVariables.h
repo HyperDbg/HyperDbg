@@ -112,24 +112,6 @@ BOOLEAN g_TransparentMode;
 TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 
 /**
- * @brief details relating to nop-sled page
- * 
- */
-DEBUGGER_STEPPINGS_NOP_SLED g_SteppingsNopSledState;
-
-/**
- * @brief shows whether the stepping mechanism is enabled or disabled
- * 
- */
-BOOLEAN g_EnableDebuggerSteppings;
-
-/**
- * @brief holds the thread states for debugger on steppings
- * 
- */
-LIST_ENTRY g_ThreadDebuggingStates;
-
-/**
  * @brief shows whether the kernel debugger is enabled or disabled
  * 
  */
@@ -247,9 +229,3 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
  * 
  */
 UINT64 * g_MsrBitmapInvalidMsrs;
-
-/**
- * @brief Address of ZwQueryInformationProcess
- * 
- */
-QUERY_INFO_PROCESS g_ZwQueryInformationProcess;

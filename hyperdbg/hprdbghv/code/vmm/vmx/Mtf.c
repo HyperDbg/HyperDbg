@@ -167,11 +167,6 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
-    else if (g_GuestState[CurrentProcessorIndex].MtfTest)
-    {
-        SteppingsHandleThreadChanges(GuestRegs, CurrentProcessorIndex);
-        g_GuestState[CurrentProcessorIndex].MtfTest = FALSE;
-    }
     else if (g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf)
     {
         //

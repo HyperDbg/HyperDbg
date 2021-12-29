@@ -64,16 +64,16 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
         return FALSE;
     }
 
-    if (NULL == g_ZwQueryInformationProcess)
+    if (g_ZwQueryInformationProcess == NULL)
     {
         UNICODE_STRING RoutineName;
 
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
         g_ZwQueryInformationProcess =
-            (QUERY_INFO_PROCESS)MmGetSystemRoutineAddress(&RoutineName);
+            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
 
-        if (NULL == g_ZwQueryInformationProcess)
+        if (g_ZwQueryInformationProcess == NULL)
         {
             LogError("Err, cannot resolve ZwQueryInformationProcess");
             return FALSE;
@@ -223,7 +223,7 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
         g_ZwQueryInformationProcess =
-            (QUERY_INFO_PROCESS)MmGetSystemRoutineAddress(&RoutineName);
+            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
 
         if (NULL == g_ZwQueryInformationProcess)
         {
@@ -247,6 +247,258 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
 
         *Peb = ProcessPeb;
         return TRUE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Get the base address and entrypoint of the process (x64)
+ * @details This function should be called in vmx non-root
+ * 
+ * @param Proc 
+ * @param BaseAddress 
+ * @param Entrypoint 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetMainModuleBaseAndEntrypointX64(PEPROCESS Proc, PUINT64 BaseAddress, PUINT64 Entrypoint)
+{
+    KAPC_STATE     State;
+    UNICODE_STRING Name;
+    PPEB           Peb = NULL;
+    PPEB_LDR_DATA  Ldr = NULL;
+
+    //
+    // Process PEB, function is unexported and undocumented
+    //
+    Peb = (PPEB)g_PsGetProcessPeb(Proc);
+
+    if (!Peb)
+    {
+        return FALSE;
+    }
+
+    KeStackAttachProcess(Proc, &State);
+
+    Ldr = (PPEB_LDR_DATA)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return FALSE;
+    }
+
+    //
+    // loop the linked list
+    //
+    for (PLIST_ENTRY List = (PLIST_ENTRY)Ldr->ModuleListLoadOrder.Flink;
+         List != &Ldr->ModuleListLoadOrder;
+         List = (PLIST_ENTRY)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+
+        //
+        // The first module is the main module, no need further walk
+        //
+
+        // LogInfo("%ws  Base: %llx | Entry: %llx", Entry->FullDllName.Buffer, Entry->DllBase, Entry->EntryPoint);
+
+        *BaseAddress = Entry->DllBase;
+        *Entrypoint  = Entry->EntryPoint;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
+    }
+
+    KeUnstackDetachProcess(&State);
+
+    //
+    // Failed
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Get the base address and entrypoint of the process (x86)
+ * @details This function should be called in vmx non-root
+ * 
+ * @param Proc 
+ * @param BaseAddress 
+ * @param Entrypoint 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetMainModuleBaseAndEntrypointX86(PEPROCESS Proc, PUINT64 BaseAddress, PUINT64 Entrypoint)
+{
+    KAPC_STATE      State;
+    UNICODE_STRING  Name;
+    PPEB32          Peb = NULL;
+    PPEB_LDR_DATA32 Ldr = NULL;
+
+    //
+    // get process PEB for the x86 part, function is unexported and undocumented
+    //
+    Peb = (PPEB32)g_PsGetProcessWow64Process(Proc);
+
+    if (!Peb)
+    {
+        return FALSE;
+    }
+
+    KeStackAttachProcess(Proc, &State);
+
+    Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return FALSE;
+    }
+
+    //
+    // loop the linked list
+    //
+    for (PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr->InLoadOrderModuleList.Flink;
+         List != &Ldr->InLoadOrderModuleList;
+         List = (PLIST_ENTRY32)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY32 Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+
+        //
+        // since the PEB is x86, the DLL is x86, and so the base address is in x86 (4 byte as compared to 8 byte)
+        // and the UNICODE STRING is in 32 bit(UNICODE_STRING32), and because there is no viable conversion
+        // we are just going to force everything in
+        //
+        UNICODE_STRING DLLname;
+        UINT64         BaseAddr          = NULL;
+        UINT64         EntrypointAddress = NULL;
+
+        BaseAddr          = Entry->DllBase;
+        EntrypointAddress = Entry->EntryPoint;
+
+        DLLname.Length        = Entry->FullDllName.Length;
+        DLLname.MaximumLength = Entry->FullDllName.MaximumLength;
+        DLLname.Buffer        = (PWCH)Entry->FullDllName.Buffer;
+
+        //
+        // The first module is the main module, no need further walk
+        //
+
+        // LogInfo("%ws  Base: %llx | Entry: %llx", DLLname.Buffer, BaseAddr, EntrypointAddress);
+
+        *BaseAddress = Entry->DllBase;
+        *Entrypoint  = Entry->EntryPoint;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
+    }
+
+    KeUnstackDetachProcess(&State);
+
+    //
+    // Failed
+    //
+    return FALSE;
+}
+
+/**
+ * @brief Get the base address of loaded module from process Id
+ * @details This function should be called in vmx non-root
+ * 
+ * @param ProcessId 
+ * @param Is32Bit
+ * @param BaseAddress 
+ * @param Entrypoint
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetBaseOfModuleFromProcessId(HANDLE   ProcessId,
+                                       PBOOLEAN Is32Bit,
+                                       PUINT64  BaseAddress,
+                                       PUINT64  Entrypoint)
+{
+    UNICODE_STRING FunctionName;
+    PEPROCESS      SourceProcess;
+    KAPC_STATE     State = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    {
+        //
+        // if the process not found
+        //
+        return FALSE;
+    }
+
+    ObDereferenceObject(SourceProcess);
+
+    //
+    // Find address of PsGetProcessPeb
+    //
+    if (g_PsGetProcessPeb == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessPeb");
+        g_PsGetProcessPeb = (PsGetProcessPeb)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessPeb == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+            return FALSE;
+        }
+    }
+
+    //
+    // Find address of PsGetProcessWow64Process
+    //
+    if (g_PsGetProcessWow64Process == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessWow64Process");
+        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessWow64Process == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+            return FALSE;
+        }
+    }
+
+    //
+    // check whether the target process is 32-bit or 64-bit
+    //
+    if (g_PsGetProcessWow64Process(SourceProcess))
+    {
+        //
+        // x86 process, walk x86 module list
+        //
+
+        *Is32Bit = TRUE;
+
+        if (UserAccessGetMainModuleBaseAndEntrypointX86(SourceProcess, BaseAddress, Entrypoint))
+        {
+            return TRUE;
+        }
+    }
+    else if (g_PsGetProcessPeb(SourceProcess))
+    {
+        //
+        // x64 process, walk x64 module list
+        //
+        *Is32Bit = FALSE;
+
+        if (UserAccessGetMainModuleBaseAndEntrypointX64(SourceProcess, BaseAddress, Entrypoint))
+        {
+            return TRUE;
+        }
+    }
+    else
+    {
+        //
+        // Wtf?
+        //
+        return FALSE;
     }
 
     return FALSE;

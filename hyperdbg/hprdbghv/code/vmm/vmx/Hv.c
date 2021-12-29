@@ -198,14 +198,6 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             NewCr3Reg.Flags = NewCr3;
 
             //
-            // Check if we are in debugging thread's steppings or not
-            //
-            // if (g_EnableDebuggerSteppings)
-            // {
-            //    SteppingsHandleCr3Vmexits(NewCr3Reg, ProcessorIndex);
-            // }
-
-            //
             // Apply the new cr3
             //
             __vmx_vmwrite(GUEST_CR3, NewCr3Reg.Flags);

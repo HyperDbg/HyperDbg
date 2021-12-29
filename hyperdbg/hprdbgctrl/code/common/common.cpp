@@ -595,6 +595,21 @@ ListDirectory(const std::string & Directory, const std::string & Extension)
 }
 
 /**
+ * @brief convert std::string to std::wstring
+ *
+ * @param ws
+ * @param s
+ * @return VOID
+ */
+VOID
+StringToWString(std::wstring & ws, const std::string & s)
+{
+    std::wstring wsTmp(s.begin(), s.end());
+
+    ws = wsTmp;
+}
+
+/**
  * @brief Split path and arguments and handle strings between quotes
  *
  * @param Qargs

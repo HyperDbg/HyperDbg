@@ -175,12 +175,6 @@ DebuggerInitialize()
         RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
-    //
-    // Initialize the stepping mechanism
-    // (USER-MODE STEPPING IS NOT SUPPORTED IN THIS VERSION)
-    //
-    // SteppingsInitialize();
-
     return TRUE;
 }
 
@@ -191,11 +185,6 @@ DebuggerInitialize()
 VOID
 DebuggerUninitialize()
 {
-    //
-    // Unitialize the stepping mechanism
-    //
-    //SteppingsUninitialize();
-
     //
     //  *** Disable, terminate and clear all the events ***
     //

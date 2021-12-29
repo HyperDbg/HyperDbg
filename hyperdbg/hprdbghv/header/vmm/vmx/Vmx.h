@@ -533,26 +533,6 @@ typedef enum MOV_TO_DEBUG_REG
 //////////////////////////////////////////////////
 
 /**
- * @brief Structure to save the state of grabbing and finding a 
- * thread guest registers
- * 
- */
-typedef struct _DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS
-{
-    BOOLEAN  IsWaitingForClockInterrupt;
-    BOOLEAN  DisableExternalInterrupts;
-    BOOLEAN  ChangeToPrimaryEptp;
-    UINT64   ChangeToPrimaryEptpCurrentThreadDetail; // Original type PDEBUGGER_STEPPING_THREAD_DETAILS
-    UINT64   BufferToSaveThreadDetails;
-    UINT32   TargetProcessId;
-    UINT32   TargetThreadId;
-    CR3_TYPE TargetThreadKernelCr3;
-    UINT64   CurrentThreadLocationOnGs;
-    BOOLEAN  DebugRegisterInterceptionState;
-
-} DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS, *PDEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS;
-
-/**
  * @brief Save the state of core in the case of VMXOFF
  * 
  */
@@ -599,8 +579,6 @@ typedef struct _VIRTUAL_MACHINE_STATE
     VMX_VMXOFF_STATE                        VmxoffState;                     // Shows the vmxoff state of the guest
     VM_EXIT_TRANSPARENCY                    TransparencyState;               // The state of the debugger in transparent-mode
     PEPT_HOOKED_PAGE_DETAIL                 MtfEptHookRestorePoint;          // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    BOOLEAN                                 MtfTest;                         // It shows the detail of the hooked paged that should be restore in MTF vm-exit
-    DEBUGGER_STEPPING_CORE_SPECIFIC_DETAILS DebuggerUserModeSteppingDetails; // It shows the detail of stepping for debugger in user-mode
     MEMORY_MAPPER_ADDRESSES                 MemoryMapper;                    // Memory mapper details for each core, contains PTE Virtual Address, Actual Kernel Virtual Address
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 
