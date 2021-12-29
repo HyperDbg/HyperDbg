@@ -47,6 +47,9 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     BOOLEAN IsRunFule = FALSE;
     wstring Filepath;
 
+    ShowMessages("this command is not yet ready!\nplease don't use it for now\n\n");
+    return;
+
     if (SplittedCommand.size() <= 2)
     {
         ShowMessages("incorrect use of '.attach'\n\n");
@@ -171,8 +174,8 @@ CommandAttach(vector<string> SplittedCommand, string Command)
             //
             if (!UsermodeDebuggingCheckThreadByProcessId(TargetPid, TargetTid))
             {
-                ShowMessages("err, the thread or the process not found or the thread not "
-                             "belongs to the process\n");
+                ShowMessages("err, the thread or the process not found, or the thread not "
+                             "belongs to the process, or the thread is terminated\n");
                 return;
             }
         }

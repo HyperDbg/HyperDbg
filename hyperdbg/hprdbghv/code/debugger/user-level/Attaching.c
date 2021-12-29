@@ -13,34 +13,99 @@
 #include "..\hprdbghv\pch.h"
 
 /**
+ * @brief Initialize the attaching mechanism
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+AttachingInitialize()
+{
+    UNICODE_STRING FunctionName;
+
+    //
+    // Find address of PsGetProcessPeb
+    //
+    if (g_PsGetProcessPeb == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessPeb");
+        g_PsGetProcessPeb = (PsGetProcessPeb)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessPeb == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+
+            //
+            // Won't fail the entire debugger for not finding this
+            //
+            // return FALSE;
+        }
+    }
+
+    //
+    // Find address of PsGetProcessWow64Process
+    //
+    if (g_PsGetProcessWow64Process == NULL)
+    {
+        RtlInitUnicodeString(&FunctionName, L"PsGetProcessWow64Process");
+        g_PsGetProcessWow64Process = (PsGetProcessWow64Process)MmGetSystemRoutineAddress(&FunctionName);
+
+        if (g_PsGetProcessWow64Process == NULL)
+        {
+            LogError("Err, cannot resolve PsGetProcessPeb");
+
+            //
+            // Won't fail the entire debugger for not finding this
+            //
+            // return FALSE;
+        }
+    }
+
+    //
+    // Find address of ZwQueryInformationProcess
+    //
+    if (g_ZwQueryInformationProcess == NULL)
+    {
+        UNICODE_STRING RoutineName;
+
+        RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
+
+        g_ZwQueryInformationProcess =
+            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
+
+        if (g_ZwQueryInformationProcess == NULL)
+        {
+            LogError("Err, cannot resolve ZwQueryInformationProcess");
+
+            //
+            // Won't fail the entire debugger for not finding this
+            //
+            // return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should be called in vmx-root
  * 
  * @param AttachRequest 
- * @return BOOLEAN 
+ * @return VOID 
  */
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
-    DbgBreakPoint();
-
     //
     // Fill the BaseAddress and Entrypoint and detect whether it's a 32-bit
     // process or a 64-bit process
     //
-    if (UserAccessGetBaseOfModuleFromProcessId(AttachRequest->ProcessId,
-                                               &AttachRequest->Is32Bit,
-                                               &AttachRequest->BaseAddressOfMainModule,
-                                               &AttachRequest->EntrypoinOfMainModule))
+    if (UserAccessPrintLoadedModules(AttachRequest->ProcessId))
     {
-        DbgBreakPoint();
-
         AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     }
     else
     {
-        DbgBreakPoint();
-
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
     }
 }

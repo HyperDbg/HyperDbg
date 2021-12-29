@@ -40,7 +40,7 @@ DetachFromProcess()
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
-    ShowMessages("this command is not supported on this version\n");
+    ShowMessages("this command is not yet ready!\nplease don't use it for now\n\n");
     return;
 
     //

@@ -323,7 +323,7 @@ HyperdbgShowSignature()
         //
         // Debugging a special process
         //
-        ShowMessages("(%x:%x) HyperDbg> ", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
+        ShowMessages("%x:%x uHyperDbg> ", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {

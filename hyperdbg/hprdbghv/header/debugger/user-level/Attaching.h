@@ -15,5 +15,8 @@
 //				   Functions					//
 //////////////////////////////////////////////////
 
+BOOLEAN
+AttachingInitialize();
+
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest);
