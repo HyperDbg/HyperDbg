@@ -115,7 +115,7 @@ VOID
 CommandFlushRequestFlush();
 
 UINT64
-GetCommandAttributes(string FirstCommand);
+GetCommandAttributes(const string & FirstCommand);
 
 VOID
 DetachFromProcess();

@@ -89,7 +89,8 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // Interpret and fill the general event and action fields
     //
     //
-    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
+    auto command = SplittedCommand.at(0);
+    if (!command.compare("!syscall") || !command.compare("!syscall2"))
     {
         if (!InterpretGeneralEventAndActionsFields(
                 &SplittedCommand,
@@ -138,7 +139,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     // and we don't wanna deal with dynamic mapping of rcx (user stack)
     // in vmx-root
     //
-    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
+    if (!command.compare("!syscall") || !command.compare("!syscall2"))
     {
         for (auto Section : SplittedCommand)
         {
@@ -162,7 +163,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                     //
                     ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 
-                    if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
+                    if (!command.compare("!syscall") || !command.compare("!syscall2"))
                     {
                         CommandSyscallHelp();
                     }
@@ -184,7 +185,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
 
-                if (!SplittedCommand.at(0).compare("!syscall") || !SplittedCommand.at(0).compare("!syscall2"))
+                if (!command.compare("!syscall") || !command.compare("!syscall2"))
                 {
                     CommandSyscallHelp();
                 }
@@ -205,7 +206,7 @@ CommandSyscallAndSysret(vector<string> SplittedCommand, string Command)
     //
     // Set whether it's !syscall or !syscall2 or !sysret or !sysret2
     //
-    if (!SplittedCommand.at(0).compare("!syscall2") || !SplittedCommand.at(0).compare("!sysret2"))
+    if (!command.compare("!syscall2") || !command.compare("!sysret2"))
     {
         //
         // It's a !syscall2 or !sysret2

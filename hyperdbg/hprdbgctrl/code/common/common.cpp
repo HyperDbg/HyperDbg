@@ -527,7 +527,8 @@ IsEmptyString(char * Text)
         return TRUE;
     }
 
-    for (size_t i = 0; i < strlen(Text); i++)
+    size_t len = strlen(Text);
+    for (size_t i = 0; i < len; i++)
     {
         if (Text[i] != ' ' && Text[i] != '\t' && Text[i] != ' \n')
         {

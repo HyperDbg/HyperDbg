@@ -93,7 +93,7 @@ CommandThreadListThreads(UINT64 Eprocess)
  * @return VOID
  */
 VOID
-CommandThread(vector<string> SplittedCommand, string Command)
+CommandThread(const vector<string> & SplittedCommand, string Command)
 {
     UINT32  TargetThreadId = 0;
     UINT64  TargetThread   = 0;

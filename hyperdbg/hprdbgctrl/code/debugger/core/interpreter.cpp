@@ -469,7 +469,7 @@ HyperdbgContinuePreviousCommand()
  * @return BOOLEAN Mask of the command's attributes
  */
 UINT64
-GetCommandAttributes(string FirstCommand)
+GetCommandAttributes(const string & FirstCommand)
 {
     CommandType::iterator Iterator;
 

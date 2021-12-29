@@ -1343,7 +1343,7 @@ InterpretOutput(vector<string> * SplittedCommand,
     string         Token;
     int            NewIndexToRemove                     = 0;
     int            Index                                = 0;
-    string         Delimiter                            = ",";
+    char           Delimiter                            = ',';
     size_t         Pos                                  = 0;
     vector<string> SplittedCommandCaseSensitiveInstance = *SplittedCommandCaseSensitive;
     UINT32         IndexInCommandCaseSensitive          = 0;
@@ -1555,7 +1555,7 @@ InterpretOutput(vector<string> * SplittedCommand,
                 InputSources.push_back(Token);
             }
 
-            AppendedFinalBuffer.erase(0, Pos + Delimiter.length());
+            AppendedFinalBuffer.erase(0, Pos + sizeof(Delimiter) / sizeof(char));
         }
 
         if (!AppendedFinalBuffer.empty())

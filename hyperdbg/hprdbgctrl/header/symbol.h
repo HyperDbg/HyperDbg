@@ -40,7 +40,7 @@ BOOLEAN
 SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad);
 
 BOOLEAN
-SymbolConvertNameOrExprToAddress(string TextToConvert, PUINT64 Result);
+SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result);
 
 BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,

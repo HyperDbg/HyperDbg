@@ -38,7 +38,7 @@ CommandBeHelp()
  * @return VOID
  */
 VOID
-CommandBe(vector<string> SplittedCommand, string Command)
+CommandBe(const vector<string> & SplittedCommand, string Command)
 {
     UINT64                            BreakpointId;
     DEBUGGEE_BP_LIST_OR_MODIFY_PACKET Request = {0};
