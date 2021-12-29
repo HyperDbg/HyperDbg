@@ -12,6 +12,9 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**

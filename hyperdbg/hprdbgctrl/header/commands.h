@@ -349,6 +349,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_DT_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
+
 //////////////////////////////////////////////////
 //             Command Functions                //
 //////////////////////////////////////////////////
@@ -569,3 +571,6 @@ CommandDt(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandK(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandPe(vector<string> SplittedCommand, string Command);

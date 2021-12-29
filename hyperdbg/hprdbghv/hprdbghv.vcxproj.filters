@@ -132,6 +132,12 @@
     <Filter Include="header\components\registers">
       <UniqueIdentifier>{035d2800-79f5-4650-808a-f320d57db543}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\user-level">
+      <UniqueIdentifier>{76189d50-b694-4f11-9a1c-cff46ff1461c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\user-level">
+      <UniqueIdentifier>{0893d263-f8ac-4e3f-a5db-963308e7f004}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -203,9 +209,6 @@
     <ClCompile Include="code\debugger\commands\ExtensionCommands.c">
       <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\communication\GdbStub.c">
-      <Filter>code\debugger\communication</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\communication\SerialConnection.c">
       <Filter>code\debugger\communication</Filter>
     </ClCompile>
@@ -234,9 +237,6 @@
       <Filter>code\debugger\core</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\core\Kd.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\Steppings.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\core\Termination.c">
@@ -277,6 +277,12 @@
     </ClCompile>
     <ClCompile Include="code\vmm\vmx\Hv.c">
       <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\UserAccess.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\Attaching.c">
+      <Filter>code\debugger\user-level</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -352,9 +358,6 @@
     <ClInclude Include="header\debugger\commands\ExtensionCommands.h">
       <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\communication\GdbStub.h">
-      <Filter>header\debugger\communication</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\communication\SerialConnection.h">
       <Filter>header\debugger\communication</Filter>
     </ClInclude>
@@ -380,9 +383,6 @@
       <Filter>header\debugger\core</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\Kd.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
-    <ClInclude Include="header\debugger\core\Steppings.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\core\Termination.h">
@@ -414,6 +414,12 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\ProtectedHv.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\UserAccess.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\Attaching.h">
+      <Filter>header\debugger\user-level</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

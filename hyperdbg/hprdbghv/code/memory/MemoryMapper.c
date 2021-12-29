@@ -1160,7 +1160,6 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
         __try
         {
             KeStackAttachProcess(SourceProcess, &State);
-            DbgBreakPoint();
 
             //
             // Allocate (not allocate, just reserve or reserve and allocate) in memory in target process
@@ -1174,10 +1173,14 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
                 PAGE_EXECUTE_READWRITE);
 
             KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
             return STATUS_UNSUCCESSFUL;
         }
     }

@@ -54,7 +54,6 @@
 #include "..\hprdbghv\header\devices\Apic.h"
 #include "..\hprdbghv\header\debugger\core\Kd.h"
 #include "..\hprdbghv\header\vmm\vmx\Mtf.h"
-#include "..\hprdbghv\header\debugger\communication\GdbStub.h"
 #include "..\hprdbghv\header\debugger\core\DebuggerEvents.h"
 #include "..\hprdbghv\header\debugger\features\Hooks.h"
 #include "..\hprdbghv\header\vmm\vmx\Counters.h"
@@ -77,8 +76,9 @@
 #include "..\hprdbghv\header\vmm\vmx\ProtectedHv.h"
 #include "..\hprdbghv\header\vmm\vmx\IoHandler.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxMechanisms.h"
-#include "..\hprdbghv\header\debugger\core\Steppings.h"
+#include "..\hprdbghv\header\debugger\user-level\Attaching.h"
 #include "..\hprdbghv\header\debugger\core\Termination.h"
+#include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
 #include "ScriptEngineCommonDefinitions.h"
 
 //

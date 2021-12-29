@@ -76,11 +76,16 @@ MemoryManagerReadProcessMemoryNormal(HANDLE                    PID,
             CopyAddress.PhysicalAddress.QuadPart = TempPhysicalAddress.QuadPart;
             MmCopyMemory(UserBuffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, ReturnSize);
 
+            ObDereferenceObject(SourceProcess);
+
             return STATUS_SUCCESS;
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
             KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
+
             return STATUS_UNSUCCESSFUL;
         }
     }
