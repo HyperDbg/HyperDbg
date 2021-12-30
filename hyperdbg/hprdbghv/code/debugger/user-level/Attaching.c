@@ -96,16 +96,36 @@ AttachingInitialize()
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
-    //
-    // Fill the BaseAddress and Entrypoint and detect whether it's a 32-bit
-    // process or a 64-bit process
-    //
-    if (UserAccessPrintLoadedModules(AttachRequest->ProcessId))
+    PEPROCESS SourceProcess;
+
+    if (PsLookupProcessByProcessId(AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
-        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-    }
-    else
-    {
+        //
+        // if the process not found
+        //
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
     }
+
+    ObDereferenceObject(SourceProcess);
+
+    //
+    // x64 process, walk x64 module list
+    //
+
+    g_PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
+
+    //
+    // Waiting for module to be loaded anymore
+    //
+    g_IsWaitingForUserModeModuleToBeLoaded = TRUE;
+
+    BOOLEAN ResultOfApplyingEvent =
+        DebuggerEventEnableMonitorReadAndWriteForAddress(
+            g_PebAddressToMonitor,
+            AttachRequest->ProcessId,
+            TRUE,
+            TRUE);
+
+    AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }

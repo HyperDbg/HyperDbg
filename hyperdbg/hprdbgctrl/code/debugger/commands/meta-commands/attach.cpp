@@ -47,9 +47,6 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     BOOLEAN IsRunFule = FALSE;
     wstring Filepath;
 
-    ShowMessages("this command is not yet ready!\nplease don't use it for now\n\n");
-    return;
-
     if (SplittedCommand.size() <= 2)
     {
         ShowMessages("incorrect use of '.attach'\n\n");

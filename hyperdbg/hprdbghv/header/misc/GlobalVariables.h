@@ -229,3 +229,16 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
  * 
  */
 UINT64 * g_MsrBitmapInvalidMsrs;
+
+/**
+ * @brief PEB address of a process to monitor for possible changes 
+ * 
+ */
+PPEB g_PebAddressToMonitor;
+
+/**
+ * @brief Checks whether the attaching mechanism is waiting for a user-mode
+ * module to be loaded or not
+ * 
+ */
+PPEB g_IsWaitingForUserModeModuleToBeLoaded;

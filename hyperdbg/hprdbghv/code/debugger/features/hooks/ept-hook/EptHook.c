@@ -1165,6 +1165,14 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
 
         //
+        // Check whether the user-mode module needs to be investigated or not
+        //
+        if (g_IsWaitingForUserModeModuleToBeLoaded)
+        {
+            UserAccessCheckForLoadedModuleDetails();
+        }
+
+        //
         // Trigger the event related to Monitor Write
         //
         DebuggerTriggerEvents(HIDDEN_HOOK_WRITE, Regs, &TemporaryContext);
@@ -1183,6 +1191,11 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // LogInfo("Guest RIP : 0x%llx tries to read the page at :0x%llx", GuestRip, ExactAccessedAddress);
         //
+
+        if (g_IsWaitingForUserModeModuleToBeLoaded)
+        {
+            UserAccessCheckForLoadedModuleDetails();
+        }
 
         //
         // Trigger the event related to Monitor Read
