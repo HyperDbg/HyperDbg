@@ -559,12 +559,9 @@ UserAccessCheckForLoadedModuleDetails()
     if (g_PebAddressToMonitor != NULL &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_PebAddressToMonitor, &BaseAddress, &Entrypoint))
     {
-        LogInfo("Base: %016llx\tEntryPoint: %016llx", BaseAddress, Entrypoint);
+        DebugRegistersSet(2, BREAK_ON_INSTRUCTION_FETCH, FALSE, Entrypoint);
 
-        //
-        // Not waiting for module to be loaded anymore
-        //
-        g_IsWaitingForUserModeModuleToBeLoaded = FALSE;
+        // LogInfo("Base: %016llx\tEntryPoint: %016llx", BaseAddress, Entrypoint);
 
         return TRUE;
     }

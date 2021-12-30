@@ -244,6 +244,18 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             //
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
+        else if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+        {
+            //
+            // Not waiting for these event anymore
+            //
+            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+
+            //
+            // Temporarily handle everything in kernel debugger
+            //
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        }
         else if (g_KernelDebuggerState == TRUE)
         {
             //

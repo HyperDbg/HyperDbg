@@ -314,10 +314,13 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
         g_DebuggingState.ConnectedProcessId          = TargetPid;
         g_DebuggingState.ConnectedThreadId           = TargetTid;
 
-        ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
-        ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
-        ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
-        Sleep(10000);
+        // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
+        // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
+        // ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
+
+        //
+        // Resume the suspended process
+        //
         ResumeThread(ProcInfo.hThread);
 
         //

@@ -97,6 +97,7 @@ VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
     PEPROCESS SourceProcess;
+    BOOLEAN   ResultOfApplyingEvent;
 
     if (PsLookupProcessByProcessId(AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
@@ -115,17 +116,41 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 
     g_PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
 
+    if (g_PebAddressToMonitor == NULL)
+    {
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
+    }
+
     //
     // Waiting for module to be loaded anymore
     //
-    g_IsWaitingForUserModeModuleToBeLoaded = TRUE;
+    g_IsWaitingForUserModeModuleEntrypointToBeCalled = TRUE;
 
-    BOOLEAN ResultOfApplyingEvent =
+    //
+    // Enable vm-exit on Hardware debug exceptions and breakpoints
+    // so, intercept #DBs and #BP by changing exception bitmap (one core)
+    //
+    BroadcastEnableDbAndBpExitingAllCores();
+
+    //
+    // Apply monitor memory range to the PEB address
+    //
+    ResultOfApplyingEvent =
         DebuggerEventEnableMonitorReadAndWriteForAddress(
             g_PebAddressToMonitor,
             AttachRequest->ProcessId,
             TRUE,
             TRUE);
+
+    if (!ResultOfApplyingEvent)
+    {
+        g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+        g_PebAddressToMonitor                  = NULL;
+
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
+    }
 
     AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }

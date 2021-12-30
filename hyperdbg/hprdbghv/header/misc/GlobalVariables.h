@@ -238,7 +238,7 @@ PPEB g_PebAddressToMonitor;
 
 /**
  * @brief Checks whether the attaching mechanism is waiting for a user-mode
- * module to be loaded or not
+ * module to be loaded and entrypoint to be called or not
  * 
  */
-PPEB g_IsWaitingForUserModeModuleToBeLoaded;
+PPEB g_IsWaitingForUserModeModuleEntrypointToBeCalled;
