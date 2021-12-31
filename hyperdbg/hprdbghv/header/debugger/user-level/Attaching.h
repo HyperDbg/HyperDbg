@@ -12,6 +12,25 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//				   Structures					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief Description of user-mode attaching mechanism
+ * 
+ */
+typedef struct _USERMODE_ATTACHING_DETAILS
+{
+    PPEB    PebAddressToMonitor;
+    BOOLEAN IsWaitingForUserModeModuleEntrypointToBeCalled;
+    UINT64  Entrypoint;
+    UINT64  BaseAddress;
+    UINT32  ProcessId;
+    UINT32  ThreadId;
+
+} USERMODE_ATTACHING_DETAILS, *PUSERMODE_ATTACHING_DETAILS;
+
+//////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
 
@@ -20,3 +39,6 @@ AttachingInitialize();
 
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest);
+
+VOID
+AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);

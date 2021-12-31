@@ -234,11 +234,4 @@ UINT64 * g_MsrBitmapInvalidMsrs;
  * @brief PEB address of a process to monitor for possible changes 
  * 
  */
-PPEB g_PebAddressToMonitor;
-
-/**
- * @brief Checks whether the attaching mechanism is waiting for a user-mode
- * module to be loaded and entrypoint to be called or not
- * 
- */
-PPEB g_IsWaitingForUserModeModuleEntrypointToBeCalled;
+USERMODE_ATTACHING_DETAILS g_UsermodeAttachingState;

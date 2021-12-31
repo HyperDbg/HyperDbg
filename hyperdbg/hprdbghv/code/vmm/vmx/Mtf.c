@@ -88,7 +88,10 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     }
     else if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
     {
-        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+        //
+        // Check for user-mode attaching mechanisms
+        //
+        if (g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
         {
             UserAccessCheckForLoadedModuleDetails();
         }

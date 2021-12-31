@@ -473,8 +473,20 @@ const unsigned char BuildVersion[] =
 //              Debugger Internals              //
 //////////////////////////////////////////////////
 
-#define DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER         0
+/**
+ * @brief debug register for step-over
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER 0
+
+/**
+ * @brief debug register to monitor thread changes
+ */
 #define DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT 1
+
+/**
+ * @brief debug register get entrypoint of user-mode process
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT 1
 
 //////////////////////////////////////////////////
 //              Symbols Details                 //

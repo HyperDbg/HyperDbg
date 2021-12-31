@@ -244,17 +244,12 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             //
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
+        else if (g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
         {
             //
-            // Not waiting for these event anymore
+            // Handle for user-mode attaching mechanism
             //
-            g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
-
-            //
-            // Temporarily handle everything in kernel debugger
-            //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+            AttachingHandleEntrypointDebugBreak(CurrentProcessorIndex, GuestRegs);
         }
         else if (g_KernelDebuggerState == TRUE)
         {

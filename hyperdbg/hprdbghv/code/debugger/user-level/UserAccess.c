@@ -556,12 +556,23 @@ UserAccessCheckForLoadedModuleDetails()
     UINT64 BaseAddress = NULL;
     UINT64 Entrypoint  = NULL;
 
-    if (g_PebAddressToMonitor != NULL &&
-        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_PebAddressToMonitor, &BaseAddress, &Entrypoint))
+    if (g_UsermodeAttachingState.PebAddressToMonitor != NULL &&
+        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_UsermodeAttachingState.PebAddressToMonitor,
+                                                                    &BaseAddress,
+                                                                    &Entrypoint))
     {
-        DebugRegistersSet(2, BREAK_ON_INSTRUCTION_FETCH, FALSE, Entrypoint);
+        g_UsermodeAttachingState.BaseAddress = BaseAddress;
+        g_UsermodeAttachingState.Entrypoint  = Entrypoint;
 
-        // LogInfo("Base: %016llx\tEntryPoint: %016llx", BaseAddress, Entrypoint);
+        //
+        // Set debug register to get the entrypoint of user-mode processs
+        //
+        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          FALSE,
+                          Entrypoint);
+
+        // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
 
         return TRUE;
     }

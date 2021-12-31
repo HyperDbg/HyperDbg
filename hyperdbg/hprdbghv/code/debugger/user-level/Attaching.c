@@ -87,6 +87,34 @@ AttachingInitialize()
 }
 
 /**
+ * @brief Handle debug register event (#DB) for attaching to user-mode process 
+ * 
+ * @param CurrentProcessorIndex 
+ * @param GuestRegs 
+ * @return VOID 
+ */
+VOID
+AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    //
+    // Check to only break on the target process id and thread id
+    //
+    if (g_UsermodeAttachingState.ProcessId == PsGetCurrentProcessId() &&
+        g_UsermodeAttachingState.ThreadId == PsGetCurrentThreadId())
+    {
+        //
+        // Not waiting for these event anymore
+        //
+        g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+
+        //
+        // Temporarily handle everything in kernel debugger
+        //
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+    }
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should be called in vmx-root
  * 
@@ -110,22 +138,24 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 
     ObDereferenceObject(SourceProcess);
 
-    //
-    // x64 process, walk x64 module list
-    //
+    g_UsermodeAttachingState.PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
 
-    g_PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
-
-    if (g_PebAddressToMonitor == NULL)
+    if (g_UsermodeAttachingState.PebAddressToMonitor == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return;
     }
 
     //
+    // Set process details
+    //
+    g_UsermodeAttachingState.ProcessId = AttachRequest->ProcessId;
+    g_UsermodeAttachingState.ThreadId  = AttachRequest->ThreadId;
+
+    //
     // Waiting for module to be loaded anymore
     //
-    g_IsWaitingForUserModeModuleEntrypointToBeCalled = TRUE;
+    g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = TRUE;
 
     //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
@@ -138,15 +168,15 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
     //
     ResultOfApplyingEvent =
         DebuggerEventEnableMonitorReadAndWriteForAddress(
-            g_PebAddressToMonitor,
+            g_UsermodeAttachingState.PebAddressToMonitor,
             AttachRequest->ProcessId,
             TRUE,
             TRUE);
 
     if (!ResultOfApplyingEvent)
     {
-        g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
-        g_PebAddressToMonitor                  = NULL;
+        g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
+        g_UsermodeAttachingState.PebAddressToMonitor                            = NULL;
 
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return;
