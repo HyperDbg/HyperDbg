@@ -97,6 +97,11 @@ VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     //
+    // Not increment the RIP register as no instruction is intended to go
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+
+    //
     // Check to only break on the target process id and thread id
     //
     if (g_UsermodeAttachingState.ProcessId == PsGetCurrentProcessId() &&
@@ -118,8 +123,8 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Temporarily handle everything in kernel debugger
         //
-        // KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
-        LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+        //LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
     }
 }
 
