@@ -258,7 +258,7 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     // We wanna attach to a remote process
     //
-    AttachRequest.IsAttach = TRUE;
+    AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH;
 
     if (AttachRequest.IsStartingNewProcess)
     {
@@ -285,7 +285,6 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     // Send the request to the kernel
     //
-
     Status = DeviceIoControl(
         g_DeviceHandle,                                  // Handle to device
         IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
@@ -322,6 +321,70 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
         // Resume the suspended process
         //
         ResumeThread(ProcInfo.hThread);
+
+        //
+        // *** Remove the hooks ***
+        //
+
+        while (TRUE)
+        {
+            //
+            // Send the previous request with removing hook as the action
+            //
+            AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS;
+
+            //
+            // Send the request to the kernel
+            //
+            Status = DeviceIoControl(
+                g_DeviceHandle,                                  // Handle to device
+                IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                                 // code
+                &AttachRequest,                                  // Input Buffer to driver.
+                SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+                &AttachRequest,                                  // Output Buffer from driver.
+                SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                                 // buffer in bytes.
+                &ReturnedLength,                                 // Bytes placed in buffer.
+                NULL                                             // synchronous call
+            );
+
+            if (!Status)
+            {
+                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                return FALSE;
+            }
+
+            //
+            // Check whether the result of removing hooks was successful or we should
+            // re-send the request
+            //
+            if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // The hook is remove successfuly
+                //
+                break;
+            }
+            else if (AttachRequest.Result == DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED)
+            {
+                //
+                // Wait for a while until the Windows call the entrypoint
+                //
+                // ShowMessages("entrypoint is not reached, continue sending the request...\n");
+
+                Sleep(1000);
+                continue;
+            }
+            else
+            {
+                //
+                // An error happend, we should not continue
+                //
+                ShowErrorMessage(AttachRequest.Result);
+                return FALSE;
+            }
+        }
 
         //
         // The operation of attaching was successful

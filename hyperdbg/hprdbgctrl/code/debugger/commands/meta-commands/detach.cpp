@@ -65,7 +65,7 @@ DetachFromProcess()
     //
     // We wanna detach from a process
     //
-    DetachRequest.IsAttach  = FALSE;
+    DetachRequest.Action    = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH;
     DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
     DetachRequest.ThreadId  = g_DebuggingState.ConnectedThreadId;
 

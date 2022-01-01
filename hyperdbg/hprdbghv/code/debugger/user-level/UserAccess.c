@@ -535,7 +535,6 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
         //
         // x64 process, walk x64 module list
         //
-
         if (UserAccessPrintLoadedModulesX64(SourceProcess))
         {
             return TRUE;

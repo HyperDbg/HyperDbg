@@ -268,6 +268,17 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED:
+        ShowMessages("err, unable to remove hooks as the entrypoint of user-mode "
+                     "process is not reached yet (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS:
+        ShowMessages("err, unable to remove hooks (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

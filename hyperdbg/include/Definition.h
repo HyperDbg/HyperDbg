@@ -1380,6 +1380,7 @@ typedef enum _DEBUGGER_SEARCH_MEMORY_TYPE
 {
     SEARCH_PHYSICAL_MEMORY,
     SEARCH_VIRTUAL_MEMORY
+
 } DEBUGGER_SEARCH_MEMORY_TYPE;
 
 /**
@@ -1391,6 +1392,7 @@ typedef enum _DEBUGGER_SEARCH_MEMORY_BYTE_SIZE
     SEARCH_BYTE,
     SEARCH_DWORD,
     SEARCH_QWORD
+
 } DEBUGGER_SEARCH_MEMORY_BYTE_SIZE;
 
 /**
@@ -1484,19 +1486,31 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
     sizeof(DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)
 
 /**
+ * @brief different sizes on searching memory
+ *
+ */
+typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
+{
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
+
+} DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
+
+/**
  * @brief request for attaching user-mode process
  *
  */
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
-    BOOLEAN IsAttach;
-    BOOLEAN IsStartingNewProcess;
-    UINT32  ProcessId;
-    UINT64  ThreadId;
-    BOOLEAN Is32Bit;
-    UINT64  BaseAddressOfMainModule;
-    UINT64  EntrypoinOfMainModule;
-    UINT64  Result;
+    BOOLEAN                                              IsStartingNewProcess;
+    UINT32                                               ProcessId;
+    UINT64                                               ThreadId;
+    BOOLEAN                                              Is32Bit;
+    UINT64                                               BaseAddressOfMainModule;
+    UINT64                                               EntrypoinOfMainModule;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
+    UINT64                                               Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
@@ -2290,6 +2304,20 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS 0xc000002a
+
+/**
+ * @brief error, failed to remove hooks as entrypoint is not reached yet
+ * @details The caller of this functionality should keep sending the previous
+ * IOCTL until the hook is remove successfully
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED 0xc000002b
+
+/**
+ * @brief error, could not remove the previous hook
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS 0xc000002c
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

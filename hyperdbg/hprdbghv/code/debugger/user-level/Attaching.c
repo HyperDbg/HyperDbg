@@ -108,9 +108,18 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
 
         //
+        // Clear the current hw debug register
+        //
+        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          FALSE,
+                          NULL);
+
+        //
         // Temporarily handle everything in kernel debugger
         //
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        // KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
     }
 }
 
@@ -122,7 +131,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
  * @return VOID 
  */
 VOID
-AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
+AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
     PEPROCESS SourceProcess;
     BOOLEAN   ResultOfApplyingEvent;
@@ -183,4 +192,80 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
     }
 
     AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+}
+
+/**
+ * @brief Clearing hooks after resuming the process
+ * @details this function should be called in vmx-root
+ * 
+ * @param AttachRequest 
+ * @return VOID 
+ */
+VOID
+AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
+{
+    //
+    // Check if the entrypoint is reached or not,
+    // if it's not reached then we won't remove the hooks
+    //
+    if (!g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
+    {
+        //
+        // The entrypoint is called, we should remove the hook
+        //
+        if (!EptHookUnHookSingleAddress(g_UsermodeAttachingState.PebAddressToMonitor,
+                                        NULL,
+                                        g_UsermodeAttachingState.ProcessId))
+        {
+            AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS;
+            return;
+        }
+        else
+        {
+            //
+            // The unhooking operation was successful
+            //
+            AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        }
+    }
+    else
+    {
+        //
+        // The entrypoint is not called, we shouldn't remove the hook
+        //
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED;
+        return;
+    }
+}
+
+/**
+ * @brief Dispatch and perform attaching tasks
+ * @details this function should be called in vmx-root
+ * 
+ * @param AttachRequest 
+ * @return VOID 
+ */
+VOID
+AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
+{
+    switch (AttachRequest->Action)
+    {
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH:
+
+        AttachingSuspendedTargetProcess(AttachRequest);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS:
+
+        AttachingRemoveHooks(AttachRequest);
+
+        break;
+
+    default:
+
+        AttachRequest->Result = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
+
+        break;
+    }
 }
