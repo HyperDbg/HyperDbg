@@ -136,6 +136,12 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     PEPROCESS SourceProcess;
     BOOLEAN   ResultOfApplyingEvent;
 
+    if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
+    {
+        AttachRequest->Result = DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED;
+        return;
+    }
+
     if (PsLookupProcessByProcessId(AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
@@ -147,7 +153,29 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 
     ObDereferenceObject(SourceProcess);
 
-    g_UsermodeAttachingState.PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
+    //
+    // check whether the target process is 32-bit or 64-bit
+    //
+    if (!UserAccessIsWow64Process(AttachRequest->ProcessId, &g_UsermodeAttachingState.Is32Bit))
+    {
+        //
+        // Unable to detect whether it's 32-bit or 64-bit
+        //
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS;
+        return;
+    }
+
+    //
+    // Get 32-bit or 64-bit PEB
+    //
+    if (g_UsermodeAttachingState.Is32Bit)
+    {
+        g_UsermodeAttachingState.PebAddressToMonitor = (PPEB32)g_PsGetProcessWow64Process(SourceProcess);
+    }
+    else
+    {
+        g_UsermodeAttachingState.PebAddressToMonitor = (PPEB)g_PsGetProcessPeb(SourceProcess);
+    }
 
     if (g_UsermodeAttachingState.PebAddressToMonitor == NULL)
     {

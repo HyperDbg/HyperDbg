@@ -236,50 +236,90 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
  * @details This function is safe to be called in vmx non-root
  * 
  * @param PebAddress 
+ * @param Is32Bit 
  * @param BaseAddress 
  * @param Entrypoint 
  * @return BOOLEAN 
  */
 BOOLEAN
-UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, PUINT64 BaseAddress, PUINT64 Entrypoint)
+UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOOLEAN Is32Bit, PUINT64 BaseAddress, PUINT64 Entrypoint)
 {
-    KAPC_STATE     State;
-    UNICODE_STRING Name;
-    PPEB_LDR_DATA  LdrAddress = NULL;
-    PEB_LDR_DATA   Ldr        = {0};
-
-    PEB Peb = {0};
-
-    MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb, sizeof(PEB));
-
-    LdrAddress = (PPEB_LDR_DATA)Peb.Ldr;
-
-    if (!LdrAddress)
+    if (Is32Bit)
     {
-        return FALSE;
-    }
+        UNICODE_STRING  Name;
+        PEB_LDR_DATA32  Ldr32        = {0};
+        PEB32           Peb32        = {0};
+        PPEB_LDR_DATA32 LdrAddress32 = NULL;
 
-    MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress, &Ldr, sizeof(PEB_LDR_DATA));
+        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb32, sizeof(PEB32));
 
-    PLIST_ENTRY List = (PLIST_ENTRY)Ldr.ModuleListLoadOrder.Flink;
+        LdrAddress32 = (PPEB_LDR_DATA32)Peb32.Ldr;
 
-    PLDR_DATA_TABLE_ENTRY EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
-    LDR_DATA_TABLE_ENTRY  Entry        = {0};
+        if (!LdrAddress32)
+        {
+            return FALSE;
+        }
 
-    MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY));
+        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress32, &Ldr32, sizeof(PEB_LDR_DATA32));
 
-    // LogInfo("base: %llx | entry: %llx", Entry.DllBase, Entry.EntryPoint);
+        PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr32.InLoadOrderModuleList.Flink;
 
-    if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
-    {
-        return FALSE;
+        PLDR_DATA_TABLE_ENTRY32 EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+        LDR_DATA_TABLE_ENTRY32  Entry        = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
+
+        if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
+        {
+            return FALSE;
+        }
+        else
+        {
+            *BaseAddress = Entry.DllBase;
+            *Entrypoint  = Entry.EntryPoint;
+
+            return TRUE;
+        }
     }
     else
     {
-        *BaseAddress = Entry.DllBase;
-        *Entrypoint  = Entry.EntryPoint;
+        UNICODE_STRING Name;
+        PPEB_LDR_DATA  LdrAddress = NULL;
+        PEB_LDR_DATA   Ldr        = {0};
 
-        return TRUE;
+        PEB Peb = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb, sizeof(PEB));
+
+        LdrAddress = (PPEB_LDR_DATA)Peb.Ldr;
+
+        if (!LdrAddress)
+        {
+            return FALSE;
+        }
+
+        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress, &Ldr, sizeof(PEB_LDR_DATA));
+
+        PLIST_ENTRY List = (PLIST_ENTRY)Ldr.ModuleListLoadOrder.Flink;
+
+        PLDR_DATA_TABLE_ENTRY EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+        LDR_DATA_TABLE_ENTRY  Entry        = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY));
+
+        // LogInfo("base: %llx | entry: %llx", Entry.DllBase, Entry.EntryPoint);
+
+        if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
+        {
+            return FALSE;
+        }
+        else
+        {
+            *BaseAddress = Entry.DllBase;
+            *Entrypoint  = Entry.EntryPoint;
+
+            return TRUE;
+        }
     }
 }
 
@@ -557,6 +597,7 @@ UserAccessCheckForLoadedModuleDetails()
 
     if (g_UsermodeAttachingState.PebAddressToMonitor != NULL &&
         UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_UsermodeAttachingState.PebAddressToMonitor,
+                                                                    g_UsermodeAttachingState.Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {

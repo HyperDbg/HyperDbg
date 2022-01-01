@@ -21,12 +21,13 @@
  */
 typedef struct _USERMODE_ATTACHING_DETAILS
 {
-    PPEB    PebAddressToMonitor;
+    PVOID   PebAddressToMonitor;
     BOOLEAN IsWaitingForUserModeModuleEntrypointToBeCalled;
     UINT64  Entrypoint;
     UINT64  BaseAddress;
     UINT32  ProcessId;
     UINT32  ThreadId;
+    BOOLEAN Is32Bit;
 
 } USERMODE_ATTACHING_DETAILS, *PUSERMODE_ATTACHING_DETAILS;
 

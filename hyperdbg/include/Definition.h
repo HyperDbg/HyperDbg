@@ -2319,6 +2319,18 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS 0xc000002c
 
+/**
+ * @brief error, the needed routines for debugging is not initialized
+ * 
+ */
+#define DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED 0xc000002d
+
+/**
+ * @brief error, unable to get 32-bit or 64-bit of the target process
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS 0xc000002e
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
