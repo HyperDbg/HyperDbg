@@ -108,23 +108,29 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         g_UsermodeAttachingState.ThreadId == PsGetCurrentThreadId())
     {
         //
+        // Show a message that we reached to the entrypoint
+        //
+        Log("Reached to the main module entrypoint (%016llx)\n", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+
+        //
         // Not waiting for these event anymore
         //
         g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
 
         //
-        // Clear the current hw debug register
+        // Temporarily handle everything in kernel debugger
+        //
+        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+    }
+    else
+    {
+        //
+        // Re-apply the hw debug reg breakpoint
         //
         DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                           BREAK_ON_INSTRUCTION_FETCH,
                           FALSE,
-                          NULL);
-
-        //
-        // Temporarily handle everything in kernel debugger
-        //
-        LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
-        KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+                          g_UsermodeAttachingState.Entrypoint);
     }
 }
 
