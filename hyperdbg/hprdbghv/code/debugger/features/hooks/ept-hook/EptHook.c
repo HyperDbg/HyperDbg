@@ -475,7 +475,7 @@ EptHookRestoreAllHooksToOrginalEntry()
     //
     if (!g_GuestState[KeGetCurrentProcessorNumber()].IsOnVmxRootMode)
     {
-        return FALSE;
+        return;
     }
 
     TempList = &g_EptState->HookedPagesList;
