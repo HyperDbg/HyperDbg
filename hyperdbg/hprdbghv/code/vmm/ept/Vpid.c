@@ -26,7 +26,7 @@ Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor)
         Descriptor                               = &ZeroDescriptor;
     }
 
-    return AsmInvvpid(Type, Descriptor);
+    AsmInvvpid(Type, Descriptor);
 }
 
 /**
