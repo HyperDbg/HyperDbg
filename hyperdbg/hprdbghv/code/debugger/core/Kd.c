@@ -907,21 +907,20 @@ KdReloadSymbolDetailsInDebuggee()
 
 /**
  * @brief Notify user-mode to about new user-input buffer
- * @details  
- * @param Buffer
+ * @param Descriptor
  * @param Len
  * 
  * @return VOID
  */
 VOID
-KdNotifyDebuggeeForUserInput(CHAR * Buffer, UINT32 Len)
+KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len)
 {
     //
     // Send user-input buffer along with operation code to
     // the user-mode
     //
     LogSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
-                  Buffer,
+                  Descriptor,
                   Len);
 }
 
@@ -2099,8 +2098,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Send the user-input to user-mode debuggee
                 //
-                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket + sizeof(DEBUGGEE_USER_INPUT_PACKET)),
-                                             UserInputPacket->CommandLen);
+                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket),
+                                             sizeof(DEBUGGEE_USER_INPUT_PACKET) + UserInputPacket->CommandLen);
 
                 //
                 // Continue Debuggee

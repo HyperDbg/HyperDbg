@@ -123,7 +123,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Temporarily handle everything in kernel debugger
         //
-        //LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+        LogInfo("I'm here at %llx   :)", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
         KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
     }
 }

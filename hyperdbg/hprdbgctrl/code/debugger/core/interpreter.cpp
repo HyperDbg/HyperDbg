@@ -158,7 +158,20 @@ HyperdbgInterpreter(char * Command)
         //
         // It's a connection over serial (Debugger-Mode)
         //
-        KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
+
+        if (CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN)
+        {
+            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, TRUE);
+
+            //
+            // Set the debuggee to show that it's running
+            //
+            KdSetStatusAndWaitForPause();
+        }
+        else
+        {
+            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, FALSE);
+        }
 
         //
         // Indicate that we sent the command to the target system

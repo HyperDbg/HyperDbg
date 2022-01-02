@@ -42,9 +42,6 @@ public:
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
-VOID
-KdBreakControlCheckAndPauseDebugger();
-
 BOOLEAN
 KdCommandPacketToDebuggee(
     DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
@@ -56,9 +53,6 @@ KdCommandPacketAndBufferToDebuggee(
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION RequestedAction,
     CHAR *                                  Buffer,
     UINT32                                  BufferLength);
-
-VOID
-KdTheRemoteSystemIsRunning();
 
 BOOLEAN
 KdPrepareSerialConnectionToRemoteSystem(HANDLE  SerialHandle,
@@ -72,9 +66,6 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
 
 BOOLEAN
 KdReceivePacketFromDebuggee(CHAR * BufferToSave, UINT32 * LengthReceived);
-
-VOID
-KdBreakControlCheckAndContinueDebugger();
 
 BOOLEAN
 KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer);
@@ -138,16 +129,13 @@ BOOLEAN
 KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 Pointer, BOOLEAN IsFormat);
 
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len);
+KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain);
 
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);
 
 BYTE
 KdComputeDataChecksum(PVOID Buffer, UINT32 Length);
-
-VOID
-KdHandleUserInputInDebuggee(CHAR * Input);
 
 BOOLEAN
 KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
@@ -159,14 +147,6 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
 
 BOOLEAN
 KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent);
-
-VOID
-KdSendUsermodePrints(CHAR * Input, UINT32 Length);
-
-VOID
-KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket,
-                         UINT32                CurrentSymbolInfoIndex,
-                         UINT32                TotalSymbols);
 
 BOOLEAN
 KdSendGeneralBuffersFromDebuggeeToDebugger(
@@ -183,3 +163,26 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee);
 
 VOID
 KdUninitializeConnection();
+
+VOID
+KdSendUsermodePrints(CHAR * Input, UINT32 Length);
+
+VOID
+KdSendSymbolDetailPacket(PMODULE_SYMBOL_DETAIL SymbolDetailPacket,
+                         UINT32                CurrentSymbolInfoIndex,
+                         UINT32                TotalSymbols);
+
+VOID
+KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor);
+
+VOID
+KdTheRemoteSystemIsRunning();
+
+VOID
+KdBreakControlCheckAndPauseDebugger();
+
+VOID
+KdBreakControlCheckAndContinueDebugger();
+
+VOID
+KdSetStatusAndWaitForPause();

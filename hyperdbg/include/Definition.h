@@ -1999,8 +1999,9 @@ typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
  */
 typedef struct _DEBUGGEE_USER_INPUT_PACKET
 {
-    UINT32 CommandLen;
-    UINT32 Result;
+    UINT32  CommandLen;
+    BOOLEAN IgnoreFinishedSignal;
+    UINT32  Result;
 
     //
     // The user's input is here
