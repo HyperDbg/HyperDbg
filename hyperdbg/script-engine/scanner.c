@@ -532,10 +532,13 @@ GetToken(char * c, char * str)
             uint8_t NotHex = 0;
             do
             {
+                char debug_tmp = *c;
                 if (*c != '`')
                     Append(Token, *c);
+
+               
                 *c = sgetc(str);
-                if (IsHex(*c))
+                if (IsHex(*c) || *c == '`')
                 {
                     // Nothing
                 }
