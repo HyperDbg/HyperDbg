@@ -50,14 +50,17 @@ IdtEmulationReInjectInterruptOrException(VMEXIT_INTERRUPT_INFO InterruptExit)
  * 
  * @param CurrentProcessorIndex processor index
  * @param InterruptExit interrupt info from vm-exit
+ * @param Address cr2 address
+ * @param ErrorCode Page-fault error code
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationHandlePageFaults(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit)
+IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
+                             VMEXIT_INTERRUPT_INFO InterruptExit,
+                             UINT64                Address,
+                             ULONG                 ErrorCode)
 {
-    ULONG ErrorCode = 0;
-
     //
     // #PF is treated differently, we have to deal with cr2 too.
     //
@@ -65,9 +68,24 @@ IdtEmulationHandlePageFaults(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO
 
     __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &PageFaultCode);
 
-    UINT64 PageFaultAddress = 0;
+    if (Address == NULL)
+    {
+        UINT64 PageFaultAddress = 0;
 
-    __vmx_vmread(EXIT_QUALIFICATION, &PageFaultAddress);
+        __vmx_vmread(EXIT_QUALIFICATION, &PageFaultAddress);
+
+        //
+        // Cr2 is used as the page-fault address
+        //
+        __writecr2(PageFaultAddress);
+    }
+    else
+    {
+        //
+        // Cr2 is used as the page-fault address
+        //
+        __writecr2(Address);
+    }
 
     //
     // Test
@@ -76,11 +94,6 @@ IdtEmulationHandlePageFaults(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO
     //
     // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
     //
-
-    //
-    // Cr2 is used as the page-fault address
-    //
-    __writecr2(PageFaultAddress);
 
     g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
@@ -94,11 +107,6 @@ IdtEmulationHandlePageFaults(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO
     //
     if (InterruptExit.ErrorCodeValid)
     {
-        //
-        // Read the error code
-        //
-        __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
-
         //
         // Write the error code
         //
@@ -117,6 +125,8 @@ IdtEmulationHandlePageFaults(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO
 VOID
 IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
 {
+    ULONG ErrorCode = 0;
+
     //
     // This type of vm-exit, can be either because of an !exception event,
     // or it might be because we triggered APIC or X2APIC to generate an
@@ -219,9 +229,14 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
     case EXCEPTION_VECTOR_PAGE_FAULT:
 
         //
+        // Read the error code
+        //
+        __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+
+        //
         // Handle page-faults
         //
-        IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit);
+        IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
 
         break;
 

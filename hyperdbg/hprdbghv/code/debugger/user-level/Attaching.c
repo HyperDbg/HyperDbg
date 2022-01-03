@@ -102,10 +102,12 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
     g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
     //
-    // Check to only break on the target process id and thread id
+    // Check to only break on the target process id and thread id and when
+    // the entrypoint is not called
     //
     if (g_UsermodeAttachingState.ProcessId == PsGetCurrentProcessId() &&
-        g_UsermodeAttachingState.ThreadId == PsGetCurrentThreadId())
+        g_UsermodeAttachingState.ThreadId == PsGetCurrentThreadId() &&
+        g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
     {
         //
         // Show a message that we reached to the entrypoint
@@ -118,7 +120,93 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
 
         //
-        // Temporarily handle everything in kernel debugger
+        // Whenever Windows calls the start entrypoint of the target PE, initially,
+        // the module is not loaded in the memory, thus a page-fault will happen and
+        // the page-fault handler will bring the module content to the memory and after
+        // that, the start entrypoint of PE is called again
+        // It's not possible for us to handle everything here without checking for the
+        // possible page-fault, it is because the first instruction is not available to be
+        // read from the memory, thus, it shows a wrong instruction and the user might not
+        // use the instrumentation step-in from the start up of the entrypoint.
+        // Because if the user uses the instrumentation step-in command then it should go
+        // the page-fault handler routine in the kernel and it's not what the user expects
+        // we inject a #PF here and let the Windows handle the page-fault. Meanwhile, we
+        // set the hardware debug breakpoint again at the start of the entrypoint, so, the
+        // next time that the instruction is about to be fetched, a vm-exit happens as a
+        // result of intercepting #DBs
+        // In some cases, there is no need to inject #PF to the guest. One example is when
+        // the target page is already available in the memory like the same process is also
+        // open in the debuggee. In these cases, we handle the break directly without injecting
+        // any page-fault
+        //
+
+        if (!CheckMemoryAccessSafety(g_UsermodeAttachingState.Entrypoint, sizeof(CHAR)))
+        {
+            // LogInfo("Injecting #PF for entrypoint at : %llx", g_UsermodeAttachingState.Entrypoint);
+
+            //
+            // Inject #PF
+            //
+            VMEXIT_INTERRUPT_INFO InterruptInfo = {0};
+
+            //
+            // We're waiting for this pointer to be called again after handling page-fault
+            //
+            g_UsermodeAttachingState.IsWaitingForReturnAndRunFromPageFault = TRUE;
+
+            //
+            // Configure the #PF injection
+            //
+
+            //
+            // InterruptExit                 [Type: _VMEXIT_INTERRUPT_INFO]
+            //
+            // [+0x000 ( 7: 0)] Vector           : 0xe [Type: unsigned int]
+            // [+0x000 (10: 8)] InterruptionType : 0x3 [Type: unsigned int]
+            // [+0x000 (11:11)] ErrorCodeValid   : 0x1 [Type: unsigned int]
+            // [+0x000 (12:12)] NmiUnblocking    : 0x0 [Type: unsigned int]
+            // [+0x000 (30:13)] Reserved         : 0x0 [Type: unsigned int]
+            // [+0x000 (31:31)] Valid            : 0x1 [Type: unsigned int]
+            // [+0x000] Flags                    : 0x80000b0e [Type: unsigned int]
+            //
+            InterruptInfo.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
+            InterruptInfo.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
+            InterruptInfo.ErrorCodeValid   = TRUE;
+            InterruptInfo.NmiUnblocking    = FALSE;
+            InterruptInfo.Valid            = TRUE;
+
+            IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, g_UsermodeAttachingState.Entrypoint, 0x14);
+
+            //
+            // Re-apply the hw debug reg breakpoint
+            //
+            DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                              BREAK_ON_INSTRUCTION_FETCH,
+                              FALSE,
+                              g_UsermodeAttachingState.Entrypoint);
+        }
+        else
+        {
+            //
+            // Address is valid, probably the module is previously loaded
+            // or another process with same image is currently running
+            // Thus, there is no need to inject #PF, we'll handle it in debugger
+            //
+            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        }
+    }
+    else if (g_UsermodeAttachingState.ProcessId == PsGetCurrentProcessId() &&
+             g_UsermodeAttachingState.ThreadId == PsGetCurrentThreadId() &&
+             g_UsermodeAttachingState.IsWaitingForReturnAndRunFromPageFault)
+    {
+        //
+        // not waiting for a break after the page-fault anymore
+        //
+        g_UsermodeAttachingState.IsWaitingForReturnAndRunFromPageFault = FALSE;
+
+        //
+        // We reached here as a result of setting the second hardware debug breakpoint
+        // and after injecting a page-fault
         //
         KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
     }

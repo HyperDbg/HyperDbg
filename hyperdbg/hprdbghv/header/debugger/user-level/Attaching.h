@@ -23,6 +23,7 @@ typedef struct _USERMODE_ATTACHING_DETAILS
 {
     PVOID   PebAddressToMonitor;
     BOOLEAN IsWaitingForUserModeModuleEntrypointToBeCalled;
+    BOOLEAN IsWaitingForReturnAndRunFromPageFault;
     UINT64  Entrypoint;
     UINT64  BaseAddress;
     UINT32  ProcessId;
