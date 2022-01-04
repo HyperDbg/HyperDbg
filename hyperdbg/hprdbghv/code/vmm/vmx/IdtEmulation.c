@@ -144,7 +144,12 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             !g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
-            KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+
+            //
+            // Handle NMI broadcast
+            //
+            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE);
+
             return;
         }
     }

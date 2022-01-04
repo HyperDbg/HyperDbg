@@ -284,6 +284,9 @@
     <ClCompile Include="code\debugger\user-level\Attaching.c">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
+    <ClCompile Include="code\vmm\vmx\VmxBroadcast.c">
+      <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -420,6 +423,9 @@
     </ClInclude>
     <ClInclude Include="header\debugger\user-level\Attaching.h">
       <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\vmm\vmx\VmxBroadcast.h">
+      <Filter>header\vmm\vmx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
