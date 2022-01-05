@@ -235,3 +235,9 @@ UINT64 * g_MsrBitmapInvalidMsrs;
  * 
  */
 USERMODE_ATTACHING_DETAILS g_UsermodeAttachingState;
+
+/**
+ * @brief details relating to nop-sled page
+ * 
+ */
+DEBUGGER_STEPPINGS_NOP_SLED g_SteppingsNopSledState;

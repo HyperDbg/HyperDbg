@@ -223,6 +223,82 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
 }
 
 /**
+ * @brief Allocate a nop-sled buffer 
+ * @param ReservedBuffAddress
+ * @param ProcessId
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingAllocateAndAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
+{
+    //
+    // Initilize nop-sled page (if not already intialized)
+    //
+    if (!g_SteppingsNopSledState.IsNopSledInitialized)
+    {
+        //
+        // Allocate memory for nop-slep
+        //
+        g_SteppingsNopSledState.NopSledVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+
+        if (g_SteppingsNopSledState.NopSledVirtualAddress == NULL)
+        {
+            //
+            // There was a problem in allocation
+            //
+            return FALSE;
+        }
+
+        RtlZeroMemory(g_SteppingsNopSledState.NopSledVirtualAddress, PAGE_SIZE);
+
+        //
+        // Fill the memory with nops
+        //
+        memset(g_SteppingsNopSledState.NopSledVirtualAddress, 0x90, PAGE_SIZE);
+
+        //
+        // Set jmps to form a loop (little endians)
+        //
+        // Disassembly of section .text:
+        // 0000000000000000 <NopLoop>:
+        // 0:  90                      nop
+        // 1:  90                      nop
+        // 2:  90                      nop
+        // 3:  90                      nop
+        // 4:  90                      nop
+        // 5:  90                      nop
+        // 6:  90                      nop
+        // 7:  90                      nop
+        // 8:  90                      nop
+        // 9:  90                      nop
+        // a:  eb f4                   jmp    0 <NopLoop>
+        //
+        *(UINT16 *)(g_SteppingsNopSledState.NopSledVirtualAddress + PAGE_SIZE - 2) = 0xf4eb;
+
+        //
+        // Convert the address to virtual address
+        //
+        g_SteppingsNopSledState.NopSledPhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(
+            g_SteppingsNopSledState.NopSledVirtualAddress);
+
+        //
+        // Indicate that it is initialized
+        //
+        g_SteppingsNopSledState.IsNopSledInitialized = TRUE;
+    }
+
+    //
+    // Set the entry address in the target process to the target nop-sled
+    //
+    MemoryMapperMapPhysicalAddressToPte(g_SteppingsNopSledState.NopSledPhysicalAddress,
+                                        ReservedBuffAddress,
+                                        GetCr3FromProcessId(ProcessId));
+
+    return TRUE;
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should be called in vmx-root
  * 
@@ -287,6 +363,30 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     g_UsermodeAttachingState.ProcessId = AttachRequest->ProcessId;
     g_UsermodeAttachingState.ThreadId  = AttachRequest->ThreadId;
+
+    //
+    // allocate memory in the target user-mode process
+    //
+    g_UsermodeAttachingState.UsermodeReservedBuffer =
+        MemoryMapperReserveUsermodeAddressInTargetProcess(AttachRequest->ProcessId, FALSE);
+
+    if (g_UsermodeAttachingState.UsermodeReservedBuffer == NULL)
+    {
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
+    }
+
+    //
+    // Adjust the nop sled buffer
+    //
+    if (!AttachingAllocateAndAdjustNopSledBuffer(g_UsermodeAttachingState.UsermodeReservedBuffer,
+                                                 g_UsermodeAttachingState.ProcessId))
+    {
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
+    }
+
+    LogInfo("Reserved address on the target process: %llx\n", g_UsermodeAttachingState.UsermodeReservedBuffer);
 
     //
     // Waiting for module to be loaded anymore
