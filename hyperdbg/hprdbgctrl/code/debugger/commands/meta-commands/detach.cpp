@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern DEBUGGING_STATE g_DebuggingState;
+extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
 
 /**
  * @brief help of .detach command
@@ -46,7 +46,7 @@ DetachFromProcess()
     //
     // Check if we attached to a process or not
     //
-    if (!g_DebuggingState.IsAttachedToUsermodeProcess)
+    if (!g_ActiveThreadDebuggingState)
     {
         ShowMessages("you're not attached to any thread\n");
         return;
@@ -60,46 +60,6 @@ DetachFromProcess()
         ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
-    }
-
-    //
-    // We wanna detach from a process
-    //
-    DetachRequest.Action    = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH;
-    DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
-    DetachRequest.ThreadId  = g_DebuggingState.ConnectedThreadId;
-
-    //
-    // Send the request to the kernel
-    //
-
-    Status = DeviceIoControl(
-        g_DeviceHandle,                                  // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
-                                                         // code
-        &DetachRequest,                                  // Input Buffer to driver.
-        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &DetachRequest,                                  // Output Buffer from driver.
-        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
-                                                         // buffer in bytes.
-        &ReturnedLength,                                 // Bytes placed in buffer.
-        NULL                                             // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
-    }
-
-    //
-    // Check if attaching was successful then we can set the attached to true
-    //
-    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
-    {
-        g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
-        g_DebuggingState.ConnectedProcessId          = NULL;
-        g_DebuggingState.ConnectedThreadId           = NULL;
     }
 }
 

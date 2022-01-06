@@ -138,6 +138,12 @@
     <Filter Include="header\debugger\user-level">
       <UniqueIdentifier>{0893d263-f8ac-4e3f-a5db-963308e7f004}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\kernel-level">
+      <UniqueIdentifier>{76f9b368-3760-4a40-b403-d99fc0e5edbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger\kernel-level">
+      <UniqueIdentifier>{775b4982-b0fa-40e7-8875-f176a39a0fa2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -236,9 +242,6 @@
     <ClCompile Include="code\debugger\core\DebuggerEvents.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\core\Kd.c">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\core\Termination.c">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
@@ -286,6 +289,12 @@
     </ClCompile>
     <ClCompile Include="code\vmm\vmx\VmxBroadcast.c">
       <Filter>code\vmm\vmx</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\kernel-level\Kd.c">
+      <Filter>code\debugger\kernel-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\Ud.c">
+      <Filter>code\debugger\user-level</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,9 +394,6 @@
     <ClInclude Include="header\debugger\core\DebuggerEvents.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
-    <ClInclude Include="header\debugger\core\Kd.h">
-      <Filter>header\debugger\core</Filter>
-    </ClInclude>
     <ClInclude Include="header\debugger\core\Termination.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
@@ -426,6 +432,12 @@
     </ClInclude>
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h">
       <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\kernel-level\Kd.h">
+      <Filter>header\debugger\kernel-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\Ud.h">
+      <Filter>header\debugger\user-level</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -19,12 +19,22 @@
  * @brief structures related to debugging
  *
  */
-typedef struct _DEBUGGING_STATE
+typedef struct _THREAD_DEBUGGING_STATE
 {
-    BOOLEAN IsAttachedToUsermodeProcess;
-    UINT64  ConnectedProcessId;
-    UINT64  ConnectedThreadId;
-} DEBUGGING_STATE, *PDEBUGGING_STATE;
+    UINT64     UniqueDebuggingId;
+    BOOLEAN    IsAttachedToUsermodeProcess;
+    UINT32     ProcessId;
+    UINT32     ThreadId;
+    BOOLEAN    IsPaused;
+    GUEST_REGS Registers;
+    UINT64     Context;  // $context
+    UINT64     GuestRip; // if IsPaused is TRUE
+    UINT64     BaseAddressOfMainModule;
+    UINT64     EntrypointOfMainModule;
+    BOOLEAN    Is32Bit;
+    LIST_ENTRY ListOfAttachedThreads;
+
+} THREAD_DEBUGGING_STATE, *PTHREAD_DEBUGGING_STATE;
 
 //////////////////////////////////////////////////
 //            	    Functions                  //

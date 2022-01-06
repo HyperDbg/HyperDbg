@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern DEBUGGING_STATE g_DebuggingState;
+extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
 
 /**
  * @brief print error messages relating to the finding thread id
@@ -309,9 +309,12 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
-        g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
-        g_DebuggingState.ConnectedProcessId          = TargetPid;
-        g_DebuggingState.ConnectedThreadId           = TargetTid;
+        g_ActiveThreadDebuggingState->IsAttachedToUsermodeProcess = TRUE;
+        g_ActiveThreadDebuggingState->ProcessId                   = TargetPid;
+        g_ActiveThreadDebuggingState->ThreadId                    = TargetTid;
+        g_ActiveThreadDebuggingState->Is32Bit                     = AttachRequest.Is32Bit;
+        g_ActiveThreadDebuggingState->BaseAddressOfMainModule     = AttachRequest.BaseAddressOfMainModule;
+        g_ActiveThreadDebuggingState->EntrypointOfMainModule      = AttachRequest.EntrypoinOfMainModule;
 
         // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
         // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
