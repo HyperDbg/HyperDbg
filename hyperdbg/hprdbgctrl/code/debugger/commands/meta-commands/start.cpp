@@ -11,6 +11,12 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern std::wstring g_StartCommandPath;
+extern std::wstring g_StartCommandPathAndArguments;
+
 /**
  * @brief help of .start command
  *
@@ -34,7 +40,8 @@ CommandStartHelp()
 VOID
 CommandStart(vector<string> SplittedCommand, string Command)
 {
-    wstring Filepath;
+    vector<string> PathAndArgs;
+    string         Arguments = "";
 
     if (SplittedCommand.size() <= 2)
     {
@@ -46,7 +53,7 @@ CommandStart(vector<string> SplittedCommand, string Command)
     if (!SplittedCommand.at(1).compare("path"))
     {
         //
-        // It's a run of target PE file
+        // *** It's a run of target PE file ***
         //
 
         //
@@ -55,9 +62,9 @@ CommandStart(vector<string> SplittedCommand, string Command)
         Trim(Command);
 
         //
-        // Remove .attach from it
+        // Remove .start from it
         //
-        Command.erase(0, 7);
+        Command.erase(0, 6);
 
         //
         // Remove path + space
@@ -70,9 +77,40 @@ CommandStart(vector<string> SplittedCommand, string Command)
         Trim(Command);
 
         //
+        // Split Path and args
+        //
+        SplitPathAndArgs(PathAndArgs, Command);
+
+        //
         // Convert path to wstring
         //
-        StringToWString(Filepath, Command);
+        StringToWString(g_StartCommandPath, PathAndArgs.at(0));
+
+        if (PathAndArgs.size() != 1)
+        {
+            //
+            // There are arguments to this command
+            //
+
+            for (auto item : PathAndArgs)
+            {
+                //
+                // Append the arguments
+                //
+                // ShowMessages("Arg : %s\n", item.c_str());
+                Arguments += item + " ";
+            }
+
+            //
+            // Remove the latest space
+            //
+            Arguments.pop_back();
+
+            //
+            // Convert arguments to wstring
+            //
+            StringToWString(g_StartCommandPathAndArguments, Arguments);
+        }
     }
     else
     {
@@ -85,5 +123,18 @@ CommandStart(vector<string> SplittedCommand, string Command)
     //
     // Perform run of the target file
     //
-    UsermodeDebuggingAttachToProcess(NULL, NULL, Filepath.c_str());
+    if (Arguments.empty())
+    {
+        UsermodeDebuggingAttachToProcess(NULL,
+                                         NULL,
+                                         g_StartCommandPath.c_str(),
+                                         NULL);
+    }
+    else
+    {
+        UsermodeDebuggingAttachToProcess(NULL,
+                                         NULL,
+                                         g_StartCommandPath.c_str(),
+                                         (WCHAR *)g_StartCommandPathAndArguments.c_str());
+    }
 }

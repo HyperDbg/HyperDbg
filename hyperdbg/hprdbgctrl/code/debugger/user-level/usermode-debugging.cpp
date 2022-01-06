@@ -179,12 +179,13 @@ UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid)
 /**
  * @brief Attach to a target process
  * @param FileName
+ * @param CommandLine
  * @param ProcessInformation
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMATION ProcessInformation)
+UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
@@ -196,7 +197,7 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMA
     // Create process suspended
     //
     CreateProcessResult = CreateProcessW(FileName,
-                                         NULL,
+                                         CommandLine,
                                          NULL,
                                          NULL,
                                          FALSE,
@@ -223,10 +224,14 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMA
  * @param TargetPid
  * @param TargetTid
  * @param TargetFileAddress
+ * @param CommandLine
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR * TargetFileAddress)
+UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
+                                 UINT32        TargetTid,
+                                 const WCHAR * TargetFileAddress,
+                                 WCHAR *       CommandLine)
 {
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
@@ -263,9 +268,18 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     if (AttachRequest.IsStartingNewProcess)
     {
         //
+        // Check if file exists or not
+        //
+        if (!IsFileExistW(TargetFileAddress))
+        {
+            ShowMessages("err, unable to start, file not found\n");
+            return FALSE;
+        }
+
+        //
         // Start the process in suspended state
         //
-        UsermodeDebuggingCreateSuspendedProcess(TargetFileAddress, &ProcInfo);
+        UsermodeDebuggingCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo);
 
         //
         // Set the process id and thread id
@@ -309,12 +323,14 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
+        /*
         g_ActiveThreadDebuggingState->IsAttachedToUsermodeProcess = TRUE;
         g_ActiveThreadDebuggingState->ProcessId                   = TargetPid;
         g_ActiveThreadDebuggingState->ThreadId                    = TargetTid;
         g_ActiveThreadDebuggingState->Is32Bit                     = AttachRequest.Is32Bit;
         g_ActiveThreadDebuggingState->BaseAddressOfMainModule     = AttachRequest.BaseAddressOfMainModule;
         g_ActiveThreadDebuggingState->EntrypointOfMainModule      = AttachRequest.EntrypoinOfMainModule;
+        */
 
         // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
         // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);

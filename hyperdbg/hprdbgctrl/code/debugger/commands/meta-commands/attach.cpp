@@ -147,5 +147,5 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     // Perform attach to target process
     //
-    UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL);
+    UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL, NULL);
 }

@@ -87,6 +87,39 @@ AttachingInitialize()
 }
 
 /**
+ * @brief Handle the state when it reached to the entrypoint 
+ * of the user-mode process 
+ * 
+ * @param CurrentProcessorIndex 
+ * @param GuestRegs 
+ * @return VOID 
+ */
+VOID
+AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+{
+    //
+    // Check if we're connect to the kHyperDbg or uHyperDbg
+    //
+    if (g_KernelDebuggerState)
+    {
+        //
+        // Handling state through the kernel-mode debugger
+        //
+        KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                              GuestRegs,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
+                                              NULL);
+    }
+    else
+    {
+        //
+        // Handling state through the user-mode debugger
+        //
+        LogInfo("Reached to the entrypoint in user-mode debugging");
+    }
+}
+
+/**
  * @brief Handle debug register event (#DB) for attaching to user-mode process 
  * 
  * @param CurrentProcessorIndex 
@@ -113,7 +146,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             //
             // Show a message that we reached to the entrypoint
             //
-            Log("Reached to the main module entrypoint (%016llx)\n", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
+            // Log("Reached to the main module entrypoint (%016llx)\n", g_GuestState[CurrentProcessorIndex].LastVmexitRip);
 
             //
             // Not waiting for these event anymore
@@ -193,7 +226,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 // or another process with same image is currently running
                 // Thus, there is no need to inject #PF, we'll handle it in debugger
                 //
-                KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+                AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs);
             }
         }
         else if (g_UsermodeAttachingState.IsWaitingForReturnAndRunFromPageFault)
@@ -207,7 +240,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             // We reached here as a result of setting the second hardware debug breakpoint
             // and after injecting a page-fault
             //
-            KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+            AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs);
         }
     }
     else
@@ -386,7 +419,10 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         return;
     }
 
-    LogInfo("Reserved address on the target process: %llx\n", g_UsermodeAttachingState.UsermodeReservedBuffer);
+    //
+    // Log for test
+    //
+    // LogInfo("Reserved address on the target process: %llx\n", g_UsermodeAttachingState.UsermodeReservedBuffer);
 
     //
     // Waiting for module to be loaded anymore

@@ -129,7 +129,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
         //
         // The first argument is the path
         //
-        printf("Arg : %s\n", item.c_str());
+        ShowMessages("Arg : %s\n", item.c_str());
     }
     */
 

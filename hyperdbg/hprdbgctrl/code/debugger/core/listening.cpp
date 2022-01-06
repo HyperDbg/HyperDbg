@@ -264,6 +264,12 @@ StartAgain:
 
                 break;
 
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+
+                ShowMessages("reached to the entrypoint of the user-mode process\n");
+
+                break;
+
             default:
                 break;
             }
@@ -326,6 +332,21 @@ StartAgain:
                 //
                 // Unpause the debugger to get commands
                 //
+                g_SyncronizationObjectsHandleTable
+                    [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                        .IsOnWaitingState = FALSE;
+                SetEvent(g_SyncronizationObjectsHandleTable
+                             [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
+                                 .EventHandle);
+
+                break;
+
+            case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+
+                //
+                // Unpause the debugger to get commands
+                //
+                ShowMessages("\n");
                 g_SyncronizationObjectsHandleTable
                     [DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING]
                         .IsOnWaitingState = FALSE;

@@ -557,3 +557,19 @@ UINT64 g_ResultOfEvaluatedExpression = NULL;
  *
  */
 UINT32 g_ErrorStateOfResultOfEvaluatedExpression = NULL;
+
+//////////////////////////////////////////////////
+//			 User mode Debugging		        //
+//////////////////////////////////////////////////
+
+/**
+ * @brief the start path used in .start command
+ *
+ */
+std::wstring g_StartCommandPath = L"";
+
+/**
+ * @brief the start arguments used in .start command
+ *
+ */
+std::wstring g_StartCommandPathAndArguments = L"";
