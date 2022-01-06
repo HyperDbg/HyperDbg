@@ -11,6 +11,11 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+
 /**
  * @brief help of .attach command
  *
@@ -19,15 +24,13 @@
 VOID
 CommandAttachHelp()
 {
-    ShowMessages(".attach : run or attach to debug a user-mode process.\n\n");
-    ShowMessages(
-        "syntax : \t.attach [path (path string)] [pid (hex)] [tid (hex)]\n");
+    ShowMessages(".attach : attach to debug a thread in VMI Mode.\n\n");
+    ShowMessages("syntax : \t.attach [pid (hex)] [tid (hex)]\n");
     ShowMessages("note : if you don't specify the thread id (id), then it shows "
                  "the list of active threads on the target process (it won't "
                  "attach to the target thread).\n");
     ShowMessages("\t\te.g : .attach pid b60 \n");
     ShowMessages("\t\te.g : .attach pid b60 tid 220 \n");
-    ShowMessages("\t\te.g : .attach path c:\\users\\sina\\reverse eng\\my_file.exe\n");
 }
 
 /**
@@ -44,157 +47,105 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     UINT64  TargetTid = 0;
     BOOLEAN NextIsPid = FALSE;
     BOOLEAN NextIsTid = FALSE;
-    BOOLEAN IsRunFule = FALSE;
-    wstring Filepath;
 
-    if (SplittedCommand.size() <= 2)
+    //
+    // It's a attach to a target PID
+    //
+    if (SplittedCommand.size() >= 6)
     {
         ShowMessages("incorrect use of '.attach'\n\n");
         CommandAttachHelp();
         return;
     }
 
-    if (!SplittedCommand.at(1).compare("path"))
+    //
+    // .attach and .detach commands are only supported in VMI Mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        //
-        // It's a run of target PE file
-        //
-
-        //
-        // Trim the command
-        //
-        Trim(Command);
-
-        //
-        // Remove .attach from it
-        //
-        Command.erase(0, 7);
-
-        //
-        // Remove path + space
-        //
-        Command.erase(0, 4 + 1);
-
-        //
-        // Trim it again
-        //
-        Trim(Command);
-
-        //
-        // Convert path to wstring
-        //
-        StringToWString(Filepath, Command);
-
-        //
-        // Indicate that it's a running file
-        //
-        IsRunFule = TRUE;
+        ShowMessages("err, '.attach', and '.detach' commands are only usable "
+                     "in VMI Mode, you can use the '.process', or the '.thread' "
+                     "in Debugger Mode\n");
+        return;
     }
-    else
+
+    for (auto item : SplittedCommand)
     {
         //
-        // It's a attach to a target PID
+        // Find out whether the user enters pid or not
         //
-        if (SplittedCommand.size() >= 6)
+        if (NextIsPid)
         {
-            ShowMessages("incorrect use of '.attach'\n\n");
-            CommandAttachHelp();
-            return;
-        }
+            NextIsPid = FALSE;
 
-        for (auto item : SplittedCommand)
-        {
-            //
-            // Find out whether the user enters pid or not
-            //
-            if (NextIsPid)
+            if (!ConvertStringToUInt64(item, &TargetPid))
             {
-                NextIsPid = FALSE;
-
-                if (!ConvertStringToUInt64(item, &TargetPid))
-                {
-                    ShowMessages("please specify a correct hex value for process id\n\n");
-                    CommandAttachHelp();
-                    return;
-                }
-            }
-            else if (NextIsTid)
-            {
-                NextIsTid = FALSE;
-
-                if (!ConvertStringToUInt64(item, &TargetTid))
-                {
-                    ShowMessages("please specify a correct hex value for thread id\n\n");
-                    CommandAttachHelp();
-                    return;
-                }
-            }
-            else if (!item.compare("pid"))
-            {
-                //
-                // next item is a pid for the process
-                //
-                NextIsPid = TRUE;
-            }
-            else if (!item.compare("tid"))
-            {
-                //
-                // next item is a tid for the thread
-                //
-                NextIsTid = TRUE;
-            }
-        }
-
-        //
-        // Check if the process id is empty or not
-        //
-        if (TargetPid == 0)
-        {
-            ShowMessages("please specify a hex value for process id\n\n");
-            CommandAttachHelp();
-            return;
-        }
-
-        //
-        // Check if the thread id is specified or not, if not then
-        // we should just show the thread of the target process
-        //
-        if (TargetTid == 0)
-        {
-            UsermodeDebuggingListProcessThreads(TargetPid);
-            return;
-        }
-        else
-        {
-            //
-            // Check if the process id and thread id is correct or not
-            //
-            if (!UsermodeDebuggingCheckThreadByProcessId(TargetPid, TargetTid))
-            {
-                ShowMessages("err, the thread or the process not found, or the thread not "
-                             "belongs to the process, or the thread is terminated\n");
+                ShowMessages("please specify a correct hex value for process id\n\n");
+                CommandAttachHelp();
                 return;
             }
         }
+        else if (NextIsTid)
+        {
+            NextIsTid = FALSE;
 
-        //
-        // Indicate that it's not a running file
-        //
-        IsRunFule = FALSE;
+            if (!ConvertStringToUInt64(item, &TargetTid))
+            {
+                ShowMessages("please specify a correct hex value for thread id\n\n");
+                CommandAttachHelp();
+                return;
+            }
+        }
+        else if (!item.compare("pid"))
+        {
+            //
+            // next item is a pid for the process
+            //
+            NextIsPid = TRUE;
+        }
+        else if (!item.compare("tid"))
+        {
+            //
+            // next item is a tid for the thread
+            //
+            NextIsTid = TRUE;
+        }
     }
 
-    if (IsRunFule)
+    //
+    // Check if the process id is empty or not
+    //
+    if (TargetPid == 0)
     {
-        //
-        // Perform run of the target file
-        //
-        UsermodeDebuggingAttachToProcess(NULL, NULL, Filepath.c_str());
+        ShowMessages("please specify a hex value for process id\n\n");
+        CommandAttachHelp();
+        return;
+    }
+
+    //
+    // Check if the thread id is specified or not, if not then
+    // we should just show the thread of the target process
+    //
+    if (TargetTid == 0)
+    {
+        UsermodeDebuggingListProcessThreads(TargetPid);
+        return;
     }
     else
     {
         //
-        // Perform attach to target process
+        // Check if the process id and thread id is correct or not
         //
-        UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL);
+        if (!UsermodeDebuggingCheckThreadByProcessId(TargetPid, TargetTid))
+        {
+            ShowMessages("err, the thread or the process not found, or the thread not "
+                         "belongs to the process, or the thread is terminated\n");
+            return;
+        }
     }
+
+    //
+    // Perform attach to target process
+    //
+    UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL);
 }

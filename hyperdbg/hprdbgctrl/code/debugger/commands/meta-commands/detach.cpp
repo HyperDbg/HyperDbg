@@ -15,6 +15,7 @@
 // Global Variables
 //
 extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of .detach command
@@ -39,9 +40,6 @@ DetachFromProcess()
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
-
-    ShowMessages("this command is not yet ready!\nplease don't use it for now\n\n");
-    return;
 
     //
     // Check if we attached to a process or not
@@ -77,6 +75,17 @@ CommandDetach(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("incorrect use of '.detach'\n\n");
         CommandDetachHelp();
+        return;
+    }
+
+    //
+    // .attach and .detach commands are only supported in VMI Mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, '.attach', and '.detach' commands are only usable "
+                     "in VMI Mode, you can use the '.process', or the '.thread' "
+                     "in Debugger Mode\n");
         return;
     }
 
