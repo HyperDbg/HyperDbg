@@ -10,13 +10,3 @@
  * 
  */
 #include "..\hprdbghv\pch.h"
-
-/**
- * @brief Test
- * 
- * @return VOID 
- */
-VOID
-UdTest()
-{
-}

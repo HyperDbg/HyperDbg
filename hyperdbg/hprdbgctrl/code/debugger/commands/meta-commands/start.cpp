@@ -26,7 +26,8 @@ VOID
 CommandStartHelp()
 {
     ShowMessages(".start : run a user-mode process.\n\n");
-    ShowMessages("syntax : \t.start [path (path string)]\n");
+    ShowMessages("syntax : \t.start [path (path string)] [parameters "
+                 "to process (string)]\n");
     ShowMessages("\t\te.g : .start path c:\\users\\sina\\reverse eng\\my_file.exe\n");
 }
 
