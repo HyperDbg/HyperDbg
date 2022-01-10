@@ -62,3 +62,9 @@ IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS Gue
 
 VOID
 IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex);
+
+BOOLEAN
+IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
+                             VMEXIT_INTERRUPT_INFO InterruptExit,
+                             UINT64                Address,
+                             ULONG                 ErrorCode);

@@ -31,6 +31,18 @@ typedef enum _SEGMENT_REGISTERS
     TR
 };
 
+/**
+ * @brief Different methods of killing a process
+ * 
+ */
+typedef enum _PROCESS_KILL_METHODS
+{
+    PROCESS_KILL_METHOD_1 = 0,
+    PROCESS_KILL_METHOD_2,
+    PROCESS_KILL_METHOD_3,
+
+} PROCESS_KILL_METHODS;
+
 //////////////////////////////////////////////////
 //				 Spinlock Funtions				//
 //////////////////////////////////////////////////
@@ -563,8 +575,26 @@ typedef enum _LOG_TYPE
 //////////////////////////////////////////////////
 //				External Functions				//
 //////////////////////////////////////////////////
+
 UCHAR *
 PsGetProcessImageFileName(IN PEPROCESS Process);
+
+NTKERNELAPI NTSTATUS NTAPI
+SeCreateAccessState(
+    PACCESS_STATE    AccessState,
+    PVOID            AuxData,
+    ACCESS_MASK      DesiredAccess,
+    PGENERIC_MAPPING Mapping);
+
+NTKERNELAPI VOID NTAPI
+SeDeleteAccessState(
+    PACCESS_STATE AccessState);
+
+PVOID
+PsGetProcessSectionBaseAddress(PEPROCESS Process); // Used to get the base address of process's executable image
+
+NTSTATUS
+MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap process's executable image
 
 //////////////////////////////////////////////////
 //			 Function Definitions				//
@@ -736,3 +766,10 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
  */
 BOOLEAN
 GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
+
+/**
+ * @brief Kill a process using different methods
+ * 
+ */
+BOOLEAN
+KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);

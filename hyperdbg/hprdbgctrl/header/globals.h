@@ -308,10 +308,10 @@ BOOLEAN g_IsCommandListInitialized = FALSE;
 BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
 
 /**
- * @brief State of debugging threads
+ * @brief State of active debugging thread
  *
  */
-DEBUGGING_STATE g_DebuggingState = {0};
+PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState = {0};
 
 /**
  * @brief This variable holds the trace and generate numbers
@@ -557,3 +557,19 @@ UINT64 g_ResultOfEvaluatedExpression = NULL;
  *
  */
 UINT32 g_ErrorStateOfResultOfEvaluatedExpression = NULL;
+
+//////////////////////////////////////////////////
+//			 User mode Debugging		        //
+//////////////////////////////////////////////////
+
+/**
+ * @brief the start path used in .start command
+ *
+ */
+std::wstring g_StartCommandPath = L"";
+
+/**
+ * @brief the start arguments used in .start command
+ *
+ */
+std::wstring g_StartCommandPathAndArguments = L"";

@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern DEBUGGING_STATE g_DebuggingState;
+extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
 
 /**
  * @brief print error messages relating to the finding thread id
@@ -179,12 +179,13 @@ UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid)
 /**
  * @brief Attach to a target process
  * @param FileName
+ * @param CommandLine
  * @param ProcessInformation
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMATION ProcessInformation)
+UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
@@ -196,7 +197,7 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMA
     // Create process suspended
     //
     CreateProcessResult = CreateProcessW(FileName,
-                                         NULL,
+                                         CommandLine,
                                          NULL,
                                          NULL,
                                          FALSE,
@@ -223,10 +224,14 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, PPROCESS_INFORMA
  * @param TargetPid
  * @param TargetTid
  * @param TargetFileAddress
+ * @param CommandLine
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR * TargetFileAddress)
+UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
+                                 UINT32        TargetTid,
+                                 const WCHAR * TargetFileAddress,
+                                 WCHAR *       CommandLine)
 {
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
@@ -258,14 +263,23 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     // We wanna attach to a remote process
     //
-    AttachRequest.IsAttach = TRUE;
+    AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH;
 
     if (AttachRequest.IsStartingNewProcess)
     {
         //
+        // Check if file exists or not
+        //
+        if (!IsFileExistW(TargetFileAddress))
+        {
+            ShowMessages("err, unable to start, file not found\n");
+            return FALSE;
+        }
+
+        //
         // Start the process in suspended state
         //
-        UsermodeDebuggingCreateSuspendedProcess(TargetFileAddress, &ProcInfo);
+        UsermodeDebuggingCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo);
 
         //
         // Set the process id and thread id
@@ -285,7 +299,6 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     // Send the request to the kernel
     //
-
     Status = DeviceIoControl(
         g_DeviceHandle,                                  // Handle to device
         IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
@@ -310,13 +323,87 @@ UsermodeDebuggingAttachToProcess(UINT32 TargetPid, UINT32 TargetTid, const WCHAR
     //
     if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
-        g_DebuggingState.IsAttachedToUsermodeProcess = TRUE;
-        g_DebuggingState.ConnectedProcessId          = TargetPid;
-        g_DebuggingState.ConnectedThreadId           = TargetTid;
+        /*
+        g_ActiveThreadDebuggingState->IsAttachedToUsermodeProcess = TRUE;
+        g_ActiveThreadDebuggingState->ProcessId                   = TargetPid;
+        g_ActiveThreadDebuggingState->ThreadId                    = TargetTid;
+        g_ActiveThreadDebuggingState->Is32Bit                     = AttachRequest.Is32Bit;
+        g_ActiveThreadDebuggingState->BaseAddressOfMainModule     = AttachRequest.BaseAddressOfMainModule;
+        g_ActiveThreadDebuggingState->EntrypointOfMainModule      = AttachRequest.EntrypoinOfMainModule;
+        */
 
-        ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
-        ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
-        ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
+        // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
+        // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
+        // ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
+
+        //
+        // Resume the suspended process
+        //
+        ResumeThread(ProcInfo.hThread);
+
+        //
+        // *** Remove the hooks ***
+        //
+
+        while (TRUE)
+        {
+            //
+            // Send the previous request with removing hook as the action
+            //
+            AttachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS;
+
+            //
+            // Send the request to the kernel
+            //
+            Status = DeviceIoControl(
+                g_DeviceHandle,                                  // Handle to device
+                IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                                 // code
+                &AttachRequest,                                  // Input Buffer to driver.
+                SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+                &AttachRequest,                                  // Output Buffer from driver.
+                SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                                 // buffer in bytes.
+                &ReturnedLength,                                 // Bytes placed in buffer.
+                NULL                                             // synchronous call
+            );
+
+            if (!Status)
+            {
+                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                return FALSE;
+            }
+
+            //
+            // Check whether the result of removing hooks was successful or we should
+            // re-send the request
+            //
+            if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // The hook is remove successfuly
+                //
+                break;
+            }
+            else if (AttachRequest.Result == DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED)
+            {
+                //
+                // Wait for a while until the Windows call the entrypoint
+                //
+                // ShowMessages("entrypoint is not reached, continue sending the request...\n");
+
+                Sleep(1000);
+                continue;
+            }
+            else
+            {
+                //
+                // An error happend, we should not continue
+                //
+                ShowErrorMessage(AttachRequest.Result);
+                return FALSE;
+            }
+        }
 
         //
         // The operation of attaching was successful

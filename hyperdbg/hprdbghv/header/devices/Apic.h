@@ -159,4 +159,4 @@ VOID
 ApicSelfIpi(UINT32 Vector);
 
 VOID
-ApicTriggerGenericNmi(UINT32 CurrentCoreIndex);
+ApicTriggerGenericNmi();

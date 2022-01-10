@@ -453,6 +453,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
             return TRUE;
         }
     }
+
     //
     // Nothing found, probably the list is not found
     //
@@ -1162,6 +1163,10 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
 
         //
         // LogInfo("Guest RIP : 0x%llx tries to write on the page at :0x%llx", GuestRip, ExactAccessedAddress);
+        //
+
+        //
+        // Check whether the user-mode module needs to be investigated or not
         //
 
         //

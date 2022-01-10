@@ -229,3 +229,15 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
  * 
  */
 UINT64 * g_MsrBitmapInvalidMsrs;
+
+/**
+ * @brief PEB address of a process to monitor for possible changes 
+ * 
+ */
+USERMODE_ATTACHING_DETAILS g_UsermodeAttachingState;
+
+/**
+ * @brief details relating to nop-sled page
+ * 
+ */
+DEBUGGER_STEPPINGS_NOP_SLED g_SteppingsNopSledState;

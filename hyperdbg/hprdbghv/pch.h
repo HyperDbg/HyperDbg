@@ -36,6 +36,7 @@
 //
 #include "Definition.h"
 #include "Configuration.h"
+#include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
 #include "..\hprdbghv\header\common\Logging.h"
@@ -52,7 +53,8 @@
 #include "..\hprdbghv\header\common\Common.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\devices\Apic.h"
-#include "..\hprdbghv\header\debugger\core\Kd.h"
+#include "..\hprdbghv\header\debugger\kernel-level\Kd.h"
+#include "..\hprdbghv\header\debugger\user-level\Ud.h"
 #include "..\hprdbghv\header\vmm\vmx\Mtf.h"
 #include "..\hprdbghv\header\debugger\core\DebuggerEvents.h"
 #include "..\hprdbghv\header\debugger\features\Hooks.h"

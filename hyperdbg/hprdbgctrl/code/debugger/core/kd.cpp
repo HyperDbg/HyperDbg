@@ -912,11 +912,12 @@ KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 P
  * @brief Sends user input packet to the debuggee
  * @param Sendbuf
  * @param Len
+ * @param IgnoreBreakingAgain
  *
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len)
+KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain)
 {
     PDEBUGGEE_USER_INPUT_PACKET UserInputPacket;
     UINT32                      SizeOfStruct = 0;
@@ -928,9 +929,10 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len)
     RtlZeroMemory(UserInputPacket, SizeOfStruct);
 
     //
-    // Fill the script packet buffer
+    // Fill the script packet buffer descriptors
     //
-    UserInputPacket->CommandLen = Len;
+    UserInputPacket->CommandLen           = Len;
+    UserInputPacket->IgnoreFinishedSignal = IgnoreBreakingAgain;
 
     //
     // Move the user input buffer at the bottom of the structure packet
@@ -955,14 +957,17 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len)
     //
     // Wait until the result of user-input received
     //
-    g_SyncronizationObjectsHandleTable
-        [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
-            .IsOnWaitingState = TRUE;
-    WaitForSingleObject(
+    if (!IgnoreBreakingAgain)
+    {
         g_SyncronizationObjectsHandleTable
             [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
-                .EventHandle,
-        INFINITE);
+                .IsOnWaitingState = TRUE;
+        WaitForSingleObject(
+            g_SyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
+                    .EventHandle,
+            INFINITE);
+    }
 
     free(UserInputPacket);
 
@@ -1487,6 +1492,25 @@ KdBreakControlCheckAndPauseDebugger()
 }
 
 /**
+ * @brief Set the status of the debuggee to wait for the pause
+ *
+ * @return VOID
+ */
+VOID
+KdSetStatusAndWaitForPause()
+{
+    //
+    // Set the debuggee to show that it's  running
+    //
+    g_IsDebuggeeRunning = TRUE;
+
+    //
+    // Halt the UI
+    //
+    KdTheRemoteSystemIsRunning();
+}
+
+/**
  * @brief check if the debuggee needs to be continued
  *
  * @return VOID
@@ -1505,14 +1529,9 @@ KdBreakControlCheckAndContinueDebugger()
         if (KdSendContinuePacketToDebuggee())
         {
             //
-            // Set the debuggee to show that it's  running
+            // Set the debuggee to show that it's running
             //
-            g_IsDebuggeeRunning = TRUE;
-
-            //
-            // Halt the UI
-            //
-            KdTheRemoteSystemIsRunning();
+            KdSetStatusAndWaitForPause();
         }
         else
         {
@@ -2489,15 +2508,18 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
 
 /**
  * @brief Handle user-input in debuggee
- * @param Input
+ * @param Descriptor
  * @return VOID
  */
 VOID
-KdHandleUserInputInDebuggee(CHAR * Input)
+KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
 {
     BOOL                                            Status;
     ULONG                                           ReturnedLength;
+    CHAR *                                          Input;
     DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL FinishExecutionRequest = {0};
+
+    Input = (CHAR *)Descriptor + sizeof(DEBUGGEE_USER_INPUT_PACKET);
 
     //
     // Run the command
@@ -2505,34 +2527,37 @@ KdHandleUserInputInDebuggee(CHAR * Input)
     HyperdbgInterpreter(Input);
 
     //
-    // Send a signal to indicate that the execution of command
-    // finished
+    // Check if it needs to send a signal to indicate that the execution of
+    // command finished
     //
 
-    //
-    // By the way, we don't need to send an input buffer
-    // to the kernel, but let's keep it like this, if we
-    // want to pass some other aguments to the kernel in
-    // the future
-    //
-    Status = DeviceIoControl(
-        g_DeviceHandle,                                         // Handle to device
-        IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control code
-        &FinishExecutionRequest,                                // Input Buffer to driver.
-        SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Input buffer
-                                                                // length
-        &FinishExecutionRequest,                                // Output Buffer from driver.
-        SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Length of
-                                                                // output buffer
-                                                                // in bytes.
-        &ReturnedLength,                                        // Bytes placed in buffer.
-        NULL                                                    // synchronous call
-    );
-
-    if (!Status)
+    if (!Descriptor->IgnoreFinishedSignal)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
+        //
+        // By the way, we don't need to send an input buffer
+        // to the kernel, but let's keep it like this, if we
+        // want to pass some other aguments to the kernel in
+        // the future
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                         // Handle to device
+            IOCTL_SEND_SIGNAL_EXECUTION_IN_DEBUGGEE_FINISHED,       // IO Control code
+            &FinishExecutionRequest,                                // Input Buffer to driver.
+            SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Input buffer
+                                                                    // length
+            &FinishExecutionRequest,                                // Output Buffer from driver.
+            SIZEOF_DEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL, // Length of
+                                                                    // output buffer
+                                                                    // in bytes.
+            &ReturnedLength,                                        // Bytes placed in buffer.
+            NULL                                                    // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return;
+        }
     }
 }
 

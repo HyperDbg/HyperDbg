@@ -473,8 +473,20 @@ const unsigned char BuildVersion[] =
 //              Debugger Internals              //
 //////////////////////////////////////////////////
 
-#define DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER         0
+/**
+ * @brief debug register for step-over
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER 0
+
+/**
+ * @brief debug register to monitor thread changes
+ */
 #define DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT 1
+
+/**
+ * @brief debug register get entrypoint of user-mode process
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT 1
 
 //////////////////////////////////////////////////
 //              Symbols Details                 //
@@ -816,6 +828,7 @@ typedef enum _DEBUGGEE_PAUSING_REASON
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
+    DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED,
@@ -1368,6 +1381,7 @@ typedef enum _DEBUGGER_SEARCH_MEMORY_TYPE
 {
     SEARCH_PHYSICAL_MEMORY,
     SEARCH_VIRTUAL_MEMORY
+
 } DEBUGGER_SEARCH_MEMORY_TYPE;
 
 /**
@@ -1379,6 +1393,7 @@ typedef enum _DEBUGGER_SEARCH_MEMORY_BYTE_SIZE
     SEARCH_BYTE,
     SEARCH_DWORD,
     SEARCH_QWORD
+
 } DEBUGGER_SEARCH_MEMORY_BYTE_SIZE;
 
 /**
@@ -1472,19 +1487,31 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
     sizeof(DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)
 
 /**
+ * @brief different sizes on searching memory
+ *
+ */
+typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
+{
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
+
+} DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
+
+/**
  * @brief request for attaching user-mode process
  *
  */
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
-    BOOLEAN IsAttach;
-    BOOLEAN IsStartingNewProcess;
-    UINT32  ProcessId;
-    UINT64  ThreadId;
-    BOOLEAN Is32Bit;
-    UINT64  BaseAddressOfMainModule;
-    UINT64  EntrypoinOfMainModule;
-    UINT64  Result;
+    BOOLEAN                                              IsStartingNewProcess;
+    UINT32                                               ProcessId;
+    UINT64                                               ThreadId;
+    BOOLEAN                                              Is32Bit;
+    UINT64                                               BaseAddressOfMainModule;
+    UINT64                                               EntrypoinOfMainModule;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
+    UINT64                                               Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
@@ -1973,8 +2000,9 @@ typedef struct _DEBUGGEE_REGISTER_READ_DESCRIPTION
  */
 typedef struct _DEBUGGEE_USER_INPUT_PACKET
 {
-    UINT32 CommandLen;
-    UINT32 Result;
+    UINT32  CommandLen;
+    BOOLEAN IgnoreFinishedSignal;
+    UINT32  Result;
 
     //
     // The user's input is here
@@ -2278,6 +2306,32 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS 0xc000002a
+
+/**
+ * @brief error, failed to remove hooks as entrypoint is not reached yet
+ * @details The caller of this functionality should keep sending the previous
+ * IOCTL until the hook is remove successfully
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED 0xc000002b
+
+/**
+ * @brief error, could not remove the previous hook
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS 0xc000002c
+
+/**
+ * @brief error, the needed routines for debugging is not initialized
+ * 
+ */
+#define DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED 0xc000002d
+
+/**
+ * @brief error, unable to get 32-bit or 64-bit of the target process
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS 0xc000002e
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

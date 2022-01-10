@@ -356,6 +356,11 @@ MemoryMapperInitialize();
 VOID
 MemoryMapperUninitialize();
 
+VOID
+MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
+                                    PVOID            TargetProcessVirtualAddress,
+                                    CR3_TYPE         TargetProcessKernelCr3);
+
 UINT64
 MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit);
 

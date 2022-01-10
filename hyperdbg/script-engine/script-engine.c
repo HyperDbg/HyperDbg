@@ -578,7 +578,10 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                 }
                 Str++;
             } while (*Str);
-
+            if (i != ArgCount)
+            {
+                *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+            }
             if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
             {
                 if (i != ArgCount)

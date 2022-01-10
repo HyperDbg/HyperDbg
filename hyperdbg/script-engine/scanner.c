@@ -408,7 +408,8 @@ GetToken(char * c, char * str)
             }
             else
             {
-                if (strstr(Token->Value, '!'))
+                char BangChar[] = "!";
+                if (strstr(Token->Value, BangChar))
                 {
                     Token->Type = UNKNOWN;
                     return Token;
@@ -533,8 +534,10 @@ GetToken(char * c, char * str)
             {
                 if (*c != '`')
                     Append(Token, *c);
+
+               
                 *c = sgetc(str);
-                if (IsHex(*c))
+                if (IsHex(*c) || *c == '`')
                 {
                     // Nothing
                 }
@@ -578,7 +581,8 @@ GetToken(char * c, char * str)
                     }
                     else
                     {
-                        if (strstr(Token->Value, '!'))
+                        char BangChar[] = "!";
+                        if (strstr(Token->Value, BangChar))
                         {
                             Token->Type = UNKNOWN;
                             return Token;
@@ -677,7 +681,8 @@ GetToken(char * c, char * str)
                 }
                 else
                 {
-                    if (strstr(Token->Value, '!'))
+                    char BangChar[] = "!";
+                    if (strstr(Token->Value, BangChar))
                     {
                         Token->Type = UNKNOWN;
                         return Token;

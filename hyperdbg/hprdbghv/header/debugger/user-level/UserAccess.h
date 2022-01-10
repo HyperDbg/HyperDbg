@@ -211,3 +211,6 @@ UserAccessPrintLoadedModules(HANDLE ProcessId);
 
 BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit);
+
+BOOLEAN
+UserAccessCheckForLoadedModuleDetails();

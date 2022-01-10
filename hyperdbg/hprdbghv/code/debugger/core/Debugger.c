@@ -225,6 +225,14 @@ DebuggerUninitialize()
     // Uninitialize kernel debugger
     //
     KdUninitializeKernelDebugger();
+
+    //
+    // Check for nop-sled uninitialization
+    //
+    if (g_SteppingsNopSledState.IsNopSledInitialized)
+    {
+        ExFreePoolWithTag(g_SteppingsNopSledState.NopSledVirtualAddress, POOLTAG);
+    }
 }
 
 /**
