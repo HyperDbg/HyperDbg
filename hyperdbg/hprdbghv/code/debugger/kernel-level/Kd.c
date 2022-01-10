@@ -73,7 +73,7 @@ KdInitializeKernelDebugger()
     InitializeListHead(&g_BreakpointsListHead);
 
     //
-    // Indicate that kernel debugger is active
+    // Indicate that the kernel debugger is active
     //
     g_KernelDebuggerState = TRUE;
 }
@@ -90,12 +90,12 @@ KdUninitializeKernelDebugger()
 {
     ULONG CoreCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
-
     if (g_KernelDebuggerState)
     {
+        CoreCount = KeQueryActiveProcessorCount(0);
+
         //
-        // Indicate that kernel debugger is not active
+        // Indicate that the kernel debugger is not active
         //
         g_KernelDebuggerState = FALSE;
 

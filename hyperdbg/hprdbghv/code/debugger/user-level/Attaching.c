@@ -263,32 +263,27 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
  * @return BOOLEAN 
  */
 BOOLEAN
-AttachingAllocateAndAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
+AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
 {
-    //
-    // Initilize nop-sled page (if not already intialized)
-    //
-    if (!g_SteppingsNopSledState.IsNopSledInitialized)
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
-        // Allocate memory for nop-slep
+        // if the process not found
         //
-        g_SteppingsNopSledState.NopSledVirtualAddress = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+        return FALSE;
+    }
 
-        if (g_SteppingsNopSledState.NopSledVirtualAddress == NULL)
-        {
-            //
-            // There was a problem in allocation
-            //
-            return FALSE;
-        }
-
-        RtlZeroMemory(g_SteppingsNopSledState.NopSledVirtualAddress, PAGE_SIZE);
+    __try
+    {
+        KeStackAttachProcess(SourceProcess, &State);
 
         //
         // Fill the memory with nops
         //
-        memset(g_SteppingsNopSledState.NopSledVirtualAddress, 0x90, PAGE_SIZE);
+        memset(ReservedBuffAddress, 0x90, PAGE_SIZE);
 
         //
         // Set jmps to form a loop (little endians)
@@ -303,30 +298,22 @@ AttachingAllocateAndAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 Proce
         // 5:  90                      nop
         // 6:  90                      nop
         // 7:  90                      nop
-        // 8:  90                      nop
-        // 9:  90                      nop
+        // 8:  0f a2                   cpuid
         // a:  eb f4                   jmp    0 <NopLoop>
         //
-        *(UINT16 *)(g_SteppingsNopSledState.NopSledVirtualAddress + PAGE_SIZE - 2) = 0xf4eb;
+        *(UINT16 *)(ReservedBuffAddress + PAGE_SIZE - 4) = 0xa20f;
+        *(UINT16 *)(ReservedBuffAddress + PAGE_SIZE - 2) = 0xf4eb;
 
-        //
-        // Convert the address to virtual address
-        //
-        g_SteppingsNopSledState.NopSledPhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(
-            g_SteppingsNopSledState.NopSledVirtualAddress);
+        KeUnstackDetachProcess(&State);
 
-        //
-        // Indicate that it is initialized
-        //
-        g_SteppingsNopSledState.IsNopSledInitialized = TRUE;
+        ObDereferenceObject(SourceProcess);
     }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        KeUnstackDetachProcess(&State);
 
-    //
-    // Set the entry address in the target process to the target nop-sled
-    //
-    MemoryMapperMapPhysicalAddressToPte(g_SteppingsNopSledState.NopSledPhysicalAddress,
-                                        ReservedBuffAddress,
-                                        GetCr3FromProcessId(ProcessId));
+        return NULL;
+    }
 
     return TRUE;
 }
@@ -406,7 +393,7 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     // allocate memory in the target user-mode process
     //
     g_UsermodeAttachingState.UsermodeReservedBuffer =
-        MemoryMapperReserveUsermodeAddressInTargetProcess(AttachRequest->ProcessId, FALSE);
+        MemoryMapperReserveUsermodeAddressInTargetProcess(AttachRequest->ProcessId, TRUE);
 
     if (g_UsermodeAttachingState.UsermodeReservedBuffer == NULL)
     {
@@ -417,12 +404,12 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Adjust the nop sled buffer
     //
-    // if (!AttachingAllocateAndAdjustNopSledBuffer(g_UsermodeAttachingState.UsermodeReservedBuffer,
-    //                                              g_UsermodeAttachingState.ProcessId))
-    // {
-    //     AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-    //     return;
-    // }
+    if (!AttachingAdjustNopSledBuffer(g_UsermodeAttachingState.UsermodeReservedBuffer,
+                                      g_UsermodeAttachingState.ProcessId))
+    {
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+        return;
+    }
 
     //
     // Log for test
@@ -433,12 +420,6 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     // Waiting for module to be loaded anymore
     //
     g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled = TRUE;
-
-    //
-    // Enable vm-exit on Hardware debug exceptions and breakpoints
-    // so, intercept #DBs and #BP by changing exception bitmap (one core)
-    //
-    BroadcastEnableDbAndBpExitingAllCores();
 
     //
     // Apply monitor memory range to the PEB address
@@ -580,6 +561,11 @@ Success:
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
 {
+    //
+    // As we're here, we need to initialize the user-mode debugger
+    //
+    UdInitializeUserDebugger();
+
     switch (Request->Action)
     {
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH:

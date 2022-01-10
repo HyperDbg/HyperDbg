@@ -70,9 +70,9 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     }
 
     //
-    // Check for kernel debugger (kHyperDbg) presence
+    // Check for kernel or user debugger presence
     //
-    if (g_KernelDebuggerState)
+    if (g_KernelDebuggerState || g_UserDebuggerState)
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;

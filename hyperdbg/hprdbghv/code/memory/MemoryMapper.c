@@ -1132,11 +1132,11 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
  * @details this function should be called from vmx non-root mode
  *
  * @param ProcessId Target Process Id
- * @param Commit Whether pass the MEM_COMMIT flag to allocator or not
+ * @param Allocate Whether allocate or just reserve
  * @return Reserved address in the target user mode application
  */
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit)
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate)
 {
     NTSTATUS   Status;
     PVOID      AllocPtr  = NULL;
@@ -1169,7 +1169,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
                 &AllocPtr,
                 NULL,
                 &AllocSize,
-                Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
+                Allocate ? MEM_COMMIT : MEM_RESERVE,
                 PAGE_EXECUTE_READWRITE);
 
             KeUnstackDetachProcess(&State);
@@ -1187,14 +1187,14 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
     else
     {
         //
-        // Allocate (not allocate, just reserve) in memory in target process
+        // Allocate in memory in target process
         //
         Status = ZwAllocateVirtualMemory(
             NtCurrentProcess(),
             &AllocPtr,
             NULL,
             &AllocSize,
-            Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
+            Allocate ? MEM_COMMIT : MEM_RESERVE,
             PAGE_EXECUTE_READWRITE);
     }
 

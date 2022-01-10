@@ -10,3 +10,51 @@
  * 
  */
 #include "..\hprdbghv\pch.h"
+
+/**
+ * @brief initialize user debugger
+ * @details this function should be called on vmx non-root
+ * 
+ * @return VOID 
+ */
+VOID
+UdInitializeUserDebugger()
+{
+    //
+    // Check if it's already initialized or not, we'll ignore it if it's
+    // previously initialized
+    //
+    if (g_UserDebuggerState)
+    {
+        return;
+    }
+
+    //
+    // Enable vm-exit on Hardware debug exceptions and breakpoints
+    // so, intercept #DBs and #BP by changing exception bitmap (one core)
+    //
+    BroadcastEnableDbAndBpExitingAllCores();
+
+    //
+    // Indicate that the user debugger is active
+    //
+    g_UserDebuggerState = TRUE;
+}
+
+/**
+ * @brief uninitialize user debugger
+ * @details this function should be called on vmx non-root
+ *
+ * @return VOID 
+ */
+VOID
+UdUninitializeUserDebugger()
+{
+    if (g_UserDebuggerState)
+    {
+        //
+        // Indicate that the user debugger is not active
+        //
+        g_UserDebuggerState = FALSE;
+    }
+}

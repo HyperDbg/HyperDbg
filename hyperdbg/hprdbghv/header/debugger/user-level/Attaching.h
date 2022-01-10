@@ -33,18 +33,6 @@ typedef struct _USERMODE_ATTACHING_DETAILS
 
 } USERMODE_ATTACHING_DETAILS, *PUSERMODE_ATTACHING_DETAILS;
 
-/**
- * @brief Pointer to buffers containing the stepping's nop sled
- * 
- */
-typedef struct _DEBUGGER_STEPPINGS_NOP_SLED
-{
-    BOOLEAN          IsNopSledInitialized;
-    UINT64           NopSledVirtualAddress;
-    PHYSICAL_ADDRESS NopSledPhysicalAddress;
-
-} DEBUGGER_STEPPINGS_NOP_SLED, *PDEBUGGER_STEPPINGS_NOP_SLED;
-
 //////////////////////////////////////////////////
 //				   Functions					//
 //////////////////////////////////////////////////
