@@ -287,7 +287,7 @@ ReadIrpBasedBuffer()
 
                 case OPERATION_DEBUGGEE_USER_INPUT:
 
-                    KdHandleUserInputInDebuggee(OutputBuffer + sizeof(UINT32));
+                    KdHandleUserInputInDebuggee((DEBUGGEE_USER_INPUT_PACKET *)(OutputBuffer + sizeof(UINT32)));
 
                     break;
 

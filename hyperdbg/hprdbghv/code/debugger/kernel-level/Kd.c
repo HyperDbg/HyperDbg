@@ -2,7 +2,7 @@
  * @file Kd.c
  * @author Sina Karvandi (sina@rayanfam.com)
  * @author Alee Amini (aleeaminiz@gmail.com)
- * @brief Routines related to kernel debugging
+ * @brief Routines related to kernel mode debugging
  * @details 
  * @version 0.1
  * @date 2020-12-20
@@ -224,27 +224,9 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
 
     //
-    // Indicate that it's called from NMI handle, and it relates to
-    // halting the debuggee
+    // Handle NMI Broadcast
     //
-    g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
-
-    //
-    // If the core was in the middle of spinning on the spinlock
-    // of getting the debug lock, this mechansim is not needed,
-    // but if the core is not spinning there or the core is processing
-    // a random vm-exit, then we inject an immediate vm-exit after vm-entry
-    // or inject a DPC
-    // this is used for two reasons.
-    //
-    //      1. first, we will get the registers (context) to halt the core
-    //      2. second, it guarantees that if the NMI arrives within any
-    //         instruction in vmx-root mode, then we injected an immediate
-    //         vm-exit and we won't miss any cpu cycle in the guest
-    //
-    // KdFireDpc(KdHaltCoreInTheCaseOfHaltedFromNmiInVmxRoot, NULL);
-    // VmxMechanismCreateImmediateVmexit(CurrentCoreIndex);
-    HvSetMonitorTrapFlag(TRUE);
+    VmxBroadcastNmiHandler(CurrentCoreIndex, NULL, TRUE);
 
     //
     // Also, return true to show that it's handled
@@ -907,21 +889,20 @@ KdReloadSymbolDetailsInDebuggee()
 
 /**
  * @brief Notify user-mode to about new user-input buffer
- * @details  
- * @param Buffer
+ * @param Descriptor
  * @param Len
  * 
  * @return VOID
  */
 VOID
-KdNotifyDebuggeeForUserInput(CHAR * Buffer, UINT32 Len)
+KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len)
 {
     //
     // Send user-input buffer along with operation code to
     // the user-mode
     //
     LogSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
-                  Buffer,
+                  Descriptor,
                   Len);
 }
 
@@ -1145,17 +1126,9 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     else
     {
         //
-        // Halt all other cores by interrupting them with nmi
+        // Broadcast NMI with the intention of halting cores
         //
-
-        //
-        // make sure, nobody is in the middle of sending anything
-        //
-        SpinlockLock(&DebuggerResponseLock);
-
-        ApicTriggerGenericNmi(CurrentProcessorIndex);
-
-        SpinlockUnlock(&DebuggerResponseLock);
+        VmxBroadcastNmi(CurrentProcessorIndex, NMI_BROADCAST_ACTION_KD_HALT_CORE);
     }
 
     //
@@ -2099,8 +2072,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 // Send the user-input to user-mode debuggee
                 //
-                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket + sizeof(DEBUGGEE_USER_INPUT_PACKET)),
-                                             UserInputPacket->CommandLen);
+                KdNotifyDebuggeeForUserInput(((CHAR *)UserInputPacket),
+                                             sizeof(DEBUGGEE_USER_INPUT_PACKET) + UserInputPacket->CommandLen);
 
                 //
                 // Continue Debuggee

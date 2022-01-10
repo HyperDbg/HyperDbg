@@ -172,6 +172,15 @@ VOID
 CommandDetachHelp();
 
 VOID
+CommandStartHelp();
+
+VOID
+CommandRestartHelp();
+
+VOID
+CommandKillHelp();
+
+VOID
 CommandTHelp();
 
 VOID

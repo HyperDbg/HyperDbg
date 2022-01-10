@@ -17,7 +17,7 @@
 #include "..\hprdbgctrl\header\globals.h"
 
 //
-// Extern global Variables
+// Global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;
 extern BOOLEAN g_IsConnectedToRemoteDebuggee;

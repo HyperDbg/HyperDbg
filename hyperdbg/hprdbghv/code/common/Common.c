@@ -1130,3 +1130,185 @@ AllocateInvalidMsrBimap()
 
     return InvalidMsrBitmap;
 }
+
+/**
+ * @brief Get handle from Process Id
+ * @param Handle
+ * @param ProcessId
+ * 
+ * @return NTSTATUS 
+ */
+NTSTATUS
+GetHandleFromProcess(PHANDLE Handle, UINT32 ProcessId)
+{
+    NTSTATUS Status;
+    Status = STATUS_SUCCESS;
+    OBJECT_ATTRIBUTES ObjAttr;
+    CLIENT_ID         Cid;
+    InitializeObjectAttributes(&ObjAttr, NULL, 0, NULL, NULL);
+
+    Cid.UniqueProcess = ProcessId;
+    Cid.UniqueThread  = (HANDLE)0;
+
+    Status = ZwOpenProcess(Handle, PROCESS_ALL_ACCESS, &ObjAttr, &Cid);
+
+    return Status;
+}
+
+/**
+ * @brief The undocumented way of NtOpenProcess
+ * @param ProcessHandle
+ * @param DesiredAccess
+ * @param ProcessId
+ * @param AccessMode
+ * 
+ * @return NTSTATUS 
+ */
+NTSTATUS
+UndocumentedNtOpenProcess(
+    PHANDLE         ProcessHandle,
+    ACCESS_MASK     DesiredAccess,
+    HANDLE          ProcessId,
+    KPROCESSOR_MODE AccessMode)
+{
+    NTSTATUS     status = STATUS_SUCCESS;
+    ACCESS_STATE accessState;
+    char         auxData[0x200];
+    PEPROCESS    processObject = NULL;
+    HANDLE       processHandle = NULL;
+
+    status = SeCreateAccessState(
+        &accessState,
+        auxData,
+        DesiredAccess,
+        (PGENERIC_MAPPING)((PCHAR)*PsProcessType + 52));
+
+    if (!NT_SUCCESS(status))
+        return status;
+
+    accessState.PreviouslyGrantedAccess |= accessState.RemainingDesiredAccess;
+    accessState.RemainingDesiredAccess = 0;
+
+    status = PsLookupProcessByProcessId(ProcessId, &processObject);
+
+    if (!NT_SUCCESS(status))
+    {
+        SeDeleteAccessState(&accessState);
+        return status;
+    }
+    status = ObOpenObjectByPointer(
+        processObject,
+        0,
+        &accessState,
+        0,
+        *PsProcessType,
+        AccessMode,
+        &processHandle);
+
+    SeDeleteAccessState(&accessState);
+
+    ObDereferenceObject(processObject);
+
+    if (NT_SUCCESS(status))
+        *ProcessHandle = processHandle;
+
+    return status;
+}
+
+/**
+ * @brief Kill a user-mode process with different methods
+ * @param ProcessId
+ * @param KillingMethod
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
+{
+    NTSTATUS  Status        = STATUS_SUCCESS;
+    HANDLE    ProcessHandle = NULL;
+    PEPROCESS Process       = NULL;
+
+    if (ProcessId == NULL)
+    {
+        Status = STATUS_UNSUCCESSFUL;
+        return FALSE;
+    }
+
+    switch (KillingMethod)
+    {
+    case PROCESS_KILL_METHOD_1:
+
+        Status = GetHandleFromProcess(&ProcessHandle, ProcessId);
+
+        if (!NT_SUCCESS(Status) || ProcessHandle == NULL)
+        {
+            return FALSE;
+        }
+
+        //
+        // Call ZwTerminateProcess with NULL handle
+        //
+        Status = ZwTerminateProcess(ProcessHandle, 0);
+
+        if (!NT_SUCCESS(Status))
+        {
+            return FALSE;
+        }
+
+        break;
+
+    case PROCESS_KILL_METHOD_2:
+
+        UndocumentedNtOpenProcess(
+            &ProcessHandle,
+            PROCESS_ALL_ACCESS,
+            ProcessId,
+            KernelMode);
+
+        if (ProcessHandle == NULL)
+        {
+            return FALSE;
+        }
+
+        //
+        // Call ZwTerminateProcess with NULL handle
+        //
+        Status = ZwTerminateProcess(ProcessHandle, 0);
+
+        if (!NT_SUCCESS(Status))
+        {
+            return FALSE;
+        }
+
+        break;
+
+    case PROCESS_KILL_METHOD_3:
+
+        //
+        // Get the base address of process's executable image and unmap it
+        //
+        Status = MmUnmapViewOfSection(Process, PsGetProcessSectionBaseAddress(Process));
+
+        //
+        // Dereference the target process
+        //
+        ObDereferenceObject(Process);
+
+        break;
+
+    default:
+
+        //
+        // Unknow killing method
+        //
+        return FALSE;
+        break;
+    }
+
+    //
+    // If we reached here, it means the functionality of
+    // the above codes was successful
+    //
+    return TRUE;
+}

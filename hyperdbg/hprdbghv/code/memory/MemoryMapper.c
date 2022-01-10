@@ -1155,7 +1155,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
             //
             // if the process not found
             //
-            return STATUS_UNSUCCESSFUL;
+            return NULL;
         }
         __try
         {
@@ -1181,7 +1181,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
             KeUnstackDetachProcess(&State);
 
             ObDereferenceObject(SourceProcess);
-            return STATUS_UNSUCCESSFUL;
+            return NULL;
         }
     }
     else
@@ -1210,33 +1210,36 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
  * @brief Maps a physical address to a PTE
  * @details Find the PTE from MemoryMapperGetPteVaByCr3
  * 
- * @param PhysicalAddress Physical Address
- * @param VirtualAddressPte Virtual Address of PTE
- * @param TargetKernelCr3 Target process cr3
+ * @param PhysicalAddress Physical Address to be mapped
+ * @param TargetProcessVirtualAddress Virtual Address of target process
+ * @param TargetProcessKernelCr3 Target process cr3
  * 
  * @return VOID
  */
 VOID
-MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress, PPAGE_ENTRY VirtualAddressPte, CR3_TYPE TargetKernelCr3)
+MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
+                                    PVOID            TargetProcessVirtualAddress,
+                                    CR3_TYPE         TargetProcessKernelCr3)
 {
-    PAGE_ENTRY PageEntry;
-    PAGE_ENTRY PreviousPteEntry;
-    CR3_TYPE   CurrentProcessCr3;
+    PPAGE_ENTRY PreviousPteEntry;
+    PAGE_ENTRY  PageEntry;
+    CR3_TYPE    CurrentProcessCr3;
+
+    //
+    // Find the page table entry of the reserved page in the target
+    // process memory layout
+    //
+    PreviousPteEntry = MemoryMapperGetPteVaByCr3(TargetProcessVirtualAddress, PT, TargetProcessKernelCr3);
 
     //
     // Switch to new process's memory layout
     //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetKernelCr3);
-
-    //
-    // Save the previous entry
-    //
-    PreviousPteEntry.Flags = VirtualAddressPte->Flags;
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
 
     //
     // Read the previous entry in order to modify it
     //
-    PageEntry.Flags = VirtualAddressPte->Flags;
+    PageEntry.Flags = PreviousPteEntry->Flags;
 
     //
     // Make sure that the target PTE is readable, writable, executable
@@ -1268,12 +1271,15 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress, PPAGE_ENTR
     //
     // Apply the page entry in a single instruction
     //
-    VirtualAddressPte->Flags = PageEntry.Flags;
+    PreviousPteEntry->Flags = PageEntry.Flags;
 
     //
-    // Finally, invalidate the caches for the virtual address.
+    // Finally, invalidate the caches for the virtual address
+    // It's not mandatory to invalidate the address in the VM nested-virtualization
+    // because it will be automatically invalidated by the top hypervisor, however,
+    // we should use invlpg in physical computers as it won't invalidate it automatically
     //
-    __invlpg(PhysicalAddressToVirtualAddress(PhysicalAddress.QuadPart));
+    __invlpg(TargetProcessVirtualAddress);
 
     //
     // Restore the original process

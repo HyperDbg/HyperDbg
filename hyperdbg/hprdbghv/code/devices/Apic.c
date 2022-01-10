@@ -44,23 +44,8 @@ X2ApicIcrWrite(UINT32 Low, UINT32 High)
  * @return VOID 
  */
 VOID
-ApicTriggerGenericNmi(UINT32 CurrentCoreIndex)
+ApicTriggerGenericNmi()
 {
-    ULONG CoreCount;
-
-    CoreCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Indicate that we're waiting for NMI
-    //
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        if (i != CurrentCoreIndex)
-        {
-            g_GuestState[i].DebuggingState.WaitingForNmi = TRUE;
-        }
-    }
-
     if (g_IsX2Apic)
     {
         X2ApicIcrWrite((4 << 8) | (1 << 14) | (3 << 18), 0);

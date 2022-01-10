@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern DEBUGGING_STATE g_DebuggingState;
+extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of .detach command
@@ -40,13 +41,10 @@ DetachFromProcess()
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
-    ShowMessages("this command is not yet ready!\nplease don't use it for now\n\n");
-    return;
-
     //
     // Check if we attached to a process or not
     //
-    if (!g_DebuggingState.IsAttachedToUsermodeProcess)
+    if (!g_ActiveThreadDebuggingState)
     {
         ShowMessages("you're not attached to any thread\n");
         return;
@@ -60,46 +58,6 @@ DetachFromProcess()
         ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
                      "use 'load' command?\n");
         return;
-    }
-
-    //
-    // We wanna detach from a process
-    //
-    DetachRequest.IsAttach  = FALSE;
-    DetachRequest.ProcessId = g_DebuggingState.ConnectedProcessId;
-    DetachRequest.ThreadId  = g_DebuggingState.ConnectedThreadId;
-
-    //
-    // Send the request to the kernel
-    //
-
-    Status = DeviceIoControl(
-        g_DeviceHandle,                                  // Handle to device
-        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
-                                                         // code
-        &DetachRequest,                                  // Input Buffer to driver.
-        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
-        &DetachRequest,                                  // Output Buffer from driver.
-        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
-                                                         // buffer in bytes.
-        &ReturnedLength,                                 // Bytes placed in buffer.
-        NULL                                             // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
-    }
-
-    //
-    // Check if attaching was successful then we can set the attached to true
-    //
-    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
-    {
-        g_DebuggingState.IsAttachedToUsermodeProcess = FALSE;
-        g_DebuggingState.ConnectedProcessId          = NULL;
-        g_DebuggingState.ConnectedThreadId           = NULL;
     }
 }
 
@@ -117,6 +75,17 @@ CommandDetach(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("incorrect use of '.detach'\n\n");
         CommandDetachHelp();
+        return;
+    }
+
+    //
+    // .attach and .detach commands are only supported in VMI Mode
+    //
+    if (g_IsSerialConnectedToRemoteDebuggee)
+    {
+        ShowMessages("err, '.attach', and '.detach' commands are only usable "
+                     "in VMI Mode, you can use the '.process', or the '.thread' "
+                     "in Debugger Mode\n");
         return;
     }
 

@@ -1,7 +1,7 @@
 /**
  * @file Kd.h
  * @author Sina Karvandi (sina@rayanfam.com)
- * @brief Header for routines related to kernel debugging
+ * @brief Header for routines related to kernel mode debugging
  * @details 
  * @version 0.1
  * @date 2020-12-20

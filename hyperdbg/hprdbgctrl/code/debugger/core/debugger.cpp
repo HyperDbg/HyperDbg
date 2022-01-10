@@ -268,6 +268,29 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED:
+        ShowMessages("err, unable to remove hooks as the entrypoint of user-mode "
+                     "process is not reached yet (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS:
+        ShowMessages("err, unable to remove hooks (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED:
+        ShowMessages("err, the routines for getting the PEB is not correctly "
+                     "initialized (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS:
+        ShowMessages("err, unable to detect whether the process was 32-bit "
+                     "or 64-bit (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

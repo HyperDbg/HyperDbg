@@ -16,8 +16,8 @@ using namespace std;
 //
 // Global Variables
 //
-extern DEBUGGING_STATE g_DebuggingState;
-extern CommandType     g_CommandsList;
+extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern CommandType             g_CommandsList;
 
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BOOLEAN g_IsCommandListInitialized;
@@ -158,7 +158,20 @@ HyperdbgInterpreter(char * Command)
         //
         // It's a connection over serial (Debugger-Mode)
         //
-        KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1);
+
+        if (CommandAttributes & DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN)
+        {
+            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, TRUE);
+
+            //
+            // Set the debuggee to show that it's running
+            //
+            KdSetStatusAndWaitForPause();
+        }
+        else
+        {
+            KdSendUserInputPacketToDebuggee(Command, strlen(Command) + 1, FALSE);
+        }
 
         //
         // Indicate that we sent the command to the target system
@@ -318,12 +331,14 @@ HyperdbgShowSignature()
         //
         ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
     }
-    else if (g_DebuggingState.IsAttachedToUsermodeProcess)
+    else if (g_ActiveThreadDebuggingState != NULL)
     {
         //
         // Debugging a special process
         //
-        ShowMessages("%x:%x uHyperDbg> ", g_DebuggingState.ConnectedProcessId, g_DebuggingState.ConnectedThreadId);
+        ShowMessages("%x:%x uHyperDbg> ",
+                     g_ActiveThreadDebuggingState->ProcessId,
+                     g_ActiveThreadDebuggingState->ThreadId);
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -557,6 +572,15 @@ InitializeCommandsDictionary()
 
     g_CommandsList[".detach"] = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
     g_CommandsList["detach"]  = {&CommandDetach, &CommandDetachHelp, DEBUGGER_COMMAND_DETACH_ATTRIBUTES};
+
+    g_CommandsList[".start"] = {&CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
+    g_CommandsList["start"]  = {&CommandStart, &CommandStartHelp, DEBUGGER_COMMAND_START_ATTRIBUTES};
+
+    g_CommandsList[".restart"] = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+    g_CommandsList["restart"]  = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+
+    g_CommandsList[".kill"] = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
+    g_CommandsList["kill"]  = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
 
     g_CommandsList[".process"]  = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};
     g_CommandsList[".process2"] = {&CommandProcess, &CommandProcessHelp, DEBUGGER_COMMAND_PROCESS_ATTRIBUTES};

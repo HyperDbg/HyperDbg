@@ -231,6 +231,99 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
 }
 
 /**
+ * @brief If the target process's main module is loaded, it fills
+ * the Entrypoint and the BaseAddress
+ * @details This function is safe to be called in vmx non-root
+ * 
+ * @param PebAddress 
+ * @param Is32Bit 
+ * @param BaseAddress 
+ * @param Entrypoint 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOOLEAN Is32Bit, PUINT64 BaseAddress, PUINT64 Entrypoint)
+{
+    if (Is32Bit)
+    {
+        UNICODE_STRING  Name;
+        PEB_LDR_DATA32  Ldr32        = {0};
+        PEB32           Peb32        = {0};
+        PPEB_LDR_DATA32 LdrAddress32 = NULL;
+
+        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb32, sizeof(PEB32));
+
+        LdrAddress32 = (PPEB_LDR_DATA32)Peb32.Ldr;
+
+        if (!LdrAddress32)
+        {
+            return FALSE;
+        }
+
+        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress32, &Ldr32, sizeof(PEB_LDR_DATA32));
+
+        PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr32.InLoadOrderModuleList.Flink;
+
+        PLDR_DATA_TABLE_ENTRY32 EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+        LDR_DATA_TABLE_ENTRY32  Entry        = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY32));
+
+        if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
+        {
+            return FALSE;
+        }
+        else
+        {
+            *BaseAddress = Entry.DllBase;
+            *Entrypoint  = Entry.EntryPoint;
+
+            return TRUE;
+        }
+    }
+    else
+    {
+        UNICODE_STRING Name;
+        PPEB_LDR_DATA  LdrAddress = NULL;
+        PEB_LDR_DATA   Ldr        = {0};
+
+        PEB Peb = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(PebAddress, &Peb, sizeof(PEB));
+
+        LdrAddress = (PPEB_LDR_DATA)Peb.Ldr;
+
+        if (!LdrAddress)
+        {
+            return FALSE;
+        }
+
+        MemoryMapperReadMemorySafeOnTargetProcess(LdrAddress, &Ldr, sizeof(PEB_LDR_DATA));
+
+        PLIST_ENTRY List = (PLIST_ENTRY)Ldr.ModuleListLoadOrder.Flink;
+
+        PLDR_DATA_TABLE_ENTRY EntryAddress = CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+        LDR_DATA_TABLE_ENTRY  Entry        = {0};
+
+        MemoryMapperReadMemorySafeOnTargetProcess(EntryAddress, &Entry, sizeof(LDR_DATA_TABLE_ENTRY));
+
+        // LogInfo("base: %llx | entry: %llx", Entry.DllBase, Entry.EntryPoint);
+
+        if (Entry.DllBase == NULL || Entry.EntryPoint == NULL)
+        {
+            return FALSE;
+        }
+        else
+        {
+            *BaseAddress = Entry.DllBase;
+            *Entrypoint  = Entry.EntryPoint;
+
+            return TRUE;
+        }
+    }
+}
+
+/**
  * @brief Print loaded modules details from PEB
  * @details This function should be called in vmx non-root
  * 
@@ -471,6 +564,7 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
         //
         // x86 process, walk x86 module list
         //
+
         if (UserAccessPrintLoadedModulesX86(SourceProcess))
         {
             return TRUE;
@@ -488,4 +582,45 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Checks whether the loaded module is available or not
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessCheckForLoadedModuleDetails()
+{
+    UINT64 BaseAddress = NULL;
+    UINT64 Entrypoint  = NULL;
+
+    if (g_UsermodeAttachingState.PebAddressToMonitor != NULL &&
+        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_UsermodeAttachingState.PebAddressToMonitor,
+                                                                    g_UsermodeAttachingState.Is32Bit,
+                                                                    &BaseAddress,
+                                                                    &Entrypoint))
+    {
+        g_UsermodeAttachingState.BaseAddress = BaseAddress;
+        g_UsermodeAttachingState.Entrypoint  = Entrypoint;
+
+        //
+        // Set debug register to get the entrypoint of user-mode processs
+        //
+        DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
+                          BREAK_ON_INSTRUCTION_FETCH,
+                          FALSE,
+                          Entrypoint);
+
+        // LogInfo("Base: %016llx \t EntryPoint: %016llx", BaseAddress, Entrypoint);
+
+        return TRUE;
+    }
+    else
+    {
+        //
+        // Not available
+        //
+        return FALSE;
+    }
 }
