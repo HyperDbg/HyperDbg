@@ -84,8 +84,8 @@ E10->E12
 
 
 E12->.OneOpFunc1 ( EXP ) @.OneOpFunc1
-E12->.TwoOpFunc1 ( EXPRESSION , EXPRESSION @.TwoOpFunc1 ) 
-E12->.ThreeOpFunc1 ( EXPRESSION , EXPRESSION , EXPRESSION @.ThreeOpFunc1 ) 
+E12->.TwoOpFunc1 ( EXP , EXP ) @.TwoOpFunc2
+E12->.ThreeOpFunc1 ( EXP , EXP , EXP ) @.ThreeOpFunc1 
 
 E12->( EXP )
 
