@@ -16,25 +16,22 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief structures related to debugging
+ * @brief structures related to current thread debugging
+ * state
  *
  */
-typedef struct _THREAD_DEBUGGING_STATE
+typedef struct _ACTIVE_DEBUGGING_THREAD
 {
+    BOOLEAN    IsActive;
     UINT64     UniqueDebuggingId;
-    BOOLEAN    IsAttachedToUsermodeProcess;
     UINT32     ProcessId;
     UINT32     ThreadId;
     BOOLEAN    IsPaused;
-    GUEST_REGS Registers;
-    UINT64     Context;  // $context
-    UINT64     GuestRip; // if IsPaused is TRUE
-    UINT64     BaseAddressOfMainModule;
-    UINT64     EntrypointOfMainModule;
+    GUEST_REGS Registers; // thread registers
+    UINT64     Context;   // $context
     BOOLEAN    Is32Bit;
-    LIST_ENTRY ListOfAttachedThreads;
 
-} THREAD_DEBUGGING_STATE, *PTHREAD_DEBUGGING_STATE;
+} ACTIVE_DEBUGGING_THREAD, *PACTIVE_DEBUGGING_THREAD;
 
 //////////////////////////////////////////////////
 //            	    Functions                  //
@@ -51,3 +48,6 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
                                  UINT32        TargetTid,
                                  const WCHAR * TargetFileAddress,
                                  WCHAR *       CommandLine);
+
+BOOLEAN
+UsermodeDebuggingKillProcess(UINT32 TargetPid);

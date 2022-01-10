@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
 extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
 
 /**
@@ -44,7 +44,7 @@ DetachFromProcess()
     //
     // Check if we attached to a process or not
     //
-    if (!g_ActiveThreadDebuggingState)
+    if (!g_ActiveThreadDebuggingState.IsActive)
     {
         ShowMessages("you're not attached to any thread\n");
         return;

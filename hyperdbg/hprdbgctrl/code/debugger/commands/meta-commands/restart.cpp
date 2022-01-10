@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern std::wstring g_StartCommandPath;
-extern std::wstring g_StartCommandPathAndArguments;
+extern std::wstring            g_StartCommandPath;
+extern std::wstring            g_StartCommandPathAndArguments;
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
 
 /**
  * @brief help of .restart command
@@ -55,6 +56,18 @@ CommandRestart(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("nothing to restart, did you use the '.start' command before?\n");
         return;
+    }
+
+    //
+    // Check to kill the current active process (if exists)
+    //
+    if (g_ActiveThreadDebuggingState.IsActive)
+    {
+        //
+        // kill the process, we will restart the process even if we didn't
+        // successfully killed the active process
+        //
+        UsermodeDebuggingKillProcess(g_ActiveThreadDebuggingState.ProcessId);
     }
 
     //

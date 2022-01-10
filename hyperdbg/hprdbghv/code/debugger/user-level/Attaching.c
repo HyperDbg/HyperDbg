@@ -374,6 +374,11 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     }
 
     //
+    // Set the Is32Bit flag of attach request
+    //
+    AttachRequest->Is32Bit = g_UsermodeAttachingState.Is32Bit;
+
+    //
     // Get 32-bit or 64-bit PEB
     //
     if (g_UsermodeAttachingState.Is32Bit)
@@ -412,12 +417,12 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Adjust the nop sled buffer
     //
-    if (!AttachingAllocateAndAdjustNopSledBuffer(g_UsermodeAttachingState.UsermodeReservedBuffer,
-                                                 g_UsermodeAttachingState.ProcessId))
-    {
-        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
-    }
+    // if (!AttachingAllocateAndAdjustNopSledBuffer(g_UsermodeAttachingState.UsermodeReservedBuffer,
+    //                                              g_UsermodeAttachingState.ProcessId))
+    // {
+    //     AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
+    //     return;
+    // }
 
     //
     // Log for test
@@ -502,6 +507,70 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 }
 
 /**
+ * @brief Kill the target process from kernel-mode
+ * @details this function should be called in vmx-root
+ * 
+ * @param KillRequest 
+ * @return VOID 
+ */
+VOID
+AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
+{
+    BOOLEAN WasKilled = FALSE;
+
+    //
+    // Check if process exists or not
+    //
+    if (!IsProcessExist(KillRequest->ProcessId))
+    {
+        //
+        // Process does not exists
+        //
+        KillRequest->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+        return;
+    }
+
+    //
+    // Check if we can kill it using the first method
+    //
+    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_1);
+
+    if (WasKilled)
+    {
+        goto Success;
+    }
+
+    //
+    // Check if we can kill it using the second method
+    //
+    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_2);
+
+    if (WasKilled)
+    {
+        goto Success;
+    }
+
+    //
+    // Check if we can kill it using the third method
+    //
+    WasKilled = KillProcess(KillRequest->ProcessId, PROCESS_KILL_METHOD_3);
+
+    if (WasKilled)
+    {
+        goto Success;
+    }
+
+    //
+    // No way we can kill the shit :(
+    //
+    KillRequest->Result = DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS;
+    return;
+
+Success:
+    KillRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+}
+
+/**
  * @brief Dispatch and perform attaching tasks
  * @details this function should be called in vmx-root
  * 
@@ -509,25 +578,31 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
  * @return VOID 
  */
 VOID
-AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
+AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
 {
-    switch (AttachRequest->Action)
+    switch (Request->Action)
     {
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH:
 
-        AttachingSuspendedTargetProcess(AttachRequest);
+        AttachingSuspendedTargetProcess(Request);
 
         break;
 
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS:
 
-        AttachingRemoveHooks(AttachRequest);
+        AttachingRemoveHooks(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS:
+
+        AttachingKillProcess(Request);
 
         break;
 
     default:
 
-        AttachRequest->Result = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
+        Request->Result = DEBUGGER_ERROR_INVALID_ACTION_TYPE;
 
         break;
     }

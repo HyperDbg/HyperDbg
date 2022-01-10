@@ -11,6 +11,11 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+
 /**
  * @brief help of .kill command
  *
@@ -19,12 +24,8 @@
 VOID
 CommandKillHelp()
 {
-    ShowMessages(".kill : terminate the current running process or a special "
-                 "process.\n\n");
-    ShowMessages(
-        "syntax : \t.kill [pid (hex)]\n");
-    ShowMessages("\t\te.g : .kill \n");
-    ShowMessages("\t\te.g : .kill pid b60 \n");
+    ShowMessages(".kill : terminate the current running process.\n\n");
+    ShowMessages("syntax : \t.kill\n");
 }
 
 /**
@@ -37,4 +38,21 @@ CommandKillHelp()
 VOID
 CommandKill(vector<string> SplittedCommand, string Command)
 {
+    if (SplittedCommand.size() != 1)
+    {
+        ShowMessages("incorrect use of '.kill'\n\n");
+        CommandKillHelp();
+        return;
+    }
+
+    if (!g_ActiveThreadDebuggingState.IsActive)
+    {
+        ShowMessages("nothing to terminate!\n");
+        return;
+    }
+
+    //
+    // Kill the current active process
+    //
+    UsermodeDebuggingKillProcess(g_ActiveThreadDebuggingState.ProcessId);
 }

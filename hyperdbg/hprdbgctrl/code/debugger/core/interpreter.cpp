@@ -16,7 +16,7 @@ using namespace std;
 //
 // Global Variables
 //
-extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
 extern CommandType             g_CommandsList;
 
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
@@ -331,14 +331,15 @@ HyperdbgShowSignature()
         //
         ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
     }
-    else if (g_ActiveThreadDebuggingState != NULL)
+    else if (g_ActiveThreadDebuggingState.IsActive)
     {
         //
         // Debugging a special process
         //
-        ShowMessages("%x:%x uHyperDbg> ",
-                     g_ActiveThreadDebuggingState->ProcessId,
-                     g_ActiveThreadDebuggingState->ThreadId);
+        ShowMessages("%x:%x u%sHyperDbg> ",
+                     g_ActiveThreadDebuggingState.ProcessId,
+                     g_ActiveThreadDebuggingState.ThreadId,
+                     g_ActiveThreadDebuggingState.Is32Bit ? "86" : "64");
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {

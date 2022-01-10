@@ -14,7 +14,52 @@
 //
 // Global Variables
 //
-extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+
+/**
+ * @brief set the current active debugging process (thread)
+ * @param DebuggingId
+ * @param ProcessId
+ * @param ThreadId
+ * @param Is32Bit
+ * 
+ * @return VOID
+ */
+VOID
+UsermodeDebuggingSetActiveDebuggingThread(UINT64  DebuggingId,
+                                          UINT32  ProcessId,
+                                          UINT32  ThreadId,
+                                          BOOLEAN Is32Bit)
+{
+    g_ActiveThreadDebuggingState.ProcessId         = ProcessId;
+    g_ActiveThreadDebuggingState.ThreadId          = ThreadId;
+    g_ActiveThreadDebuggingState.Is32Bit           = Is32Bit;
+    g_ActiveThreadDebuggingState.UniqueDebuggingId = DebuggingId;
+
+    //
+    // Activate the debugging
+    //
+    g_ActiveThreadDebuggingState.IsActive = TRUE;
+}
+
+/**
+ * @brief Remove the current active debugging process (thread)
+ * @param ProcessId
+ * 
+ * @return VOID
+ */
+VOID
+UsermodeDebuggingRemoveActiveDebuggingThread(UINT32 ProcessId)
+{
+    //
+    // Do sth
+    //
+
+    //
+    // Activate the debugging
+    //
+    g_ActiveThreadDebuggingState.IsActive = FALSE;
+}
 
 /**
  * @brief print error messages relating to the finding thread id
@@ -323,18 +368,16 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
     //
     if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
-        /*
-        g_ActiveThreadDebuggingState->IsAttachedToUsermodeProcess = TRUE;
-        g_ActiveThreadDebuggingState->ProcessId                   = TargetPid;
-        g_ActiveThreadDebuggingState->ThreadId                    = TargetTid;
-        g_ActiveThreadDebuggingState->Is32Bit                     = AttachRequest.Is32Bit;
-        g_ActiveThreadDebuggingState->BaseAddressOfMainModule     = AttachRequest.BaseAddressOfMainModule;
-        g_ActiveThreadDebuggingState->EntrypointOfMainModule      = AttachRequest.EntrypoinOfMainModule;
-        */
+        //
+        // Set the current active debugging process (thread)
+        //
+        UsermodeDebuggingSetActiveDebuggingThread(AttachRequest.UniqueDebuggingId,
+                                                  AttachRequest.ProcessId,
+                                                  AttachRequest.ThreadId,
+                                                  AttachRequest.Is32Bit);
 
         // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
         // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
-        // ShowMessages("Is 32-bit : %s\n", AttachRequest.Is32Bit ? "true" : "false");
 
         //
         // Resume the suspended process
@@ -413,6 +456,88 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
     else
     {
         ShowErrorMessage(AttachRequest.Result);
+        return FALSE;
+    }
+
+    return FALSE;
+}
+
+/**
+ * @brief Kill the target process from kernel
+ * @details this function will not check whether the process id and
+ * thread id is valid or not
+ *
+ * @param TargetPid
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+UsermodeDebuggingKillProcess(UINT32 TargetPid)
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // We wanna kill a process
+    //
+    KillRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS;
+
+    //
+    // Set the process id
+    //
+    KillRequest.ProcessId = TargetPid;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &KillRequest,                                    // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &KillRequest,                                    // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Check if killing was successful or not
+    //
+    if (KillRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // Remove the current active debugging process (thread)
+        //
+        UsermodeDebuggingRemoveActiveDebuggingThread(TargetPid);
+
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(KillRequest.Result);
         return FALSE;
     }
 

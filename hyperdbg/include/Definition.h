@@ -1495,6 +1495,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS,
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
 
@@ -1504,12 +1505,11 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
  */
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
+    UINT64                                               UniqueDebuggingId;
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
     UINT64                                               ThreadId;
     BOOLEAN                                              Is32Bit;
-    UINT64                                               BaseAddressOfMainModule;
-    UINT64                                               EntrypoinOfMainModule;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT64                                               Result;
 
@@ -2332,6 +2332,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * 
  */
 #define DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS 0xc000002e
+
+/**
+ * @brief error, unable to kill the target process
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS 0xc000002f
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
