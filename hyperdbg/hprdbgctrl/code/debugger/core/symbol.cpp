@@ -34,6 +34,7 @@ SymbolInitialReload()
     //
     // Load already downloaded symbol (won't download at this point)
     //
+    ShowMessages("interpreting symbols and creating symbol maps\n");
     SymbolLoadOrDownloadSymbols(FALSE, TRUE);
 }
 
@@ -50,6 +51,7 @@ SymbolLocalReload()
     //
     // And also load the symbols
     //
+    ShowMessages("interpreting symbols and creating symbol maps\n");
     return SymbolLoadOrDownloadSymbols(FALSE, TRUE);
 }
 
@@ -382,9 +384,9 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 BOOLEAN
 SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 {
-    BOOLEAN IsFound            = FALSE;
-    BOOLEAN HasError           = NULL;
-    UINT64  Address            = NULL;
+    BOOLEAN IsFound  = FALSE;
+    BOOLEAN HasError = NULL;
+    UINT64  Address  = NULL;
 
     if (!ConvertStringToUInt64(TextToConvert, &Address))
     {
@@ -392,7 +394,7 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
         // Check for symbol object names
         //
         string ConstTextToConvert = TextToConvert;
-        Address = ScriptEngineConvertNameToAddressWrapper(ConstTextToConvert.c_str(), &IsFound);
+        Address                   = ScriptEngineConvertNameToAddressWrapper(ConstTextToConvert.c_str(), &IsFound);
 
         if (!IsFound)
         {
