@@ -58,17 +58,17 @@ typedef struct _INVVPID_DESCRIPTOR
 //					Functions					//
 //////////////////////////////////////////////////
 
-void
+VOID
 Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor);
 
-void
+VOID
 InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress);
 
-void
+VOID
 InvvpidSingleContext(UINT16 Vpid);
 
-void
+VOID
 InvvpidAllContexts();
 
-void
+VOID
 InvvpidSingleContextRetainingGlobals(UINT16 Vpid);

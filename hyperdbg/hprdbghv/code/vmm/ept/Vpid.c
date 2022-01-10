@@ -16,8 +16,9 @@
  * 
  * @param Type 
  * @param Descriptor 
+ * @return VOID
  */
-void
+VOID
 Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor)
 {
     if (!Descriptor)
@@ -34,44 +35,48 @@ Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor)
  * 
  * @param Vpid 
  * @param LinearAddress 
+ * @return VOID
  */
-void
+VOID
 InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, LinearAddress};
-    return Invvpid(INVVPID_INDIVIDUAL_ADDRESS, &Descriptor);
+    Invvpid(INVVPID_INDIVIDUAL_ADDRESS, &Descriptor);
 }
 
 /**
  * @brief INVVPID Single Context
  * 
  * @param Vpid 
+ * @return VOID
  */
-void
+VOID
 InvvpidSingleContext(UINT16 Vpid)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0};
-    return Invvpid(INVVPID_SINGLE_CONTEXT, &Descriptor);
+    Invvpid(INVVPID_SINGLE_CONTEXT, &Descriptor);
 }
 
 /**
  * @brief INVVPID All Contexts
  * 
+ * @return VOID
  */
-void
+VOID
 InvvpidAllContexts()
 {
-    return Invvpid(INVVPID_ALL_CONTEXT, NULL);
+    Invvpid(INVVPID_ALL_CONTEXT, NULL);
 }
 
 /**
  * @brief INVVPID Single Context Retaining Globals
  * 
  * @param Vpid 
+ * @return VOID
  */
-void
+VOID
 InvvpidSingleContextRetainingGlobals(UINT16 Vpid)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0};
-    return Invvpid(INVVPID_SINGLE_CONTEXT_RETAINING_GLOBALS, &Descriptor);
+    Invvpid(INVVPID_SINGLE_CONTEXT_RETAINING_GLOBALS, &Descriptor);
 }

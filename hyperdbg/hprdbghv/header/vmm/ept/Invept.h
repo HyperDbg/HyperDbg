@@ -29,11 +29,11 @@ typedef struct _INVEPT_DESC
 //                 Functions	    			//
 //////////////////////////////////////////////////
 
-unsigned char
+UCHAR
 Invept(UINT32 Type, INVEPT_DESC * Descriptor);
 
-unsigned char
+UCHAR
 InveptAllContexts();
 
-unsigned char
+UCHAR
 InveptSingleContext(UINT64 EptPonter);

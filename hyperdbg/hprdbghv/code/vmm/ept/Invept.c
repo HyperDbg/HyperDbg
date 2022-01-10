@@ -16,9 +16,9 @@
  * 
  * @param Type 
  * @param Descriptor 
- * @return unsigned char 
+ * @return UCHAR 
  */
-unsigned char
+UCHAR
 Invept(UINT32 Type, INVEPT_DESC * Descriptor)
 {
     if (!Descriptor)
@@ -34,9 +34,9 @@ Invept(UINT32 Type, INVEPT_DESC * Descriptor)
  * @brief Invalidates a single context in ept cache table
  * 
  * @param EptPointer 
- * @return unsigned char 
+ * @return UCHAR 
  */
-unsigned char
+UCHAR
 InveptSingleContext(UINT64 EptPointer)
 {
     INVEPT_DESC Descriptor = {0};
@@ -48,9 +48,9 @@ InveptSingleContext(UINT64 EptPointer)
 /**
  * @brief Invalidates all contexts in ept cache table
  * 
- * @return unsigned char 
+ * @return UCHAR 
  */
-unsigned char
+UCHAR
 InveptAllContexts()
 {
     return Invept(INVEPT_ALL_CONTEXTS, NULL);
