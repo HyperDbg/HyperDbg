@@ -258,6 +258,13 @@ const unsigned char BuildVersion[] =
 #define DebuggerEventTagStartSeed 0x1000000
 
 /**
+ * @brief The seeds that user-mode thread detail token start with it
+ * @details This seed should not start with zero (0), otherwise it's 
+ * interpreted as error
+ */
+#define DebuggerThreadDebuggingTagStartSeed 0x1000000
+
+/**
  * @brief The seeds that user-mode codes use as the starter
  * of their output source tag
  *
@@ -1505,7 +1512,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
  */
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
-    UINT64                                               UniqueDebuggingId;
+    UINT64                                               Token;
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
     UINT64                                               ThreadId;
@@ -2338,6 +2345,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * 
  */
 #define DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS 0xc000002f
+
+/**
+ * @brief error, invalid thread debugging token
+ * 
+ */
+#define DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN 0xc0000030
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

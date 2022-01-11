@@ -30,6 +30,24 @@ UdInitializeUserDebugger()
     }
 
     //
+    // Initialize attaching mechanism
+    //
+    if (!AttachingInitialize())
+    {
+        return FALSE;
+    }
+
+    //
+    // Start the seed of user-mode debugging thread
+    //
+    g_SeedOfUserDebuggingDetails = DebuggerThreadDebuggingTagStartSeed;
+
+    //
+    // Initialize the thread debugging details list
+    //
+    InitializeListHead(&g_ThreadDebuggingDetailsListHead);
+
+    //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
     // so, intercept #DBs and #BP by changing exception bitmap (one core)
     //

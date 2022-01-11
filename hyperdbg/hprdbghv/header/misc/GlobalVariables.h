@@ -237,7 +237,26 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
 UINT64 * g_MsrBitmapInvalidMsrs;
 
 /**
- * @brief PEB address of a process to monitor for possible changes 
+ * @brief Seed for tokens of unique details buffer for threads 
  * 
  */
-USERMODE_ATTACHING_DETAILS g_UsermodeAttachingState;
+UINT64 g_SeedOfUserDebuggingDetails;
+
+/**
+ * @brief Whether the thread attaching mechanism is waiting for #DB or not
+ * 
+ */
+BOOLEAN g_IsWaitingForUserModeModuleEntrypointToBeCalled;
+
+/**
+ * @brief Whether the thread attaching mechanism is waiting for a page-fault
+ * finish or not
+ * 
+ */
+BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
+
+/**
+ * @brief List header of thread debugging details
+ * 
+ */
+LIST_ENTRY g_ThreadDebuggingDetailsListHead;

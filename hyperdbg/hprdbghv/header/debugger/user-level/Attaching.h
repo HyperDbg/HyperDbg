@@ -16,22 +16,31 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Description of user-mode attaching mechanism
+ * @brief Description of each active thread in user-mode attaching 
+ * mechanism
  * 
  */
-typedef struct _USERMODE_ATTACHING_DETAILS
+typedef struct _USERMODE_DEBUGGING_THREADS_DETAILS
 {
-    PVOID   PebAddressToMonitor;
-    BOOLEAN IsWaitingForUserModeModuleEntrypointToBeCalled;
-    BOOLEAN IsWaitingForReturnAndRunFromPageFault;
-    UINT64  UsermodeReservedBuffer;
-    UINT64  Entrypoint;
-    UINT64  BaseAddress;
-    UINT32  ProcessId;
-    UINT32  ThreadId;
-    BOOLEAN Is32Bit;
+    UINT64     Token;
+    BOOLEAN    Enabled;
+    BOOLEAN    IsPaused;
+    PVOID      PebAddressToMonitor;
+    GUEST_REGS Registers;
+    UINT64     Context;  // $context
+    UINT64     GuestRip; // if IsPaused is TRUE
+    UINT64     GuestRsp; // if IsPaused is TRUE
+    LIST_ENTRY AttachedThreadList;
+    UINT64     UsermodeReservedBuffer;
+    UINT64     EntrypointOfMainModule;
+    UINT64     BaseAddressOfMainModule;
+    PEPROCESS  Eprocess;
+    UINT32     ProcessId;
+    UINT32     ThreadId;
+    BOOLEAN    Is32Bit;
+    BOOLEAN    IsOnTheStartingPhase;
 
-} USERMODE_ATTACHING_DETAILS, *PUSERMODE_ATTACHING_DETAILS;
+} USERMODE_DEBUGGING_THREADS_DETAILS, *PUSERMODE_DEBUGGING_THREADS_DETAILS;
 
 //////////////////////////////////////////////////
 //				   Functions					//
@@ -45,3 +54,9 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+
+PUSERMODE_DEBUGGING_THREADS_DETAILS
+AttachingFindThreadDebuggingDetailsByToken(UINT64 Token);
+
+PUSERMODE_DEBUGGING_THREADS_DETAILS
+AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId);

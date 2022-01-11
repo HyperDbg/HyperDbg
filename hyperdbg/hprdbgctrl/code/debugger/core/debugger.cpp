@@ -296,6 +296,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN:
+        ShowMessages("err, invalid thread debugging token (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

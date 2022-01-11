@@ -175,14 +175,6 @@ DebuggerInitialize()
         RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
-    //
-    // Initialize attaching mechanism
-    //
-    if (!AttachingInitialize())
-    {
-        return FALSE;
-    }
-
     return TRUE;
 }
 

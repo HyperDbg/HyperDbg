@@ -371,7 +371,7 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
         //
         // Set the current active debugging process (thread)
         //
-        UsermodeDebuggingSetActiveDebuggingThread(AttachRequest.UniqueDebuggingId,
+        UsermodeDebuggingSetActiveDebuggingThread(AttachRequest.Token,
                                                   AttachRequest.ProcessId,
                                                   AttachRequest.ThreadId,
                                                   AttachRequest.Is32Bit);

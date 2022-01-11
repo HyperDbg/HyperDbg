@@ -91,7 +91,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Check for user-mode attaching mechanisms
         //
-        if (g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
+        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
         {
             UserAccessCheckForLoadedModuleDetails();
         }
