@@ -234,6 +234,36 @@ AttachingFindThreadDebuggingDetailsInStartingPhase()
 }
 
 /**
+ * @brief Remove and deallocate all thread debuggig details
+ * 
+ * @return VOID 
+ */
+VOID
+AttachingRemoveAndFreeAllThreadDebuggingDetails()
+{
+    PLIST_ENTRY TempList = 0;
+
+    TempList = &g_ThreadDebuggingDetailsListHead;
+
+    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+
+        //
+        // Remove thread debugging detail from the list active threads
+        //
+        RemoveEntryList(&ThreadDebuggingDetails->AttachedThreadList);
+
+        //
+        // Unallocate the pool
+        //
+        ExFreePoolWithTag(ThreadDebuggingDetails, POOLTAG);
+    }
+}
+
+/**
  * @brief Remove user-mode debugging details for threads by its token
  * 
  * @param Token 

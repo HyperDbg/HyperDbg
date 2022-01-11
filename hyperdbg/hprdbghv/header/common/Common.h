@@ -29,7 +29,7 @@ typedef enum _SEGMENT_REGISTERS
     GS,
     LDTR,
     TR
-};
+} SEGMENT_REGISTERS;
 
 /**
  * @brief Different methods of killing a process

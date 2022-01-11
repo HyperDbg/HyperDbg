@@ -74,5 +74,11 @@ UdUninitializeUserDebugger()
         // Indicate that the user debugger is not active
         //
         g_UserDebuggerState = FALSE;
+
+        //
+        // Free and deallocate all the buffers (pools) relating to
+        // thread debugging details
+        //
+        AttachingRemoveAndFreeAllThreadDebuggingDetails();
     }
 }
