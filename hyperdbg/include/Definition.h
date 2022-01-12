@@ -384,13 +384,16 @@ const unsigned char BuildVersion[] =
 #define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT \
     0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xA | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xa | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED \
-    0xB | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xb | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
-    0xC | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xc | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
-    0xD | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xd | OPERATION_MANDATORY_DEBUGGEE_BIT
+
+#define OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE \
+    0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -1713,16 +1716,13 @@ typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS
 } DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;
 
 /**
- * @brief The structure of pausing packet in HyperDbg
+ * @brief The structure of pausing packet in kHyperDbg
  *
  */
-typedef struct _DEBUGGEE_PAUSED_PACKET
+typedef struct _DEBUGGEE_KD_PAUSED_PACKET
 {
-    UINT64 Rip;
-    //
-    // if true shows that the address should be interpreted in 32-bit mode
-    //
-    BOOLEAN                 Is32BitAddress;
+    UINT64                  Rip;
+    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
     DEBUGGEE_PAUSING_REASON PausingReason;
     ULONG                   CurrentCore;
     UINT64                  EventTag;
@@ -1730,7 +1730,26 @@ typedef struct _DEBUGGEE_PAUSED_PACKET
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
     USHORT                  ReadInstructionLen;
 
-} DEBUGGEE_PAUSED_PACKET, *PDEBUGGEE_PAUSED_PACKET;
+} DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
+
+/**
+ * @brief The structure of pausing packet in uHyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_UD_PAUSED_PACKET
+{
+    UINT64                  Rip;
+    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
+    DEBUGGEE_PAUSING_REASON PausingReason;
+    UINT32                  ProcessId;
+    UINT32                  ThreadId;
+    UINT64                  EventTag;
+    RFLAGS                  Rflags;
+    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    USHORT                  ReadInstructionLen;
+    GUEST_REGS              GuestRegs;
+
+} DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
 
 /**
  * @brief The structure of message packet in HyperDbg

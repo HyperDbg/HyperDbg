@@ -131,3 +131,6 @@ KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLe
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);
+
+BOOLEAN
+KdIsGuestOnUsermode32Bit();

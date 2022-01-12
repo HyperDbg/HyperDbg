@@ -67,7 +67,7 @@ CommandRestart(vector<string> SplittedCommand, string Command)
         // kill the process, we will restart the process even if we didn't
         // successfully killed the active process
         //
-        UsermodeDebuggingKillProcess(g_ActiveThreadDebuggingState.ProcessId);
+        UdKillProcess(g_ActiveThreadDebuggingState.ProcessId);
     }
 
     //
@@ -75,14 +75,14 @@ CommandRestart(vector<string> SplittedCommand, string Command)
     //
     if (g_StartCommandPathAndArguments.empty())
     {
-        UsermodeDebuggingAttachToProcess(NULL,
+        UdAttachToProcess(NULL,
                                          NULL,
                                          g_StartCommandPath.c_str(),
                                          NULL);
     }
     else
     {
-        UsermodeDebuggingAttachToProcess(NULL,
+        UdAttachToProcess(NULL,
                                          NULL,
                                          g_StartCommandPath.c_str(),
                                          (WCHAR *)g_StartCommandPathAndArguments.c_str());

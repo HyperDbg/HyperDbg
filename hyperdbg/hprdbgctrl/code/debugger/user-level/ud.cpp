@@ -1,5 +1,5 @@
 /**
- * @file usermode-debugging.cpp
+ * @file ud.cpp
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief control the user-mode debugging affairs
  * @details
@@ -26,10 +26,10 @@ extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
  * @return VOID
  */
 VOID
-UsermodeDebuggingSetActiveDebuggingThread(UINT64  DebuggingId,
-                                          UINT32  ProcessId,
-                                          UINT32  ThreadId,
-                                          BOOLEAN Is32Bit)
+UdSetActiveDebuggingThread(UINT64  DebuggingId,
+                           UINT32  ProcessId,
+                           UINT32  ThreadId,
+                           BOOLEAN Is32Bit)
 {
     g_ActiveThreadDebuggingState.ProcessId         = ProcessId;
     g_ActiveThreadDebuggingState.ThreadId          = ThreadId;
@@ -49,7 +49,7 @@ UsermodeDebuggingSetActiveDebuggingThread(UINT64  DebuggingId,
  * @return VOID
  */
 VOID
-UsermodeDebuggingRemoveActiveDebuggingThread(UINT32 ProcessId)
+UdRemoveActiveDebuggingThread(UINT32 ProcessId)
 {
     //
     // Do sth
@@ -68,7 +68,7 @@ UsermodeDebuggingRemoveActiveDebuggingThread(UINT32 ProcessId)
  * @return VOID
  */
 VOID
-UsermodeDebuggingPrintError()
+UdPrintError()
 {
     DWORD   ErrNum;
     TCHAR   SysMsg[256];
@@ -107,7 +107,7 @@ UsermodeDebuggingPrintError()
  * @return BOOL if there was an error then returns false, otherwise return true
  */
 BOOL
-UsermodeDebuggingListProcessThreads(DWORD OwnerPID)
+UdListProcessThreads(DWORD OwnerPID)
 {
     HANDLE        ThreadSnap = INVALID_HANDLE_VALUE;
     THREADENTRY32 Te32;
@@ -129,8 +129,8 @@ UsermodeDebuggingListProcessThreads(DWORD OwnerPID)
     //
     if (!Thread32First(ThreadSnap, &Te32))
     {
-        UsermodeDebuggingPrintError(); // Show cause of failure
-        CloseHandle(ThreadSnap);       // Must clean up the snapshot object!
+        UdPrintError();          // Show cause of failure
+        CloseHandle(ThreadSnap); // Must clean up the snapshot object!
         return FALSE;
     }
     ShowMessages("\nThread's of pid\t= 0x%08X\n", OwnerPID);
@@ -167,7 +167,7 @@ UsermodeDebuggingListProcessThreads(DWORD OwnerPID)
  * returns false
  */
 BOOLEAN
-UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid)
+UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
 {
     HANDLE        ThreadSnap = INVALID_HANDLE_VALUE;
     THREADENTRY32 Te32;
@@ -190,8 +190,8 @@ UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid)
     //
     if (!Thread32First(ThreadSnap, &Te32))
     {
-        UsermodeDebuggingPrintError(); // Show cause of failure
-        CloseHandle(ThreadSnap);       // Must clean up the snapshot object!
+        UdPrintError();          // Show cause of failure
+        CloseHandle(ThreadSnap); // Must clean up the snapshot object!
         return FALSE;
     }
 
@@ -230,7 +230,7 @@ UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid)
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
+UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_INFORMATION ProcessInformation)
 {
     STARTUPINFOW StartupInfo;
     BOOL         CreateProcessResult;
@@ -273,10 +273,10 @@ UsermodeDebuggingCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandL
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
-                                 UINT32        TargetTid,
-                                 const WCHAR * TargetFileAddress,
-                                 WCHAR *       CommandLine)
+UdAttachToProcess(UINT32        TargetPid,
+                  UINT32        TargetTid,
+                  const WCHAR * TargetFileAddress,
+                  WCHAR *       CommandLine)
 {
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
@@ -324,7 +324,7 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
         //
         // Start the process in suspended state
         //
-        UsermodeDebuggingCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo);
+        UdCreateSuspendedProcess(TargetFileAddress, CommandLine, &ProcInfo);
 
         //
         // Set the process id and thread id
@@ -371,10 +371,10 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
         //
         // Set the current active debugging process (thread)
         //
-        UsermodeDebuggingSetActiveDebuggingThread(AttachRequest.Token,
-                                                  AttachRequest.ProcessId,
-                                                  AttachRequest.ThreadId,
-                                                  AttachRequest.Is32Bit);
+        UdSetActiveDebuggingThread(AttachRequest.Token,
+                                   AttachRequest.ProcessId,
+                                   AttachRequest.ThreadId,
+                                   AttachRequest.Is32Bit);
 
         // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
         // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
@@ -472,7 +472,7 @@ UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
  * @return BOOLEAN
  */
 BOOLEAN
-UsermodeDebuggingKillProcess(UINT32 TargetPid)
+UdKillProcess(UINT32 TargetPid)
 {
     BOOLEAN                                  Status;
     ULONG                                    ReturnedLength;
@@ -528,7 +528,7 @@ UsermodeDebuggingKillProcess(UINT32 TargetPid)
         //
         // Remove the current active debugging process (thread)
         //
-        UsermodeDebuggingRemoveActiveDebuggingThread(TargetPid);
+        UdRemoveActiveDebuggingThread(TargetPid);
 
         //
         // The operation of attaching was successful
@@ -542,4 +542,57 @@ UsermodeDebuggingKillProcess(UINT32 TargetPid)
     }
 
     return FALSE;
+}
+
+/**
+ * @brief Handle pause packets from user debugger
+ *
+ * @param PausePacket
+ * 
+ * @return VOID
+ */
+VOID
+UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
+{
+    //
+    // Check if the instruction is received completely or not
+    //
+    if (PausePacket->ReadInstructionLen != MAXIMUM_INSTR_SIZE)
+    {
+        //
+        // We check if the disassembled buffer has greater size
+        // than what is retrieved
+        //
+        if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
+                                             MAXIMUM_INSTR_SIZE,
+                                             PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+        {
+            ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
+        }
+    }
+
+    if (!PausePacket->Is32BitAddress)
+    {
+        //
+        // Show diassembles
+        //
+        HyperDbgDisassembler64(PausePacket->InstructionBytesOnRip,
+                               PausePacket->Rip,
+                               MAXIMUM_INSTR_SIZE,
+                               1,
+                               TRUE,
+                               &PausePacket->Rflags);
+    }
+    else
+    {
+        //
+        // Show diassembles
+        //
+        HyperDbgDisassembler32(PausePacket->InstructionBytesOnRip,
+                               PausePacket->Rip,
+                               MAXIMUM_INSTR_SIZE,
+                               1,
+                               TRUE,
+                               &PausePacket->Rflags);
+    }
 }

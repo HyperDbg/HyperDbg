@@ -15,7 +15,6 @@
 //				      Structures     			//
 //////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////
 //				      Functions     			//
 //////////////////////////////////////////////////
@@ -25,3 +24,10 @@ UdInitializeUserDebugger();
 
 VOID
 UdUninitializeUserDebugger();
+
+VOID
+UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentCore,
+                                      UINT64                            ThreadDebuggingToken,
+                                      PGUEST_REGS                       GuestRegs,
+                                      DEBUGGEE_PAUSING_REASON           Reason,
+                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);

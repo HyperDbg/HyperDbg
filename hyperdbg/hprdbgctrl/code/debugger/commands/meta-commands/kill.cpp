@@ -54,5 +54,5 @@ CommandKill(vector<string> SplittedCommand, string Command)
     //
     // Kill the current active process
     //
-    UsermodeDebuggingKillProcess(g_ActiveThreadDebuggingState.ProcessId);
+    UdKillProcess(g_ActiveThreadDebuggingState.ProcessId);
 }

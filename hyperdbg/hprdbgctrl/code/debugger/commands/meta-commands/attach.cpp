@@ -128,7 +128,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     if (TargetTid == 0)
     {
-        UsermodeDebuggingListProcessThreads(TargetPid);
+        UdListProcessThreads(TargetPid);
         return;
     }
     else
@@ -136,7 +136,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
         //
         // Check if the process id and thread id is correct or not
         //
-        if (!UsermodeDebuggingCheckThreadByProcessId(TargetPid, TargetTid))
+        if (!UdCheckThreadByProcessId(TargetPid, TargetTid))
         {
             ShowMessages("err, the thread or the process not found, or the thread not "
                          "belongs to the process, or the thread is terminated\n");
@@ -147,5 +147,5 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     //
     // Perform attach to target process
     //
-    UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL, NULL);
+    UdAttachToProcess(TargetPid, TargetTid, NULL, NULL);
 }

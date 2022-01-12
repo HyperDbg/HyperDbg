@@ -2305,7 +2305,7 @@ KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PGUEST_REGS                       GuestRegs,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
-    DEBUGGEE_PAUSED_PACKET PausePacket;
+    DEBUGGEE_KD_PAUSED_PACKET PausePacket;
     ULONG                  ExitInstructionLength  = 0;
     UINT64                 SizeOfSafeBufferToRead = 0;
     RFLAGS                 Rflags                 = {0};
@@ -2326,7 +2326,7 @@ StartAgain:
         //
         // *** Current Operating Core  ***
         //
-        RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_PAUSED_PACKET));
+        RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //
         // Set the halt reason
@@ -2415,7 +2415,7 @@ StartAgain:
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
                                    &PausePacket,
-                                   sizeof(DEBUGGEE_PAUSED_PACKET));
+                                   sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //
         // Perform Commands from the debugger

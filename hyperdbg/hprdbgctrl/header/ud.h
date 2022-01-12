@@ -1,5 +1,5 @@
 /**
- * @file usermode-debugging.h
+ * @file ud.h
  * @author Sina Karvandi (sina@rayanfam.com)
  * @brief headers for user-mode debugging routines
  * @details
@@ -38,16 +38,19 @@ typedef struct _ACTIVE_DEBUGGING_THREAD
 //////////////////////////////////////////////////
 
 BOOL
-UsermodeDebuggingListProcessThreads(DWORD OwnerPID);
+UdListProcessThreads(DWORD OwnerPID);
 
 BOOLEAN
-UsermodeDebuggingCheckThreadByProcessId(DWORD Pid, DWORD Tid);
+UdCheckThreadByProcessId(DWORD Pid, DWORD Tid);
 
 BOOLEAN
-UsermodeDebuggingAttachToProcess(UINT32        TargetPid,
-                                 UINT32        TargetTid,
-                                 const WCHAR * TargetFileAddress,
-                                 WCHAR *       CommandLine);
+UdAttachToProcess(UINT32        TargetPid,
+                  UINT32        TargetTid,
+                  const WCHAR * TargetFileAddress,
+                  WCHAR *       CommandLine);
 
 BOOLEAN
-UsermodeDebuggingKillProcess(UINT32 TargetPid);
+UdKillProcess(UINT32 TargetPid);
+
+VOID
+UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);

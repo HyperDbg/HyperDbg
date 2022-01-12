@@ -339,6 +339,16 @@ ReadIrpBasedBuffer()
 
                     break;
 
+                case OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE:
+
+                    //
+                    // handle pausing packet from user debugger
+                    //
+                    UdHandleUserDebuggerPausing(
+                        (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
+
+                    break;
+
                 default:
 
                     if (g_BreakPrintingOutput)

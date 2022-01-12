@@ -264,8 +264,8 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             //
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_IsWaitingForUserModeModuleEntrypointToBeCalled ||
-                 g_IsWaitingForReturnAndRunFromPageFault)
+        else if (g_UserDebuggerState == TRUE &&
+                 (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
         {
             //
             // Handle for user-mode attaching mechanism

@@ -44,7 +44,7 @@ ListeningSerialPortInDebugger()
 {
     PDEBUGGER_PREPARE_DEBUGGEE                  InitPacket;
     PDEBUGGER_REMOTE_PACKET                     TheActualPacket;
-    PDEBUGGEE_PAUSED_PACKET                     PausePacket;
+    PDEBUGGEE_KD_PAUSED_PACKET                  PausePacket;
     PDEBUGGEE_MESSAGE_PACKET                    MessagePacket;
     PDEBUGGEE_CHANGE_CORE_PACKET                ChangeCorePacket;
     PDEBUGGEE_SCRIPT_PACKET                     ScriptPacket;
@@ -200,8 +200,8 @@ StartAgain:
             //
             g_IgnoreNewLoggingMessages = TRUE;
 
-            PausePacket = (DEBUGGEE_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
-                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+            PausePacket = (DEBUGGEE_KD_PAUSED_PACKET *)(((CHAR *)TheActualPacket) +
+                                                        sizeof(DEBUGGER_REMOTE_PACKET));
 
             //
             // Debuggee is not running
