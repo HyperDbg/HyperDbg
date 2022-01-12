@@ -868,7 +868,8 @@ KdCloseConnectionAndUnloadDebuggee()
     //
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 }
 
 /**
@@ -884,7 +885,8 @@ KdReloadSymbolDetailsInDebuggee()
     //
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 }
 
 /**
@@ -903,7 +905,8 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
     //
     LogSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
                   Descriptor,
-                  Len);
+                  Len,
+                  TRUE);
 }
 
 /**
@@ -1431,7 +1434,8 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 {
     LogSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                   ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                  EventDetailHeader->Length);
+                  EventDetailHeader->Length,
+                  TRUE);
 }
 
 /**
@@ -1445,7 +1449,8 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 {
     LogSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                   ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                  ActionDetailHeader->Length);
+                  ActionDetailHeader->Length,
+                  TRUE);
 }
 
 /**
@@ -1587,7 +1592,8 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         LogSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
                       ModifyAndQueryEvent,
-                      sizeof(DEBUGGER_MODIFY_EVENTS));
+                      sizeof(DEBUGGER_MODIFY_EVENTS),
+                      TRUE);
     }
     else
     {

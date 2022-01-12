@@ -457,7 +457,8 @@ VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
     //
     LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 
     return STATUS_SUCCESS;
 }

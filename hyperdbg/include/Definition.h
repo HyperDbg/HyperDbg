@@ -206,9 +206,15 @@ const unsigned char BuildVersion[] =
 
 /**
  * @brief Default buffer count of packets for message tracing
- * @details number of packets storage
+ * @details number of packets storage for regualr buffers
  */
 #define MaximumPacketsCapacity 1000
+
+/**
+ * @brief Default buffer count of packets for message tracing
+ * @details number of packets storage for priority buffers
+ */
+#define MaximumPacketsCapacityPriority 10
 
 /**
  * @brief Size of each packet
@@ -242,6 +248,13 @@ const unsigned char BuildVersion[] =
  */
 #define LogBufferSize \
     MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
+
+/**
+ * @brief Final storage size of message tracing
+ *
+ */
+#define LogBufferSizePriority \
+    MaximumPacketsCapacityPriority *(PacketChunkSize + sizeof(BUFFER_HEADER))
 
 /**
  * @brief limitation of Windows DbgPrint message size

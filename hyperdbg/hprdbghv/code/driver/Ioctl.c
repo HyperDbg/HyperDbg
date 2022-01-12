@@ -99,6 +99,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 break;
             }
             break;
+
         case IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL:
 
             //
@@ -111,7 +112,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS,
                           "$",
-                          1);
+                          1,
+                          TRUE);
 
             Status = STATUS_SUCCESS;
             break;
