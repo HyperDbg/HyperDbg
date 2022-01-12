@@ -360,6 +360,11 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
     RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_UD_PAUSED_PACKET));
 
     //
+    // Set the pausing reason
+    //
+    PausePacket.PausingReason = Reason;
+
+    //
     // Set the RIP and mode of execution
     //
     PausePacket.Rip            = g_GuestState[CurrentCore].LastVmexitRip;

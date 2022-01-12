@@ -382,11 +382,6 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Handling state through the user-mode debugger
         //
-        // LogInfo("Reached to the entrypoint in user-mode debugging");
-
-        //
-        // Handle the break
-        //
         UdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                               ThreadDebuggingToken,
                                               GuestRegs,

@@ -555,6 +555,21 @@ VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 {
     //
+    // Perform extra tasks for pausing reasons
+    //
+    switch (PausePacket->PausingReason)
+    {
+    case DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED:
+
+        ShowMessages("reached to the entrypoint of the main module\n");
+
+        break;
+
+    default:
+        break;
+    }
+
+    //
     // Check if the instruction is received completely or not
     //
     if (PausePacket->ReadInstructionLen != MAXIMUM_INSTR_SIZE)
