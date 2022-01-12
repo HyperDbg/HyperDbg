@@ -36,6 +36,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_MODIFY_EVENTS                                 DebuggerModifyEventRequest;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
+    PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION              DebuggerKernelSideTestInformationRequest;
@@ -1100,6 +1101,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             DebuggerCommandReservePreallocatedPools(DebuggerReservePreallocPoolRequest);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_PREALLOC_COMMAND;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_SEND_USER_DEBUGGER_COMMANDS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < sizeof(DEBUGGER_UD_COMMAND_PACKET) ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerUdCommandRequest = (PDEBUGGER_UD_COMMAND_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the dispatching of user debugger command
+            //
+            UdDispatchUsermodeCommands(DebuggerUdCommandRequest);
+
+            Irp->IoStatus.Information = sizeof(DEBUGGER_UD_COMMAND_PACKET);
             Status                    = STATUS_SUCCESS;
 
             //

@@ -596,3 +596,84 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
                                &PausePacket->Rflags);
     }
 }
+
+/**
+ * @brief Send the command to the user debugger
+ * @param ThreadDetailToken
+ * @param ActionType
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @param OptionalParam4
+ * 
+ * @return VOID
+ */
+VOID
+UdSendCommand(UINT64                          ThreadDetailToken,
+              DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              UINT64                          OptionalParam1,
+              UINT64                          OptionalParam2,
+              UINT64                          OptionalParam3,
+              UINT64                          OptionalParam4)
+{
+    BOOL                       Status;
+    ULONG                      ReturnedLength;
+    DEBUGGER_UD_COMMAND_PACKET CommandPacket;
+
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return;
+    }
+
+    //
+    // Zero the packet
+    //
+    RtlZeroMemory(&CommandPacket, sizeof(DEBUGGER_UD_COMMAND_PACKET));
+
+    //
+    // Set to the details
+    //
+    CommandPacket.ThreadDebuggingDetailToken = ThreadDetailToken;
+    CommandPacket.UdAction.ActionType        = ActionType;
+    CommandPacket.UdAction.OptionalParam1    = OptionalParam1;
+    CommandPacket.UdAction.OptionalParam2    = OptionalParam2;
+    CommandPacket.UdAction.OptionalParam3    = OptionalParam3;
+    CommandPacket.UdAction.OptionalParam4    = OptionalParam4;
+
+    //
+    // Send IOCTL
+    //
+    Status =
+        DeviceIoControl(g_DeviceHandle,                     // Handle to device
+                        IOCTL_SEND_USER_DEBUGGER_COMMANDS,  // IO Control code
+                        &CommandPacket,                     // Input Buffer to driver.
+                        sizeof(DEBUGGER_UD_COMMAND_PACKET), // Input buffer length
+                        &CommandPacket,                     // Output Buffer from driver.
+                        sizeof(DEBUGGER_UD_COMMAND_PACKET), // Length of output buffer in bytes.
+                        &ReturnedLength,                    // Bytes placed in buffer.
+                        NULL                                // synchronous call
+        );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return;
+    }
+}
+
+/**
+ * @brief Continue the target user debugger
+ * @param ThreadDetailToken
+ * 
+ * @return VOID
+ */
+VOID
+UdContinueDebuggee(UINT64 ThreadDetailToken)
+{
+    //
+    // Send the 'continue' command
+    //
+    UdSendCommand(ThreadDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, NULL, NULL, NULL, NULL);
+}

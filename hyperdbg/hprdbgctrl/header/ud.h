@@ -54,3 +54,6 @@ UdKillProcess(UINT32 TargetPid);
 
 VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
+
+VOID
+UdContinueDebuggee(UINT64 ThreadDetailToken);

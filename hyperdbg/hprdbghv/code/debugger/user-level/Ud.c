@@ -83,9 +83,243 @@ UdUninitializeUserDebugger()
     }
 }
 
+/**
+ * @brief Continue the process
+ * 
+ * @param ThreadDebuggingDetails
+ * 
+ * @return VOID 
+ */
 VOID
-UdSpinThreadOnNop(UINT64 ThreadDebuggingToken)
+UdContinueThread(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
 {
+    //
+    // Configure the RIP and RSP again
+    //
+    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->GuestRip);
+    __vmx_vmwrite(GUEST_RSP, ThreadDebuggingDetails->GuestRsp);
+
+    //
+    // Continue the current instruction won't pass it
+    //
+    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+
+    //
+    // It's not paused anymore!
+    //
+    ThreadDebuggingDetails->IsPaused = FALSE;
+}
+
+/**
+ * @brief Perform the user-mode commands
+ * 
+ * @param ThreadDebuggingDetails
+ * @param UserAction
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @param OptionalParam4
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UdPerformCommand(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
+                 DEBUGGER_UD_COMMAND_ACTION_TYPE     UserAction,
+                 UINT64                              OptionalParam1,
+                 UINT64                              OptionalParam2,
+                 UINT64                              OptionalParam3,
+                 UINT64                              OptionalParam4)
+{
+    //
+    // Perform the command
+    //
+    switch (UserAction)
+    {
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE:
+
+        //
+        // Continue the thread normally
+        //
+        UdContinueThread(ThreadDebuggingDetails);
+
+        break;
+
+    default:
+
+        //
+        // Invalid user action
+        //
+        return FALSE;
+        break;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief Check for the user-mode commands
+ *
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UdCheckForCommand()
+{
+    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+
+    ThreadDebuggingDetails =
+        AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
+                                                                  PsGetCurrentThreadId());
+
+    if (!ThreadDebuggingDetails)
+    {
+        return FALSE;
+    }
+
+    //
+    // If we reached here, the current thread is in debugger attached mechanism
+    // now we check whether it's a regular CPUID or a debugger paused thread CPUID
+    //
+    if (!ThreadDebuggingDetails->IsPaused)
+    {
+        return FALSE;
+    }
+
+    //
+    // Here, we're sure that this thread is looking for command, let
+    // see if we find anything
+    //
+    for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
+    {
+        if (ThreadDebuggingDetails->UdAction[i].ActionType != DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+        {
+            //
+            // Perform the command
+            //
+            UdPerformCommand(ThreadDebuggingDetails,
+                             ThreadDebuggingDetails->UdAction[i].ActionType,
+                             ThreadDebuggingDetails->UdAction[i].OptionalParam1,
+                             ThreadDebuggingDetails->UdAction[i].OptionalParam2,
+                             ThreadDebuggingDetails->UdAction[i].OptionalParam3,
+                             ThreadDebuggingDetails->UdAction[i].OptionalParam4);
+
+            //
+            // Remove the command
+            //
+            ThreadDebuggingDetails->UdAction[i].OptionalParam1 = NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam2 = NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam3 = NULL;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam4 = NULL;
+
+            //
+            // At last disable it
+            //
+            ThreadDebuggingDetails->UdAction[i].ActionType = DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE;
+
+            //
+            // only one command at a time
+            //
+            break;
+        }
+    }
+
+    //
+    // Won't change the registers for cpuid
+    //
+    return TRUE;
+}
+
+/**
+ * @brief Dispatch the user-mode commands
+ *
+ * @param ActionRequest
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
+{
+    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    BOOLEAN                             CommandApplied = FALSE;
+
+    //
+    // Find the thread debugging detail of the thread
+    //
+    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(ActionRequest->ThreadDebuggingDetailToken);
+
+    if (!ThreadDebuggingDetails)
+    {
+        //
+        // Token not found!
+        //
+        return FALSE;
+    }
+
+    //
+    // Apply the command
+    //
+    for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
+    {
+        if (ThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+        {
+            //
+            // Set the action
+            //
+            ThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
+            ThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
+
+            //
+            // At last we set the action type to make it valid
+            //
+            ThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
+
+            CommandApplied = TRUE;
+            break;
+        }
+    }
+
+    return CommandApplied;
+}
+
+/**
+ * @brief Spin on nop sled in user-mode to halt the debuggee
+ *
+ * @param Token
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UdSpinThreadOnNop(UINT64 Token)
+{
+    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+
+    //
+    // Find the entry
+    //
+    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(Token);
+
+    if (!ThreadDebuggingDetails)
+    {
+        //
+        // Token not found!
+        //
+        return FALSE;
+    }
+
+    //
+    // Save the RIP and RSP for previous return
+    //
+    __vmx_vmread(GUEST_RIP, &ThreadDebuggingDetails->GuestRip);
+    __vmx_vmread(GUEST_RSP, &ThreadDebuggingDetails->GuestRsp);
+
+    //
+    // Set the rip to new spinning address
+    //
+    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->UsermodeReservedBuffer);
+
+    //
+    // Indicate that it's spinning
+    //
+    ThreadDebuggingDetails->IsPaused = TRUE;
 }
 
 /**
@@ -97,9 +331,9 @@ UdSpinThreadOnNop(UINT64 ThreadDebuggingToken)
  * @param GuestRegs
  * @param Reason
  * @param EventDetails
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentCore,
                                       UINT64                            ThreadDebuggingToken,
                                       PGUEST_REGS                       GuestRegs,
@@ -110,6 +344,14 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
     ULONG                     ExitInstructionLength  = 0;
     UINT64                    SizeOfSafeBufferToRead = 0;
     RFLAGS                    Rflags                 = {0};
+
+    //
+    // Breaking only supported in vmx-root mode
+    //
+    if (!g_GuestState[CurrentCore].IsOnVmxRootMode)
+    {
+        return FALSE;
+    }
 
     //
     // *** Fill the pausing structure ***
@@ -204,5 +446,5 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
     //
     // Halt the thread on nop sleds
     //
-    UdSpinThreadOnNop(ThreadDebuggingToken);
+    return UdSpinThreadOnNop(ThreadDebuggingToken);
 }

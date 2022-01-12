@@ -1752,6 +1752,46 @@ typedef struct _DEBUGGEE_UD_PAUSED_PACKET
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
 
 /**
+ * @brief User-mode debugging actions
+ * 
+ */
+typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
+{
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE = 0,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_PAUSE,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP_IN,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP_OVER,
+
+} DEBUGGER_UD_COMMAND_ACTION_TYPE;
+
+/**
+ * @brief Description of user-mode debugging actions
+ * 
+ */
+typedef struct _DEBUGGER_UD_COMMAND_ACTION
+{
+    DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType;
+    UINT64                          OptionalParam1;
+    UINT64                          OptionalParam2;
+    UINT64                          OptionalParam3;
+    UINT64                          OptionalParam4;
+
+} DEBUGGER_UD_COMMAND_ACTION, *PDEBUGGER_UD_COMMAND_ACTION;
+
+/**
+ * @brief The structure of command packet in uHyperDbg
+ *
+ */
+typedef struct _DEBUGGER_UD_COMMAND_PACKET
+{
+    DEBUGGER_UD_COMMAND_ACTION UdAction;
+    UINT64                     ThreadDebuggingDetailToken;
+    UINT32                     Result;
+
+} DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
+
+/**
  * @brief The structure of message packet in HyperDbg
  *
  */
@@ -2562,3 +2602,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_RESERVE_PRE_ALLOCATED_POOLS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to send user debugger commands
+ *
+ */
+#define IOCTL_SEND_USER_DEBUGGER_COMMANDS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x818, METHOD_BUFFERED, FILE_ANY_ACCESS)

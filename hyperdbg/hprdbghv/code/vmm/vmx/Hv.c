@@ -72,6 +72,19 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     UINT64 Context = 0;
 
     //
+    // Check if attaching is for command dispatching in user debugger
+    // or a regular CPUID
+    //
+    if (g_UserDebuggerState && UdCheckForCommand())
+    {
+        //
+        // It's a thread command for user debugger, no need to run the
+        // actual CPUID instruction and change the registers
+        //
+        return;
+    }
+
+    //
     // Set the context (save eax for the debugger)
     //
     Context = RegistersState->rax;
