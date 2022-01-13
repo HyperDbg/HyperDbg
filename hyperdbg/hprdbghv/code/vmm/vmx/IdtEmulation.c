@@ -125,7 +125,8 @@ IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
 VOID
 IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
 {
-    ULONG ErrorCode = 0;
+    ULONG                               ErrorCode             = 0;
+    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetail = {0};
 
     //
     // This type of vm-exit, can be either because of an !exception event,
@@ -279,6 +280,35 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             // debugger is attached.)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        }
+        else if (g_UserDebuggerState)
+        {
+            ThreadDebuggingDetail = AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
+                                                                                              PsGetCurrentThreadId());
+
+            if (ThreadDebuggingDetail != NULL)
+            {
+                //
+                // *** This is a thread that we attached to it ***
+                //
+
+                //
+                // Handling state through the user-mode debugger
+                //
+                UdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
+                                                      ThreadDebuggingDetail->Token,
+                                                      GuestRegs,
+                                                      DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
+                                                      NULL);
+            }
+            else
+            {
+                //
+                // It's not related to us, prefer to re-inject it, so other debuggers
+                // can work normally
+                //
+                IdtEmulationReInjectInterruptOrException(InterruptExit);
+            }
         }
         else
         {

@@ -57,3 +57,6 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
 
 VOID
 UdContinueDebuggee(UINT64 ThreadDetailToken);
+
+VOID
+UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, DEBUGGER_REMOTE_STEPPING_REQUEST StepType);

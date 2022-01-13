@@ -15,6 +15,41 @@
 // Global Variables
 //
 extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+extern BOOLEAN                 g_IsUserDebuggerInitialized;
+extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
+    g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
+
+/**
+ * @brief set the current active debugging process (thread)
+ * @param DebuggingId
+ * @param ProcessId
+ * @param ThreadId
+ * @param Is32Bit
+ * 
+ * @return VOID
+ */
+VOID
+UdInitializeUserDebugger()
+
+{
+    if (!g_IsUserDebuggerInitialized)
+    {
+        //
+        // Initialize the handle table
+        //
+        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        {
+            g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
+            g_UserSyncronizationObjectsHandleTable[i].EventHandle =
+                CreateEvent(NULL, FALSE, FALSE, NULL);
+        }
+
+        //
+        // Indicate that it's initialized
+        //
+        g_IsUserDebuggerInitialized = TRUE;
+    }
+}
 
 /**
  * @brief set the current active debugging process (thread)
@@ -282,6 +317,11 @@ UdAttachToProcess(UINT32        TargetPid,
     ULONG                                    ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest = {0};
     PROCESS_INFORMATION                      ProcInfo      = {0};
+
+    //
+    // Check to initialize the user-debugger
+    //
+    UdInitializeUserDebugger();
 
     //
     // Check if debugger is loaded or not
@@ -610,6 +650,21 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
                                TRUE,
                                &PausePacket->Rflags);
     }
+
+    //
+    // Unpause the user debugger to get commands
+    //
+    if (g_UserSyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
+                .IsOnWaitingState == TRUE)
+    {
+        g_UserSyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
+                .IsOnWaitingState = FALSE;
+        SetEvent(g_UserSyncronizationObjectsHandleTable
+                     [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
+                         .EventHandle);
+    }
 }
 
 /**
@@ -691,4 +746,33 @@ UdContinueDebuggee(UINT64 ThreadDetailToken)
     // Send the 'continue' command
     //
     UdSendCommand(ThreadDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, NULL, NULL, NULL, NULL);
+}
+
+/**
+ * @brief Send stepping instructions packet to user debugger
+ * @param ThreadDetailToken
+ * @param StepType
+ * 
+ * @return VOID
+ */
+VOID
+UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+{
+    //
+    // Wait until the result of user-input received
+    //
+    g_UserSyncronizationObjectsHandleTable
+        [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
+            .IsOnWaitingState = TRUE;
+
+    //
+    // Send the 'continue' command
+    //
+    UdSendCommand(ThreadDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, StepType, NULL, NULL, NULL);
+
+    WaitForSingleObject(
+        g_UserSyncronizationObjectsHandleTable
+            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
+                .EventHandle,
+        INFINITE);
 }

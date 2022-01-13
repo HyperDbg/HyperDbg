@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsInstrumentingInstructions;
+extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                 g_IsInstrumentingInstructions;
+extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
 
 /**
  * @brief help of p command
@@ -80,9 +81,9 @@ CommandP(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if the remote serial debuggee is paused or not
+    // Check if the remote serial debuggee or user debugger are paused or not
     //
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveThreadDebuggingState.IsActive)
     {
         //
         // Indicate that we're instrumenting
@@ -98,7 +99,20 @@ CommandP(vector<string> SplittedCommand, string Command)
             //   (float)StepCount), i);
             //
 
-            KdSendStepPacketToDebuggee(RequestFormat);
+            if (g_IsSerialConnectedToRemoteDebuggee)
+            {
+                //
+                // It's stepping over serial connection in kernel debugger
+                //
+                KdSendStepPacketToDebuggee(RequestFormat);
+            }
+            else
+            {
+                //
+                // It's stepping over user debugger
+                //
+                UdSendStepPacketToDebuggee(g_ActiveThreadDebuggingState.UniqueDebuggingId, RequestFormat);
+            }
 
             if (!SplittedCommand.at(0).compare("pr"))
             {

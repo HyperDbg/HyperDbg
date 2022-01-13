@@ -84,6 +84,23 @@ UdUninitializeUserDebugger()
 }
 
 /**
+ * @brief Restore the thread to the original direction
+ * 
+ * @param ThreadDebuggingDetails
+ * 
+ * @return VOID 
+ */
+VOID
+UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+{
+    //
+    // Configure the RIP and RSP again
+    //
+    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->GuestRip);
+    __vmx_vmwrite(GUEST_RSP, ThreadDebuggingDetails->GuestRsp);
+}
+
+/**
  * @brief Continue the process
  * 
  * @param ThreadDebuggingDetails
@@ -96,8 +113,63 @@ UdContinueThread(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
     //
     // Configure the RIP and RSP again
     //
-    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->GuestRip);
-    __vmx_vmwrite(GUEST_RSP, ThreadDebuggingDetails->GuestRsp);
+    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
+
+    //
+    // Continue the current instruction won't pass it
+    //
+    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+
+    //
+    // It's not paused anymore!
+    //
+    ThreadDebuggingDetails->IsPaused = FALSE;
+}
+
+/**
+ * @brief Perform stepping though the instructions
+ * 
+ * @param ThreadDebuggingDetails
+ * 
+ * @return VOID 
+ */
+VOID
+UdStepInstructions(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
+                   DEBUGGER_REMOTE_STEPPING_REQUEST    SteppingType)
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // Configure the RIP and RSP again
+    //
+    UdRestoreToOriginalDirection(ThreadDebuggingDetails);
+
+    switch (SteppingType)
+    {
+    case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_IN:
+
+        //
+        // Set the trap-flag
+        //
+        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+
+        Rflags.TrapFlag = TRUE;
+
+        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+
+        break;
+
+    case DEBUGGER_REMOTE_STEPPING_REQUEST_STEP_OVER:
+
+        break;
+
+    case DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN:
+
+        break;
+
+    default:
+        break;
+    }
 
     //
     // Continue the current instruction won't pass it
@@ -141,6 +213,15 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
         // Continue the thread normally
         //
         UdContinueThread(ThreadDebuggingDetails);
+
+        break;
+
+    case DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP:
+
+        //
+        // Stepping through the instructions
+        //
+        UdStepInstructions(ThreadDebuggingDetails, (DEBUGGER_REMOTE_STEPPING_REQUEST)OptionalParam1);
 
         break;
 
@@ -284,27 +365,12 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 /**
  * @brief Spin on nop sled in user-mode to halt the debuggee
  *
- * @param Token
+ * @param ThreadDebuggingDetails
  * @return BOOLEAN 
  */
 BOOLEAN
-UdSpinThreadOnNop(UINT64 Token)
+UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
-
-    //
-    // Find the entry
-    //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(Token);
-
-    if (!ThreadDebuggingDetails)
-    {
-        //
-        // Token not found!
-        //
-        return FALSE;
-    }
-
     //
     // Save the RIP and RSP for previous return
     //
@@ -320,6 +386,65 @@ UdSpinThreadOnNop(UINT64 Token)
     // Indicate that it's spinning
     //
     ThreadDebuggingDetails->IsPaused = TRUE;
+}
+
+/**
+ * @brief Handle after we hit the stepping
+ * @details This function can be used in vmx-root 
+ * 
+ * @param CurrentCore
+ * @param ThreadDebuggingDetails
+ * @return VOID 
+ */
+VOID
+UdHandleAfterSteppingReason(UINT32                              CurrentCore,
+                            PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+{
+    RFLAGS Rflags = {0};
+
+    //
+    // Unset the trap-flag
+    //
+    __vmx_vmread(GUEST_RFLAGS, &Rflags);
+
+    Rflags.TrapFlag = FALSE;
+
+    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+}
+
+/**
+ * @brief Handle special reasons pre-pausings
+ * @details This function can be used in vmx-root 
+ * 
+ * @param CurrentCore
+ * @param ThreadDebuggingDetails
+ * @param GuestRegs
+ * @param Reason
+ * @param EventDetails
+ * @return VOID 
+ */
+VOID
+UdPrePausingReasons(UINT32                              CurrentCore,
+                    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
+                    PGUEST_REGS                         GuestRegs,
+                    DEBUGGEE_PAUSING_REASON             Reason,
+                    PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails)
+
+{
+    switch (Reason)
+    {
+    case DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED:
+
+        //
+        // Handle events before pausing
+        //
+        UdHandleAfterSteppingReason(CurrentCore, ThreadDebuggingDetails);
+
+        break;
+
+    default:
+        break;
+    }
 }
 
 /**
@@ -340,10 +465,11 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
                                       DEBUGGEE_PAUSING_REASON           Reason,
                                       PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
-    DEBUGGEE_UD_PAUSED_PACKET PausePacket;
-    ULONG                     ExitInstructionLength  = 0;
-    UINT64                    SizeOfSafeBufferToRead = 0;
-    RFLAGS                    Rflags                 = {0};
+    DEBUGGEE_UD_PAUSED_PACKET           PausePacket;
+    ULONG                               ExitInstructionLength  = 0;
+    UINT64                              SizeOfSafeBufferToRead = 0;
+    RFLAGS                              Rflags                 = {0};
+    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails = NULL;
 
     //
     // Breaking only supported in vmx-root mode
@@ -352,6 +478,24 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
     {
         return FALSE;
     }
+
+    //
+    // Check entry of paused thread
+    //
+    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(ThreadDebuggingToken);
+
+    if (!ThreadDebuggingDetails)
+    {
+        //
+        // Token not found!
+        //
+        return FALSE;
+    }
+
+    //
+    // Perform the pre-pausing tasks
+    //
+    UdPrePausingReasons(CurrentCore, ThreadDebuggingDetails, GuestRegs, Reason, EventDetails);
 
     //
     // *** Fill the pausing structure ***
@@ -451,5 +595,5 @@ UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
     //
     // Halt the thread on nop sleds
     //
-    return UdSpinThreadOnNop(ThreadDebuggingToken);
+    return UdSpinThreadOnNop(ThreadDebuggingDetails);
 }
