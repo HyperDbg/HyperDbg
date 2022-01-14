@@ -31,6 +31,7 @@ typedef struct _USERMODE_DEBUGGING_THREADS_DETAILS
     UINT64                     Token;
     BOOLEAN                    Enabled;
     BOOLEAN                    IsPaused;
+    BOOLEAN                    IsRflagsTrapFlagsSet;
     PVOID                      PebAddressToMonitor;
     GUEST_REGS                 Registers;
     UINT64                     Context;  // $context

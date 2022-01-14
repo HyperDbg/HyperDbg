@@ -100,6 +100,7 @@ AttachingInitialize()
 UINT64
 AttachingCreateThreadDebuggingDetails(UINT32    ProcessId,
                                       UINT32    ThreadId,
+                                      BOOLEAN   Enabled,
                                       BOOLEAN   Is32Bit,
                                       PEPROCESS Eprocess,
                                       UINT64    PebAddressToMonitor,
@@ -130,6 +131,7 @@ AttachingCreateThreadDebuggingDetails(UINT32    ProcessId,
     //
     ThreadDebuggingDetail->ProcessId              = ProcessId;
     ThreadDebuggingDetail->ThreadId               = ThreadId;
+    ThreadDebuggingDetail->Enabled                = Enabled;
     ThreadDebuggingDetail->Is32Bit                = Is32Bit;
     ThreadDebuggingDetail->Eprocess               = Eprocess;
     ThreadDebuggingDetail->PebAddressToMonitor    = PebAddressToMonitor;
@@ -165,7 +167,10 @@ AttachingFindThreadDebuggingDetailsByToken(UINT64 Token)
         PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
 
-        if (ThreadDebuggingDetails->Token == Token)
+        //
+        // Check if we found the target thread and if it's enabled
+        //
+        if (ThreadDebuggingDetails->Token == Token && ThreadDebuggingDetails->Enabled)
         {
             return ThreadDebuggingDetails;
         }
@@ -195,8 +200,12 @@ AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT
         PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
 
+        //
+        // Check if we found the target thread and if it's enabled
+        //
         if (ThreadDebuggingDetails->ProcessId == ProcessId &&
-            ThreadDebuggingDetails->ThreadId == ThreadId)
+            ThreadDebuggingDetails->ThreadId == ThreadId &&
+            ThreadDebuggingDetails->Enabled)
         {
             return ThreadDebuggingDetails;
         }
@@ -382,11 +391,10 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         //
         // Handling state through the user-mode debugger
         //
-        UdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
-                                              ThreadDebuggingToken,
-                                              GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
-                                              NULL);
+        UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
+                                                  GuestRegs,
+                                                  DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
+                                                  NULL);
     }
 }
 
@@ -706,6 +714,7 @@ AttachingSuspendedTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     ThreadDebuggingToken = AttachingCreateThreadDebuggingDetails(AttachRequest->ProcessId,
                                                                  AttachRequest->ThreadId,
+                                                                 TRUE,
                                                                  Is32Bit,
                                                                  SourceProcess,
                                                                  PebAddressToMonitor,

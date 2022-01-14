@@ -26,11 +26,10 @@ VOID
 UdUninitializeUserDebugger();
 
 BOOLEAN
-UdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentCore,
-                                      UINT64                            ThreadDebuggingToken,
-                                      PGUEST_REGS                       GuestRegs,
-                                      DEBUGGEE_PAUSING_REASON           Reason,
-                                      PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
+UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            CurrentCore,
+                                          PGUEST_REGS                       GuestRegs,
+                                          DEBUGGEE_PAUSING_REASON           Reason,
+                                          PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails);
 
 BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest);

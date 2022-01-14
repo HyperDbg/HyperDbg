@@ -63,6 +63,15 @@ CommandI(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // Check if we're in VMI mode
+    //
+    if (g_ActiveThreadDebuggingState.IsActive)
+    {
+        ShowMessages("the instrumentation step-in is only supported in Debugger Mode\n");
+        return;
+    }
+
+    //
     // Set type of step
     //
     RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN;
@@ -87,7 +96,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     //
     // Check if the remote serial debuggee or user debugger are paused or not
     //
-    if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveThreadDebuggingState.IsActive)
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
         // Indicate that we're instrumenting
@@ -103,20 +112,10 @@ CommandI(vector<string> SplittedCommand, string Command)
             //   (float)StepCount), i);
             //
 
-            if (g_IsSerialConnectedToRemoteDebuggee)
-            {
-                //
-                // It's stepping over serial connection in kernel debugger
-                //
-                KdSendStepPacketToDebuggee(RequestFormat);
-            }
-            else
-            {
-                //
-                // It's stepping over user debugger
-                //
-                UdSendStepPacketToDebuggee(g_ActiveThreadDebuggingState.UniqueDebuggingId, RequestFormat);
-            }
+            //
+            // It's stepping over serial connection in kernel debugger
+            //
+            KdSendStepPacketToDebuggee(RequestFormat);
 
             if (!SplittedCommand.at(0).compare("ir"))
             {
