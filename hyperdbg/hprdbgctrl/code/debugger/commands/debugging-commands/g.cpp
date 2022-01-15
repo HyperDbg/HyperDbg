@@ -14,10 +14,10 @@
 //
 // Global Variables
 //
-extern BOOLEAN                 g_BreakPrintingOutput;
-extern BOOLEAN                 g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
-extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of g command
@@ -62,9 +62,9 @@ CommandGRequest()
         {
             RemoteConnectionSendCommand("g", strlen("g") + 1);
         }
-        else if (g_ActiveThreadDebuggingState.IsActive)
+        else if (g_ActiveProcessDebuggingState.IsActive)
         {
-            UdContinueDebuggee(g_ActiveThreadDebuggingState.UniqueDebuggingId);
+            UdContinueDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
         }
     }
 }

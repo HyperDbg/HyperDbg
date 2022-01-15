@@ -592,33 +592,32 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
 BOOLEAN
 UserAccessCheckForLoadedModuleDetails()
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetail;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
     UINT64                              BaseAddress = NULL;
     UINT64                              Entrypoint  = NULL;
 
     //
     // Find the thread debugging detail structure
     //
-    ThreadDebuggingDetail =
-        AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                                  PsGetCurrentThreadId());
+    ProcessDebuggingDetail =
+        AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
 
     //
     // Check if we find the debugging detail of the thread or not
     //
-    if (ThreadDebuggingDetail == NULL)
+    if (ProcessDebuggingDetail == NULL)
     {
         return FALSE;
     }
 
-    if (ThreadDebuggingDetail->PebAddressToMonitor != NULL &&
-        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ThreadDebuggingDetail->PebAddressToMonitor,
-                                                                    ThreadDebuggingDetail->Is32Bit,
+    if (ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
+                                                                    ProcessDebuggingDetail->Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {
-        ThreadDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
-        ThreadDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
+        ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
+        ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
         //
         // Set debug register to get the entrypoint of user-mode processs

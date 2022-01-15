@@ -1820,7 +1820,7 @@ typedef struct _DEBUGGER_UD_COMMAND_ACTION
 typedef struct _DEBUGGER_UD_COMMAND_PACKET
 {
     DEBUGGER_UD_COMMAND_ACTION UdAction;
-    UINT64                     ThreadDebuggingDetailToken;
+    UINT64                     ProcessDebuggingDetailToken;
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;

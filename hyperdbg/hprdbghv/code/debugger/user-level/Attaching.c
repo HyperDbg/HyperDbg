@@ -90,7 +90,6 @@ AttachingInitialize()
  * @brief Create user-mode debugging details for threads 
  * 
  * @param ProcessId 
- * @param ThreadId 
  * @param Is32Bit 
  * @param Eprocess 
  * @param PebAddressToMonitor 
@@ -98,81 +97,79 @@ AttachingInitialize()
  * @return UINT64 returns the unique token 
  */
 UINT64
-AttachingCreateThreadDebuggingDetails(UINT32    ProcessId,
-                                      UINT32    ThreadId,
-                                      BOOLEAN   Enabled,
-                                      BOOLEAN   Is32Bit,
-                                      PEPROCESS Eprocess,
-                                      UINT64    PebAddressToMonitor,
-                                      UINT64    UsermodeReservedBuffer)
+AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
+                                       BOOLEAN   Enabled,
+                                       BOOLEAN   Is32Bit,
+                                       PEPROCESS Eprocess,
+                                       UINT64    PebAddressToMonitor,
+                                       UINT64    UsermodeReservedBuffer)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetail;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
     //
     // Allocate the buffer
     //
-    ThreadDebuggingDetail = (PUSERMODE_DEBUGGING_THREADS_DETAILS)
-        ExAllocatePoolWithTag(NonPagedPool, sizeof(USERMODE_DEBUGGING_THREADS_DETAILS), POOLTAG);
+    ProcessDebuggingDetail = (PUSERMODE_DEBUGGING_PROCESS_DETAILS)
+        ExAllocatePoolWithTag(NonPagedPool, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS), POOLTAG);
 
-    if (!ThreadDebuggingDetail)
+    if (!ProcessDebuggingDetail)
     {
         return NULL;
     }
 
-    RtlZeroMemory(ThreadDebuggingDetail, sizeof(USERMODE_DEBUGGING_THREADS_DETAILS));
+    RtlZeroMemory(ProcessDebuggingDetail, sizeof(USERMODE_DEBUGGING_PROCESS_DETAILS));
 
     //
     // Set the unique tag and increment it
     //
-    ThreadDebuggingDetail->Token = g_SeedOfUserDebuggingDetails++;
+    ProcessDebuggingDetail->Token = g_SeedOfUserDebuggingDetails++;
 
     //
     // Set the details of the created buffer
     //
-    ThreadDebuggingDetail->ProcessId              = ProcessId;
-    ThreadDebuggingDetail->ThreadId               = ThreadId;
-    ThreadDebuggingDetail->Enabled                = Enabled;
-    ThreadDebuggingDetail->Is32Bit                = Is32Bit;
-    ThreadDebuggingDetail->Eprocess               = Eprocess;
-    ThreadDebuggingDetail->PebAddressToMonitor    = PebAddressToMonitor;
-    ThreadDebuggingDetail->UsermodeReservedBuffer = UsermodeReservedBuffer;
+    ProcessDebuggingDetail->ProcessId              = ProcessId;
+    ProcessDebuggingDetail->Enabled                = Enabled;
+    ProcessDebuggingDetail->Is32Bit                = Is32Bit;
+    ProcessDebuggingDetail->Eprocess               = Eprocess;
+    ProcessDebuggingDetail->PebAddressToMonitor    = PebAddressToMonitor;
+    ProcessDebuggingDetail->UsermodeReservedBuffer = UsermodeReservedBuffer;
 
     //
     // Attach it to the list of active thread (LIST_ENTRY)
     //
-    InsertHeadList(&g_ThreadDebuggingDetailsListHead, &(ThreadDebuggingDetail->AttachedThreadList));
+    InsertHeadList(&g_ProcessDebuggingDetailsListHead, &(ProcessDebuggingDetail->AttachedProcessList));
 
     //
     // return the token
     //
-    return ThreadDebuggingDetail->Token;
+    return ProcessDebuggingDetail->Token;
 }
 
 /**
  * @brief Find user-mode debugging details for threads by token
  * 
  * @param Token 
- * @return PUSERMODE_DEBUGGING_THREADS_DETAILS 
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
  */
-PUSERMODE_DEBUGGING_THREADS_DETAILS
-AttachingFindThreadDebuggingDetailsByToken(UINT64 Token)
+PUSERMODE_DEBUGGING_PROCESS_DETAILS
+AttachingFindProcessDebuggingDetailsByToken(UINT64 Token)
 {
     PLIST_ENTRY TempList = 0;
 
-    TempList = &g_ThreadDebuggingDetailsListHead;
+    TempList = &g_ProcessDebuggingDetailsListHead;
 
-    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
     {
         TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
 
         //
         // Check if we found the target thread and if it's enabled
         //
-        if (ThreadDebuggingDetails->Token == Token && ThreadDebuggingDetails->Enabled)
+        if (ProcessDebuggingDetails->Token == Token && ProcessDebuggingDetails->Enabled)
         {
-            return ThreadDebuggingDetails;
+            return ProcessDebuggingDetails;
         }
     }
 
@@ -183,27 +180,27 @@ AttachingFindThreadDebuggingDetailsByToken(UINT64 Token)
  * @brief Find user-mode debugging details for threads by process Id
  * 
  * @param ProcessId 
- * @return PUSERMODE_DEBUGGING_THREADS_DETAILS 
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
  */
-PUSERMODE_DEBUGGING_THREADS_DETAILS
-AttachingFindThreadDebuggingDetailsByProcessId(UINT32 ProcessId)
+PUSERMODE_DEBUGGING_PROCESS_DETAILS
+AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
 {
     PLIST_ENTRY TempList = 0;
 
-    TempList = &g_ThreadDebuggingDetailsListHead;
+    TempList = &g_ProcessDebuggingDetailsListHead;
 
-    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
     {
         TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
 
         //
         // Check if we found the target thread and if it's enabled
         //
-        if (ThreadDebuggingDetails->ProcessId == ProcessId && ThreadDebuggingDetails->Enabled)
+        if (ProcessDebuggingDetails->ProcessId == ProcessId && ProcessDebuggingDetails->Enabled)
         {
-            return ThreadDebuggingDetails;
+            return ProcessDebuggingDetails;
         }
     }
 
@@ -211,37 +208,41 @@ AttachingFindThreadDebuggingDetailsByProcessId(UINT32 ProcessId)
 }
 
 /**
- * @brief Find user-mode debugging details for threads by process Id
- * and Thread Id
+ * @brief Find the active threads of the process from process id
  * 
  * @param ProcessId 
- * @param ThreadId 
- * @return PUSERMODE_DEBUGGING_THREADS_DETAILS 
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
  */
-PUSERMODE_DEBUGGING_THREADS_DETAILS
-AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId)
+PUSERMODE_DEBUGGING_THREAD_DETAILS
+AttachingGetProcessActiveThreadDetailsByProcessId(UINT32 ProcessId)
 {
-    PLIST_ENTRY TempList = 0;
+    //
+    // First, find the process details
+    //
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(ProcessId);
 
-    TempList = &g_ThreadDebuggingDetailsListHead;
-
-    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    if (ProcessDebuggingDetail == NULL)
     {
-        TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+        return NULL;
+    }
 
-        //
-        // Check if we found the target thread and if it's enabled
-        //
-        if (ThreadDebuggingDetails->ProcessId == ProcessId &&
-            ThreadDebuggingDetails->ThreadId == ThreadId &&
-            ThreadDebuggingDetails->Enabled)
+    //
+    // Find the active thread by thread id
+    //
+    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+    {
+        if (ProcessDebuggingDetail->Threads[i].ThreadId == ProcessDebuggingDetail->ActiveThreadId)
         {
-            return ThreadDebuggingDetails;
+            //
+            // The active thread's structure is found
+            //
+            return &ProcessDebuggingDetail->Threads[i];
         }
     }
 
+    //
+    // Active thread not found
+    //
     return NULL;
 }
 
@@ -249,28 +250,74 @@ AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT
  * @brief Find user-mode debugging details for threads that is in
  * the start-up phase
  * 
- * @return PUSERMODE_DEBUGGING_THREADS_DETAILS 
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
  */
-PUSERMODE_DEBUGGING_THREADS_DETAILS
-AttachingFindThreadDebuggingDetailsInStartingPhase()
+PUSERMODE_DEBUGGING_PROCESS_DETAILS
+AttachingFindProcessDebuggingDetailsInStartingPhase()
 {
     PLIST_ENTRY TempList = 0;
 
-    TempList = &g_ThreadDebuggingDetailsListHead;
+    TempList = &g_ProcessDebuggingDetailsListHead;
 
-    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
     {
         TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
 
-        if (ThreadDebuggingDetails->IsOnTheStartingPhase)
+        if (ProcessDebuggingDetails->IsOnTheStartingPhase)
         {
-            return ThreadDebuggingDetails;
+            return ProcessDebuggingDetails;
         }
     }
 
     return NULL;
+}
+
+/**
+ * @brief Find user-mode debugging details for threads by token
+ * 
+ * @param ThreadId 
+ * @param ProcessDebuggingDetail 
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
+ */
+PUSERMODE_DEBUGGING_THREAD_DETAILS
+AttachingFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    //
+    // Let's see if we can find the thread
+    //
+    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+    {
+        if (ProcessDebuggingDetail->Threads[i].ThreadId == ThreadId)
+        {
+            //
+            // We find a thread, let's return it's structure
+            //
+            return &ProcessDebuggingDetail->Threads[i];
+        }
+    }
+
+    //
+    // We're here, the thread is not found, let's create an entry for it
+    //
+    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+    {
+        if (ProcessDebuggingDetail->Threads[i].ThreadId == NULL)
+        {
+            //
+            // We find a null thread place, let's return it's structure
+            //
+            ProcessDebuggingDetail->Threads[i].ThreadId = ThreadId;
+            return &ProcessDebuggingDetail->Threads[i];
+        }
+    }
+
+    //
+    // We didn't find an empty entry,
+    // TODO: Solve this issue
+    //
+    DbgBreakPoint();
 }
 
 /**
@@ -279,27 +326,27 @@ AttachingFindThreadDebuggingDetailsInStartingPhase()
  * @return VOID 
  */
 VOID
-AttachingRemoveAndFreeAllThreadDebuggingDetails()
+AttachingRemoveAndFreeAllProcessDebuggingDetails()
 {
     PLIST_ENTRY TempList = 0;
 
-    TempList = &g_ThreadDebuggingDetailsListHead;
+    TempList = &g_ProcessDebuggingDetailsListHead;
 
-    while (&g_ThreadDebuggingDetailsListHead != TempList->Flink)
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
     {
         TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREADS_DETAILS, AttachedThreadList);
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
 
         //
         // Remove thread debugging detail from the list active threads
         //
-        RemoveEntryList(&ThreadDebuggingDetails->AttachedThreadList);
+        RemoveEntryList(&ProcessDebuggingDetails->AttachedProcessList);
 
         //
         // Unallocate the pool
         //
-        ExFreePoolWithTag(ThreadDebuggingDetails, POOLTAG);
+        ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
     }
 }
 
@@ -310,16 +357,16 @@ AttachingRemoveAndFreeAllThreadDebuggingDetails()
  * @return BOOLEAN 
  */
 BOOLEAN
-AttachingRemoveThreadDebuggingDetailsByToken(UINT64 Token)
+AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
 
     //
     // Find the entry
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(Token);
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(Token);
 
-    if (!ThreadDebuggingDetails)
+    if (!ProcessDebuggingDetails)
     {
         //
         // Token not found!
@@ -330,12 +377,12 @@ AttachingRemoveThreadDebuggingDetailsByToken(UINT64 Token)
     //
     // Remove thread debugging detail from the list active threads
     //
-    RemoveEntryList(&ThreadDebuggingDetails->AttachedThreadList);
+    RemoveEntryList(&ProcessDebuggingDetails->AttachedProcessList);
 
     //
     // Unallocate the pool
     //
-    ExFreePoolWithTag(ThreadDebuggingDetails, POOLTAG);
+    ExFreePoolWithTag(ProcessDebuggingDetails, POOLTAG);
 
     return TRUE;
 }
@@ -348,17 +395,17 @@ AttachingRemoveThreadDebuggingDetailsByToken(UINT64 Token)
  * @return BOOLEAN 
  */
 BOOLEAN
-AttachingSetStartingPhaseOfThreadDebuggingDetailsByToken(BOOLEAN Set, UINT64 Token)
+AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 Token)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
 
     //
     // If it's set to TRUE, then we check to only put 1 thread at the time
     // to the starting phase
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsInStartingPhase();
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsInStartingPhase();
 
-    if (Set && ThreadDebuggingDetails != NULL)
+    if (Set && ProcessDebuggingDetails != NULL)
     {
         //
         // There is another thread in starting phase!
@@ -369,9 +416,9 @@ AttachingSetStartingPhaseOfThreadDebuggingDetailsByToken(BOOLEAN Set, UINT64 Tok
     //
     // Find the entry
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(Token);
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(Token);
 
-    if (!ThreadDebuggingDetails)
+    if (!ProcessDebuggingDetails)
     {
         //
         // Token not found!
@@ -382,7 +429,7 @@ AttachingSetStartingPhaseOfThreadDebuggingDetailsByToken(BOOLEAN Set, UINT64 Tok
     //
     // Set the starting phase
     //
-    ThreadDebuggingDetails->IsOnTheStartingPhase = Set;
+    ProcessDebuggingDetails->IsOnTheStartingPhase = Set;
 
     return TRUE;
 }
@@ -402,7 +449,7 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
     //
     // Finish the starting point of the thread
     //
-    AttachingSetStartingPhaseOfThreadDebuggingDetailsByToken(FALSE, ThreadDebuggingToken);
+    AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(FALSE, ThreadDebuggingToken);
 
     //
     // Check if we're connect to the kHyperDbg or uHyperDbg
@@ -439,20 +486,20 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
 VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetail = NULL;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = NULL;
 
     //
     // Not increment the RIP register as no instruction is intended to go
     //
     g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
-    ThreadDebuggingDetail = AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                                                      PsGetCurrentThreadId());
+    ProcessDebuggingDetail =
+        AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
     //
     // Check to only break on the target process id and thread id and when
     // the entrypoint is not called, if the thread debugging detail is found
     //
-    if (ThreadDebuggingDetail != NULL)
+    if (ProcessDebuggingDetail != NULL)
     {
         if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
         {
@@ -487,9 +534,9 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             // any page-fault
             //
 
-            if (!CheckMemoryAccessSafety(ThreadDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
+            if (!CheckMemoryAccessSafety(ProcessDebuggingDetail->EntrypointOfMainModule, sizeof(CHAR)))
             {
-                // LogInfo("Injecting #PF for entrypoint at : %llx", ThreadDebuggingDetail->EntrypointOfMainModule);
+                // LogInfo("Injecting #PF for entrypoint at : %llx", ProcessDebuggingDetail->EntrypointOfMainModule);
 
                 //
                 // Inject #PF
@@ -522,7 +569,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 InterruptInfo.NmiUnblocking    = FALSE;
                 InterruptInfo.Valid            = TRUE;
 
-                IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, ThreadDebuggingDetail->EntrypointOfMainModule, 0x14);
+                IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, ProcessDebuggingDetail->EntrypointOfMainModule, 0x14);
 
                 //
                 // Re-apply the hw debug reg breakpoint
@@ -530,7 +577,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                                   BREAK_ON_INSTRUCTION_FETCH,
                                   FALSE,
-                                  ThreadDebuggingDetail->EntrypointOfMainModule);
+                                  ProcessDebuggingDetail->EntrypointOfMainModule);
             }
             else
             {
@@ -539,7 +586,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 // or another process with same image is currently running
                 // Thus, there is no need to inject #PF, we'll handle it in debugger
                 //
-                AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ThreadDebuggingDetail->Token);
+                AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ProcessDebuggingDetail->Token);
             }
         }
         else if (g_IsWaitingForReturnAndRunFromPageFault)
@@ -553,7 +600,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             // We reached here as a result of setting the second hardware debug breakpoint
             // and after injecting a page-fault
             //
-            AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ThreadDebuggingDetail->Token);
+            AttachingReachedToProcessEntrypoint(CurrentProcessorIndex, GuestRegs, ProcessDebuggingDetail->Token);
         }
     }
     else
@@ -562,9 +609,9 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
         // Check if we can find any thread in start up phase, if yes, we'll apply
         // it to the entrypoint
         //
-        ThreadDebuggingDetail = AttachingFindThreadDebuggingDetailsInStartingPhase();
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsInStartingPhase();
 
-        if (ThreadDebuggingDetail != NULL)
+        if (ProcessDebuggingDetail != NULL)
         {
             //
             // Re-apply the hw debug reg breakpoint
@@ -572,7 +619,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
             DebugRegistersSet(DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT,
                               BREAK_ON_INSTRUCTION_FETCH,
                               FALSE,
-                              ThreadDebuggingDetail->EntrypointOfMainModule);
+                              ProcessDebuggingDetail->EntrypointOfMainModule);
         }
     }
 }
@@ -656,7 +703,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
                                          UINT64                Address,
                                          ULONG                 ErrorCode)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetail;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
     //
     // Check if thread is in user-mode
@@ -669,9 +716,9 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
         return FALSE;
     }
 
-    ThreadDebuggingDetail = AttachingFindThreadDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
 
-    if (!ThreadDebuggingDetail)
+    if (!ProcessDebuggingDetail)
     {
         //
         // not related to user debugger
@@ -679,16 +726,15 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
         return FALSE;
     }
 
-    LogInfo("intercepting %x.%x", PsGetCurrentProcessId(), PsGetCurrentThreadId());
+    Log("thread %x.%x paused...\n", PsGetCurrentProcessId(), PsGetCurrentThreadId());
 
     //
     // Handling state through the user-mode debugger
     //
-    /* UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
+    UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
                                               GuestRegs,
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
                                               NULL);
-                                              */
 
     //
     // related to user debugger
@@ -800,13 +846,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Create the event
     //
-    ThreadDebuggingToken = AttachingCreateThreadDebuggingDetails(AttachRequest->ProcessId,
-                                                                 AttachRequest->ThreadId,
-                                                                 TRUE,
-                                                                 Is32Bit,
-                                                                 SourceProcess,
-                                                                 PebAddressToMonitor,
-                                                                 UsermodeReservedBuffer);
+    ThreadDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
+                                                                  TRUE,
+                                                                  Is32Bit,
+                                                                  SourceProcess,
+                                                                  PebAddressToMonitor,
+                                                                  UsermodeReservedBuffer);
 
     //
     // Check if we successfully get the token
@@ -834,12 +879,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Set the starting point of the thread
         //
-        if (!AttachingSetStartingPhaseOfThreadDebuggingDetailsByToken(TRUE, ThreadDebuggingToken))
+        if (!AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(TRUE, ThreadDebuggingToken))
         {
             //
             // Remove the created thread debugging detail
             //
-            AttachingRemoveThreadDebuggingDetailsByToken(ThreadDebuggingToken);
+            AttachingRemoveProcessDebuggingDetailsByToken(ThreadDebuggingToken);
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
@@ -861,7 +906,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             //
             // Remove the created thread debugging detail
             //
-            AttachingRemoveThreadDebuggingDetailsByToken(ThreadDebuggingToken);
+            AttachingRemoveProcessDebuggingDetailsByToken(ThreadDebuggingToken);
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
@@ -931,17 +976,17 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 VOID
 AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
 
     //
     // Get the thread debugging detail
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(AttachRequest->Token);
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(AttachRequest->Token);
 
     //
     // Check if token is valid or not
     //
-    if (!ThreadDebuggingDetails)
+    if (!ProcessDebuggingDetails)
     {
         AttachRequest->Result = DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN;
         return;
@@ -956,9 +1001,9 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
         //
         // The entrypoint is called, we should remove the hook
         //
-        if (!EptHookUnHookSingleAddress(ThreadDebuggingDetails->PebAddressToMonitor,
+        if (!EptHookUnHookSingleAddress(ProcessDebuggingDetails->PebAddressToMonitor,
                                         NULL,
-                                        ThreadDebuggingDetails->ProcessId))
+                                        ProcessDebuggingDetails->ProcessId))
         {
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS;
             return;

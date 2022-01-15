@@ -14,8 +14,8 @@
 //
 // Global Variables
 //
-extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
-extern BOOLEAN                 g_IsUserDebuggerInitialized;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+extern BOOLEAN                  g_IsUserDebuggerInitialized;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
@@ -66,15 +66,15 @@ UdSetActiveDebuggingThread(UINT64  DebuggingId,
                            UINT32  ThreadId,
                            BOOLEAN Is32Bit)
 {
-    g_ActiveThreadDebuggingState.ProcessId         = ProcessId;
-    g_ActiveThreadDebuggingState.ThreadId          = ThreadId;
-    g_ActiveThreadDebuggingState.Is32Bit           = Is32Bit;
-    g_ActiveThreadDebuggingState.UniqueDebuggingId = DebuggingId;
+    g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
+    g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
+    g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
+    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
 
     //
     // Activate the debugging
     //
-    g_ActiveThreadDebuggingState.IsActive = TRUE;
+    g_ActiveProcessDebuggingState.IsActive = TRUE;
 }
 
 /**
@@ -93,7 +93,7 @@ UdRemoveActiveDebuggingThread(UINT32 ProcessId)
     //
     // Activate the debugging
     //
-    g_ActiveThreadDebuggingState.IsActive = FALSE;
+    g_ActiveProcessDebuggingState.IsActive = FALSE;
 }
 
 /**
@@ -674,7 +674,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 
 /**
  * @brief Send the command to the user debugger
- * @param ThreadDetailToken
+ * @param ProcessDetailToken
  * @param ActionType
  * @param OptionalParam1
  * @param OptionalParam2
@@ -684,7 +684,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
  * @return VOID
  */
 VOID
-UdSendCommand(UINT64                          ThreadDetailToken,
+UdSendCommand(UINT64                          ProcessDetailToken,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
               UINT64                          OptionalParam1,
               UINT64                          OptionalParam2,
@@ -710,12 +710,12 @@ UdSendCommand(UINT64                          ThreadDetailToken,
     //
     // Set to the details
     //
-    CommandPacket.ThreadDebuggingDetailToken = ThreadDetailToken;
-    CommandPacket.UdAction.ActionType        = ActionType;
-    CommandPacket.UdAction.OptionalParam1    = OptionalParam1;
-    CommandPacket.UdAction.OptionalParam2    = OptionalParam2;
-    CommandPacket.UdAction.OptionalParam3    = OptionalParam3;
-    CommandPacket.UdAction.OptionalParam4    = OptionalParam4;
+    CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
+    CommandPacket.UdAction.ActionType         = ActionType;
+    CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
+    CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
+    CommandPacket.UdAction.OptionalParam3     = OptionalParam3;
+    CommandPacket.UdAction.OptionalParam4     = OptionalParam4;
 
     //
     // Send IOCTL
@@ -740,28 +740,28 @@ UdSendCommand(UINT64                          ThreadDetailToken,
 
 /**
  * @brief Continue the target user debugger
- * @param ThreadDetailToken
+ * @param ProcessDetailToken
  * 
  * @return VOID
  */
 VOID
-UdContinueDebuggee(UINT64 ThreadDetailToken)
+UdContinueDebuggee(UINT64 ProcessDetailToken)
 {
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ThreadDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, NULL, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, NULL, NULL, NULL, NULL);
 }
 
 /**
  * @brief Send stepping instructions packet to user debugger
- * @param ThreadDetailToken
+ * @param ProcessDetailToken
  * @param StepType
  * 
  * @return VOID
  */
 VOID
-UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
     //
     // Wait until the result of user-input received
@@ -773,7 +773,7 @@ UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, DEBUGGER_REMOTE_STEPPING_RE
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ThreadDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, StepType, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, StepType, NULL, NULL, NULL);
 
     WaitForSingleObject(
         g_UserSyncronizationObjectsHandleTable

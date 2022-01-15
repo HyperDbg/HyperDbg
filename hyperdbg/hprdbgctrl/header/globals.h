@@ -329,7 +329,7 @@ BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
  * @brief State of active debugging thread
  *
  */
-ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState = {0};
+ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState = {0};
 
 /**
  * @brief This variable holds the trace and generate numbers

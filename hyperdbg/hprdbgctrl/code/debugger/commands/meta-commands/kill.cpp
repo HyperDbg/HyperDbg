@@ -14,7 +14,7 @@
 //
 // Global Variables
 //
-extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of .kill command
@@ -45,7 +45,7 @@ CommandKill(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!g_ActiveThreadDebuggingState.IsActive)
+    if (!g_ActiveProcessDebuggingState.IsActive)
     {
         ShowMessages("nothing to terminate!\n");
         return;
@@ -54,5 +54,5 @@ CommandKill(vector<string> SplittedCommand, string Command)
     //
     // Kill the current active process
     //
-    UdKillProcess(g_ActiveThreadDebuggingState.ProcessId);
+    UdKillProcess(g_ActiveProcessDebuggingState.ProcessId);
 }

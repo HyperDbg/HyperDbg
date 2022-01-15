@@ -14,9 +14,9 @@
 //
 // Global Variables
 //
-extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN                 g_IsInstrumentingInstructions;
-extern ACTIVE_DEBUGGING_THREAD g_ActiveThreadDebuggingState;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsInstrumentingInstructions;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of i command
@@ -65,7 +65,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     //
     // Check if we're in VMI mode
     //
-    if (g_ActiveThreadDebuggingState.IsActive)
+    if (g_ActiveProcessDebuggingState.IsActive)
     {
         ShowMessages("the instrumentation step-in is only supported in Debugger Mode\n");
         return;

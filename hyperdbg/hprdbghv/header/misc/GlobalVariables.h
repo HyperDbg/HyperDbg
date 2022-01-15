@@ -259,7 +259,7 @@ BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
  * @brief List header of thread debugging details
  * 
  */
-LIST_ENTRY g_ThreadDebuggingDetailsListHead;
+LIST_ENTRY g_ProcessDebuggingDetailsListHead;
 
 /**
  * @brief Whether the page-fault handler in vmx-root should check

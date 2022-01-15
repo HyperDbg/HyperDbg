@@ -20,10 +20,10 @@
  * state
  *
  */
-typedef struct _ACTIVE_DEBUGGING_THREAD
+typedef struct _ACTIVE_DEBUGGING_PROCESS
 {
     BOOLEAN    IsActive;
-    UINT64     UniqueDebuggingId;
+    UINT64     ProcessDebuggingToken;
     UINT32     ProcessId;
     UINT32     ThreadId;
     BOOLEAN    IsPaused;
@@ -31,7 +31,7 @@ typedef struct _ACTIVE_DEBUGGING_THREAD
     UINT64     Context;   // $context
     BOOLEAN    Is32Bit;
 
-} ACTIVE_DEBUGGING_THREAD, *PACTIVE_DEBUGGING_THREAD;
+} ACTIVE_DEBUGGING_PROCESS, *PACTIVE_DEBUGGING_PROCESS;
 
 //////////////////////////////////////////////////
 //            	    Functions                  //

@@ -45,7 +45,7 @@ UdInitializeUserDebugger()
     //
     // Initialize the thread debugging details list
     //
-    InitializeListHead(&g_ThreadDebuggingDetailsListHead);
+    InitializeListHead(&g_ProcessDebuggingDetailsListHead);
 
     //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
@@ -79,7 +79,7 @@ UdUninitializeUserDebugger()
         // Free and deallocate all the buffers (pools) relating to
         // thread debugging details
         //
-        AttachingRemoveAndFreeAllThreadDebuggingDetails();
+        AttachingRemoveAndFreeAllProcessDebuggingDetails();
     }
 }
 
@@ -91,24 +91,23 @@ UdUninitializeUserDebugger()
  * @return VOID 
  */
 VOID
-UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
     //
-    // Configure the RIP and RSP again
+    // Configure the RIP again
     //
-    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->GuestRip);
-    __vmx_vmwrite(GUEST_RSP, ThreadDebuggingDetails->GuestRsp);
+    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->ThreadRip);
 }
 
 /**
- * @brief Continue the process
+ * @brief Continue the thread
  * 
  * @param ThreadDebuggingDetails
  * 
  * @return VOID 
  */
 VOID
-UdContinueThread(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
     //
     // Configure the RIP and RSP again
@@ -127,20 +126,20 @@ UdContinueThread(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
 }
 
 /**
- * @brief Perform stepping though the instructions
+ * @brief Perform stepping though the instructions in target thread
  * 
  * @param ThreadDebuggingDetails
  * 
  * @return VOID 
  */
 VOID
-UdStepInstructions(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
-                   DEBUGGER_REMOTE_STEPPING_REQUEST    SteppingType)
+UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
+                   DEBUGGER_REMOTE_STEPPING_REQUEST   SteppingType)
 {
     RFLAGS Rflags = {0};
 
     //
-    // Configure the RIP and RSP again
+    // Configure the RIP
     //
     UdRestoreToOriginalDirection(ThreadDebuggingDetails);
 
@@ -196,12 +195,12 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
  * @return BOOLEAN 
  */
 BOOLEAN
-UdPerformCommand(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
-                 DEBUGGER_UD_COMMAND_ACTION_TYPE     UserAction,
-                 UINT64                              OptionalParam1,
-                 UINT64                              OptionalParam2,
-                 UINT64                              OptionalParam3,
-                 UINT64                              OptionalParam4)
+UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
+                 DEBUGGER_UD_COMMAND_ACTION_TYPE    UserAction,
+                 UINT64                             OptionalParam1,
+                 UINT64                             OptionalParam2,
+                 UINT64                             OptionalParam3,
+                 UINT64                             OptionalParam4)
 {
     //
     // Perform the command
@@ -246,11 +245,10 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
 BOOLEAN
 UdCheckForCommand()
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
 
     ThreadDebuggingDetails =
-        AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                                  PsGetCurrentThreadId());
+        AttachingGetProcessActiveThreadDetailsByProcessId(PsGetCurrentProcessId());
 
     if (!ThreadDebuggingDetails)
     {
@@ -319,15 +317,16 @@ UdCheckForCommand()
 BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 {
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS  ActiveThreadDebuggingDetails;
     BOOLEAN                             CommandApplied = FALSE;
 
     //
     // Find the thread debugging detail of the thread
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByToken(ActionRequest->ThreadDebuggingDetailToken);
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByToken(ActionRequest->ProcessDebuggingDetailToken);
 
-    if (!ThreadDebuggingDetails)
+    if (!ProcessDebuggingDetails)
     {
         //
         // Token not found!
@@ -336,24 +335,29 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     }
 
     //
+    // Get the active thread
+    //
+    ActiveThreadDebuggingDetails = AttachingGetProcessActiveThreadDetailsByProcessId(ProcessDebuggingDetails->ProcessId);
+
+    //
     // Apply the command
     //
     for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
     {
-        if (ThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+        if (ActiveThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
         {
             //
             // Set the action
             //
-            ThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
-            ThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
+            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
+            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
+            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
+            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
 
             //
             // At last we set the action type to make it valid
             //
-            ThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
+            ActiveThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
 
             CommandApplied = TRUE;
             break;
@@ -367,21 +371,22 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
  * @brief Spin on nop sled in user-mode to halt the debuggee
  *
  * @param ThreadDebuggingDetails
+ * @param ProcessDebuggingDetails
  * @return VOID 
  */
 VOID
-UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
+                  PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails)
 {
     //
-    // Save the RIP and RSP for previous return
+    // Save the RIP for future return
     //
-    __vmx_vmread(GUEST_RIP, &ThreadDebuggingDetails->GuestRip);
-    __vmx_vmread(GUEST_RSP, &ThreadDebuggingDetails->GuestRsp);
+    __vmx_vmread(GUEST_RIP, &ThreadDebuggingDetails->ThreadRip);
 
     //
     // Set the rip to new spinning address
     //
-    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->UsermodeReservedBuffer);
+    __vmx_vmwrite(GUEST_RIP, ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -398,8 +403,8 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
  * @return VOID 
  */
 VOID
-UdHandleAfterSteppingReason(UINT32                              CurrentCore,
-                            PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails)
+UdHandleAfterSteppingReason(UINT32                             CurrentCore,
+                            PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 {
     RFLAGS Rflags = {0};
 
@@ -430,11 +435,11 @@ UdHandleAfterSteppingReason(UINT32                              CurrentCore,
  * @return VOID 
  */
 VOID
-UdPrePausingReasons(UINT32                              CurrentCore,
-                    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails,
-                    PGUEST_REGS                         GuestRegs,
-                    DEBUGGEE_PAUSING_REASON             Reason,
-                    PDEBUGGER_TRIGGERED_EVENT_DETAILS   EventDetails)
+UdPrePausingReasons(UINT32                             CurrentCore,
+                    PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
+                    PGUEST_REGS                        GuestRegs,
+                    DEBUGGEE_PAUSING_REASON            Reason,
+                    PDEBUGGER_TRIGGERED_EVENT_DETAILS  EventDetails)
 
 {
     //
@@ -473,10 +478,11 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
                                           PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     DEBUGGEE_UD_PAUSED_PACKET           PausePacket;
-    ULONG                               ExitInstructionLength  = 0;
-    UINT64                              SizeOfSafeBufferToRead = 0;
-    RFLAGS                              Rflags                 = {0};
-    PUSERMODE_DEBUGGING_THREADS_DETAILS ThreadDebuggingDetails = NULL;
+    ULONG                               ExitInstructionLength   = 0;
+    UINT64                              SizeOfSafeBufferToRead  = 0;
+    RFLAGS                              Rflags                  = {0};
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails = NULL;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails  = NULL;
 
     //
     // Breaking only supported in vmx-root mode, and if user-debugger is
@@ -490,16 +496,33 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     //
     // Check entry of paused thread
     //
-    ThreadDebuggingDetails = AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                                                       PsGetCurrentThreadId());
+    ProcessDebuggingDetails = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
 
-    if (!ThreadDebuggingDetails)
+    if (!ProcessDebuggingDetails)
     {
         //
         // Token not found!
         //
         return FALSE;
     }
+
+    //
+    // Find the thread entry and if not found, create one for it
+    //
+    ThreadDebuggingDetails = AttachingFindOrCreateThreadDebuggingDetail(PsGetCurrentThreadId(), ProcessDebuggingDetails);
+
+    if (!ThreadDebuggingDetails)
+    {
+        //
+        // Sth went wrong!
+        //
+        return FALSE;
+    }
+
+    //
+    // Set it as active thread debugging
+    //
+    ProcessDebuggingDetails->ActiveThreadId = ThreadDebuggingDetails->ThreadId;
 
     //
     // Perform the pre-pausing tasks
@@ -604,7 +627,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     //
     // Halt the thread on nop sleds
     //
-    UdSpinThreadOnNop(ThreadDebuggingDetails);
+    UdSpinThreadOnNop(ThreadDebuggingDetails, ProcessDebuggingDetails);
 
     //
     // Everything was okay
