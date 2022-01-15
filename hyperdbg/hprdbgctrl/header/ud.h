@@ -45,7 +45,6 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid);
 
 BOOLEAN
 UdAttachToProcess(UINT32        TargetPid,
-                  UINT32        TargetTid,
                   const WCHAR * TargetFileAddress,
                   WCHAR *       CommandLine);
 

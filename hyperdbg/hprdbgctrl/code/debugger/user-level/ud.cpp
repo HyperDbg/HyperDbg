@@ -298,18 +298,15 @@ UdCreateSuspendedProcess(const WCHAR * FileName, WCHAR * CommandLine, PPROCESS_I
 
 /**
  * @brief Attach to target process
- * @details this function will not check whether the process id and
- * thread id is valid or not
+ * @details this function will not check whether the process id  is valid or not
  *
  * @param TargetPid
- * @param TargetTid
  * @param TargetFileAddress
  * @param CommandLine
  * @return BOOLEAN
  */
 BOOLEAN
 UdAttachToProcess(UINT32        TargetPid,
-                  UINT32        TargetTid,
                   const WCHAR * TargetFileAddress,
                   WCHAR *       CommandLine)
 {
@@ -375,10 +372,9 @@ UdAttachToProcess(UINT32        TargetPid,
     else
     {
         //
-        // Set the process id and thread id
+        // Set the process id
         //
         AttachRequest.ProcessId = TargetPid;
-        AttachRequest.ThreadId  = TargetTid;
     }
 
     //
@@ -408,6 +404,15 @@ UdAttachToProcess(UINT32        TargetPid,
     //
     if (AttachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
+        if (!AttachRequest.IsStartingNewProcess)
+        {
+            //
+            // it's a .attach command, no need for further action
+            //
+            ShowMessages("test, attached to proc !\n");
+            return TRUE;
+        }
+
         //
         // Set the current active debugging process (thread)
         //

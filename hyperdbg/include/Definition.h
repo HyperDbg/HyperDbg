@@ -1559,7 +1559,7 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     UINT64                                               Token;
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
-    UINT64                                               ThreadId;
+    UINT32                                               ThreadId;
     BOOLEAN                                              Is32Bit;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT64                                               Result;

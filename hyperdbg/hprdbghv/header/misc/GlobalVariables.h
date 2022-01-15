@@ -260,3 +260,10 @@ BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
  * 
  */
 LIST_ENTRY g_ThreadDebuggingDetailsListHead;
+
+/**
+ * @brief Whether the page-fault handler in vmx-root should check
+ * the #PFs with user debugger
+ * 
+ */
+BOOLEAN g_CheckPageFaultsWithUserDebugger;

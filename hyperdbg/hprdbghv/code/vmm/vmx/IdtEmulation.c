@@ -241,7 +241,24 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         // Handle page-faults
         //
-        IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
+        if (g_CheckPageFaultsWithUserDebugger &&
+            AttachingCheckPageFaultsWithUserDebugger(CurrentProcessorIndex,
+                                                     GuestRegs,
+                                                     InterruptExit,
+                                                     NULL,
+                                                     ErrorCode))
+        {
+            //
+            // The page-fault is handled through the user debugger, no need further action
+            //
+        }
+        else
+        {
+            //
+            // The #pf is not related to our debugger
+            //
+            IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
+        }
 
         break;
 

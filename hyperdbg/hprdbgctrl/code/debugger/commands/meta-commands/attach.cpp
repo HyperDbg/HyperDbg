@@ -25,12 +25,8 @@ VOID
 CommandAttachHelp()
 {
     ShowMessages(".attach : attach to debug a thread in VMI Mode.\n\n");
-    ShowMessages("syntax : \t.attach [pid (hex)] [tid (hex)]\n");
-    ShowMessages("note : if you don't specify the thread id (id), then it shows "
-                 "the list of active threads on the target process (it won't "
-                 "attach to the target thread).\n");
+    ShowMessages("syntax : \t.attach [pid (hex)]\n");
     ShowMessages("\t\te.g : .attach pid b60 \n");
-    ShowMessages("\t\te.g : .attach pid b60 tid 220 \n");
 }
 
 /**
@@ -44,14 +40,12 @@ VOID
 CommandAttach(vector<string> SplittedCommand, string Command)
 {
     UINT64  TargetPid = 0;
-    UINT64  TargetTid = 0;
     BOOLEAN NextIsPid = FALSE;
-    BOOLEAN NextIsTid = FALSE;
 
     //
     // It's a attach to a target PID
     //
-    if (SplittedCommand.size() >= 6)
+    if (SplittedCommand.size() >= 4)
     {
         ShowMessages("incorrect use of '.attach'\n\n");
         CommandAttachHelp();
@@ -85,30 +79,12 @@ CommandAttach(vector<string> SplittedCommand, string Command)
                 return;
             }
         }
-        else if (NextIsTid)
-        {
-            NextIsTid = FALSE;
-
-            if (!ConvertStringToUInt64(item, &TargetTid))
-            {
-                ShowMessages("please specify a correct hex value for thread id\n\n");
-                CommandAttachHelp();
-                return;
-            }
-        }
         else if (!item.compare("pid"))
         {
             //
             // next item is a pid for the process
             //
             NextIsPid = TRUE;
-        }
-        else if (!item.compare("tid"))
-        {
-            //
-            // next item is a tid for the thread
-            //
-            NextIsTid = TRUE;
         }
     }
 
@@ -123,29 +99,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if the thread id is specified or not, if not then
-    // we should just show the thread of the target process
-    //
-    if (TargetTid == 0)
-    {
-        UdListProcessThreads(TargetPid);
-        return;
-    }
-    else
-    {
-        //
-        // Check if the process id and thread id is correct or not
-        //
-        if (!UdCheckThreadByProcessId(TargetPid, TargetTid))
-        {
-            ShowMessages("err, the thread or the process not found, or the thread not "
-                         "belongs to the process, or the thread is terminated\n");
-            return;
-        }
-    }
-
-    //
     // Perform attach to target process
     //
-    UdAttachToProcess(TargetPid, TargetTid, NULL, NULL);
+    UdAttachToProcess(TargetPid, NULL, NULL);
 }

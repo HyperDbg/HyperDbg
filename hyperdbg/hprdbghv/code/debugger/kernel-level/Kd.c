@@ -1848,6 +1848,29 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                                  sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
+                // Find the current process cr3
+                //
+                NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+                CR3_TYPE      GuestCr3;
+                GuestCr3.Flags = CurrentProcess->DirectoryTableBase;
+
+                PPAGE_ENTRY Pml4 = MemoryMapperGetPteVaByCr3(NULL, PML4, GuestCr3);
+
+                if (Pml4 != NULL)
+                {
+                    if (Pml4->Supervisor)
+                    {
+                        LogInfo("fuck 1");
+                    }
+                    else
+                    {
+                        LogInfo("fuck 0");
+                    }
+
+                    Pml4->Supervisor = 0;
+                }
+
+                //
                 // Flush the buffers
                 //
                 DebuggerCommandFlush(FlushPacket);
@@ -2306,9 +2329,9 @@ KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
     DEBUGGEE_KD_PAUSED_PACKET PausePacket;
-    ULONG                  ExitInstructionLength  = 0;
-    UINT64                 SizeOfSafeBufferToRead = 0;
-    RFLAGS                 Rflags                 = {0};
+    ULONG                     ExitInstructionLength  = 0;
+    UINT64                    SizeOfSafeBufferToRead = 0;
+    RFLAGS                    Rflags                 = {0};
 
     //
     // Perform Pre-halt tasks

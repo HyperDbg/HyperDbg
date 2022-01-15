@@ -60,6 +60,13 @@ AttachingInitialize();
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
+BOOLEAN
+AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
+                                         PGUEST_REGS           GuestRegs,
+                                         VMEXIT_INTERRUPT_INFO InterruptExit,
+                                         UINT64                Address,
+                                         ULONG                 ErrorCode);
+
 VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
@@ -68,6 +75,9 @@ AttachingRemoveAndFreeAllThreadDebuggingDetails();
 
 PUSERMODE_DEBUGGING_THREADS_DETAILS
 AttachingFindThreadDebuggingDetailsByToken(UINT64 Token);
+
+PUSERMODE_DEBUGGING_THREADS_DETAILS
+AttachingFindThreadDebuggingDetailsByProcessId(UINT32 ProcessId);
 
 PUSERMODE_DEBUGGING_THREADS_DETAILS
 AttachingFindThreadDebuggingDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId);

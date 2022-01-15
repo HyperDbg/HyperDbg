@@ -127,15 +127,13 @@ CommandStart(vector<string> SplittedCommand, string Command)
     if (Arguments.empty())
     {
         UdAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         NULL);
+                          g_StartCommandPath.c_str(),
+                          NULL);
     }
     else
     {
         UdAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         (WCHAR *)g_StartCommandPathAndArguments.c_str());
+                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
     }
 }
