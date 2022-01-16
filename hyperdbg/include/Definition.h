@@ -884,6 +884,7 @@ typedef enum _DEBUGGEE_PAUSING_REASON
     // Only for user-debugger
     //
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+    DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
 
 } DEBUGGEE_PAUSING_REASON;
 
@@ -1556,12 +1557,12 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
  */
 typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
-    UINT64                                               Token;
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
     UINT32                                               ThreadId;
     BOOLEAN                                              Is32Bit;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
+    UINT64                                               Token;
     UINT64                                               Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
@@ -1822,6 +1823,7 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
 {
     DEBUGGER_UD_COMMAND_ACTION UdAction;
     UINT64                     ProcessDebuggingDetailToken;
+    UINT32                     TargetThreadId;
     BOOLEAN                    ApplyToAllPausedThreads;
     UINT32                     Result;
 

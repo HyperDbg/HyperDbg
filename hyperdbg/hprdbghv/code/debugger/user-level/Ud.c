@@ -248,7 +248,8 @@ UdCheckForCommand()
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
 
     ThreadDebuggingDetails =
-        AttachingGetProcessActiveThreadDetailsByProcessId(PsGetCurrentProcessId());
+        AttachingGetProcessThreadDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
+                                                               PsGetCurrentThreadId());
 
     if (!ThreadDebuggingDetails)
     {
@@ -318,7 +319,7 @@ BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
-    PUSERMODE_DEBUGGING_THREAD_DETAILS  ActiveThreadDebuggingDetails;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails;
     BOOLEAN                             CommandApplied = FALSE;
 
     //
@@ -342,7 +343,6 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     //
     if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
     {
-        DbgBreakPoint();
         AttachingConfigureInterceptingThreads(ProcessDebuggingDetails->Token, FALSE);
     }
 
@@ -356,29 +356,30 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
         //
 
         //
-        // Get the active thread
+        // Get the target thread
         //
-        ActiveThreadDebuggingDetails = AttachingGetProcessActiveThreadDetailsByProcessId(ProcessDebuggingDetails->ProcessId);
+        ThreadDebuggingDetails = AttachingGetProcessThreadDetailsByProcessIdAndThreadId(ProcessDebuggingDetails->ProcessId,
+                                                                                        ActionRequest->TargetThreadId);
 
         //
         // Apply the command
         //
         for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
         {
-            if (ActiveThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+            if (ThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
             {
                 //
                 // Set the action
                 //
-                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
-                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
-                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
-                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
+                ThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
+                ThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
+                ThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
+                ThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
 
                 //
                 // At last we set the action type to make it valid
                 //
-                ActiveThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
+                ThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
 
                 CommandApplied = TRUE;
                 break;

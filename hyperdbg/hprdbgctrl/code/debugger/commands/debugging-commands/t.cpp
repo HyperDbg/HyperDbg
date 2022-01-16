@@ -111,7 +111,9 @@ CommandT(vector<string> SplittedCommand, string Command)
                 //
                 // It's stepping over user debugger
                 //
-                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken, RequestFormat);
+                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                           g_ActiveProcessDebuggingState.ThreadId,
+                                           RequestFormat);
             }
 
             if (!SplittedCommand.at(0).compare("tr"))

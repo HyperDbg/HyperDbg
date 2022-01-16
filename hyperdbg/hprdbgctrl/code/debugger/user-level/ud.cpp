@@ -409,7 +409,11 @@ UdAttachToProcess(UINT32        TargetPid,
             //
             // it's a .attach command, no need for further action
             //
-            ShowMessages("test, attached to proc !\n");
+            ShowMessages("successfully attached to the target process!\n"
+                         "please keep interacting with the process until all the "
+                         "threads are intercepted and halted; whenever you execute "
+                         "the first command, the thread interception mechanism will "
+                         "be stopped\n");
             return TRUE;
         }
 
@@ -609,6 +613,13 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         ShowMessages("reached to the entrypoint of the main module\n");
 
         break;
+    case DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED:
+
+        ShowMessages("\nthread: %x from process: %x intercepted\n",
+                     PausePacket->ThreadId,
+                     PausePacket->ProcessId);
+
+        break;
 
     default:
         break;
@@ -675,7 +686,9 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 /**
  * @brief Send the command to the user debugger
  * @param ProcessDetailToken
+ * @param ThreadId
  * @param ActionType
+ * @param ApplyToAllPausedThreads
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
@@ -685,6 +698,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
  */
 VOID
 UdSendCommand(UINT64                          ProcessDetailToken,
+              UINT32                          ThreadId,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
               BOOLEAN                         ApplyToAllPausedThreads,
               UINT64                          OptionalParam1,
@@ -713,6 +727,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     //
     CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
     CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
+    CommandPacket.TargetThreadId              = ThreadId;
     CommandPacket.UdAction.ActionType         = ActionType;
     CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
     CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
@@ -752,18 +767,26 @@ UdContinueDebuggee(UINT64 ProcessDetailToken)
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, TRUE, NULL, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken,
+                  NULL,
+                  DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
+                  TRUE,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL);
 }
 
 /**
  * @brief Send stepping instructions packet to user debugger
  * @param ProcessDetailToken
+ * @param TargetThreadId
  * @param StepType
  * 
  * @return VOID
  */
 VOID
-UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
+UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType)
 {
     //
     // Wait until the result of user-input received
@@ -775,7 +798,14 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, DEBUGGER_REMOTE_STEPPING_R
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, FALSE, StepType, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken,
+                  TargetThreadId,
+                  DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+                  FALSE,
+                  StepType,
+                  NULL,
+                  NULL,
+                  NULL);
 
     WaitForSingleObject(
         g_UserSyncronizationObjectsHandleTable

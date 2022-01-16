@@ -214,7 +214,7 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
  * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
  */
 PUSERMODE_DEBUGGING_THREAD_DETAILS
-AttachingGetProcessActiveThreadDetailsByProcessId(UINT32 ProcessId)
+AttachingGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId)
 {
     //
     // First, find the process details
@@ -231,7 +231,7 @@ AttachingGetProcessActiveThreadDetailsByProcessId(UINT32 ProcessId)
     //
     for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
     {
-        if (ProcessDebuggingDetail->Threads[i].ThreadId == ProcessDebuggingDetail->ActiveThreadId)
+        if (ProcessDebuggingDetail->Threads[i].ThreadId == ThreadId)
         {
             //
             // The active thread's structure is found
@@ -737,14 +737,12 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
         return FALSE;
     }
 
-    Log("thread %x.%x paused...\n", PsGetCurrentProcessId(), PsGetCurrentThreadId());
-
     //
     // Handling state through the user-mode debugger
     //
     UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
                                               GuestRegs,
-                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                              DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
                                               NULL);
 
     //
@@ -877,9 +875,9 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
  * 
  * @param AttachRequest 
  * @param IsAttachingToEntrypoint 
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest, BOOLEAN IsAttachingToEntrypoint)
 {
     PEPROCESS SourceProcess;
@@ -892,7 +890,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED;
-        return;
+        return FALSE;
     }
 
     if (PsLookupProcessByProcessId(AttachRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
@@ -901,7 +899,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         // if the process not found
         //
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
+        return FALSE;
     }
 
     ObDereferenceObject(SourceProcess);
@@ -915,7 +913,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         // Unable to detect whether it's 32-bit or 64-bit
         //
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS;
-        return;
+        return FALSE;
     }
 
     //
@@ -938,7 +936,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     if (PebAddressToMonitor == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
+        return FALSE;
     }
 
     //
@@ -949,7 +947,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     if (UsermodeReservedBuffer == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
+        return FALSE;
     }
 
     //
@@ -959,7 +957,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
                                       AttachRequest->ProcessId))
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
+        return FALSE;
     }
 
     //
@@ -983,7 +981,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     if (ProcessDebuggingToken == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-        return;
+        return FALSE;
     }
 
     //
@@ -1012,7 +1010,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-            return;
+            return FALSE;
         }
 
         //
@@ -1034,8 +1032,15 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-            return;
+            return FALSE;
         }
+
+        //
+        // Operation was successful
+        //
+        AttachRequest->Token  = ProcessDebuggingToken;
+        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
     }
     else
     {
@@ -1050,12 +1055,16 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
-            return;
+            return FALSE;
         }
-    }
 
-    AttachRequest->Token  = ProcessDebuggingToken;
-    AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        //
+        // Operation was successful
+        //
+        AttachRequest->Token  = ProcessDebuggingToken;
+        AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
+    }
 }
 
 /**
@@ -1063,7 +1072,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
  * @details this function should be called in vmx-root
  * 
  * @param AttachRequest 
- * @return VOID 
+ * @return BOOLEAN 
  */
 VOID
 AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
@@ -1081,7 +1090,7 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
     if (!ProcessDebuggingDetails)
     {
         AttachRequest->Result = DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN;
-        return;
+        return FALSE;
     }
 
     //
@@ -1098,7 +1107,7 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
                                         ProcessDebuggingDetails->ProcessId))
         {
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS;
-            return;
+            return FALSE;
         }
         else
         {
@@ -1106,6 +1115,7 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
             // The unhooking operation was successful
             //
             AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            return TRUE;
         }
     }
     else
@@ -1114,7 +1124,7 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
         // The entrypoint is not called, we shouldn't remove the hook
         //
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED;
-        return;
+        return FALSE;
     }
 }
 
@@ -1123,9 +1133,9 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
  * @details this function should be called in vmx-root
  * 
  * @param KillRequest 
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
 {
     BOOLEAN WasKilled = FALSE;
@@ -1139,7 +1149,7 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
         // Process does not exists
         //
         KillRequest->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
-        return;
+        return FALSE;
     }
 
     //
@@ -1176,10 +1186,11 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     // No way we can kill the shit :(
     //
     KillRequest->Result = DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS;
-    return;
+    return FALSE;
 
 Success:
     KillRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    return TRUE;
 }
 
 /**
