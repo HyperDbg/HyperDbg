@@ -1767,7 +1767,8 @@ typedef struct _DEBUGGEE_KD_PAUSED_PACKET
 typedef struct _DEBUGGEE_UD_PAUSED_PACKET
 {
     UINT64                  Rip;
-    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
+    UINT64                  ProcessDebuggingToken;
+    BOOLEAN                 Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
     DEBUGGEE_PAUSING_REASON PausingReason;
     UINT32                  ProcessId;
     UINT32                  ThreadId;
@@ -1821,6 +1822,7 @@ typedef struct _DEBUGGER_UD_COMMAND_PACKET
 {
     DEBUGGER_UD_COMMAND_ACTION UdAction;
     UINT64                     ProcessDebuggingDetailToken;
+    BOOLEAN                    ApplyToAllPausedThreads;
     UINT32                     Result;
 
 } DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;

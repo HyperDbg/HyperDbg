@@ -335,32 +335,88 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     }
 
     //
-    // Get the active thread
+    // Based on the documentation, HyperDbg stops intercepting threads
+    // when the debugger sent the first command, but if user presses
+    // CTRL+C again, all the threads (or new threads) that will enter
+    // the user-mode will be intercepted
     //
-    ActiveThreadDebuggingDetails = AttachingGetProcessActiveThreadDetailsByProcessId(ProcessDebuggingDetails->ProcessId);
-
-    //
-    // Apply the command
-    //
-    for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
+    if (ProcessDebuggingDetails->IsOnThreadInterceptingPhase)
     {
-        if (ActiveThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+        DbgBreakPoint();
+        AttachingConfigureInterceptingThreads(ProcessDebuggingDetails->Token, FALSE);
+    }
+
+    //
+    // Check if we should apply it to all threads or only one thread
+    //
+    if (!ActionRequest->ApplyToAllPausedThreads)
+    {
+        //
+        // *** only the active thread ***
+        //
+
+        //
+        // Get the active thread
+        //
+        ActiveThreadDebuggingDetails = AttachingGetProcessActiveThreadDetailsByProcessId(ProcessDebuggingDetails->ProcessId);
+
+        //
+        // Apply the command
+        //
+        for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
         {
-            //
-            // Set the action
-            //
-            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
-            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
-            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
-            ActiveThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
+            if (ActiveThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+            {
+                //
+                // Set the action
+                //
+                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
+                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
+                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
+                ActiveThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
 
-            //
-            // At last we set the action type to make it valid
-            //
-            ActiveThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
+                //
+                // At last we set the action type to make it valid
+                //
+                ActiveThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
 
-            CommandApplied = TRUE;
-            break;
+                CommandApplied = TRUE;
+                break;
+            }
+        }
+    }
+    else
+    {
+        //
+        // *** apply to all paused threads ***
+        //
+        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+        {
+            if (ProcessDebuggingDetails->Threads[i].ThreadId != NULL &&
+                ProcessDebuggingDetails->Threads[i].IsPaused)
+            {
+                for (size_t j = 0; j < MAX_USER_ACTIONS_FOR_THREADS; j++)
+                {
+                    if (ProcessDebuggingDetails->Threads[i].UdAction[j].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
+                    {
+                        //
+                        // Set the action
+                        //
+                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
+                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
+                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
+                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
+
+                        //
+                        // At last we set the action type to make it valid
+                        //
+                        ProcessDebuggingDetails->Threads[i].UdAction[j].ActionType = ActionRequest->UdAction.ActionType;
+
+                        CommandApplied = TRUE;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -541,10 +597,17 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     PausePacket.PausingReason = Reason;
 
     //
+    // Set process debugging information
+    //
+    PausePacket.ProcessId             = PsGetCurrentProcessId();
+    PausePacket.ThreadId              = PsGetCurrentThreadId();
+    PausePacket.ProcessDebuggingToken = ProcessDebuggingDetails->Token;
+
+    //
     // Set the RIP and mode of execution
     //
-    PausePacket.Rip            = g_GuestState[CurrentCore].LastVmexitRip;
-    PausePacket.Is32BitAddress = KdIsGuestOnUsermode32Bit();
+    PausePacket.Rip     = g_GuestState[CurrentCore].LastVmexitRip;
+    PausePacket.Is32Bit = KdIsGuestOnUsermode32Bit();
 
     //
     // Set rflags for finding the results of conditional jumps

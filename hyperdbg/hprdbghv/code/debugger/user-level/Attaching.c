@@ -726,6 +726,17 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
         return FALSE;
     }
 
+    //
+    // Check if thread is in intercepting phase
+    //
+    if (!ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
+    {
+        //
+        // this thread is not in intercepting phase
+        //
+        return FALSE;
+    }
+
     Log("thread %x.%x paused...\n", PsGetCurrentProcessId(), PsGetCurrentThreadId());
 
     //
@@ -745,6 +756,122 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
 }
 
 /**
+ * @brief Enable or disable the thread intercepting phase
+ * @details this function should be called in vmx non-root
+ * 
+ * @param ProcessDebuggingToken 
+ * @param Enable 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable)
+{
+    CR3_TYPE                            TargetProcessKernelCr3;
+    CR3_TYPE                            CurrentProcessCr3;
+    PPAGE_ENTRY                         Pml4;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+
+    //
+    // Get the current process debugging detail
+    //
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByToken(ProcessDebuggingToken);
+
+    if (!ProcessDebuggingDetail)
+    {
+        return FALSE;
+    }
+
+    //
+    // If the thread is already in intercepting phase, we should return,
+    //
+    if (Enable && ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
+    {
+        LogError("Err, thread is already in intercepting phase");
+        return FALSE;
+    }
+
+    //
+    // if the user want to disable the intercepting phase, we just ignore the
+    // request without a message
+    //
+    if (!Enable && !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
+    {
+        return FALSE;
+    }
+
+    //
+    // Find the kernel cr3 based on
+    //
+    TargetProcessKernelCr3 = GetCr3FromProcessId(ProcessDebuggingDetail->ProcessId);
+
+    //
+    // Find the PML4 of the target process
+    //
+    Pml4 = MemoryMapperGetPteVaByCr3(NULL, PML4, TargetProcessKernelCr3);
+
+    if (Pml4 == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Indicate that the future #PFs should or should not be checked with user debugger
+    //
+    g_CheckPageFaultsWithUserDebugger = Enable;
+
+    //
+    // We're or we're not in thread intercepting phase now
+    //
+    ProcessDebuggingDetail->IsOnThreadInterceptingPhase = Enable;
+
+    if (Enable)
+    {
+        //
+        // Intercept all page-faults (#PFs)
+        //
+        ExtensionCommandSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
+    }
+    else
+    {
+        //
+        // Removing the #pf interception
+        //
+        ExtensionCommandUnsetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
+    }
+
+    //
+    // Switch to the target process's memory layout
+    //
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
+
+    //
+    // Set or unset the supervisor bit to zero so we can intercept every access to
+    // the entire memory for this process
+    //
+    if (Enable)
+    {
+        //
+        // The user-mode is not allowed to be executed
+        //
+        Pml4->Supervisor = 0;
+    }
+    else
+    {
+        //
+        // No need this bit anymore as the user-mode is allowed to be executed
+        //
+        Pml4->Supervisor = 1;
+    }
+
+    //
+    // Return to our process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return TRUE;
+}
+
+/**
  * @brief Attach to the target process
  * @details this function should be called in vmx-root
  * 
@@ -755,15 +882,12 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
 VOID
 AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest, BOOLEAN IsAttachingToEntrypoint)
 {
-    PEPROCESS   SourceProcess;
-    UINT64      ThreadDebuggingToken;
-    UINT64      PebAddressToMonitor;
-    UINT64      UsermodeReservedBuffer;
-    BOOLEAN     ResultOfApplyingEvent;
-    BOOLEAN     Is32Bit;
-    CR3_TYPE    TargetProcessKernelCr3;
-    CR3_TYPE    CurrentProcessCr3;
-    PPAGE_ENTRY Pml4;
+    PEPROCESS SourceProcess;
+    UINT64    ProcessDebuggingToken;
+    UINT64    PebAddressToMonitor;
+    UINT64    UsermodeReservedBuffer;
+    BOOLEAN   ResultOfApplyingEvent;
+    BOOLEAN   Is32Bit;
 
     if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
     {
@@ -846,17 +970,17 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     //
     // Create the event
     //
-    ThreadDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
-                                                                  TRUE,
-                                                                  Is32Bit,
-                                                                  SourceProcess,
-                                                                  PebAddressToMonitor,
-                                                                  UsermodeReservedBuffer);
+    ProcessDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
+                                                                   TRUE,
+                                                                   Is32Bit,
+                                                                   SourceProcess,
+                                                                   PebAddressToMonitor,
+                                                                   UsermodeReservedBuffer);
 
     //
     // Check if we successfully get the token
     //
-    if (ThreadDebuggingToken == NULL)
+    if (ProcessDebuggingToken == NULL)
     {
         AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
         return;
@@ -879,12 +1003,12 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Set the starting point of the thread
         //
-        if (!AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(TRUE, ThreadDebuggingToken))
+        if (!AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(TRUE, ProcessDebuggingToken))
         {
             //
             // Remove the created thread debugging detail
             //
-            AttachingRemoveProcessDebuggingDetailsByToken(ThreadDebuggingToken);
+            AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
@@ -906,7 +1030,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
             //
             // Remove the created thread debugging detail
             //
-            AttachingRemoveProcessDebuggingDetailsByToken(ThreadDebuggingToken);
+            AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
             g_IsWaitingForUserModeModuleEntrypointToBeCalled = FALSE;
             AttachRequest->Result                            = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
@@ -918,51 +1042,19 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // *** attaching to previously running process ***
         //
-
-        //
-        // Indicate that the future #PFs should be checked with user debugger
-        //
-        g_CheckPageFaultsWithUserDebugger = TRUE;
-
-        //
-        // Intercept all page-faults (#PFs)
-        //
-        ExtensionCommandSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
-
-        //
-        // Find the kernel cr3 based on
-        //
-        TargetProcessKernelCr3 = GetCr3FromProcessId(AttachRequest->ProcessId);
-
-        //
-        // Find the PML4 of the target process
-        //
-        Pml4 = MemoryMapperGetPteVaByCr3(NULL, PML4, TargetProcessKernelCr3);
-
-        if (Pml4 == NULL)
+        if (!AttachingConfigureInterceptingThreads(ProcessDebuggingToken, TRUE))
         {
+            //
+            // Remove the created thread debugging detail
+            //
+            AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
+
             AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_TARGET_USER_MODE_PROCESS;
             return;
         }
-
-        //
-        // Switch to the target process's memory layout
-        //
-        CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
-
-        //
-        // Set the supervisor bit to zero so we can intercept every access to
-        // the entire memory for this process
-        //
-        Pml4->Supervisor = 0;
-
-        //
-        // Return to our process
-        //
-        RestoreToPreviousProcess(CurrentProcessCr3);
     }
 
-    AttachRequest->Token  = ThreadDebuggingToken;
+    AttachRequest->Token  = ProcessDebuggingToken;
     AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 }
 

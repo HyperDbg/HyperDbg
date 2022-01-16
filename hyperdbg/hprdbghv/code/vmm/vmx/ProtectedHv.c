@@ -87,6 +87,14 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     }
 
     //
+    // Check for #PF by thread interception mechanism in user debugger
+    //
+    if (g_CheckPageFaultsWithUserDebugger)
+    {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_PAGE_FAULT;
+    }
+
+    //
     // Check for possible EPT Hooks (Hidden Breakpoints)
     //
     if (EptHookGetCountOfEpthooks(FALSE) != 0)

@@ -413,14 +413,6 @@ UdAttachToProcess(UINT32        TargetPid,
             return TRUE;
         }
 
-        //
-        // Set the current active debugging process (thread)
-        //
-        UdSetActiveDebuggingThread(AttachRequest.Token,
-                                   AttachRequest.ProcessId,
-                                   AttachRequest.ThreadId,
-                                   AttachRequest.Is32Bit);
-
         // ShowMessages("Base Address : %llx\n", AttachRequest.BaseAddressOfMainModule);
         // ShowMessages("Entrypoint Address : %llx\n", AttachRequest.EntrypoinOfMainModule);
 
@@ -600,6 +592,14 @@ VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 {
     //
+    // Set the current active debugging process (thread)
+    //
+    UdSetActiveDebuggingThread(PausePacket->ProcessDebuggingToken,
+                               PausePacket->ProcessId,
+                               PausePacket->ThreadId,
+                               PausePacket->Is32Bit);
+
+    //
     // Perform extra tasks for pausing reasons
     //
     switch (PausePacket->PausingReason)
@@ -625,13 +625,13 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
         //
         if (HyperDbgLengthDisassemblerEngine(PausePacket->InstructionBytesOnRip,
                                              MAXIMUM_INSTR_SIZE,
-                                             PausePacket->Is32BitAddress ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
+                                             PausePacket->Is32Bit ? FALSE : TRUE) > PausePacket->ReadInstructionLen)
         {
             ShowMessages("oOh, no! there might be a misinterpretation in disassembling the current instruction\n");
         }
     }
 
-    if (!PausePacket->Is32BitAddress)
+    if (!PausePacket->Is32Bit)
     {
         //
         // Show diassembles
@@ -686,6 +686,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
 VOID
 UdSendCommand(UINT64                          ProcessDetailToken,
               DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType,
+              BOOLEAN                         ApplyToAllPausedThreads,
               UINT64                          OptionalParam1,
               UINT64                          OptionalParam2,
               UINT64                          OptionalParam3,
@@ -711,6 +712,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     // Set to the details
     //
     CommandPacket.ProcessDebuggingDetailToken = ProcessDetailToken;
+    CommandPacket.ApplyToAllPausedThreads     = ApplyToAllPausedThreads;
     CommandPacket.UdAction.ActionType         = ActionType;
     CommandPacket.UdAction.OptionalParam1     = OptionalParam1;
     CommandPacket.UdAction.OptionalParam2     = OptionalParam2;
@@ -750,7 +752,7 @@ UdContinueDebuggee(UINT64 ProcessDetailToken)
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, NULL, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE, TRUE, NULL, NULL, NULL, NULL);
 }
 
 /**
@@ -773,7 +775,7 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, DEBUGGER_REMOTE_STEPPING_R
     //
     // Send the 'continue' command
     //
-    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, StepType, NULL, NULL, NULL);
+    UdSendCommand(ProcessDetailToken, DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP, FALSE, StepType, NULL, NULL, NULL);
 
     WaitForSingleObject(
         g_UserSyncronizationObjectsHandleTable

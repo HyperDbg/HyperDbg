@@ -15,8 +15,16 @@
 //				   Constants					//
 //////////////////////////////////////////////////
 
+/**
+ * @brief Maximum actions in paused threads storage
+ * 
+ */
 #define MAX_USER_ACTIONS_FOR_THREADS 3
 
+/**
+ * @brief Maximum threads that a process might have
+ * 
+ */
 #define MAX_THREADS_IN_A_PROCESS 100
 
 //////////////////////////////////////////////////
@@ -58,6 +66,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     UINT32                            ProcessId;
     BOOLEAN                           Is32Bit;
     BOOLEAN                           IsOnTheStartingPhase;
+    BOOLEAN                           IsOnThreadInterceptingPhase;
     USERMODE_DEBUGGING_THREAD_DETAILS Threads[MAX_THREADS_IN_A_PROCESS];
 
 } USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;
@@ -69,15 +78,18 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 BOOLEAN
 AttachingInitialize();
 
-VOID
-AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
-
 BOOLEAN
 AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
                                          PGUEST_REGS           GuestRegs,
                                          VMEXIT_INTERRUPT_INFO InterruptExit,
                                          UINT64                Address,
                                          ULONG                 ErrorCode);
+
+BOOLEAN
+AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
+
+VOID
+AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 
 VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
