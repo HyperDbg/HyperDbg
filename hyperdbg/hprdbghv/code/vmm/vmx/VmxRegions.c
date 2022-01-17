@@ -21,8 +21,7 @@
 BOOLEAN
 VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
-    PHYSICAL_ADDRESS   MaxPhysicalAddr = {0};
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
+    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
     SIZE_T             VmxonSize;
     int                VmxonStatus;
     UINT8 *            VmxonRegion;
@@ -30,20 +29,19 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     UINT64             AlignedVmxonRegion;
     UINT64             AlignedVmxonRegionPhysicalAddr;
 
+#ifdef ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
-
-    MaxPhysicalAddr.QuadPart = MAXULONG64;
-
-    VmxonSize = 2 * VMXON_SIZE;
+#endif // ENV_WINDOWS
 
     //
     // Allocating a 4-KByte Contigous Memory region
     //
-    VmxonRegion = MmAllocateContiguousMemory(VmxonSize + ALIGNMENT_PAGE_SIZE, MaxPhysicalAddr);
+    VmxonSize   = 2 * VMXON_SIZE;
+    VmxonRegion = CrsAllocateContiguousZeroedMemory(VmxonSize + ALIGNMENT_PAGE_SIZE);
     if (VmxonRegion == NULL)
     {
         LogError("Err, couldn't allocate buffer for VMXON region");
@@ -51,11 +49,6 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     }
 
     VmxonRegionPhysicalAddr = VirtualAddressToPhysicalAddress(VmxonRegion);
-
-    //
-    // zero-out memory
-    //
-    RtlSecureZeroMemory(VmxonRegion, VmxonSize + ALIGNMENT_PAGE_SIZE);
 
     AlignedVmxonRegion = (BYTE *)((ULONG_PTR)(VmxonRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));
     LogDebugInfo("VMXON Region Address : %llx", AlignedVmxonRegion);
@@ -107,32 +100,32 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
-    PHYSICAL_ADDRESS   MaxPhysicalAddr = {0};
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
+    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
     SIZE_T             VmcsSize;
     UINT8 *            VmcsRegion;
     UINT64             VmcsPhysicalAddr;
     UINT64             AlignedVmcsRegion;
     UINT64             AlignedVmcsRegionPhysicalAddr;
 
+#ifdef ENV_WINDOWS
     //
     // at IRQL > DISPATCH_LEVEL memory allocation routines don't work
     //
     if (KeGetCurrentIrql() > DISPATCH_LEVEL)
         KeRaiseIrqlToDpcLevel();
+#endif // ENV_WINDOWS
 
-    MaxPhysicalAddr.QuadPart = MAXULONG64;
-
-    VmcsSize = 2 * VMCS_SIZE;
-
-    VmcsRegion = MmAllocateContiguousMemory(VmcsSize + ALIGNMENT_PAGE_SIZE, MaxPhysicalAddr); // Allocating a 4-KByte Contigous Memory region
+    //
+    // Allocating a 4-KByte Contigous Memory region
+    //
+    VmcsSize   = 2 * VMCS_SIZE;
+    VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE); 
     if (VmcsRegion == NULL)
     {
         LogError("Err, couldn't allocate Buffer for VMCS region");
         return FALSE;
     }
 
-    RtlSecureZeroMemory(VmcsRegion, VmcsSize + ALIGNMENT_PAGE_SIZE);
     VmcsPhysicalAddr = VirtualAddressToPhysicalAddress(VmcsRegion);
 
     AlignedVmcsRegion = (BYTE *)((ULONG_PTR)(VmcsRegion + ALIGNMENT_PAGE_SIZE - 1) & ~(ALIGNMENT_PAGE_SIZE - 1));

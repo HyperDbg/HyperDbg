@@ -36,6 +36,8 @@
 //
 #include "Definition.h"
 #include "Configuration.h"
+#include "platform/CrossApi.h"
+#include "platform/env.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"

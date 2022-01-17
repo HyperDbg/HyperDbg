@@ -296,6 +296,9 @@
     <ClCompile Include="code\debugger\user-level\Ud.c">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
+    <ClCompile Include="code\platform\CrossApi.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -439,7 +442,10 @@
     <ClInclude Include="header\debugger\user-level\Ud.h">
       <Filter>header\debugger\user-level</Filter>
     </ClInclude>
-    <ClInclude Include="header\platform\cross_api.h">
+    <ClInclude Include="header\platform\CrossApi.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\platform\env.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
