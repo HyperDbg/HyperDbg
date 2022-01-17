@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of pause command
@@ -41,6 +42,7 @@ CommandPauseRequest()
     // Set the g_BreakPrintingOutput to TRUE
     //
     g_BreakPrintingOutput = TRUE;
+    ShowMessages("pausing...\n");
 
     //
     // If it's a remote debugger then we send the remote debuggee a 'g'
@@ -49,8 +51,12 @@ CommandPauseRequest()
     {
         RemoteConnectionSendCommand("pause", strlen("pause") + 1);
     }
-
-    ShowMessages("pausing debugger...\n");
+    else if (g_ActiveProcessDebuggingState.IsActive && UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken))
+    {
+        ShowMessages("please keep interacting with the process until all the "
+                     "threads are intercepted and halted; whenever you execute "
+                     "the first command, the thread interception will be stopped\n");
+    }
 }
 
 /**

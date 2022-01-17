@@ -301,6 +301,11 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS:
+        ShowMessages("err, unable to pause the threads of the process (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

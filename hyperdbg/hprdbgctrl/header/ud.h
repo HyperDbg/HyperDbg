@@ -51,6 +51,9 @@ UdAttachToProcess(UINT32        TargetPid,
 BOOLEAN
 UdKillProcess(UINT32 TargetPid);
 
+BOOLEAN
+UdPauseProcess(UINT64 ProcessDebuggingToken);
+
 VOID
 UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
 

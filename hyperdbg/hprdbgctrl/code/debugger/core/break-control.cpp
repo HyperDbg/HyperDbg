@@ -14,14 +14,15 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsDebuggerModulesLoaded;
-extern BOOLEAN g_AutoUnpause;
-extern BOOLEAN g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsExecutingSymbolLoadingRoutines;
-extern BOOLEAN g_IsInstrumentingInstructions;
-extern BOOLEAN g_IgnorePauseRequests;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsDebuggerModulesLoaded;
+extern BOOLEAN                  g_AutoUnpause;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsExecutingSymbolLoadingRoutines;
+extern BOOLEAN                  g_IsInstrumentingInstructions;
+extern BOOLEAN                  g_IgnorePauseRequests;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief handle CTRL+C and CTRL+Break events
@@ -119,8 +120,6 @@ BreakController(DWORD CtrlType)
                             "debugger will automatically continue when you run a new "
                             "event command, if you want to change this behaviour then "
                             "run run 'settings autounpause off'\n\n");
-
-                        HyperdbgShowSignature();
                     }
                     else
                     {
@@ -129,8 +128,16 @@ BreakController(DWORD CtrlType)
                             "should run 'g' when you want to continue, otherwise run "
                             "'settings "
                             "autounpause on'\n\n");
+                    }
 
-                        HyperdbgShowSignature();
+                    //
+                    // Show the signature of HyperDbg
+                    //
+                    HyperdbgShowSignature();
+
+                    if (g_ActiveProcessDebuggingState.IsActive)
+                    {
+                        UdPauseProcess(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
                     }
                 }
             }

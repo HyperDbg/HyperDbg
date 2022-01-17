@@ -768,6 +768,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     CR3_TYPE                            CurrentProcessCr3;
     PPAGE_ENTRY                         Pml4;
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    KAPC_STATE                          State = {0};
 
     //
     // Get the current process debugging detail
@@ -838,33 +839,48 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
 
     //
-    // Switch to the target process's memory layout
-    //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetProcessKernelCr3);
-
-    //
     // Set or unset the supervisor bit to zero so we can intercept every access to
     // the entire memory for this process
     //
-    if (Enable)
+    __try
     {
         //
-        // The user-mode is not allowed to be executed
+        // Something weird happended here! In my first attempt I tried to change the
+        // current cr3 to kernel cr3 of the target process and change the supervisor
+        // bit, however it causes some strange problem in the result of IOCTL when
+        // it returned to the user-mode !
+        // After some investigation I realized that if I put breakpoint somewhere
+        // here then it works without error :|
+        // The problem is probably because of some cache invalidation, but as long
+        // as I know, moving anything to cr3 should invalidate the cache, by the way
+        // if we use Winodws functions for this switch then it works perfectly, I also
+        // used INVLPG and it seems to not work. Probably Windows do some kind of invalidation
+        // on this functions
         //
-        Pml4->Supervisor = 0;
-    }
-    else
-    {
-        //
-        // No need this bit anymore as the user-mode is allowed to be executed
-        //
-        Pml4->Supervisor = 1;
-    }
+        KeStackAttachProcess(ProcessDebuggingDetail->Eprocess, &State);
 
-    //
-    // Return to our process
-    //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+        if (Enable)
+        {
+            //
+            // The user-mode is not allowed to be executed
+            //
+            Pml4->Supervisor = 0;
+        }
+        else
+        {
+            //
+            // No need this bit anymore as the user-mode is allowed to be executed
+            //
+            Pml4->Supervisor = 1;
+        }
+        KeUnstackDetachProcess(&State);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        KeUnstackDetachProcess(&State);
+
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -1129,8 +1145,33 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 }
 
 /**
+ * @brief Pauses the target process 
+ * @details this function should not be called in vmx-root
+ * 
+ * @param PauseRequest 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
+{
+    if (AttachingConfigureInterceptingThreads(PauseRequest->Token, TRUE))
+    {
+        //
+        // The pausing operation was successful
+        //
+        PauseRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
+    }
+    else
+    {
+        PauseRequest->Result = DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS;
+        return FALSE;
+    }
+}
+
+/**
  * @brief Kill the target process from kernel-mode
- * @details this function should be called in vmx-root
+ * @details this function should not be called in vmx-root
  * 
  * @param KillRequest 
  * @return BOOLEAN 
@@ -1225,6 +1266,12 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS:
 
         AttachingKillProcess(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS:
+
+        AttachingPauseProcess(Request);
 
         break;
 
