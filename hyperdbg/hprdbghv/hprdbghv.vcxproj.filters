@@ -439,6 +439,9 @@
     <ClInclude Include="header\debugger\user-level\Ud.h">
       <Filter>header\debugger\user-level</Filter>
     </ClInclude>
+    <ClInclude Include="header\platform\cross_api.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">
