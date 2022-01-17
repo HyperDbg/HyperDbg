@@ -412,8 +412,7 @@ UdAttachToProcess(UINT32        TargetPid,
             ShowMessages("successfully attached to the target process!\n"
                          "please keep interacting with the process until all the "
                          "threads are intercepted and halted; whenever you execute "
-                         "the first command, the thread interception mechanism will "
-                         "be stopped\n");
+                         "the first command, the thread interception will be stopped\n");
             return TRUE;
         }
 
@@ -581,8 +580,79 @@ UdKillProcess(UINT32 TargetPid)
         ShowErrorMessage(KillRequest.Result);
         return FALSE;
     }
+}
 
-    return FALSE;
+/**
+ * @brief Pause the target process
+ *
+ * @param ProcessDebuggingToken
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdPauseProcess(UINT64 ProcessDebuggingToken)
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // We wanna pause a process
+    //
+    PauseRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS;
+
+    //
+    // Set the process debugging token
+    //
+    PauseRequest.Token = ProcessDebuggingToken;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &PauseRequest,                                   // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &PauseRequest,                                   // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Check if killing was successful or not
+    //
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(PauseRequest.Result);
+        return FALSE;
+    }
 }
 
 /**

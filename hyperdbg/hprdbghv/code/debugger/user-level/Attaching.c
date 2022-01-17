@@ -1129,8 +1129,33 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 }
 
 /**
+ * @brief Pauses the target process 
+ * @details this function should not be called in vmx-root
+ * 
+ * @param PauseRequest 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
+{
+    if (AttachingConfigureInterceptingThreads(PauseRequest->Token, TRUE))
+    {
+        //
+        // The pausing operation was successful
+        //
+        PauseRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
+    }
+    else
+    {
+        PauseRequest->Result = DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS;
+        return FALSE;
+    }
+}
+
+/**
  * @brief Kill the target process from kernel-mode
- * @details this function should be called in vmx-root
+ * @details this function should not be called in vmx-root
  * 
  * @param KillRequest 
  * @return BOOLEAN 
@@ -1225,6 +1250,12 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS:
 
         AttachingKillProcess(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS:
+
+        AttachingPauseProcess(Request);
 
         break;
 
