@@ -70,9 +70,9 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     }
 
     //
-    // Check for kernel debugger (kHyperDbg) presence
+    // Check for kernel or user debugger presence
     //
-    if (g_KernelDebuggerState)
+    if (g_KernelDebuggerState || g_UserDebuggerState)
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_BREAKPOINT;
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
@@ -84,6 +84,14 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_DEBUG_BREAKPOINT;
+    }
+
+    //
+    // Check for #PF by thread interception mechanism in user debugger
+    //
+    if (g_CheckPageFaultsWithUserDebugger)
+    {
+        CurrentMask |= 1 << EXCEPTION_VECTOR_PAGE_FAULT;
     }
 
     //

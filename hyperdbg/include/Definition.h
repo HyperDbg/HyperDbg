@@ -206,9 +206,15 @@ const unsigned char BuildVersion[] =
 
 /**
  * @brief Default buffer count of packets for message tracing
- * @details number of packets storage
+ * @details number of packets storage for regualr buffers
  */
 #define MaximumPacketsCapacity 1000
+
+/**
+ * @brief Default buffer count of packets for message tracing
+ * @details number of packets storage for priority buffers
+ */
+#define MaximumPacketsCapacityPriority 10
 
 /**
  * @brief Size of each packet
@@ -244,6 +250,13 @@ const unsigned char BuildVersion[] =
     MaximumPacketsCapacity *(PacketChunkSize + sizeof(BUFFER_HEADER))
 
 /**
+ * @brief Final storage size of message tracing
+ *
+ */
+#define LogBufferSizePriority \
+    MaximumPacketsCapacityPriority *(PacketChunkSize + sizeof(BUFFER_HEADER))
+
+/**
  * @brief limitation of Windows DbgPrint message size
  * @details currently is not functional
  *
@@ -256,6 +269,13 @@ const unsigned char BuildVersion[] =
  *
  */
 #define DebuggerEventTagStartSeed 0x1000000
+
+/**
+ * @brief The seeds that user-mode thread detail token start with it
+ * @details This seed should not start with zero (0), otherwise it's 
+ * interpreted as error
+ */
+#define DebuggerThreadDebuggingTagStartSeed 0x1000000
 
 /**
  * @brief The seeds that user-mode codes use as the starter
@@ -364,13 +384,16 @@ const unsigned char BuildVersion[] =
 #define OPERATION_DEBUGGEE_REGISTER_EVENT 0x8 | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT \
     0x9 | OPERATION_MANDATORY_DEBUGGEE_BIT
-#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xA | OPERATION_MANDATORY_DEBUGGEE_BIT
+#define OPERATION_DEBUGGEE_CLEAR_EVENTS 0xa | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED \
-    0xB | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xb | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_HYPERVISOR_DRIVER_END_OF_IRPS \
-    0xC | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xc | OPERATION_MANDATORY_DEBUGGEE_BIT
 #define OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL \
-    0xD | OPERATION_MANDATORY_DEBUGGEE_BIT
+    0xd | OPERATION_MANDATORY_DEBUGGEE_BIT
+
+#define OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE \
+    0xe | OPERATION_MANDATORY_DEBUGGEE_BIT
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //
@@ -406,36 +429,55 @@ const unsigned char BuildVersion[] =
 //////////////////////////////////////////////////
 
 /**
-/**
- * @brief Maximum Number of Event Handles
+ * @brief maximum number of event handles in kernel-debugger
  */
-#define DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS 0x40
+#define DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS 0x40
 
 /**
  * @brief An event to show whether the debugger is running
- * or not
+ * or not in kernel-debugger
  *
  */
-#define DEBUGGER_SYNCRONIZATION_OBJECT_IS_DEBUGGER_RUNNING                 0x0
-#define DEBUGGER_SYNCRONIZATION_OBJECT_STARTED_PACKET_RECEIVED             0x1
-#define DEBUGGER_SYNCRONIZATION_OBJECT_PAUSED_DEBUGGEE_DETAILS             0x2
-#define DEBUGGER_SYNCRONIZATION_OBJECT_CORE_SWITCHING_RESULT               0x3
-#define DEBUGGER_SYNCRONIZATION_OBJECT_PROCESS_SWITCHING_RESULT            0x4
-#define DEBUGGER_SYNCRONIZATION_OBJECT_THREAD_SWITCHING_RESULT             0x5
-#define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_RUNNING_RESULT               0x6
-#define DEBUGGER_SYNCRONIZATION_OBJECT_SCRIPT_FORMATS_RESULT               0x7
-#define DEBUGGER_SYNCRONIZATION_OBJECT_DEBUGGEE_FINISHED_COMMAND_EXECUTION 0x8
-#define DEBUGGER_SYNCRONIZATION_OBJECT_FLUSH_RESULT                        0x9
-#define DEBUGGER_SYNCRONIZATION_OBJECT_REGISTER_EVENT                      0xa
-#define DEBUGGER_SYNCRONIZATION_OBJECT_ADD_ACTION_TO_EVENT                 0xb
-#define DEBUGGER_SYNCRONIZATION_OBJECT_MODIFY_AND_QUERY_EVENT              0xc
-#define DEBUGGER_SYNCRONIZATION_OBJECT_READ_REGISTERS                      0xd
-#define DEBUGGER_SYNCRONIZATION_OBJECT_BP                                  0xe
-#define DEBUGGER_SYNCRONIZATION_OBJECT_LIST_OR_MODIFY_BREAKPOINTS          0xf
-#define DEBUGGER_SYNCRONIZATION_OBJECT_READ_MEMORY                         0x10
-#define DEBUGGER_SYNCRONIZATION_OBJECT_EDIT_MEMORY                         0x11
-#define DEBUGGER_SYNCRONIZATION_OBJECT_SYMBOL_RELOAD                       0x12
-#define DEBUGGER_SYNCRONIZATION_OBJECT_TEST_QUERY                          0x13
+
+//
+// Kernel-debugger
+//
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING                 0x0
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED             0x1
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS             0x2
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT               0x3
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT            0x4
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT             0x5
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_RUNNING_RESULT               0x6
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT               0x7
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_DEBUGGEE_FINISHED_COMMAND_EXECUTION 0x8
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT                        0x9
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_REGISTER_EVENT                      0xa
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_ADD_ACTION_TO_EVENT                 0xb
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_MODIFY_AND_QUERY_EVENT              0xc
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS                      0xd
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP                                  0xe
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS          0xf
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY                         0x10
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY                         0x11
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD                       0x12
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY                          0x13
+
+/**
+ * @brief Maximum number of event handles in user-debugger
+ */
+#define DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS 0x40
+
+/**
+ * @brief An event to show whether the debugger is running
+ * or not in user-debugger 
+ *
+ */
+
+//
+// User-debugger
+//
+#define DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING 0x30
 
 //////////////////////////////////////////////////
 //            End of Buffer Detection           //
@@ -822,18 +864,27 @@ typedef struct _DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
 typedef enum _DEBUGGEE_PAUSING_REASON
 {
 
+    //
+    // For both kernel & user debugger
+    //
     DEBUGGEE_PAUSING_REASON_NOT_PAUSED = 0,
     DEBUGGEE_PAUSING_REASON_PAUSE_WITHOUT_DISASM,
     DEBUGGEE_PAUSING_REASON_REQUEST_FROM_DEBUGGER,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_HARDWARE_DEBUG_REGISTER_HIT,
-    DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_CORE_SWITCHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_PROCESS_SWITCHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_THREAD_SWITCHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_COMMAND_EXECUTION_FINISHED,
     DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
+    DEBUGGEE_PAUSING_REASON_DEBUGGEE_ENTRY_POINT_REACHED,
+
+    //
+    // Only for user-debugger
+    //
+    DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+    DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_THREAD_INTERCEPTED,
 
 } DEBUGGEE_PAUSING_REASON;
 
@@ -1001,7 +1052,8 @@ typedef struct _DEBUGGER_UPDATE_SYMBOL_TABLE
  * @brief check so the DEBUGGER_UPDATE_SYMBOL_TABLE should be smaller than packet size
  *
  */
-static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize, "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGER_UPDATE_SYMBOL_TABLE (MODULE_SYMBOL_DETAIL)");
+static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGER_UPDATE_SYMBOL_TABLE (MODULE_SYMBOL_DETAIL)");
 
 /*
 ==============================================================================================
@@ -1495,6 +1547,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS,
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
 
@@ -1506,11 +1559,10 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 {
     BOOLEAN                                              IsStartingNewProcess;
     UINT32                                               ProcessId;
-    UINT64                                               ThreadId;
+    UINT32                                               ThreadId;
     BOOLEAN                                              Is32Bit;
-    UINT64                                               BaseAddressOfMainModule;
-    UINT64                                               EntrypoinOfMainModule;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
+    UINT64                                               Token;
     UINT64                                               Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
@@ -1693,16 +1745,13 @@ typedef struct _DEBUGGER_TRIGGERED_EVENT_DETAILS
 } DEBUGGER_TRIGGERED_EVENT_DETAILS, *PDEBUGGER_TRIGGERED_EVENT_DETAILS;
 
 /**
- * @brief The structure of pausing packet in HyperDbg
+ * @brief The structure of pausing packet in kHyperDbg
  *
  */
-typedef struct _DEBUGGEE_PAUSED_PACKET
+typedef struct _DEBUGGEE_KD_PAUSED_PACKET
 {
-    UINT64 Rip;
-    //
-    // if true shows that the address should be interpreted in 32-bit mode
-    //
-    BOOLEAN                 Is32BitAddress;
+    UINT64                  Rip;
+    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
     DEBUGGEE_PAUSING_REASON PausingReason;
     ULONG                   CurrentCore;
     UINT64                  EventTag;
@@ -1710,7 +1759,75 @@ typedef struct _DEBUGGEE_PAUSED_PACKET
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
     USHORT                  ReadInstructionLen;
 
-} DEBUGGEE_PAUSED_PACKET, *PDEBUGGEE_PAUSED_PACKET;
+} DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
+
+/**
+ * @brief The structure of pausing packet in uHyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_UD_PAUSED_PACKET
+{
+    UINT64                  Rip;
+    UINT64                  ProcessDebuggingToken;
+    BOOLEAN                 Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
+    DEBUGGEE_PAUSING_REASON PausingReason;
+    UINT32                  ProcessId;
+    UINT32                  ThreadId;
+    UINT64                  EventTag;
+    RFLAGS                  Rflags;
+    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    USHORT                  ReadInstructionLen;
+    GUEST_REGS              GuestRegs;
+
+} DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
+
+/**
+ * @brief check so the DEBUGGEE_UD_PAUSED_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_UD_PAUSED_PACKET");
+
+/**
+ * @brief User-mode debugging actions
+ * 
+ */
+typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
+{
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE = 0,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_PAUSE,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_CONTINUE,
+    DEBUGGER_UD_COMMAND_ACTION_TYPE_REGULAR_STEP,
+
+} DEBUGGER_UD_COMMAND_ACTION_TYPE;
+
+/**
+ * @brief Description of user-mode debugging actions
+ * 
+ */
+typedef struct _DEBUGGER_UD_COMMAND_ACTION
+{
+    DEBUGGER_UD_COMMAND_ACTION_TYPE ActionType;
+    UINT64                          OptionalParam1;
+    UINT64                          OptionalParam2;
+    UINT64                          OptionalParam3;
+    UINT64                          OptionalParam4;
+
+} DEBUGGER_UD_COMMAND_ACTION, *PDEBUGGER_UD_COMMAND_ACTION;
+
+/**
+ * @brief The structure of command packet in uHyperDbg
+ *
+ */
+typedef struct _DEBUGGER_UD_COMMAND_PACKET
+{
+    DEBUGGER_UD_COMMAND_ACTION UdAction;
+    UINT64                     ProcessDebuggingDetailToken;
+    UINT32                     TargetThreadId;
+    BOOLEAN                    ApplyToAllPausedThreads;
+    UINT32                     Result;
+
+} DEBUGGER_UD_COMMAND_PACKET, *PDEBUGGER_UD_COMMAND_PACKET;
 
 /**
  * @brief The structure of message packet in HyperDbg
@@ -2333,6 +2450,18 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS 0xc000002e
 
+/**
+ * @brief error, unable to kill the target process
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS 0xc000002f
+
+/**
+ * @brief error, invalid thread debugging token
+ * 
+ */
+#define DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN 0xc0000030
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -2511,3 +2640,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_RESERVE_PRE_ALLOCATED_POOLS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x817, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to send user debugger commands
+ *
+ */
+#define IOCTL_SEND_USER_DEBUGGER_COMMANDS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x818, METHOD_BUFFERED, FILE_ANY_ACCESS)

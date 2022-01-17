@@ -29,7 +29,7 @@ typedef enum _SEGMENT_REGISTERS
     GS,
     LDTR,
     TR
-};
+} SEGMENT_REGISTERS;
 
 /**
  * @brief Different methods of killing a process
@@ -488,19 +488,21 @@ typedef enum _LOG_TYPE
         LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
                                         UseImmediateMessaging,                    \
                                         ShowSystemTimeOnDebugMessages,            \
+                                        FALSE,                                    \
                                         "[+] Information (%s:%d) | " format "\n", \
                                         __func__,                                 \
                                         __LINE__,                                 \
                                         __VA_ARGS__)
 
 /**
- * @brief Log in the case of immediate message
+ * @brief Log in the case of priority message
  * 
  */
-#    define LogInfoImmediate(format, ...)                                         \
+#    define LogInfoPriority(format, ...)                                          \
         LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
                                         TRUE,                                     \
                                         ShowSystemTimeOnDebugMessages,            \
+                                        TRUE,                                     \
                                         "[+] Information (%s:%d) | " format "\n", \
                                         __func__,                                 \
                                         __LINE__,                                 \
@@ -514,6 +516,7 @@ typedef enum _LOG_TYPE
         LogPrepareAndSendMessageToQueue(OPERATION_LOG_WARNING_MESSAGE,        \
                                         UseImmediateMessaging,                \
                                         ShowSystemTimeOnDebugMessages,        \
+                                        TRUE,                                 \
                                         "[-] Warning (%s:%d) | " format "\n", \
                                         __func__,                             \
                                         __LINE__,                             \
@@ -527,6 +530,7 @@ typedef enum _LOG_TYPE
         LogPrepareAndSendMessageToQueue(OPERATION_LOG_ERROR_MESSAGE,        \
                                         UseImmediateMessaging,              \
                                         ShowSystemTimeOnDebugMessages,      \
+                                        TRUE,                               \
                                         "[!] Error (%s:%d) | " format "\n", \
                                         __func__,                           \
                                         __LINE__,                           \
@@ -542,6 +546,7 @@ typedef enum _LOG_TYPE
         LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE, \
                                         TRUE,                       \
                                         FALSE,                      \
+                                        FALSE,                      \
                                         format,                     \
                                         __VA_ARGS__)
 
@@ -554,7 +559,8 @@ typedef enum _LOG_TYPE
         LogSendMessageToQueue(tag,                       \
                               isimmdte,                  \
                               buffer,                    \
-                              len)
+                              len,                       \
+                              FALSE)
 
 #endif // UseDbgPrintInsteadOfUsermodeMessageTracking
 
@@ -567,6 +573,7 @@ typedef enum _LOG_TYPE
     LogPrepareAndSendMessageToQueue(OPERATION_LOG_INFO_MESSAGE,               \
                                     UseImmediateMessaging,                    \
                                     ShowSystemTimeOnDebugMessages,            \
+                                    FALSE,                                    \
                                     "[+] Information (%s:%d) | " format "\n", \
                                     __func__,                                 \
                                     __LINE__,                                 \

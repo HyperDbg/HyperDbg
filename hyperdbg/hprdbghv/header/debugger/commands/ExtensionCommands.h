@@ -55,6 +55,9 @@ VOID
 ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex);
 
 VOID
+ExtensionCommandUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex);
+
+VOID
 ExtensionCommandResetExceptionBitmapAllCores();
 
 VOID

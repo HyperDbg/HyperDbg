@@ -142,6 +142,24 @@ BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
 BOOLEAN g_IgnorePauseRequests = FALSE;
 
 //////////////////////////////////////////////////
+//		 User Debugging Variables             //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Whether the user debugger is initialized or not
+ */
+BOOLEAN g_IsUserDebuggerInitialized = FALSE;
+
+/**
+ * @brief In debugger (not debuggee), we save the handle
+ * of the user-mode listening thread for pauses here for user debugger
+ *
+ */
+
+DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_UserSyncronizationObjectsHandleTable
+    [DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS] = {0};
+
+//////////////////////////////////////////////////
 //		 Serial Debugging Variables             //
 //////////////////////////////////////////////////
 
@@ -156,12 +174,12 @@ BYTE g_EndOfBufferCheckSerial[SERIAL_END_OF_BUFFER_CHARS_COUNT] = {
 
 /**
  * @brief In debugger (not debuggee), we save the handle
- * of the user-mode listening thread for pauses here
+ * of the user-mode listening thread for pauses here for kernel debugger
  *
  */
 
-DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_SyncronizationObjectsHandleTable
-    [DEBUGGER_MAXIMUM_SYNCRONIZATION_OBJECTS] = {0};
+DEBUGGER_SYNCRONIZATION_EVENTS_STATE g_KernelSyncronizationObjectsHandleTable
+    [DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS] = {0};
 
 /**
  * @brief Current executing instructions
@@ -311,7 +329,7 @@ BOOLEAN g_IsDebuggerModulesLoaded = FALSE;
  * @brief State of active debugging thread
  *
  */
-PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState = {0};
+ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState = {0};
 
 /**
  * @brief This variable holds the trace and generate numbers

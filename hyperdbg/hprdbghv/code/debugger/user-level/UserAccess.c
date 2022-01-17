@@ -592,17 +592,32 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
 BOOLEAN
 UserAccessCheckForLoadedModuleDetails()
 {
-    UINT64 BaseAddress = NULL;
-    UINT64 Entrypoint  = NULL;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    UINT64                              BaseAddress = NULL;
+    UINT64                              Entrypoint  = NULL;
 
-    if (g_UsermodeAttachingState.PebAddressToMonitor != NULL &&
-        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(g_UsermodeAttachingState.PebAddressToMonitor,
-                                                                    g_UsermodeAttachingState.Is32Bit,
+    //
+    // Find the thread debugging detail structure
+    //
+    ProcessDebuggingDetail =
+        AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+
+    //
+    // Check if we find the debugging detail of the thread or not
+    //
+    if (ProcessDebuggingDetail == NULL)
+    {
+        return FALSE;
+    }
+
+    if (ProcessDebuggingDetail->PebAddressToMonitor != NULL &&
+        UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(ProcessDebuggingDetail->PebAddressToMonitor,
+                                                                    ProcessDebuggingDetail->Is32Bit,
                                                                     &BaseAddress,
                                                                     &Entrypoint))
     {
-        g_UsermodeAttachingState.BaseAddress = BaseAddress;
-        g_UsermodeAttachingState.Entrypoint  = Entrypoint;
+        ProcessDebuggingDetail->BaseAddressOfMainModule = BaseAddress;
+        ProcessDebuggingDetail->EntrypointOfMainModule  = Entrypoint;
 
         //
         // Set debug register to get the entrypoint of user-mode processs

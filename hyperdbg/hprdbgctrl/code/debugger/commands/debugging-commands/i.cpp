@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsInstrumentingInstructions;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsInstrumentingInstructions;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of i command
@@ -62,6 +63,15 @@ CommandI(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // Check if we're in VMI mode
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        ShowMessages("the instrumentation step-in is only supported in Debugger Mode\n");
+        return;
+    }
+
+    //
     // Set type of step
     //
     RequestFormat = DEBUGGER_REMOTE_STEPPING_REQUEST_INSTRUMENTATION_STEP_IN;
@@ -84,7 +94,7 @@ CommandI(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if the remote serial debuggee is paused or not
+    // Check if the remote serial debuggee or user debugger are paused or not
     //
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -95,6 +105,16 @@ CommandI(vector<string> SplittedCommand, string Command)
 
         for (size_t i = 0; i < StepCount; i++)
         {
+            //
+            // For logging purpose
+            //
+            // ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
+            //   (float)StepCount), i);
+            //
+
+            //
+            // It's stepping over serial connection in kernel debugger
+            //
             KdSendStepPacketToDebuggee(RequestFormat);
 
             if (!SplittedCommand.at(0).compare("ir"))

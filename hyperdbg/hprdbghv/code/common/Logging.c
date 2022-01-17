@@ -56,12 +56,23 @@ LogInitialize()
         KeInitializeSpinLock(&MessageBufferInformation[i].BufferLockForNonImmMessage);
 
         //
-        // allocate the buffer
+        // allocate the buffer for regular buffers
         //
         MessageBufferInformation[i].BufferStartAddress                   = ExAllocatePoolWithTag(NonPagedPool, LogBufferSize, POOLTAG);
         MessageBufferInformation[i].BufferForMultipleNonImmediateMessage = ExAllocatePoolWithTag(NonPagedPool, PacketChunkSize, POOLTAG);
 
-        if (!MessageBufferInformation[i].BufferStartAddress)
+        if (!MessageBufferInformation[i].BufferStartAddress ||
+            !MessageBufferInformation[i].BufferForMultipleNonImmediateMessage)
+        {
+            return FALSE; // STATUS_INSUFFICIENT_RESOURCES
+        }
+
+        //
+        // allocate the buffer for priority buffers
+        //
+        MessageBufferInformation[i].BufferStartAddressPriority = ExAllocatePoolWithTag(NonPagedPool, LogBufferSizePriority, POOLTAG);
+
+        if (!MessageBufferInformation[i].BufferStartAddressPriority)
         {
             return FALSE; // STATUS_INSUFFICIENT_RESOURCES
         }
@@ -70,11 +81,14 @@ LogInitialize()
         // Zeroing the buffer
         //
         RtlZeroMemory(MessageBufferInformation[i].BufferStartAddress, LogBufferSize);
+        RtlZeroMemory(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, PacketChunkSize);
+        RtlZeroMemory(MessageBufferInformation[i].BufferStartAddressPriority, LogBufferSizePriority);
 
         //
         // Set the end address
         //
-        MessageBufferInformation[i].BufferEndAddress = (UINT64)MessageBufferInformation[i].BufferStartAddress + LogBufferSize;
+        MessageBufferInformation[i].BufferEndAddress         = (UINT64)MessageBufferInformation[i].BufferStartAddress + LogBufferSize;
+        MessageBufferInformation[i].BufferEndAddressPriority = (UINT64)MessageBufferInformation[i].BufferStartAddressPriority + LogBufferSizePriority;
     }
 }
 
@@ -95,6 +109,7 @@ LogUnInitialize()
         // Free each buffers
         //
         ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddress, POOLTAG);
+        ExFreePoolWithTag(MessageBufferInformation[i].BufferStartAddressPriority, POOLTAG);
         ExFreePoolWithTag(MessageBufferInformation[i].BufferForMultipleNonImmediateMessage, POOLTAG);
     }
 
@@ -110,11 +125,12 @@ LogUnInitialize()
  * @param OperationCode The operation code that will be send to user mode
  * @param Buffer Buffer to be send to user mode
  * @param BufferLength Length of the buffer
+ * @param Priority Whether the buffer has priority
  * @return BOOLEAN Returns true if the buffer succssfully set to be 
  * send to user mode and false if there was an error
  */
 BOOLEAN
-LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
+LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority)
 {
     KIRQL   OldIRQL;
     UINT32  Index;
@@ -204,18 +220,40 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     //
     // check if the buffer is filled to it's maximum index or not
     //
-    if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
+    if (Priority)
     {
-        //
-        // start from the beginning
-        //
-        MessageBufferInformation[Index].CurrentIndexToWrite = 0;
+        if (MessageBufferInformation[Index].CurrentIndexToWritePriority > MaximumPacketsCapacityPriority - 1)
+        {
+            //
+            // start from the beginning
+            //
+            MessageBufferInformation[Index].CurrentIndexToWritePriority = 0;
+        }
+    }
+    else
+    {
+        if (MessageBufferInformation[Index].CurrentIndexToWrite > MaximumPacketsCapacity - 1)
+        {
+            //
+            // start from the beginning
+            //
+            MessageBufferInformation[Index].CurrentIndexToWrite = 0;
+        }
     }
 
     //
     // Compute the start of the buffer header
     //
-    BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    BUFFER_HEADER * Header;
+
+    if (Priority)
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
+    else
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
 
     //
     // Set the header
@@ -231,7 +269,16 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     //
     // compute the saving index
     //
-    PVOID SavingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    PVOID SavingBuffer;
+
+    if (Priority)
+    {
+        SavingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToWritePriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    }
+    else
+    {
+        SavingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToWrite * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    }
 
     //
     // Copy the buffer
@@ -241,7 +288,14 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
     //
     // Increment the next index to write
     //
-    MessageBufferInformation[Index].CurrentIndexToWrite = MessageBufferInformation[Index].CurrentIndexToWrite + 1;
+    if (Priority)
+    {
+        MessageBufferInformation[Index].CurrentIndexToWritePriority = MessageBufferInformation[Index].CurrentIndexToWritePriority + 1;
+    }
+    else
+    {
+        MessageBufferInformation[Index].CurrentIndexToWrite = MessageBufferInformation[Index].CurrentIndexToWrite + 1;
+    }
 
     //
     // check if there is any thread in IRP Pending state, so we can complete their request
@@ -287,6 +341,7 @@ LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength)
 
 /**
  * @brief Mark all buffers as read 
+ * @details Priority buffers won't be set as read
  * 
  * @param IsVmxRoot Determine whether you want to read vmx root buffer or vmx non root buffer
  * @return UINT32 return count of messages that set to invalid 
@@ -433,8 +488,9 @@ LogMarkAllAsRead(BOOLEAN IsVmxRoot)
 BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength)
 {
-    KIRQL  OldIRQL;
-    UINT32 Index;
+    KIRQL   OldIRQL;
+    UINT32  Index;
+    BOOLEAN PriorityMessageIsAvailable = FALSE;
 
     //
     // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
@@ -468,31 +524,48 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Compute the current buffer to read
     //
-    BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    BUFFER_HEADER * Header;
+
+    //
+    // Check for priority message
+    //
+    Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
     if (!Header->Valid)
     {
         //
-        // there is nothing to send
+        // Check for regular message
         //
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
 
-        //
-        // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
-        // if not we use the windows spinlock
-        //
-        if (IsVmxRoot)
-        {
-            SpinlockUnlock(&VmxRootLoggingLock);
-        }
-        else
+        if (!Header->Valid)
         {
             //
-            // Release the lock
+            // there is nothing to send
             //
-            KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
-        }
 
-        return FALSE;
+            //
+            // Check if we're in Vmx-root, if it is then we use our customized HIGH_IRQL Spinlock,
+            // if not we use the windows spinlock
+            //
+            if (IsVmxRoot)
+            {
+                SpinlockUnlock(&VmxRootLoggingLock);
+            }
+            else
+            {
+                //
+                // Release the lock
+                //
+                KeReleaseSpinLock(&MessageBufferInformation[Index].BufferLock, OldIRQL);
+            }
+
+            return FALSE;
+        }
+    }
+    else
+    {
+        PriorityMessageIsAvailable = TRUE;
     }
 
     //
@@ -507,7 +580,17 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     // Second, save the buffer contents
     //
-    PVOID SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    PVOID SendingBuffer;
+
+    if (PriorityMessageIsAvailable)
+    {
+        SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    }
+    else
+    {
+        SendingBuffer = ((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))) + sizeof(BUFFER_HEADER));
+    }
+
     PVOID SavingAddress = ((UINT64)BufferToSaveMessage + sizeof(UINT32)); /* Because we want to pass the header of usermode header */
     RtlCopyBytes(SavingAddress, SendingBuffer, Header->BufferLength);
 
@@ -560,19 +643,39 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
     //
     RtlZeroMemory(SendingBuffer, Header->BufferLength);
 
-    //
-    // Check to see whether we passed the index or not
-    //
-    if (MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
+    if (PriorityMessageIsAvailable)
     {
-        MessageBufferInformation[Index].CurrentIndexToSend = 0;
+        //
+        // Check to see whether we passed the index or not
+        //
+        if (MessageBufferInformation[Index].CurrentIndexToSendPriority > MaximumPacketsCapacityPriority - 2)
+        {
+            MessageBufferInformation[Index].CurrentIndexToSendPriority = 0;
+        }
+        else
+        {
+            //
+            // Increment the next index to read
+            //
+            MessageBufferInformation[Index].CurrentIndexToSendPriority = MessageBufferInformation[Index].CurrentIndexToSendPriority + 1;
+        }
     }
     else
     {
         //
-        // Increment the next index to read
+        // Check to see whether we passed the index or not
         //
-        MessageBufferInformation[Index].CurrentIndexToSend = MessageBufferInformation[Index].CurrentIndexToSend + 1;
+        if (MessageBufferInformation[Index].CurrentIndexToSend > MaximumPacketsCapacity - 2)
+        {
+            MessageBufferInformation[Index].CurrentIndexToSend = 0;
+        }
+        else
+        {
+            //
+            // Increment the next index to read
+            //
+            MessageBufferInformation[Index].CurrentIndexToSend = MessageBufferInformation[Index].CurrentIndexToSend + 1;
+        }
     }
 
     //
@@ -598,11 +701,13 @@ LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLen
  * @brief Check if new message is available or not
  * 
  * @param IsVmxRoot Check vmx root pool for message or check vmx non root pool
+ * @param Priority Whether the buffer has priority
+ * 
  * @return BOOLEAN return of this function shows whether the read was successfull or not
  * (e.g FALSE shows there's no new buffer available.)
  */
 BOOLEAN
-LogCheckForNewMessage(BOOLEAN IsVmxRoot)
+LogCheckForNewMessage(BOOLEAN IsVmxRoot, BOOLEAN Priority)
 {
     KIRQL  OldIRQL;
     UINT32 Index;
@@ -619,7 +724,16 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot)
     //
     // Compute the current buffer to read
     //
-    BUFFER_HEADER * Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    BUFFER_HEADER * Header;
+
+    if (Priority)
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddressPriority + (MessageBufferInformation[Index].CurrentIndexToSendPriority * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
+    else
+    {
+        Header = (BUFFER_HEADER *)((UINT64)MessageBufferInformation[Index].BufferStartAddress + (MessageBufferInformation[Index].CurrentIndexToSend * (PacketChunkSize + sizeof(BUFFER_HEADER))));
+    }
 
     if (!Header->Valid)
     {
@@ -642,12 +756,18 @@ LogCheckForNewMessage(BOOLEAN IsVmxRoot)
  * @param OperationCode Optional operation code
  * @param IsImmediateMessage Should be sent immediately
  * @param ShowCurrentSystemTime Show system-time
+ * @param Priority Whether the message has priority
  * @param Fmt Message format-string
  * @param ... 
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
-LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...)
+LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
+                                BOOLEAN      IsImmediateMessage,
+                                BOOLEAN      ShowCurrentSystemTime,
+                                BOOLEAN      Priority,
+                                const char * Fmt,
+                                ...)
 {
     va_list ArgList;
     size_t  WrittenSize;
@@ -755,6 +875,7 @@ LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage
             return FALSE;
         }
     }
+
     //
     // Use std function because they can be run in any IRQL
     // RtlStringCchLengthA(LogMessage, PacketChunkSize - 1, &WrittenSize);
@@ -770,9 +891,9 @@ LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage
     }
 
     //
-    // Send the prepared buffer
+    // Send the prepared buffer (with no priority)
     //
-    return LogSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize);
+    return LogSendMessageToQueue(OperationCode, IsImmediateMessage, LogMessage, WrittenSize, Priority);
 }
 
 /**
@@ -782,11 +903,12 @@ LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage
  * @param IsImmediateMessage Should be sent immediately
  * @param LogMessage Link of message buffer
  * @param BufferLen Length of buffer
+ * @param Priority Whether the buffer has priority
  * 
  * @return BOOLEAN if it was successful then return TRUE, otherwise returns FALSE
  */
 BOOLEAN
-LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen)
+LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority)
 {
     BOOLEAN Result;
     UINT32  Index;
@@ -836,7 +958,7 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
 #else
     if (IsImmediateMessage)
     {
-        return LogSendBuffer(OperationCode, LogMessage, BufferLen);
+        return LogSendBuffer(OperationCode, LogMessage, BufferLen, Priority);
     }
     else
     {
@@ -875,11 +997,13 @@ LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * L
         if ((MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer + BufferLen) > PacketChunkSize - 1 && MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer != 0)
         {
             //
-            // Send the previous buffer (non-immediate message)
+            // Send the previous buffer (non-immediate message),
+            // accumulated messages don't have priority
             //
             Result = LogSendBuffer(OPERATION_LOG_NON_IMMEDIATE_MESSAGE,
                                    MessageBufferInformation[Index].BufferForMultipleNonImmediateMessage,
-                                   MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer);
+                                   MessageBufferInformation[Index].CurrentLengthOfNonImmBuffer,
+                                   FALSE);
 
             //
             // Free the immediate buffer
@@ -1085,11 +1209,13 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
         //
         // check for new message (for both Vmx-root mode or Vmx non root-mode)
+        // First, we check for priority messages in both buffers then we check
+        // for regular messages
         //
-        if (LogCheckForNewMessage(FALSE))
+        if (LogCheckForNewMessage(FALSE, TRUE))
         {
             //
-            // check vmx root
+            // check vmx non-root (priority buffers)
             //
             NotifyRecord->CheckVmxRootMessagePool = FALSE;
 
@@ -1098,10 +1224,33 @@ LogRegisterIrpBasedNotification(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             //
             KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
         }
-        else if (LogCheckForNewMessage(TRUE))
+        else if (LogCheckForNewMessage(TRUE, TRUE))
+        {
+            //
+            // check vmx root (priority buffers)
+            //
+            NotifyRecord->CheckVmxRootMessagePool = TRUE;
+            //
+            // Insert dpc to queue
+            //
+            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+        }
+        else if (LogCheckForNewMessage(FALSE, FALSE))
         {
             //
             // check vmx non-root
+            //
+            NotifyRecord->CheckVmxRootMessagePool = FALSE;
+
+            //
+            // Insert dpc to queue
+            //
+            KeInsertQueueDpc(&NotifyRecord->Dpc, NotifyRecord, NULL);
+        }
+        else if (LogCheckForNewMessage(TRUE, FALSE))
+        {
+            //
+            // check vmx root
             //
             NotifyRecord->CheckVmxRootMessagePool = TRUE;
             //

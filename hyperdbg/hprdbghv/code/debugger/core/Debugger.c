@@ -175,14 +175,6 @@ DebuggerInitialize()
         RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
     }
 
-    //
-    // Initialize attaching mechanism
-    //
-    if (!AttachingInitialize())
-    {
-        return FALSE;
-    }
-
     return TRUE;
 }
 
@@ -227,12 +219,9 @@ DebuggerUninitialize()
     KdUninitializeKernelDebugger();
 
     //
-    // Check for nop-sled uninitialization
+    // Uninitialize user debugger
     //
-    if (g_SteppingsNopSledState.IsNopSledInitialized)
-    {
-        ExFreePoolWithTag(g_SteppingsNopSledState.NopSledVirtualAddress, POOLTAG);
-    }
+    UdUninitializeUserDebugger();
 }
 
 /**

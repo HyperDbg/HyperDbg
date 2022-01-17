@@ -126,16 +126,14 @@ CommandStart(vector<string> SplittedCommand, string Command)
     //
     if (Arguments.empty())
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         NULL);
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          NULL);
     }
     else
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         (WCHAR *)g_StartCommandPathAndArguments.c_str());
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
     }
 }

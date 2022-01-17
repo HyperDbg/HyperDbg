@@ -86,45 +86,52 @@ BreakController(DWORD CtrlType)
         }
         else
         {
-            //
-            // Sleep because the other thread that shows must be stopped
-            //
-            g_BreakPrintingOutput = TRUE;
-
-            //
-            // Check if its a remote debuggee then we should send the 'pause' command
-            //
-            if (g_IsConnectedToRemoteDebuggee)
+            if (g_IsInstrumentingInstructions)
             {
-                RemoteConnectionSendCommand("pause", strlen("pause") + 1);
+                g_IsInstrumentingInstructions = FALSE;
             }
-
-            Sleep(300);
-
-            //
-            // It is because we didn't query the target debuggee auto-unpause variable
-            //
-            if (!g_IsConnectedToRemoteDebuggee)
+            else
             {
-                if (g_AutoUnpause)
-                {
-                    ShowMessages(
-                        "pause\npausing debugger...\nauto-unpause mode is enabled, "
-                        "debugger will automatically continue when you run a new "
-                        "event command, if you want to change this behaviour then "
-                        "run run 'settings autounpause off'\n\n");
+                //
+                // Sleep because the other thread that shows must be stopped
+                //
+                g_BreakPrintingOutput = TRUE;
 
-                    HyperdbgShowSignature();
+                //
+                // Check if its a remote debuggee then we should send the 'pause' command
+                //
+                if (g_IsConnectedToRemoteDebuggee)
+                {
+                    RemoteConnectionSendCommand("pause", strlen("pause") + 1);
                 }
-                else
-                {
-                    ShowMessages(
-                        "pause\npausing debugger...\nauto-unpause mode is disabled, you "
-                        "should run 'g' when you want to continue, otherwise run "
-                        "'settings "
-                        "autounpause on'\n\n");
 
-                    HyperdbgShowSignature();
+                Sleep(300);
+
+                //
+                // It is because we didn't query the target debuggee auto-unpause variable
+                //
+                if (!g_IsConnectedToRemoteDebuggee)
+                {
+                    if (g_AutoUnpause)
+                    {
+                        ShowMessages(
+                            "\npausing...\nauto-unpause mode is enabled, "
+                            "debugger will automatically continue when you run a new "
+                            "event command, if you want to change this behaviour then "
+                            "run run 'settings autounpause off'\n\n");
+
+                        HyperdbgShowSignature();
+                    }
+                    else
+                    {
+                        ShowMessages(
+                            "\npausing...\nauto-unpause mode is disabled, you "
+                            "should run 'g' when you want to continue, otherwise run "
+                            "'settings "
+                            "autounpause on'\n\n");
+
+                        HyperdbgShowSignature();
+                    }
                 }
             }
         }

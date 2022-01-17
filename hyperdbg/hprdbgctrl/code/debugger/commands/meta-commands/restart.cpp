@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern std::wstring g_StartCommandPath;
-extern std::wstring g_StartCommandPathAndArguments;
+extern std::wstring             g_StartCommandPath;
+extern std::wstring             g_StartCommandPathAndArguments;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of .restart command
@@ -58,20 +59,30 @@ CommandRestart(vector<string> SplittedCommand, string Command)
     }
 
     //
+    // Check to kill the current active process (if exists)
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        //
+        // kill the process, we will restart the process even if we didn't
+        // successfully killed the active process
+        //
+        UdKillProcess(g_ActiveProcessDebuggingState.ProcessId);
+    }
+
+    //
     // Perform run of the target file
     //
     if (g_StartCommandPathAndArguments.empty())
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         NULL);
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          NULL);
     }
     else
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         (WCHAR *)g_StartCommandPathAndArguments.c_str());
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
     }
 }

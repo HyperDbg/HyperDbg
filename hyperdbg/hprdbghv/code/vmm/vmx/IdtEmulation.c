@@ -241,7 +241,24 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         // Handle page-faults
         //
-        IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
+        if (g_CheckPageFaultsWithUserDebugger &&
+            AttachingCheckPageFaultsWithUserDebugger(CurrentProcessorIndex,
+                                                     GuestRegs,
+                                                     InterruptExit,
+                                                     NULL,
+                                                     ErrorCode))
+        {
+            //
+            // The page-fault is handled through the user debugger, no need further action
+            //
+        }
+        else
+        {
+            //
+            // The #pf is not related to our debugger
+            //
+            IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptExit, NULL, ErrorCode);
+        }
 
         break;
 
@@ -264,8 +281,8 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             //
             ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
-        else if (g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled ||
-                 g_UsermodeAttachingState.IsWaitingForReturnAndRunFromPageFault)
+        else if (g_UserDebuggerState == TRUE &&
+                 (g_IsWaitingForUserModeModuleEntrypointToBeCalled || g_IsWaitingForReturnAndRunFromPageFault))
         {
             //
             // Handle for user-mode attaching mechanism
@@ -279,6 +296,16 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
             // debugger is attached.)
             //
             KdHandleDebugEventsWhenKernelDebuggerIsAttached(CurrentProcessorIndex, GuestRegs);
+        }
+        else if (UdCheckAndHandleBreakpointsAndDebugBreaks(CurrentProcessorIndex,
+                                                           GuestRegs,
+                                                           DEBUGGEE_PAUSING_REASON_DEBUGGEE_GENERAL_DEBUG_BREAK,
+                                                           NULL))
+        {
+            //
+            // if the above function returns true, no need for further action
+            // it's handled in the user debugger
+            //
         }
         else
         {
