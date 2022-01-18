@@ -1,6 +1,6 @@
 /**
  * @file Attaching.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for attaching and detaching for debugging user-mode processes
  * @details 
  * @version 0.1

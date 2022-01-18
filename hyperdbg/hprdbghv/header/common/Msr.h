@@ -1,6 +1,6 @@
 /**
  * @file Msr.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Model-Specific Registers Numbers and definitions
  * @details This file does not contain all the MSRs, instead it contains general MSRs
  * that used in this projec, some other MSRs e.g., EPT related MSRs are in their specific

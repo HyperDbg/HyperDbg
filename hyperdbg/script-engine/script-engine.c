@@ -1,7 +1,7 @@
 ﻿/**
  * @file script-engine.c
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file Hv.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file describes the routines in Hypervisor
  * @details vmx related routines
  * @version 0.1

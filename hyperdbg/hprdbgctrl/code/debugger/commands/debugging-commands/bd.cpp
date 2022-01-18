@@ -1,6 +1,6 @@
 /**
  * @file bd.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief bd command
  * @details
  * @version 0.1

@@ -1,6 +1,7 @@
 /**
  * @file GaussianRng.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Saleh Khalaj Monfared (saleh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main interface to connect applications to driver
  * @details
  * @version 0.1

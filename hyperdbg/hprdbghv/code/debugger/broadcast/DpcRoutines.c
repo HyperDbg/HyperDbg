@@ -1,6 +1,6 @@
 /**
  * @file DpcRoutines.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief All the dpc routines which relates to executing on a single core
  * for multi-core you can use Broadcast.c
  * 

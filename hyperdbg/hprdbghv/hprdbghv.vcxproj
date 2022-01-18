@@ -201,7 +201,7 @@
     <ClInclude Include="header\misc\GlobalVariables.h" />
     <ClInclude Include="header\misc\InlineAsm.h" />
     <ClInclude Include="header\platform\CrossApi.h" />
-    <ClInclude Include="header\platform\env.h" />
+    <ClInclude Include="header\platform\Environment.h" />
     <ClInclude Include="header\vmm\ept\Ept.h" />
     <ClInclude Include="header\vmm\ept\Invept.h" />
     <ClInclude Include="header\vmm\ept\Vpid.h" />

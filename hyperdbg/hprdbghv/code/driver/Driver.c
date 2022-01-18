@@ -1,6 +1,6 @@
 /**
  * @file Driver.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The project entry 
  * @details This file contains major functions and all the interactions
  * with usermode codes are managed from here.

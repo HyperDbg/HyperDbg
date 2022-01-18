@@ -1,7 +1,7 @@
 /**
  * @file r.cpp
- * @author Alee Amini (aleeaminiz@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Alee Amini (alee@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief r command
  * @details
  * @version 0.1

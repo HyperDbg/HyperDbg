@@ -1,6 +1,6 @@
 /**
  * @file Vpid.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief VPID Headers
  * @details
  * @version 0.1

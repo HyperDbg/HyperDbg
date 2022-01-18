@@ -1,6 +1,6 @@
 /**
  * @file measure.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !measure command
  * @details
  * @version 0.1

@@ -144,6 +144,12 @@
     <Filter Include="code\vmm\vmx">
       <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{68d1ee5d-bda8-423c-9a5b-b259d9afc34c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{4caf74e9-0bbf-4e81-84ff-0cdf14f79c16}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -297,7 +303,7 @@
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
     <ClCompile Include="code\platform\CrossApi.c">
-      <Filter>code</Filter>
+      <Filter>code\platform</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -443,10 +449,10 @@
       <Filter>header\debugger\user-level</Filter>
     </ClInclude>
     <ClInclude Include="header\platform\CrossApi.h">
-      <Filter>header</Filter>
+      <Filter>header\platform</Filter>
     </ClInclude>
-    <ClInclude Include="header\platform\env.h">
-      <Filter>header</Filter>
+    <ClInclude Include="header\platform\Environment.h">
+      <Filter>header\platform</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

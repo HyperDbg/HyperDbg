@@ -1,6 +1,6 @@
 /**
  * @file IdtEmulation.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for Handlers of Guest's IDT Emulator
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file Common.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Common functions that needs to be used in all source code files
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file Ept.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Contains the headers relating to EPT structures, MTRR and all basic Hooking structures
  * @details
  * @version 0.1

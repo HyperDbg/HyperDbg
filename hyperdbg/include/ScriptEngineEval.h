@@ -1,8 +1,8 @@
 /**
  * @file ScriptEngineEval.h
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Shared Headers for Script engine
  * @details
  * @version 0.1

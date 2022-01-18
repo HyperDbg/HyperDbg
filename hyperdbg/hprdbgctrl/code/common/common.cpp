@@ -1,6 +1,6 @@
 /**
  * @file common.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief HyperDbg general functions for reading and converting and etc
  * @details
  * @version 0.1

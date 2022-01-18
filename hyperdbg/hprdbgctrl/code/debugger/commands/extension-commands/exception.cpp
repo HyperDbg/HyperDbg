@@ -1,6 +1,6 @@
 /**
  * @file exception.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !exception command
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file debugger.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Interpret general fields
  * @details
  * @version 0.1

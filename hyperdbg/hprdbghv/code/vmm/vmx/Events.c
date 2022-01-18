@@ -1,6 +1,6 @@
 /**
  * @file Events.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Functions relating to Exception Bitmap and Event (Interrupt and Exception) Injection
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file GlobalVariables.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Here we put global variables that are used more or less in all part of our hypervisor (not all of them)
  * @details Note : All the global variables are not here, just those that
  * will be used in all project. Special use global variables are located 

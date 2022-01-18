@@ -1,6 +1,6 @@
 /**
  * @file Ioctl.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief IOCTL Functions form user mode and other parts 
  * @details 
  *

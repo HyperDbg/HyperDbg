@@ -1,6 +1,6 @@
 /**
  * @file ExtensionCommands.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger Commands (Extensions)
  * @details Debugger Commands that start with "!"
  * 

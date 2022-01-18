@@ -1,6 +1,6 @@
 /**
  * @file Ept.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Gbps
  * @brief The implementation of functions relating to the Extended Page Table (a.k.a. EPT)
  * @details Some of the codes are re-used from Gbps/gbhv (https://github.com/Gbps/gbhv)

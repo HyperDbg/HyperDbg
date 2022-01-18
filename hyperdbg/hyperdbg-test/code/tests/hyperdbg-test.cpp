@@ -1,6 +1,6 @@
 /**
  * @file hyperdbg-test.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief perform tests on a remote process (this is the remote process)
  * @details
  * @version 0.1

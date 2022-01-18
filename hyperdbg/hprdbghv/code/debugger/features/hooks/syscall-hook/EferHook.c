@@ -1,6 +1,6 @@
 /**
  * @file EferHook.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implenetation of the fucntions related to the EFER Syscall Hook
  * @details This is derived by the method demonstrated at
  * - https://revers.engineering/syscall-hooking-via-extended-feature-enable-register-efer/

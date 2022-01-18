@@ -1,6 +1,6 @@
 /**
  * @file pause.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief pause command
  * @details
  * @version 0.1

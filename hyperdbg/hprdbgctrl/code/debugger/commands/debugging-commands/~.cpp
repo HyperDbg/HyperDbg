@@ -1,6 +1,6 @@
 /**
  * @file ~.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief show and change processor
  * @details
  * @version 0.1

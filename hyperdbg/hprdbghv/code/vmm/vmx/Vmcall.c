@@ -1,6 +1,6 @@
 /**
  * @file Vmcall.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The main VMCALL and Hypercall handler
  * @details
  * @version 0.1

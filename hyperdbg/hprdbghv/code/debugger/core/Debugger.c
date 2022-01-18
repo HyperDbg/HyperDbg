@@ -1,6 +1,6 @@
 /**
  * @file Debugger.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger functions
  * @details
  * 

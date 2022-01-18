@@ -1,6 +1,6 @@
 /**
  * @file globals.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Global Variables for user-mode interface
  * @details
  * @version 0.1

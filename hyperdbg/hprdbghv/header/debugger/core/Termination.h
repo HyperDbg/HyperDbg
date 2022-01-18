@@ -1,6 +1,6 @@
 /**
  * @file Termination.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers of Debugger functions for terminating events
  * @details
  * 

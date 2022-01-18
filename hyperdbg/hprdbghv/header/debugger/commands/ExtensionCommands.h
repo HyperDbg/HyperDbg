@@ -1,6 +1,6 @@
 /**
  * @file ExtensionCommands.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers of Debugger Commands (Extensions)
  * @details
  * @version 0.1

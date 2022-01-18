@@ -1,6 +1,6 @@
 /**
  * @file kd.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief routines to kernel debugging
  * @details
  * @version 0.1

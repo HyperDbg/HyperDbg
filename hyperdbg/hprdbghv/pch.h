@@ -1,7 +1,7 @@
 /**
  * @file pch.h
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Pre-compiled headers 
  * @details 
  *
@@ -37,7 +37,7 @@
 #include "Definition.h"
 #include "Configuration.h"
 #include "platform/CrossApi.h"
-#include "platform/env.h"
+#include "platform/Environment.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"

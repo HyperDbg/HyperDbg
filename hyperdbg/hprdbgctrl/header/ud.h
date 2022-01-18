@@ -1,6 +1,6 @@
 /**
  * @file ud.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief headers for user-mode debugging routines
  * @details
  * @version 0.1

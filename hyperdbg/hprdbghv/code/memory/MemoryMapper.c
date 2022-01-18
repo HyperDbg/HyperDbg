@@ -1,6 +1,6 @@
 /**
  * @file MemoryMapper.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the functions to map memory to reserved system ranges
  * @details also some of the functions derived from hvpp
  * - https://github.com/wbenny/hvpp

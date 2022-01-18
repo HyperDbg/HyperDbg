@@ -1,6 +1,6 @@
 /**
  * @file common.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief header for HyperDbg's general functions for reading and converting and
  * etc
  * @details

@@ -1,6 +1,6 @@
 /**
  * @file ud.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief control the user-mode debugging affairs
  * @details
  * @version 0.1

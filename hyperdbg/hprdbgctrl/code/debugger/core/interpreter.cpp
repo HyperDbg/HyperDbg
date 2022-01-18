@@ -1,6 +1,6 @@
 /**
  * @file interpreter.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The hyperdbg command interpreter and driver connector
  * @details
  * @version 0.1

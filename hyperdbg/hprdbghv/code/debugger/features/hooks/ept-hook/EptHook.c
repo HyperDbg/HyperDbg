@@ -1,6 +1,6 @@
 /**
  * @file EptHook.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of different EPT hidden hooks functions
  * @details All the R/W hooks, Execute hooks and hardware register simulators
  * are implemented here

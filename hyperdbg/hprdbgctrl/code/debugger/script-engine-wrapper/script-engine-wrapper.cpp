@@ -1,7 +1,7 @@
 /**
  * @file script-engine-wrapper.cpp
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Interpret general fields
  * @details
  * @version 0.1

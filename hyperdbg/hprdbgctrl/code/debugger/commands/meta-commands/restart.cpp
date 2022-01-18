@@ -1,6 +1,6 @@
 /**
  * @file restart.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .restart command
  * @details
  * @version 0.1

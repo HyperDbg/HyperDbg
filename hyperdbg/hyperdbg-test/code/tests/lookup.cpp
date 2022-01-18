@@ -1,6 +1,6 @@
 /**
  * @file lookup.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief perform tests and create lookup details
  * @details
  * @version 0.1

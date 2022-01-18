@@ -1,6 +1,6 @@
 /**
  * @file Kd.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for routines related to kernel mode debugging
  * @details 
  * @version 0.1

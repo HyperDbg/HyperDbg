@@ -1,6 +1,6 @@
 /**
  * @file pe-parser.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Protable Execuatable parser
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file tcpclient.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Server functions over TCP
  * @details
  * @version 0.1

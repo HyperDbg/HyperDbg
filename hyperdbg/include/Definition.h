@@ -1,6 +1,6 @@
 /**
  * @file Definition.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header files for global definitions
  * @details This file contains definitions that are use in both user mode and
  * kernel mode Means that if you change the following files, structures or

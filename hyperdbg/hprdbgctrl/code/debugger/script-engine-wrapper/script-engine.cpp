@@ -1,6 +1,6 @@
 /**
  * @file script-engine.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Interpret script engine affairs
  * @details
  * @version 0.1

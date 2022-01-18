@@ -1,7 +1,7 @@
 /**
  * @file Kd.c
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Routines related to kernel mode debugging
  * @details 
  * @version 0.1

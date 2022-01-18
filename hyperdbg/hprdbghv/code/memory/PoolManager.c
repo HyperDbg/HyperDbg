@@ -1,6 +1,6 @@
 /**
  * @file PoolManager.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The pool manager used in vmx root
  * @details As we cannot allocate pools in vmx root, we need a pool
  * manager to manage the pools

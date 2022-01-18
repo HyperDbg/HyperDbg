@@ -1,6 +1,6 @@
 /**
  * @file Spinlock.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This is the implementation for custom spinlock.
  * 
  * @details This implementation is derived from Hvpp by Petr Benes 

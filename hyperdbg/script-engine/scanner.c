@@ -1,6 +1,6 @@
 /**
  * @file scanner.c
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @brief Script Engine Scanner
  * @details
  * @version 0.1

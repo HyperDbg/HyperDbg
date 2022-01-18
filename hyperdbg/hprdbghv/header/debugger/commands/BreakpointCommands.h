@@ -1,6 +1,6 @@
 /**
  * @file BreakpointCommands.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Commands for setting breakpoints
  * 
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file eval.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief eval (?) command
  * @details
  * @version 0.1

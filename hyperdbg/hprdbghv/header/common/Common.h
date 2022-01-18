@@ -1,6 +1,6 @@
 /**
  * @file Common.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header files for common functions
  * @details
  * @version 0.1

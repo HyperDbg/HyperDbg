@@ -1,6 +1,6 @@
 /**
  * @file VmxRegions.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implement allocations for VMX Regions (VMXON Region, VMCS, MSR Bitmap and etc.)
  * @details
  * @version 0.1

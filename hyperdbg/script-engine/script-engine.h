@@ -1,6 +1,6 @@
 /**
  * @file script-engine.h
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1

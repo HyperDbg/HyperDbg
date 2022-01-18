@@ -1,6 +1,6 @@
 /**
  * @file DpcRoutines.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief headers of all the dpc routines which relates to executing on a single core
  * 
  * @version 0.1

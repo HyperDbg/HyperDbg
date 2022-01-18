@@ -1,6 +1,6 @@
 /**
  * @file Vmx.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief VMX Instruction and operation headers
  * @details
  * @version 0.1

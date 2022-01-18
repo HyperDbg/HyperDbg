@@ -1,6 +1,6 @@
 /**
  * @file Events.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection 
  * @details
  * @version 0.1

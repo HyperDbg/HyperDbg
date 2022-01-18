@@ -1,7 +1,7 @@
 /**
  * @file DebuggerCommands.c
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Implementation of Debugger Commands 
  * 
  * @version 0.1
