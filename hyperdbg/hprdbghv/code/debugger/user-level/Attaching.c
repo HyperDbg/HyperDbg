@@ -864,7 +864,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
             //
             // The user-mode is not allowed to be executed
             //
-            Pml4->Supervisor = 0;
+            //  Pml4->Supervisor = 0;
         }
         else
         {
@@ -1113,6 +1113,16 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
     //
     // This thread should be intercepted
     //
+    PPAGE_ENTRY Pml4;
+    Pml4 = MemoryMapperGetPteVaByCr3WithoutSwitching(NULL, PML4, NewCr3);
+
+    if (!Pml4)
+    {
+        return FALSE;
+    }
+
+    Pml4->Supervisor = 0;
+
     HvSetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
     return TRUE;
 }

@@ -347,6 +347,9 @@ MemoryMapperGetPteVa(PVOID Va, PML Level);
 PPAGE_ENTRY
 MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
 
+PPAGE_ENTRY
+MemoryMapperGetPteVaByCr3WithoutSwitching(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+
 BOOLEAN
 MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3);
 
