@@ -816,7 +816,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     //
     // Indicate that the future #PFs should or should not be checked with user debugger
     //
-    g_CheckPageFaultsWithUserDebugger = Enable;
+    g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger = Enable;
 
     //
     // We're or we're not in thread intercepting phase now
@@ -826,16 +826,16 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     if (Enable)
     {
         //
-        // Intercept all page-faults (#PFs)
+        // Intercept all mov 2 cr3s
         //
-        ExtensionCommandSetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
+        DebuggerEventEnableMovToCr3ExitingOnAllProcessors();
     }
     else
     {
         //
-        // Removing the #pf interception
+        // Removing the mov to cr3 vm-exits
         //
-        ExtensionCommandUnsetExceptionBitmapAllCores(EXCEPTION_VECTOR_PAGE_FAULT);
+        DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
     }
 
     //
@@ -1066,7 +1066,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         if (!AttachingConfigureInterceptingThreads(ProcessDebuggingToken, TRUE))
         {
             //
-            // Remove the created thread debugging detail
+            // Remove the created thread debugging details
             //
             AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingToken);
 
@@ -1081,6 +1081,40 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         AttachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
         return TRUE;
     }
+}
+
+/**
+ * @brief Handle the cr3 vm-exits for thread interception
+ * @details this function should be called in vmx-root
+ * 
+ * @param CurrentCoreIndex 
+ * @param NewCr3 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3)
+{
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+
+    //
+    // Check if process is valid or if thread is in intercepting phase
+    //
+    if (!ProcessDebuggingDetail || !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
+    {
+        //
+        // not related to user debugger
+        //
+        HvUnsetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+        return FALSE;
+    }
+
+    //
+    // This thread should be intercepted
+    //
+    HvSetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+    return TRUE;
 }
 
 /**

@@ -89,7 +89,7 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
     //
     // Check for #PF by thread interception mechanism in user debugger
     //
-    if (g_CheckPageFaultsWithUserDebugger)
+    if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
     {
         CurrentMask |= 1 << EXCEPTION_VECTOR_PAGE_FAULT;
     }

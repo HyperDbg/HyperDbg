@@ -262,8 +262,8 @@ BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
 LIST_ENTRY g_ProcessDebuggingDetailsListHead;
 
 /**
- * @brief Whether the page-fault handler in vmx-root should check
- * the #PFs with user debugger
+ * @brief Whether the page-fault and cr3 vm-exits in vmx-root should check
+ * the #PFs or the PML4.Supervisor with user debugger or not
  * 
  */
-BOOLEAN g_CheckPageFaultsWithUserDebugger;
+BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;

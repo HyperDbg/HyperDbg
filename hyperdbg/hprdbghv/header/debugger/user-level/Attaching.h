@@ -88,6 +88,9 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
 
+BOOLEAN
+AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3);
+
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request);
 

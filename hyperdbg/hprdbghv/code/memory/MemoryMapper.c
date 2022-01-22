@@ -171,15 +171,18 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     PUINT64  PtVa;
     UINT32   Offset;
 
-    //
-    // Switch to new process's memory layout
-    // It is because, we're not trying to change the cr3 multiple times
-    // so instead of using PhysicalAddressToVirtualAddressByCr3 we use
-    // PhysicalAddressToVirtualAddress, but keep in mind that cr3 should
-    // be a kernel cr3 (not KPTI user cr3) as the functions to translate
-    // physical address to virtual address is not mapped on the user cr3
-    //
-    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    if (TargetCr3.Flags != NULL)
+    {
+        //
+        // Switch to new process's memory layout
+        // It is because, we're not trying to change the cr3 multiple times
+        // so instead of using PhysicalAddressToVirtualAddressByCr3 we use
+        // PhysicalAddressToVirtualAddress, but keep in mind that cr3 should
+        // be a kernel cr3 (not KPTI user cr3) as the functions to translate
+        // physical address to virtual address is not mapped on the user cr3
+        //
+        CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+    }
 
     Cr3.Flags = TargetCr3.Flags;
 
@@ -262,10 +265,13 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
 
     PPAGE_ENTRY Pt = &PtVa[Offset];
 
-    //
-    // Restore the original process
-    //
-    RestoreToPreviousProcess(CurrentProcessCr3);
+    if (TargetCr3.Flags != NULL)
+    {
+        //
+        // Restore the original process
+        //
+        RestoreToPreviousProcess(CurrentProcessCr3);
+    }
 
     return Pt;
 }

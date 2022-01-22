@@ -241,7 +241,7 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         // Handle page-faults
         //
-        if (g_CheckPageFaultsWithUserDebugger &&
+        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger &&
             AttachingCheckPageFaultsWithUserDebugger(CurrentProcessorIndex,
                                                      GuestRegs,
                                                      InterruptExit,
