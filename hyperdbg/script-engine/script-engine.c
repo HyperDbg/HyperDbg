@@ -14,7 +14,7 @@
 
 //#define _SCRIPT_ENGINE_LALR_DBG_EN
 //#define _SCRIPT_ENGINE_LL1_DBG_EN
-#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
+//#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
 *
@@ -224,7 +224,9 @@ ScriptEngineParse(char * str)
         {
             if (!strcmp(TopToken->Value, "BOOLEAN_EXPRESSION"))
             {
-                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
+                
+               
+                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
                 ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -1470,7 +1472,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 }
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression)
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, TOKEN CurrentIn)
 {
     UINT64 BooleanExpressionSize = 0;
     if (*WaitForWaitStatementBooleanExpression)
@@ -1485,6 +1487,10 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
     else
     {
         int OpenParanthesesCount = 1;
+        if (!strcmp(CurrentIn->Value, "("))
+        {
+            OpenParanthesesCount++;
+        }
         while (str[InputIdx + BooleanExpressionSize - 1] != '\0')
         {
             if (str[InputIdx + BooleanExpressionSize - 1] == ')')
@@ -1528,6 +1534,16 @@ ScriptEngineBooleanExpresssionParse(
     strcpy(State->Value, "0");
 
     Push(Stack, State);
+    
+
+#ifdef _SCRIPT_ENGINE_LALR_DBG_EN
+    printf("Boolean Expression: ");
+    for (int i = 0; i < BooleanExpressionSize; i++)
+    {
+        printf("%c", str[InputIdx + i]);
+    }
+    printf("\n\n");
+#endif
 
     //
     // End of File Token
@@ -1677,11 +1693,6 @@ ScriptEngineBooleanExpresssionParse(
             sprintf(State->Value, "%d", Goto);
             Push(Stack, LhsCopy);
             Push(Stack, State);
-
-#ifdef _SCRIPT_ENGINE_LALR_DBG_EN
-            printf("Stack :\n");
-            PrintTokenList(Stack);
-#endif
         }
     }
 

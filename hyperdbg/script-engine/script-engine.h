@@ -107,7 +107,7 @@ ScriptEngineBooleanExpresssionParse(
     PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression);
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, TOKEN CurrentIn);
 
 void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);

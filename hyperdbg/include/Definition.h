@@ -389,7 +389,7 @@ const unsigned char BuildVersion[] =
 /**
  * @brief Test cases file name
  */
-#define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "script-test-cases"
+#define SCRIPT_ENGINE_TEST_CASES_DIRECTORY "D:\\IPM\\HyperDbg\\Git\\se-test-files"
 
 /**
  * @brief Maximum test cases to communicate between debugger and debuggee process
