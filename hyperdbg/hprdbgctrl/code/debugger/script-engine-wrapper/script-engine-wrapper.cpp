@@ -340,7 +340,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
         ShowMessages("%s\n", CodeBuffer->Message);
     }
 
-    // RemoveSymbolBuffer(CodeBuffer);
+     //RemoveSymbolBuffer(CodeBuffer);
 
     return;
 }
@@ -425,7 +425,7 @@ ScriptEngineWrapperTestParser(string Expr)
     GuestRegs.r15 = (ULONG64)test;
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
-    free(TestStruct);
+    //free(TestStruct);
 }
 
 /**
