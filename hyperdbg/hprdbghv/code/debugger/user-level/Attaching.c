@@ -764,11 +764,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorI
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable)
 {
-    CR3_TYPE                            TargetProcessKernelCr3;
-    CR3_TYPE                            CurrentProcessCr3;
-    PPAGE_ENTRY                         Pml4;
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-    KAPC_STATE                          State = {0};
 
     //
     // Get the current process debugging detail
@@ -794,21 +790,6 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     // request without a message
     //
     if (!Enable && !ProcessDebuggingDetail->IsOnThreadInterceptingPhase)
-    {
-        return FALSE;
-    }
-
-    //
-    // Find the kernel cr3 based on
-    //
-    TargetProcessKernelCr3 = GetCr3FromProcessId(ProcessDebuggingDetail->ProcessId);
-
-    //
-    // Find the PML4 of the target process
-    //
-    Pml4 = MemoryMapperGetPteVaByCr3(NULL, PML4, TargetProcessKernelCr3);
-
-    if (Pml4 == NULL)
     {
         return FALSE;
     }
@@ -860,47 +841,6 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
             }
         }
     }
-    /*
-    __try
-    {
-        //
-        // Something weird happended here! In my first attempt I tried to change the
-        // current cr3 to kernel cr3 of the target process and change the supervisor
-        // bit, however it causes some strange problem in the result of IOCTL when
-        // it returned to the user-mode !
-        // After some investigation I realized that if I put breakpoint somewhere
-        // here then it works without error :|
-        // The problem is probably because of some cache invalidation, but as long
-        // as I know, moving anything to cr3 should invalidate the cache, by the way
-        // if we use Winodws functions for this switch then it works perfectly, I also
-        // used INVLPG and it seems to not work. Probably Windows do some kind of invalidation
-        // on this functions
-        //
-        KeStackAttachProcess(ProcessDebuggingDetail->Eprocess, &State);
-
-        if (Enable)
-        {
-            //
-            // The user-mode is not allowed to be executed
-            //
-            //  Pml4->Supervisor = 0;
-        }
-        else
-        {
-            //
-            // No need this bit anymore as the user-mode is allowed to be executed
-            //
-            Pml4->Supervisor = 1;
-        }
-        KeUnstackDetachProcess(&State);
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-        KeUnstackDetachProcess(&State);
-
-        return FALSE;
-    }
-    */
 
     return TRUE;
 }
@@ -916,12 +856,13 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 BOOLEAN
 AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest, BOOLEAN IsAttachingToEntrypoint)
 {
-    PEPROCESS SourceProcess;
-    UINT64    ProcessDebuggingToken;
-    UINT64    PebAddressToMonitor;
-    UINT64    UsermodeReservedBuffer;
-    BOOLEAN   ResultOfApplyingEvent;
-    BOOLEAN   Is32Bit;
+    PEPROCESS                           SourceProcess;
+    UINT64                              ProcessDebuggingToken;
+    UINT64                              PebAddressToMonitor;
+    UINT64                              UsermodeReservedBuffer;
+    BOOLEAN                             ResultOfApplyingEvent;
+    BOOLEAN                             Is32Bit;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS TempProcessDebuggingDetail;
 
     if (g_PsGetProcessWow64Process == NULL || g_PsGetProcessPeb == NULL)
     {
@@ -939,6 +880,21 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     }
 
     ObDereferenceObject(SourceProcess);
+
+    //
+    // Check to avoid double attaching to a process
+    //
+    TempProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(AttachRequest->ProcessId);
+
+    if (TempProcessDebuggingDetail != NULL &&
+        TempProcessDebuggingDetail->Eprocess == SourceProcess)
+    {
+        //
+        // The user already attached to this process
+        //
+        AttachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_AN_ALREADY_ATTACHED_PROCESS;
+        return FALSE;
+    }
 
     //
     // check whether the target process is 32-bit or 64-bit

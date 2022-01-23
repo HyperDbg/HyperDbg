@@ -495,8 +495,6 @@ UdAttachToProcess(UINT32        TargetPid,
     }
     else
     {
-        ShowMessages("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee lenght : %x | Token : %llx \n", ReturnedLength, AttachRequest.Token);
-
         ShowErrorMessage(AttachRequest.Result);
         return FALSE;
     }
@@ -652,7 +650,6 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     }
     else
     {
-        ShowMessages("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee lenght : %x | Token : %llx \n", ReturnedLength, PauseRequest.Token);
         ShowErrorMessage(PauseRequest.Result);
         return FALSE;
     }

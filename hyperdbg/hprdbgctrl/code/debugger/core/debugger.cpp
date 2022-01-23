@@ -306,6 +306,13 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_AN_ALREADY_ATTACHED_PROCESS:
+        ShowMessages("err, the user debugger is already attached to this "
+                     "process, please use the '.switch' command to switch "
+                     "to this process (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);
