@@ -26,6 +26,15 @@
  * 
  */
 #define MAX_THREADS_IN_A_PROCESS 100
+/**
+ * @brief Maximum number of CR3 registers that a process can have
+ * @details Generally, a process has one cr3 but after meltdown KPTI
+ * another Cr3 is added and separated the kernel and user CR3s, recently
+ * I've noticed from a tweet from Petr Benes that there might be other cr3s
+ * https://twitter.com/PetrBenes/status/1310642455352672257?s=20
+ * So, I assume two extra cr3 for each process
+ */
+#define MAX_CR3_IN_A_PROCESS 4
 
 //////////////////////////////////////////////////
 //				   Structures					//
@@ -67,6 +76,7 @@ typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
     BOOLEAN                           Is32Bit;
     BOOLEAN                           IsOnTheStartingPhase;
     BOOLEAN                           IsOnThreadInterceptingPhase;
+    CR3_TYPE                          InterceptedCr3[MAX_CR3_IN_A_PROCESS];
     USERMODE_DEBUGGING_THREAD_DETAILS Threads[MAX_THREADS_IN_A_PROCESS];
 
 } USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;

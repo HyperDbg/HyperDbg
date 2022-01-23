@@ -34,9 +34,9 @@ MemoryMapperGetIndex(PML Level, UINT64 Va)
  * 
  * @param Level PMLx
  * @param Va Virtual Address
- * @return int 
+ * @return UINT32 
  */
-int
+UINT32
 MemoryMapperGetOffset(PML Level, UINT64 Va)
 {
     UINT64 Result = MemoryMapperGetIndex(Level, Va);
@@ -65,7 +65,7 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
     //
     // Call the wrapper
     //
-    return MemoryMapperGetPteVaByCr3WithoutSwitching(Va, Level, Cr3);
+    return MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, Cr3);
 }
 
 /**
@@ -99,7 +99,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     //
     // Call the wrapper
     //
-    PageEntry = MemoryMapperGetPteVaByCr3WithoutSwitching(Va, Level, TargetCr3);
+    PageEntry = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, TargetCr3);
 
     //
     // Restore the original process
@@ -122,7 +122,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
 PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3WithoutSwitching(PVOID Va, PML Level, CR3_TYPE TargetCr3)
+MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
 {
     CR3_TYPE Cr3;
     UINT64   TempCr3;
@@ -1231,4 +1231,40 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     // Restore the original process
     //
     RestoreToPreviousProcess(CurrentProcessCr3);
+}
+
+/**
+ * @brief This function the Supervisor bit of the target PTE based on the specific cr3
+ * 
+ * @param Va Virtual Address
+ * @param Set Set it to 1 or 0
+ * @param Level PMLx
+ * @param TargetCr3 kernel cr3 of target process
+ * @return BOOLEAN whether was successful or not
+ */
+BOOLEAN
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3)
+{
+    PPAGE_ENTRY Pml = NULL;
+
+    Pml = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, TargetCr3);
+
+    if (!Pml)
+    {
+        return FALSE;
+    }
+
+    //
+    // Change the supervisor bit
+    //
+    if (Set)
+    {
+        Pml->Supervisor = 1;
+    }
+    else
+    {
+        Pml->Supervisor = 0;
+    }
+
+    return TRUE;
 }

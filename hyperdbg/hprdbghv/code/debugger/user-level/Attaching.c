@@ -839,9 +839,28 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
     }
 
     //
-    // Set or unset the supervisor bit to zero so we can intercept every access to
-    // the entire memory for this process
+    // Set the supervisor bit to 1 when we want to continue all the threads
     //
+    if (!Enable)
+    {
+        for (size_t i = 0; i < MAX_CR3_IN_A_PROCESS; i++)
+        {
+            if (ProcessDebuggingDetail->InterceptedCr3[i].Flags != NULL)
+            {
+                //
+                // This cr3 should not be intercepted on threads' user mode execution
+                //
+                if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL,
+                                                                       TRUE,
+                                                                       PML4,
+                                                                       ProcessDebuggingDetail->InterceptedCr3[i]))
+                {
+                    return FALSE;
+                }
+            }
+        }
+    }
+    /*
     __try
     {
         //
@@ -881,6 +900,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 
         return FALSE;
     }
+    */
 
     return TRUE;
 }
@@ -1111,19 +1131,41 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
     }
 
     //
+    // Save the cr3 for future continuing the thread
+    //
+    for (size_t i = 0; i < MAX_CR3_IN_A_PROCESS; i++)
+    {
+        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == NewCr3.Flags)
+        {
+            //
+            // We found it saved previously, no need any further action
+            //
+            break;
+        }
+
+        if (ProcessDebuggingDetail->InterceptedCr3[i].Flags == NULL)
+        {
+            //
+            // Save the cr3
+            //
+            ProcessDebuggingDetail->InterceptedCr3[i].Flags = NewCr3.Flags;
+            break;
+        }
+    }
+
+    //
     // This thread should be intercepted
     //
-    PPAGE_ENTRY Pml4;
-    Pml4 = MemoryMapperGetPteVaByCr3WithoutSwitching(NULL, PML4, NewCr3);
-
-    if (!Pml4)
+    if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL, FALSE, PML4, NewCr3))
     {
         return FALSE;
     }
 
-    Pml4->Supervisor = 0;
-
+    //
+    // Intercept #PFs
+    //
     HvSetExceptionBitmap(EXCEPTION_VECTOR_PAGE_FAULT);
+
     return TRUE;
 }
 
