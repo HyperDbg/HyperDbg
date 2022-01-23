@@ -502,26 +502,7 @@ HvSetPmcVmexit(BOOLEAN Set)
 VOID
 HvSetMovToCr3Vmexit(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (Set)
-    {
-        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
-    }
-    else
-    {
-        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
-    }
-
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    ProtectedHvSetMov2Cr3Exiting(Set);
 }
 
 /**

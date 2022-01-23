@@ -488,6 +488,72 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
 }
 
 /**
+ * @brief Set vm-exit for mov to cr3 register
+ * @details Should be called in vmx-root
+ * 
+ * @param Set Set or unset the vm-exits
+ * @param PassOver Adds some pass over to the checks
+ * thus we won't check for dr
+
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
+{
+    ULONG CurrentCoreId          = 0;
+    ULONG CpuBasedVmExecControls = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check if process switching is enabled or not
+        //
+        if (g_GuestState[CurrentCoreId].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+        {
+            //
+            // We should ignore it as we want this to switch to new process
+            //
+            return;
+        }
+
+        //
+        // Check if use debugger is in intercepting phase for threads or not
+        //
+        if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
+        {
+            //
+            // The user debugger needs mov2cr3s
+            //
+            return;
+        }
+    }
+
+    //
+    // Read the previous flags
+    //
+    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+
+    if (Set)
+    {
+        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
+    }
+    else
+    {
+        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
+    }
+
+    //
+    // Set the new value
+    //
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+}
+
+/**
  * @brief Set the RDTSC/P Exiting
  * 
  * @param Set Set or unset the RDTSC/P Exiting
@@ -531,4 +597,16 @@ VOID
 ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
 {
     ProtectedHvSetMovDebugRegsVmexit(FALSE, PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS);
+}
+
+/**
+ * @brief Set MOV to CR3 Exiting
+ * 
+ * @param Set Set or unset the MOV to CR3 Exiting
+ * @return VOID 
+ */
+VOID
+ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set)
+{
+    ProtectedHvSetMovToCr3Vmexit(Set, PASSING_OVER_NONE);
 }

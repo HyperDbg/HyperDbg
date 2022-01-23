@@ -96,3 +96,10 @@ ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set);
 
 VOID
 ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();
+
+//
+// Mov to CR3 Exiting Functions
+//
+
+VOID
+ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set);
