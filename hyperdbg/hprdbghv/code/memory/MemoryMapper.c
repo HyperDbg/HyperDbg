@@ -1153,6 +1153,81 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allo
 }
 
 /**
+ * @brief Deallocates a previously reserved user mode address in the target user mode application
+ * @details this function should be called from vmx non-root mode
+ *
+ * @param ProcessId Target Process Id
+ * @param BaseAddress Previously allocated base address
+ * @return BOOLEAN whether the operation was successful or not
+ */
+BOOLEAN
+MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress)
+{
+    NTSTATUS   Status;
+    SIZE_T     AllocSize = PAGE_SIZE;
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsGetCurrentProcessId() != ProcessId)
+    {
+        //
+        // User needs another process memory
+        //
+
+        if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        {
+            //
+            // if the process not found
+            //
+            return FALSE;
+        }
+        __try
+        {
+            KeStackAttachProcess(SourceProcess, &State);
+
+            //
+            // Free memory in target process
+            //
+            Status = ZwFreeVirtualMemory(NtCurrentProcess(),
+                                         &BaseAddress,
+                                         &AllocSize,
+                                         MEM_RELEASE);
+
+            KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // Deallocate memory in target process
+        //
+        Status = ZwFreeVirtualMemory(NtCurrentProcess(),
+                                     &BaseAddress,
+                                     &AllocSize,
+                                     MEM_RELEASE);
+    }
+
+    if (!NT_SUCCESS(Status))
+    {
+        return FALSE;
+    }
+
+    //
+    // Operation was successful
+    //
+    return TRUE;
+}
+
+/**
  * @brief Maps a physical address to a PTE
  * @details Find the PTE from MemoryMapperGetPteVaByCr3
  * 

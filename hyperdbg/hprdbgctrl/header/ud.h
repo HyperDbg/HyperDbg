@@ -52,6 +52,9 @@ BOOLEAN
 UdKillProcess(UINT32 TargetPid);
 
 BOOLEAN
+UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken);
+
+BOOLEAN
 UdPauseProcess(UINT64 ProcessDebuggingToken);
 
 VOID

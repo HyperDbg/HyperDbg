@@ -847,7 +847,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 
 /**
  * @brief Attach to the target process
- * @details this function should be called in vmx-root
+ * @details this function should not be called in vmx-root
  * 
  * @param AttachRequest 
  * @param IsAttachingToEntrypoint 
@@ -1127,7 +1127,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
 
 /**
  * @brief Clearing hooks after resuming the process
- * @details this function should be called in vmx-root
+ * @details this function should not be called in vmx-root
  * 
  * @param AttachRequest 
  * @return BOOLEAN 
@@ -1221,17 +1221,20 @@ AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
 BOOLEAN
 AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
 {
-    BOOLEAN WasKilled = FALSE;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    BOOLEAN                             WasKilled = FALSE;
+
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(KillRequest->ProcessId);
 
     //
-    // Check if process exists or not
+    // Check if process is valid in process debugging details
     //
-    if (!IsProcessExist(KillRequest->ProcessId))
+    if (!ProcessDebuggingDetail)
     {
         //
-        // Process does not exists
+        // not found
         //
-        KillRequest->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+        KillRequest->Result = DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS;
         return FALSE;
     }
 
@@ -1272,13 +1275,84 @@ AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
     return FALSE;
 
 Success:
+
+    //
+    // Remove the entry from the process debugging details list
+    //
+    AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingDetail->Token);
+
     KillRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
     return TRUE;
 }
 
 /**
+ * @brief Clearing hooks after resuming the process
+ * @details this function should not be called in vmx-root
+ * 
+ * @param DetachRequest 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
+{
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(DetachRequest->ProcessId);
+
+    //
+    // Check if process is valid in process debugging details
+    //
+    if (!ProcessDebuggingDetail)
+    {
+        //
+        // not found
+        //
+        DetachRequest->Result = DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS;
+        return FALSE;
+    }
+
+    //
+    // If the threads are paused, we can't detach from the target process
+    // before sending this request, the debuggger should continued all the
+    // threads by sending a continue packet
+    //
+    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+    {
+        if (ProcessDebuggingDetail->Threads[i].ThreadId != NULL &&
+            ProcessDebuggingDetail->Threads[i].IsPaused)
+        {
+            //
+            // We found a thread that is still pause
+            //
+            DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
+            return FALSE;
+        }
+    }
+
+    //
+    // Free the reserved memory in the target process
+    //
+    if (!MemoryMapperFreeMemoryInTargetProcess(DetachRequest->ProcessId,
+                                               ProcessDebuggingDetail->UsermodeReservedBuffer))
+    {
+        //
+        // Still, we continue, no need to abort the operation
+        //
+        LogError("Err, cannot deallocate reserved buffer in the detached process");
+    }
+
+    //
+    // Remove the entry from the process debugging details list
+    //
+    AttachingRemoveProcessDebuggingDetailsByToken(ProcessDebuggingDetail->Token);
+
+    DetachRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    return TRUE;
+}
+
+/**
  * @brief Dispatch and perform attaching tasks
- * @details this function should be called in vmx-root
+ * @details this function should not be called in vmx-root
  * 
  * @param AttachRequest 
  * @return VOID 
@@ -1296,6 +1370,11 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH:
 
         AttachingPerformAttachToProcess(Request, Request->IsStartingNewProcess);
+
+        break;
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH:
+
+        AttachingPerformDetach(Request);
 
         break;
 

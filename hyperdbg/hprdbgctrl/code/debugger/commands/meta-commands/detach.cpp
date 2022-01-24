@@ -42,6 +42,16 @@ DetachFromProcess()
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return;
+    }
+
+    //
     // Check if we attached to a process or not
     //
     if (!g_ActiveProcessDebuggingState.IsActive)
@@ -51,14 +61,9 @@ DetachFromProcess()
     }
 
     //
-    // Check if debugger is loaded or not
+    // Perform the detaching of the target process
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
+    UdDetachProcess(g_ActiveProcessDebuggingState.ProcessId, g_ActiveProcessDebuggingState.ProcessDebuggingToken);
 }
 
 /**

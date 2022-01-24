@@ -371,6 +371,9 @@ UINT64
 MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate);
 
 BOOLEAN
+MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress);
+
+BOOLEAN
 MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId);
 
 BOOLEAN

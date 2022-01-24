@@ -313,6 +313,21 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS:
+        ShowMessages("err, the user debugger is not already attached to "
+                     "the process (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS:
+        ShowMessages("err, the user debugger is not able to detach from "
+                     "this process as there are paused threads in the "
+                     "target process, please make sure to remove all "
+                     "the events and continue the target process, then "
+                     "perform the detach again (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

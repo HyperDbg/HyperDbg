@@ -583,6 +583,93 @@ UdKillProcess(UINT32 TargetPid)
 }
 
 /**
+ * @brief Detach the target process
+ * @details this function will not check whether the process id and
+ * thread id is valid or not
+ *
+ * @param TargetPid
+ * @param ProcessDetailToken
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // Send the continue command to the target process as we
+    // want to continue the debuggee process before detaching
+    //
+    UdContinueDebuggee(ProcessDetailToken);
+
+    //
+    // We wanna detach a process
+    //
+    DetachRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH;
+
+    //
+    // Set the process id
+    //
+    DetachRequest.ProcessId = TargetPid;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &DetachRequest,                                  // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &DetachRequest,                                  // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Check if detaching was successful or not
+    //
+    if (DetachRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // Remove the current active debugging process (thread)
+        //
+        UdRemoveActiveDebuggingThread(TargetPid);
+
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(DetachRequest.Result);
+        return FALSE;
+    }
+}
+
+/**
  * @brief Pause the target process
  *
  * @param ProcessDebuggingToken
