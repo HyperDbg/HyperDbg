@@ -676,7 +676,12 @@ HyperdbgUnload()
         return 1;
     }
 
-    ShowMessages("start terminating vmx...\n");
+    ShowMessages("start terminating...\n");
+
+    //
+    // Uninitialize the user debugger if it's initialized
+    //
+    UdUninitializeUserDebugger();
 
     //
     // Send IOCTL to mark complete all IRP Pending

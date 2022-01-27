@@ -20,11 +20,7 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
     g_UserSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS];
 
 /**
- * @brief set the current active debugging process (thread)
- * @param DebuggingId
- * @param ProcessId
- * @param ThreadId
- * @param Is32Bit
+ * @brief Initialize the user debugger in user mode
  * 
  * @return VOID
  */
@@ -52,6 +48,47 @@ UdInitializeUserDebugger()
 }
 
 /**
+ * @brief Uninitialize the user debugger in user mode
+ * 
+ * @return VOID
+ */
+VOID
+UdUninitializeUserDebugger()
+
+{
+    if (g_IsUserDebuggerInitialized)
+    {
+        //
+        // Remove the active process
+        //
+        UdRemoveActiveDebuggingProcess(TRUE);
+
+        //
+        // Initialize the handle table
+        //
+        for (size_t i = 0; i < DEBUGGER_MAXIMUM_SYNCRONIZATION_USER_DEBUGGER_OBJECTS; i++)
+        {
+            if (g_UserSyncronizationObjectsHandleTable[i].EventHandle != NULL)
+            {
+                if (g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState)
+                {
+                    g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
+                    SetEvent(g_UserSyncronizationObjectsHandleTable[i].EventHandle);
+                }
+
+                CloseHandle(g_UserSyncronizationObjectsHandleTable[i].EventHandle);
+                g_UserSyncronizationObjectsHandleTable[i].EventHandle = NULL;
+            }
+        }
+
+        //
+        // Indicate that user debuggger is not initialized
+        //
+        g_IsUserDebuggerInitialized = FALSE;
+    }
+}
+
+/**
  * @brief set the current active debugging process (thread)
  * @param DebuggingId
  * @param ProcessId
@@ -61,10 +98,10 @@ UdInitializeUserDebugger()
  * @return VOID
  */
 VOID
-UdSetActiveDebuggingThread(UINT64  DebuggingId,
-                           UINT32  ProcessId,
-                           UINT32  ThreadId,
-                           BOOLEAN Is32Bit)
+UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT32  ProcessId,
+                            UINT32  ThreadId,
+                            BOOLEAN Is32Bit)
 {
     g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
     g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
@@ -79,17 +116,13 @@ UdSetActiveDebuggingThread(UINT64  DebuggingId,
 
 /**
  * @brief Remove the current active debugging process (thread)
- * @param ProcessId
+ * @param DontSwitchToNewProcess 
  * 
  * @return VOID
  */
 VOID
-UdRemoveActiveDebuggingThread(UINT32 ProcessId)
+UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
 {
-    //
-    // Do sth
-    //
-
     //
     // Activate the debugging
     //
@@ -568,7 +601,7 @@ UdKillProcess(UINT32 TargetPid)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingThread(TargetPid);
+        UdRemoveActiveDebuggingProcess(FALSE);
 
         //
         // The operation of attaching was successful
@@ -655,7 +688,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
         //
         // Remove the current active debugging process (thread)
         //
-        UdRemoveActiveDebuggingThread(TargetPid);
+        UdRemoveActiveDebuggingProcess(FALSE);
 
         //
         // The operation of attaching was successful
@@ -755,10 +788,10 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
     //
     // Set the current active debugging process (thread)
     //
-    UdSetActiveDebuggingThread(PausePacket->ProcessDebuggingToken,
-                               PausePacket->ProcessId,
-                               PausePacket->ThreadId,
-                               PausePacket->Is32Bit);
+    UdSetActiveDebuggingProcess(PausePacket->ProcessDebuggingToken,
+                                PausePacket->ProcessId,
+                                PausePacket->ThreadId,
+                                PausePacket->Is32Bit);
 
     //
     // Perform extra tasks for pausing reasons

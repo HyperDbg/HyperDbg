@@ -37,6 +37,15 @@ typedef struct _ACTIVE_DEBUGGING_PROCESS
 //            	    Functions                  //
 //////////////////////////////////////////////////
 
+VOID
+UdInitializeUserDebugger();
+
+VOID
+UdUninitializeUserDebugger();
+
+VOID
+UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess);
+
 BOOL
 UdListProcessThreads(DWORD OwnerPID);
 
