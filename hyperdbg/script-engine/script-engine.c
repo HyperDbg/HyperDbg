@@ -2039,23 +2039,9 @@ SemanticRuleToInt(char * str)
 char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 {
-    //
-    // allocate rquired memory for message
-    //
-    int    MessageSize = (InputIdx - CurrentLineIdx) * 2 + 30 + 100;
-    char * Message     = (char *)malloc(MessageSize);
 
     //
-    // add line number
-    //
-    strcpy(Message, "Line ");
-    char * Line = (char *)malloc(16);
-    sprintf(Line, "%d:\n", CurrentLine);
-    strcat(Message, Line);
-    free(Line);
-
-    //
-    // add the line which error happened at
+    // calculate position of current line 
     //
     unsigned int LineEnd;
     for (int i = InputIdx;; i++)
@@ -2066,10 +2052,35 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
             break;
         }
     }
+    
+    //
+    // allocate required memory for message, 16 for line, 100 for error information,
+    // (CurrentTokenIdx - CurrentLineIdx) for space and,
+    // (LineEnd - CurrentLineIdx) for input string
+    //
+    int    MessageSize = 16 + 100 + (CurrentTokenIdx - CurrentLineIdx) + (LineEnd - CurrentLineIdx);
+    char * Message     = (char *)malloc(MessageSize);
 
+    //
+    // add line number
+    //
+    strcpy(Message, "Line ");
+    char Line[16] = {0};
+    sprintf(Line, "%d:\n", CurrentLine);
+    strcat(Message, Line);
+
+    
+
+    //
+    // add the line which error happened at
+    //
+    
+    
     strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
     strcat(Message, "\n");
 
+
+   
     //
     // add pointer
     //
