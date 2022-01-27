@@ -312,6 +312,12 @@ UINT64 * g_ScriptGlobalVariables;
 UINT64 * g_ScriptLocalVariables;
 
 /**
+ * @brief Holder of temp variables for script engine
+ *
+ */
+UINT64 * g_ScriptTempVariables;
+
+/**
  * @brief Is list of command initialized
  *
  */
