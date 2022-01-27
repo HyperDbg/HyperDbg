@@ -2040,7 +2040,6 @@ SemanticRuleToInt(char * str)
 char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 {
-
     //
     // calculate position of current line 
     //
