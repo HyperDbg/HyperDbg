@@ -348,14 +348,15 @@ ScriptEngineParse(char * str)
 #endif
     } while (TopToken->Type != END_OF_STACK);
 
-    if (ErrorMessage == NULL)
+    if (Error != SCRIPT_ENGINE_ERROR_FREE)
     {
-        if (Error != SCRIPT_ENGINE_ERROR_FREE)
-        {
-            ErrorMessage = HandleError(&Error, str);
-        }
+        ErrorMessage = HandleError(&Error, str);
+        CleanTempList();
     }
-
+    else 
+    {
+        ErrorMessage = NULL;
+    }
     CodeBuffer->Message = ErrorMessage;
 
     if (Stack)
@@ -466,7 +467,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -624,7 +625,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -683,7 +684,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -710,7 +711,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -2114,6 +2115,11 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     case SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE:
         strcat(Message, "Syntax Error: ");
         strcat(Message, "Unhandled Semantic Rule");
+        return Message;
+
+    case SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL: 
+        strcat(Message, "Internal Error: ");
+        strcat(Message, "Please split the expression to many smaller expressions.");
         return Message;
 
     default:

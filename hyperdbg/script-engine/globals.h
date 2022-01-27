@@ -2,7 +2,7 @@
 
 #ifndef GLOBALS_H
 #    define GlOABLS_H
-#    define MAX_TEMP_COUNT 32
+#    define MAX_TEMP_COUNT 1024
 
 extern char TempMap[MAX_TEMP_COUNT];
 

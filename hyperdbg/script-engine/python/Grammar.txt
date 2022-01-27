@@ -30,7 +30,9 @@
 .PseudoRegisters->pid tid pname core proc thread peb teb ip buffer context
  
 S->STATEMENT S
+S->{ STATEMENT S }
 S->eps
+
 
 STATEMENT->IF_STATEMENT
 STATEMENT->WHILE_STATEMENT

@@ -71,7 +71,7 @@ typedef struct _TOKEN_LIST
     unsigned int Size;
 } * TOKEN_LIST;
 
-// TODO: automate generation of KeyWordList
+
 
 ////////////////////////////////////////////////////
 // TOKEN related functions						  //
@@ -89,10 +89,13 @@ void
 Append(TOKEN Token, char c);
 
 TOKEN
-NewTemp(void);
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
 FreeTemp(TOKEN Temp);
+
+void
+CleanTempList(void);
 
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //
