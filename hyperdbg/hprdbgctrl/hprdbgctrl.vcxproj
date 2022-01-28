@@ -140,12 +140,13 @@
     <ClCompile Include="code\debugger\core\debugger.cpp" />
     <ClCompile Include="code\debugger\core\interpreter.cpp" />
     <ClCompile Include="code\debugger\kernel-level\kd.cpp" />
-    <ClCompile Include="code\debugger\kernel-level\listening.cpp" />
+    <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp" />
     <ClCompile Include="code\debugger\misc\disassembler.cpp" />
     <ClCompile Include="code\debugger\misc\readmem.cpp" />
     <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp" />
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
+    <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

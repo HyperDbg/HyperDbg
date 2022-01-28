@@ -424,11 +424,14 @@
     <ClCompile Include="code\debugger\kernel-level\kd.cpp">
       <Filter>code\debugger\kernel-level</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\kernel-level\listening.cpp">
-      <Filter>code\debugger\kernel-level</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp">
       <Filter>code\debugger\script-engine-wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp">
+      <Filter>code\debugger\kernel-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\user-listening.cpp">
+      <Filter>code\debugger\user-level</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

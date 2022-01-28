@@ -45,6 +45,22 @@ UdUninitializeUserDebugger();
 VOID
 UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess);
 
+VOID
+UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
+
+VOID
+UdContinueDebuggee(UINT64 ProcessDetailToken);
+
+VOID
+UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType);
+
+VOID
+UdSetActiveDebuggingProcess(UINT64  DebuggingId,
+                            UINT32  ProcessId,
+                            UINT32  ThreadId,
+                            BOOLEAN Is32Bit,
+                            BOOLEAN IsPaused);
+
 BOOL
 UdListProcessThreads(DWORD OwnerPID);
 
@@ -64,12 +80,3 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken);
 
 BOOLEAN
 UdPauseProcess(UINT64 ProcessDebuggingToken);
-
-VOID
-UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket);
-
-VOID
-UdContinueDebuggee(UINT64 ProcessDetailToken);
-
-VOID
-UdSendStepPacketToDebuggee(UINT64 ThreadDetailToken, UINT32 TargetThreadId, DEBUGGER_REMOTE_STEPPING_REQUEST StepType);

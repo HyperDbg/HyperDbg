@@ -1,8 +1,8 @@
 /**
- * @file listening.cpp
+ * @file kernel-listening.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
- * @brief Listening for remote connections
+ * @brief Listening for remote connections on kernel debugger
  * @details
  * @version 0.1
  * @date 2020-12-20
