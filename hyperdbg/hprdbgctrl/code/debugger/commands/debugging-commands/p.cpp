@@ -86,6 +86,16 @@ CommandP(vector<string> SplittedCommand, string Command)
     if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveProcessDebuggingState.IsActive)
     {
         //
+        // Check if the thread is paused or not
+        //
+        if (g_ActiveProcessDebuggingState.IsActive && !g_ActiveProcessDebuggingState.IsPaused)
+        {
+            ShowMessages("the target process is running, use the "
+                         "'pause' command or press CTRL+C to pause the process\n");
+            return;
+        }
+
+        //
         // Indicate that we're instrumenting
         //
         g_IsInstrumentingInstructions = TRUE;

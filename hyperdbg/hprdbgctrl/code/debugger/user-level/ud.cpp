@@ -101,12 +101,19 @@ VOID
 UdSetActiveDebuggingProcess(UINT64  DebuggingId,
                             UINT32  ProcessId,
                             UINT32  ThreadId,
-                            BOOLEAN Is32Bit)
+                            BOOLEAN Is32Bit,
+                            BOOLEAN IsPaused)
 {
     g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
     g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
     g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
     g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
+
+    //
+    // Set pausing state
+    //
+    g_ActiveProcessDebuggingState.IsPaused = IsPaused;
 
     //
     // Activate the debugging
@@ -791,7 +798,8 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
     UdSetActiveDebuggingProcess(PausePacket->ProcessDebuggingToken,
                                 PausePacket->ProcessId,
                                 PausePacket->ThreadId,
-                                PausePacket->Is32Bit);
+                                PausePacket->Is32Bit,
+                                TRUE);
 
     //
     // Perform extra tasks for pausing reasons

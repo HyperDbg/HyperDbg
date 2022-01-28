@@ -30,7 +30,6 @@ typedef struct _ACTIVE_DEBUGGING_PROCESS
     GUEST_REGS Registers; // thread registers
     UINT64     Context;   // $context
     BOOLEAN    Is32Bit;
-
 } ACTIVE_DEBUGGING_PROCESS, *PACTIVE_DEBUGGING_PROCESS;
 
 //////////////////////////////////////////////////
