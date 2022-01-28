@@ -22,10 +22,10 @@
 #define MAX_USER_ACTIONS_FOR_THREADS 3
 
 /**
- * @brief Maximum threads that a process might have
+ * @brief Maximum threads that a process thread holder might have 
  * 
  */
-#define MAX_THREADS_IN_A_PROCESS 100
+#define MAX_THREADS_IN_A_PROCESS_HOLDER 100
 /**
  * @brief Maximum number of CR3 registers that a process can have
  * @details Generally, a process has one cr3 but after meltdown KPTI
@@ -41,43 +41,29 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Details of each thread in process
- * 
- */
-typedef struct _USERMODE_DEBUGGING_THREAD_DETAILS
-{
-    UINT32                     ThreadId;
-    UINT64                     ThreadRip; // if IsPaused is TRUE
-    BOOLEAN                    IsPaused;
-    BOOLEAN                    IsRflagsTrapFlagsSet;
-    DEBUGGER_UD_COMMAND_ACTION UdAction[MAX_USER_ACTIONS_FOR_THREADS];
-
-} USERMODE_DEBUGGING_THREAD_DETAILS, *PUSERMODE_DEBUGGING_THREAD_DETAILS;
-
-/**
  * @brief Description of each active thread in user-mode attaching 
  * mechanism
  * 
  */
 typedef struct _USERMODE_DEBUGGING_PROCESS_DETAILS
 {
-    UINT64                            Token;
-    BOOLEAN                           Enabled;
-    PVOID                             PebAddressToMonitor;
-    UINT32                            ActiveThreadId; // active thread
-    GUEST_REGS                        Registers;      // active thread
-    UINT64                            Context;        // $context
-    LIST_ENTRY                        AttachedProcessList;
-    UINT64                            UsermodeReservedBuffer;
-    UINT64                            EntrypointOfMainModule;
-    UINT64                            BaseAddressOfMainModule;
-    PEPROCESS                         Eprocess;
-    UINT32                            ProcessId;
-    BOOLEAN                           Is32Bit;
-    BOOLEAN                           IsOnTheStartingPhase;
-    BOOLEAN                           IsOnThreadInterceptingPhase;
-    CR3_TYPE                          InterceptedCr3[MAX_CR3_IN_A_PROCESS];
-    USERMODE_DEBUGGING_THREAD_DETAILS Threads[MAX_THREADS_IN_A_PROCESS];
+    UINT64     Token;
+    BOOLEAN    Enabled;
+    PVOID      PebAddressToMonitor;
+    UINT32     ActiveThreadId; // active thread
+    GUEST_REGS Registers;      // active thread
+    UINT64     Context;        // $context
+    LIST_ENTRY AttachedProcessList;
+    UINT64     UsermodeReservedBuffer;
+    UINT64     EntrypointOfMainModule;
+    UINT64     BaseAddressOfMainModule;
+    PEPROCESS  Eprocess;
+    UINT32     ProcessId;
+    BOOLEAN    Is32Bit;
+    BOOLEAN    IsOnTheStartingPhase;
+    BOOLEAN    IsOnThreadInterceptingPhase;
+    CR3_TYPE   InterceptedCr3[MAX_CR3_IN_A_PROCESS];
+    LIST_ENTRY ThreadsListHead;
 
 } USERMODE_DEBUGGING_PROCESS_DETAILS, *PUSERMODE_DEBUGGING_PROCESS_DETAILS;
 
@@ -115,9 +101,3 @@ AttachingFindProcessDebuggingDetailsByToken(UINT64 Token);
 
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId);
-
-PUSERMODE_DEBUGGING_THREAD_DETAILS
-AttachingFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
-
-PUSERMODE_DEBUGGING_THREAD_DETAILS
-AttachingGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId);

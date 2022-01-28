@@ -83,6 +83,7 @@
 #include "..\hprdbghv\header\debugger\user-level\Attaching.h"
 #include "..\hprdbghv\header\debugger\core\Termination.h"
 #include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
+#include "..\hprdbghv\header\debugger\user-level\ThreadHolder.h"
 #include "ScriptEngineCommonDefinitions.h"
 
 //

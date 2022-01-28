@@ -54,6 +54,11 @@ UdInitializeUserDebugger()
     BroadcastEnableDbAndBpExitingAllCores();
 
     //
+    // Request to allocate buffers for thread holder of threads
+    //
+    ThreadHolderAllocateThreadHoldingBuffers();
+
+    //
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
@@ -248,8 +253,8 @@ UdCheckForCommand()
     PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails;
 
     ThreadDebuggingDetails =
-        AttachingGetProcessThreadDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
-                                                               PsGetCurrentThreadId());
+        ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(PsGetCurrentProcessId(),
+                                                                  PsGetCurrentThreadId());
 
     if (!ThreadDebuggingDetails)
     {
@@ -319,8 +324,6 @@ BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
-    PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails;
-    BOOLEAN                             CommandApplied = FALSE;
 
     //
     // Find the thread debugging detail of the thread
@@ -347,81 +350,9 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
     }
 
     //
-    // Check if we should apply it to all threads or only one thread
+    // Apply the command to all threads or just one thread
     //
-    if (!ActionRequest->ApplyToAllPausedThreads)
-    {
-        //
-        // *** only the active thread ***
-        //
-
-        //
-        // Get the target thread
-        //
-        ThreadDebuggingDetails = AttachingGetProcessThreadDetailsByProcessIdAndThreadId(ProcessDebuggingDetails->ProcessId,
-                                                                                        ActionRequest->TargetThreadId);
-
-        //
-        // Apply the command
-        //
-        for (size_t i = 0; i < MAX_USER_ACTIONS_FOR_THREADS; i++)
-        {
-            if (ThreadDebuggingDetails->UdAction[i].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
-            {
-                //
-                // Set the action
-                //
-                ThreadDebuggingDetails->UdAction[i].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
-                ThreadDebuggingDetails->UdAction[i].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
-                ThreadDebuggingDetails->UdAction[i].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
-                ThreadDebuggingDetails->UdAction[i].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
-
-                //
-                // At last we set the action type to make it valid
-                //
-                ThreadDebuggingDetails->UdAction[i].ActionType = ActionRequest->UdAction.ActionType;
-
-                CommandApplied = TRUE;
-                break;
-            }
-        }
-    }
-    else
-    {
-        //
-        // *** apply to all paused threads ***
-        //
-        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
-        {
-            if (ProcessDebuggingDetails->Threads[i].ThreadId != NULL &&
-                ProcessDebuggingDetails->Threads[i].IsPaused)
-            {
-                for (size_t j = 0; j < MAX_USER_ACTIONS_FOR_THREADS; j++)
-                {
-                    if (ProcessDebuggingDetails->Threads[i].UdAction[j].ActionType == DEBUGGER_UD_COMMAND_ACTION_TYPE_NONE)
-                    {
-                        //
-                        // Set the action
-                        //
-                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam1 = ActionRequest->UdAction.OptionalParam1;
-                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam2 = ActionRequest->UdAction.OptionalParam2;
-                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam3 = ActionRequest->UdAction.OptionalParam3;
-                        ProcessDebuggingDetails->Threads[i].UdAction[j].OptionalParam4 = ActionRequest->UdAction.OptionalParam4;
-
-                        //
-                        // At last we set the action type to make it valid
-                        //
-                        ProcessDebuggingDetails->Threads[i].UdAction[j].ActionType = ActionRequest->UdAction.ActionType;
-
-                        CommandApplied = TRUE;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return CommandApplied;
+    return ThreadHolderApplyActionToPausedThreads(ProcessDebuggingDetails, ActionRequest);
 }
 
 /**
@@ -566,7 +497,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     //
     // Find the thread entry and if not found, create one for it
     //
-    ThreadDebuggingDetails = AttachingFindOrCreateThreadDebuggingDetail(PsGetCurrentThreadId(), ProcessDebuggingDetails);
+    ThreadDebuggingDetails = ThreadHolderFindOrCreateThreadDebuggingDetail(PsGetCurrentThreadId(), ProcessDebuggingDetails);
 
     if (!ThreadDebuggingDetails)
     {

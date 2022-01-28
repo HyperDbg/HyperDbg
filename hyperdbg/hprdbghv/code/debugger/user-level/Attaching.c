@@ -135,6 +135,15 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
     ProcessDebuggingDetail->UsermodeReservedBuffer = UsermodeReservedBuffer;
 
     //
+    // Allocate a thread holder buffer for this process
+    //
+    if (!ThreadHolderAssignThreadHolderToProcessDebuggingDetails(ProcessDebuggingDetail))
+    {
+        ExFreePoolWithTag(ProcessDebuggingDetail, POOLTAG);
+        return NULL;
+    }
+
+    //
     // Attach it to the list of active thread (LIST_ENTRY)
     //
     InsertHeadList(&g_ProcessDebuggingDetailsListHead, &(ProcessDebuggingDetail->AttachedProcessList));
@@ -208,45 +217,6 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
 }
 
 /**
- * @brief Find the active threads of the process from process id
- * 
- * @param ProcessId 
- * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
- */
-PUSERMODE_DEBUGGING_THREAD_DETAILS
-AttachingGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId)
-{
-    //
-    // First, find the process details
-    //
-    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(ProcessId);
-
-    if (ProcessDebuggingDetail == NULL)
-    {
-        return NULL;
-    }
-
-    //
-    // Find the active thread by thread id
-    //
-    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
-    {
-        if (ProcessDebuggingDetail->Threads[i].ThreadId == ThreadId)
-        {
-            //
-            // The active thread's structure is found
-            //
-            return &ProcessDebuggingDetail->Threads[i];
-        }
-    }
-
-    //
-    // Active thread not found
-    //
-    return NULL;
-}
-
-/**
  * @brief Find user-mode debugging details for threads that is in
  * the start-up phase
  * 
@@ -272,52 +242,6 @@ AttachingFindProcessDebuggingDetailsInStartingPhase()
     }
 
     return NULL;
-}
-
-/**
- * @brief Find user-mode debugging details for threads by token
- * 
- * @param ThreadId 
- * @param ProcessDebuggingDetail 
- * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
- */
-PUSERMODE_DEBUGGING_THREAD_DETAILS
-AttachingFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
-{
-    //
-    // Let's see if we can find the thread
-    //
-    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
-    {
-        if (ProcessDebuggingDetail->Threads[i].ThreadId == ThreadId)
-        {
-            //
-            // We find a thread, let's return it's structure
-            //
-            return &ProcessDebuggingDetail->Threads[i];
-        }
-    }
-
-    //
-    // We're here, the thread is not found, let's create an entry for it
-    //
-    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
-    {
-        if (ProcessDebuggingDetail->Threads[i].ThreadId == NULL)
-        {
-            //
-            // We find a null thread place, let's return it's structure
-            //
-            ProcessDebuggingDetail->Threads[i].ThreadId = ThreadId;
-            return &ProcessDebuggingDetail->Threads[i];
-        }
-    }
-
-    //
-    // We didn't find an empty entry,
-    // TODO: Solve this issue
-    //
-    DbgBreakPoint();
 }
 
 /**
@@ -958,7 +882,7 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
     // LogInfo("Reserved address on the target process: %llx\n", UsermodeReservedBuffer);
 
     //
-    // Create the event
+    // Create the debugging detail for process
     //
     ProcessDebuggingToken = AttachingCreateProcessDebuggingDetails(AttachRequest->ProcessId,
                                                                    TRUE,
@@ -1316,17 +1240,13 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
     // before sending this request, the debuggger should continued all the
     // threads by sending a continue packet
     //
-    for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS; i++)
+    if (ThreadHolderIsAnyPausedThreadInProcess(ProcessDebuggingDetail))
     {
-        if (ProcessDebuggingDetail->Threads[i].ThreadId != NULL &&
-            ProcessDebuggingDetail->Threads[i].IsPaused)
-        {
-            //
-            // We found a thread that is still pause
-            //
-            DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
-            return FALSE;
-        }
+        //
+        // We found a thread that is still pause
+        //
+        DetachRequest->Result = DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS;
+        return FALSE;
     }
 
     //

@@ -305,6 +305,9 @@
     <ClCompile Include="code\platform\CrossApi.c">
       <Filter>code\platform</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\user-level\ThreadHolder.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -453,6 +456,9 @@
     </ClInclude>
     <ClInclude Include="header\platform\Environment.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\ThreadHolder.h">
+      <Filter>header\debugger\user-level</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
