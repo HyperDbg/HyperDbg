@@ -1580,7 +1580,7 @@ ScriptEngineBooleanExpresssionParse(
         TopToken       = Top(Stack);
         int TerminalId = LalrGetTerminalId(CurrentIn);
         StateId        = DecimalToSignedInt(TopToken->Value);
-        if (StateId == INVALID)
+        if (StateId == INVALID || TerminalId < 0)
         {
             *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
             break;
@@ -1602,8 +1602,12 @@ ScriptEngineBooleanExpresssionParse(
             *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
             break;
         }
-
-        if (Action > 0) // Shift
+        if (Action == 0)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+            break;
+        }
+        else if (Action >= 0) // Shift
         {
             StateId = Action;
             Push(Stack, CurrentIn);
