@@ -1582,7 +1582,8 @@ ScriptEngineBooleanExpresssionParse(
         StateId        = DecimalToSignedInt(TopToken->Value);
         if (StateId == INVALID)
         {
-            return;
+            *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+            break;
         }
         Action = LalrActionTable[StateId][TerminalId];
 
