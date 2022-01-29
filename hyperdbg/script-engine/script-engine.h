@@ -97,7 +97,7 @@ ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
-char *
+void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     TOKEN                     FirstToken,

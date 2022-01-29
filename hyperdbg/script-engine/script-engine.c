@@ -228,7 +228,7 @@ ScriptEngineParse(char * str)
                
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -1516,7 +1516,7 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 *
 *
 */
-char *
+void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     TOKEN                     FirstToken,
@@ -1612,7 +1612,7 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(4);
+            State->Value = malloc(16);
             sprintf(State->Value, "%d", StateId);
             Push(Stack, State);
 
@@ -1691,19 +1691,15 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(4);
+            State->Value = malloc(16);
             sprintf(State->Value, "%d", Goto);
             Push(Stack, LhsCopy);
             Push(Stack, State);
         }
     }
 
-    char * Message = NULL;
-    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
-    {
-        Message             = HandleError(Error, str);
-        CodeBuffer->Message = Message;
-    }
+   
+
 
     if (EndToken)
         RemoveToken(EndToken);
@@ -1714,7 +1710,7 @@ ScriptEngineBooleanExpresssionParse(
     if (CurrentIn)
         RemoveToken(CurrentIn);
 
-    return Message;
+    return;
 }
 /**
 *
@@ -1865,10 +1861,9 @@ NewSymbolBuffer(void)
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-    //PrintSymbolBuffer(SymbolBuffer);
-    /*  free(SymbolBuffer->Message);
+    free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
-    free(SymbolBuffer);*/
+    free(SymbolBuffer);
 }
 
 /**
