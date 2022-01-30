@@ -369,6 +369,11 @@ BOOLEAN
 ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
 {
     //
+    // Set the global variable indicator of test_statement to 0
+    //
+    g_CurrentExprEvalResult = 0;
+
+    //
     // Call the test parser
     //
     ScriptEngineWrapperTestParser(Expr);
