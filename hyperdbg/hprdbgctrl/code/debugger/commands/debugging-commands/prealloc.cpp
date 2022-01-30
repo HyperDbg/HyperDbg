@@ -20,9 +20,10 @@ VOID
 CommandPreallocHelp()
 {
     ShowMessages("prealloc : Pre-allocates buffer for special purposes.\n\n");
-    ShowMessages("syntax : \tprealloc [Type (monitor)] [Count (hex value)]\n");
+    ShowMessages("syntax : \tprealloc [Type] [Count (hex value)]\n");
 
     ShowMessages("\t\te.g : prealloc monitor 10\n");
+    ShowMessages("\t\te.g : prealloc thread-interception 8\n");
 }
 
 /**
@@ -47,26 +48,16 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
         return;
     }
 
+    //
+    // Set the type of pre-allocation
+    //
     if (!SplittedCommand.at(1).compare("monitor"))
     {
-        //
-        // Get the count of needed pre-allocated buffers
-        //
-        if (!SymbolConvertNameOrExprToAddress(SplittedCommand.at(2), &Count))
-        {
-            //
-            // Couldn't resolve or unkonwn parameter
-            //
-            ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplittedCommand.at(2).c_str());
-            return;
-        }
-
-        //
-        // Set the details
-        //
-        PreallocRequest.Type  = DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR;
-        PreallocRequest.Count = Count;
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR;
+    }
+    else if (!SplittedCommand.at(1).compare("thread-interception"))
+    {
+        PreallocRequest.Type = DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION;
     }
     else
     {
@@ -77,6 +68,24 @@ CommandPrealloc(vector<string> SplittedCommand, string Command)
                      SplittedCommand.at(1).c_str());
         return;
     }
+
+    //
+    // Get the count of needed pre-allocated buffers
+    //
+    if (!SymbolConvertNameOrExprToAddress(SplittedCommand.at(2), &Count))
+    {
+        //
+        // Couldn't resolve or unkonwn parameter
+        //
+        ShowMessages("err, couldn't resolve error at '%s'\n",
+                     SplittedCommand.at(2).c_str());
+        return;
+    }
+
+    //
+    // Set the counter
+    //
+    PreallocRequest.Count = Count;
 
     if (!g_DeviceHandle)
     {

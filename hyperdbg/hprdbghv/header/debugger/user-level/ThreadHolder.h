@@ -72,3 +72,6 @@ ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGI
 BOOLEAN
 ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails,
                                        PDEBUGGER_UD_COMMAND_PACKET         ActionRequest);
+
+VOID
+ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);

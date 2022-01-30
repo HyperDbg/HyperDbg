@@ -355,3 +355,30 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
     //
     return CommandApplied;
 }
+
+/**
+ * @brief Free all of thread holder structures 
+ * 
+ * @param ProcessDebuggingDetail 
+ * @return VOID 
+ */
+VOID
+ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail)
+{
+    PLIST_ENTRY TempList = 0;
+
+    TempList = &ProcessDebuggingDetail->ThreadsListHead;
+
+    while (&ProcessDebuggingDetail->ThreadsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+        //
+        // The thread is allocated from the pool management, so we'll
+        // free it from there
+        //
+        PoolManagerFreePool(ThreadHolder);
+    }
+}

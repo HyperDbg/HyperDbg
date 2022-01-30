@@ -263,6 +263,11 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
             CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
 
         //
+        // Free the thread holding structure(s)
+        //
+        ThreadHolderFreeHoldingStructures(ProcessDebuggingDetails);
+
+        //
         // Remove thread debugging detail from the list active threads
         //
         RemoveEntryList(&ProcessDebuggingDetails->AttachedProcessList);
@@ -297,6 +302,11 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
         //
         return FALSE;
     }
+
+    //
+    // Free the thread holding structure(s)
+    //
+    ThreadHolderFreeHoldingStructures(ProcessDebuggingDetails);
 
     //
     // Remove thread debugging detail from the list active threads
