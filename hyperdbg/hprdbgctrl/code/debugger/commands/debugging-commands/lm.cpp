@@ -1,6 +1,6 @@
 /**
  * @file lm.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief lm command
  * @details
  * @version 0.1

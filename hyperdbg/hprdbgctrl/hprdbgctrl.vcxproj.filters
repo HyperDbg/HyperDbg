@@ -57,6 +57,9 @@
     <Filter Include="code\debugger\user-level">
       <UniqueIdentifier>{99209a5e-ea79-45ff-b830-1da660afcb75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\debugger\kernel-level">
+      <UniqueIdentifier>{2f700221-e2a8-4d14-bc0a-2541768d7a57}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -116,7 +119,7 @@
     <ClInclude Include="header\pe-parser.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="header\usermode-debugging.h">
+    <ClInclude Include="header\ud.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -382,15 +385,6 @@
     <ClCompile Include="code\debugger\core\interpreter.cpp">
       <Filter>code\debugger\core</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\core\kd.cpp">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\listening.cpp">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
-    <ClCompile Include="code\debugger\core\symbol.cpp">
-      <Filter>code\debugger\core</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\misc\disassembler.cpp">
       <Filter>code\debugger\misc</Filter>
     </ClCompile>
@@ -409,9 +403,6 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\dt.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\user-level\usermode-debugging.cpp">
-      <Filter>code\debugger\user-level</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
@@ -425,6 +416,24 @@
       <Filter>code\debugger\commands\meta-commands</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\commands\meta-commands\start.cpp">
+      <Filter>code\debugger\commands\meta-commands</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\ud.cpp">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\kernel-level\kd.cpp">
+      <Filter>code\debugger\kernel-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp">
+      <Filter>code\debugger\script-engine-wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp">
+      <Filter>code\debugger\kernel-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\user-listening.cpp">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\meta-commands\switch.cpp">
       <Filter>code\debugger\commands\meta-commands</Filter>
     </ClCompile>
   </ItemGroup>

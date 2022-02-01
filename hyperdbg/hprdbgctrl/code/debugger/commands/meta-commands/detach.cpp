@@ -1,6 +1,6 @@
 /**
  * @file detach.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .detach command
  * @details
  * @version 0.1
@@ -14,8 +14,8 @@
 //
 // Global Variables
 //
-extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
-extern BOOLEAN                 g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 
 /**
  * @brief help of .detach command
@@ -42,15 +42,6 @@ DetachFromProcess()
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest = {0};
 
     //
-    // Check if we attached to a process or not
-    //
-    if (!g_ActiveThreadDebuggingState)
-    {
-        ShowMessages("you're not attached to any thread\n");
-        return;
-    }
-
-    //
     // Check if debugger is loaded or not
     //
     if (!g_DeviceHandle)
@@ -59,6 +50,20 @@ DetachFromProcess()
                      "use 'load' command?\n");
         return;
     }
+
+    //
+    // Check if we attached to a process or not
+    //
+    if (!g_ActiveProcessDebuggingState.IsActive)
+    {
+        ShowMessages("you're not attached to any thread\n");
+        return;
+    }
+
+    //
+    // Perform the detaching of the target process
+    //
+    UdDetachProcess(g_ActiveProcessDebuggingState.ProcessId, g_ActiveProcessDebuggingState.ProcessDebuggingToken);
 }
 
 /**

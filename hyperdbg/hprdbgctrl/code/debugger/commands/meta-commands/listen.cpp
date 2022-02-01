@@ -1,6 +1,6 @@
 /**
  * @file listen.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .listen command
  * @details
  * @version 0.1

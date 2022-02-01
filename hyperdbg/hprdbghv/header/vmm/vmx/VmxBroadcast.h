@@ -1,6 +1,6 @@
 /**
  * @file VmxBroadcast.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers for broadcast in VMX-root mode
  * @details
  * @version 0.1

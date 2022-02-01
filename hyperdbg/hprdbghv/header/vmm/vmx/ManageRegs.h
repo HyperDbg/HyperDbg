@@ -1,6 +1,6 @@
 /**
  * @file ManageRegs.h
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Headers relating to Management Registers (set and get regs value) 
  * @details
  * @version 0.1

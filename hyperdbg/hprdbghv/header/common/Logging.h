@@ -1,6 +1,6 @@
 /**
  * @file Logging.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers of Message logging and tracing
  * @details
  * @version 0.1
@@ -49,17 +49,29 @@ typedef struct _BUFFER_HEADER
  */
 typedef struct _LOG_BUFFER_INFORMATION
 {
-    UINT64 BufferStartAddress; // Start address of the buffer
-    UINT64 BufferEndAddress;   // End address of the buffer
+    KSPIN_LOCK BufferLock;                 // SpinLock to protect access to the queue
+    KSPIN_LOCK BufferLockForNonImmMessage; // SpinLock to protect access to the queue of non-imm messages
 
     UINT64 BufferForMultipleNonImmediateMessage; // Start address of the buffer for accumulating non-immadiate messages
     UINT32 CurrentLengthOfNonImmBuffer;          // the current size of the buffer for accumulating non-immadiate messages
 
-    KSPIN_LOCK BufferLock;                 // SpinLock to protect access to the queue
-    KSPIN_LOCK BufferLockForNonImmMessage; // SpinLock to protect access to the queue of non-imm messages
+    //
+    // Regular buffers
+    //
+    UINT64 BufferStartAddress; // Start address of the buffer
+    UINT64 BufferEndAddress;   // End address of the buffer
 
     UINT32 CurrentIndexToSend;  // Current buffer index to send to user-mode
     UINT32 CurrentIndexToWrite; // Current buffer index to write new messages
+
+    //
+    // Priority buffers
+    //
+    UINT64 BufferStartAddressPriority; // Start address of the buffer
+    UINT64 BufferEndAddressPriority;   // End address of the buffer
+
+    UINT32 CurrentIndexToSendPriority;  // Current buffer index to send to user-mode for priority buffers
+    UINT32 CurrentIndexToWritePriority; // Current buffer index to write new messages for priority buffers
 
 } LOG_BUFFER_INFORMATION, *PLOG_BUFFER_INFORMATION;
 
@@ -145,7 +157,7 @@ VOID
 LogUnInitialize();
 
 BOOLEAN
-LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength);
+LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority);
 
 UINT32
 LogMarkAllAsRead(BOOLEAN IsVmxRoot);
@@ -154,13 +166,15 @@ BOOLEAN
 LogReadBuffer(BOOLEAN IsVmxRoot, PVOID BufferToSaveMessage, UINT32 * ReturnedLength);
 
 BOOLEAN
-LogCheckForNewMessage(BOOLEAN IsVmxRoot);
+LogPrepareAndSendMessageToQueue(UINT32       OperationCode,
+                                BOOLEAN      IsImmediateMessage,
+                                BOOLEAN      ShowCurrentSystemTime,
+                                BOOLEAN      Priority,
+                                const char * Fmt,
+                                ...);
 
 BOOLEAN
-LogPrepareAndSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, BOOLEAN ShowCurrentSystemTime, const char * Fmt, ...);
-
-BOOLEAN
-LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen);
+LogSendMessageToQueue(UINT32 OperationCode, BOOLEAN IsImmediateMessage, CHAR * LogMessage, UINT32 BufferLen, BOOLEAN Priority);
 
 VOID
 LogNotifyUsermodeCallback(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2);

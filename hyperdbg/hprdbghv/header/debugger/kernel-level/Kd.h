@@ -1,6 +1,6 @@
 /**
  * @file Kd.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for routines related to kernel mode debugging
  * @details 
  * @version 0.1
@@ -131,3 +131,6 @@ KdLoggingResponsePacketToDebugger(CHAR * OptionalBuffer, UINT32 OptionalBufferLe
 
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector);
+
+BOOLEAN
+KdIsGuestOnUsermode32Bit();

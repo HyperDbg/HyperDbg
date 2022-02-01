@@ -1,6 +1,6 @@
 /**
  * @file Hv.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file describes the routines in Hypervisor
  * @details vmx related routines
  * @version 0.1
@@ -70,6 +70,19 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
     INT32  CpuInfo[4];
     ULONG  Mode    = 0;
     UINT64 Context = 0;
+
+    //
+    // Check if attaching is for command dispatching in user debugger
+    // or a regular CPUID
+    //
+    if (g_UserDebuggerState && UdCheckForCommand())
+    {
+        //
+        // It's a thread command for user debugger, no need to run the
+        // actual CPUID instruction and change the registers
+        //
+        return;
+    }
 
     //
     // Set the context (save eax for the debugger)
@@ -210,11 +223,19 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             InvvpidSingleContext(VPID_TAG);
 
             //
-            // Call kernel debugger handler for mov to cr3
+            // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
             if (g_GuestState[ProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
                 ProcessHandleProcessChange(ProcessorIndex, GuestState);
+            }
+
+            //
+            // Call user debugger handler of thread intercepting mechanism
+            //
+            if (g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger)
+            {
+                AttachingHandleCr3VmexitsForThreadInterception(ProcessorIndex, NewCr3Reg);
             }
 
             break;
@@ -481,26 +502,7 @@ HvSetPmcVmexit(BOOLEAN Set)
 VOID
 HvSetMovToCr3Vmexit(BOOLEAN Set)
 {
-    ULONG CpuBasedVmExecControls = 0;
-
-    //
-    // Read the previous flags
-    //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
-
-    if (Set)
-    {
-        CpuBasedVmExecControls |= CPU_BASED_CR3_LOAD_EXITING;
-    }
-    else
-    {
-        CpuBasedVmExecControls &= ~CPU_BASED_CR3_LOAD_EXITING;
-    }
-
-    //
-    // Set the new value
-    //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    ProtectedHvSetMov2Cr3Exiting(Set);
 }
 
 /**

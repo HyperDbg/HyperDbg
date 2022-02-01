@@ -1,6 +1,6 @@
 /**
  * @file g.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief g command
  * @details
  * @version 0.1
@@ -14,9 +14,10 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_BreakPrintingOutput;
-extern BOOLEAN g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of g command
@@ -54,10 +55,28 @@ CommandGRequest()
 
         //
         // If it's a remote debugger then we send the remote debuggee a 'g'
+        // and if we're connect to user debugger then we send the packet
+        // with current debugging thread token
         //
         if (g_IsConnectedToRemoteDebuggee)
         {
             RemoteConnectionSendCommand("g", strlen("g") + 1);
+        }
+        else if (g_ActiveProcessDebuggingState.IsActive)
+        {
+            if (g_ActiveProcessDebuggingState.IsPaused)
+            {
+                UdContinueDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken);
+
+                //
+                // Target process is running
+                //
+                g_ActiveProcessDebuggingState.IsPaused = FALSE;
+            }
+            else
+            {
+                ShowMessages("err, target process is already running\n");
+            }
         }
     }
 }

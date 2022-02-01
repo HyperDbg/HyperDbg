@@ -1,6 +1,6 @@
 /**
  * @file MemoryMapper.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the functions to map memory to reserved system ranges
  * @details also some of the functions derived from hvpp
  * - https://github.com/wbenny/hvpp
@@ -34,9 +34,9 @@ MemoryMapperGetIndex(PML Level, UINT64 Va)
  * 
  * @param Level PMLx
  * @param Va Virtual Address
- * @return int 
+ * @return UINT32 
  */
-int
+UINT32
 MemoryMapperGetOffset(PML Level, UINT64 Va)
 {
     UINT64 Result = MemoryMapperGetIndex(Level, Va);
@@ -56,95 +56,16 @@ PPAGE_ENTRY
 MemoryMapperGetPteVa(PVOID Va, PML Level)
 {
     CR3_TYPE Cr3;
-    UINT64   TempCr3;
-    PUINT64  Cr3Va;
-    PUINT64  PdptVa;
-    PUINT64  PdVa;
-    PUINT64  PtVa;
-    UINT32   Offset;
 
+    //
+    // Read the current cr3
+    //
     Cr3.Flags = __readcr3();
 
     //
-    // Cr3 should be shifted 12 to the left because it's PFN
+    // Call the wrapper
     //
-    TempCr3 = Cr3.PageFrameNumber << 12;
-
-    //
-    // we need VA of Cr3, not PA
-    //
-    Cr3Va = PhysicalAddressToVirtualAddress(TempCr3);
-
-    //
-    // Check for invalid address
-    //
-    if (Cr3Va == NULL)
-    {
-        return NULL;
-    }
-
-    Offset = MemoryMapperGetOffset(PML4, Va);
-
-    PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
-
-    if (!Pml4e->Present || Level == PML4)
-    {
-        return Pml4e;
-    }
-
-    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12);
-
-    //
-    // Check for invalid address
-    //
-    if (PdptVa == NULL)
-    {
-        return NULL;
-    }
-
-    Offset = MemoryMapperGetOffset(PDPT, Va);
-
-    PPAGE_ENTRY Pdpte = &PdptVa[Offset];
-
-    if (!Pdpte->Present || Pdpte->LargePage || Level == PDPT)
-    {
-        return Pdpte;
-    }
-
-    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12);
-
-    //
-    // Check for invalid address
-    //
-    if (PdVa == NULL)
-    {
-        return NULL;
-    }
-
-    Offset = MemoryMapperGetOffset(PD, Va);
-
-    PPAGE_ENTRY Pde = &PdVa[Offset];
-
-    if (!Pde->Present || Pde->LargePage || Level == PD)
-    {
-        return Pde;
-    }
-
-    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12);
-
-    //
-    // Check for invalid address
-    //
-    if (PtVa == NULL)
-    {
-        return NULL;
-    }
-
-    Offset = MemoryMapperGetOffset(PT, Va);
-
-    PPAGE_ENTRY Pt = &PtVa[Offset];
-
-    return Pt;
+    return MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, Cr3);
 }
 
 /**
@@ -162,14 +83,8 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
 PPAGE_ENTRY
 MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
 {
-    CR3_TYPE Cr3;
-    CR3_TYPE CurrentProcessCr3 = {0};
-    UINT64   TempCr3;
-    PUINT64  Cr3Va;
-    PUINT64  PdptVa;
-    PUINT64  PdVa;
-    PUINT64  PtVa;
-    UINT32   Offset;
+    PPAGE_ENTRY PageEntry         = NULL;
+    CR3_TYPE    CurrentProcessCr3 = {0};
 
     //
     // Switch to new process's memory layout
@@ -180,6 +95,42 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     // physical address to virtual address is not mapped on the user cr3
     //
     CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(TargetCr3);
+
+    //
+    // Call the wrapper
+    //
+    PageEntry = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, TargetCr3);
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return PageEntry;
+}
+
+/**
+ * @brief This function gets virtual address and returns its PTE of the virtual address
+ * based on the specific cr3 but without switching to the target address
+ * @details the TargetCr3 should be kernel cr3 as we will use it to translate kernel
+ * addresses so the kernel functions to translate addresses should be mapped; thus,
+ * don't pass a KPTI meltdown user cr3 to this function
+ * 
+ * @param Va Virtual Address
+ * @param Level PMLx
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+PPAGE_ENTRY
+MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
+{
+    CR3_TYPE Cr3;
+    UINT64   TempCr3;
+    PUINT64  Cr3Va;
+    PUINT64  PdptVa;
+    PUINT64  PdVa;
+    PUINT64  PtVa;
+    UINT32   Offset;
 
     Cr3.Flags = TargetCr3.Flags;
 
@@ -261,11 +212,6 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
     Offset = MemoryMapperGetOffset(PT, Va);
 
     PPAGE_ENTRY Pt = &PtVa[Offset];
-
-    //
-    // Restore the original process
-    //
-    RestoreToPreviousProcess(CurrentProcessCr3);
 
     return Pt;
 }
@@ -1132,11 +1078,11 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source
  * @details this function should be called from vmx non-root mode
  *
  * @param ProcessId Target Process Id
- * @param Commit Whether pass the MEM_COMMIT flag to allocator or not
+ * @param Allocate Whether allocate or just reserve
  * @return Reserved address in the target user mode application
  */
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit)
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate)
 {
     NTSTATUS   Status;
     PVOID      AllocPtr  = NULL;
@@ -1169,7 +1115,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
                 &AllocPtr,
                 NULL,
                 &AllocSize,
-                Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
+                Allocate ? MEM_COMMIT : MEM_RESERVE,
                 PAGE_EXECUTE_READWRITE);
 
             KeUnstackDetachProcess(&State);
@@ -1187,14 +1133,14 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
     else
     {
         //
-        // Allocate (not allocate, just reserve) in memory in target process
+        // Allocate in memory in target process
         //
         Status = ZwAllocateVirtualMemory(
             NtCurrentProcess(),
             &AllocPtr,
             NULL,
             &AllocSize,
-            Commit ? MEM_RESERVE | MEM_COMMIT : MEM_RESERVE,
+            Allocate ? MEM_COMMIT : MEM_RESERVE,
             PAGE_EXECUTE_READWRITE);
     }
 
@@ -1204,6 +1150,81 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Comm
     }
 
     return AllocPtr;
+}
+
+/**
+ * @brief Deallocates a previously reserved user mode address in the target user mode application
+ * @details this function should be called from vmx non-root mode
+ *
+ * @param ProcessId Target Process Id
+ * @param BaseAddress Previously allocated base address
+ * @return BOOLEAN whether the operation was successful or not
+ */
+BOOLEAN
+MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress)
+{
+    NTSTATUS   Status;
+    SIZE_T     AllocSize = PAGE_SIZE;
+    PEPROCESS  SourceProcess;
+    KAPC_STATE State = {0};
+
+    if (PsGetCurrentProcessId() != ProcessId)
+    {
+        //
+        // User needs another process memory
+        //
+
+        if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+        {
+            //
+            // if the process not found
+            //
+            return FALSE;
+        }
+        __try
+        {
+            KeStackAttachProcess(SourceProcess, &State);
+
+            //
+            // Free memory in target process
+            //
+            Status = ZwFreeVirtualMemory(NtCurrentProcess(),
+                                         &BaseAddress,
+                                         &AllocSize,
+                                         MEM_RELEASE);
+
+            KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            KeUnstackDetachProcess(&State);
+
+            ObDereferenceObject(SourceProcess);
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // Deallocate memory in target process
+        //
+        Status = ZwFreeVirtualMemory(NtCurrentProcess(),
+                                     &BaseAddress,
+                                     &AllocSize,
+                                     MEM_RELEASE);
+    }
+
+    if (!NT_SUCCESS(Status))
+    {
+        return FALSE;
+    }
+
+    //
+    // Operation was successful
+    //
+    return TRUE;
 }
 
 /**
@@ -1285,4 +1306,40 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     // Restore the original process
     //
     RestoreToPreviousProcess(CurrentProcessCr3);
+}
+
+/**
+ * @brief This function the Supervisor bit of the target PTE based on the specific cr3
+ * 
+ * @param Va Virtual Address
+ * @param Set Set it to 1 or 0
+ * @param Level PMLx
+ * @param TargetCr3 kernel cr3 of target process
+ * @return BOOLEAN whether was successful or not
+ */
+BOOLEAN
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3)
+{
+    PPAGE_ENTRY Pml = NULL;
+
+    Pml = MemoryMapperGetPteVaWithoutSwitchingByCr3(Va, Level, TargetCr3);
+
+    if (!Pml)
+    {
+        return FALSE;
+    }
+
+    //
+    // Change the supervisor bit
+    //
+    if (Set)
+    {
+        Pml->Supervisor = 1;
+    }
+    else
+    {
+        Pml->Supervisor = 0;
+    }
+
+    return TRUE;
 }

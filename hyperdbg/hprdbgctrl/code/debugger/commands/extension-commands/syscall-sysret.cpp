@@ -1,6 +1,6 @@
 /**
  * @file syscall-sysret.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !syscall and !sysret commands
  * @details
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file readmem.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (aleeamini@gmail.com)
  * @brief HyperDbg command for u and d*
  * @details

@@ -1,6 +1,6 @@
 /**
  * @file DpcRoutines.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief All the dpc routines which relates to executing on a single core
  * for multi-core you can use Broadcast.c
  * 
@@ -893,6 +893,34 @@ DpcRoutineSetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID 
     // Enable Exception Bitmaps from vmx-root
     //
     AsmVmxVmcall(VMCALL_SET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Disable Exception Bitmaps on all cores
+ * 
+ * @param Dpc 
+ * @param DeferredContext Exception index on IDT
+ * @param SystemArgument1 
+ * @param SystemArgument2 
+ * @return VOID 
+ */
+VOID
+DpcRoutineUnsetExceptionBitmapOnAllCores(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    //
+    // Disable Exception Bitmaps from vmx-root
+    //
+    AsmVmxVmcall(VMCALL_UNSET_EXCEPTION_BITMAP, DeferredContext, 0, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

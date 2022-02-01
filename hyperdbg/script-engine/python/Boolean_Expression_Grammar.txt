@@ -9,7 +9,11 @@
 
 S->BE
 
+
 BE->B1
+
+
+
 
 B1->B2 B1'
 B1'->&& B2 B1' @AND
@@ -31,8 +35,7 @@ CMP->EXP >= EXP @EGT
 CMP->EXP <= EXP @ELT
 CMP->EXP == EXP @EQUAL
 CMP->EXP != EXP @NEQ
-
-CMP->( CMP )
+CMP->EXP 
 
 EXP->E1 E0'
 E0'->| E1 E0' @OR
@@ -87,7 +90,7 @@ E12->.OneOpFunc1 ( EXP ) @.OneOpFunc1
 E12->.TwoOpFunc1 ( EXP , EXP ) @.TwoOpFunc2
 E12->.ThreeOpFunc1 ( EXP , EXP , EXP ) @.ThreeOpFunc1 
 
-E12->( EXP )
+E12->( BE ) E13
 
 
 # Types must have '_' at the first 

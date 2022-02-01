@@ -1,6 +1,6 @@
 /**
  * @file tsc.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !tsc commands
  * @details
  * @version 0.1

@@ -124,7 +124,7 @@
     <ClInclude Include="header\symbol.h" />
     <ClInclude Include="header\tests.h" />
     <ClInclude Include="header\transparency.h" />
-    <ClInclude Include="header\usermode-debugging.h" />
+    <ClInclude Include="header\ud.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -135,17 +135,19 @@
     <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\restart.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\start.cpp" />
+    <ClCompile Include="code\debugger\commands\meta-commands\switch.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\thread.cpp" />
     <ClCompile Include="code\debugger\core\break-control.cpp" />
     <ClCompile Include="code\debugger\core\debugger.cpp" />
     <ClCompile Include="code\debugger\core\interpreter.cpp" />
-    <ClCompile Include="code\debugger\core\kd.cpp" />
-    <ClCompile Include="code\debugger\core\listening.cpp" />
-    <ClCompile Include="code\debugger\core\symbol.cpp" />
+    <ClCompile Include="code\debugger\kernel-level\kd.cpp" />
+    <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp" />
     <ClCompile Include="code\debugger\misc\disassembler.cpp" />
     <ClCompile Include="code\debugger\misc\readmem.cpp" />
+    <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp" />
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
-    <ClCompile Include="code\debugger\user-level\usermode-debugging.cpp" />
+    <ClCompile Include="code\debugger\user-level\ud.cpp" />
+    <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

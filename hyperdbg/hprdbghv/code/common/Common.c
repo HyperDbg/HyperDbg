@@ -1,6 +1,6 @@
 /**
  * @file Common.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Common functions that needs to be used in all source code files
  * @details
  * @version 0.1
@@ -119,7 +119,7 @@ VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
 /**
  * @brief Converts pid to kernel cr3
  * 
- * @details this function should NOT be called from vmx-root mode
+ * @details this function should NOT be called from vmx-root 
  *
  * @param ProcessId ProcessId to switch
  * @return CR3_TYPE The cr3 of the target process 

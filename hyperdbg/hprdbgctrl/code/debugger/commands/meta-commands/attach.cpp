@@ -1,6 +1,6 @@
 /**
  * @file attach.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .attach command
  * @details
  * @version 0.1
@@ -25,12 +25,8 @@ VOID
 CommandAttachHelp()
 {
     ShowMessages(".attach : attach to debug a thread in VMI Mode.\n\n");
-    ShowMessages("syntax : \t.attach [pid (hex)] [tid (hex)]\n");
-    ShowMessages("note : if you don't specify the thread id (id), then it shows "
-                 "the list of active threads on the target process (it won't "
-                 "attach to the target thread).\n");
+    ShowMessages("syntax : \t.attach [pid (hex)]\n");
     ShowMessages("\t\te.g : .attach pid b60 \n");
-    ShowMessages("\t\te.g : .attach pid b60 tid 220 \n");
 }
 
 /**
@@ -44,14 +40,21 @@ VOID
 CommandAttach(vector<string> SplittedCommand, string Command)
 {
     UINT64  TargetPid = 0;
-    UINT64  TargetTid = 0;
     BOOLEAN NextIsPid = FALSE;
-    BOOLEAN NextIsTid = FALSE;
+
+    //
+    // Show a message that the user debugger is still in the experimental version
+    //
+    ShowMessages("in contrast with the kernel debugger, the user debugger is still very basic "
+                 "and needs a lot of tests and improvements. It's highly recommended not to run the "
+                 "user debugger in your bare metal system. Instead, run it on a supported virtual "
+                 "machine to won't end up with a Blue Screen of Death (BSOD) in your primary device. "
+                 "Please keep reporting the issues to improve the user debugger\n\n");
 
     //
     // It's a attach to a target PID
     //
-    if (SplittedCommand.size() >= 6)
+    if (SplittedCommand.size() >= 4)
     {
         ShowMessages("incorrect use of '.attach'\n\n");
         CommandAttachHelp();
@@ -85,30 +88,12 @@ CommandAttach(vector<string> SplittedCommand, string Command)
                 return;
             }
         }
-        else if (NextIsTid)
-        {
-            NextIsTid = FALSE;
-
-            if (!ConvertStringToUInt64(item, &TargetTid))
-            {
-                ShowMessages("please specify a correct hex value for thread id\n\n");
-                CommandAttachHelp();
-                return;
-            }
-        }
         else if (!item.compare("pid"))
         {
             //
             // next item is a pid for the process
             //
             NextIsPid = TRUE;
-        }
-        else if (!item.compare("tid"))
-        {
-            //
-            // next item is a tid for the thread
-            //
-            NextIsTid = TRUE;
         }
     }
 
@@ -123,29 +108,7 @@ CommandAttach(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if the thread id is specified or not, if not then
-    // we should just show the thread of the target process
-    //
-    if (TargetTid == 0)
-    {
-        UsermodeDebuggingListProcessThreads(TargetPid);
-        return;
-    }
-    else
-    {
-        //
-        // Check if the process id and thread id is correct or not
-        //
-        if (!UsermodeDebuggingCheckThreadByProcessId(TargetPid, TargetTid))
-        {
-            ShowMessages("err, the thread or the process not found, or the thread not "
-                         "belongs to the process, or the thread is terminated\n");
-            return;
-        }
-    }
-
-    //
     // Perform attach to target process
     //
-    UsermodeDebuggingAttachToProcess(TargetPid, TargetTid, NULL, NULL);
+    UdAttachToProcess(TargetPid, NULL, NULL);
 }

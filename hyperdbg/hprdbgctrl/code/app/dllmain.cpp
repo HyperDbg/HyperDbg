@@ -1,6 +1,6 @@
 /**
  * @file dllmain.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Defines the entry point for the DLL application
  * @details
  * @version 0.1

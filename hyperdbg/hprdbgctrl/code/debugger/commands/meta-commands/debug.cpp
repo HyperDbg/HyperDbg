@@ -1,6 +1,6 @@
 /**
  * @file debug.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .debug command
  * @details
  * @version 0.1

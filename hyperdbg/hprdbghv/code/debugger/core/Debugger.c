@@ -1,6 +1,6 @@
 /**
  * @file Debugger.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger functions
  * @details
  * 
@@ -151,7 +151,7 @@ DebuggerInitialize()
     RtlZeroMemory(g_ScriptGlobalVariables, MAX_VAR_COUNT * sizeof(UINT64));
 
     //
-    // Intialize the local variables
+    // Intialize the local and temp variables
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
@@ -169,18 +169,25 @@ DebuggerInitialize()
             return FALSE;
         }
 
+        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable)
+        {
+            g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable =
+                ExAllocatePoolWithTag(NonPagedPool, MAX_TEMP_COUNT * sizeof(UINT64), POOLTAG);
+        }
+
+        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable)
+        {
+            //
+            // Out of resource, initialization of script engine's local varialbe holders failed
+            //
+            return FALSE;
+        }
+
         //
-        // Zero the local variables memory
+        // Zero the local and temp variables memory
         //
         RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
-    }
-
-    //
-    // Initialize attaching mechanism
-    //
-    if (!AttachingInitialize())
-    {
-        return FALSE;
+        RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
     }
 
     return TRUE;
@@ -227,12 +234,9 @@ DebuggerUninitialize()
     KdUninitializeKernelDebugger();
 
     //
-    // Check for nop-sled uninitialization
+    // Uninitialize user debugger
     //
-    if (g_SteppingsNopSledState.IsNopSledInitialized)
-    {
-        ExFreePoolWithTag(g_SteppingsNopSledState.NopSledVirtualAddress, POOLTAG);
-    }
+    UdUninitializeUserDebugger();
 }
 
 /**
@@ -1114,6 +1118,12 @@ DebuggerPerformRunScript(UINT64                  Tag,
     ACTION_BUFFER                ActionBuffer  = {0};
     SYMBOL                       ErrorSymbol   = {0};
     SCRIPT_ENGINE_VARIABLES_LIST VariablesList = {0};
+    ULONG                        CoreIndex     = NULL;
+
+    //
+    // Get core index
+    //
+    CoreIndex = KeGetCurrentProcessorNumber();
 
     if (Action != NULL)
     {
@@ -1157,14 +1167,12 @@ DebuggerPerformRunScript(UINT64                  Tag,
         return FALSE;
     }
 
-    UINT64 g_TempList[MAX_TEMP_COUNT] = {0};
-
     //
     // Fill the variables list for this run
     //
-    VariablesList.TempList            = g_TempList;
     VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
-    VariablesList.LocalVariablesList  = g_GuestState[KeGetCurrentProcessorNumber()].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.LocalVariablesList  = g_GuestState[CoreIndex].DebuggingState.ScriptEngineCoreSpecificLocalVariable;
+    VariablesList.TempList            = g_GuestState[CoreIndex].DebuggingState.ScriptEngineCoreSpecificTempVariable;
 
     for (int i = 0; i < CodeBuffer.Pointer;)
     {

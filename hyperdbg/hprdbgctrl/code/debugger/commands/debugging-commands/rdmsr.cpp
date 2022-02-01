@@ -1,6 +1,6 @@
 /**
  * @file rdmsr.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief rdmsr command
  * @details
  * @version 0.1

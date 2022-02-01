@@ -1,7 +1,7 @@
 /**
  * @file Kd.c
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Routines related to kernel mode debugging
  * @details 
  * @version 0.1
@@ -73,7 +73,7 @@ KdInitializeKernelDebugger()
     InitializeListHead(&g_BreakpointsListHead);
 
     //
-    // Indicate that kernel debugger is active
+    // Indicate that the kernel debugger is active
     //
     g_KernelDebuggerState = TRUE;
 }
@@ -90,12 +90,12 @@ KdUninitializeKernelDebugger()
 {
     ULONG CoreCount;
 
-    CoreCount = KeQueryActiveProcessorCount(0);
-
     if (g_KernelDebuggerState)
     {
+        CoreCount = KeQueryActiveProcessorCount(0);
+
         //
-        // Indicate that kernel debugger is not active
+        // Indicate that the kernel debugger is not active
         //
         g_KernelDebuggerState = FALSE;
 
@@ -868,7 +868,8 @@ KdCloseConnectionAndUnloadDebuggee()
     //
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_CLOSE_AND_UNLOAD_VMM,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 }
 
 /**
@@ -884,7 +885,8 @@ KdReloadSymbolDetailsInDebuggee()
     //
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 }
 
 /**
@@ -903,7 +905,8 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
     //
     LogSendBuffer(OPERATION_DEBUGGEE_USER_INPUT,
                   Descriptor,
-                  Len);
+                  Len,
+                  TRUE);
 }
 
 /**
@@ -1431,7 +1434,8 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 {
     LogSendBuffer(OPERATION_DEBUGGEE_REGISTER_EVENT,
                   ((CHAR *)EventDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                  EventDetailHeader->Length);
+                  EventDetailHeader->Length,
+                  TRUE);
 }
 
 /**
@@ -1445,7 +1449,8 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 {
     LogSendBuffer(OPERATION_DEBUGGEE_ADD_ACTION_TO_EVENT,
                   ((CHAR *)ActionDetailHeader + sizeof(DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET)),
-                  ActionDetailHeader->Length);
+                  ActionDetailHeader->Length,
+                  TRUE);
 }
 
 /**
@@ -1587,7 +1592,8 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         LogSendBuffer(OPERATION_DEBUGGEE_CLEAR_EVENTS,
                       ModifyAndQueryEvent,
-                      sizeof(DEBUGGER_MODIFY_EVENTS));
+                      sizeof(DEBUGGER_MODIFY_EVENTS),
+                      TRUE);
     }
     else
     {
@@ -2299,10 +2305,10 @@ KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
                             PGUEST_REGS                       GuestRegs,
                             PDEBUGGER_TRIGGERED_EVENT_DETAILS EventDetails)
 {
-    DEBUGGEE_PAUSED_PACKET PausePacket;
-    ULONG                  ExitInstructionLength  = 0;
-    UINT64                 SizeOfSafeBufferToRead = 0;
-    RFLAGS                 Rflags                 = {0};
+    DEBUGGEE_KD_PAUSED_PACKET PausePacket;
+    ULONG                     ExitInstructionLength  = 0;
+    UINT64                    SizeOfSafeBufferToRead = 0;
+    RFLAGS                    Rflags                 = {0};
 
     //
     // Perform Pre-halt tasks
@@ -2320,7 +2326,7 @@ StartAgain:
         //
         // *** Current Operating Core  ***
         //
-        RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_PAUSED_PACKET));
+        RtlZeroMemory(&PausePacket, sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //
         // Set the halt reason
@@ -2409,7 +2415,7 @@ StartAgain:
         KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
                                    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_PAUSED_AND_CURRENT_INSTRUCTION,
                                    &PausePacket,
-                                   sizeof(DEBUGGEE_PAUSED_PACKET));
+                                   sizeof(DEBUGGEE_KD_PAUSED_PACKET));
 
         //
         // Perform Commands from the debugger

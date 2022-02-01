@@ -49,7 +49,7 @@ class LL1Parser:
         self.SPECIAL_TOKENS = ['%', '+', '~', '++', '-', '--', "*", "/", "=", "==", "!=", ",", ";", "(", ")", "{", "}", "|", "||", ">>", ">=", "<<", "<=", "&", "&&", "^"]
 
         # INVALID rule indicator
-        self.INVALID = -99
+        self.INVALID = -999
 
         self.FunctionsDict = dict()
         self.OperatorsTwoOperand = []

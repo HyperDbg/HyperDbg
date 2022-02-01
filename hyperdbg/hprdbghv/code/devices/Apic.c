@@ -1,6 +1,6 @@
 /**
  * @file Apic.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for Advanced Programmable Interrupt Controller (APIC)
  * @details The code is derived from (https://www.cpl0.com/blog/?p=46)
  * @version 0.1

@@ -1,6 +1,6 @@
 /**
  * @file Hv.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file contains the headers for Hypervisor Routines which have to be called by external codes
  * @details DO NOT DIRECTLY CALL VMX FUNCTIONS, instead use these routines
  * 

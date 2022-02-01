@@ -1,7 +1,7 @@
 /**
  * @file DebuggerCommands.c
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Implementation of Debugger Commands 
  * 
  * @version 0.1
@@ -1043,8 +1043,9 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
 NTSTATUS
 DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest)
 {
-    if (PreallocRequest->Type == DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR)
+    switch (PreallocRequest->Type)
     {
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_MONITOR:
         //
         // Perform the allocations for !monitor command
         //
@@ -1062,9 +1063,20 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
         PoolManagerRequestAllocation(sizeof(EPT_HOOKED_PAGE_DETAIL),
                                      PreallocRequest->Count,
                                      TRACKING_HOOKED_PAGES);
-    }
-    else
-    {
+        break;
+
+    case DEBUGGER_PREALLOC_COMMAND_TYPE_THREAD_INTERCEPTION:
+
+        //
+        // Request pages to be allocated for thread interception mechanism
+        //
+        PoolManagerRequestAllocation(sizeof(USERMODE_DEBUGGING_THREAD_HOLDER),
+                                     PreallocRequest->Count,
+                                     PROCESS_THREAD_HOLDER);
+
+        break;
+    default:
+
         PreallocRequest->KernelStatus = DEBUGGER_ERROR_COULD_NOT_FIND_ALLOCATION_TYPE;
         return STATUS_UNSUCCESSFUL;
     }

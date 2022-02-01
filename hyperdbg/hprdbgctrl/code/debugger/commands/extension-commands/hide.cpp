@@ -1,6 +1,6 @@
 /**
  * @file hide.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !hide command
  * @details
  * @version 0.1

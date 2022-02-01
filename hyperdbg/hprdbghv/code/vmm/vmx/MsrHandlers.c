@@ -1,6 +1,6 @@
 /**
  * @file MsrHandlers.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handle for MSR-related tasks in VMX-root
  * 
  * @version 0.1

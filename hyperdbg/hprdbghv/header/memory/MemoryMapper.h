@@ -1,6 +1,6 @@
 /**
  * @file MemoryMapper.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the header functions to map memory to reserved system ranges
  * 
  * also some of the functions derived from hvpp
@@ -347,6 +347,12 @@ MemoryMapperGetPteVa(PVOID Va, PML Level);
 PPAGE_ENTRY
 MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
 
+PPAGE_ENTRY
+MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+
+BOOLEAN
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3);
+
 BOOLEAN
 MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3);
 
@@ -362,7 +368,10 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
                                     CR3_TYPE         TargetProcessKernelCr3);
 
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Commit);
+MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate);
+
+BOOLEAN
+MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress);
 
 BOOLEAN
 MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId);

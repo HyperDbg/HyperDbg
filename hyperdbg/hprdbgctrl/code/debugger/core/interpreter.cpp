@@ -1,6 +1,6 @@
 /**
  * @file interpreter.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The hyperdbg command interpreter and driver connector
  * @details
  * @version 0.1
@@ -16,8 +16,8 @@ using namespace std;
 //
 // Global Variables
 //
-extern PTHREAD_DEBUGGING_STATE g_ActiveThreadDebuggingState;
-extern CommandType             g_CommandsList;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+extern CommandType              g_CommandsList;
 
 extern BOOLEAN g_ShouldPreviousCommandBeContinued;
 extern BOOLEAN g_IsCommandListInitialized;
@@ -331,14 +331,15 @@ HyperdbgShowSignature()
         //
         ShowMessages("[%s:%s] HyperDbg> ", g_ServerIp.c_str(), g_ServerPort.c_str());
     }
-    else if (g_ActiveThreadDebuggingState != NULL)
+    else if (g_ActiveProcessDebuggingState.IsActive)
     {
         //
         // Debugging a special process
         //
-        ShowMessages("%x:%x uHyperDbg> ",
-                     g_ActiveThreadDebuggingState->ProcessId,
-                     g_ActiveThreadDebuggingState->ThreadId);
+        ShowMessages("%x:%x u%sHyperDbg> ",
+                     g_ActiveProcessDebuggingState.ProcessId,
+                     g_ActiveProcessDebuggingState.ThreadId,
+                     g_ActiveProcessDebuggingState.Is32Bit ? "86" : "64");
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
     {
@@ -578,6 +579,9 @@ InitializeCommandsDictionary()
 
     g_CommandsList[".restart"] = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
     g_CommandsList["restart"]  = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
+
+    g_CommandsList[".switch"] = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+    g_CommandsList["switch"]  = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
 
     g_CommandsList[".kill"] = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
     g_CommandsList["kill"]  = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};

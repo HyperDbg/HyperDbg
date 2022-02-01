@@ -1,6 +1,6 @@
 /**
  * @file Install.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Install functions
  * @details
  * @version 0.1

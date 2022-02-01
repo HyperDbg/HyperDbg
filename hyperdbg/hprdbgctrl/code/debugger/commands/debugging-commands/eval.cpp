@@ -1,6 +1,6 @@
 /**
  * @file eval.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief eval (?) command
  * @details
  * @version 0.1
@@ -86,7 +86,7 @@ CommandEvalCheckTestcase()
                 //
                 if (!std::getline(File, Line))
                 {
-                    return FALSE;
+                    goto ErrorMessage;
                 }
 
                 Expr = Line;
@@ -97,7 +97,7 @@ CommandEvalCheckTestcase()
                 //
                 if (!std::getline(File, Line))
                 {
-                    return FALSE;
+                    goto ErrorMessage;
                 }
 
                 if (!Line.compare("$error$"))
@@ -113,7 +113,7 @@ CommandEvalCheckTestcase()
                 else if (!ConvertStringToUInt64(Line, &ExpectedValue))
                 {
                     ShowMessages("err, the expected results are in incorrect format\n");
-                    return FALSE;
+                    goto ErrorMessage;
                 }
                 else
                 {
@@ -132,14 +132,21 @@ CommandEvalCheckTestcase()
                 //
                 // Test results
                 //
-                ShowMessages("Test result : %s\n", ScriptAutomaticStatementsTestWrapper(Expr, ExpectedValue, ExpectError) ? "Passed" : "Failed");
+                if (ScriptAutomaticStatementsTestWrapper(Expr, ExpectedValue, ExpectError))
+                {
+                    ShowMessages("Test result : Passed\n");
+                }
+                else
+                {
+                    ShowMessages("Test result : Failed\n");
+                }
 
                 //
                 // Test-case end
                 //
                 if (!std::getline(File, Line))
                 {
-                    return FALSE;
+                    goto ErrorMessage;
                 }
 
                 //
@@ -150,7 +157,7 @@ CommandEvalCheckTestcase()
                     //
                     // err, we'd expect a $end$ at this situation
                     //
-                    return FALSE;
+                    goto ErrorMessage;
                 }
 
                 ShowMessages("\n------------------------------------------------------------\n\n");
@@ -167,6 +174,12 @@ CommandEvalCheckTestcase()
     }
 
     return TRUE;
+
+ErrorMessage:
+
+    ShowMessages("\nerr, testing failed! incorrect file format for the testing "
+                 "script engine\nmake sure files have a correct ending format\n");
+    return FALSE;
 }
 
 /**
@@ -216,7 +229,11 @@ CommandEval(vector<string> SplittedCommand, string Command)
         //
         if (!CommandEvalCheckTestcase())
         {
-            ShowMessages("testing script engine test-cases was not successful!\n");
+            ShowMessages("err, testing script engine test-cases was not successful\n");
+        }
+        else
+        {
+            ShowMessages("testing script engine test-cases was successful\n");
         }
 
         return;

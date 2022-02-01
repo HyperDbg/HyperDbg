@@ -1,6 +1,6 @@
 /**
  * @file SsdtHook.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of functions to find SSDT entries for SSDT Hook
  * @details
  * @version 0.1

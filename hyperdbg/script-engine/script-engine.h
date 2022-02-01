@@ -1,6 +1,6 @@
 /**
  * @file script-engine.h
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1
@@ -63,7 +63,8 @@ typedef enum _SCRIPT_ENGINE_ERROR_TYPE
     SCRIPT_ENGINE_ERROR_SYNTAX,
     SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN,
     SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE,
-    SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE
+    SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE,
+    SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL
 } SCRIPT_ENGINE_ERROR_TYPE,
     *PSCRIPT_ENGINE_ERROR_TYPE;
 
@@ -96,7 +97,7 @@ ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
-char *
+void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     TOKEN                     FirstToken,
@@ -107,7 +108,7 @@ ScriptEngineBooleanExpresssionParse(
     PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression);
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, TOKEN CurrentIn);
 
 void
 CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);

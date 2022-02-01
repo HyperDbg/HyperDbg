@@ -1,6 +1,6 @@
 /**
  * @file Dpc.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Definition for Windows DPC functions
  * @details
  * @version 0.1

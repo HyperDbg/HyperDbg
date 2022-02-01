@@ -1,6 +1,6 @@
 /**
  * @file Ept.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Gbps
  * @brief The implementation of functions relating to the Extended Page Table (a.k.a. EPT)
  * @details Some of the codes are re-used from Gbps/gbhv (https://github.com/Gbps/gbhv)
@@ -436,26 +436,19 @@ EptAllocateAndCreateIdentityPageTable()
     //
     // Allocate all paging structures as 4KB aligned pages
     //
-    PHYSICAL_ADDRESS MaxSize;
-    PVOID            Output;
+
+    PVOID Output;
 
     //
-    // Allocate address anywhere in the OS's memory space
+    // Allocate address anywhere in the OS's memory space and
+    // zero out all entries to ensure all unused entries are marked Not Present
     //
-    MaxSize.QuadPart = MAXULONG64;
-
-    PageTable = MmAllocateContiguousMemory((sizeof(VMM_EPT_PAGE_TABLE) / PAGE_SIZE) * PAGE_SIZE, MaxSize);
-
+    PageTable = CrsAllocateContiguousZeroedMemory(sizeof(VMM_EPT_PAGE_TABLE));
     if (PageTable == NULL)
     {
         LogError("Err, failed to allocate memory for PageTable");
         return NULL;
     }
-
-    //
-    // Zero out all entries to ensure all unused entries are marked Not Present
-    //
-    RtlZeroMemory(PageTable, sizeof(VMM_EPT_PAGE_TABLE));
 
     //
     // Mark the first 512GB PML4 entry as present, which allows us to manage up

@@ -1,6 +1,6 @@
 /**
  * @file hyperdbg-cli.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main HyperDbg Cli source coede
  * @details
  * @version 0.1

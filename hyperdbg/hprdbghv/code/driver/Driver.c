@@ -1,6 +1,6 @@
 /**
  * @file Driver.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The project entry 
  * @details This file contains major functions and all the interactions
  * with usermode codes are managed from here.
@@ -163,13 +163,18 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     }
 
     //
-    // Free core specific local variables
+    // Free core specific local and temp variables
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
         if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable != NULL)
         {
             ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+        }
+
+        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable != NULL)
+        {
+            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
 

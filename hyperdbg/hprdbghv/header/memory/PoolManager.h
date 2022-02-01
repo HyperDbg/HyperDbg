@@ -1,6 +1,6 @@
 /**
  * @file PoolManager.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers of pool manager
  * @details
  * @version 0.1
@@ -37,6 +37,7 @@ typedef enum
     SPLIT_2MB_PAGING_TO_4KB_PAGE,
     DETOUR_HOOK_DETAILS,
     BREAKPOINT_DEFINITION_STRUCTURE,
+    PROCESS_THREAD_HOLDER,
 
 } POOL_ALLOCATION_INTENTION;
 

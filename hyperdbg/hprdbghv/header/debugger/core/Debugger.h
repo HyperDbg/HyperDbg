@@ -1,6 +1,6 @@
 ﻿/**
  * @file Debugger.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief General debugger headers
  * @details 
  * @version 0.1
@@ -151,6 +151,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     UINT16                                     InstructionLengthHint;
     UINT64                                     HardwareDebugRegisterForStepping;
     UINT64 *                                   ScriptEngineCoreSpecificLocalVariable;
+    UINT64 *                                   ScriptEngineCoreSpecificTempVariable;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 

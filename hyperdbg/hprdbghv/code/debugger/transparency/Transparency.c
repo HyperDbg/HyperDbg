@@ -1,6 +1,6 @@
 /**
  * @file Transparency.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief try to hide the debugger from anti-debugging and anti-hypervisor methods
  * @details
  * @version 0.1

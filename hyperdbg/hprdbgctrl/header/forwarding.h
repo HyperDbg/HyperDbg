@@ -1,6 +1,6 @@
 /**
  * @file forwarding.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers for event source forwarding
  * @details
  * @version 0.1

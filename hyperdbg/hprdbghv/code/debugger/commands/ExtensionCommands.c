@@ -1,6 +1,6 @@
 /**
  * @file ExtensionCommands.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger Commands (Extensions)
  * @details Debugger Commands that start with "!"
  * 
@@ -315,6 +315,7 @@ ExtensionCommandDisableRdpmcExitingAllCores()
  * @brief routines for !exception command which 
  * @details causes vm-exit when exception occurred 
  * @param ExceptionIndex index of exception on IDT
+ * 
  * @return VOID 
  */
 VOID
@@ -324,6 +325,22 @@ ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
     // Broadcast to all cores
     //
     KeGenericCallDpc(DpcRoutineSetExceptionBitmapOnAllCores, ExceptionIndex);
+}
+
+/**
+ * @brief routines for disabling exception bitmap 
+ * @details removes vm-exit when exception occurred 
+ * @param ExceptionIndex index of exception on IDT
+ * 
+ * @return VOID 
+ */
+VOID
+ExtensionCommandUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineUnsetExceptionBitmapOnAllCores, ExceptionIndex);
 }
 
 /**

@@ -35,8 +35,8 @@ typedef struct ACTION_BUFFER {
 #define SYMBOL_VARIABLE_COUNT_TYPE 8
 #define SYMBOL_MEM_VALID_CHECK_MASK (1 << 31)
 #define SYMBOL_INVALID 9
-#define INVALID -99
-#define LALR_ACCEPT 99
+#define INVALID -999
+#define LALR_ACCEPT 999
 
 
 

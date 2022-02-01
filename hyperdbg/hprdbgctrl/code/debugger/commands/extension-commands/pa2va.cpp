@@ -1,6 +1,6 @@
 /**
  * @file pa2va.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief !pa2va command
  * @details
  * @version 0.1

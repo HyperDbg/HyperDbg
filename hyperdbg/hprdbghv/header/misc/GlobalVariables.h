@@ -1,6 +1,6 @@
 /**
  * @file GlobalVariables.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Here we put global variables that are used more or less in all part of our hypervisor (not all of them)
  * @details Note : All the global variables are not here, just those that
  * will be used in all project. Special use global variables are located 
@@ -118,6 +118,12 @@ TRANSPARENCY_MEASUREMENTS * g_TransparentModeMeasurements;
 BOOLEAN g_KernelDebuggerState;
 
 /**
+ * @brief shows whether the user debugger is enabled or disabled
+ * 
+ */
+BOOLEAN g_UserDebuggerState;
+
+/**
  * @brief X2APIC or XAPIC routine
  * 
  */
@@ -231,13 +237,33 @@ DEBUGGEE_REQUEST_TO_CHANGE_THREAD g_ThreadSwitch;
 UINT64 * g_MsrBitmapInvalidMsrs;
 
 /**
- * @brief PEB address of a process to monitor for possible changes 
+ * @brief Seed for tokens of unique details buffer for threads 
  * 
  */
-USERMODE_ATTACHING_DETAILS g_UsermodeAttachingState;
+UINT64 g_SeedOfUserDebuggingDetails;
 
 /**
- * @brief details relating to nop-sled page
+ * @brief Whether the thread attaching mechanism is waiting for #DB or not
  * 
  */
-DEBUGGER_STEPPINGS_NOP_SLED g_SteppingsNopSledState;
+BOOLEAN g_IsWaitingForUserModeModuleEntrypointToBeCalled;
+
+/**
+ * @brief Whether the thread attaching mechanism is waiting for a page-fault
+ * finish or not
+ * 
+ */
+BOOLEAN g_IsWaitingForReturnAndRunFromPageFault;
+
+/**
+ * @brief List header of thread debugging details
+ * 
+ */
+LIST_ENTRY g_ProcessDebuggingDetailsListHead;
+
+/**
+ * @brief Whether the page-fault and cr3 vm-exits in vmx-root should check
+ * the #PFs or the PML4.Supervisor with user debugger or not
+ * 
+ */
+BOOLEAN g_CheckPageFaultsAndMov2Cr3VmexitsWithUserDebugger;

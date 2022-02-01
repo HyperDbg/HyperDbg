@@ -1,6 +1,6 @@
 /**
  * @file SerialConnection.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for serial port connection from debuggee to debugger
  * @details
  * @version 0.1

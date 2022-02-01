@@ -1,7 +1,7 @@
 /**
  * @file pch.h
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Pre-compiled headers 
  * @details 
  *
@@ -36,6 +36,8 @@
 //
 #include "Definition.h"
 #include "Configuration.h"
+#include "platform/CrossApi.h"
+#include "platform/Environment.h"
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
@@ -81,6 +83,7 @@
 #include "..\hprdbghv\header\debugger\user-level\Attaching.h"
 #include "..\hprdbghv\header\debugger\core\Termination.h"
 #include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
+#include "..\hprdbghv\header\debugger\user-level\ThreadHolder.h"
 #include "ScriptEngineCommonDefinitions.h"
 
 //

@@ -1,6 +1,6 @@
 /**
  * @file thread.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief show and change threads
  * @details
  * @version 0.1

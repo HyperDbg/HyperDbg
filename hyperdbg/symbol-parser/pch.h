@@ -1,6 +1,6 @@
 /**
  * @file pch.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief pre-compiled headers for symbol parser
  * @details 
  * @version 0.1

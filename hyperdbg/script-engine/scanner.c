@@ -1,6 +1,6 @@
 /**
  * @file scanner.c
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @brief Script Engine Scanner
  * @details
  * @version 0.1
@@ -441,7 +441,7 @@ GetToken(char * c, char * str)
         *c          = sgetc(str);
         return Token;
     case '\n':
-        strcpy(Token->Value, "");
+        strcpy(Token->Value, "\n");
         Token->Type = WHITE_SPACE;
         *c          = sgetc(str);
         return Token;
@@ -737,7 +737,7 @@ Scan(char * str, char * c)
         }
         else if (Token->Type == WHITE_SPACE)
         {
-            if (!strcpy(Token->Value, "\n"))
+            if (!strcmp(Token->Value, "\n"))
             {
                 CurrentLine++;
                 CurrentLineIdx = InputIdx;

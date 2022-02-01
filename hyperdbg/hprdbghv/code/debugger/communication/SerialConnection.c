@@ -1,6 +1,6 @@
 /**
  * @file SerialConnection.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Serial port connection from debuggee to debugger
  * @details
  * @version 0.1

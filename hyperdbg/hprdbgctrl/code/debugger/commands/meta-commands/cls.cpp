@@ -1,6 +1,6 @@
 /**
  * @file cls.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .cls, cls, clear commands implementations
  * @details
  * @version 0.1

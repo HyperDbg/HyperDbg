@@ -1,6 +1,6 @@
 /**
  * @file CrossVmexits.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The functions for passing vm-exits in vmx root 
  * @details
  * @version 0.1

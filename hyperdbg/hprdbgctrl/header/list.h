@@ -1,6 +1,6 @@
 /**
  * @file list.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The list working functions headers
  * @details
  * @version 0.1

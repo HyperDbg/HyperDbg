@@ -1,6 +1,6 @@
 /**
  * @file start.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief .start command
  * @details
  * @version 0.1
@@ -43,6 +43,15 @@ CommandStart(vector<string> SplittedCommand, string Command)
 {
     vector<string> PathAndArgs;
     string         Arguments = "";
+
+    //
+    // Show a message that the user debugger is still in the experimental version
+    //
+    ShowMessages("in contrast with the kernel debugger, the user debugger is still very basic "
+                 "and needs a lot of tests and improvements. It's highly recommended not to run the "
+                 "user debugger in your bare metal system. Instead, run it on a supported virtual "
+                 "machine to won't end up with a Blue Screen of Death (BSOD) in your primary device. "
+                 "Please keep reporting the issues to improve the user debugger\n\n");
 
     if (SplittedCommand.size() <= 2)
     {
@@ -126,16 +135,14 @@ CommandStart(vector<string> SplittedCommand, string Command)
     //
     if (Arguments.empty())
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         NULL);
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          NULL);
     }
     else
     {
-        UsermodeDebuggingAttachToProcess(NULL,
-                                         NULL,
-                                         g_StartCommandPath.c_str(),
-                                         (WCHAR *)g_StartCommandPathAndArguments.c_str());
+        UdAttachToProcess(NULL,
+                          g_StartCommandPath.c_str(),
+                          (WCHAR *)g_StartCommandPathAndArguments.c_str());
     }
 }

@@ -1,6 +1,6 @@
 /**
  * @file t.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief t command
  * @details
  * @version 0.1
@@ -14,8 +14,9 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN g_IsInstrumentingInstructions;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsInstrumentingInstructions;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of t command
@@ -80,10 +81,20 @@ CommandT(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Check if the remote serial debuggee is paused or not
+    // Check if the remote serial debuggee or user debugger are paused or not
     //
-    if (g_IsSerialConnectedToRemoteDebuggee)
+    if (g_IsSerialConnectedToRemoteDebuggee || g_ActiveProcessDebuggingState.IsActive)
     {
+        //
+        // Check if the thread is paused or not
+        //
+        if (g_ActiveProcessDebuggingState.IsActive && !g_ActiveProcessDebuggingState.IsPaused)
+        {
+            ShowMessages("the target process is running, use the "
+                         "'pause' command or press CTRL+C to pause the process\n");
+            return;
+        }
+
         //
         // Indicate that we're instrumenting
         //
@@ -91,7 +102,29 @@ CommandT(vector<string> SplittedCommand, string Command)
 
         for (size_t i = 0; i < StepCount; i++)
         {
-            KdSendStepPacketToDebuggee(RequestFormat);
+            //
+            // For logging purpose
+            //
+            // ShowMessages("percentage : %f %% (%x)\n", 100.0 * (i /
+            //   (float)StepCount), i);
+            //
+
+            if (g_IsSerialConnectedToRemoteDebuggee)
+            {
+                //
+                // It's stepping over serial connection in kernel debugger
+                //
+                KdSendStepPacketToDebuggee(RequestFormat);
+            }
+            else
+            {
+                //
+                // It's stepping over user debugger
+                //
+                UdSendStepPacketToDebuggee(g_ActiveProcessDebuggingState.ProcessDebuggingToken,
+                                           g_ActiveProcessDebuggingState.ThreadId,
+                                           RequestFormat);
+            }
 
             if (!SplittedCommand.at(0).compare("tr"))
             {

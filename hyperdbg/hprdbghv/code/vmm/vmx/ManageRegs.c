@@ -1,7 +1,7 @@
 /**
  * @file ManageRegs.c
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Manage Registers
  * @details
  * @version 0.1

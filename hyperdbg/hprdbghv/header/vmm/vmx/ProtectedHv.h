@@ -1,6 +1,6 @@
 /**
  * @file ProtectedHv.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header files for protected hypervisor resources
  * @details Protected Hypervisor Routines are those resource that 
  * are used in different parts of the debugger or hypervisor,
@@ -96,3 +96,10 @@ ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set);
 
 VOID
 ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();
+
+//
+// Mov to CR3 Exiting Functions
+//
+
+VOID
+ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set);

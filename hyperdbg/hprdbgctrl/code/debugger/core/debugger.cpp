@@ -1,6 +1,6 @@
 /**
  * @file debugger.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Interpret general fields
  * @details
  * @version 0.1
@@ -288,6 +288,57 @@ ShowErrorMessage(UINT32 Error)
     case DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS:
         ShowMessages("err, unable to detect whether the process was 32-bit "
                      "or 64-bit (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS:
+        ShowMessages("err, unable to kill the process (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN:
+        ShowMessages("err, invalid thread debugging token (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS:
+        ShowMessages("err, unable to pause the threads of the process (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_AN_ALREADY_ATTACHED_PROCESS:
+        ShowMessages("err, the user debugger is already attached to this "
+                     "process, please use the '.switch' command to switch "
+                     "to this process (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS:
+        ShowMessages("err, the user debugger is not already attached to "
+                     "the process (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS:
+        ShowMessages("err, the user debugger is not able to detach from "
+                     "this process as there are paused threads in the "
+                     "target process, please make sure to remove all "
+                     "the events and continue the target process, then "
+                     "perform the detach again (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID:
+        ShowMessages("err, enable to switch to the process id or thread id "
+                     "as the target process id or thread id is not found in "
+                     "the attached threads list, please view the list of "
+                     "processes and threads by using the '.switch list' command (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS:
+        ShowMessages("err, enable to switch to the process as the process doesn't "
+                     "contain an active intercepted thread (%x)\n",
                      Error);
         break;
 

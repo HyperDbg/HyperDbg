@@ -1,6 +1,6 @@
 /**
  * @file DebuggerCommands.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Commands for debugger
  * @details This file contains general commands that are implemented for debugger 
  * These command mostly start without "!" or "."

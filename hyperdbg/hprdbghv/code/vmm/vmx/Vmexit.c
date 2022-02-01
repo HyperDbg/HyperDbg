@@ -1,6 +1,6 @@
 /**
  * @file Vmexit.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The functions for VM-Exit handler for different exit reasons 
  * @details
  * @version 0.1

@@ -87,15 +87,6 @@
     <Filter Include="code\driver">
       <UniqueIdentifier>{741ef68b-5aac-4ce8-bb82-169a07fc1383}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\vmm">
-      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\vmm\ept">
-      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="code\vmm\vmx">
-      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\debugger\core">
       <UniqueIdentifier>{7d4abf38-f80e-4376-a3c7-6ba8d60ae929}</UniqueIdentifier>
     </Filter>
@@ -143,6 +134,21 @@
     </Filter>
     <Filter Include="header\debugger\kernel-level">
       <UniqueIdentifier>{775b4982-b0fa-40e7-8875-f176a39a0fa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm">
+      <UniqueIdentifier>{801e6efc-7fb0-4ed3-9aea-dbb1f63d3ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm\ept">
+      <UniqueIdentifier>{ec45d147-144f-487e-ae36-966cbc095b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\vmm\vmx">
+      <UniqueIdentifier>{aabeca50-1c14-442c-8268-ece54ed257d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\platform">
+      <UniqueIdentifier>{68d1ee5d-bda8-423c-9a5b-b259d9afc34c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\platform">
+      <UniqueIdentifier>{4caf74e9-0bbf-4e81-84ff-0cdf14f79c16}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -296,6 +302,12 @@
     <ClCompile Include="code\debugger\user-level\Ud.c">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
+    <ClCompile Include="code\platform\CrossApi.c">
+      <Filter>code\platform</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\user-level\ThreadHolder.c">
+      <Filter>code\debugger\user-level</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -437,6 +449,15 @@
       <Filter>header\debugger\kernel-level</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\user-level\Ud.h">
+      <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\platform\CrossApi.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\platform\Environment.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\user-level\ThreadHolder.h">
       <Filter>header\debugger\user-level</Filter>
     </ClInclude>
   </ItemGroup>

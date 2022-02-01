@@ -1,6 +1,6 @@
 /**
  * @file transparency.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Measurements for debugger transparency
  * @details
  * @version 0.1

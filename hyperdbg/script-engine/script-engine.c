@@ -1,7 +1,7 @@
 ﻿/**
  * @file script-engine.c
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Script engine parser and codegen
  * @details
  * @version 0.1
@@ -224,9 +224,11 @@ ScriptEngineParse(char * str)
         {
             if (!strcmp(TopToken->Value, "BOOLEAN_EXPRESSION"))
             {
-                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression);
+                
+               
+                UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
-                ErrorMessage = ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
+                ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
                 if (Error != SCRIPT_ENGINE_ERROR_FREE)
                 {
                     break;
@@ -346,14 +348,15 @@ ScriptEngineParse(char * str)
 #endif
     } while (TopToken->Type != END_OF_STACK);
 
-    if (ErrorMessage == NULL)
+    if (Error != SCRIPT_ENGINE_ERROR_FREE)
     {
-        if (Error != SCRIPT_ENGINE_ERROR_FREE)
-        {
-            ErrorMessage = HandleError(&Error, str);
-        }
+        ErrorMessage = HandleError(&Error, str);
+        CleanTempList();
     }
-
+    else 
+    {
+        ErrorMessage = NULL;
+    }
     CodeBuffer->Message = ErrorMessage;
 
     if (Stack)
@@ -464,7 +467,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -622,7 +625,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -681,7 +684,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -708,7 +711,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            Temp = NewTemp();
+            Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
@@ -1470,7 +1473,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
 }
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression)
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, TOKEN CurrentIn)
 {
     UINT64 BooleanExpressionSize = 0;
     if (*WaitForWaitStatementBooleanExpression)
@@ -1485,6 +1488,10 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
     else
     {
         int OpenParanthesesCount = 1;
+        if (!strcmp(CurrentIn->Value, "("))
+        {
+            OpenParanthesesCount++;
+        }
         while (str[InputIdx + BooleanExpressionSize - 1] != '\0')
         {
             if (str[InputIdx + BooleanExpressionSize - 1] == ')')
@@ -1509,7 +1516,7 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 *
 *
 */
-char *
+void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     TOKEN                     FirstToken,
@@ -1528,6 +1535,16 @@ ScriptEngineBooleanExpresssionParse(
     strcpy(State->Value, "0");
 
     Push(Stack, State);
+    
+
+#ifdef _SCRIPT_ENGINE_LALR_DBG_EN
+    printf("Boolean Expression: ");
+    for (int i = 0; i < BooleanExpressionSize; i++)
+    {
+        printf("%c", str[InputIdx + i]);
+    }
+    printf("\n\n");
+#endif
 
     //
     // End of File Token
@@ -1563,9 +1580,10 @@ ScriptEngineBooleanExpresssionParse(
         TopToken       = Top(Stack);
         int TerminalId = LalrGetTerminalId(CurrentIn);
         StateId        = DecimalToSignedInt(TopToken->Value);
-        if (StateId == INVALID)
+        if (StateId == INVALID || TerminalId < 0)
         {
-            return;
+            *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+            break;
         }
         Action = LalrActionTable[StateId][TerminalId];
 
@@ -1584,8 +1602,12 @@ ScriptEngineBooleanExpresssionParse(
             *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
             break;
         }
-
-        if (Action > 0) // Shift
+        if (Action == 0)
+        {
+            *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+            break;
+        }
+        else if (Action >= 0) // Shift
         {
             StateId = Action;
             Push(Stack, CurrentIn);
@@ -1594,7 +1616,7 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(4);
+            State->Value = malloc(16);
             sprintf(State->Value, "%d", StateId);
             Push(Stack, State);
 
@@ -1673,24 +1695,15 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(4);
+            State->Value = malloc(16);
             sprintf(State->Value, "%d", Goto);
             Push(Stack, LhsCopy);
             Push(Stack, State);
-
-#ifdef _SCRIPT_ENGINE_LALR_DBG_EN
-            printf("Stack :\n");
-            PrintTokenList(Stack);
-#endif
         }
     }
 
-    char * Message = NULL;
-    if (*Error != SCRIPT_ENGINE_ERROR_FREE)
-    {
-        Message             = HandleError(Error, str);
-        CodeBuffer->Message = Message;
-    }
+   
+
 
     if (EndToken)
         RemoveToken(EndToken);
@@ -1701,7 +1714,7 @@ ScriptEngineBooleanExpresssionParse(
     if (CurrentIn)
         RemoveToken(CurrentIn);
 
-    return Message;
+    return;
 }
 /**
 *
@@ -1852,10 +1865,9 @@ NewSymbolBuffer(void)
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
-    //PrintSymbolBuffer(SymbolBuffer);
-    /*  free(SymbolBuffer->Message);
+    free(SymbolBuffer->Message);
     free(SymbolBuffer->Head);
-    free(SymbolBuffer);*/
+    free(SymbolBuffer);
 }
 
 /**
@@ -2029,22 +2041,7 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 {
     //
-    // allocate rquired memory for message
-    //
-    int    MessageSize = (InputIdx - CurrentLineIdx) * 2 + 30 + 100;
-    char * Message     = (char *)malloc(MessageSize);
-
-    //
-    // add line number
-    //
-    strcpy(Message, "Line ");
-    char * Line = (char *)malloc(16);
-    sprintf(Line, "%d:\n", CurrentLine);
-    strcat(Message, Line);
-    free(Line);
-
-    //
-    // add the line which error happened at
+    // calculate position of current line 
     //
     unsigned int LineEnd;
     for (int i = InputIdx;; i++)
@@ -2055,10 +2052,35 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
             break;
         }
     }
+    
+    //
+    // allocate required memory for message, 16 for line, 100 for error information,
+    // (CurrentTokenIdx - CurrentLineIdx) for space and,
+    // (LineEnd - CurrentLineIdx) for input string
+    //
+    int    MessageSize = 16 + 100 + (CurrentTokenIdx - CurrentLineIdx) + (LineEnd - CurrentLineIdx);
+    char * Message     = (char *)malloc(MessageSize);
 
+    //
+    // add line number
+    //
+    strcpy(Message, "Line ");
+    char Line[16] = {0};
+    sprintf(Line, "%d:\n", CurrentLine);
+    strcat(Message, Line);
+
+    
+
+    //
+    // add the line which error happened at
+    //
+    
+    
     strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
     strcat(Message, "\n");
 
+
+   
     //
     // add pointer
     //
@@ -2092,6 +2114,11 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     case SCRIPT_ENGINE_ERROR_UNHANDLED_SEMANTIC_RULE:
         strcat(Message, "Syntax Error: ");
         strcat(Message, "Unhandled Semantic Rule");
+        return Message;
+
+    case SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL: 
+        strcat(Message, "Internal Error: ");
+        strcat(Message, "Please split the expression to many smaller expressions.");
         return Message;
 
     default:

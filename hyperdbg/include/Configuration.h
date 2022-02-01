@@ -1,6 +1,6 @@
 /**
  * @file Configuration.h
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Global configuration that applies on compile time
  * @details you can disable or enable the following features and compile the
  * project Next time you used the project binary files these settings applied.

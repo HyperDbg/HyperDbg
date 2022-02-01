@@ -1,6 +1,6 @@
 /**
  * @file x.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief parse symbols
  * @details
  * @version 0.1

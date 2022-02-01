@@ -1,7 +1,7 @@
 /**
  * @file commands.h
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief The hyperdbg command interpreter and driver connector
  * @details
  * @version 0.1
@@ -181,11 +181,13 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_DETACH_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
 
+#define DEBUGGER_COMMAND_SWITCH_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
+
 #define DEBUGGER_COMMAND_START_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 
 #define DEBUGGER_COMMAND_RESTART_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 
-#define DEBUGGER_COMMAND_KILL_ATTRIBUTES NULL
+#define DEBUGGER_COMMAND_KILL_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_WONT_STOP_DEBUGGER_AGAIN
 
 #define DEBUGGER_COMMAND_PROCESS_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE
@@ -518,6 +520,9 @@ CommandStart(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandRestart(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandSwitch(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandKill(vector<string> SplittedCommand, string Command);

@@ -208,14 +208,14 @@ NewTokenList(void)
 void
 RemoveTokenList(TOKEN_LIST TokenList)
 {
-    /* TOKEN Token;l
+    TOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
         RemoveToken(Token);
     }
-    free(TokenList->Head);*/
-    //free(TokenList);
+    free(TokenList->Head);
+    free(TokenList);
 
     return;
 }
@@ -412,7 +412,7 @@ IsOctal(char c)
 }
 
 TOKEN
-NewTemp(void)
+NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
     int                 i;
@@ -427,8 +427,7 @@ NewTemp(void)
     }
     if (i == MAX_TEMP_COUNT)
     {
-        // TODO: Handle Error
-        printf("err, not enough temporary variables to allocate\n");
+        *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
     TOKEN Temp = NewToken();
     char  TempValue[8];
@@ -444,6 +443,15 @@ FreeTemp(TOKEN Temp)
     if (Temp->Type == TEMP)
     {
         TempMap[id] = 0;
+    }
+}
+
+void
+CleanTempList(void)
+{
+    for (int i = 0; i < MAX_TEMP_COUNT; i++)
+    {
+        TempMap[i] = 0;
     }
 }
 

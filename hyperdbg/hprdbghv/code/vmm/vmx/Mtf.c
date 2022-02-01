@@ -1,6 +1,6 @@
 /**
  * @file Mtf.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines relating to Monitor Trap Flag (MTF)
  * @details 
  * @version 0.1
@@ -91,7 +91,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Check for user-mode attaching mechanisms
         //
-        if (g_UsermodeAttachingState.IsWaitingForUserModeModuleEntrypointToBeCalled)
+        if (g_IsWaitingForUserModeModuleEntrypointToBeCalled)
         {
             UserAccessCheckForLoadedModuleDetails();
         }

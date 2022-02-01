@@ -1,7 +1,7 @@
 /**
  * @file script-engine-wrapper.cpp
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Interpret general fields
  * @details
  * @version 0.1
@@ -22,6 +22,7 @@
 //
 extern UINT64 * g_ScriptGlobalVariables;
 extern UINT64 * g_ScriptLocalVariables;
+extern UINT64 * g_ScriptTempVariables;
 
 //
 // *********************** Pdb parse wrapper ***********************
@@ -286,6 +287,17 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     }
 
     //
+    // Allocate temp variables holder, actually in reality each core should
+    // have its own set of temp variables but as we never run multi-core scripts
+    // in user-mode, thus, it's okay to just have one buffer for temp variables
+    //
+    if (!g_ScriptTempVariables)
+    {
+        g_ScriptTempVariables = (UINT64 *)malloc(MAX_TEMP_COUNT * sizeof(UINT64));
+        RtlZeroMemory(g_ScriptTempVariables, MAX_TEMP_COUNT * sizeof(UINT64));
+    }
+
+    //
     // Run Parser
     //
     PSYMBOL_BUFFER CodeBuffer = ScriptEngineParse((char *)Expr.c_str());
@@ -295,9 +307,8 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     //PrintSymbolBuffer(CodeBuffer);
 
-    UINT64        g_TempList[MAX_TEMP_COUNT] = {0};
-    ACTION_BUFFER ActionBuffer               = {0};
-    SYMBOL        ErrorSymbol                = {0};
+    ACTION_BUFFER ActionBuffer = {0};
+    SYMBOL        ErrorSymbol  = {0};
 
     if (CodeBuffer->Message == NULL)
     {
@@ -315,7 +326,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             //
             // Fill the variables list for this run
             //
-            VariablesList.TempList            = g_TempList;
+            VariablesList.TempList            = g_ScriptTempVariables;
             VariablesList.GlobalVariablesList = g_ScriptGlobalVariables;
             VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
 
@@ -340,7 +351,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
         ShowMessages("%s\n", CodeBuffer->Message);
     }
 
-    // RemoveSymbolBuffer(CodeBuffer);
+    RemoveSymbolBuffer(CodeBuffer);
 
     return;
 }
@@ -357,6 +368,11 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 BOOLEAN
 ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
 {
+    //
+    // Set the global variable indicator of test_statement to 0
+    //
+    g_CurrentExprEvalResult = 0;
+
     //
     // Call the test parser
     //

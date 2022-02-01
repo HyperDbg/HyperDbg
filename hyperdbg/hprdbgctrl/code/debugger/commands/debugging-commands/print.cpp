@@ -1,7 +1,7 @@
 /**
  * @file print.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @brief print command
  * @details
  * @version 0.1

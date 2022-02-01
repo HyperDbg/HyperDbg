@@ -1,6 +1,6 @@
 /**
  * @file hprdbgctrl.cpp
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Main interface to connect applications to driver
  * @details
  * @version 0.1
@@ -339,6 +339,16 @@ ReadIrpBasedBuffer()
 
                     break;
 
+                case OPERATION_NOTIFICATION_FROM_USER_DEBUGGER_PAUSE:
+
+                    //
+                    // handle pausing packet from user debugger
+                    //
+                    UdHandleUserDebuggerPausing(
+                        (PDEBUGGEE_UD_PAUSED_PACKET)(OutputBuffer + sizeof(UINT32)));
+
+                    break;
+
                 default:
 
                     if (g_BreakPrintingOutput)
@@ -666,7 +676,12 @@ HyperdbgUnload()
         return 1;
     }
 
-    ShowMessages("start terminating vmx...\n");
+    ShowMessages("start terminating...\n");
+
+    //
+    // Uninitialize the user debugger if it's initialized
+    //
+    UdUninitializeUserDebugger();
 
     //
     // Send IOCTL to mark complete all IRP Pending

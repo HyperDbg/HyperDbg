@@ -1,6 +1,6 @@
 /**
  * @file Vmcall.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The main VMCALL and Hypercall handler
  * @details
  * @version 0.1
@@ -74,6 +74,7 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
         //
         GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
     }
+    return STATUS_SUCCESS;
 }
 
 /**
@@ -457,7 +458,8 @@ VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
     //
     LogSendBuffer(OPERATION_HYPERVISOR_DRIVER_IS_SUCCESSFULLY_LOADED,
                   "$",
-                  1);
+                  1,
+                  TRUE);
 
     return STATUS_SUCCESS;
 }

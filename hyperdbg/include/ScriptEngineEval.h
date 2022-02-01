@@ -1,8 +1,8 @@
 /**
  * @file ScriptEngineEval.h
- * @author M.H. Gholamrezaei (gholamrezaei.mh@gmail.com)
- * @author Sina Karvandi (sina@rayanfam.com)
- * @author Alee Amini (aleeaminiz@gmail.com)
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @author Alee Amini (alee@hyperdbg.org)
  * @brief Shared Headers for Script engine
  * @details
  * @version 0.1
@@ -136,7 +136,7 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define LOBYTE(w) ((BYTE)(w))
 #define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
-#define MAX_TEMP_COUNT 32
+#define MAX_TEMP_COUNT 1024
 
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.

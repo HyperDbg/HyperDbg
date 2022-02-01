@@ -1,6 +1,6 @@
 /**
  * @file Broadcast.c
- * @author Sina Karvandi (sina@rayanfam.com)
+ * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Broadcast debugger function to all logical cores
  * @details This file uses DPC to run its functions on all logical cores
  * @version 0.1
