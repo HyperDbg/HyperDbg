@@ -912,3 +912,93 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEB
                 .EventHandle,
         INFINITE);
 }
+
+/**
+ * @brief Set the active debugging thread by process id or thread id 
+ *
+ * @param TargetPidOrTid
+ * @param IsTid
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
+{
+    BOOLEAN                                  Status;
+    ULONG                                    ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // We wanna switch to a process or thread
+    //
+    SwitchRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD;
+
+    //
+    // Set the process id or thread id
+    //
+    if (IsTid)
+    {
+        SwitchRequest.ThreadId = TargetPidOrTid;
+    }
+    else
+    {
+        SwitchRequest.ProcessId = TargetPidOrTid;
+    }
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &SwitchRequest,                                  // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &SwitchRequest,                                  // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Check if killing was successful or not
+    //
+    if (SwitchRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        //
+        // Set the current active debugging process (thread)
+        //
+        UdSetActiveDebuggingProcess(SwitchRequest.Token,
+                                    SwitchRequest.ProcessId,
+                                    SwitchRequest.ThreadId,
+                                    SwitchRequest.Is32Bit,
+                                    SwitchRequest.IsPaused);
+
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(SwitchRequest.Result);
+        return FALSE;
+    }
+}

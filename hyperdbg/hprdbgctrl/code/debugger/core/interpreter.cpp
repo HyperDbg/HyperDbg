@@ -580,6 +580,9 @@ InitializeCommandsDictionary()
     g_CommandsList[".restart"] = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
     g_CommandsList["restart"]  = {&CommandRestart, &CommandRestartHelp, DEBUGGER_COMMAND_RESTART_ATTRIBUTES};
 
+    g_CommandsList[".switch"] = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+    g_CommandsList["switch"]  = {&CommandSwitch, &CommandSwitchHelp, DEBUGGER_COMMAND_SWITCH_ATTRIBUTES};
+
     g_CommandsList[".kill"] = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
     g_CommandsList["kill"]  = {&CommandKill, &CommandKillHelp, DEBUGGER_COMMAND_KILL_ATTRIBUTES};
 

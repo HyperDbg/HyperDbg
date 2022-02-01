@@ -1550,6 +1550,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_REMOVE_HOOKS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD,
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
 
@@ -1563,6 +1564,7 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     UINT32                                               ProcessId;
     UINT32                                               ThreadId;
     BOOLEAN                                              Is32Bit;
+    BOOLEAN                                              IsPaused; // used in switching to threads
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
     UINT64                                               Token;
     UINT64                                               Result;
@@ -2487,6 +2489,18 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * 
  */
 #define DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS 0xc0000034
+
+/**
+ * @brief error, cannot switch to new thread as the process id or thread id is not found
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID 0xc0000035
+
+/**
+ * @brief error, cannot switch to new thread the process doesn't contain an active thread
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS 0xc0000036
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

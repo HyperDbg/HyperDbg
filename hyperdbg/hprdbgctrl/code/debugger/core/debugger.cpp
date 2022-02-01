@@ -328,6 +328,20 @@ ShowErrorMessage(UINT32 Error)
                      Error);
         break;
 
+    case DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID:
+        ShowMessages("err, enable to switch to the process id or thread id "
+                     "as the target process id or thread id is not found in "
+                     "the attached threads list, please view the list of "
+                     "processes and threads by using the '.switch list' command (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS:
+        ShowMessages("err, enable to switch to the process as the process doesn't "
+                     "contain an active intercepted thread (%x)\n",
+                     Error);
+        break;
+
     default:
         ShowMessages("err, error not found (%x)\n",
                      Error);

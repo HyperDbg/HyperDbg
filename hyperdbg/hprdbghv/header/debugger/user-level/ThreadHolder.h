@@ -67,6 +67,12 @@ PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT32 ThreadId);
 
 PUSERMODE_DEBUGGING_THREAD_DETAILS
+ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId);
+
+PUSERMODE_DEBUGGING_PROCESS_DETAILS
+ThreadHolderGetProcessDebuggingDetailsByThreadId(UINT32 ThreadId);
+
+PUSERMODE_DEBUGGING_THREAD_DETAILS
 ThreadHolderFindOrCreateThreadDebuggingDetail(UINT32 ThreadId, PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
 
 BOOLEAN

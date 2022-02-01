@@ -60,6 +60,11 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
                             UINT32  ThreadId,
                             BOOLEAN Is32Bit,
                             BOOLEAN IsPaused);
+BOOLEAN
+UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
+
+BOOLEAN
+UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 
 BOOL
 UdListProcessThreads(DWORD OwnerPID);

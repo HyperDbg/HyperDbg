@@ -135,6 +135,7 @@
     <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\restart.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\start.cpp" />
+    <ClCompile Include="code\debugger\commands\meta-commands\switch.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\thread.cpp" />
     <ClCompile Include="code\debugger\core\break-control.cpp" />
     <ClCompile Include="code\debugger\core\debugger.cpp" />

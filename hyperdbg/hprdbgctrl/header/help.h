@@ -178,6 +178,9 @@ VOID
 CommandRestartHelp();
 
 VOID
+CommandSwitchHelp();
+
+VOID
 CommandKillHelp();
 
 VOID

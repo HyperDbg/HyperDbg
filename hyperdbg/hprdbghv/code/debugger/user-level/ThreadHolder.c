@@ -148,6 +148,105 @@ ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(UINT32 ProcessId, UINT
 }
 
 /**
+ * @brief Find the first active threads of the process from process id
+ * 
+ * @param ProcessId 
+ * @return PUSERMODE_DEBUGGING_THREAD_DETAILS 
+ */
+PUSERMODE_DEBUGGING_THREAD_DETAILS
+ThreadHolderGetProcessFirstThreadDetailsByProcessId(UINT32 ProcessId)
+{
+    PLIST_ENTRY                         TempList = 0;
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+
+    //
+    // First, find the process details
+    //
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(ProcessId);
+
+    if (ProcessDebuggingDetail == NULL)
+    {
+        return NULL;
+    }
+
+    TempList = &ProcessDebuggingDetail->ThreadsListHead;
+
+    while (&ProcessDebuggingDetail->ThreadsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+        for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+        {
+            if (ThreadHolder->Threads[i].ThreadId != NULL)
+            {
+                //
+                // The active thread's structure is found
+                //
+                return &ThreadHolder->Threads[i];
+            }
+        }
+    }
+
+    //
+    // Active thread not found
+    //
+    return NULL;
+}
+
+/**
+ * @brief Find the active process debugging detail from the thread id
+ * 
+ * @param ThreadId 
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
+ */
+PUSERMODE_DEBUGGING_PROCESS_DETAILS
+ThreadHolderGetProcessDebuggingDetailsByThreadId(UINT32 ThreadId)
+{
+    PLIST_ENTRY TempList  = 0;
+    PLIST_ENTRY TempList2 = 0;
+
+    TempList = &g_ProcessDebuggingDetailsListHead;
+
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
+
+        //
+        // Search through all the active threads of this process
+        //
+        TempList2 = &ProcessDebuggingDetails->ThreadsListHead;
+
+        while (&ProcessDebuggingDetails->ThreadsListHead != TempList2->Flink)
+        {
+            TempList2 = TempList2->Flink;
+            PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+                CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            {
+                if (ThreadHolder->Threads[i].ThreadId == ThreadId)
+                {
+                    //
+                    // The target thread is found, not let's return the process debugging
+                    // details of this process
+                    //
+                    return ProcessDebuggingDetails;
+                }
+            }
+        }
+    }
+
+    //
+    // Active thread not found
+    //
+    return NULL;
+}
+
+/**
  * @brief Find or create user-mode debugging details for threads
  * 
  * @param ThreadId 

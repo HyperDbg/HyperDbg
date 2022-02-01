@@ -1281,6 +1281,94 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
 }
 
 /**
+ * @brief Switch to the target thread
+ * 
+ * @param SwitchRequest 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
+{
+    PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
+    PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetail;
+
+    if (SwitchRequest->ProcessId != NULL)
+    {
+        //
+        // Switch by process id
+        //
+        ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(SwitchRequest->ProcessId);
+    }
+    else if (SwitchRequest->ThreadId != NULL)
+    {
+        //
+        // Switch by thread id
+        //
+        ProcessDebuggingDetail = ThreadHolderGetProcessDebuggingDetailsByThreadId(SwitchRequest->ThreadId);
+    }
+    else
+    {
+        SwitchRequest->Result = DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID;
+        return FALSE;
+    }
+
+    //
+    // Check if process is valid in process debugging details
+    //
+    if (!ProcessDebuggingDetail)
+    {
+        //
+        // not found
+        //
+        SwitchRequest->Result = DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID;
+        return FALSE;
+    }
+
+    //
+    // Set the IsPaused field
+    //
+    if (SwitchRequest->ThreadId != NULL)
+    {
+        //
+        // Find the thread's state
+        //
+        ThreadDebuggingDetail = ThreadHolderGetProcessThreadDetailsByProcessIdAndThreadId(ProcessDebuggingDetail->ProcessId,
+                                                                                          SwitchRequest->ThreadId);
+    }
+    else
+    {
+        //
+        // Find the first thread in the process
+        //
+        ThreadDebuggingDetail = ThreadHolderGetProcessFirstThreadDetailsByProcessId(ProcessDebuggingDetail->ProcessId);
+    }
+
+    //
+    // Check if we find the target thread
+    //
+    if (!ThreadDebuggingDetail)
+    {
+        //
+        // not found
+        //
+        SwitchRequest->Result = DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS;
+        return FALSE;
+    }
+
+    //
+    // Fill the needed details by user mode
+    //
+    SwitchRequest->Token     = ProcessDebuggingDetail->Token;
+    SwitchRequest->ProcessId = ProcessDebuggingDetail->ProcessId;
+    SwitchRequest->ThreadId  = ThreadDebuggingDetail->ThreadId;
+    SwitchRequest->Is32Bit   = ProcessDebuggingDetail->Is32Bit;
+    SwitchRequest->IsPaused  = ThreadDebuggingDetail->IsPaused;
+
+    SwitchRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    return TRUE;
+}
+
+/**
  * @brief Dispatch and perform attaching tasks
  * @details this function should not be called in vmx-root
  * 
@@ -1323,6 +1411,12 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS:
 
         AttachingPauseProcess(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD:
+
+        AttachingSwitchProcess(Request);
 
         break;
 
