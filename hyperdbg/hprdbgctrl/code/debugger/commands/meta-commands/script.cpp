@@ -43,9 +43,31 @@ CommandScriptHelp()
  * @return VOID
  */
 VOID
-CommandScriptRunCommand(char * LineContent)
+CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
 {
-    int CommandExecutionResult = 0;
+    int    CommandExecutionResult = 0;
+    char * LineContent            = NULL;
+    int    i                      = 0;
+
+    //
+    // Replace the $arg*s
+    // This is not a good approach to replace between strings,
+    // but we let it work this way and in the future versions
+    // we'll integrate the command parsing in the debugger with
+    // the script engine's command parser
+    //
+    for (auto item : PathAndArgs)
+    {
+        string ToReplace = "$arg" + std::to_string(i);
+        i++;
+
+        ReplaceAll(Input, ToReplace, item);
+    }
+
+    //
+    // Convert script to char*
+    //
+    LineContent = (char *)Input.c_str();
 
     //
     // Check if the it's a command or not
@@ -196,7 +218,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
             //
             // Run the command
             //
-            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+            CommandScriptRunCommand(CommandToExecute, PathAndArgs);
 
             //
             // Clear the command
@@ -209,7 +231,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
         //
         if (!CommandToExecute.empty())
         {
-            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+            CommandScriptRunCommand(CommandToExecute, PathAndArgs);
 
             //
             // Clear the command
