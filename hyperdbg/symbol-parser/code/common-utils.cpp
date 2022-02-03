@@ -51,7 +51,7 @@ IsDirExists(const std::string & DirPath)
  * @return BOOLEAN 
  */
 BOOLEAN
-CreateDirectoryRecursive(std::string Path)
+CreateDirectoryRecursive(const std::string & Path)
 {
     unsigned int Pos = 0;
     do

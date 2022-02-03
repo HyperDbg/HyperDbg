@@ -366,5 +366,6 @@ CommandR(vector<string> SplittedCommand, string Command)
                 ShowMessages("err, invalid register\n");
             }
         }
+        delete RegD;
     }
 }

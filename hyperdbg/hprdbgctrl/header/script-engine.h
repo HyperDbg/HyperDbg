@@ -61,10 +61,10 @@ ScriptEngineSymbolAbortLoadingWrapper();
 //////////////////////////////////////////////////
 
 VOID
-ScriptEngineWrapperTestParser(string Expr);
+ScriptEngineWrapperTestParser(const string & Expr);
 
 BOOLEAN
-ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
+ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValue, BOOLEAN ExceptError);
 
 PVOID
 ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny);
@@ -85,7 +85,7 @@ VOID
 ScriptEngineWrapperRemoveSymbolBuffer(PVOID SymbolBuffer);
 
 UINT64
-ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr, PBOOLEAN HasError);
+ScriptEngineEvalUInt64StyleExpressionWrapper(const string & Expr, PBOOLEAN HasError);
 
 //////////////////////////////////////////////////
 //          Script Engine Functions             //
