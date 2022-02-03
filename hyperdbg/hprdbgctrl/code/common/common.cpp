@@ -345,7 +345,7 @@ HasEnding(string const & fullString, string const & ending)
  * @return BOOLEAN
  */
 BOOLEAN
-ValidateIP(string ip)
+ValidateIP(const string & ip)
 {
     //
     // split the string into tokens
@@ -620,7 +620,7 @@ StringToWString(std::wstring & ws, const std::string & s)
  * @return VOID
  */
 VOID
-SplitPathAndArgs(std::vector<std::string> & Qargs, std::string Command)
+SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
 {
     int  Len = Command.length();
     bool Qot = false, Sqot = false;

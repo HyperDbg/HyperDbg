@@ -23,7 +23,7 @@ BOOLEAN
 IsDirExists(const std::string & DirPath);
 
 BOOLEAN
-CreateDirectoryRecursive(std::string Path);
+CreateDirectoryRecursive(const std::string & Path);
 
 const std::vector<std::string>
 Split(const std::string & s, const char & c);

@@ -366,7 +366,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
  * @return BOOLEAN whether the test was successful or not
  */
 BOOLEAN
-ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
+ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValue, BOOLEAN ExceptError)
 {
     //
     // Set the global variable indicator of test_statement to 0
@@ -400,7 +400,7 @@ ScriptAutomaticStatementsTestWrapper(string Expr, UINT64 ExpectationValue, BOOLE
  * @return VOID
  */
 VOID
-ScriptEngineWrapperTestParser(string Expr)
+ScriptEngineWrapperTestParser(const string & Expr)
 {
     typedef struct _TEST_STRUCT
     {
@@ -453,7 +453,7 @@ ScriptEngineWrapperTestParser(string Expr)
  * @return UINT64
  */
 UINT64
-ScriptEngineEvalUInt64StyleExpressionWrapper(string Expr, PBOOLEAN HasError)
+ScriptEngineEvalUInt64StyleExpressionWrapper(const string & Expr, PBOOLEAN HasError)
 {
     //
     // In VMI-mode we'll form all registers as zero
