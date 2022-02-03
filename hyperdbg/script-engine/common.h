@@ -3,8 +3,10 @@
 #ifndef COMMON_H
 #    define COMMON_H
 
+/**
+* @brief initial size of symbol buffer
+*/
 #    define SYMBOL_BUFFER_INIT_SIZE 64
-#    define MAX_TEMP_COUNT          32
 
 /**
 * @brief maximum length of string in the token
@@ -71,8 +73,6 @@ typedef struct _TOKEN_LIST
     unsigned int Size;
 } * TOKEN_LIST;
 
-
-
 ////////////////////////////////////////////////////
 // TOKEN related functions						  //
 ////////////////////////////////////////////////////
@@ -130,11 +130,11 @@ IsEqual(const TOKEN Token1, const TOKEN Token2);
 int
 GetNonTerminalId(TOKEN Token);
 
+int
+LalrGetNonTerminalId(TOKEN Token);
 
-int LalrGetNonTerminalId(TOKEN Token);
-
-int LalrGetTerminalId(TOKEN Token);
-
+int
+LalrGetTerminalId(TOKEN Token);
 
 ////////////////////////////////////////////////////
 //					Util Functions				  //
@@ -198,7 +198,6 @@ IsType8Func(TOKEN Operator);
 
 char
 IsTwoOperandOperator(TOKEN Operator);
-
 
 char
 IsOneOperandOperator(TOKEN Operator);
