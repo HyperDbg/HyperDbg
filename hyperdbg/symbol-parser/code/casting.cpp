@@ -53,7 +53,9 @@ typedef struct _STUPID_STRUCT2
  * @param StructName Top-level name of struct to perform the look up on this
  * struct
  * @param FiledOfStructName The field name (a field of struct)
- * @param IsItPointerOrNot Shows whether the field specified in
+ * @param IsStructNamePointerOrNot Shows whether the field specified in
+ * FiledOfStructName is a pointer or not
+ * @param IsFiledOfStructNamePointerOrNot Shows whether the field specified in
  * FiledOfStructName is a pointer or not
  * @param NewStructOrTypeName Returns the type (structure name) of the
  * FiledOfStructName for future (next '->' or '.' )
@@ -69,18 +71,25 @@ typedef struct _STUPID_STRUCT2
 BOOLEAN
 SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
                                  _In_ const char * FiledOfStructName,
-                                 _Out_ PBOOLEAN    IsItPointerOrNot,
+                                 _Out_ PBOOLEAN    IsStructNamePointerOrNot,
+                                 _Out_ PBOOLEAN    IsFiledOfStructNamePointerOrNot,
                                  _Out_ char **     NewStructOrTypeName,
                                  _Out_ UINT32 * OffsetOfFieldFromTop,
                                  _Out_ UINT32 * SizeOfField)
 {
-    BOOLEAN IsPointer                = FALSE;
-    UINT32  TempOffsetOfFieldFromTop = 0;
-    UINT32  TempSizeOfField          = 0;
+    BOOLEAN IsPointer                 = FALSE;
+    BOOLEAN IsTheStructItselfAPointer = FALSE;
+    UINT32  TempOffsetOfFieldFromTop  = 0;
+    UINT32  TempSizeOfField           = 0;
 
     if (strcmp(StructName, "STUPID_STRUCT1") == 0 ||
         strcmp(StructName, "PSTUPID_STRUCT1") == 0)
     {
+        if (strcmp(StructName, "PSTUPID_STRUCT1") == 0)
+        {
+            IsTheStructItselfAPointer = TRUE;
+        }
+
         if (strcmp(FiledOfStructName, "Flag32") == 0)
         {
             IsPointer                = FALSE;
@@ -120,6 +129,11 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
     else if (strcmp(StructName, "STUPID_STRUCT2") == 0 ||
              strcmp(StructName, "PSTUPID_STRUCT2") == 0)
     {
+        if (strcmp(StructName, "PSTUPID_STRUCT2") == 0)
+        {
+            IsTheStructItselfAPointer = TRUE;
+        }
+
         if (strcmp(FiledOfStructName, "Sina32") == 0)
         {
             IsPointer                = FALSE;
@@ -166,6 +180,11 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
     else if (strcmp(StructName, "UNICODE_STRING") == 0 ||
              strcmp(StructName, "PUNICODE_STRING") == 0)
     {
+        if (strcmp(StructName, "PUNICODE_STRING") == 0)
+        {
+            IsTheStructItselfAPointer = TRUE;
+        }
+
         if (strcmp(FiledOfStructName, "Length") == 0)
         {
             IsPointer                = FALSE;
@@ -206,9 +225,10 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
     //
     // Apply the needed information
     //
-    *OffsetOfFieldFromTop = TempOffsetOfFieldFromTop;
-    *SizeOfField          = TempSizeOfField;
-    *IsItPointerOrNot     = IsPointer;
+    *OffsetOfFieldFromTop            = TempOffsetOfFieldFromTop;
+    *SizeOfField                     = TempSizeOfField;
+    *IsFiledOfStructNamePointerOrNot = IsPointer;
+    *IsStructNamePointerOrNot        = IsTheStructItselfAPointer;
 
     return TRUE;
 }
@@ -225,7 +245,7 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
  * details
  */
 BOOLEAN
-SymQuerySizeof(_In_ const char * StructNameOrTypeName, UINT32 * SizeOfField)
+SymQuerySizeof(_In_ const char * StructNameOrTypeName, _Out_ UINT32 * SizeOfField)
 {
     if (strcmp(StructNameOrTypeName, "STUPID_STRUCT1") == 0)
     {
@@ -262,13 +282,131 @@ SymQuerySizeof(_In_ const char * StructNameOrTypeName, UINT32 * SizeOfField)
     return TRUE;
 }
 
-VOID
-TestCasting()
+int
+main()
 {
+    UINT32 SizeofResult = 0;
+
     //
-    // Test
+    // Test sizeof operator
     //
-    if (true)
+
+    if (SymQuerySizeof("PUNICODE_STRING", &SizeofResult))
     {
+        printf("result of sizeof(PUNICODE_STRING) is : 0x%x\n", SizeofResult);
+    }
+
+    if (SymQuerySizeof("SOME_UNKNOWN_STRUCT", &SizeofResult))
+    {
+        printf("result of sizeof(SOME_UNKNOWN_STRUCT) is : 0x%x\n", SizeofResult);
+    }
+    else
+    {
+        printf("SOME_UNKNOWN_STRUCT is not found\n");
+    }
+
+    printf("\n\n\n");
+
+    //
+    // ********* Test casting *********
+    //
+
+    /*
+
+
+        Local var @ 0x95fa18df58 Type AllocateStructForCasting::__l2::_STUPID_STRUCT2*
+        0x00000260`d065ee30 
+
+           +0x000 Sina32           : 0x32
+           +0x008 Sina64           : 0x64
+           +0x010 AghaaSina        : 0x00000000`00000055 Void
+           +0x018 UnicodeStr       : 0x00000260`d065ec70 AllocateStructForCasting::__l2::_UNICODE_STRING
+              +0x000 Length           : 0x40
+              +0x002 MaximumLength    : 0x40
+              +0x008 Buffer           : 0x00000260`d065ecf0  "Goodbye I'm at stupid struct 2!"
+           +0x020 StupidStruct1    : 0x00000260`d065eda0 AllocateStructForCasting::__l2::_STUPID_STRUCT1
+              +0x000 Flag32           : 0x3232
+              +0x008 Flag64           : 0x6464
+              +0x010 Context          : 0x00000000`00000085 Void
+              +0x018 StringValue      : 0x00000260`d065eb50 AllocateStructForCasting::__l2::_UNICODE_STRING
+                 +0x000 Length           : 0x3c
+                 +0x002 MaximumLength    : 0x3c
+                 +0x008 Buffer           : 0x00000260`d065ebd0  "Hi come from stupid struct 1!"
+
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->Sina32;
+        // my_var = 0x32
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->Sina64;
+        // my_var = 0x64
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->AghaaSina;
+        // my_var = 0x55
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx).Unknownnnnnn;
+        // Error because Unknownnnnnn not found
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->Unknownnnnnn;
+        // Error because Unknownnnnnn not found
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx).Sina32;
+        // Error because PSTUPID_STRUCT2 is pointer, should use '->'
+
+        my_var =  cast<PSTUPID_STRUCT2>(*@rcx).Sina32;
+        // Error because PSTUPID_STRUCT2 is pointer, should use '->'
+
+        my_var =  cast<STUPID_STRUCT2>(*@rcx).Sina32;
+        // my_var = 0x32
+
+        my_var =  cast<STUPID_STRUCT2>(*@rcx).Sina64;
+        // my_var = 0x64
+
+        my_var =  cast<STUPID_STRUCT2>(*@rcx).AghaaSina;
+        // my_var = 0x55
+
+        my_var =  cast<STUPID_STRUCT2>(*@rcx).UnicodeStr->MaximumLength;
+        // my_var = 0x40
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->UnicodeStr->MaximumLength;
+        // my_var = 0x40
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->StupidStruct1->Flag32;
+        // my_var = 0x3232
+
+        my_var =  cast<PSTUPID_STRUCT2>(@rcx)->StupidStruct1->Flag64;
+        // my_var = 0x6464
+
+        my_var =
+     cast<STUPID_STRUCT2>(*@rcx).StupidStruct1->StringValue->MaximumLength;
+        // my_var = 0x3c
+
+        printf("Result is : %ws\n", cast<PSTUPID_STRUCT2>(@rcx)->UnicodeStr->Buffer );
+        // Result is : Goodbye I'm at stupid struct 2!"
+
+        printf("Result is : %ws\n", cast<PSTUPID_STRUCT2>(@rcx)->StupidStruct1->StringValue->Buffer );
+        // Result is : Goodbye I'm at stupid struct 2!"
+
+  */
+
+    BOOLEAN IsStructPointerOrNot = FALSE;
+    BOOLEAN IsFieldPointerOrNot  = FALSE;
+    UINT32  OffsetOfFieldFromTop = NULL;
+    UINT32  SizeOfField          = NULL;
+    CHAR *  NewStructOrTypeName  = (CHAR *)malloc(100);
+    if (SymCastingQueryForFiledsAndTypes(
+            "STUPID_STRUCT2",
+            "UnicodeStr",
+            &IsStructPointerOrNot,
+            &IsFieldPointerOrNot,
+            &NewStructOrTypeName,
+            &OffsetOfFieldFromTop,
+            &SizeOfField))
+    {
+        printf("is the structure itself pointer or not: %s\n",
+               IsStructPointerOrNot ? "yes" : "no");
+        printf("is the field of structure itself pointer or not: %s\n",
+               IsFieldPointerOrNot ? "yes" : "no");
+        printf("offset of field from top : %x\n", OffsetOfFieldFromTop);
+        printf("size of field : %x\n", SizeOfField);
     }
 }

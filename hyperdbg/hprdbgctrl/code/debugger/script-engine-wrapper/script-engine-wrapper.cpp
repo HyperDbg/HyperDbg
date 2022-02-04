@@ -393,6 +393,82 @@ ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValu
     return FALSE;
 }
 
+PVOID
+AllocateStructForCasting()
+{
+    typedef struct _UNICODE_STRING
+    {
+        USHORT Length;        // +0x000
+        USHORT MaximumLength; // +0x002
+        PWSTR  Buffer;        // +0x004
+    } UNICODE_STRING, *PUNICODE_STRING;
+
+    typedef struct _STUPID_STRUCT1
+    {
+        UINT32          Flag32;      // +0x000
+        UINT64          Flag64;      // +0x004
+        PVOID           Context;     // +0x00c
+        PUNICODE_STRING StringValue; // +0x014
+    } STUPID_STRUCT1, *PSTUPID_STRUCT1;
+
+    typedef struct _STUPID_STRUCT2
+    {
+        UINT32          Sina32;        // +0x000
+        UINT64          Sina64;        // +0x004
+        PVOID           AghaaSina;     // +0x00c
+        PUNICODE_STRING UnicodeStr;    // +0x014
+        PSTUPID_STRUCT1 StupidStruct1; // +0x01c
+
+    } STUPID_STRUCT2, *PSTUPID_STRUCT2;
+
+    //
+    // Allocate UNICODE_STRING 1
+    //
+    WCHAR           MyString1[40]   = L"Hi come from stupid struct 1!";
+    UINT32          SizeOfMyString1 = wcslen(MyString1) * sizeof(WCHAR) + 2;
+    PUNICODE_STRING UnicodeStr1     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
+    WCHAR *         Buff1           = (WCHAR *)malloc(SizeOfMyString1);
+    RtlZeroMemory(Buff1, SizeOfMyString1);
+    UnicodeStr1->Buffer = Buff1;
+    UnicodeStr1->Length = UnicodeStr1->MaximumLength = SizeOfMyString1;
+    memcpy(UnicodeStr1->Buffer, MyString1, SizeOfMyString1);
+
+    //
+    // Allocate UNICODE_STRING 2
+    //
+    WCHAR           MyString2[40]   = L"Goodbye I'm at stupid struct 2!";
+    UINT32          SizeOfMyString2 = wcslen(MyString2) * sizeof(WCHAR) + 2;
+    PUNICODE_STRING UnicodeStr2     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
+    WCHAR *         Buff2           = (WCHAR *)malloc(SizeOfMyString2);
+    RtlZeroMemory(Buff2, SizeOfMyString2);
+    UnicodeStr2->Buffer = Buff2;
+    UnicodeStr2->Length = UnicodeStr2->MaximumLength = SizeOfMyString2;
+    memcpy(UnicodeStr2->Buffer, MyString2, SizeOfMyString2);
+
+    //
+    // Allocate STUPID_STRUCT1
+    //
+    PSTUPID_STRUCT1 StupidStruct1 = (PSTUPID_STRUCT1)malloc(sizeof(STUPID_STRUCT1));
+    StupidStruct1->Flag32         = 0x3232;
+    StupidStruct1->Flag64         = 0x6464;
+    StupidStruct1->Context        = (PVOID)0x85;
+    StupidStruct1->StringValue    = UnicodeStr1;
+
+    //
+    // Allocate STUPID_STRUCT2
+    //
+    PSTUPID_STRUCT2 StupidStruct2 = (PSTUPID_STRUCT2)malloc(sizeof(STUPID_STRUCT2));
+
+    StupidStruct2->Sina32        = 0x32;
+    StupidStruct2->Sina64        = 0x64;
+    StupidStruct2->AghaaSina     = (PVOID)0x55;
+    StupidStruct2->UnicodeStr    = UnicodeStr2;
+    StupidStruct2->StupidStruct1 = StupidStruct1;
+
+    _CrtDbgBreak();
+    return StupidStruct2;
+}
+
 /**
  * @brief test parser
  * @param Expr
@@ -424,7 +500,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
 
     GuestRegs.rax = 0x1;
-    GuestRegs.rcx = (UINT64)TestStruct;
+    GuestRegs.rcx = (UINT64)AllocateStructForCasting(); // TestStruct
     GuestRegs.rdx = 0x3;
     GuestRegs.rbx = 0x4;
     GuestRegs.rsp = 0x5;
