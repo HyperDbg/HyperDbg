@@ -17,6 +17,9 @@
     <ClCompile Include="code\symbol-parser.cpp">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="code\casting.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

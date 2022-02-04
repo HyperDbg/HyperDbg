@@ -88,6 +88,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="code\casting.cpp" />
     <ClCompile Include="code\common-utils.cpp" />
     <ClCompile Include="code\symbol-parser.cpp" />
   </ItemGroup>

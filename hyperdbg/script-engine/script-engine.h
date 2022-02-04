@@ -29,7 +29,8 @@ __declspec(dllimport) BOOLEAN SymCreateSymbolTableForDisassembler(void * Callbac
 __declspec(dllimport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllimport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN SymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
-
+__declspec(dllimport) BOOLEAN SymQuerySizeof(_In_ const char * StructNameOrTypeName, UINT32 * SizeOfField);
+__declspec(dllimport) BOOLEAN SymCastingQueryForFiledsAndTypes(_In_ const char * StructName, _In_ const char * FiledOfStructName, _Out_ PBOOLEAN IsItPointerOrNot, _Out_ char ** NewStructOrTypeName, _Out_ UINT32 * OffsetOfFieldFromTop, _Out_ UINT32 * SizeOfField);
 //
 // *** export pdb wrapper as script engine function ***
 //
@@ -56,6 +57,16 @@ __declspec(dllexport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllexport) VOID
     ScriptEngineSymbolAbortLoading();
+__declspec(dllexport) BOOLEAN
+    SymQuerySizeof(_In_ const char * StructNameOrTypeName,
+                   UINT32 *          SizeOfField);
+__declspec(dllexport) BOOLEAN
+    SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
+                                     _In_ const char * FiledOfStructName,
+                                     _Out_ PBOOLEAN    IsItPointerOrNot,
+                                     _Out_ char **     NewStructOrTypeName,
+                                     _Out_ UINT32 * OffsetOfFieldFromTop,
+                                     _Out_ UINT32 * SizeOfField);
 
 typedef enum _SCRIPT_ENGINE_ERROR_TYPE
 {
