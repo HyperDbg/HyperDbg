@@ -1012,6 +1012,7 @@ BOOLEAN
 UdShowListActiveDebuggingProcessesAndThreads()
 {
     BOOLEAN                                              Status;
+    BOOLEAN                                              CheckCurrentProcessOrThread;
     ULONG                                                ReturnedLength;
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS             QueryCountOfActiveThreadsRequest        = {0};
     USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS * AddressOfThreadsAndProcessDetails       = NULL;
@@ -1117,11 +1118,30 @@ UdShowListActiveDebuggingProcessesAndThreads()
             {
                 if (AddressOfThreadsAndProcessDetails[i].IsProcess)
                 {
-                    ShowMessages("%x (process)\n", AddressOfThreadsAndProcessDetails[i].ProcessId);
+                    CheckCurrentProcessOrThread = FALSE;
+
+                    if (g_ActiveProcessDebuggingState.IsActive &&
+                        AddressOfThreadsAndProcessDetails[i].ProcessId == g_ActiveProcessDebuggingState.ProcessId)
+                    {
+                        CheckCurrentProcessOrThread = TRUE;
+                    }
+
+                    ShowMessages("%s%04x (process)\n",
+                                 CheckCurrentProcessOrThread ? "*" : "",
+                                 AddressOfThreadsAndProcessDetails[i].ProcessId);
                 }
                 else
                 {
-                    ShowMessages("\t%x (thread)\n", AddressOfThreadsAndProcessDetails[i].ThreadId);
+                    CheckCurrentProcessOrThread = FALSE;
+
+                    if (g_ActiveProcessDebuggingState.IsActive &&
+                        AddressOfThreadsAndProcessDetails[i].ThreadId == g_ActiveProcessDebuggingState.ThreadId)
+                    {
+                        CheckCurrentProcessOrThread = TRUE;
+                    }
+                    ShowMessages("\t%s %04x (thread)\n",
+                                 CheckCurrentProcessOrThread ? "->" : "  ",
+                                 AddressOfThreadsAndProcessDetails[i].ThreadId);
                 }
             }
         }
