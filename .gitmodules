@@ -1,3 +1,8 @@
 [submodule "hyperdbg/dependencies/zydis"]
 	path = hyperdbg/dependencies/zydis
 	url = https://github.com/HyperDbg/zydis.git
+	
+[submodule "hyperdbg/dependencies/phnt"]
+	path = hyperdbg/dependencies/phnt
+	url = https://github.com/processhacker/phnt.git
+	
