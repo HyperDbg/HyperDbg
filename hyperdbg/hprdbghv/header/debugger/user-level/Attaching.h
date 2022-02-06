@@ -101,3 +101,6 @@ AttachingFindProcessDebuggingDetailsByToken(UINT64 Token);
 
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId);
+
+BOOLEAN
+AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize);

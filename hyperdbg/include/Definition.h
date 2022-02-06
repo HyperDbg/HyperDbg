@@ -1551,6 +1551,7 @@ typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_KILL_PROCESS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_PAUSE_PROCESS,
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD,
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_QUERY_COUNT_OF_ACTIVE_DEBUGGING_THREADS,
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE;
 
@@ -1566,11 +1567,25 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     BOOLEAN                                              Is32Bit;
     BOOLEAN                                              IsPaused; // used in switching to threads
     DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE Action;
+    UINT32                                               CountOfActiveDebuggingThreadsAndProcesses; // used in showing the list of active threads/processes
     UINT64                                               Token;
     UINT64                                               Result;
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
+
+/* ==============================================================================================
+ */
+#define SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS \
+    sizeof(USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS)
+
+typedef struct _USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS
+{
+    UINT32  ProcessId;
+    UINT32  ThreadId;
+    BOOLEAN IsProcess;
+
+} USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS, *PUSERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
 
 /* ==============================================================================================
  */
@@ -2687,3 +2702,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_SEND_USER_DEBUGGER_COMMANDS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x818, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to get active threads/processes that are debugging
+ *
+ */
+#define IOCTL_GET_DETAIL_OF_ACTIVE_THREADS_AND_PROCESSES \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x819, METHOD_BUFFERED, FILE_ANY_ACCESS)

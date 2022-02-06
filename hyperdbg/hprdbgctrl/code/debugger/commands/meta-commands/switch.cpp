@@ -70,7 +70,7 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
     {
         if (SplittedCommand.size() == 2)
         {
-            // UdShowListActiveDebuggingProcessesAndThreads();
+            UdShowListActiveDebuggingProcessesAndThreads();
         }
         else
         {

@@ -481,3 +481,140 @@ ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDeb
         PoolManagerFreePool(ThreadHolder);
     }
 }
+
+/**
+ * @brief Query count of active debugging threads and processes
+ * 
+ * @return UINT32 
+ */
+UINT32
+ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses()
+{
+    PLIST_ENTRY TempList                   = 0;
+    PLIST_ENTRY TempList2                  = 0;
+    UINT32      CountOfThreadsAndProcesses = 0;
+
+    TempList = &g_ProcessDebuggingDetailsListHead;
+
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
+
+        //
+        // Each process is also counted (no matter if it has active paused thread or not)
+        //
+        CountOfThreadsAndProcesses++;
+
+        //
+        // Search through all the active threads of this process
+        //
+        TempList2 = &ProcessDebuggingDetails->ThreadsListHead;
+
+        while (&ProcessDebuggingDetails->ThreadsListHead != TempList2->Flink)
+        {
+            TempList2 = TempList2->Flink;
+            PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+                CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            {
+                if (ThreadHolder->Threads[i].IsPaused)
+                {
+                    //
+                    // A paused thread should be counted
+                    //
+                    CountOfThreadsAndProcesses++;
+                }
+            }
+        }
+    }
+
+    //
+    // Return count of active threads and processes
+    //
+    return CountOfThreadsAndProcesses;
+}
+
+/**
+ * @brief Query details of active debugging threads and processes
+ * 
+ * @param BufferToStoreDetails
+ * @param MaxCount
+ * 
+ * @return VOID 
+ */
+VOID
+ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(
+    USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS * BufferToStoreDetails,
+    UINT32                                               MaxCount)
+{
+    PLIST_ENTRY TempList     = 0;
+    PLIST_ENTRY TempList2    = 0;
+    UINT32      CurrentIndex = 0;
+
+    if (MaxCount == 0)
+    {
+        //
+        // Invalid query, storage is empty
+        //
+        return;
+    }
+
+    TempList = &g_ProcessDebuggingDetailsListHead;
+
+    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    {
+        TempList = TempList->Flink;
+        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
+            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
+
+        //
+        // Each process is also save (no matter if it has active paused thread or not)
+        //
+        BufferToStoreDetails[CurrentIndex].IsProcess = TRUE;
+        BufferToStoreDetails[CurrentIndex].ProcessId = ProcessDebuggingDetails->ProcessId;
+        CurrentIndex++;
+        if (MaxCount == CurrentIndex)
+        {
+            //
+            // Storage is full
+            //
+            return;
+        }
+
+        //
+        // Search through all the active threads of this process
+        //
+        TempList2 = &ProcessDebuggingDetails->ThreadsListHead;
+
+        while (&ProcessDebuggingDetails->ThreadsListHead != TempList2->Flink)
+        {
+            TempList2 = TempList2->Flink;
+            PUSERMODE_DEBUGGING_THREAD_HOLDER ThreadHolder =
+                CONTAINING_RECORD(TempList2, USERMODE_DEBUGGING_THREAD_HOLDER, ThreadHolderList);
+
+            for (size_t i = 0; i < MAX_THREADS_IN_A_PROCESS_HOLDER; i++)
+            {
+                if (ThreadHolder->Threads[i].IsPaused)
+                {
+                    //
+                    // A paused thread should be saved
+                    //
+                    BufferToStoreDetails[CurrentIndex].IsProcess = FALSE;
+                    BufferToStoreDetails[CurrentIndex].ProcessId = ProcessDebuggingDetails->ProcessId;
+                    BufferToStoreDetails[CurrentIndex].ThreadId  = ThreadHolder->Threads[i].ThreadId;
+                    CurrentIndex++;
+                    if (MaxCount == CurrentIndex)
+                    {
+                        //
+                        // Storage is full
+                        //
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
