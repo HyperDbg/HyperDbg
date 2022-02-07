@@ -41,9 +41,9 @@ CommandLmHelp()
 VOID
 CommandLm(vector<string> SplittedCommand, string Command)
 {
-    PRTL_PROCESS_MODULES ModuleInfo;
-    NTSTATUS             Status;
-    ULONG                i;
+    NTSTATUS             Status = STATUS_UNSUCCESSFUL;
+    PRTL_PROCESS_MODULES ModulesInfo;
+    ULONG                SysModuleInfoBufferSize = 0;
     char *               Search;
 
     if (SplittedCommand.size() >= 3)
@@ -54,15 +54,10 @@ CommandLm(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Allocate memory for the module list
+    // Get required size of "RTL_PROCESS_MODULES" buffer
     //
-    ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
-        NULL,
-        1024 * 1024,
-        MEM_COMMIT | MEM_RESERVE,
-        PAGE_READWRITE);
-
-    if (!ModuleInfo)
+    Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+    if (Status == STATUS_INFO_LENGTH_MISMATCH || Status == STATUS_BUFFER_TOO_SMALL)
     {
         ShowMessages("\nUnable to allocate memory for module list (%x)\n",
                      GetLastError());
@@ -70,31 +65,44 @@ CommandLm(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // 11 = SystemModuleInformation
+    // Allocate memory for the module list
     //
-    if (!NT_SUCCESS(
-            Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11,
-                                              ModuleInfo,
-                                              1024 * 1024,
-                                              NULL)))
+    ModulesInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
+        NULL,
+        SysModuleInfoBufferSize,
+        MEM_COMMIT | MEM_RESERVE,
+        PAGE_READWRITE);
+
+    if (!ModulesInfo)
+    {
+        ShowMessages("\nUnable to allocate memory for module list (%x)\n",
+                     GetLastError());
+        return;
+    }
+
+    Status = NtQuerySystemInformation(SystemModuleInformation,
+                                      ModulesInfo,
+                                      SysModuleInfoBufferSize,
+                                      NULL);
+    if (!NT_SUCCESS(Status))
     {
         ShowMessages("\nError: Unable to query module list (%#x)\n", Status);
 
-        VirtualFree(ModuleInfo, 0, MEM_RELEASE);
+        VirtualFree(ModulesInfo, 0, MEM_RELEASE);
         return;
     }
 
     ShowMessages("start\t\t\tsize\tname\t\t\t\tpath\n\n");
 
-    for (i = 0; i < ModuleInfo->NumberOfModules; i++)
+    for (ULONG i = 0; i < ModulesInfo->NumberOfModules; i++)
     {
+        RTL_PROCESS_MODULE_INFORMATION * CurrentModule = &ModulesInfo->Modules[i];
         //
         // Check if we need to search for the module or not
         //
         if (SplittedCommand.size() == 2)
         {
-            Search = strstr((char *)ModuleInfo->Modules[i].FullPathName,
-                            SplittedCommand.at(1).c_str());
+            Search = strstr((char *)CurrentModule->FullPathName, SplittedCommand.at(1).c_str());
             if (Search == NULL)
             {
                 //
@@ -104,10 +112,10 @@ CommandLm(vector<string> SplittedCommand, string Command)
             }
         }
 
-        ShowMessages("%s\t", SeparateTo64BitValue((UINT64)ModuleInfo->Modules[i].ImageBase).c_str());
-        ShowMessages("%x\t", ModuleInfo->Modules[i].ImageSize);
+        ShowMessages("%s\t", SeparateTo64BitValue((UINT64)CurrentModule->ImageBase).c_str());
+        ShowMessages("%x\t", CurrentModule->ImageSize);
 
-        auto   PathName    = ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName;
+        auto   PathName    = CurrentModule->FullPathName + CurrentModule->OffsetToFileName;
         UINT32 PathNameLen = strlen((const char *)PathName);
 
         ShowMessages("%s\t", PathName);
@@ -128,8 +136,8 @@ CommandLm(vector<string> SplittedCommand, string Command)
             ShowMessages("\t\t\t");
         }
 
-        ShowMessages("%s\n", ModuleInfo->Modules[i].FullPathName);
+        ShowMessages("%s\n", CurrentModule->FullPathName);
     }
 
-    VirtualFree(ModuleInfo, 0, MEM_RELEASE);
+    VirtualFree(ModulesInfo, 0, MEM_RELEASE);
 }
