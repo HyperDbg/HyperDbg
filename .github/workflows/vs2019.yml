@@ -1,0 +1,52 @@
+name: VS2019
+
+on:
+  push:
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
+      
+  pull_request:
+    paths-ignore:
+      - '.gitignore'
+      - '.gitattributes'
+      - '**.cmd'
+      - '**.bat'
+      - '**.md'
+env:
+  # WDK for Windows 10, version 2004
+  WDK_URL: https://go.microsoft.com/fwlink/?linkid=2128854
+  
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: ./hyperdbg/hyperdbg.sln
+
+jobs:
+  VS2019-Build:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        BUILD_CONFIGURATION: [Release, Debug]
+        PLATFORM: [x64]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: Setup WDK version 2004
+      run: |
+        $wdkSetupPath = "$Env:TEMP\wdksetup.exe"
+        (New-Object Net.WebClient).DownloadFile('${{env.WDK_URL}}', $wdkSetupPath)
+        Start-Process -FilePath $wdkSetupPath -ArgumentList "/quiet" -NoNewWindow -Wait     
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+      
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
