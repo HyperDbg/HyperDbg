@@ -4,5 +4,5 @@
 	
 [submodule "hyperdbg/dependencies/phnt"]
 	path = hyperdbg/dependencies/phnt
-	url = https://github.com/processhacker/phnt.git
+	url = https://github.com/HyperDbg/phnt.git
 	
