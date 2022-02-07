@@ -43,9 +43,31 @@ CommandScriptHelp()
  * @return VOID
  */
 VOID
-CommandScriptRunCommand(char * LineContent)
+CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
 {
-    int CommandExecutionResult = 0;
+    int    CommandExecutionResult = 0;
+    char * LineContent            = NULL;
+    int    i                      = 0;
+
+    //
+    // Replace the $arg*s
+    // This is not a good approach to replace between strings,
+    // but we let it work this way and in the future versions
+    // we'll integrate the command parsing in the debugger with
+    // the script engine's command parser
+    //
+    for (auto item : PathAndArgs)
+    {
+        string ToReplace = "$arg" + std::to_string(i);
+        i++;
+
+        ReplaceAll(Input, ToReplace, item);
+    }
+
+    //
+    // Convert script to char*
+    //
+    LineContent = (char *)Input.c_str();
 
     //
     // Check if the it's a command or not
@@ -81,63 +103,27 @@ CommandScriptRunCommand(char * LineContent)
 }
 
 /**
- * @brief .script command handler
+ * @brief Read file and run the script
  *
- * @param SplittedCommand
- * @param Command
  * @return VOID
  */
 VOID
-CommandScript(vector<string> SplittedCommand, string Command)
+HyperDbgScriptReadFileAndExecuteCommand(vector<string> & PathAndArgs)
 {
-    std::string    Line;
-    BOOLEAN        IsOpened         = FALSE;
-    bool           Reset            = false;
-    string         CommandToExecute = "";
-    vector<string> PathAndArgs;
-
-    if (SplittedCommand.size() == 1)
-    {
-        ShowMessages("please specify a file\n");
-        CommandScriptHelp();
-        return;
-    }
-
-    //
-    // Trim the command
-    //
-    Trim(Command);
-
-    //
-    // Remove .script from it
-    //
-    Command.erase(0, 7);
-
-    //
-    // Trim it again
-    //
-    Trim(Command);
-
-    //
-    // Split Path and args
-    //
-    SplitPathAndArgs(PathAndArgs, Command);
-
-    /*
-    for (auto item : PathAndArgs)
-    {
-        //
-        // The first argument is the path
-        //
-        ShowMessages("Arg : %s\n", item.c_str());
-    }
-    */
+    std::string Line;
+    BOOLEAN     IsOpened         = FALSE;
+    bool        Reset            = false;
+    string      CommandToExecute = "";
+    string      PathOfScriptFile = "";
 
     //
     // Parse the script file,
     // the first argument is the path
     //
-    ifstream File(PathAndArgs.at(0));
+    PathOfScriptFile = PathAndArgs.at(0);
+    ReplaceAll(PathOfScriptFile, "\"", "");
+
+    ifstream File(PathOfScriptFile);
 
     if (File.is_open())
     {
@@ -196,7 +182,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
             //
             // Run the command
             //
-            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+            CommandScriptRunCommand(CommandToExecute, PathAndArgs);
 
             //
             // Clear the command
@@ -209,7 +195,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
         //
         if (!CommandToExecute.empty())
         {
-            CommandScriptRunCommand((char *)CommandToExecute.c_str());
+            CommandScriptRunCommand(CommandToExecute, PathAndArgs);
 
             //
             // Clear the command
@@ -227,6 +213,63 @@ CommandScript(vector<string> SplittedCommand, string Command)
 
     if (!IsOpened)
     {
-        ShowMessages("err, invalid file specified for .script command\n");
+        ShowMessages("err, invalid file specified for the script\n");
     }
+}
+
+/**
+ * @brief .script command handler
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID
+CommandScript(vector<string> SplittedCommand, string Command)
+{
+    vector<string> PathAndArgs;
+
+    if (SplittedCommand.size() == 1)
+    {
+        ShowMessages("please specify a file\n");
+        CommandScriptHelp();
+        return;
+    }
+
+    //
+    // Trim the command
+    //
+    Trim(Command);
+
+    //
+    // Remove .script from it
+    //
+    Command.erase(0, 7);
+
+    //
+    // Trim it again
+    //
+    Trim(Command);
+
+    //
+    // Split Path and args
+    //
+    SplitPathAndArgs(PathAndArgs, Command);
+
+    /*
+    
+    for (auto item : PathAndArgs)
+    {
+        //
+        // The first argument is the path
+        //
+        ShowMessages("Arg : %s\n", item.c_str());
+    }
+
+    */
+
+    //
+    // Parse the file and the possible arguments
+    //
+    HyperDbgScriptReadFileAndExecuteCommand(PathAndArgs);
 }

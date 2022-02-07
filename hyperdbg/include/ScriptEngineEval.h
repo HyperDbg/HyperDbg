@@ -136,7 +136,7 @@ typedef unsigned __int64 UINT64, *PUINT64;
 #define LOBYTE(w) ((BYTE)(w))
 #define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
-#define MAX_TEMP_COUNT 1024
+#define MAX_TEMP_COUNT 128
 
 // TODO: Extract number of variables from input of ScriptEngine
 // and allocate variableList Dynamically.

@@ -12,14 +12,14 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
-using namespace std;
+//using namespace std;
 
 //
 // Global Variables
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
-map<string, REGS_ENUM> RegistersMap = {
+std::map<std::string, REGS_ENUM> RegistersMap = {
     {"rax", REGISTER_RAX},
     {"eax", REGISTER_EAX},
     {"ax", REGISTER_AX},
@@ -167,11 +167,9 @@ CommandRHelp()
 VOID
 ShowAllRegisters()
 {
-    PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-        new DEBUGGEE_REGISTER_READ_DESCRIPTION;
-    RegD->RegisterID = DEBUGGEE_SHOW_ALL_REGISTERS;
-    KdSendReadRegisterPacketToDebuggee(RegD);
-    delete (RegD);
+    DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
+    RegState.RegisterID                         = DEBUGGEE_SHOW_ALL_REGISTERS;
+    KdSendReadRegisterPacketToDebuggee(&RegState);
 }
 /**
  * @brief handler of r command
@@ -181,19 +179,19 @@ ShowAllRegisters()
  * @return VOID
  */
 VOID
-CommandR(vector<string> SplittedCommand, string Command)
+CommandR(std::vector<std::string> SplittedCommand, std::string Command)
 {
     //
     // Interpret here
     //
-    PVOID          CodeBuffer;
-    UINT64         BufferAddress;
-    UINT32         BufferLength;
-    UINT32         Pointer;
-    REGS_ENUM      Reg;
-    vector<string> Tmp;
+    PVOID                    CodeBuffer;
+    UINT64                   BufferAddress;
+    UINT32                   BufferLength;
+    UINT32                   Pointer;
+    REGS_ENUM                RegKind;
+    std::vector<std::string> Tmp;
 
-    string SetRegValue = "SetRegValue";
+    std::string SetRegValue = "SetRegValue";
 
     if (SplittedCommand[0] != "r")
     {
@@ -230,31 +228,30 @@ CommandR(vector<string> SplittedCommand, string Command)
         //erase '=' from the string now we have just the name of register
         //
         Command.erase(0, 1);
-        PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-            new DEBUGGEE_REGISTER_READ_DESCRIPTION;
         ReplaceAll(Command, "@", "");
         ReplaceAll(Command, " ", "");
         if (RegistersMap.find(Command) != RegistersMap.end())
         {
-            Reg = RegistersMap[Command];
+            RegKind = RegistersMap[Command];
         }
         else
         {
             //
             //set the Reg to -1(invalid register)
             //
-            Reg = (REGS_ENUM)-1;
+            RegKind = (REGS_ENUM)-1;
         }
-        if (Reg != -1)
+        if (RegKind != -1)
         {
-            RegD->RegisterID = Reg;
+            DEBUGGEE_REGISTER_READ_DESCRIPTION RegState = {0};
+            RegState.RegisterID                         = RegKind;
 
             //
             // send the request
             //
             if (g_IsSerialConnectedToRemoteDebuggee)
             {
-                KdSendReadRegisterPacketToDebuggee(RegD);
+                KdSendReadRegisterPacketToDebuggee(&RegState);
             }
             else
             {
@@ -266,8 +263,6 @@ CommandR(vector<string> SplittedCommand, string Command)
         {
             ShowMessages("err, invalid register\n");
         }
-
-        delete (RegD);
     }
 
     //
@@ -276,8 +271,6 @@ CommandR(vector<string> SplittedCommand, string Command)
 
     else if (Command.find('=', 0) != string::npos)
     {
-        PDEBUGGEE_REGISTER_READ_DESCRIPTION RegD =
-            new DEBUGGEE_REGISTER_READ_DESCRIPTION;
         Command.erase(0, 1);
         Tmp = Split(Command, '=');
         if (Tmp.size() == 2)
@@ -286,24 +279,22 @@ CommandR(vector<string> SplittedCommand, string Command)
             string tmp = Tmp[0];
             if (RegistersMap.find(Tmp[0]) != RegistersMap.end())
             {
-                Reg = RegistersMap[Tmp[0]];
+                RegKind = RegistersMap[Tmp[0]];
             }
             else
             {
                 ReplaceAll(tmp, "@", "");
                 if (RegistersMap.find(tmp) != RegistersMap.end())
                 {
-                    Reg = RegistersMap[tmp];
+                    RegKind = RegistersMap[tmp];
                 }
                 else
                 {
-                    Reg = (REGS_ENUM)-1;
+                    RegKind = (REGS_ENUM)-1;
                 }
             }
-            if (Reg != -1)
+            if (RegKind != -1)
             {
-                RegD->RegisterID = Reg;
-
                 //
                 // send the request
                 //
@@ -324,7 +315,6 @@ CommandR(vector<string> SplittedCommand, string Command)
                         //
                         // return to show that this item contains an script
                         //
-                        delete RegD;
                         return;
                     }
 

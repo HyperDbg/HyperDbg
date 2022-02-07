@@ -81,3 +81,11 @@ ThreadHolderApplyActionToPausedThreads(PUSERMODE_DEBUGGING_PROCESS_DETAILS Proce
 
 VOID
 ThreadHolderFreeHoldingStructures(PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail);
+
+UINT32
+ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses();
+
+VOID
+ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(
+    USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS * BufferToStoreDetails,
+    UINT32                                               MaxCount);

@@ -66,6 +66,9 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 BOOLEAN
 UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid);
 
+BOOLEAN
+UdShowListActiveDebuggingProcessesAndThreads();
+
 BOOL
 UdListProcessThreads(DWORD OwnerPID);
 

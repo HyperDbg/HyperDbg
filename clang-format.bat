@@ -16,8 +16,8 @@ for /f "tokens=*" %%i in ('%vswhere% -latest -find VC\Tools\LLVM\**\bin\clang-fo
 for /r %%f in ( *.cc *.cpp *.hpp *.h *.c ) do (
   set file_path=%%~pf
     
-  :: discard the third_party directory
-  if /I "!file_path!"=="!file_path:third_party%=!" (
+  :: discard the dependencies directory
+  if /I "!file_path!"=="!file_path:dependencies%=!" (
      echo formatting [%%f]
      call !clang_format! -i -style=file "%%f" 
   )

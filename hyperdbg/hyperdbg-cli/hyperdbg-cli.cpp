@@ -13,6 +13,7 @@
 #include <string>
 #include <conio.h>
 #include <iostream>
+#include <vector>
 #include "Definition.h"
 #include "Configuration.h"
 
@@ -32,9 +33,10 @@ __declspec(dllimport) int HyperdbgUninstallDriver();
 __declspec(dllimport) int HyperdbgStopDriver();
 __declspec(dllimport) int HyperdbgInterpreter(char * Command);
 __declspec(dllimport) void HyperdbgShowSignature();
+__declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
+__declspec(dllimport) void HyperDbgScriptReadFileAndExecuteCommand(vector<string> & PathAndArgs);
 __declspec(dllimport) bool HyperdbgContinuePreviousCommand();
 __declspec(dllimport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
-__declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
 }
 
 /**
@@ -47,9 +49,10 @@ __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
 int
 main(int argc, char * argv[])
 {
-    bool   ExitFromDebugger = false;
-    string PreviousCommand;
-    bool   Reset = false;
+    bool           ExitFromDebugger = false;
+    string         PreviousCommand;
+    bool           Reset = false;
+    vector<string> Args;
 
     printf("HyperDbg Debugger [version: %s, build: %s]\n", CompleteVersion, BuildVersion);
     printf("Please visit https://docs.hyperdbg.org for more information...\n");
@@ -62,18 +65,32 @@ main(int argc, char * argv[])
         //
         if (!strcmp(argv[1], "--script"))
         {
-            char ScriptBuffer[MAX_PATH + 10] = {0};
+            //
+            //
+            //
+            for (size_t i = 2; i < argc; i++)
+            {
+                std::string TempStr(argv[i]);
+                Args.push_back(TempStr);
+            }
 
             //
-            // Executing the script
+            // Check if the target path and args for script is not empty
             //
-            sprintf_s(ScriptBuffer, sizeof(ScriptBuffer), ".script %s", argv[2]);
-            HyperdbgInterpreter(ScriptBuffer);
-            printf("\n");
+            if (!Args.empty())
+            {
+                HyperDbgScriptReadFileAndExecuteCommand(Args);
+                printf("\n");
+            }
+            else
+            {
+                printf("err, invalid command line options passed to the HyperDbg!\n");
+                return 1;
+            }
         }
         else
         {
-            printf("invalid command line options passed to HyperDbg !\n");
+            printf("err, invalid command line options passed to the HyperDbg!\n");
             return 1;
         }
     }

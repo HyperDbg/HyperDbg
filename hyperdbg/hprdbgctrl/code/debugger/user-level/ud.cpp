@@ -1002,3 +1002,158 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
         return FALSE;
     }
 }
+
+/**
+ * @brief Show list of active debugging processes and threads 
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+UdShowListActiveDebuggingProcessesAndThreads()
+{
+    BOOLEAN                                              Status;
+    BOOLEAN                                              CheckCurrentProcessOrThread;
+    ULONG                                                ReturnedLength;
+    DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS             QueryCountOfActiveThreadsRequest        = {0};
+    USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS * AddressOfThreadsAndProcessDetails       = NULL;
+    UINT32                                               SizeOfBufferForThreadsAndProcessDetails = NULL;
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                     "use 'load' command?\n");
+        return FALSE;
+    }
+
+    //
+    // Check if user debugger is active or not
+    //
+    if (!g_IsUserDebuggerInitialized)
+    {
+        ShowMessages("user debugger is not initialized. Did you use the '.attach' or the '.start' "
+                     "command before?\n");
+        return FALSE;
+    }
+
+    //
+    // We wanna query the count of active debugging threads
+    //
+    QueryCountOfActiveThreadsRequest.Action = DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_QUERY_COUNT_OF_ACTIVE_DEBUGGING_THREADS;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                                  // Handle to device
+        IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,  // IO Control
+                                                         // code
+        &QueryCountOfActiveThreadsRequest,               // Input Buffer to driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Input buffer length
+        &QueryCountOfActiveThreadsRequest,               // Output Buffer from driver.
+        SIZEOF_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS, // Length of output
+                                                         // buffer in bytes.
+        &ReturnedLength,                                 // Bytes placed in buffer.
+        NULL                                             // synchronous call
+    );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+        return FALSE;
+    }
+
+    //
+    // Query was successful
+    //
+    if (QueryCountOfActiveThreadsRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        if (QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses == 0)
+        {
+            ShowMessages("no active debugging threads!\n");
+        }
+        else
+        {
+            //
+            // *** We should send another IOCTL and get the list of threads ***
+            //
+
+            //
+            // Allocate the storage for the pull details of threads and processes
+            //
+            SizeOfBufferForThreadsAndProcessDetails = QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses * SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
+
+            AddressOfThreadsAndProcessDetails = (USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS *)
+                malloc(SizeOfBufferForThreadsAndProcessDetails);
+
+            RtlZeroMemory(AddressOfThreadsAndProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
+
+            //
+            // Send the request to the kernel
+            //
+            Status = DeviceIoControl(
+                g_DeviceHandle,                                   // Handle to device
+                IOCTL_GET_DETAIL_OF_ACTIVE_THREADS_AND_PROCESSES, // IO Control
+                                                                  // code
+                NULL,                                             // Input Buffer to driver.
+                0,                                                // Input buffer length.
+                AddressOfThreadsAndProcessDetails,                // Output Buffer from driver.
+                SizeOfBufferForThreadsAndProcessDetails,          // Length of output buffer in bytes.
+                &ReturnedLength,                                  // Bytes placed in buffer.
+                NULL                                              // synchronous call
+            );
+
+            if (!Status)
+            {
+                ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                return FALSE;
+            }
+
+            //
+            // Show list of active processes and threads
+            //
+            for (size_t i = 0; i < QueryCountOfActiveThreadsRequest.CountOfActiveDebuggingThreadsAndProcesses; i++)
+            {
+                if (AddressOfThreadsAndProcessDetails[i].IsProcess)
+                {
+                    CheckCurrentProcessOrThread = FALSE;
+
+                    if (g_ActiveProcessDebuggingState.IsActive &&
+                        AddressOfThreadsAndProcessDetails[i].ProcessId == g_ActiveProcessDebuggingState.ProcessId)
+                    {
+                        CheckCurrentProcessOrThread = TRUE;
+                    }
+
+                    ShowMessages("%s%04x (process)\n",
+                                 CheckCurrentProcessOrThread ? "*" : "",
+                                 AddressOfThreadsAndProcessDetails[i].ProcessId);
+                }
+                else
+                {
+                    CheckCurrentProcessOrThread = FALSE;
+
+                    if (g_ActiveProcessDebuggingState.IsActive &&
+                        AddressOfThreadsAndProcessDetails[i].ThreadId == g_ActiveProcessDebuggingState.ThreadId)
+                    {
+                        CheckCurrentProcessOrThread = TRUE;
+                    }
+                    ShowMessages("\t%s %04x (thread)\n",
+                                 CheckCurrentProcessOrThread ? "->" : "  ",
+                                 AddressOfThreadsAndProcessDetails[i].ThreadId);
+                }
+            }
+        }
+
+        //
+        // The operation of attaching was successful
+        //
+        return TRUE;
+    }
+    else
+    {
+        ShowErrorMessage(QueryCountOfActiveThreadsRequest.Result);
+        return FALSE;
+    }
+}

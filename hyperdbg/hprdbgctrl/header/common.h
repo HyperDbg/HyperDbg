@@ -50,7 +50,7 @@ BOOLEAN
 HasEnding(string const & fullString, string const & ending);
 
 BOOLEAN
-ValidateIP(string ip);
+ValidateIP(const string & ip);
 
 BOOLEAN
 VmxSupportDetection();
@@ -80,7 +80,7 @@ VOID
 StringToWString(std::wstring & ws, const std::string & s);
 
 VOID
-SplitPathAndArgs(std::vector<std::string> & Qargs, std::string Command);
+SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command);
 
 std::vector<std::string>
 ListDirectory(const std::string & Directory, const std::string & Extension);
@@ -92,30 +92,30 @@ IsEmptyString(char * Text);
 //            	    Structures                  //
 //////////////////////////////////////////////////
 
-/**
- * @brief this structure is copied from Process Hacker source code (ntldr.h)
- *
- */
-typedef struct _RTL_PROCESS_MODULE_INFORMATION
-{
-    HANDLE Section;
-    PVOID  MappedBase;
-    PVOID  ImageBase;
-    ULONG  ImageSize;
-    ULONG  Flags;
-    USHORT LoadOrderIndex;
-    USHORT InitOrderIndex;
-    USHORT LoadCount;
-    USHORT OffsetToFileName;
-    UCHAR  FullPathName[256];
-} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
-
-/**
- * @brief this structure is copied from Process Hacker source code (ntldr.h)
- *
- */
-typedef struct _RTL_PROCESS_MODULES
-{
-    ULONG                          NumberOfModules;
-    RTL_PROCESS_MODULE_INFORMATION Modules[1];
-} RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;
+///**
+// * @brief this structure is copied from Process Hacker source code (ntldr.h)
+// *
+// */
+//typedef struct _RTL_PROCESS_MODULE_INFORMATION
+//{
+//    HANDLE Section;
+//    PVOID  MappedBase;
+//    PVOID  ImageBase;
+//    ULONG  ImageSize;
+//    ULONG  Flags;
+//    USHORT LoadOrderIndex;
+//    USHORT InitOrderIndex;
+//    USHORT LoadCount;
+//    USHORT OffsetToFileName;
+//    UCHAR  FullPathName[256];
+//} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
+//
+///**
+// * @brief this structure is copied from Process Hacker source code (ntldr.h)
+// *
+// */
+//typedef struct _RTL_PROCESS_MODULES
+//{
+//    ULONG                          NumberOfModules;
+//    RTL_PROCESS_MODULE_INFORMATION Modules[1];
+//} RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;

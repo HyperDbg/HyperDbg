@@ -90,7 +90,7 @@ ForwardingCloseOutputSource(PDEBUGGER_EVENT_FORWARDING SourceDescriptor);
 
 HANDLE
 ForwardingCreateOutputSource(DEBUGGER_EVENT_FORWARDING_TYPE SourceType,
-                             string                         Description,
+                             const string &                 Description,
                              SOCKET *                       Socket);
 
 BOOLEAN

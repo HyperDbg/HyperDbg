@@ -46,6 +46,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_PREPARE_DEBUGGEE                              DebuggeeRequest;
     PDEBUGGER_PAUSE_PACKET_RECEIVED                         DebuggerPauseKernelRequest;
     PDEBUGGER_GENERAL_ACTION                                DebuggerNewActionRequest;
+    PVOID                                                   BufferToStoreThreadsAndProcessesDetails;
     NTSTATUS                                                Status;
     ULONG                                                   InBuffLength;  // Input buffer length
     ULONG                                                   OutBuffLength; // Output buffer length
@@ -1144,6 +1145,36 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             UdDispatchUsermodeCommands(DebuggerUdCommandRequest);
 
             Irp->IoStatus.Information = sizeof(DEBUGGER_UD_COMMAND_PACKET);
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_GET_DETAIL_OF_ACTIVE_THREADS_AND_PROCESSES:
+
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode is here
+            //
+            BufferToStoreThreadsAndProcessesDetails = (PVOID)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Perform the dispatching of user debugger command
+            //
+            AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(BufferToStoreThreadsAndProcessesDetails, OutBuffLength);
+
+            Irp->IoStatus.Information = OutBuffLength;
             Status                    = STATUS_SUCCESS;
 
             //

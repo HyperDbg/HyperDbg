@@ -1369,6 +1369,63 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
 }
 
 /**
+ * @brief Query count of active debugging threads
+ * 
+ * @param QueryCountOfDebugThreadsRequest 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingQueryCountOfActiveDebuggingThreadsAndProcesses(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS QueryCountOfDebugThreadsRequest)
+{
+    UINT32 CountOfProcessesAndThreads;
+
+    //
+    // Count the result
+    //
+    CountOfProcessesAndThreads = ThreadHolderQueryCountOfActiveDebuggingThreadsAndProcesses();
+
+    //
+    // Set the results
+    //
+    QueryCountOfDebugThreadsRequest->CountOfActiveDebuggingThreadsAndProcesses = CountOfProcessesAndThreads;
+    QueryCountOfDebugThreadsRequest->Result                                    = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
+}
+
+/**
+ * @brief Query details of active debugging threads
+ * 
+ * @param BufferToStoreDetails 
+ * @param BufferSize 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize)
+{
+    UINT32 CountOfProcessesAndThreadsToStore;
+
+    CountOfProcessesAndThreadsToStore = BufferSize / SIZEOF_USERMODE_DEBUGGING_THREAD_OR_PROCESS_STATE_DETAILS;
+
+    if (CountOfProcessesAndThreadsToStore == 0)
+    {
+        //
+        // No active thread or process
+        //
+        return FALSE;
+    }
+
+    // LogInfo("Count of active process and threads : %x", CountOfProcessesAndThreadsToStore);
+
+    //
+    // Get the results
+    //
+    ThreadHolderQueryDetailsOfActiveDebuggingThreadsAndProcesses(BufferToStoreDetails, CountOfProcessesAndThreadsToStore);
+
+    return TRUE;
+}
+
+/**
  * @brief Dispatch and perform attaching tasks
  * @details this function should not be called in vmx-root
  * 
@@ -1417,6 +1474,12 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_SWITCH_BY_PROCESS_OR_THREAD:
 
         AttachingSwitchProcess(Request);
+
+        break;
+
+    case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_QUERY_COUNT_OF_ACTIVE_DEBUGGING_THREADS:
+
+        AttachingQueryCountOfActiveDebuggingThreadsAndProcesses(Request);
 
         break;
 
