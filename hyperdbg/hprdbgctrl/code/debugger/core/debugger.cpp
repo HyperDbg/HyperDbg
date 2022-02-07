@@ -14,17 +14,18 @@
 //
 // Global Variables
 //
-extern UINT64     g_EventTag;
-extern LIST_ENTRY g_EventTrace;
-extern BOOLEAN    g_EventTraceInitialized;
-extern BOOLEAN    g_BreakPrintingOutput;
-extern BOOLEAN    g_AutoUnpause;
-extern BOOLEAN    g_OutputSourcesInitialized;
-extern LIST_ENTRY g_OutputSources;
-extern BOOLEAN    g_IsConnectedToRemoteDebuggee;
-extern BOOLEAN    g_IsConnectedToRemoteDebugger;
-extern BOOLEAN    g_IsSerialConnectedToRemoteDebuggee;
-extern BOOLEAN    g_IsSerialConnectedToRemoteDebugger;
+extern UINT64                   g_EventTag;
+extern LIST_ENTRY               g_EventTrace;
+extern BOOLEAN                  g_EventTraceInitialized;
+extern BOOLEAN                  g_BreakPrintingOutput;
+extern BOOLEAN                  g_AutoUnpause;
+extern BOOLEAN                  g_OutputSourcesInitialized;
+extern LIST_ENTRY               g_OutputSources;
+extern BOOLEAN                  g_IsConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsConnectedToRemoteDebugger;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebugger;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief shows the error message
@@ -2450,8 +2451,22 @@ InterpretGeneralEventAndActionsFields(
     // processes, next time we check whether the user needs
     // a special core or a special process then we change it
     //
-    TempEvent->CoreId    = DEBUGGER_EVENT_APPLY_TO_ALL_CORES;
-    TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
+    TempEvent->CoreId = DEBUGGER_EVENT_APPLY_TO_ALL_CORES;
+
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        ShowMessages("notice: as you're debugging a user-mode application, "
+                     "this event will only trigger on your current debugging process "
+                     "(pid:%x). If you want the event from the entire system, "
+                     "add 'pid all' to the event\n",
+                     g_ActiveProcessDebuggingState.ProcessId);
+
+        TempEvent->ProcessId = g_ActiveProcessDebuggingState.ProcessId;
+    }
+    else
+    {
+        TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
+    }
 
     //
     // Set the event type
@@ -2710,7 +2725,11 @@ InterpretGeneralEventAndActionsFields(
 
         if (IsNextCommandPid)
         {
-            if (!ConvertStringToUInt32(Section, &ProcessId))
+            if (!Section.compare("all"))
+            {
+                TempEvent->ProcessId = DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES;
+            }
+            else if (!ConvertStringToUInt32(Section, &ProcessId))
             {
                 free(BufferOfCommandString);
                 free(TempEvent);
@@ -2739,6 +2758,7 @@ InterpretGeneralEventAndActionsFields(
                 //
                 TempEvent->ProcessId = ProcessId;
             }
+
             IsNextCommandPid = FALSE;
 
             //
