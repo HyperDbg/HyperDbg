@@ -57,12 +57,6 @@ CommandLm(vector<string> SplittedCommand, string Command)
     // Get required size of "RTL_PROCESS_MODULES" buffer
     //
     Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
-    if (Status == STATUS_INFO_LENGTH_MISMATCH || Status == STATUS_BUFFER_TOO_SMALL)
-    {
-        ShowMessages("\nUnable to allocate memory for module list (%x)\n",
-                     GetLastError());
-        return;
-    }
 
     //
     // Allocate memory for the module list
