@@ -68,7 +68,7 @@ jobs:
     needs: win-amd64-build
     runs-on: windows-2019
 
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') && ${{ github.ref == 'refs/heads/master' }}
     steps:
       - name: Download build files from "build" job
         uses: actions/download-artifact@v2
