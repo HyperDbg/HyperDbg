@@ -25,7 +25,7 @@ VOID
 CommandBdHelp()
 {
     ShowMessages("bd : disables a breakpoint using breakpoint id.\n\n");
-    ShowMessages("syntax : \tbd [breakpoint id (hex value)]\n");
+    ShowMessages("syntax : \tbd [BreakpointId (hex)]\n");
     ShowMessages("\t\te.g : bd 0\n");
     ShowMessages("\t\te.g : bd 2\n");
 }

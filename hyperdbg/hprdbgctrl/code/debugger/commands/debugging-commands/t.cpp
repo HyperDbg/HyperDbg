@@ -29,7 +29,10 @@ CommandTHelp()
     ShowMessages(
         "t : executes a single instruction (step-in) and optionally displays the "
         "resulting values of all registers and flags.\n\n");
-    ShowMessages("syntax : \tt[r] [count]\n");
+    ShowMessages("syntax : \tt\n");
+    ShowMessages("syntax : \tt [Count (hex)]\n");
+    ShowMessages("syntax : \ttr\n");
+    ShowMessages("syntax : \ttr [Count (hex)]\n");
     ShowMessages("\t\te.g : t\n");
     ShowMessages("\t\te.g : tr\n");
     ShowMessages("\t\te.g : tr 1f\n");

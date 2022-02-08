@@ -566,6 +566,14 @@ typedef struct _MODULE_SYMBOL_DETAIL
 
 } MODULE_SYMBOL_DETAIL, *PMODULE_SYMBOL_DETAIL;
 
+typedef struct _USERMODE_LOADED_MODULE_SYMBOLS
+{
+    UINT64  BaseAddress;
+    UINT64  Entrypoint;
+    wchar_t FilePath[MAX_PATH];
+
+} USERMODE_LOADED_MODULE_SYMBOLS, *PUSERMODE_LOADED_MODULE_SYMBOLS;
+
 //////////////////////////////////////////////////
 //              Processor Details               //
 //////////////////////////////////////////////////

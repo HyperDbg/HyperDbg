@@ -33,7 +33,10 @@ CommandIHelp()
         "(sysrets) and exceptions and page-faults and optionally displays all "
         "registers and flags' resulting values.\n\n");
 
-    ShowMessages("syntax : \ti[r] [count]\n");
+    ShowMessages("syntax : \ti\n");
+    ShowMessages("syntax : \ti [Count (hex)]\n");
+    ShowMessages("syntax : \tir\n");
+    ShowMessages("syntax : \tir [Count (hex)]\n");
     ShowMessages("\t\te.g : i\n");
     ShowMessages("\t\te.g : ir\n");
     ShowMessages("\t\te.g : ir 1f\n");

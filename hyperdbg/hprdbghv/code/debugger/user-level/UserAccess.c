@@ -324,23 +324,27 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOO
 }
 
 /**
- * @brief Print loaded modules details from PEB
+ * @brief Gets the loaded modules details from PEB
  * @details This function should be called in vmx non-root
  * 
  * @param Proc 
- * @return BOOLEAN 
+ * @return UINT64 
  */
-BOOLEAN
+UINT64
 UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
 {
-    KAPC_STATE     State;
-    UNICODE_STRING Name;
-    PPEB           Peb = NULL;
-    PPEB_LDR_DATA  Ldr = NULL;
+    KAPC_STATE                      State;
+    UNICODE_STRING                  Name;
+    PPEB                            Peb                 = NULL;
+    PPEB_LDR_DATA                   Ldr                 = NULL;
+    UINT32                          CountOfModules      = 0;
+    UINT32                          CurrentSavedModules = 0;
+    UINT32                          TempSize            = 0;
+    PUSERMODE_LOADED_MODULE_SYMBOLS ModulesStorage      = NULL;
 
     if (g_PsGetProcessPeb == NULL)
     {
-        return FALSE;
+        return NULL;
     }
 
     //
@@ -350,7 +354,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
 
     if (!Peb)
     {
-        return FALSE;
+        return NULL;
     }
 
     KeStackAttachProcess(Proc, &State);
@@ -360,8 +364,64 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
     if (!Ldr)
     {
         KeUnstackDetachProcess(&State);
-        return FALSE;
+        return NULL;
     }
+
+    //
+    // loop the linked list (Computer the size)
+    //
+    for (PLIST_ENTRY List = (PLIST_ENTRY)Ldr->ModuleListLoadOrder.Flink;
+         List != &Ldr->ModuleListLoadOrder;
+         List = (PLIST_ENTRY)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
+
+        //
+        // Calculate count of modules
+        //
+        CountOfModules++;
+
+        /*
+        Log("Base: %016llx\tEntryPoint: %016llx\tModule: %ws\tPath: %ws\n",
+            Entry->DllBase,
+            Entry->EntryPoint,
+            Entry->BaseDllName.Buffer,
+            Entry->FullDllName.Buffer);
+        */
+    }
+
+    //
+    // Walk again to save the buffer
+    //
+    Ldr = (PPEB_LDR_DATA)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return NULL;
+    }
+
+    //
+    // Allocate the buffer to be submitted to the user mode
+    // No need a non-paged pool as it operates on PASSIVE_LEVEL
+    //
+    ModulesStorage = ExAllocatePoolWithTag(PagedPool,
+                                           sizeof(USERMODE_LOADED_MODULE_SYMBOLS) * CountOfModules,
+                                           POOLTAG);
+
+    if (!ModulesStorage)
+    {
+        //
+        // Unable to allocate memory
+        //
+        return NULL;
+    }
+
+    //
+    // Zero the memory
+    //
+    RtlZeroMemory(ModulesStorage, sizeof(USERMODE_LOADED_MODULE_SYMBOLS) * CountOfModules);
 
     //
     // loop the linked list
@@ -373,16 +433,41 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
         PLDR_DATA_TABLE_ENTRY Entry =
             CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
 
-        Log("Base: %016llx\tEntryPoint: %016llx\tModule: %ws\tPath: %ws\n",
-            Entry->DllBase,
-            Entry->EntryPoint,
-            Entry->BaseDllName.Buffer,
-            Entry->FullDllName.Buffer);
+        if (CountOfModules == CurrentSavedModules)
+        {
+            //
+            // Won't continue as the buffer is now full
+            // Generally, we shouldn't be at this stage, only when
+            // a module is just loaded and we didn't allocate enough
+            // memory for it, so it's better to continue
+            //
+            return ModulesStorage;
+        }
+
+        //
+        // Save the details into the storage
+        //
+        ModulesStorage[CurrentSavedModules].Entrypoint  = Entry->EntryPoint;
+        ModulesStorage[CurrentSavedModules].BaseAddress = Entry->DllBase;
+
+        //
+        // Copy the path
+        //
+        TempSize = Entry->FullDllName.Length;
+        if (TempSize >= MAX_PATH)
+        {
+            TempSize = MAX_PATH;
+        }
+
+        TempSize = TempSize * 2;
+        memcpy(&ModulesStorage[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
+
+        CurrentSavedModules++;
     }
 
     KeUnstackDetachProcess(&State);
 
-    return TRUE;
+    return ModulesStorage;
 }
 
 /**

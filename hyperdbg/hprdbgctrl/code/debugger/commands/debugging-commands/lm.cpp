@@ -23,7 +23,8 @@ CommandLmHelp()
 {
     ShowMessages(
         "lm : list kernel modules' base address, size, name and path.\n\n");
-    ShowMessages("syntax : \tlm [name]\n");
+    ShowMessages("syntax : \tlm \n");
+    ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)]\n");
     ShowMessages("\t\te.g : lm\n");
     ShowMessages("\t\t\tdescription : list all modules\n");
     ShowMessages("\t\te.g : lm nt\n");

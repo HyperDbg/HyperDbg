@@ -29,7 +29,10 @@ CommandPHelp()
     ShowMessages(
         "p : executes a single instruction (step) and optionally displays the "
         "resulting values of all registers and flags.\n\n");
-    ShowMessages("syntax : \tp[r] [count]\n");
+    ShowMessages("syntax : \tp\n");
+    ShowMessages("syntax : \tp [Count (hex)]\n");
+    ShowMessages("syntax : \tpr\n");
+    ShowMessages("syntax : \tpr [Count (hex)]\n");
     ShowMessages("\t\te.g : p\n");
     ShowMessages("\t\te.g : pr\n");
     ShowMessages("\t\te.g : pr 1f\n");

@@ -30,8 +30,12 @@ CommandSettingsHelp()
 {
     ShowMessages(
         "settings : query, set, or change a value for a sepcial settings.\n\n");
-    ShowMessages("syntax : \tsettings [option name] [value (name | hex value | "
-                 "on | off)]\n");
+
+    ShowMessages("syntax : \tsettings [OptionName (string)]\n");
+    ShowMessages("syntax : \tsettings [OptionName (string)] [Value (hex)]\n");
+    ShowMessages("syntax : \tsettings [OptionName (string)] [Value (string)]\n");
+    ShowMessages("syntax : \tsettings [OptionName (string)] [on|off]\n");
+
     ShowMessages("\t\te.g : settings autounpause\n");
     ShowMessages("\t\te.g : settings autounpause on\n");
     ShowMessages("\t\te.g : settings autounpause off\n");
