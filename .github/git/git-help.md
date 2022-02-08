@@ -11,5 +11,13 @@ To remove a submodule you need to:
 To add a submodule :
 - git submodule add https://github.com/HyperDbg/evaluation
 
-Discard Changes on a special file :
+Discard changes on a special file :
 - git checkout hyperdbg/hprdbgctrl/print.cpp
+  
+To realse (deploy) :
+  
+ Imagine Tag is **v0.1.0** (tags should start with the 'v*', and only on the master branch). After that, we will use the following command.
+- git checkout master
+- git tag -a v0.1.0 -m "your descriptive comment"
+- git push origin master v0.1.0
+ 
