@@ -29,7 +29,7 @@ CommandRestartHelp()
     ShowMessages(".restart : restart the previously started process "
                  "(using '.start' command).\n\n");
     ShowMessages(
-        "syntax : \t.restart\n");
+        "syntax : \t.restart \n");
 }
 
 /**

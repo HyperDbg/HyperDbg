@@ -29,7 +29,7 @@ CommandDisconnectHelp()
 {
     ShowMessages(".disconnect : disconnect from a debugging session (it won't "
                  "unload the modules).\n\n");
-    ShowMessages("syntax : \t.disconnect\n");
+    ShowMessages("syntax : \t.disconnect \n");
 }
 
 /**

@@ -31,8 +31,10 @@ CommandDebugHelp()
     ShowMessages(
         ".debug : debug target machine or make this machine a debuggee.\n\n");
     ShowMessages(
-        "syntax : \t.debug [action (remote | prepare | close)] [type (serial | "
-        "namedpipe)] [baud rate (decimal value)] address \n");
+        "syntax : \t.debug [remote] [serial|namedpipe] [Baudrate (decimal)] [Address (string)]\n");
+    ShowMessages(
+        "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n");
+    ShowMessages("syntax : \t.debug [close]\n");
     ShowMessages("\t\te.g : .debug remote serial 115200 com3\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");

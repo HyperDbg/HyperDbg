@@ -27,10 +27,9 @@ VOID
 CommandScriptHelp()
 {
     ShowMessages(".script : run a HyperDbg script.\n\n");
-    ShowMessages("syntax : \.script [FilePath] [Arg 1..n]]\n");
+    ShowMessages("syntax : \.script [FilePath (string)] [Args (string)]\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg 95 85 @rsp\n");
-    ShowMessages("\t\te.g : .script list\n");
     ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\"\n");
     ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax\n");
     ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax @rcx+55 $pid\n");
