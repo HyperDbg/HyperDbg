@@ -26,7 +26,7 @@ VOID
 CommandDetachHelp()
 {
     ShowMessages(".detach : detach from debugging a user-mode process.\n\n");
-    ShowMessages("syntax : \t.detach\n");
+    ShowMessages("syntax : \t.detach \n");
 }
 
 /**
