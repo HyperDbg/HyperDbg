@@ -1,4 +1,4 @@
-name: VS2019
+name: vs2019-ci
 
 on:
   push:
@@ -22,9 +22,10 @@ env:
   
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: ./hyperdbg/hyperdbg.sln
+  BUILD_DIR: ./hyperdbg/build/
 
 jobs:
-  VS2019-Build:
+  win-amd64-build:
     runs-on: windows-2019
     strategy:
       matrix:
@@ -50,3 +51,37 @@ jobs:
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+    
+    - name: Upload build directory 
+      uses: actions/upload-artifact@v2
+      with:
+        name: BuildFiles_${{matrix.BUILD_CONFIGURATION}}
+        path: ${{ env.BUILD_DIR }}
+
+  deploy-release:
+    name: Deploy release
+    needs: win-amd64-build
+    runs-on: windows-2019
+
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download build files from "build" job
+        uses: actions/download-artifact@v2
+        with:
+          name: BuildFiles_Release
+          path: ${{ env.BUILD_DIR }}
+                
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          path: ${{ env.BUILD_DIR }}release/
+          type: 'zip'
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
