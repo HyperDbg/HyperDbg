@@ -22,6 +22,9 @@ env:
   
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: ./hyperdbg/hyperdbg.sln
+  
+  RELEASE_ZIP_FILE_NAME: hyperdbg
+
   BUILD_DIR: ./hyperdbg/build/
 
 jobs:
