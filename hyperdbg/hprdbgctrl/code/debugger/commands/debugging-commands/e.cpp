@@ -25,14 +25,16 @@ VOID
 CommandEditMemoryHelp()
 {
     ShowMessages("eb !eb ed !ed eq !eq : edit the memory at specific address \n");
-    ShowMessages("e[b]  Byte and ASCII characters\n");
-    ShowMessages("e[d]  Double-word values (4 bytes)\n");
-    ShowMessages("e[q]  Quad-word values (8 bytes). \n");
+    ShowMessages("eb  Byte and ASCII characters\n");
+    ShowMessages("ed  Double-word values (4 bytes)\n");
+    ShowMessages("eq  Quad-word values (8 bytes). \n");
     ShowMessages("\n If you want to edit physical (address) memory then add '!' "
                  "at the start of the command\n");
 
-    ShowMessages("syntax : \t[!]e[b|d|q] [address] [new memory contents (hex)] "
-                 "pid [process id (hex)]\n");
+    ShowMessages("syntax : \teb [Address (hex)] [Contents (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \ted [Address (hex)] [Contents (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \teq [Address (hex)] [Contents (hex)] [pid ProcessId (hex)]\n");
+
     ShowMessages("\t\te.g : eb fffff8077356f010 90 \n");
     ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask ff ff ff ff \n");
     ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask+10+@rcx ff ff ff ff \n");
@@ -158,7 +160,7 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
         if (!SetAddress)
         {
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1),
-                                            &Address))
+                                                  &Address))
             {
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());

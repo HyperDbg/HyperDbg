@@ -26,7 +26,7 @@ CommandFlushHelp()
 {
     ShowMessages("flush : Removes all the buffer and messages from kernel-mode "
                  "buffers.\n\n");
-    ShowMessages("syntax : \tflush\n");
+    ShowMessages("syntax : \tflush \n");
 }
 
 /**

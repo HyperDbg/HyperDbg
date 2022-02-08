@@ -17,7 +17,7 @@
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
 /**
- * @brief help of bl command
+ * @brief help of the bl command
  *
  * @return VOID
  */
@@ -29,7 +29,7 @@ CommandBlHelp()
 }
 
 /**
- * @brief handler of bl command
+ * @brief handler of the bl command
  *
  * @param SplittedCommand
  * @param Command

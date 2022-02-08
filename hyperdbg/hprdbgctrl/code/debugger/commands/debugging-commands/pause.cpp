@@ -27,7 +27,7 @@ VOID
 CommandPauseHelp()
 {
     ShowMessages("pause : pauses the kernel events.\n\n");
-    ShowMessages("syntax : \tpause\n");
+    ShowMessages("syntax : \tpause \n");
 }
 
 /**

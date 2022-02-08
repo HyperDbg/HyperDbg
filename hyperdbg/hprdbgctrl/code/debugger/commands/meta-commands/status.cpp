@@ -39,7 +39,7 @@ CommandStatusHelp()
 }
 
 /**
- * @brief .status command handler
+ * @brief .status and status command handler
  *
  * @param SplittedCommand
  * @param Command

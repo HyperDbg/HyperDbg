@@ -29,8 +29,7 @@ CommandBpHelp()
         "Note : 'bp' is not an event, if you want to use an event version "
         "of breakpoints use !epthook or !epthook2 instead. See "
         "documentation for more inforamtion.\n\n");
-    ShowMessages("syntax : \tbp [address (hex value)] [pid | tid | core (hex "
-                 "value - optional)]\n");
+    ShowMessages("syntax : \tbp [Address (hex)] [pid ProcessId (hex)] [tid ThreadId (hex)] [core CoreId (hex)]\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+@rcx+rbx\n");

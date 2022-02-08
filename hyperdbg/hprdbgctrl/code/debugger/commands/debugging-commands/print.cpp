@@ -28,7 +28,7 @@ VOID
 CommandPrintHelp()
 {
     ShowMessages("print : evaluate expressions.\n\n");
-    ShowMessages("syntax : \tprint [expression]\n");
+    ShowMessages("syntax : \tprint [Expression (string)]\n");
     ShowMessages("\t\te.g : print dq(poi(@rcx))\n");
 }
 

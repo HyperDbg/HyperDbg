@@ -27,8 +27,10 @@ CommandOutputHelp()
 {
     ShowMessages("output : create an output instance that can be used in event "
                  "forwarding.\n\n");
-    ShowMessages("syntax : \toutput [create|open|close] [type "
-                 "(file|namedpipe|tcp)] [name|address]\n");
+
+    ShowMessages("syntax : \toutput [create Name (string)] [file|namedpipe|tcp Address (string)]\n");
+    ShowMessages("syntax : \toutput [open|close Name (string)]\n");
+
     ShowMessages("\t\te.g : output create MyOutputName1 file "
                  "c:\\users\\sina\\desktop\\output.txt\n");
     ShowMessages("\t\te.g : output create MyOutputName2 tcp 192.168.1.10:8080\n");

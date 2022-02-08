@@ -26,15 +26,16 @@ CommandSearchMemoryHelp()
 {
     ShowMessages("sb !sb sd !sd sq !sq : searches a contiguous memory for a "
                  "special byte pattern\n");
-    ShowMessages("s[b]  Byte and ASCII characters\n");
-    ShowMessages("s[d]  Double-word values (4 bytes)\n");
-    ShowMessages("s[q]  Quad-word values (8 bytes). \n");
+    ShowMessages("sb  Byte and ASCII characters\n");
+    ShowMessages("sd  Double-word values (4 bytes)\n");
+    ShowMessages("sq  Quad-word values (8 bytes). \n");
     ShowMessages(
         "\n If you want to search in physical (address) memory then add '!' "
         "at the start of the command\n");
 
-    ShowMessages("syntax : \t[!]s[b|d|q] [address from] l [length (hex value)] "
-                 "[byte pattern (hex)] pid [process id (hex)]\n");
+    ShowMessages("syntax : \tsb [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tsd [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tsq [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
 
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag+5 90 85 95 l ffff \n");

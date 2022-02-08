@@ -32,17 +32,19 @@ VOID
 CommandEventsHelp()
 {
     ShowMessages("events : show active and disabled events\n");
-    ShowMessages("syntax : \tevents [e|d|c] [event number (hex value) | all]\n");
+    ShowMessages("syntax : \tevents\n");
+    ShowMessages("syntax : \tevents [e|d|c all|EventNumber (hex)]\n");
     ShowMessages("e : enable\n");
     ShowMessages("d : disable\n");
     ShowMessages("c : clear\n");
-    ShowMessages("note : If you specify 'all' then [e|d|c] will be applied to "
+    ShowMessages("note : If you specify 'all' then e, d, or c will be applied to "
                  "all of the events.\n\n");
 
     ShowMessages("\te.g : events \n");
     ShowMessages("\te.g : events e 12\n");
     ShowMessages("\te.g : events d 10\n");
     ShowMessages("\te.g : events c 10\n");
+    ShowMessages("\te.g : events c all\n");
 }
 
 /**

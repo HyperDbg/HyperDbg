@@ -24,20 +24,25 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandReadMemoryAndDisassemblerHelp()
 {
-    ShowMessages("u !u u2 !u2 & db dc dd dq !db !dc !dd !dq : read the  "
+    ShowMessages("db dc dd dq !db !dc !dd !dq & u !u u2 !u2 : read the  "
                  "memory different shapes (hex) and disassembler\n");
-    ShowMessages("d[b]  Byte and ASCII characters\n");
-    ShowMessages("d[c]  Double-word values (4 bytes) and ASCII characters\n");
-    ShowMessages("d[d]  Double-word values (4 bytes)\n");
-    ShowMessages("d[q]  Quad-word values (8 bytes). \n");
+    ShowMessages("db  Byte and ASCII characters\n");
+    ShowMessages("dc  Double-word values (4 bytes) and ASCII characters\n");
+    ShowMessages("dd  Double-word values (4 bytes)\n");
+    ShowMessages("dq  Quad-word values (8 bytes). \n");
     ShowMessages("u  Disassembler at the target address (x64) \n");
     ShowMessages("u2  Disassembler at the target address (x86) \n");
     ShowMessages("\nIf you want to read physical memory then add '!' at the "
                  "start of the command\n");
     ShowMessages("you can also disassemble physical memory using '!u'\n\n");
 
-    ShowMessages("syntax : \t[!]d[b|c|d|q] [address] l [length (hex)] pid "
-                 "[process id (hex)]\n");
+    ShowMessages("syntax : \tdb [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdc [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdd [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tdq [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tu [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
+
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask+10\n");
     ShowMessages("\t\te.g : db @rax\n");
