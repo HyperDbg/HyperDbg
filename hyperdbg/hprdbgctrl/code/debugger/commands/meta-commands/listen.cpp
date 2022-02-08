@@ -35,7 +35,7 @@ CommandListenHelp()
                  "default port (%s)\n",
                  DEFAULT_PORT);
 
-    ShowMessages("syntax : \t.listen [port]\n");
+    ShowMessages("syntax : \t.listen [Port (decimal)]\n");
     ShowMessages("\t\te.g : .listen\n");
     ShowMessages("\t\te.g : .listen 50000\n");
 }

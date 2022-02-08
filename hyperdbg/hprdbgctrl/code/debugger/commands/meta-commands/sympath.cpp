@@ -25,7 +25,8 @@ CommandSympathHelp()
 {
     ShowMessages(".sympath : show and set the symbol server and path.\n\n");
 
-    ShowMessages("syntax : \t.sympath [server (string)]\n");
+    ShowMessages("syntax : \t.sympath\n");
+    ShowMessages("syntax : \t.sympath [SymServer (string)]\n");
     ShowMessages("\t\te.g : .sympath\n");
     ShowMessages("\t\te.g : .sympath SRV*c:\\Symbols*https://msdl.microsoft.com/download/symbols \n");
 }

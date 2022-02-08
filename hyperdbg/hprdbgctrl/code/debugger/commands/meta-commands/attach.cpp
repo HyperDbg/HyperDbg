@@ -25,7 +25,7 @@ VOID
 CommandAttachHelp()
 {
     ShowMessages(".attach : attach to debug a thread in VMI Mode.\n\n");
-    ShowMessages("syntax : \t.attach [pid (hex)]\n");
+    ShowMessages("syntax : \t.attach [pid ProcessId (hex)]\n");
     ShowMessages("\t\te.g : .attach pid b60 \n");
 }
 

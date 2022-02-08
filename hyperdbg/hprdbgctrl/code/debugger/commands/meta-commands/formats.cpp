@@ -20,7 +20,7 @@ VOID
 CommandFormatsHelp()
 {
     ShowMessages(".formats : Show a value or register in different formats.\n\n");
-    ShowMessages("syntax : \t.formats [hex value | register | Expression]\n");
+    ShowMessages("syntax : \t.formats [Expression (string)]\n");
 
     ShowMessages("\t\te.g : .formats nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask\n");
