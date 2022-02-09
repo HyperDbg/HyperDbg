@@ -22,7 +22,8 @@ VOID
 CommandPeHelp()
 {
     ShowMessages(".pe : parse Portable Executable (PE) files and dump sections.\n\n");
-    ShowMessages("syntax : \t.pe [header | section] [Section Name] [FilePath]\n");
+    ShowMessages("syntax : \t.pe [header] [FilePath (string)]\n");
+    ShowMessages("syntax : \t.pe [section] [SectionName (string)] [FilePath (string)]\n");
     ShowMessages("\t\te.g : .pe header c:\\reverse files\\myfile.exe\n");
     ShowMessages("\t\te.g : .pe section .text c:\\reverse files\\myfile.exe\n");
     ShowMessages("\t\te.g : .pe section .rdata c:\\reverse files\\myfile.exe\n");

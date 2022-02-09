@@ -26,8 +26,12 @@ CommandSymHelp()
 {
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
-    ShowMessages("syntax : \t.sym [table | reload | load | unload | download | add] [base (hex address)] "
-                 "[path (string path to pdb)]\n");
+    ShowMessages("syntax : \t.sym [table]\n");
+    ShowMessages("syntax : \t.sym [reload]\n");
+    ShowMessages("syntax : \t.sym [download]\n");
+    ShowMessages("syntax : \t.sym [load]\n");
+    ShowMessages("syntax : \t.sym [unload]\n");
+    ShowMessages("syntax : \t.sym [add] [base Address (hex)] [path Path (string)]\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
     ShowMessages("\t\te.g : .sym load\n");

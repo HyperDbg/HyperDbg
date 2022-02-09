@@ -28,7 +28,7 @@ VOID
 CommandLogopenHelp()
 {
     ShowMessages(".logopen : save commands and results in a file.\n\n");
-    ShowMessages("syntax : \t.logopen [FilePath]\n");
+    ShowMessages("syntax : \t.logopen [FilePath (string)]\n");
 }
 
 /**
