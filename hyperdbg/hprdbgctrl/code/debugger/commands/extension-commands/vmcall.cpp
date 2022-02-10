@@ -20,10 +20,10 @@ VOID
 CommandVmcallHelp()
 {
     ShowMessages("!vmcall : Monitors execution of VMCALL instruction.\n\n");
-    ShowMessages("syntax : \t!vmcall core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!vmcall [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !vmcall\n");
     ShowMessages("\t\te.g : !vmcall pid 400\n");

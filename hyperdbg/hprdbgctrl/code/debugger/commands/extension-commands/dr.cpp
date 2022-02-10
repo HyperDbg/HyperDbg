@@ -20,10 +20,10 @@ VOID
 CommandDrHelp()
 {
     ShowMessages("!dr : Monitors any access to debug registers.\n\n");
-    ShowMessages("syntax : \t!dr core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!dr [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !dr\n");
     ShowMessages("\t\te.g : !dr pid 400\n");

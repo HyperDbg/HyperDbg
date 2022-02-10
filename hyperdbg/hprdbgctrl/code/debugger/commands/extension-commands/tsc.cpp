@@ -20,10 +20,10 @@ VOID
 CommandTscHelp()
 {
     ShowMessages("!tsc : Monitors execution of rdtsc/rdtscp instructions.\n\n");
-    ShowMessages("syntax : \t!tsc core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!tsc [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !tsc\n");
     ShowMessages("\t\te.g : !tsc pid 400\n");
@@ -40,15 +40,15 @@ CommandTscHelp()
 VOID
 CommandTsc(vector<string> SplittedCommand, string Command)
 {
-    PDEBUGGER_GENERAL_EVENT_DETAIL Event                 = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionCustomCode      = NULL;
-    PDEBUGGER_GENERAL_ACTION       ActionScript          = NULL;
-    UINT32                         EventLength;
-    UINT32                         ActionBreakToDebuggerLength = 0;
-    UINT32                         ActionCustomCodeLength      = 0;
-    UINT32                         ActionScriptLength          = 0;
-    vector<string>                 SplittedCommandCaseSensitive {Split(Command, ' ')};
+    PDEBUGGER_GENERAL_EVENT_DETAIL     Event                 = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionBreakToDebugger = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionCustomCode      = NULL;
+    PDEBUGGER_GENERAL_ACTION           ActionScript          = NULL;
+    UINT32                             EventLength;
+    UINT32                             ActionBreakToDebuggerLength = 0;
+    UINT32                             ActionCustomCodeLength      = 0;
+    UINT32                             ActionScriptLength          = 0;
+    vector<string>                     SplittedCommandCaseSensitive {Split(Command, ' ')};
     DEBUGGER_EVENT_PARSING_ERROR_CAUSE EventParsingErrorCause;
 
     //

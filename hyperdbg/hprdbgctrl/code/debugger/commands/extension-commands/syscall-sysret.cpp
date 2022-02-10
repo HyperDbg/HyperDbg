@@ -23,10 +23,9 @@ CommandSyscallHelp()
                  "instructions (by accessing memory and checking for instructions).\n\n");
     ShowMessages("!syscall2 : Monitors and hooks all execution of syscall "
                  "instructions (by emulating all #UDs).\n\n");
-    ShowMessages("syntax : \t!syscall [syscall num (hex)] core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t[SyscallNumber (hex)] [pid ProcessId (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !syscall\n");
     ShowMessages("\t\te.g : !syscall2\n");
@@ -49,10 +48,10 @@ CommandSysretHelp()
                  "instructions (by accessing memory and checking for instructions).\n\n");
     ShowMessages("!sysret2 : Monitors and hooks all execution of sysret "
                  "instructions (by emulating all #UDs).\n\n");
-    ShowMessages("syntax : \t!sysret core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!sysret [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !sysret\n");
     ShowMessages("\t\te.g : !sysret2\n");
