@@ -25,8 +25,7 @@ VOID
 CommandVa2paHelp()
 {
     ShowMessages("!va2pa : Converts virtual address to physical address.\n\n");
-    ShowMessages("syntax : \t!va2pa [Virtual Address (hex value)] pid [Process "
-                 "id (hex value)]\n");
+    ShowMessages("syntax : \t!va2pa [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("\t\te.g : !va2pa nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !va2pa nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : !va2pa @rcx\n");

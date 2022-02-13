@@ -20,18 +20,16 @@ VOID
 CommandMonitorHelp()
 {
     ShowMessages("!monitor : Monitor address range for read and writes.\n\n");
-    ShowMessages("syntax : \t!monitor [attrib (r, w, rw)] [From Virtual Address "
-                 "(hex value)] [To Virtual Address (hex value)] core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!monitor [Mode (string)] [FromAddress (hex)] "
+                 "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
-    ShowMessages(
-        "\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
-    ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 "
-                 "pid 400\n");
+    ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");
+    ShowMessages("\t\te.g : !monitor w fffff801deadb000 fffff801deadbfff core 2 pid 400\n");
 }
 
 /**

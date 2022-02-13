@@ -34,8 +34,8 @@ CommandHideHelp()
 {
     ShowMessages("!hide : Tries to make HyperDbg transparent from anti-debugging "
                  "and anti-hypervisor methods.\n\n");
-    ShowMessages(
-        "syntax : \t!hide [pid|name] [process id (hex) | process name]\n");
+    ShowMessages("syntax : \t!hide [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \t!hide [name ProcessName (string)]\n");
     ShowMessages("note : \tprocess names are case sensitive and you can use "
                  "this command multiple times.\n");
     ShowMessages("\t\te.g : !hide pid b60 \n");

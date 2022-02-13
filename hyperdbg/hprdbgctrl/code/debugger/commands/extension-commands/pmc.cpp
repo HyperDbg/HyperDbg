@@ -20,10 +20,10 @@ VOID
 CommandPmcHelp()
 {
     ShowMessages("!pmc : Monitors execution of rdpmc instructions.\n\n");
-    ShowMessages("syntax : \t!tsc core [core index "
-                 "(hex value)] pid [process id (hex value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!pmc [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] "
+                 "[code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !pmc\n");
     ShowMessages("\t\te.g : !pmc pid 400\n");

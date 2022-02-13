@@ -20,11 +20,9 @@ VOID
 CommandMsrwriteHelp()
 {
     ShowMessages("!msrwrite : Detects the execution of wrmsr instructions.\n\n");
-    ShowMessages("syntax : \t!msrwrite [msr (hex value) - if not specific means "
-                 "all msrs] core [core index (hex value)] pid [process id (hex "
-                 "value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!msrwrite [Msr (hex)] [pid ProcessId (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !msrwrite\n");
     ShowMessages("\t\te.g : !msrwrite 0xc0000082\n");

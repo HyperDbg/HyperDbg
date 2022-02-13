@@ -20,10 +20,9 @@ VOID
 CommandInterruptHelp()
 {
     ShowMessages("!interrupt : Monitors the external interrupt (IDT >= 32).\n\n");
-    ShowMessages("syntax : \t!interrupt [entry index (hex value) - should be "
-                 "selected] core [core index (hex value)] pid [process id (hex "
-                 "value)] condition {[assembly in hex]} code {[assembly in hex]} "
-                 "buffer [pre-require buffer - (hex value)] \n");
+    ShowMessages("syntax : \t[IdtIndex (hex)] [pid ProcessId (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
     ShowMessages("\nNote : The index should be greater than 0x20 (32) and less "
                  "than 0xFF (255) - starting from zero.\n");
     ShowMessages("\t\te.g : !interrupt 0x2f\n");

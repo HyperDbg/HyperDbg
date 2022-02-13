@@ -20,11 +20,9 @@ VOID
 CommandMsrreadHelp()
 {
     ShowMessages("!msrread : Detects the execution of rdmsr instructions.\n\n");
-    ShowMessages("syntax : \t!msrread [msr (hex value) - if not specific means "
-                 "all msrs] core [core index (hex value)] pid [process id (hex "
-                 "value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !msrread\n");
     ShowMessages("\t\te.g : !msrread 0xc0000082\n");

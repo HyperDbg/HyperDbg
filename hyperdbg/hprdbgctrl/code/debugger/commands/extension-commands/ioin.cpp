@@ -21,11 +21,9 @@ CommandIoinHelp()
 {
     ShowMessages("!ioin : Detects the execution of IN (I/O instructions) "
                  "instructions.\n\n");
-    ShowMessages("syntax : \t!ioin [port (hex value) - if not specific means "
-                 "all ports] core [core index (hex value)] pid [process id (hex "
-                 "value)] condition {[assembly "
-                 "in hex]} code {[assembly in hex]} buffer [pre-require buffer - "
-                 "(hex value)] \n");
+    ShowMessages("syntax : \t!ioin [Port (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
+                 "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
+                 "[condition { Condition (hex) }] [code { Code (hex) }]\n");
 
     ShowMessages("\t\te.g : !ioin\n");
     ShowMessages("\t\te.g : !ioin 0x64\n");
