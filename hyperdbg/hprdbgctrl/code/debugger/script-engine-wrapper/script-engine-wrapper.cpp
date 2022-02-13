@@ -465,7 +465,7 @@ AllocateStructForCasting()
     StupidStruct2->UnicodeStr    = UnicodeStr2;
     StupidStruct2->StupidStruct1 = StupidStruct1;
 
-    _CrtDbgBreak();
+    //_CrtDbgBreak();
     return StupidStruct2;
 }
 

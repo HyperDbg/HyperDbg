@@ -27,7 +27,7 @@ CommandSwitchHelp()
 {
     ShowMessages(".switch : viewing a list of active debugging threads and switch "
                  "between processes and threads in VMI Mode.\n\n");
-    ShowMessages("syntax : \t.switch [list]\n");
+    ShowMessages("syntax : \t.switch \n");
     ShowMessages("syntax : \t.switch [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t.switch [tid ThreadId (hex)]\n");
     ShowMessages("\t\te.g : .switch list\n");
@@ -47,7 +47,7 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
 {
     UINT32 PidOrTid = NULL;
 
-    if (SplittedCommand.size() != 2 && SplittedCommand.size() != 3)
+    if (SplittedCommand.size() > 3 || SplittedCommand.size() == 2)
     {
         ShowMessages("incorrect use of '.switch'\n\n");
         CommandSwitchHelp();
@@ -68,24 +68,9 @@ CommandSwitch(vector<string> SplittedCommand, string Command)
     //
     // Perform switching or listing the threads
     //
-    if (!SplittedCommand.at(1).compare("list"))
+    if (SplittedCommand.size() == 1)
     {
-        if (SplittedCommand.size() == 2)
-        {
-            UdShowListActiveDebuggingProcessesAndThreads();
-        }
-        else
-        {
-            ShowMessages("err, couldn't resolve error at '%s'\n",
-                         SplittedCommand.at(2).c_str());
-            return;
-        }
-    }
-    else if (SplittedCommand.size() == 2)
-    {
-        ShowMessages("incorrect use of '.switch'\n\n");
-        CommandSwitchHelp();
-        return;
+        UdShowListActiveDebuggingProcessesAndThreads();
     }
     else if (!SplittedCommand.at(1).compare("pid"))
     {
