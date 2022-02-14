@@ -46,9 +46,13 @@ CommandLmHelp()
 BOOLEAN
 CommandLmShowUsermodeModule(UINT32 ProcessId)
 {
-    BOOLEAN                        Status;
-    ULONG                          ReturnedLength;
-    USERMODE_LOADED_MODULE_DETAILS ModuleCountRequest = {0};
+    BOOLEAN                         Status;
+    ULONG                           ReturnedLength;
+    UINT32                          ModuleDetailsSize    = 0;
+    UINT32                          ModulesCount         = 0;
+    PUSERMODE_LOADED_MODULE_DETAILS ModuleDetailsRequest = NULL;
+    PUSERMODE_LOADED_MODULE_SYMBOLS Modules              = NULL;
+    USERMODE_LOADED_MODULE_DETAILS  ModuleCountRequest   = {0};
 
     //
     // Check if debugger is loaded or not
@@ -90,7 +94,78 @@ CommandLmShowUsermodeModule(UINT32 ProcessId)
     //
     if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
     {
-        ShowMessages("Count of modulessssssssssssssssssssssssssss : %d\n", ModuleCountRequest.ModulesCount);
+        ModulesCount = ModuleCountRequest.ModulesCount;
+
+        // ShowMessages("Count of modules : 0x%x\n", ModuleCountRequest.ModulesCount);
+
+        ModuleDetailsSize = sizeof(USERMODE_LOADED_MODULE_DETAILS) +
+                            (ModuleCountRequest.ModulesCount * sizeof(USERMODE_LOADED_MODULE_SYMBOLS));
+
+        ModuleDetailsRequest = (PUSERMODE_LOADED_MODULE_DETAILS)malloc(ModuleDetailsSize);
+
+        if (ModuleDetailsRequest == NULL)
+        {
+            return FALSE;
+        }
+
+        RtlZeroMemory(ModuleDetailsRequest, ModuleDetailsSize);
+
+        //
+        // Set the module details to get the modules (not count)
+        //
+        ModuleDetailsRequest->ProcessId        = ProcessId;
+        ModuleDetailsRequest->OnlyCountModules = FALSE;
+
+        //
+        // Send the request to the kernel
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                         // Handle to device
+            IOCTL_GET_USER_MODE_MODULE_DETAILS,     // IO Control
+                                                    // code
+            ModuleDetailsRequest,                   // Input Buffer to driver.
+            sizeof(USERMODE_LOADED_MODULE_DETAILS), // Input buffer length
+            ModuleDetailsRequest,                   // Output Buffer from driver.
+            ModuleDetailsSize,                      // Length of output
+                                                    // buffer in bytes.
+            &ReturnedLength,                        // Bytes placed in buffer.
+            NULL                                    // synchronous call
+        );
+
+        if (!Status)
+        {
+            free(ModuleDetailsRequest);
+            return FALSE;
+        }
+
+        //
+        // Show modules list
+        //
+        if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            Modules = (PUSERMODE_LOADED_MODULE_SYMBOLS)((UINT64)ModuleDetailsRequest +
+                                                        sizeof(USERMODE_LOADED_MODULE_DETAILS));
+            ShowMessages("user mode\n");
+            ShowMessages("start\t\t\tentrypoint\t\tpath\n\n");
+            
+            for (size_t i = 0; i < ModuleCountRequest.ModulesCount; i++)
+            {
+                ShowMessages("%016llx\t%016llx\t%ws\n",
+                             Modules[i].BaseAddress,
+                             Modules[i].Entrypoint,
+                             Modules[i].FilePath);
+            }
+        }
+        else
+        {
+            ShowErrorMessage(ModuleCountRequest.Result);
+            return FALSE;
+        }
+
+        ShowMessages("\n==============================================================================\n\n");
+
+        free(ModuleDetailsRequest);
+        return TRUE;
     }
     else
     {
@@ -167,6 +242,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
         return;
     }
 
+    ShowMessages("kernel mode\n");
     ShowMessages("start\t\t\tsize\tname\t\t\t\tpath\n\n");
 
     for (ULONG i = 0; i < ModulesInfo->NumberOfModules; i++)

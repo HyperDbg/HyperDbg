@@ -622,7 +622,6 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 BOOLEAN
 UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRequest, UINT32 BufferSize)
 {
-    DbgBreakPoint();
     PEPROCESS SourceProcess;
     BOOLEAN   Is32Bit;
 
