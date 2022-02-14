@@ -44,7 +44,7 @@ CommandLmHelp()
  * @return BOOLEAN
  */
 BOOLEAN
-CommandLmShowUsermodeModule(UINT32 ProcessId)
+CommandLmShowUserModeModule(UINT32 ProcessId)
 {
     BOOLEAN                         Status;
     ULONG                           ReturnedLength;
@@ -147,7 +147,7 @@ CommandLmShowUsermodeModule(UINT32 ProcessId)
                                                         sizeof(USERMODE_LOADED_MODULE_DETAILS));
             ShowMessages("user mode\n");
             ShowMessages("start\t\t\tentrypoint\t\tpath\n\n");
-            
+
             for (size_t i = 0; i < ModuleCountRequest.ModulesCount; i++)
             {
                 ShowMessages("%016llx\t%016llx\t%ws\n",
@@ -175,39 +175,17 @@ CommandLmShowUsermodeModule(UINT32 ProcessId)
 }
 
 /**
- * @brief handle lm command
- *
- * @param SplittedCommand
- * @param Command
- * @return VOID
+ * @brief show modules for kernel mode 
+ * 
+ * @return BOOLEAN
  */
-VOID
-CommandLm(vector<string> SplittedCommand, string Command)
+BOOLEAN
+CommandLmShowKernelModeModule(const char * SearchModule)
 {
     NTSTATUS             Status = STATUS_UNSUCCESSFUL;
     PRTL_PROCESS_MODULES ModulesInfo;
     ULONG                SysModuleInfoBufferSize = 0;
     char *               Search;
-
-    if (SplittedCommand.size() >= 3)
-    {
-        ShowMessages("incorrect use of 'lm'\n\n");
-        CommandLmHelp();
-        return;
-    }
-
-    //
-    // Show user mode modules
-    //
-
-    if (g_ActiveProcessDebuggingState.IsActive)
-    {
-        CommandLmShowUsermodeModule(g_ActiveProcessDebuggingState.ProcessId);
-    }
-    else
-    {
-        CommandLmShowUsermodeModule(GetCurrentProcessId());
-    }
 
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
@@ -227,7 +205,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("\nUnable to allocate memory for module list (%x)\n",
                      GetLastError());
-        return;
+        return FALSE;
     }
 
     Status = NtQuerySystemInformation(SystemModuleInformation,
@@ -239,7 +217,7 @@ CommandLm(vector<string> SplittedCommand, string Command)
         ShowMessages("\nError: Unable to query module list (%#x)\n", Status);
 
         VirtualFree(ModulesInfo, 0, MEM_RELEASE);
-        return;
+        return FALSE;
     }
 
     ShowMessages("kernel mode\n");
@@ -251,9 +229,9 @@ CommandLm(vector<string> SplittedCommand, string Command)
         //
         // Check if we need to search for the module or not
         //
-        if (SplittedCommand.size() == 2)
+        if (SearchModule != NULL)
         {
-            Search = strstr((char *)CurrentModule->FullPathName, SplittedCommand.at(1).c_str());
+            Search = strstr((char *)CurrentModule->FullPathName, SearchModule);
             if (Search == NULL)
             {
                 //
@@ -291,4 +269,41 @@ CommandLm(vector<string> SplittedCommand, string Command)
     }
 
     VirtualFree(ModulesInfo, 0, MEM_RELEASE);
+
+    return TRUE;
+}
+
+/**
+ * @brief handle lm command
+ *
+ * @param SplittedCommand
+ * @param Command
+ * @return VOID
+ */
+VOID
+CommandLm(vector<string> SplittedCommand, string Command)
+{
+    //
+    // Show user mode modules
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        CommandLmShowUserModeModule(g_ActiveProcessDebuggingState.ProcessId);
+    }
+    else
+    {
+        CommandLmShowUserModeModule(GetCurrentProcessId());
+    }
+
+    //
+    // Show kernel mode modules
+    //
+    if (SplittedCommand.size() == 2)
+    {
+        CommandLmShowKernelModeModule(SplittedCommand.at(1).c_str());
+    }
+    else
+    {
+        CommandLmShowKernelModeModule(NULL);
+    }
 }
