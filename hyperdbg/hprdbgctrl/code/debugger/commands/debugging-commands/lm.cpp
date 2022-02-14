@@ -13,6 +13,11 @@
 
 using namespace std;
 
+//
+// Global Variables
+//
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+
 /**
  * @brief help of lm command
  *
@@ -30,6 +35,68 @@ CommandLmHelp()
     ShowMessages("\t\te.g : lm nt\n");
     ShowMessages("\t\t\tdescription : search and show all modules that contain "
                  "'nt' in their path or name\n");
+}
+
+/**
+ * @brief show modules for specified user mode process
+ * @param ProcessId
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandLmShowUsermodeModule(UINT32 ProcessId)
+{
+    BOOLEAN                        Status;
+    ULONG                          ReturnedLength;
+    USERMODE_LOADED_MODULE_DETAILS ModuleCountRequest = {0};
+
+    //
+    // Check if debugger is loaded or not
+    //
+    if (!g_DeviceHandle)
+    {
+        return FALSE;
+    }
+
+    //
+    // Set the module details to get the details
+    //
+    ModuleCountRequest.ProcessId        = ProcessId;
+    ModuleCountRequest.OnlyCountModules = TRUE;
+
+    //
+    // Send the request to the kernel
+    //
+    Status = DeviceIoControl(
+        g_DeviceHandle,                         // Handle to device
+        IOCTL_GET_USER_MODE_MODULE_DETAILS,     // IO Control
+                                                // code
+        &ModuleCountRequest,                    // Input Buffer to driver.
+        sizeof(USERMODE_LOADED_MODULE_DETAILS), // Input buffer length
+        &ModuleCountRequest,                    // Output Buffer from driver.
+        sizeof(USERMODE_LOADED_MODULE_DETAILS), // Length of output
+                                                // buffer in bytes.
+        &ReturnedLength,                        // Bytes placed in buffer.
+        NULL                                    // synchronous call
+    );
+
+    if (!Status)
+    {
+        return FALSE;
+    }
+
+    //
+    // Check if counting modules was successful or not
+    //
+    if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    {
+        ShowMessages("Count of modulessssssssssssssssssssssssssss : %d\n", ModuleCountRequest.ModulesCount);
+    }
+    else
+    {
+        ShowErrorMessage(ModuleCountRequest.Result);
+        return FALSE;
+    }
 }
 
 /**
@@ -52,6 +119,19 @@ CommandLm(vector<string> SplittedCommand, string Command)
         ShowMessages("incorrect use of 'lm'\n\n");
         CommandLmHelp();
         return;
+    }
+
+    //
+    // Show user mode modules
+    //
+
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        CommandLmShowUsermodeModule(g_ActiveProcessDebuggingState.ProcessId);
+    }
+    else
+    {
+        CommandLmShowUsermodeModule(GetCurrentProcessId());
     }
 
     //

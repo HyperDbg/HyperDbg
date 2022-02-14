@@ -207,7 +207,7 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
                                                PUNICODE_STRING ProcessImageName,
                                                UINT32          SizeOfImageNameToBeAllocated);
 BOOLEAN
-UserAccessPrintLoadedModules(HANDLE ProcessId);
+UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRequest, UINT32 BufferSize);
 
 BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit);
