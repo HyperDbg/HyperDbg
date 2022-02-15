@@ -82,6 +82,12 @@ StringToWString(std::wstring & ws, const std::string & s);
 VOID
 SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command);
 
+size_t
+FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);
+
+size_t
+FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos);
+
 std::vector<std::string>
 ListDirectory(const std::string & Directory, const std::string & Extension);
 

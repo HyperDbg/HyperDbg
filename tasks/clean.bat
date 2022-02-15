@@ -1,4 +1,5 @@
 @echo off
+cd ..
 echo Cleaning files ...
 echo.
 

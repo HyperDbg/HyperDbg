@@ -328,23 +328,30 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOO
  * @details This function should be called in vmx non-root
  * 
  * @param Proc 
- * @return UINT64 
+ * @param OnlyCountModules 
+ * @param ModulesCount 
+ * @param ModulesList 
+ * @param SizeOfBufferForModulesList 
+ * @return BOOLEAN 
  */
-UINT64
-UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
+BOOLEAN
+UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
+                                BOOLEAN                         OnlyCountModules,
+                                PUINT32                         ModulesCount,
+                                PUSERMODE_LOADED_MODULE_SYMBOLS ModulesList,
+                                UINT32                          SizeOfBufferForModulesList)
 {
-    KAPC_STATE                      State;
-    UNICODE_STRING                  Name;
-    PPEB                            Peb                 = NULL;
-    PPEB_LDR_DATA                   Ldr                 = NULL;
-    UINT32                          CountOfModules      = 0;
-    UINT32                          CurrentSavedModules = 0;
-    UINT32                          TempSize            = 0;
-    PUSERMODE_LOADED_MODULE_SYMBOLS ModulesStorage      = NULL;
+    KAPC_STATE     State;
+    UNICODE_STRING Name;
+    PPEB           Peb                    = NULL;
+    PPEB_LDR_DATA  Ldr                    = NULL;
+    UINT32         CountOfModules         = 0;
+    UINT32         CurrentSavedModules    = 0;
+    UINT32         TempSize               = 0;
 
     if (g_PsGetProcessPeb == NULL)
     {
-        return NULL;
+        return FALSE;
     }
 
     //
@@ -354,7 +361,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
 
     if (!Peb)
     {
-        return NULL;
+        return FALSE;
     }
 
     KeStackAttachProcess(Proc, &State);
@@ -364,31 +371,47 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
     if (!Ldr)
     {
         KeUnstackDetachProcess(&State);
-        return NULL;
+        return FALSE;
     }
 
-    //
-    // loop the linked list (Computer the size)
-    //
-    for (PLIST_ENTRY List = (PLIST_ENTRY)Ldr->ModuleListLoadOrder.Flink;
-         List != &Ldr->ModuleListLoadOrder;
-         List = (PLIST_ENTRY)List->Flink)
+    if (OnlyCountModules)
     {
-        PLDR_DATA_TABLE_ENTRY Entry =
-            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
-
         //
-        // Calculate count of modules
+        // loop the linked list (Computer the size)
         //
-        CountOfModules++;
+        for (PLIST_ENTRY List = (PLIST_ENTRY)Ldr->ModuleListLoadOrder.Flink;
+             List != &Ldr->ModuleListLoadOrder;
+             List = (PLIST_ENTRY)List->Flink)
+        {
+            PLDR_DATA_TABLE_ENTRY Entry =
+                CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
 
-        /*
+            //
+            // Calculate count of modules
+            //
+            CountOfModules++;
+
+            /*
         Log("Base: %016llx\tEntryPoint: %016llx\tModule: %ws\tPath: %ws\n",
             Entry->DllBase,
             Entry->EntryPoint,
             Entry->BaseDllName.Buffer,
             Entry->FullDllName.Buffer);
         */
+        }
+
+        *ModulesCount = CountOfModules;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
+    }
+    else
+    {
+        //
+        // It's not counting the modules, so we compute the number of modules
+        // that can be stored in the buffer by using the size of the buffer
+        //
+        CountOfModules = SizeOfBufferForModulesList / sizeof(USERMODE_LOADED_MODULE_SYMBOLS);
     }
 
     //
@@ -399,29 +422,8 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
     if (!Ldr)
     {
         KeUnstackDetachProcess(&State);
-        return NULL;
+        return FALSE;
     }
-
-    //
-    // Allocate the buffer to be submitted to the user mode
-    // No need a non-paged pool as it operates on PASSIVE_LEVEL
-    //
-    ModulesStorage = ExAllocatePoolWithTag(PagedPool,
-                                           sizeof(USERMODE_LOADED_MODULE_SYMBOLS) * CountOfModules,
-                                           POOLTAG);
-
-    if (!ModulesStorage)
-    {
-        //
-        // Unable to allocate memory
-        //
-        return NULL;
-    }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(ModulesStorage, sizeof(USERMODE_LOADED_MODULE_SYMBOLS) * CountOfModules);
 
     //
     // loop the linked list
@@ -441,14 +443,15 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
             // a module is just loaded and we didn't allocate enough
             // memory for it, so it's better to continue
             //
-            return ModulesStorage;
+            KeUnstackDetachProcess(&State);
+            return TRUE;
         }
 
         //
         // Save the details into the storage
         //
-        ModulesStorage[CurrentSavedModules].Entrypoint  = Entry->EntryPoint;
-        ModulesStorage[CurrentSavedModules].BaseAddress = Entry->DllBase;
+        ModulesList[CurrentSavedModules].Entrypoint  = Entry->EntryPoint;
+        ModulesList[CurrentSavedModules].BaseAddress = Entry->DllBase;
 
         //
         // Copy the path
@@ -460,14 +463,156 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
         }
 
         TempSize = TempSize * 2;
-        memcpy(&ModulesStorage[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
+        memcpy(&ModulesList[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
 
         CurrentSavedModules++;
     }
 
     KeUnstackDetachProcess(&State);
 
-    return ModulesStorage;
+    return TRUE;
+}
+
+/**
+ * @brief Gets the loaded modules details from PEB (x86)
+ * @details This function should be called in vmx non-root
+ * 
+ * @param Proc 
+ * @param OnlyCountModules 
+ * @param ModulesCount 
+ * @param ModulesList 
+ * @param SizeOfBufferForModulesList 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
+                                BOOLEAN                         OnlyCountModules,
+                                PUINT32                         ModulesCount,
+                                PUSERMODE_LOADED_MODULE_SYMBOLS ModulesList,
+                                UINT32                          SizeOfBufferForModulesList)
+{
+    KAPC_STATE      State;
+    UNICODE_STRING  Name;
+    PPEB32          Peb                 = NULL;
+    PPEB_LDR_DATA32 Ldr                 = NULL;
+    UINT32          CountOfModules      = 0;
+    UINT32          CurrentSavedModules = 0;
+    UINT32          TempSize            = 0;
+
+    if (g_PsGetProcessWow64Process == NULL)
+    {
+        return FALSE;
+    }
+
+    //
+    // Process PEB, function is unexported and undocumented
+    //
+    Peb = (PPEB32)g_PsGetProcessWow64Process(Proc);
+
+    if (!Peb)
+    {
+        return FALSE;
+    }
+
+    KeStackAttachProcess(Proc, &State);
+
+    Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return FALSE;
+    }
+
+    if (OnlyCountModules)
+    {
+        //
+        // loop the linked list (Computer the size)
+        //
+        for (PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr->InLoadOrderModuleList.Flink;
+             List != &Ldr->InLoadOrderModuleList;
+             List = (PLIST_ENTRY32)List->Flink)
+        {
+            PLDR_DATA_TABLE_ENTRY32 Entry =
+                CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+
+            //
+            // Calculate count of modules
+            //
+            CountOfModules++;
+        }
+
+        *ModulesCount = CountOfModules;
+
+        KeUnstackDetachProcess(&State);
+        return TRUE;
+    }
+    else
+    {
+        //
+        // It's not counting the modules, so we compute the number of modules
+        // that can be stored in the buffer by using the size of the buffer
+        //
+        CountOfModules = SizeOfBufferForModulesList / sizeof(USERMODE_LOADED_MODULE_SYMBOLS);
+    }
+
+    //
+    // Walk again to save the buffer
+    //
+    Ldr = (PPEB_LDR_DATA32)Peb->Ldr;
+
+    if (!Ldr)
+    {
+        KeUnstackDetachProcess(&State);
+        return FALSE;
+    }
+
+    //
+    // loop the linked list
+    //
+    for (PLIST_ENTRY32 List = (PLIST_ENTRY32)Ldr->InLoadOrderModuleList.Flink;
+         List != &Ldr->InLoadOrderModuleList;
+         List = (PLIST_ENTRY32)List->Flink)
+    {
+        PLDR_DATA_TABLE_ENTRY32 Entry =
+            CONTAINING_RECORD(List, LDR_DATA_TABLE_ENTRY32, InLoadOrderLinks);
+
+        if (CountOfModules == CurrentSavedModules)
+        {
+            //
+            // Won't continue as the buffer is now full
+            // Generally, we shouldn't be at this stage, only when
+            // a module is just loaded and we didn't allocate enough
+            // memory for it, so it's better to continue
+            //
+            KeUnstackDetachProcess(&State);
+            return TRUE;
+        }
+
+        //
+        // Save the details into the storage
+        //
+        ModulesList[CurrentSavedModules].Entrypoint  = Entry->EntryPoint;
+        ModulesList[CurrentSavedModules].BaseAddress = Entry->DllBase;
+
+        //
+        // Copy the path
+        //
+        TempSize = Entry->FullDllName.Length;
+        if (TempSize >= MAX_PATH)
+        {
+            TempSize = MAX_PATH;
+        }
+
+        TempSize = TempSize * 2;
+        memcpy(&ModulesList[CurrentSavedModules].FilePath, Entry->FullDllName.Buffer, TempSize);
+
+        CurrentSavedModules++;
+    }
+
+    KeUnstackDetachProcess(&State);
+
+    return TRUE;
 }
 
 /**
@@ -478,7 +623,7 @@ UserAccessPrintLoadedModulesX64(PEPROCESS Proc)
  * @return BOOLEAN 
  */
 BOOLEAN
-UserAccessPrintLoadedModulesX86(PEPROCESS Proc)
+UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
 {
     KAPC_STATE      State;
     UNICODE_STRING  Name;
@@ -609,25 +754,25 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 }
 
 /**
- * @brief Prints loaded modules
+ * @brief Get details about loaded modules
  * @details This function should be called in vmx non-root
  * 
- * @param ProcessId 
- * 
+ * @param ProcessLoadedModuleRequest
+ * @param BufferSize
  * @return BOOLEAN 
  */
 BOOLEAN
-UserAccessPrintLoadedModules(HANDLE ProcessId)
-
+UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRequest, UINT32 BufferSize)
 {
     PEPROCESS SourceProcess;
     BOOLEAN   Is32Bit;
 
-    if (PsLookupProcessByProcessId(ProcessId, &SourceProcess) != STATUS_SUCCESS)
+    if (PsLookupProcessByProcessId(ProcessLoadedModuleRequest->ProcessId, &SourceProcess) != STATUS_SUCCESS)
     {
         //
         // if the process not found
         //
+        ProcessLoadedModuleRequest->Result = DEBUGGER_ERROR_INVALID_PROCESS_ID;
         return FALSE;
     }
 
@@ -636,11 +781,12 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
     //
     // check whether the target process is 32-bit or 64-bit
     //
-    if (!UserAccessIsWow64Process(ProcessId, &Is32Bit))
+    if (!UserAccessIsWow64Process(ProcessLoadedModuleRequest->ProcessId, &Is32Bit))
     {
         //
         // Unable to detect whether it's 32-bit or 64-bit
         //
+        ProcessLoadedModuleRequest->Result = DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS;
         return FALSE;
     }
 
@@ -649,9 +795,13 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
         //
         // x86 process, walk x86 module list
         //
-
-        if (UserAccessPrintLoadedModulesX86(SourceProcess))
+        if (UserAccessPrintLoadedModulesX86(SourceProcess,
+                                            ProcessLoadedModuleRequest->OnlyCountModules,
+                                            &ProcessLoadedModuleRequest->ModulesCount,
+                                            (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
+                                            BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
+            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             return TRUE;
         }
     }
@@ -660,12 +810,18 @@ UserAccessPrintLoadedModules(HANDLE ProcessId)
         //
         // x64 process, walk x64 module list
         //
-        if (UserAccessPrintLoadedModulesX64(SourceProcess))
+        if (UserAccessPrintLoadedModulesX64(SourceProcess,
+                                            ProcessLoadedModuleRequest->OnlyCountModules,
+                                            &ProcessLoadedModuleRequest->ModulesCount,
+                                            (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
+                                            BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
+            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             return TRUE;
         }
     }
 
+    ProcessLoadedModuleRequest->Result = DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS;
     return FALSE;
 }
 

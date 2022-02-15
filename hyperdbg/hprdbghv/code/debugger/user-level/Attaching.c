@@ -14,7 +14,8 @@
 
 /**
  * @brief Initialize the attaching mechanism
- * 
+ * @details as we use the functionalities for these functions, we initialize
+ * them from the debugger at start up of debugger (not initialization of user-debugger)
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1439,7 +1440,7 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
     // As we're here, we need to initialize the user-mode debugger
     //
     UdInitializeUserDebugger();
-    
+
     switch (Request->Action)
     {
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_ATTACH:
@@ -1447,6 +1448,7 @@ AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)
         AttachingPerformAttachToProcess(Request, Request->IsStartingNewProcess);
 
         break;
+
     case DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_DETACH:
 
         AttachingPerformDetach(Request);

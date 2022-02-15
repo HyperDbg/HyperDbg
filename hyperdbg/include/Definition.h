@@ -574,6 +574,19 @@ typedef struct _USERMODE_LOADED_MODULE_SYMBOLS
 
 } USERMODE_LOADED_MODULE_SYMBOLS, *PUSERMODE_LOADED_MODULE_SYMBOLS;
 
+typedef struct _USERMODE_LOADED_MODULE_DETAILS
+{
+    UINT32  ProcessId;
+    BOOLEAN OnlyCountModules;
+    UINT32  ModulesCount;
+    UINT32  Result;
+
+    //
+    // Here is a list of USERMODE_LOADED_MODULE_SYMBOLS (appended)
+    //
+
+} USERMODE_LOADED_MODULE_DETAILS, *PUSERMODE_LOADED_MODULE_DETAILS;
+
 //////////////////////////////////////////////////
 //              Processor Details               //
 //////////////////////////////////////////////////
@@ -2525,6 +2538,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS 0xc0000036
 
+/**
+ * @brief error, unable to get modules
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS 0xc0000037
+
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN
 // MAKE SURE TO ADD AN ERROR MESSAGE TO ShowErrorMessage(UINT32 Error)
@@ -2717,3 +2736,10 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_GET_DETAIL_OF_ACTIVE_THREADS_AND_PROCESSES \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x819, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to get user mode modules details
+ *
+ */
+#define IOCTL_GET_USER_MODE_MODULE_DETAILS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81a, METHOD_BUFFERED, FILE_ANY_ACCESS)

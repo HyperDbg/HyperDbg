@@ -1,4 +1,5 @@
 @echo off
+cd ..
 setlocal enableextensions enabledelayedexpansion
 
 set msbuildemitsolution=1

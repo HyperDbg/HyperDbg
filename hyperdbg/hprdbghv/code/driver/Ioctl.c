@@ -37,6 +37,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                         DebuggerFlushBuffersRequest;
     PDEBUGGER_PREALLOC_COMMAND                              DebuggerReservePreallocPoolRequest;
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
+    PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION              DebuggerKernelSideTestInformationRequest;
@@ -1173,6 +1174,49 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             // Perform the dispatching of user debugger command
             //
             AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(BufferToStoreThreadsAndProcessesDetails, OutBuffLength);
+
+            Irp->IoStatus.Information = OutBuffLength;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_GET_USER_MODE_MODULE_DETAILS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < sizeof(USERMODE_LOADED_MODULE_DETAILS) ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerUsermodeModulesRequest = (PUSERMODE_LOADED_MODULE_DETAILS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Getting the modules details
+            //
+            UserAccessGetLoadedModules(DebuggerUsermodeModulesRequest, OutBuffLength);
 
             Irp->IoStatus.Information = OutBuffLength;
             Status                    = STATUS_SUCCESS;

@@ -190,6 +190,16 @@ DebuggerInitialize()
         RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
     }
 
+    //
+    // Initialize attaching mechanism,
+    // we'll use the functionalities of the attaching in reading modules
+    // of user mode applications (other than attaching mechanism itself)
+    //
+    if (!AttachingInitialize())
+    {
+        return FALSE;
+    }
+
     return TRUE;
 }
 

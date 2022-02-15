@@ -1,5 +1,7 @@
 @echo off
 
+cd ..
+
 set vswhere="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
 set clang_format=
 
