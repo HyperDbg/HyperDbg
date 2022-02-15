@@ -473,6 +473,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     char                  ModuleSymbolPath[MAX_PATH]                        = {0};
     char                  ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE] = {0};
     BOOLEAN               IsSymbolPdbDetailAvailable                        = FALSE;
+    ULONG                 SysModuleInfoBufferSize                           = 0;
 
     //
     // Check if we found an already built symbol table
@@ -512,11 +513,16 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     Replace(SystemRootString, "\\system32", "");
 
     //
+    // Get required size of "RTL_PROCESS_MODULES" buffer
+    //
+    Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
+
+    //
     // Allocate memory for the module list
     //
     ModuleInfo = (PRTL_PROCESS_MODULES)VirtualAlloc(
         NULL,
-        1024 * 1024,
+        SysModuleInfoBufferSize,
         MEM_COMMIT | MEM_RESERVE,
         PAGE_READWRITE);
 
@@ -527,13 +533,10 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
         return FALSE;
     }
 
-    //
-    // 11 = SystemModuleInformation
-    //
     if (!NT_SUCCESS(
-            Status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11,
+            Status = NtQuerySystemInformation(SystemModuleInformation,
                                               ModuleInfo,
-                                              1024 * 1024,
+                                              SysModuleInfoBufferSize,
                                               NULL)))
     {
         ShowMessages("err, unable to query module list (%#x)\n", Status);
