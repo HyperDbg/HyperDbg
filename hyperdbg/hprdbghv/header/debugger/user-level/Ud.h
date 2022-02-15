@@ -15,7 +15,7 @@
 //				      Functions     			//
 //////////////////////////////////////////////////
 
-VOID
+BOOLEAN
 UdInitializeUserDebugger();
 
 VOID

@@ -26,15 +26,16 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandLmHelp()
 {
-    ShowMessages(
-        "lm : list kernel modules' base address, size, name and path.\n\n");
+    ShowMessages("lm : list kernel modules' base address, size, name and path.\n\n");
     ShowMessages("syntax : \tlm \n");
-    ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)]\n");
+    ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)] [Filter (string)]\n");
     ShowMessages("\t\te.g : lm\n");
-    ShowMessages("\t\t\tdescription : list all modules\n");
-    ShowMessages("\t\te.g : lm nt\n");
-    ShowMessages("\t\t\tdescription : search and show all modules that contain "
-                 "'nt' in their path or name\n");
+    ShowMessages("\t\te.g : lm km\n");
+    ShowMessages("\t\te.g : lm um\n");
+    ShowMessages("\t\te.g : lm m nt\n");
+    ShowMessages("\t\te.g : lm km m ntos\n");
+    ShowMessages("\t\te.g : lm um m kernel32\n");
+    ShowMessages("\t\te.g : lm um m kernel32 pid 1240\n");
 }
 
 /**

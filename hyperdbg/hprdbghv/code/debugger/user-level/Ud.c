@@ -15,9 +15,9 @@
  * @brief initialize user debugger
  * @details this function should be called on vmx non-root
  * 
- * @return VOID 
+ * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 UdInitializeUserDebugger()
 {
     //
@@ -26,15 +26,16 @@ UdInitializeUserDebugger()
     //
     if (g_UserDebuggerState)
     {
-        return;
+        return TRUE;
     }
 
     //
-    // Initialize attaching mechanism
+    // Check if we have functions we need for attaching mechanism
     //
-    if (!AttachingInitialize())
+    if (g_PsGetProcessPeb == NULL || g_PsGetProcessWow64Process == NULL || g_ZwQueryInformationProcess == NULL)
     {
-        return FALSE;
+        LogError("Err, unable to find needed functions for user-debugger");
+        // return FALSE;
     }
 
     //
@@ -62,6 +63,8 @@ UdInitializeUserDebugger()
     // Indicate that the user debugger is active
     //
     g_UserDebuggerState = TRUE;
+
+    return TRUE;
 }
 
 /**
