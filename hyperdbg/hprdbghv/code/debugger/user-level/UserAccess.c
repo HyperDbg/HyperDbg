@@ -343,11 +343,11 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 {
     KAPC_STATE     State;
     UNICODE_STRING Name;
-    PPEB           Peb                 = NULL;
-    PPEB_LDR_DATA  Ldr                 = NULL;
-    UINT32         CountOfModules      = 0;
-    UINT32         CurrentSavedModules = 0;
-    UINT32         TempSize            = 0;
+    PPEB           Peb                    = NULL;
+    PPEB_LDR_DATA  Ldr                    = NULL;
+    UINT32         CountOfModules         = 0;
+    UINT32         CurrentSavedModules    = 0;
+    UINT32         TempSize               = 0;
 
     if (g_PsGetProcessPeb == NULL)
     {

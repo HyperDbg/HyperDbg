@@ -44,7 +44,7 @@ CommandLmHelp()
  * @return BOOLEAN
  */
 BOOLEAN
-CommandLmShowUserModeModule(UINT32 ProcessId)
+CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
 {
     BOOLEAN                         Status;
     ULONG                           ReturnedLength;
@@ -53,12 +53,17 @@ CommandLmShowUserModeModule(UINT32 ProcessId)
     PUSERMODE_LOADED_MODULE_DETAILS ModuleDetailsRequest = NULL;
     PUSERMODE_LOADED_MODULE_SYMBOLS Modules              = NULL;
     USERMODE_LOADED_MODULE_DETAILS  ModuleCountRequest   = {0};
+    size_t                          CharSize             = 0;
+    wchar_t *                       WcharBuff            = NULL;
+    wstring                         SearchModuleString;
 
     //
     // Check if debugger is loaded or not
     //
     if (!g_DeviceHandle)
     {
+        ShowMessages("handle of the driver not found, user-mode modules "
+                     "are only shown if the driver is loaded\n");
         return FALSE;
     }
 
@@ -86,6 +91,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId)
 
     if (!Status)
     {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
         return FALSE;
     }
 
@@ -135,6 +141,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId)
         if (!Status)
         {
             free(ModuleDetailsRequest);
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
             return FALSE;
         }
 
@@ -148,12 +155,53 @@ CommandLmShowUserModeModule(UINT32 ProcessId)
             ShowMessages("user mode\n");
             ShowMessages("start\t\t\tentrypoint\t\tpath\n\n");
 
+            if (SearchModule != NULL)
+            {
+                CharSize  = strlen(SearchModule) + 1;
+                WcharBuff = (wchar_t *)malloc(CharSize * 2);
+
+                if (WcharBuff == NULL)
+                {
+                    return FALSE;
+                }
+
+                RtlZeroMemory(WcharBuff, CharSize);
+
+                mbstowcs(WcharBuff, SearchModule, CharSize);
+
+                SearchModuleString.assign(WcharBuff, wcslen(WcharBuff));
+            }
+
             for (size_t i = 0; i < ModuleCountRequest.ModulesCount; i++)
             {
+                //
+                // Check if we need to search for the module or not
+                //
+                if (SearchModule != NULL)
+                {
+                    //
+                    // Convert FullPathName to string
+                    //
+                    std::wstring FullPathName((wchar_t *)Modules[i].FilePath);
+
+                    if (FindCaseInsensitiveW(FullPathName, SearchModuleString, 0) == std::wstring::npos)
+                    {
+                        //
+                        // not found
+                        //
+                        continue;
+                    }
+                }
+
                 ShowMessages("%016llx\t%016llx\t%ws\n",
                              Modules[i].BaseAddress,
                              Modules[i].Entrypoint,
                              Modules[i].FilePath);
+            }
+
+            if (SearchModule != NULL)
+            {
+                free(WcharBuff);
             }
         }
         else
@@ -161,8 +209,6 @@ CommandLmShowUserModeModule(UINT32 ProcessId)
             ShowErrorMessage(ModuleCountRequest.Result);
             return FALSE;
         }
-
-        ShowMessages("\n==============================================================================\n\n");
 
         free(ModuleDetailsRequest);
         return TRUE;
@@ -185,7 +231,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
     NTSTATUS             Status = STATUS_UNSUCCESSFUL;
     PRTL_PROCESS_MODULES ModulesInfo;
     ULONG                SysModuleInfoBufferSize = 0;
-    char *               Search;
+    string               SearchModuleString;
 
     //
     // Get required size of "RTL_PROCESS_MODULES" buffer
@@ -203,7 +249,7 @@ CommandLmShowKernelModeModule(const char * SearchModule)
 
     if (!ModulesInfo)
     {
-        ShowMessages("\nUnable to allocate memory for module list (%x)\n",
+        ShowMessages("err, unable to allocate memory for module list (%x)\n",
                      GetLastError());
         return FALSE;
     }
@@ -214,10 +260,15 @@ CommandLmShowKernelModeModule(const char * SearchModule)
                                       NULL);
     if (!NT_SUCCESS(Status))
     {
-        ShowMessages("\nError: Unable to query module list (%#x)\n", Status);
+        ShowMessages("err, unable to query module list (%x)\n", Status);
 
         VirtualFree(ModulesInfo, 0, MEM_RELEASE);
         return FALSE;
+    }
+
+    if (SearchModule != NULL)
+    {
+        SearchModuleString.assign(SearchModule, strlen(SearchModule));
     }
 
     ShowMessages("kernel mode\n");
@@ -226,13 +277,18 @@ CommandLmShowKernelModeModule(const char * SearchModule)
     for (ULONG i = 0; i < ModulesInfo->NumberOfModules; i++)
     {
         RTL_PROCESS_MODULE_INFORMATION * CurrentModule = &ModulesInfo->Modules[i];
+
         //
         // Check if we need to search for the module or not
         //
         if (SearchModule != NULL)
         {
-            Search = strstr((char *)CurrentModule->FullPathName, SearchModule);
-            if (Search == NULL)
+            //
+            // Convert FullPathName to string
+            //
+            std::string FullPathName((char *)CurrentModule->FullPathName);
+
+            if (FindCaseInsensitive(FullPathName, SearchModuleString, 0) == std::string::npos)
             {
                 //
                 // not found
@@ -283,27 +339,144 @@ CommandLmShowKernelModeModule(const char * SearchModule)
 VOID
 CommandLm(vector<string> SplittedCommand, string Command)
 {
+    BOOLEAN SetPid                = FALSE;
+    BOOLEAN SetSearchFilter       = FALSE;
+    BOOLEAN SearchStringEntered   = FALSE;
+    BOOLEAN OnlyShowKernelModules = FALSE;
+    BOOLEAN OnlyShowUserModules   = FALSE;
+    UINT32  TargetPid             = NULL;
+    char    Search[MAX_PATH]      = {0};
+    char *  SearchString          = NULL;
+
+    //
+    // Interpret command specific details (if any)
+    //
+    for (auto Section : SplittedCommand)
+    {
+        if (!Section.compare("lm"))
+        {
+            continue;
+        }
+        else if (!Section.compare("pid") && !SetPid)
+        {
+            SetPid = TRUE;
+        }
+        else if (!Section.compare("m") && !SetSearchFilter)
+        {
+            SetSearchFilter = TRUE;
+        }
+        else if (SetPid)
+        {
+            if (!ConvertStringToUInt32(Section, &TargetPid))
+            {
+                //
+                // couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             Section.c_str());
+                CommandLmHelp();
+                return;
+            }
+            SetPid = FALSE;
+        }
+        else if (SetSearchFilter)
+        {
+            if (Section.length() >= MAX_PATH)
+            {
+                ShowMessages("err, string is too large for search, please enter "
+                             "smaller string\n");
+
+                return;
+            }
+
+            SearchStringEntered = TRUE;
+            strcpy(Search, Section.c_str());
+
+            SetSearchFilter = FALSE;
+        }
+        else if (!Section.compare("km"))
+        {
+            if (OnlyShowUserModules)
+            {
+                ShowMessages("err, you cannot use both 'um', and 'km', by default "
+                             "HyperDbg shows both user-mode and kernel-mode modules\n");
+                return;
+            }
+
+            OnlyShowKernelModules = TRUE;
+        }
+        else if (!Section.compare("um"))
+        {
+            if (OnlyShowKernelModules)
+            {
+                ShowMessages("err, you cannot use both 'um', and 'km', by default "
+                             "HyperDbg shows both user-mode and kernel-mode modules\n");
+                return;
+            }
+
+            OnlyShowUserModules = TRUE;
+        }
+        else
+        {
+            //
+            // Unknown parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                         Section.c_str());
+            CommandLmHelp();
+            return;
+        }
+    }
+
+    if (SetPid)
+    {
+        ShowMessages("err, please enter a valid process id in hex format\n");
+        return;
+    }
+
+    if (SetSearchFilter)
+    {
+        ShowMessages("err, please enter a valid string to search in modules\n");
+        return;
+    }
+
+    //
+    // Check if we have string to search
+    //
+    if (SearchStringEntered)
+    {
+        SearchString = Search;
+    }
+
     //
     // Show user mode modules
     //
-    if (g_ActiveProcessDebuggingState.IsActive)
+    if (!OnlyShowKernelModules)
     {
-        CommandLmShowUserModeModule(g_ActiveProcessDebuggingState.ProcessId);
-    }
-    else
-    {
-        CommandLmShowUserModeModule(GetCurrentProcessId());
+        if (TargetPid != NULL)
+        {
+            CommandLmShowUserModeModule(TargetPid, SearchString);
+        }
+        else if (g_ActiveProcessDebuggingState.IsActive)
+        {
+            CommandLmShowUserModeModule(g_ActiveProcessDebuggingState.ProcessId, SearchString);
+        }
+        else
+        {
+            CommandLmShowUserModeModule(GetCurrentProcessId(), SearchString);
+        }
     }
 
     //
     // Show kernel mode modules
     //
-    if (SplittedCommand.size() == 2)
+    if (!OnlyShowUserModules)
     {
-        CommandLmShowKernelModeModule(SplittedCommand.at(1).c_str());
-    }
-    else
-    {
-        CommandLmShowKernelModeModule(NULL);
+        if (!OnlyShowKernelModules)
+        {
+            ShowMessages("\n==============================================================================\n\n");
+        }
+
+        CommandLmShowKernelModeModule(SearchString);
     }
 }

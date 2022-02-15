@@ -683,3 +683,41 @@ SplitPathAndArgs(std::vector<std::string> & Qargs, const std::string & Command)
         std::cout << "One of the quotes is open\n";
     */
 }
+
+/**
+ * @brief Find case insensitive sub string in a given substring
+ *
+ * @param Input
+ * @param ToSearch
+ * @param Pos
+ * @return size_t
+ */
+size_t
+FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos)
+{
+    // Convert complete given String to lower case
+    std::transform(Input.begin(), Input.end(), Input.begin(), ::tolower);
+    // Convert complete given Sub String to lower case
+    std::transform(ToSearch.begin(), ToSearch.end(), ToSearch.begin(), ::tolower);
+    // Find sub string in given string
+    return Input.find(ToSearch, Pos);
+}
+
+/**
+ * @brief Find case insensitive sub string in a given substring (unicode)
+ *
+ * @param Input
+ * @param ToSearch
+ * @param Pos
+ * @return size_t
+ */
+size_t
+FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
+{
+    // Convert complete given String to lower case
+    std::transform(Input.begin(), Input.end(), Input.begin(), ::tolower);
+    // Convert complete given Sub String to lower case
+    std::transform(ToSearch.begin(), ToSearch.end(), ToSearch.begin(), ::tolower);
+    // Find sub string in given string
+    return Input.find(ToSearch, Pos);
+}
