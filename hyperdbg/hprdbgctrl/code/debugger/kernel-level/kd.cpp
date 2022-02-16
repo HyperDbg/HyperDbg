@@ -342,14 +342,20 @@ KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex)
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendSymbolReloadPacketToDebuggee()
+KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId)
 {
+    DEBUGGEE_SYMBOL_REQUEST_PACKET SymbolRequest = {0};
+
+    SymbolRequest.ProcessId = ProcessId;
+
     //
     // Send '.sym reload' as symbol reload packet
     //
-    if (!KdCommandPacketToDebuggee(
+    if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
-            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD))
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD,
+            (CHAR *)&SymbolRequest,
+            sizeof(DEBUGGEE_SYMBOL_REQUEST_PACKET)))
     {
         return FALSE;
     }
@@ -1874,7 +1880,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             //
             // Do not pause debugger after finish
             //
-            KdReloadSymbolsInDebuggee(FALSE);
+            KdReloadSymbolsInDebuggee(FALSE, GetCurrentProcessId());
         }
         else
         {
@@ -2094,18 +2100,28 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
  * symbol table to the debugger and send the finished packet to
  * the debugger
  * @param PauseDebuggee
+ * @param UserProcessId
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee)
+KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
 {
     DEBUGGEE_SYMBOL_UPDATE_RESULT SymReload = {0};
 
     //
+    // In kernel debugger, if the process id is not specified
+    // we choose the HyperDbg's process to load its modules
+    //
+    if (UserProcessId == NULL)
+    {
+        UserProcessId = GetCurrentProcessId();
+    }
+
+    //
     // Request debuggee to send new symbol packets
     //
-    SymbolPrepareDebuggerWithSymbolInfo();
+    SymbolPrepareDebuggerWithSymbolInfo(UserProcessId);
 
     //
     // Set the status

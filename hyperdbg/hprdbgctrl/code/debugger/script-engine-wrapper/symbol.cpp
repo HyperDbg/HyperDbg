@@ -40,34 +40,37 @@ SymbolInitialReload()
 
 /**
  * @brief Locally reload the symbol table
+ * @param UserProcessId
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-SymbolLocalReload()
+SymbolLocalReload(UINT32 UserProcessId)
 {
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
+    ShowMessages("interpreting symbols and creating symbol maps\n");
+
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, UserProcessId, FALSE);
 
     //
     // And also load the symbols
     //
-    ShowMessages("interpreting symbols and creating symbol maps\n");
     return SymbolLoadOrDownloadSymbols(FALSE, TRUE);
 }
 
 /**
  * @brief Initial and send the results of serial for the debugger
  * in the case of debugger mode
+ * @param UserProcessId
  * 
  * @return VOID 
  */
 VOID
-SymbolPrepareDebuggerWithSymbolInfo()
+SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId)
 {
     //
     // Load already downloaded symbol (won't download at this point)
     //
-    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, TRUE);
+    SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, UserProcessId, TRUE);
 }
 
 /**
@@ -253,19 +256,12 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
  * @return VOID
  */
 VOID
-SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable)
+SymbolBuildAndShowSymbolTable()
 {
-    if (BuildLocalSymTable)
-    {
-        //
-        // Build the symbol table
-        //
-        SymbolBuildSymbolTable(&g_SymbolTable, &g_SymbolTableSize, FALSE);
-    }
-
     if (g_SymbolTable == NULL || g_SymbolTableSize == NULL)
     {
-        ShowMessages("err, symbol table is empty\n");
+        ShowMessages("err, symbol table is empty. please use '.sym reload' "
+                     "to build the symbol table\n");
         return;
     }
 
@@ -456,6 +452,7 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
+ * @param UserProcessId Which user mode process to get its modules
  * @param SendOverSerial Shows whether the packet should be sent to the debugger
  * over the serial or not
  * 
@@ -464,8 +461,10 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
                        PUINT32                 StoredLength,
+                       UINT32                  UserProcessId,
                        BOOLEAN                 SendOverSerial)
 {
+    printf("\ntttttttttttttttttttttttteeeeeeeeeeest process id is : %x\n\n", UserProcessId);
     PRTL_PROCESS_MODULES  ModuleInfo;
     NTSTATUS              Status;
     PMODULE_SYMBOL_DETAIL ModuleSymDetailArray                              = NULL;
@@ -718,11 +717,12 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail)
 
 /**
  * @brief Update the symbol table from remote debuggee in debugger mode
+ * @param ProcessId
  * 
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
-SymbolReloadSymbolTableInDebuggerMode()
+SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId)
 {
     //
     // Check if we found an already built symbol table
@@ -738,7 +738,7 @@ SymbolReloadSymbolTableInDebuggerMode()
     //
     // Request to send new symbol details
     //
-    if (KdSendSymbolReloadPacketToDebuggee())
+    if (KdSendSymbolReloadPacketToDebuggee(ProcessId))
     {
         ShowMessages("symbol table updated successfully\n");
         return TRUE;

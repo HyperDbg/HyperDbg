@@ -86,7 +86,7 @@ BOOLEAN
 KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
 
 BOOLEAN
-KdSendSymbolReloadPacketToDebuggee();
+KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
 
@@ -159,7 +159,7 @@ BOOLEAN
 KdCloseConnection();
 
 BOOLEAN
-KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee);
+KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId);
 
 VOID
 KdUninitializeConnection();
