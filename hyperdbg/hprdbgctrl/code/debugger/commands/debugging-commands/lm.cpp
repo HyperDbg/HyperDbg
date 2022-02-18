@@ -173,7 +173,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
                 SearchModuleString.assign(WcharBuff, wcslen(WcharBuff));
             }
 
-            for (size_t i = 0; i < ModuleCountRequest.ModulesCount; i++)
+            for (size_t i = 0; i < ModulesCount; i++)
             {
                 //
                 // Check if we need to search for the module or not

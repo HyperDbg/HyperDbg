@@ -558,7 +558,8 @@ typedef struct _MODULE_SYMBOL_DETAIL
     BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
     BOOLEAN IsLocalSymbolPath;    // TRUE if the ModuleSymbolPath is a real path
                                   // and FALSE if ModuleSymbolPath is just a module name
-    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the Module's pdb is avilable(if exists in the sympath)
+    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is avilable(if exists in the sympath)
+    BOOLEAN IsUserMode;           // TRUE if the module is a user-mode module
     UINT64  BaseAddress;
     char    FilePath[MAX_PATH];
     char    ModuleSymbolPath[MAX_PATH];

@@ -1481,6 +1481,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
             g_AbortLoadingExecution = FALSE;
             return FALSE;
         }
+
         //
         // Check if symbol pdb detail is available in the module
         //
