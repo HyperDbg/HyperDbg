@@ -726,88 +726,6 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 
     //
     // ----------------------------------------------------------------------------------
-    // Add kernel-modules
-    // ----------------------------------------------------------------------------------
-    //
-
-    for (int i = 0; i < ModuleInfo->NumberOfModules; i++)
-    {
-        auto PathName = ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName;
-
-        //
-        // Read symbol signature details
-        //
-        RtlZeroMemory(ModuleSymbolPath, sizeof(ModuleSymbolPath));
-        RtlZeroMemory(ModuleSymbolGuidAndAge, sizeof(ModuleSymbolGuidAndAge));
-
-        string ModuleFullPath((const char *)ModuleInfo->Modules[i].FullPathName);
-
-        if (ModuleFullPath.rfind("\\SystemRoot\\", 0) == 0)
-        {
-            //
-            // Path starts with \SystemRoot\
-            // we should change it to the real system root
-            // path
-            //
-            Replace(ModuleFullPath, "\\SystemRoot", SystemRootString);
-        }
-
-        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(), ModuleSymbolPath, ModuleSymbolGuidAndAge))
-        {
-            IsSymbolPdbDetailAvailable = TRUE;
-
-            //
-            // ShowMessages("Hash : %s , Symbol path : %s\n", ModuleSymbolGuidAndAge, ModuleSymbolPath);
-            //
-        }
-        else
-        {
-            IsSymbolPdbDetailAvailable = FALSE;
-
-            //
-            // ShowMessages("err, unable to get module pdb details\n");
-            //
-        }
-
-        //
-        // Build the structure for this module
-        //
-        ModuleSymDetailArray[i].BaseAddress = (UINT64)ModuleInfo->Modules[i].ImageBase;
-        memcpy(ModuleSymDetailArray[i].FilePath, ModuleFullPath.c_str(), ModuleFullPath.size());
-
-        if (IsSymbolPdbDetailAvailable)
-        {
-            ModuleSymDetailArray[i].IsSymbolDetailsFound = TRUE;
-            memcpy(ModuleSymDetailArray[i].ModuleSymbolGuidAndAge, ModuleSymbolGuidAndAge, MAXIMUM_GUID_AND_AGE_SIZE);
-            memcpy(ModuleSymDetailArray[i].ModuleSymbolPath, ModuleSymbolPath, MAX_PATH);
-
-            //
-            // Check if pdb file name is a real path or a module name
-            //
-            string ModuleSymbolPathString(ModuleSymbolPath);
-            if (ModuleSymbolPathString.find(":\\") != std::string::npos)
-                ModuleSymDetailArray[i].IsLocalSymbolPath = TRUE;
-            else
-                ModuleSymDetailArray[i].IsLocalSymbolPath = FALSE;
-        }
-        else
-        {
-            ModuleSymDetailArray[i].IsSymbolDetailsFound = FALSE;
-        }
-
-        //
-        // Check if it should be send to the remote debugger over serial
-        // and also make sure that we're connected to the remote debugger
-        // and this is a debuggee
-        //
-        if (SendOverSerial)
-        {
-            KdSendSymbolDetailPacket(&ModuleSymDetailArray[i], i, ModuleInfo->NumberOfModules + ModulesCount);
-        }
-    }
-
-    //
-    // ----------------------------------------------------------------------------------
     // Add user-modules
     // ----------------------------------------------------------------------------------
     //
@@ -816,8 +734,6 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     {
         for (int i = 0; i < ModulesCount; i++)
         {
-            UINT32 IndexInSymbolBuffer = ModuleInfo->NumberOfModules + i;
-
             //
             // For logging purpose
             //
@@ -860,28 +776,28 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             // Build the structure for this module
             //
-            ModuleSymDetailArray[IndexInSymbolBuffer].BaseAddress = Modules[i].BaseAddress;
-            ModuleSymDetailArray[IndexInSymbolBuffer].IsUserMode  = TRUE;
-            memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].FilePath, TempPath, strlen(TempPath));
+            ModuleSymDetailArray[i].BaseAddress = Modules[i].BaseAddress;
+            ModuleSymDetailArray[i].IsUserMode  = TRUE;
+            memcpy(ModuleSymDetailArray[i].FilePath, TempPath, strlen(TempPath));
 
             if (IsSymbolPdbDetailAvailable)
             {
-                ModuleSymDetailArray[IndexInSymbolBuffer].IsSymbolDetailsFound = TRUE;
-                memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].ModuleSymbolGuidAndAge, ModuleSymbolGuidAndAge, MAXIMUM_GUID_AND_AGE_SIZE);
-                memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].ModuleSymbolPath, ModuleSymbolPath, MAX_PATH);
+                ModuleSymDetailArray[i].IsSymbolDetailsFound = TRUE;
+                memcpy(ModuleSymDetailArray[i].ModuleSymbolGuidAndAge, ModuleSymbolGuidAndAge, MAXIMUM_GUID_AND_AGE_SIZE);
+                memcpy(ModuleSymDetailArray[i].ModuleSymbolPath, ModuleSymbolPath, MAX_PATH);
 
                 //
                 // Check if pdb file name is a real path or a module name
                 //
                 string ModuleSymbolPathString(ModuleSymbolPath);
                 if (ModuleSymbolPathString.find(":\\") != std::string::npos)
-                    ModuleSymDetailArray[IndexInSymbolBuffer].IsLocalSymbolPath = TRUE;
+                    ModuleSymDetailArray[i].IsLocalSymbolPath = TRUE;
                 else
-                    ModuleSymDetailArray[IndexInSymbolBuffer].IsLocalSymbolPath = FALSE;
+                    ModuleSymDetailArray[i].IsLocalSymbolPath = FALSE;
             }
             else
             {
-                ModuleSymDetailArray[IndexInSymbolBuffer].IsSymbolDetailsFound = FALSE;
+                ModuleSymDetailArray[i].IsSymbolDetailsFound = FALSE;
             }
 
             //
@@ -891,8 +807,92 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             //
             if (SendOverSerial)
             {
-                KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], i, ModuleInfo->NumberOfModules + ModulesCount);
+                KdSendSymbolDetailPacket(&ModuleSymDetailArray[i], i, ModuleInfo->NumberOfModules + ModulesCount);
             }
+        }
+    }
+
+    //
+    // ----------------------------------------------------------------------------------
+    // Add kernel-modules
+    // ----------------------------------------------------------------------------------
+    //
+
+    for (int i = 0; i < ModuleInfo->NumberOfModules; i++)
+    {
+        UINT32 IndexInSymbolBuffer = ModulesCount + i;
+
+        auto PathName = ModuleInfo->Modules[i].FullPathName + ModuleInfo->Modules[i].OffsetToFileName;
+
+        //
+        // Read symbol signature details
+        //
+        RtlZeroMemory(ModuleSymbolPath, sizeof(ModuleSymbolPath));
+        RtlZeroMemory(ModuleSymbolGuidAndAge, sizeof(ModuleSymbolGuidAndAge));
+
+        string ModuleFullPath((const char *)ModuleInfo->Modules[i].FullPathName);
+
+        if (ModuleFullPath.rfind("\\SystemRoot\\", 0) == 0)
+        {
+            //
+            // Path starts with \SystemRoot\
+            // we should change it to the real system root
+            // path
+            //
+            Replace(ModuleFullPath, "\\SystemRoot", SystemRootString);
+        }
+
+        if (ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(ModuleFullPath.c_str(), ModuleSymbolPath, ModuleSymbolGuidAndAge))
+        {
+            IsSymbolPdbDetailAvailable = TRUE;
+
+            //
+            // ShowMessages("Hash : %s , Symbol path : %s\n", ModuleSymbolGuidAndAge, ModuleSymbolPath);
+            //
+        }
+        else
+        {
+            IsSymbolPdbDetailAvailable = FALSE;
+
+            //
+            // ShowMessages("err, unable to get module pdb details\n");
+            //
+        }
+
+        //
+        // Build the structure for this module
+        //
+        ModuleSymDetailArray[IndexInSymbolBuffer].BaseAddress = (UINT64)ModuleInfo->Modules[i].ImageBase;
+        memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].FilePath, ModuleFullPath.c_str(), ModuleFullPath.size());
+
+        if (IsSymbolPdbDetailAvailable)
+        {
+            ModuleSymDetailArray[IndexInSymbolBuffer].IsSymbolDetailsFound = TRUE;
+            memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].ModuleSymbolGuidAndAge, ModuleSymbolGuidAndAge, MAXIMUM_GUID_AND_AGE_SIZE);
+            memcpy(ModuleSymDetailArray[IndexInSymbolBuffer].ModuleSymbolPath, ModuleSymbolPath, MAX_PATH);
+
+            //
+            // Check if pdb file name is a real path or a module name
+            //
+            string ModuleSymbolPathString(ModuleSymbolPath);
+            if (ModuleSymbolPathString.find(":\\") != std::string::npos)
+                ModuleSymDetailArray[IndexInSymbolBuffer].IsLocalSymbolPath = TRUE;
+            else
+                ModuleSymDetailArray[IndexInSymbolBuffer].IsLocalSymbolPath = FALSE;
+        }
+        else
+        {
+            ModuleSymDetailArray[IndexInSymbolBuffer].IsSymbolDetailsFound = FALSE;
+        }
+
+        //
+        // Check if it should be send to the remote debugger over serial
+        // and also make sure that we're connected to the remote debugger
+        // and this is a debuggee
+        //
+        if (SendOverSerial)
+        {
+            KdSendSymbolDetailPacket(&ModuleSymDetailArray[IndexInSymbolBuffer], i, ModuleInfo->NumberOfModules + ModulesCount);
         }
     }
 
