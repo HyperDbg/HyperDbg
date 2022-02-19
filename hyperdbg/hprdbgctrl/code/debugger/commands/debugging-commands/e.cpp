@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of !e* and e* commands
@@ -70,6 +71,15 @@ CommandEditMemory(vector<string> SplittedCommand, string Command)
     UINT32               FinalSize         = 0;
     vector<string>       SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32               IndexInCommandCaseSensitive = 0;
+
+    //
+    // By default if the user-debugger is active, we use these commands
+    // on the memory layout of the debuggee process
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        ProcId = g_ActiveProcessDebuggingState.ProcessId;
+    }
 
     if (SplittedCommand.size() <= 2)
     {

@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of u* d* !u* !d* commands
@@ -76,6 +77,15 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
     UINT32         IndexInCommandCaseSensitive = 0;
 
     string FirstCommand = SplittedCommand.front();
+
+    //
+    // By default if the user-debugger is active, we use these commands
+    // on the memory layout of the debuggee process
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        Pid = g_ActiveProcessDebuggingState.ProcessId;
+    }
 
     if (SplittedCommand.size() == 1)
     {

@@ -22,7 +22,8 @@ extern UINT64 g_RdtscAverage;
 extern UINT64 g_RdtscStandardDeviation;
 extern UINT64 g_RdtscMedian;
 
-extern BOOLEAN g_TransparentResultsMeasured;
+extern BOOLEAN                  g_TransparentResultsMeasured;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of !hide command
@@ -34,10 +35,12 @@ CommandHideHelp()
 {
     ShowMessages("!hide : Tries to make HyperDbg transparent from anti-debugging "
                  "and anti-hypervisor methods.\n\n");
+    ShowMessages("syntax : \t!hide\n");
     ShowMessages("syntax : \t!hide [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t!hide [name ProcessName (string)]\n");
     ShowMessages("note : \tprocess names are case sensitive and you can use "
                  "this command multiple times.\n");
+    ShowMessages("\t\te.g : !hide\n");
     ShowMessages("\t\te.g : !hide pid b60 \n");
     ShowMessages("\t\te.g : !hide name procexp.exe\n");
 }
@@ -60,7 +63,7 @@ CommandHide(vector<string> SplittedCommand, string Command)
     PDEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE FinalRequestBuffer = 0;
     size_t                                       RequestBufferSize  = 0;
 
-    if (SplittedCommand.size() <= 2)
+    if (SplittedCommand.size() <= 2 && SplittedCommand.size() != 1)
     {
         ShowMessages("incorrect use of '!hide'\n\n");
         CommandHideHelp();
@@ -70,7 +73,24 @@ CommandHide(vector<string> SplittedCommand, string Command)
     //
     // Find out whether the user enters pid or name
     //
-    if (!SplittedCommand.at(1).compare("pid"))
+    if (SplittedCommand.size() == 1)
+    {
+        if (g_ActiveProcessDebuggingState.IsActive)
+        {
+            TrueIfProcessIdAndFalseIfProcessName = TRUE;
+            TargetPid                            = g_ActiveProcessDebuggingState.ProcessId;
+        }
+        else
+        {
+            //
+            // There is no user-debugging process
+            //
+            ShowMessages("you're not attached to any user-mode process, "
+                         "please explicitly specify the process id or process name\n");
+            return;
+        }
+    }
+    else if (!SplittedCommand.at(1).compare("pid"))
     {
         TrueIfProcessIdAndFalseIfProcessName = TRUE;
 
