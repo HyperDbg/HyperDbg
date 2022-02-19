@@ -28,7 +28,7 @@ CommandSymHelp()
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
     ShowMessages("syntax : \t.sym [table]\n");
-    ShowMessages("syntax : \t.sym [reload]\n");
+    ShowMessages("syntax : \t.sym [reload] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t.sym [download]\n");
     ShowMessages("syntax : \t.sym [load]\n");
     ShowMessages("syntax : \t.sym [unload]\n");
