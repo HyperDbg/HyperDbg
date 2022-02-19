@@ -31,7 +31,7 @@ typedef struct _LOCAL_FUNCTION_DESCRIPTION
 //////////////////////////////////////////////////
 
 VOID
-SymbolBuildAndShowSymbolTable(BOOLEAN BuildLocalSymTable);
+SymbolBuildAndShowSymbolTable();
 
 BOOLEAN
 SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress);
@@ -45,6 +45,7 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result);
 BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
                        PUINT32                 StoredLength,
+                       UINT32                  UserProcessId,
                        BOOLEAN                 SendOverSerial);
 
 BOOLEAN
@@ -54,10 +55,10 @@ VOID
 SymbolInitialReload();
 
 BOOLEAN
-SymbolLocalReload();
+SymbolLocalReload(UINT32 UserProcessId);
 
 VOID
-SymbolPrepareDebuggerWithSymbolInfo();
+SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId);
 
 BOOLEAN
-SymbolReloadSymbolTableInDebuggerMode();
+SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId);

@@ -27,7 +27,6 @@ VOID
 CommandLmHelp()
 {
     ShowMessages("lm : list kernel modules' base address, size, name and path.\n\n");
-    ShowMessages("syntax : \tlm \n");
     ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)] [Filter (string)]\n");
     ShowMessages("\t\te.g : lm\n");
     ShowMessages("\t\te.g : lm km\n");
@@ -41,6 +40,7 @@ CommandLmHelp()
 /**
  * @brief show modules for specified user mode process
  * @param ProcessId
+ * @param SearchModule
  * 
  * @return BOOLEAN
  */
@@ -173,7 +173,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
                 SearchModuleString.assign(WcharBuff, wcslen(WcharBuff));
             }
 
-            for (size_t i = 0; i < ModuleCountRequest.ModulesCount; i++)
+            for (size_t i = 0; i < ModulesCount; i++)
             {
                 //
                 // Check if we need to search for the module or not
@@ -223,6 +223,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
 
 /**
  * @brief show modules for kernel mode 
+ * @param SearchModule
  * 
  * @return BOOLEAN
  */

@@ -558,7 +558,8 @@ typedef struct _MODULE_SYMBOL_DETAIL
     BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
     BOOLEAN IsLocalSymbolPath;    // TRUE if the ModuleSymbolPath is a real path
                                   // and FALSE if ModuleSymbolPath is just a module name
-    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the Module's pdb is avilable(if exists in the sympath)
+    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is avilable(if exists in the sympath)
+    BOOLEAN IsUserMode;           // TRUE if the module is a user-mode module
     UINT64  BaseAddress;
     char    FilePath[MAX_PATH];
     char    ModuleSymbolPath[MAX_PATH];
@@ -1057,7 +1058,7 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
  */
 
 /**
- * @brief request to add new symbol detail or update a previousrds
+ * @brief request to add new symbol detail or update a previous
  * symbol table entry
  *
  */
@@ -2022,6 +2023,16 @@ typedef struct _DEBUGGEE_FORMATS_PACKET
     UINT32 Result;
 
 } DEBUGGEE_FORMATS_PACKET, *PDEBUGGEE_FORMATS_PACKET;
+
+/**
+ * @brief The structure of .sym reload packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_SYMBOL_REQUEST_PACKET
+{
+    UINT32 ProcessId;
+
+} DEBUGGEE_SYMBOL_REQUEST_PACKET, *PDEBUGGEE_SYMBOL_REQUEST_PACKET;
 
 /**
  * @brief The constant to apply to all cores for bp command

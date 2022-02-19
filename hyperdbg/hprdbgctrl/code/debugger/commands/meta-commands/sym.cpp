@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of .sym command
@@ -27,7 +28,7 @@ CommandSymHelp()
     ShowMessages(".sym : perfrom the symbol actions.\n\n");
 
     ShowMessages("syntax : \t.sym [table]\n");
-    ShowMessages("syntax : \t.sym [reload]\n");
+    ShowMessages("syntax : \t.sym [reload] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t.sym [download]\n");
     ShowMessages("syntax : \t.sym [load]\n");
     ShowMessages("syntax : \t.sym [unload]\n");
@@ -50,7 +51,8 @@ CommandSymHelp()
 VOID
 CommandSym(vector<string> SplittedCommand, string Command)
 {
-    UINT64 BaseAddress = NULL;
+    UINT64 BaseAddress   = NULL;
+    UINT32 UserProcessId = NULL;
 
     if (SplittedCommand.size() == 1)
     {
@@ -71,20 +73,10 @@ CommandSym(vector<string> SplittedCommand, string Command)
             return;
         }
 
-        if (g_IsSerialConnectedToRemoteDebuggee)
-        {
-            //
-            // Just show the symbol table, not building it locally
-            //
-            SymbolBuildAndShowSymbolTable(FALSE);
-        }
-        else
-        {
-            //
-            // Build locally and show symbol table
-            //
-            SymbolBuildAndShowSymbolTable(TRUE);
-        }
+        //
+        // Show symbol table
+        //
+        SymbolBuildAndShowSymbolTable();
     }
     else if (!SplittedCommand.at(1).compare("load") || !SplittedCommand.at(1).compare("download"))
     {
@@ -113,22 +105,78 @@ CommandSym(vector<string> SplittedCommand, string Command)
     else if (!SplittedCommand.at(1).compare("reload"))
     {
         //
+        // Validate params
+        //
+        if (SplittedCommand.size() != 2 && SplittedCommand.size() != 4)
+        {
+            ShowMessages("incorrect use of '.sym'\n\n");
+            CommandSymHelp();
+            return;
+        }
+
+        //
+        // Check for process id
+        //
+        if (SplittedCommand.size() == 4)
+        {
+            if (!SplittedCommand.at(2).compare("pid"))
+            {
+                if (!ConvertStringToUInt32(SplittedCommand.at(3), &UserProcessId))
+                {
+                    //
+                    // couldn't resolve or unkonwn parameter
+                    //
+                    ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                                 SplittedCommand.at(3).c_str());
+                    CommandSymHelp();
+                    return;
+                }
+            }
+            else
+            {
+                ShowMessages("incorrect use of '.sym'\n\n");
+                CommandSymHelp();
+                return;
+            }
+        }
+
+        //
         // Refresh and reload symbols
         //
-
         if (g_IsSerialConnectedToRemoteDebuggee)
         {
             //
             // Update symbol table from remote debuggee in debugger-mode
             //
-            SymbolReloadSymbolTableInDebuggerMode();
+            SymbolReloadSymbolTableInDebuggerMode(UserProcessId);
         }
         else
         {
             //
+            // Check if user explicitly specified the process id
+            //
+            if (UserProcessId == NULL)
+            {
+                //
+                // User didn't explicitly specified the process id, so
+                // if it's a user-debugger process, we use the modules
+                // of the target user-debuggee's process, otherwise,
+                // the current process (HyperDbg's process) is specified
+                //
+                if (g_ActiveProcessDebuggingState.IsActive)
+                {
+                    UserProcessId = g_ActiveProcessDebuggingState.ProcessId;
+                }
+                else
+                {
+                    UserProcessId = GetCurrentProcessId();
+                }
+            }
+
+            //
             // Build locally and reload it
             //
-            if (SymbolLocalReload())
+            if (SymbolLocalReload(UserProcessId))
             {
                 ShowMessages("symbol table updated successfully\n");
             }

@@ -873,19 +873,20 @@ KdCloseConnectionAndUnloadDebuggee()
 }
 
 /**
- * @brief Notify user-mode to re-send (reload) the symbol packetsrds
+ * @brief Notify user-mode to re-send (reload) the symbol packets
+ * @param SymPacket
  * 
  * @return VOID
  */
 VOID
-KdReloadSymbolDetailsInDebuggee()
+KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
 {
     //
     // Send one byte buffer and operation codes
     //
     LogSendBuffer(OPERATION_COMMAND_FROM_DEBUGGER_RELOAD_SYMBOL,
-                  "$",
-                  1,
+                  SymPacket,
+                  sizeof(DEBUGGEE_SYMBOL_REQUEST_PACKET),
                   TRUE);
 }
 
@@ -1628,6 +1629,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
+    PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
@@ -2201,10 +2203,13 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD:
 
+                SymReloadPacket = (DEBUGGEE_SYMBOL_REQUEST_PACKET *)(((CHAR *)TheActualPacket) +
+                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
                 //
                 // Send the reload symbol request buffer
                 //
-                KdReloadSymbolDetailsInDebuggee();
+                KdReloadSymbolDetailsInDebuggee(SymReloadPacket);
 
                 //
                 // Unlock other cores

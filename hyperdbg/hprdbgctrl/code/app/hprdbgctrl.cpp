@@ -335,7 +335,8 @@ ReadIrpBasedBuffer()
                     //
                     // Pause debugger after getting the results
                     //
-                    KdReloadSymbolsInDebuggee(TRUE);
+                    KdReloadSymbolsInDebuggee(TRUE,
+                                              ((PDEBUGGEE_SYMBOL_REQUEST_PACKET)(OutputBuffer + sizeof(UINT32)))->ProcessId);
 
                     break;
 

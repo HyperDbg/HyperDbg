@@ -162,8 +162,11 @@ CommandLoad(vector<string> SplittedCommand, string Command)
         //
         // If in vmi-mode then initialize and load symbols (pdb)
         // for previously downloaded symbols
+        // When the VMM module is loaded, we use the current
+        // process (HyperDbg's process) as the base for user-mode
+        // symbols
         //
-        SymbolLocalReload();
+        SymbolLocalReload(GetCurrentProcessId());
     }
     else
     {

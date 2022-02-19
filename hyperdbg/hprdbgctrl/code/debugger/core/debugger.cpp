@@ -366,12 +366,19 @@ ShowErrorMessage(UINT32 Error)
 UINT64
 DebuggerGetNtoskrnlBase()
 {
-    UINT64               NtoskrnlBase = NULL;
-    PRTL_PROCESS_MODULES Modules      = NULL;
+    NTSTATUS             Status                  = STATUS_UNSUCCESSFUL;
+    UINT64               NtoskrnlBase            = NULL;
+    PRTL_PROCESS_MODULES Modules                 = NULL;
+    ULONG                SysModuleInfoBufferSize = 0;
 
-    Modules = (PRTL_PROCESS_MODULES)malloc(1024 * 1024 * sizeof(PRTL_PROCESS_MODULES));
+    //
+    // Get required size of "RTL_PROCESS_MODULES" buffer
+    //
+    Status = NtQuerySystemInformation(SystemModuleInformation, NULL, NULL, &SysModuleInfoBufferSize);
 
-    NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)11, Modules, 1024 * 1024 * sizeof(PRTL_PROCESS_MODULES), NULL);
+    Modules = (PRTL_PROCESS_MODULES)malloc(SysModuleInfoBufferSize);
+
+    NtQuerySystemInformation(SystemModuleInformation, Modules, SysModuleInfoBufferSize, NULL);
 
     for (int i = 0; i < Modules->NumberOfModules; i++)
     {
