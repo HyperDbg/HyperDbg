@@ -75,18 +75,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // *** Regular Monitor Trap Flag functionalities ***
     //
-
-    //
-    // check the condition of passing the execution to NMIs
-    //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        //
-        // Handle break of the core
-        //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
-    }
-    else if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
+    if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
     {
         //
         // Check for user-mode attaching mechanisms
@@ -182,9 +171,30 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
     }
-    else if (!IsMtfForReApplySoftwareBreakpoint)
+    else if (!IsMtfForReApplySoftwareBreakpoint &&
+             !g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
     {
         LogError("Err, why MTF occurred?!");
+    }
+
+    //
+    // check the condition of passing the execution to NMIs
+    //
+    // This one wastes one week of my life!
+    // During the testing we realized the !epthook command in Debugger Mode
+    // is not working. After some tests, it's because if in the middle of a
+    // command in vmx-root and NMI is sent and the debugger waits for another
+    // MTF, we'll ignore that MTF and a new MTF is not set again.
+    // That's why we moved this check here so every command that needs a task
+    // from MTF is doing its tasks and when we reached here, the check for halting
+    // the debuggee in MTF is performed
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+    {
+        //
+        // Handle break of the core
+        //
+        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
     }
 
     //
