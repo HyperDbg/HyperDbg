@@ -289,7 +289,7 @@ SyscallHookTest()
     if (!ApiLocationFromSSDTOfNtCreateFile)
     {
         LogError("Err, address finding for syscall base address");
-        return FALSE;
+        return;
     }
 
     //
