@@ -54,7 +54,7 @@ typedef union _VMEXIT_INTERRUPT_INFO
 VOID
 IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
 
-BOOLEAN
+VOID
 IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
 
 VOID
