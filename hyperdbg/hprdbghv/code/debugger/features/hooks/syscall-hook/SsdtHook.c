@@ -265,12 +265,17 @@ NtCreateFileHook(
 
 /**
  * @brief Make examples for testing hidden hooks
+ * @details THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
  * 
  * @return VOID 
  */
 VOID
 SyscallHookTest()
 {
+    //
+    // THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
+    //
+
     //
     // Note that this syscall number is only valid for Windows 10 1909,
     // you have to find the syscall number of NtCreateFile based on
@@ -287,7 +292,10 @@ SyscallHookTest()
         return FALSE;
     }
 
-    if (EptHook2(ApiLocationFromSSDTOfNtCreateFile, NtCreateFileHook, PsGetCurrentProcessId(), (PVOID *)&NtCreateFileOrig, FALSE, FALSE, TRUE))
+    //
+    // THIS EXAMPLE IS NOT VALID ANYMORE, PLEASE USE !syscall OR !epthook2 COMMANDS
+    //
+    if (EptHook2(ApiLocationFromSSDTOfNtCreateFile, NtCreateFileHook, PsGetCurrentProcessId(), FALSE, FALSE, TRUE))
     {
         LogInfo("Hook appkied to address of API Number : 0x%x at %llx\n", ApiNumberOfNtCreateFile, ApiLocationFromSSDTOfNtCreateFile);
     }
