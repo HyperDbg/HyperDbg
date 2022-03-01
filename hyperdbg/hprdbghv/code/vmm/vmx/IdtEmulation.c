@@ -434,7 +434,7 @@ IdtEmulationCheckProcessOrThreadChange(UINT32 CurrentProcessorIndex, VMEXIT_INTE
  * @param InterruptExit interrupt info from vm-exit
  * @param GuestRegs guest contexts
  * 
- * @return BOOLEAN 
+ * @return VOID 
  */
 VOID
 IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)

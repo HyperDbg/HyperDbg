@@ -103,7 +103,7 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
 
         if (CurrentHookedDetails->HookedFunctionAddress == CalledFrom)
         {
-            return CurrentHookedDetails->ReturnAddress;
+            return;
         }
     }
 
