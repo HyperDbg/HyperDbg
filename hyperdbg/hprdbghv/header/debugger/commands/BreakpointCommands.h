@@ -14,7 +14,7 @@
 BOOLEAN
 BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg);
 
-VOID
+BOOLEAN
 BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoints);
 
 VOID

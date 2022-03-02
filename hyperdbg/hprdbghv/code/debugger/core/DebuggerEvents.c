@@ -58,9 +58,9 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 /**
  * @brief routines to generally handle breakpoint hit for detour 
  * 
- * @return VOID 
+ * @return PVOID 
  */
-VOID
+PVOID
 DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
 {
     PLIST_ENTRY                 TempList    = 0;
@@ -113,6 +113,7 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     //
 
     LogError("Err, couldn't find anything to return");
+    return NULL;
 }
 
 /**

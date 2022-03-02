@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of !va2pa command
@@ -57,6 +58,15 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         ShowMessages("incorrect use of '!va2pa'\n\n");
         CommandVa2paHelp();
         return;
+    }
+
+    //
+    // By default if the user-debugger is active, we use these commands
+    // on the memory layout of the debuggee process
+    //
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        Pid = g_ActiveProcessDebuggingState.ProcessId;
     }
 
     if (SplittedCommand.size() == 2)

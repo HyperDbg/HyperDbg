@@ -117,11 +117,6 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
         }
     }
 
-    //
-    // Don't increment rip
-    //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
-
     return IsHandledByEptHook;
 }
 
@@ -308,6 +303,11 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     // Reading guest's RIP
     //
     __vmx_vmread(GUEST_RIP, &GuestRip);
+
+    //
+    // Don't increment rip by default
+    //
+    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
     //
     // Check if it relates to !epthook or not

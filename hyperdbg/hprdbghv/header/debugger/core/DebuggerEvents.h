@@ -23,7 +23,7 @@ DebuggerEventEnableMovToCr3ExitingOnAllProcessors();
 VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors();
 
-VOID
+PVOID
 DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom);
 
 BOOLEAN

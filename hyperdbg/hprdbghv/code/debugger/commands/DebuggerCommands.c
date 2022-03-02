@@ -735,7 +735,7 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
             // Generally, we can use VirtualAddressToPhysicalAddressByProcessId
             // but let's not change the cr3 multiple times
             //
-            if (VirtualAddressToPhysicalAddress(StartAddress, SearchMemRequest->ProcessId) != 0)
+            if (VirtualAddressToPhysicalAddress(StartAddress) != 0)
             {
                 //
                 // Address is valid, let's add a page size to it

@@ -1067,7 +1067,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
  * @param AttachRequest 
  * @return BOOLEAN 
  */
-VOID
+BOOLEAN
 AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails;
