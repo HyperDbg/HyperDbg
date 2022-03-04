@@ -16,6 +16,7 @@
 //
 extern std::wstring g_StartCommandPath;
 extern std::wstring g_StartCommandPathAndArguments;
+extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
 
 /**
  * @brief help of .start command
@@ -44,13 +45,21 @@ CommandStart(vector<string> SplittedCommand, string Command)
     string         Arguments = "";
 
     //
-    // Show a message that the user debugger is still in the experimental version
+    // Disable user-mode debugger in this version
     //
-    ShowMessages("in contrast with the kernel debugger, the user debugger is still very basic "
-                 "and needs a lot of tests and improvements. It's highly recommended not to run the "
-                 "user debugger in your bare metal system. Instead, run it on a supported virtual "
-                 "machine to won't end up with a Blue Screen of Death (BSOD) in your primary device. "
-                 "Please keep reporting the issues to improve the user debugger\n\n");
+#if ActivateUserModeDebugger == FALSE
+
+    if (!g_IsSerialConnectedToRemoteDebugger)
+    {
+        ShowMessages("The user-mode debugger is still in the beta version and not stable. "
+                     "We decided to exclude it from this release and release it in future versions. "
+                     "If you want to test the user-mode debugger in VMI Mode, you should build "
+                     "HyperDbg with special instructions. \nPlease follow the steps here: "
+                     "https://docs.hyperdbg.org/getting-started/build-and-install \n");
+        return;
+    }
+
+#endif // !ActivateUserModeDebugger
 
     if (SplittedCommand.size() <= 2)
     {

@@ -43,6 +43,9 @@ BOOLEAN
 SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result);
 
 BOOLEAN
+SymbolDeleteSymTable();
+
+BOOLEAN
 SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
                        PUINT32                 StoredLength,
                        UINT32                  UserProcessId,

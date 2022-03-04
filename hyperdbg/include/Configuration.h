@@ -62,3 +62,8 @@
  * case of errors
  */
 #define DebugMode FALSE
+
+/**
+ * @brief Activates the user-mode debugger
+ */
+#define ActivateUserModeDebugger FALSE
