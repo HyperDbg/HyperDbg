@@ -14,7 +14,7 @@ To add a submodule :
 Discard changes on a special file :
 - git checkout hyperdbg/hprdbgctrl/print.cpp
   
-To realse (deploy) :
+To release (deploy) :
   
  Imagine Tag is **v0.1.0** (tags should start with the 'v*', and only on the master branch). After that, we will use the following command.
 - git checkout master
