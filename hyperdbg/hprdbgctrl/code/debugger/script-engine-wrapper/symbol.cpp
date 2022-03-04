@@ -448,6 +448,29 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 }
 
 /**
+ * @brief Delete and free structures and variables related to the symbols
+ * 
+ * @return BOOLEAN shows whether the operation was successful or not
+ */
+BOOLEAN
+SymbolDeleteSymTable()
+{
+    if (g_SymbolTable != NULL)
+    {
+        free(g_SymbolTable);
+
+        g_SymbolTable             = NULL;
+        g_SymbolTableSize         = NULL;
+        g_SymbolTableCurrentIndex = 0;
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
  * @brief make the initial packet required for symbol server
  * or reload packet
  * 
@@ -487,13 +510,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
     //
     // Check if we found an already built symbol table
     //
-    if (g_SymbolTable != NULL)
-    {
-        free(g_SymbolTable);
-
-        g_SymbolTable     = NULL;
-        g_SymbolTableSize = NULL;
-    }
+    SymbolDeleteSymTable();
 
     //
     // Get system root
@@ -995,13 +1012,7 @@ SymbolReloadSymbolTableInDebuggerMode(UINT32 ProcessId)
     //
     // Check if we found an already built symbol table
     //
-    if (g_SymbolTable != NULL)
-    {
-        free(g_SymbolTable);
-
-        g_SymbolTable     = NULL;
-        g_SymbolTableSize = NULL;
-    }
+    SymbolDeleteSymTable();
 
     //
     // Request to send new symbol details
