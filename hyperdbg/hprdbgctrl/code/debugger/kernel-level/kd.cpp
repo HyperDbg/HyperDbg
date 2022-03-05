@@ -355,6 +355,8 @@ KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit
     CallstackPacket->BaseAddress = BaseAddress;
     CallstackPacket->Is32Bit     = Is32Bit;
     CallstackPacket->Size        = Size;
+    CallstackPacket->BufferSize  = CallstackRequestSize;
+    CallstackPacket->FrameCount  = FrameCount;
 
     //
     // Send 'k' command as callstack request packet
@@ -362,7 +364,7 @@ KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CALLSTACK,
-            (CHAR *)&CallstackPacket,
+            (CHAR *)CallstackPacket,
             CallstackRequestSize))
     {
         free(CallstackPacket);

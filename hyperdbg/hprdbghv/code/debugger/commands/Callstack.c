@@ -23,13 +23,14 @@
  */
 BOOLEAN
 CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
-                          UINT32                           StackBaseAddress,
+                          UINT64                           StackBaseAddress,
                           UINT32                           Size,
                           BOOLEAN                          Is32Bit)
 {
-    UINT32 FrameIndex  = 0;
-    USHORT AddressMode = 0;
-    UINT64 Value       = NULL;
+    UINT32 FrameIndex          = 0;
+    USHORT AddressMode         = 0;
+    UINT64 Value               = NULL;
+    UINT64 CurrentStackAddress = NULL;
 
     if (Size == 0)
     {
@@ -58,7 +59,12 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
     //
     for (size_t i = 0; i < FrameIndex; i++)
     {
-        if (CheckMemoryAccessSafety(StackBaseAddress + (i * AddressMode), AddressMode))
+        //
+        // Compute the current stack position address
+        //
+        CurrentStackAddress = StackBaseAddress + (i * AddressMode);
+
+        if (!CheckMemoryAccessSafety(CurrentStackAddress, AddressMode))
         {
             AddressToSaveFrames[i].IsStackAddressValid = FALSE;
 
@@ -76,7 +82,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
         //
         // Read the 4 or 8 byte from the target stack
         //
-        MemoryMapperReadMemorySafeOnTargetProcess(StackBaseAddress + (i * AddressMode), &Value, AddressMode);
+        MemoryMapperReadMemorySafeOnTargetProcess(CurrentStackAddress, &Value, AddressMode);
 
         //
         // Set the value
@@ -101,7 +107,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
             //
             // Read the memory at the target address
             //
-            MemoryMapperReadMemorySafeOnTargetProcess(Value, &AddressToSaveFrames[i].InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
+            MemoryMapperReadMemorySafeOnTargetProcess(Value, AddressToSaveFrames[i].InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
         }
     }
 

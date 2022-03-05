@@ -56,6 +56,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
@@ -557,6 +559,43 @@ StartAgain:
                     .IsOnWaitingState = FALSE;
             SetEvent(g_KernelSyncronizationObjectsHandleTable
                          [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT]
+                             .EventHandle);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK:
+
+            CallstackPacket =
+                (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) +
+                                               sizeof(DEBUGGER_REMOTE_PACKET));
+            CallstackFramePacket =
+                (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) +
+                                                    sizeof(DEBUGGER_REMOTE_PACKET) +
+                                                    sizeof(DEBUGGER_CALLSTACK_REQUEST));
+
+            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // Print callstack frames
+                //
+                for (size_t i = 0; i < CallstackPacket->FrameCount; i++)
+                {
+                    ShowMessages("[%x]\t%llx\n", i, CallstackFramePacket[i].Value);
+                }
+            }
+            else
+            {
+                ShowErrorMessage(CallstackPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of callstack
+            //
+            g_KernelSyncronizationObjectsHandleTable
+                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT]
+                    .IsOnWaitingState = FALSE;
+            SetEvent(g_KernelSyncronizationObjectsHandleTable
+                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT]
                              .EventHandle);
 
             break;
