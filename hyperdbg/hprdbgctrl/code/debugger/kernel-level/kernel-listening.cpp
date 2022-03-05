@@ -576,12 +576,9 @@ StartAgain:
             if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
                 //
-                // Print callstack frames
+                // Show the callstack
                 //
-                for (size_t i = 0; i < CallstackPacket->FrameCount; i++)
-                {
-                    ShowMessages("[%x]\t%llx\n", i, CallstackFramePacket[i].Value);
-                }
+                CallstackShowFrames(CallstackFramePacket, CallstackPacket->FrameCount);
             }
             else
             {

@@ -598,6 +598,11 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
  */
 #define MAXIMUM_INSTR_SIZE 16
 
+/**
+ * @brief maximum size for call instruction in Intel
+ */
+#define MAXIMUM_CALL_INSTR_SIZE 7
+
 //////////////////////////////////////////////////
 //            Callback Definitions              //
 //////////////////////////////////////////////////
@@ -1610,8 +1615,9 @@ typedef struct _DEBUGGER_SINGLE_CALLSTACK_FRAME
 {
     BOOLEAN IsStackAddressValid;
     BOOLEAN IsValidAddress;
+    BOOLEAN IsExecutable;
     UINT64  Value;
-    BYTE    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    BYTE    InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE];
 
 } DEBUGGER_SINGLE_CALLSTACK_FRAME, *PDEBUGGER_SINGLE_CALLSTACK_FRAME;
 

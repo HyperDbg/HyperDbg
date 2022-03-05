@@ -198,7 +198,7 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
         {
             if (*UsedBaseAddress != Address)
             {
-                ShowMessages("%s:\n", Low->second.ObjectName.c_str());
+                ShowMessages("%s", Low->second.ObjectName.c_str());
                 *UsedBaseAddress = Address;
             }
 
@@ -220,7 +220,7 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
             {
                 if (*UsedBaseAddress != Prev->first)
                 {
-                    ShowMessages("%s+0x%x:\n", Prev->second.ObjectName.c_str(), Diff);
+                    ShowMessages("%s+0x%x", Prev->second.ObjectName.c_str(), Diff);
                     *UsedBaseAddress = Prev->first;
                 }
 
@@ -235,7 +235,7 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
                 //
                 if (*UsedBaseAddress != Prev->first)
                 {
-                    ShowMessages("%s+0x%x+0x%x:\n", Prev->second.ObjectName.c_str(), Diff, Diff - Prev->second.ObjectSize);
+                    ShowMessages("%s+0x%x+0x%x", Prev->second.ObjectName.c_str(), Diff, Diff - Prev->second.ObjectSize);
                     *UsedBaseAddress = Prev->first;
                 }
 

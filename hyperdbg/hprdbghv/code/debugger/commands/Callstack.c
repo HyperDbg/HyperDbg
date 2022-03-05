@@ -97,7 +97,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
         //
         // Check if value is a valid address
         //
-        if (CheckMemoryAccessSafety(Value, MAXIMUM_INSTR_SIZE))
+        if (CheckMemoryAccessSafety(Value, MAXIMUM_CALL_INSTR_SIZE))
         {
             //
             // It's a valid address
@@ -105,9 +105,16 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
             AddressToSaveFrames[i].IsValidAddress = TRUE;
 
             //
+            // Check if the target page has NX bit (executable page)
+            //
+            AddressToSaveFrames[i].IsExecutable = MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(Value);
+
+            //
             // Read the memory at the target address
             //
-            MemoryMapperReadMemorySafeOnTargetProcess(Value, AddressToSaveFrames[i].InstructionBytesOnRip, MAXIMUM_INSTR_SIZE);
+            MemoryMapperReadMemorySafeOnTargetProcess(Value - MAXIMUM_CALL_INSTR_SIZE,
+                                                      AddressToSaveFrames[i].InstructionBytesOnRip,
+                                                      MAXIMUM_CALL_INSTR_SIZE);
         }
     }
 

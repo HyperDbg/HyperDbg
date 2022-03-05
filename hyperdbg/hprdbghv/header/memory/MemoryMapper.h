@@ -378,3 +378,6 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
 
 BOOLEAN
 MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite);
+
+BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va);

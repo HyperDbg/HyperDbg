@@ -41,5 +41,5 @@ CommandKHelp()
 VOID
 CommandK(vector<string> SplittedCommand, string Command)
 {
-    KdSendCallStackPacketToDebuggee(NULL, 0x100, FALSE);
+    KdSendCallStackPacketToDebuggee(NULL, 0x180, FALSE);
 }
