@@ -1,10 +1,10 @@
 /**
- * @file CrossApi.h
- * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
- * @brief Cross platform APIs
- * @details 
+ * @file Callstack.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Kernel headers for callstacks
+ * 
  * @version 0.1
- * @date 2022-01-17
+ * @date 2022-03-05
  * 
  * @copyright This project is released under the GNU Public License v3.
  * 
@@ -14,6 +14,3 @@
 //////////////////////////////////////////////////
 //				     Functions		      		//
 //////////////////////////////////////////////////
-
-PVOID
-CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes);

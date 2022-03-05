@@ -307,6 +307,78 @@ KdSendFlushPacketToDebuggee()
 }
 
 /**
+ * @brief Send a callstack request to the debuggee
+ * @param BaseAddress
+ * @param Size
+ * @param Is32Bit
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit)
+{
+    UINT32                      FrameCount;
+    UINT32                      CallstackRequestSize = 0;
+    PDEBUGGER_CALLSTACK_REQUEST CallstackPacket      = NULL;
+
+    if (Size == 0)
+    {
+        return FALSE;
+    }
+
+    if (Is32Bit)
+    {
+        FrameCount = Size / sizeof(UINT32);
+    }
+    else
+    {
+        FrameCount = Size / sizeof(UINT64);
+    }
+
+    CallstackRequestSize = sizeof(DEBUGGER_CALLSTACK_REQUEST) + (sizeof(DEBUGGER_SINGLE_CALLSTACK_FRAME) * FrameCount);
+
+    //
+    // Allocate buffer for request
+    //
+    CallstackPacket = (PDEBUGGER_CALLSTACK_REQUEST)malloc(CallstackRequestSize);
+
+    if (CallstackPacket == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(CallstackPacket, CallstackRequestSize);
+
+    //
+    // Set the details
+    //
+    CallstackPacket->BaseAddress = BaseAddress;
+    CallstackPacket->Is32Bit     = Is32Bit;
+    CallstackPacket->Size        = Size;
+
+    //
+    // Send 'k' command as callstack request packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CALLSTACK,
+            (CHAR *)&CallstackPacket,
+            CallstackRequestSize))
+    {
+        free(CallstackPacket);
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of callstack is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT);
+
+    free(CallstackPacket);
+    return TRUE;
+}
+
+/**
  * @brief Send a test query request to the debuggee
  * 
  * @param Option

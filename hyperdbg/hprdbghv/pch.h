@@ -71,6 +71,7 @@
 #include "..\hprdbghv\header\debugger\commands\BreakpointCommands.h"
 #include "..\hprdbghv\header\debugger\commands\DebuggerCommands.h"
 #include "..\hprdbghv\header\debugger\commands\ExtensionCommands.h"
+#include "..\hprdbghv\header\debugger\commands\Callstack.h"
 #include "..\hprdbghv\header\debugger\communication\SerialConnection.h"
 #include "..\hprdbghv\header\debugger\objects\Process.h"
 #include "..\hprdbghv\header\debugger\objects\Thread.h"

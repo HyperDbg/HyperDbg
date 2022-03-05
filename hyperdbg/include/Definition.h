@@ -462,6 +462,7 @@ const unsigned char BuildVersion[] =
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY                         0x11
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD                       0x12
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY                          0x13
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT                    0x14
 
 /**
  * @brief Maximum number of event handles in user-debugger
@@ -955,6 +956,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CALLSTACK,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD,
@@ -1595,6 +1597,42 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief The structure for saving the callstack frame of one parameter
+ *
+ */
+typedef struct _DEBUGGER_SINGLE_CALLSTACK_FRAME
+{
+    BOOLEAN IsStackAddressValid;
+    BOOLEAN IsValidAddress;
+    UINT64  Value;
+    BYTE    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+
+} DEBUGGER_SINGLE_CALLSTACK_FRAME, *PDEBUGGER_SINGLE_CALLSTACK_FRAME;
+
+#define SIZEOF_DEBUGGER_CALLSTACK_REQUEST \
+    sizeof(DEBUGGER_CALLSTACK_REQUEST)
+
+/**
+ * @brief request for callstack frames
+ *
+ */
+typedef struct _DEBUGGER_CALLSTACK_REQUEST
+{
+    UINT32  KernelStatus;
+    BOOLEAN Is32Bit;
+    UINT32  Size;
+    UINT64  BaseAddress;
+
+    //
+    // Here is the size of stack frames
+    //
+
+} DEBUGGER_CALLSTACK_REQUEST, *PDEBUGGER_CALLSTACK_REQUEST;
 
 /* ==============================================================================================
  */

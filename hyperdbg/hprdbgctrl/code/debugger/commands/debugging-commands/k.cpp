@@ -19,8 +19,16 @@
 VOID
 CommandKHelp()
 {
-    ShowMessages("The 'k' command for the callstack is not implemented yet! :(\n");
-    ShowMessages("This command will be added soon in the next versions\n");
+    ShowMessages(
+        "k : shows the callstack of the thread.\n\n");
+
+    ShowMessages("syntax : \tk\n");
+    ShowMessages("syntax : \tk [base StackAddress (hex)] [size Size (hex)] [mode Mode (string)\n");
+    ShowMessages("\t\te.g : k\n");
+    ShowMessages("\t\te.g : k size 100\n");
+    ShowMessages("\t\te.g : k base fffff8077356f010\n");
+    ShowMessages("\t\te.g : k base fffff8077356f010 size 100\n");
+    ShowMessages("\t\te.g : k base 0x77356f010 mode 32\n");
 }
 
 /**
@@ -33,6 +41,5 @@ CommandKHelp()
 VOID
 CommandK(vector<string> SplittedCommand, string Command)
 {
-    ShowMessages("The 'k' command for the callstack is not implemented yet! :(\n");
-    ShowMessages("This command will be added soon in the next versions\n");
+    KdSendCallStackPacketToDebuggee(NULL, 0x100, FALSE);
 }
