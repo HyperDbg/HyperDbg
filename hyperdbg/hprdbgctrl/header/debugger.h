@@ -85,7 +85,9 @@ BOOLEAN
 CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCallFromReturnAddress);
 
 VOID
-CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 FrameCount);
+CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames,
+                    UINT32                           FrameCount,
+                    BOOLEAN                          Is32Bit);
 
 UINT64
 GetNewDebuggerEventTag();

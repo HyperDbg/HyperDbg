@@ -200,9 +200,10 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
             {
                 ShowMessages("%s", Low->second.ObjectName.c_str());
                 *UsedBaseAddress = Address;
+                return TRUE;
             }
 
-            return TRUE;
+            return FALSE;
         }
         else
         {
@@ -222,9 +223,10 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
                 {
                     ShowMessages("%s+0x%x", Prev->second.ObjectName.c_str(), Diff);
                     *UsedBaseAddress = Prev->first;
+                    return TRUE;
                 }
 
-                return TRUE;
+                return FALSE;
             }
             else if (DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME >= Diff)
             {
@@ -237,9 +239,10 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
                 {
                     ShowMessages("%s+0x%x+0x%x", Prev->second.ObjectName.c_str(), Diff, Diff - Prev->second.ObjectSize);
                     *UsedBaseAddress = Prev->first;
+                    return TRUE;
                 }
 
-                return TRUE;
+                return FALSE;
             }
         }
     }

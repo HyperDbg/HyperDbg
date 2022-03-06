@@ -202,11 +202,15 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
  * @brief Show stack frames
  * 
  * @param CallstackFrames  
+ * @param FrameCount  
+ * @param Is32Bit  
  * 
  * @return VOid
  */
 VOID
-CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 FrameCount)
+CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames,
+                    UINT32                           FrameCount,
+                    BOOLEAN                          Is32Bit)
 {
     UINT32                                                 CallLength;
     UINT64                                                 CallAddress;
@@ -218,10 +222,13 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 Fra
     //
     for (size_t i = 0; i < FrameCount; i++)
     {
+        ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+
         if (CallstackFrames[i].IsValidAddress && CallstackFrames[i].IsExecutable)
         {
-            ShowMessages("[%x] %llx ", i, CallstackFrames[i].Value);
-
+            //
+            // Check if it's call or just a simple code address
+            //
             if (CallstackReturnAddressToCallingAddress(
                     (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
                     &CallLength))
@@ -230,35 +237,59 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 Fra
                 // Computer the "call" instruction address
                 //
                 CallAddress = CallstackFrames[i].Value - CallLength;
-                ShowMessages("- call from ");
 
-                //
-                // Apply addressconversion of settings here
-                //
-                if (g_AddressConversion)
+                if (Is32Bit)
                 {
-                    if (SymbolShowFunctionNameBasedOnAddress(CallAddress, &UsedBaseAddress))
-                    {
-                        ShowMessages("\n");
-                    }
-                    else
-                    {
-                        ShowMessages("%llx\n", CallAddress);
-                    }
+                    ShowMessages("  %016llx    (call from ", CallstackFrames[i].Value);
                 }
                 else
                 {
-                    ShowMessages("%llx\n", CallAddress);
+                    ShowMessages("  %08llx    (call from ", CallstackFrames[i].Value);
                 }
             }
             else
             {
-                ShowMessages("(pointer to code - not call)\n");
+                CallAddress = CallAddress = CallstackFrames[i].Value;
+
+                if (Is32Bit)
+                {
+                    ShowMessages("     %016llx (pointer to ", CallstackFrames[i].Value);
+                }
+                else
+                {
+                    ShowMessages("     %08llx (pointer to ", CallstackFrames[i].Value);
+                }
+            }
+
+            //
+            // Apply addressconversion of settings here
+            //
+            if (g_AddressConversion)
+            {
+                if (SymbolShowFunctionNameBasedOnAddress(CallAddress, &UsedBaseAddress))
+                {
+                    ShowMessages(" ");
+                }
+                else
+                {
+                }
+                ShowMessages("<%llx>)\n", CallAddress);
+            }
+            else
+            {
+                ShowMessages("<%llx>)\n", CallAddress);
             }
         }
         else
         {
-            ShowMessages("[%x]\t%llx\n", i, CallstackFrames[i].Value);
+            if (Is32Bit)
+            {
+                ShowMessages("     %08llx\n", i * sizeof(UINT32), CallstackFrames[i].Value);
+            }
+            else
+            {
+                ShowMessages("     %016llx\n", i * sizeof(UINT64), CallstackFrames[i].Value);
+            }
         }
     }
 }
