@@ -12,6 +12,30 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		            Definitions                 //
+//////////////////////////////////////////////////
+
+#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = TRUE;                     \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+    } while (FALSE);
+
+#define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = FALSE;                    \
+        SetEvent(SyncronizationObject->EventHandle);                       \
+    } while (FALSE);
+
+//////////////////////////////////////////////////
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 

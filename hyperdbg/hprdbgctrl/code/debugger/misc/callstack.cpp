@@ -98,7 +98,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // The mask of F8 is used because we want to mask out the bottom
         // three bits (which are most often used for register selection)
         //
-        const unsigned char rm_mask = 0xF8;
+        const unsigned char RmMask = 0xF8;
 
         //
         // 7-byte format:
@@ -115,7 +115,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M] [4-byte displacement]
         //
         else if (ReturnAddress[-6] == 0xFF &&
-                 ((ReturnAddress[-5] & rm_mask) == 0x90 || (ReturnAddress[-5] & rm_mask) == 0x98) &&
+                 ((ReturnAddress[-5] & RmMask) == 0x90 || (ReturnAddress[-5] & RmMask) == 0x98) &&
                  (ReturnAddress[-5] != 0x94 && ReturnAddress[-5] != 0x9C))
         {
             *IndexOfCallFromReturnAddress = 6;
@@ -148,7 +148,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M] [1-byte displacement]
         //
         else if (ReturnAddress[-3] == 0xFF &&
-                 ((ReturnAddress[-2] & rm_mask) == 0x50 || (ReturnAddress[-2] & rm_mask) == 0x58) &&
+                 ((ReturnAddress[-2] & RmMask) == 0x50 || (ReturnAddress[-2] & RmMask) == 0x58) &&
                  (ReturnAddress[-2] != 0x54 && ReturnAddress[-2] != 0x5C))
         {
             *IndexOfCallFromReturnAddress = 3;
@@ -171,7 +171,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M]
         //
         else if (ReturnAddress[-2] == 0xFF &&
-                 ((ReturnAddress[-1] & rm_mask) == 0xD0 || (ReturnAddress[-1] & rm_mask) == 0xD8))
+                 ((ReturnAddress[-1] & RmMask) == 0xD0 || (ReturnAddress[-1] & RmMask) == 0xD8))
         {
             *IndexOfCallFromReturnAddress = 2;
             return TRUE;
@@ -182,7 +182,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M]
         //
         else if (ReturnAddress[-2] == 0xFF &&
-                 ((ReturnAddress[-1] & rm_mask) == 0x10 || (ReturnAddress[-1] & rm_mask) == 0x18) &&
+                 ((ReturnAddress[-1] & RmMask) == 0x10 || (ReturnAddress[-1] & RmMask) == 0x18) &&
                  (ReturnAddress[-1] != 0x14 && ReturnAddress[-1] != 0x15 &&
                   ReturnAddress[-1] != 0x1C && ReturnAddress[-1] != 0x1D))
         {

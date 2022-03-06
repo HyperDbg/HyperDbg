@@ -42,16 +42,6 @@ extern BOOLEAN g_IgnorePauseRequests;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
-#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        SyncronizationObject->IsOnWaitingState = TRUE;                     \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
-    } while (FALSE);
-
 /**
  * @brief compares the buffer with a string
  *
@@ -1456,12 +1446,7 @@ KdBreakControlCheckAndPauseDebugger()
         //
         // Signal the event
         //
-
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-            &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING];
-
-        SyncronizationObject->IsOnWaitingState = FALSE;
-        SetEvent(SyncronizationObject->EventHandle);
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
     }
 }
 
@@ -2282,11 +2267,7 @@ KdCloseConnection()
         //
         // Not waiting for start packet
         //
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-            &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED];
-
-        SyncronizationObject->IsOnWaitingState = FALSE;
-        SetEvent(SyncronizationObject->EventHandle);
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
     }
 
     //
@@ -2675,11 +2656,7 @@ KdUninitializeConnection()
     //
     // Unpause the debugger to get commands
     //
-    DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-        &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING];
-
-    SyncronizationObject->IsOnWaitingState = FALSE;
-    SetEvent(SyncronizationObject->EventHandle);
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
 
     //
     // Close synchronization objects
@@ -2690,8 +2667,7 @@ KdUninitializeConnection()
         {
             if (g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState)
             {
-                g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);
+                DbgReceivedKernelResponse(i);
             }
 
             CloseHandle(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);
