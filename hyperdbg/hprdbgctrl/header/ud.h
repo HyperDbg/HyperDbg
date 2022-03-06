@@ -12,6 +12,30 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		            Definitions                 //
+//////////////////////////////////////////////////
+
+#define DbgWaitForUserResponse(UserSyncObjectId)                          \
+    do                                                                    \
+    {                                                                     \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =     \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId];    \
+                                                                          \
+        SyncronizationObject->IsOnWaitingState = TRUE;                    \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE); \
+    } while (FALSE);
+
+#define DbgReceivedUserResponse(UserSyncObjectId)                      \
+    do                                                                 \
+    {                                                                  \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =  \
+            &g_UserSyncronizationObjectsHandleTable[UserSyncObjectId]; \
+                                                                       \
+        SyncronizationObject->IsOnWaitingState = FALSE;                \
+        SetEvent(SyncronizationObject->EventHandle);                   \
+    } while (FALSE);
+
+//////////////////////////////////////////////////
 //            	    Structures                  //
 //////////////////////////////////////////////////
 
