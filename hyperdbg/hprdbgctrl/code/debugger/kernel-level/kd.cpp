@@ -300,12 +300,16 @@ KdSendFlushPacketToDebuggee()
  * @brief Send a callstack request to the debuggee
  * @param BaseAddress
  * @param Size
+ * @param DisplayMethod
  * @param Is32Bit
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit)
+KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
+                                UINT32                            Size,
+                                DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                                BOOLEAN                           Is32Bit)
 {
     UINT32                      FrameCount;
     UINT32                      CallstackRequestSize = 0;
@@ -342,11 +346,12 @@ KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit
     //
     // Set the details
     //
-    CallstackPacket->BaseAddress = BaseAddress;
-    CallstackPacket->Is32Bit     = Is32Bit;
-    CallstackPacket->Size        = Size;
-    CallstackPacket->BufferSize  = CallstackRequestSize;
-    CallstackPacket->FrameCount  = FrameCount;
+    CallstackPacket->BaseAddress   = BaseAddress;
+    CallstackPacket->Is32Bit       = Is32Bit;
+    CallstackPacket->Size          = Size;
+    CallstackPacket->BufferSize    = CallstackRequestSize;
+    CallstackPacket->FrameCount    = FrameCount;
+    CallstackPacket->DisplayMethod = DisplayMethod;
 
     //
     // Send 'k' command as callstack request packet

@@ -203,18 +203,21 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
  * 
  * @param CallstackFrames  
  * @param FrameCount  
+ * @param DisplayMethod  
  * @param Is32Bit  
  * 
  * @return VOid
  */
 VOID
-CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames,
-                    UINT32                           FrameCount,
-                    BOOLEAN                          Is32Bit)
+CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
+                    UINT32                            FrameCount,
+                    DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                    BOOLEAN                           Is32Bit)
 {
     UINT32                                                 CallLength;
-    UINT64                                                 CallAddress;
+    UINT64                                                 TargetAddress;
     UINT64                                                 UsedBaseAddress;
+    BOOLEAN                                                IsCall = FALSE;
     std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION>::iterator Iterate;
 
     //
@@ -222,73 +225,107 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames,
     //
     for (size_t i = 0; i < FrameCount; i++)
     {
-        ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+        IsCall = FALSE;
 
-        if (CallstackFrames[i].IsValidAddress && CallstackFrames[i].IsExecutable)
+        if (CallstackFrames[i].IsValidAddress)
         {
             //
             // Check if it's call or just a simple code address
             //
-            if (CallstackReturnAddressToCallingAddress(
-                    (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
-                    &CallLength))
+            if (CallstackFrames[i].IsExecutable && CallstackReturnAddressToCallingAddress(
+                                                       (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
+                                                       &CallLength))
             {
                 //
                 // Computer the "call" instruction address
                 //
-                CallAddress = CallstackFrames[i].Value - CallLength;
+                TargetAddress = CallstackFrames[i].Value - CallLength;
 
+                IsCall = TRUE;
+            }
+            else
+            {
+                //
+                // Check if we wanna show the stack params
+                //
+                if (DisplayMethod == DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS)
+                {
+                    continue;
+                }
+
+                IsCall        = FALSE;
+                TargetAddress = CallstackFrames[i].Value;
+            }
+
+            ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+
+            if (IsCall)
+            {
                 if (Is32Bit)
                 {
-                    ShowMessages("  %016llx    (call from ", CallstackFrames[i].Value);
+                    ShowMessages("  %016llx    (from ", TargetAddress);
                 }
                 else
                 {
-                    ShowMessages("  %08llx    (call from ", CallstackFrames[i].Value);
+                    ShowMessages("  %08llx    (from ", TargetAddress);
                 }
             }
             else
             {
-                CallAddress = CallAddress = CallstackFrames[i].Value;
-
                 if (Is32Bit)
                 {
-                    ShowMessages("     %016llx (pointer to ", CallstackFrames[i].Value);
+                    ShowMessages("     %016llx (addr ", TargetAddress);
                 }
                 else
                 {
-                    ShowMessages("     %08llx (pointer to ", CallstackFrames[i].Value);
+                    ShowMessages("     %08llx (addr ", TargetAddress);
                 }
             }
 
             //
+            // Show the name of the function if available
             // Apply addressconversion of settings here
             //
             if (g_AddressConversion)
             {
-                if (SymbolShowFunctionNameBasedOnAddress(CallAddress, &UsedBaseAddress))
+                if (SymbolShowFunctionNameBasedOnAddress(TargetAddress, &UsedBaseAddress))
                 {
                     ShowMessages(" ");
                 }
-                else
-                {
-                }
-                ShowMessages("<%llx>)\n", CallAddress);
             }
-            else
+            ShowMessages("<%llx>)", TargetAddress);
+
+            //
+            // Show the memory at this address if it's not call
+            //
+            if (!IsCall)
             {
-                ShowMessages("<%llx>)\n", CallAddress);
+                //
+                // Not implemented yet !
+                //
             }
+
+            ShowMessages("\n");
         }
         else
         {
+            //
+            // Check if we wanna show the stack params
+            //
+            if (DisplayMethod == DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS)
+            {
+                continue;
+            }
+
+            ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+
             if (Is32Bit)
             {
-                ShowMessages("     %08llx\n", i * sizeof(UINT32), CallstackFrames[i].Value);
+                ShowMessages("     %08llx\n", CallstackFrames[i].Value);
             }
             else
             {
-                ShowMessages("     %016llx\n", i * sizeof(UINT64), CallstackFrames[i].Value);
+                ShowMessages("     %016llx\n", CallstackFrames[i].Value);
             }
         }
     }

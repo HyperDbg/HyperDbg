@@ -1625,17 +1625,29 @@ typedef struct _DEBUGGER_SINGLE_CALLSTACK_FRAME
     sizeof(DEBUGGER_CALLSTACK_REQUEST)
 
 /**
+ * @brief callstack showing method
+ *
+ */
+typedef enum _DEBUGGER_CALLSTACK_DISPLAY_METHOD
+{
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS,
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITH_PARAMS,
+
+} DEBUGGER_CALLSTACK_DISPLAY_METHOD;
+
+/**
  * @brief request for callstack frames
  *
  */
 typedef struct _DEBUGGER_CALLSTACK_REQUEST
 {
-    BOOLEAN Is32Bit;
-    UINT32  Size;
-    UINT64  BaseAddress;
-    UINT32  FrameCount;
-    UINT64  BufferSize;
-    UINT32  KernelStatus;
+    BOOLEAN                           Is32Bit;
+    UINT32                            KernelStatus;
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod;
+    UINT32                            Size;
+    UINT32                            FrameCount;
+    UINT64                            BaseAddress;
+    UINT64                            BufferSize;
 
     //
     // Here is the size of stack frames

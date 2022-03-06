@@ -527,7 +527,10 @@ StartAgain:
                 //
                 // Show the callstack
                 //
-                CallstackShowFrames(CallstackFramePacket, CallstackPacket->FrameCount, CallstackPacket->Is32Bit);
+                CallstackShowFrames(CallstackFramePacket,
+                                    CallstackPacket->FrameCount,
+                                    CallstackPacket->DisplayMethod,
+                                    CallstackPacket->Is32Bit);
             }
             else
             {

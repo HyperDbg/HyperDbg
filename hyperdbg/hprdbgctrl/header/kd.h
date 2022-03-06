@@ -107,7 +107,10 @@ BOOLEAN
 KdSendFlushPacketToDebuggee();
 
 BOOLEAN
-KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit);
+KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
+                                UINT32                            Size,
+                                DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                                BOOLEAN                           Is32Bit);
 
 BOOLEAN
 KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
