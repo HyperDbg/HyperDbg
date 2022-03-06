@@ -293,19 +293,8 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
                     ShowMessages(" ");
                 }
             }
-            ShowMessages("<%llx>)", TargetAddress);
 
-            //
-            // Show the memory at this address if it's not call
-            //
-            if (!IsCall)
-            {
-                //
-                // Not implemented yet !
-                //
-            }
-
-            ShowMessages("\n");
+            ShowMessages("<%llx>)\n", TargetAddress);
         }
         else
         {

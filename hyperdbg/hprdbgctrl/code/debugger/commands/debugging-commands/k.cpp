@@ -35,10 +35,11 @@ CommandKHelp()
     ShowMessages("syntax : \tkd [base StackAddress (hex)] [l Length (hex)]\n");
     ShowMessages("syntax : \tkq [base StackAddress (hex)] [l Length (hex)]\n");
     ShowMessages("\t\te.g : k\n");
-    ShowMessages("\t\te.g : k size 100\n");
-    ShowMessages("\t\te.g : k base fffff8077356f010\n");
-    ShowMessages("\t\te.g : k base fffff8077356f010 size 100\n");
-    ShowMessages("\t\te.g : k base 0x77356f010 mode 32\n");
+    ShowMessages("\t\te.g : k l 100\n");
+    ShowMessages("\t\te.g : kd base 0x77356f010\n");
+    ShowMessages("\t\te.g : kq base fffff8077356f010\n");
+    ShowMessages("\t\te.g : kq base @rbx-10\n");
+    ShowMessages("\t\te.g : kq base fffff8077356f010 l 100\n");
 }
 
 /**
