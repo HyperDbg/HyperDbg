@@ -263,22 +263,22 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
             {
                 if (Is32Bit)
                 {
-                    ShowMessages("  %016llx    (from ", TargetAddress);
+                    ShowMessages("  %08x    (from ", TargetAddress);
                 }
                 else
                 {
-                    ShowMessages("  %08llx    (from ", TargetAddress);
+                    ShowMessages("  %016llx    (from ", TargetAddress);
                 }
             }
             else
             {
                 if (Is32Bit)
                 {
-                    ShowMessages("     %016llx (addr ", TargetAddress);
+                    ShowMessages("     %08x (addr ", TargetAddress);
                 }
                 else
                 {
-                    ShowMessages("     %08llx (addr ", TargetAddress);
+                    ShowMessages("     %016llx (addr ", TargetAddress);
                 }
             }
 
@@ -294,7 +294,14 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
                 }
             }
 
-            ShowMessages("<%llx>)\n", TargetAddress);
+            if (Is32Bit)
+            {
+                ShowMessages("<%08x>)\n", TargetAddress);
+            }
+            else
+            {
+                ShowMessages("<%016llx>)\n", TargetAddress);
+            }
         }
         else
         {
@@ -310,7 +317,7 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
 
             if (Is32Bit)
             {
-                ShowMessages("     %08llx\n", CallstackFrames[i].Value);
+                ShowMessages("     %08x\n", CallstackFrames[i].Value);
             }
             else
             {
