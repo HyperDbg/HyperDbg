@@ -272,6 +272,7 @@ KdResponsePacketToDebugger(
     UINT32                                  OptionalBufferLength)
 {
     DEBUGGER_REMOTE_PACKET Packet = {0};
+    BOOLEAN                Result = FALSE;
 
     //
     // Make the packet's structure
@@ -299,7 +300,7 @@ KdResponsePacketToDebugger(
         //
         SpinlockLock(&DebuggerResponseLock);
 
-        SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+        Result = SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -317,7 +318,7 @@ KdResponsePacketToDebugger(
         //
         SpinlockLock(&DebuggerResponseLock);
 
-        SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+        Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -330,7 +331,8 @@ KdResponsePacketToDebugger(
         //
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
     }
-    return TRUE;
+
+    return Result;
 }
 
 /**
@@ -348,6 +350,7 @@ KdLoggingResponsePacketToDebugger(
     UINT32 OperationCode)
 {
     DEBUGGER_REMOTE_PACKET Packet = {0};
+    BOOLEAN                Result = FALSE;
 
     //
     // Make the packet's structure
@@ -376,16 +379,16 @@ KdLoggingResponsePacketToDebugger(
     //
     SpinlockLock(&DebuggerResponseLock);
 
-    SerialConnectionSendThreeBuffers((CHAR *)&Packet,
-                                     sizeof(DEBUGGER_REMOTE_PACKET),
-                                     &OperationCode,
-                                     sizeof(UINT32),
-                                     OptionalBuffer,
-                                     OptionalBufferLength);
+    Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
+                                              sizeof(DEBUGGER_REMOTE_PACKET),
+                                              &OperationCode,
+                                              sizeof(UINT32),
+                                              OptionalBuffer,
+                                              OptionalBufferLength);
 
     SpinlockUnlock(&DebuggerResponseLock);
 
-    return TRUE;
+    return Result;
 }
 
 /**

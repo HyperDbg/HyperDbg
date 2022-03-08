@@ -206,7 +206,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
  * @param DisplayMethod  
  * @param Is32Bit  
  * 
- * @return VOid
+ * @return VOID
  */
 VOID
 CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,

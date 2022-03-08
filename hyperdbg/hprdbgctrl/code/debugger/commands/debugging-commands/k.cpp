@@ -53,7 +53,7 @@ VOID
 CommandK(vector<string> SplittedCommand, string Command)
 {
     UINT64         BaseAddress = NULL;  // Null base address means current RSP register
-    UINT32         Length      = 0x200; // Default length
+    UINT32         Length      = 0x100; // Default length
     vector<string> SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32         IndexInCommandCaseSensitive = 0;
     BOOLEAN        IsFirstCommand              = TRUE;
@@ -74,6 +74,18 @@ CommandK(vector<string> SplittedCommand, string Command)
         ShowMessages("err, tracing callstack is not possible when you're not "
                      "connected to a debuggee\n");
         return;
+    }
+
+    //
+    // Set the default length
+    //
+    if (g_IsRunningInstruction32Bit)
+    {
+        Length = 0x100;
+    }
+    else
+    {
+        Length = 0x200;
     }
 
     for (auto Section : SplittedCommand)
@@ -149,7 +161,7 @@ CommandK(vector<string> SplittedCommand, string Command)
     if (!FirstCommand.compare("k"))
     {
         KdSendCallStackPacketToDebuggee(BaseAddress,
-                                        g_IsRunningInstruction32Bit ? Length / 2 : Length,
+                                        Length,
                                         DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS,
                                         g_IsRunningInstruction32Bit);
     }
@@ -163,7 +175,7 @@ CommandK(vector<string> SplittedCommand, string Command)
     else if (!FirstCommand.compare("kd"))
     {
         KdSendCallStackPacketToDebuggee(BaseAddress,
-                                        Length / 2,
+                                        Length,
                                         DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITH_PARAMS,
                                         TRUE);
     }
