@@ -9,6 +9,7 @@ EXTERN DebuggerEventEptHook2GeneralDetourEventHandler:PROC
 AsmGeneralDetourHook PROC PUBLIC
 
 SaveTheRegisters:
+
     push r15
     push r14
     push r13
