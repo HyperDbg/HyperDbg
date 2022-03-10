@@ -1232,7 +1232,7 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, 0);
+            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
         }
     }
     else

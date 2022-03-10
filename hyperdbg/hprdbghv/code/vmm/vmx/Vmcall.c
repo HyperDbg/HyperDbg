@@ -408,7 +408,10 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         TriggeredEventDetail.Tag     = OptionalParam2;
 
         KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
-                                              GuestRegs,
+                                              OptionalParam3, // We won't send current vmcall registers
+                                                              // instead we send the registers provided
+                                                              // from the third parameter
+                                                              //
                                               DEBUGGEE_PAUSING_REASON_DEBUGGEE_EVENT_TRIGGERED,
                                               &TriggeredEventDetail);
         VmcallStatus = STATUS_SUCCESS;
