@@ -282,7 +282,10 @@ MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
 BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
 {
-    CR3_TYPE GuestCr3;
+    BOOLEAN     Result;
+    CR3_TYPE    GuestCr3;
+    PPAGE_ENTRY PageEntry;
+    CR3_TYPE    CurrentProcessCr3 = {0};
 
     //
     // Move to guest process as we're currently in system cr3
@@ -294,10 +297,28 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
     GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+
     //
-    // Check NX bit
+    // Find the page table entry
     //
-    return MemoryMapperCheckIfPageIsNxBitSetByCr3(Va, GuestCr3);
+    PageEntry = MemoryMapperGetPteVa(Va, PT);
+
+    if (PageEntry != NULL && !PageEntry->ExecuteDisable)
+    {
+        Result = TRUE;
+    }
+    else
+    {
+        Result = FALSE;
+    }
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return Result;
 }
 
 /**

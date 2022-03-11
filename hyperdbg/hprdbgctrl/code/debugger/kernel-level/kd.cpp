@@ -42,16 +42,6 @@ extern BOOLEAN g_IgnorePauseRequests;
 extern BYTE    g_EndOfBufferCheckSerial[4];
 extern ULONG   g_CurrentRemoteCore;
 
-#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
-    do                                                                     \
-    {                                                                      \
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
-            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
-                                                                           \
-        SyncronizationObject->IsOnWaitingState = TRUE;                     \
-        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
-    } while (FALSE);
-
 /**
  * @brief compares the buffer with a string
  *
@@ -310,12 +300,16 @@ KdSendFlushPacketToDebuggee()
  * @brief Send a callstack request to the debuggee
  * @param BaseAddress
  * @param Size
+ * @param DisplayMethod
  * @param Is32Bit
  * 
  * @return BOOLEAN
  */
 BOOLEAN
-KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit)
+KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
+                                UINT32                            Size,
+                                DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                                BOOLEAN                           Is32Bit)
 {
     UINT32                      FrameCount;
     UINT32                      CallstackRequestSize = 0;
@@ -352,11 +346,12 @@ KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit
     //
     // Set the details
     //
-    CallstackPacket->BaseAddress = BaseAddress;
-    CallstackPacket->Is32Bit     = Is32Bit;
-    CallstackPacket->Size        = Size;
-    CallstackPacket->BufferSize  = CallstackRequestSize;
-    CallstackPacket->FrameCount  = FrameCount;
+    CallstackPacket->BaseAddress   = BaseAddress;
+    CallstackPacket->Is32Bit       = Is32Bit;
+    CallstackPacket->Size          = Size;
+    CallstackPacket->BufferSize    = CallstackRequestSize;
+    CallstackPacket->FrameCount    = FrameCount;
+    CallstackPacket->DisplayMethod = DisplayMethod;
 
     //
     // Send 'k' command as callstack request packet
@@ -1228,7 +1223,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     g_IgnoreNewLoggingMessages = FALSE;
 
     //
-    // Check if buffer not pass the boundary
+    // Double check if buffer not pass the boundary
     //
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
@@ -1347,6 +1342,11 @@ KdCommandPacketToDebuggee(
     DEBUGGER_REMOTE_PACKET Packet = {0};
 
     //
+    // There is no check for boundary here as it's fixed to
+    // sizeof(DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION) + sizeof(DEBUGGER_REMOTE_PACKET)
+    //
+
+    //
     // Make the packet's structure
     //
     Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
@@ -1389,6 +1389,19 @@ KdCommandPacketAndBufferToDebuggee(
     UINT32                                  BufferLength)
 {
     DEBUGGER_REMOTE_PACKET Packet = {0};
+
+    //
+    // Check if buffer not pass the boundary
+    //
+    if (sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT >
+        MaxSerialPacketSize)
+    {
+        ShowMessages(
+            "err, buffer is above the maximum buffer size that can be sent to "
+            "debuggee\n");
+
+        return FALSE;
+    }
 
     //
     // Make the packet's structure
@@ -1456,12 +1469,7 @@ KdBreakControlCheckAndPauseDebugger()
         //
         // Signal the event
         //
-
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-            &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING];
-
-        SyncronizationObject->IsOnWaitingState = FALSE;
-        SetEvent(SyncronizationObject->EventHandle);
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
     }
 }
 
@@ -2282,11 +2290,7 @@ KdCloseConnection()
         //
         // Not waiting for start packet
         //
-        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-            &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED];
-
-        SyncronizationObject->IsOnWaitingState = FALSE;
-        SetEvent(SyncronizationObject->EventHandle);
+        DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
     }
 
     //
@@ -2675,11 +2679,7 @@ KdUninitializeConnection()
     //
     // Unpause the debugger to get commands
     //
-    DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =
-        &g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING];
-
-    SyncronizationObject->IsOnWaitingState = FALSE;
-    SetEvent(SyncronizationObject->EventHandle);
+    DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
 
     //
     // Close synchronization objects
@@ -2690,8 +2690,7 @@ KdUninitializeConnection()
         {
             if (g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState)
             {
-                g_KernelSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);
+                DbgReceivedKernelResponse(i);
             }
 
             CloseHandle(g_KernelSyncronizationObjectsHandleTable[i].EventHandle);

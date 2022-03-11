@@ -108,11 +108,6 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
             [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
                 .IsOnWaitingState == TRUE)
     {
-        g_UserSyncronizationObjectsHandleTable
-            [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-                .IsOnWaitingState = FALSE;
-        SetEvent(g_UserSyncronizationObjectsHandleTable
-                     [DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING]
-                         .EventHandle);
+        DbgReceivedUserResponse(DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING);
     }
 }

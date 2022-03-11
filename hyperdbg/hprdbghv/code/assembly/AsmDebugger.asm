@@ -9,6 +9,7 @@ EXTERN DebuggerEventEptHook2GeneralDetourEventHandler:PROC
 AsmGeneralDetourHook PROC PUBLIC
 
 SaveTheRegisters:
+
     push r15
     push r14
     push r13
@@ -40,7 +41,7 @@ RestoreTheRegisters:
     pop rcx
     pop rdx
     pop rbx
-    pop rbp		; rsp
+    pop rbp		; rsp (this is not exactly the rbp, we changed it but as we restore the correct rbp after this instruction, then it's okay)
     pop rbp
     pop rsi
     pop rdi 

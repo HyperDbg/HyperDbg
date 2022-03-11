@@ -67,6 +67,12 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     EPT_HOOKS_TEMPORARY_CONTEXT TempContext = {0};
 
     //
+    // The RSP register is the at the RCX and we just added (reverse by stack) to it's
+    // values by the size of the GUEST_REGS
+    //
+    Regs->rsp = (UINT64)Regs - sizeof(GUEST_REGS);
+
+    //
     // test
     //
 

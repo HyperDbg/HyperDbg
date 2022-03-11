@@ -12,6 +12,30 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		            Definitions                 //
+//////////////////////////////////////////////////
+
+#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = TRUE;                     \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+    } while (FALSE);
+
+#define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = FALSE;                    \
+        SetEvent(SyncronizationObject->EventHandle);                       \
+    } while (FALSE);
+
+//////////////////////////////////////////////////
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 
@@ -83,7 +107,10 @@ BOOLEAN
 KdSendFlushPacketToDebuggee();
 
 BOOLEAN
-KdSendCallStackPacketToDebuggee(UINT64 BaseAddress, UINT32 Size, BOOLEAN Is32Bit);
+KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
+                                UINT32                            Size,
+                                DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                                BOOLEAN                           Is32Bit);
 
 BOOLEAN
 KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);

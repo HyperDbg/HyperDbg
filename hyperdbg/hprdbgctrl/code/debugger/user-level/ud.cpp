@@ -72,8 +72,7 @@ UdUninitializeUserDebugger()
             {
                 if (g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState)
                 {
-                    g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
-                    SetEvent(g_UserSyncronizationObjectsHandleTable[i].EventHandle);
+                    DbgReceivedUserResponse(i);
                 }
 
                 CloseHandle(g_UserSyncronizationObjectsHandleTable[i].EventHandle);

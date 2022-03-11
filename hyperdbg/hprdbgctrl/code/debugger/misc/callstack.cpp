@@ -98,7 +98,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // The mask of F8 is used because we want to mask out the bottom
         // three bits (which are most often used for register selection)
         //
-        const unsigned char rm_mask = 0xF8;
+        const unsigned char RmMask = 0xF8;
 
         //
         // 7-byte format:
@@ -115,7 +115,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M] [4-byte displacement]
         //
         else if (ReturnAddress[-6] == 0xFF &&
-                 ((ReturnAddress[-5] & rm_mask) == 0x90 || (ReturnAddress[-5] & rm_mask) == 0x98) &&
+                 ((ReturnAddress[-5] & RmMask) == 0x90 || (ReturnAddress[-5] & RmMask) == 0x98) &&
                  (ReturnAddress[-5] != 0x94 && ReturnAddress[-5] != 0x9C))
         {
             *IndexOfCallFromReturnAddress = 6;
@@ -148,7 +148,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M] [1-byte displacement]
         //
         else if (ReturnAddress[-3] == 0xFF &&
-                 ((ReturnAddress[-2] & rm_mask) == 0x50 || (ReturnAddress[-2] & rm_mask) == 0x58) &&
+                 ((ReturnAddress[-2] & RmMask) == 0x50 || (ReturnAddress[-2] & RmMask) == 0x58) &&
                  (ReturnAddress[-2] != 0x54 && ReturnAddress[-2] != 0x5C))
         {
             *IndexOfCallFromReturnAddress = 3;
@@ -171,7 +171,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M]
         //
         else if (ReturnAddress[-2] == 0xFF &&
-                 ((ReturnAddress[-1] & rm_mask) == 0xD0 || (ReturnAddress[-1] & rm_mask) == 0xD8))
+                 ((ReturnAddress[-1] & RmMask) == 0xD0 || (ReturnAddress[-1] & RmMask) == 0xD8))
         {
             *IndexOfCallFromReturnAddress = 2;
             return TRUE;
@@ -182,7 +182,7 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
         // FF [ModR/M]
         //
         else if (ReturnAddress[-2] == 0xFF &&
-                 ((ReturnAddress[-1] & rm_mask) == 0x10 || (ReturnAddress[-1] & rm_mask) == 0x18) &&
+                 ((ReturnAddress[-1] & RmMask) == 0x10 || (ReturnAddress[-1] & RmMask) == 0x18) &&
                  (ReturnAddress[-1] != 0x14 && ReturnAddress[-1] != 0x15 &&
                   ReturnAddress[-1] != 0x1C && ReturnAddress[-1] != 0x1D))
         {
@@ -202,15 +202,22 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
  * @brief Show stack frames
  * 
  * @param CallstackFrames  
+ * @param FrameCount  
+ * @param DisplayMethod  
+ * @param Is32Bit  
  * 
- * @return VOid
+ * @return VOID
  */
 VOID
-CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 FrameCount)
+CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
+                    UINT32                            FrameCount,
+                    DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                    BOOLEAN                           Is32Bit)
 {
     UINT32                                                 CallLength;
-    UINT64                                                 CallAddress;
+    UINT64                                                 TargetAddress;
     UINT64                                                 UsedBaseAddress;
+    BOOLEAN                                                IsCall = FALSE;
     std::map<UINT64, LOCAL_FUNCTION_DESCRIPTION>::iterator Iterate;
 
     //
@@ -218,47 +225,104 @@ CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME CallstackFrames, UINT32 Fra
     //
     for (size_t i = 0; i < FrameCount; i++)
     {
-        if (CallstackFrames[i].IsValidAddress && CallstackFrames[i].IsExecutable)
-        {
-            ShowMessages("[%x] %llx ", i, CallstackFrames[i].Value);
+        IsCall = FALSE;
 
-            if (CallstackReturnAddressToCallingAddress(
-                    (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
-                    &CallLength))
+        if (CallstackFrames[i].IsValidAddress)
+        {
+            //
+            // Check if it's call or just a simple code address
+            //
+            if (CallstackFrames[i].IsExecutable && CallstackReturnAddressToCallingAddress(
+                                                       (unsigned char *)&CallstackFrames[i].InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE],
+                                                       &CallLength))
             {
                 //
                 // Computer the "call" instruction address
                 //
-                CallAddress = CallstackFrames[i].Value - CallLength;
-                ShowMessages("- call from ");
+                TargetAddress = CallstackFrames[i].Value - CallLength;
 
+                IsCall = TRUE;
+            }
+            else
+            {
                 //
-                // Apply addressconversion of settings here
+                // Check if we wanna show the stack params
                 //
-                if (g_AddressConversion)
+                if (DisplayMethod == DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS)
                 {
-                    if (SymbolShowFunctionNameBasedOnAddress(CallAddress, &UsedBaseAddress))
-                    {
-                        ShowMessages("\n");
-                    }
-                    else
-                    {
-                        ShowMessages("%llx\n", CallAddress);
-                    }
+                    continue;
+                }
+
+                IsCall        = FALSE;
+                TargetAddress = CallstackFrames[i].Value;
+            }
+
+            ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+
+            if (IsCall)
+            {
+                if (Is32Bit)
+                {
+                    ShowMessages("  %08x    (from ", TargetAddress);
                 }
                 else
                 {
-                    ShowMessages("%llx\n", CallAddress);
+                    ShowMessages("  %016llx    (from ", TargetAddress);
                 }
             }
             else
             {
-                ShowMessages("(pointer to code - not call)\n");
+                if (Is32Bit)
+                {
+                    ShowMessages("     %08x (addr ", TargetAddress);
+                }
+                else
+                {
+                    ShowMessages("     %016llx (addr ", TargetAddress);
+                }
+            }
+
+            //
+            // Show the name of the function if available
+            // Apply addressconversion of settings here
+            //
+            if (g_AddressConversion)
+            {
+                if (SymbolShowFunctionNameBasedOnAddress(TargetAddress, &UsedBaseAddress))
+                {
+                    ShowMessages(" ");
+                }
+            }
+
+            if (Is32Bit)
+            {
+                ShowMessages("<%08x>)\n", TargetAddress);
+            }
+            else
+            {
+                ShowMessages("<%016llx>)\n", TargetAddress);
             }
         }
         else
         {
-            ShowMessages("[%x]\t%llx\n", i, CallstackFrames[i].Value);
+            //
+            // Check if we wanna show the stack params
+            //
+            if (DisplayMethod == DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS)
+            {
+                continue;
+            }
+
+            ShowMessages("[$+%03x] ", i * (Is32Bit ? sizeof(UINT32) : sizeof(UINT64)));
+
+            if (Is32Bit)
+            {
+                ShowMessages("     %08x\n", CallstackFrames[i].Value);
+            }
+            else
+            {
+                ShowMessages("     %016llx\n", CallstackFrames[i].Value);
+            }
         }
     }
 }
