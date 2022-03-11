@@ -164,12 +164,12 @@ SplitIp(const string & str, char delim)
 
     while (pos != string::npos)
     {
-        list.push_back(str.substr(i, pos - i));
+        list.emplace_back(str.begin() + i, str.begin() + pos - i);
         i   = ++pos;
         pos = str.find(delim, pos);
     }
 
-    list.push_back(str.substr(i, str.length()));
+    list.emplace_back(str.begin() + i, str.end());
 
     return list;
 }
