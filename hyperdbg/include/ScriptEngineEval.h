@@ -234,7 +234,7 @@ __declspec(dllimport) VOID
 //
 UINT64
 GetValue(PGUEST_REGS                    GuestRegs,
-         ACTION_BUFFER                  ActionBuffer,
+         const ACTION_BUFFER          & ActionBuffer,
          SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
          PSYMBOL                        Symbol,
          BOOLEAN                        ReturnReference);
@@ -2680,7 +2680,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
     }
 }
 UINT64
-GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
+GetPseudoRegValue(PSYMBOL Symbol, const ACTION_BUFFER & ActionBuffer)
 {
     switch (Symbol->Value)
     {
@@ -2725,7 +2725,7 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
 
 UINT64
 GetValue(PGUEST_REGS                    GuestRegs,
-         ACTION_BUFFER                  ActionBuffer,
+         const ACTION_BUFFER          & ActionBuffer,
          SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
          PSYMBOL                        Symbol,
          BOOLEAN                        ReturnReference)

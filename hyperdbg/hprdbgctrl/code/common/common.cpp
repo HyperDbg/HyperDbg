@@ -181,15 +181,15 @@ SplitIp(const string & str, char delim)
  * @return BOOLEAN
  */
 BOOLEAN
-IsHexNotation(string s)
+IsHexNotation(const string & s)
 {
     BOOLEAN IsAnyThing = FALSE;
 
-    for (char & c : s)
+    for (auto & cptrChar : s)
     {
         IsAnyThing = TRUE;
 
-        if (!isxdigit(c))
+        if (!isxdigit(cptrChar))
         {
             return FALSE;
         }
