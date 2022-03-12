@@ -185,11 +185,11 @@ IsHexNotation(const string & s)
 {
     BOOLEAN IsAnyThing = FALSE;
 
-    for (auto & cptrChar : s)
+    for (auto & CptrChar : s)
     {
         IsAnyThing = TRUE;
 
-        if (!isxdigit(cptrChar))
+        if (!isxdigit(CptrChar))
         {
             return FALSE;
         }

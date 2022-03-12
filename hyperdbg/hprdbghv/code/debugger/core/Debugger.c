@@ -1190,7 +1190,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
         // If has error, show error message and abort.
         //
         if (ScriptEngineExecute(Regs,
-                                ActionBuffer,
+                                &ActionBuffer,
                                 &VariablesList,
                                 &CodeBuffer,
                                 &i,

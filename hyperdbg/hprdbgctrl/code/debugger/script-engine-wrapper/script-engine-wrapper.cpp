@@ -331,9 +331,14 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
             VariablesList.LocalVariablesList  = g_ScriptLocalVariables;
 
             //
-            // If has error, show error message and abort.
+            // If has error, show error message and abort
             //
-            if (ScriptEngineExecute(GuestRegs, ActionBuffer, &VariablesList, CodeBuffer, &i, &ErrorSymbol) == TRUE)
+            if (ScriptEngineExecute(GuestRegs,
+                                    &ActionBuffer,
+                                    &VariablesList,
+                                    CodeBuffer,
+                                    &i,
+                                    &ErrorSymbol) == TRUE)
             {
                 CHAR NameOfOperator[MAX_FUNCTION_NAME_LENGTH] = {0};
 
