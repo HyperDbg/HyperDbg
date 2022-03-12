@@ -419,8 +419,6 @@ PeShowSectionInformationAndDump(const WCHAR * AddressOfFile, const CHAR * Sectio
             ShowMessages("initialized data, ");
         if ((SecHeader->Characteristics & 0x80) == 0x80)
             ShowMessages("uninitialized data, ");
-        if ((SecHeader->Characteristics & 0x80) == 0x80)
-            ShowMessages("uninitialized data, ");
         if ((SecHeader->Characteristics & 0x200) == 0x200)
             ShowMessages("comments and linker commands, ");
         if ((SecHeader->Characteristics & 0x10000000) == 0x10000000)

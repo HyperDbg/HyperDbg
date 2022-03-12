@@ -567,7 +567,6 @@ InterpretScript(vector<string> * SplittedCommand,
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
     BOOLEAN        IsEnded       = FALSE;
-    string         Temp;
     string         AppendedFinalBuffer;
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
@@ -620,8 +619,8 @@ InterpretScript(vector<string> * SplittedCommand,
                     //
                     // remove the last character and append it to the ConditionBuffer
                     //
-                    SaveBuffer.push_back(
-                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
+                    string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                     IsEnded = TRUE;
                     break;
@@ -676,8 +675,8 @@ InterpretScript(vector<string> * SplittedCommand,
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    SaveBuffer.push_back(
-                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
+                    string str  = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
                     break;
                 }
             }
@@ -741,8 +740,8 @@ InterpretScript(vector<string> * SplittedCommand,
                 //
                 IndexesToRemove.push_back(Index);
 
-                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
-                SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded = TRUE;
                 break;
@@ -771,8 +770,8 @@ InterpretScript(vector<string> * SplittedCommand,
                 {
                     OpenBracket = 0;
                     IsEnded     = TRUE;
-                    SaveBuffer.push_back(
-                        SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
+                    string str  = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                    SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
                     break;
                 }
             }
@@ -855,9 +854,8 @@ InterpretScript(vector<string> * SplittedCommand,
                 // remove the last character and first character append it to the
                 // ConditionBuffer
                 //
-                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
-                SaveBuffer.push_back(
-                    SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
+                string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded     = TRUE;
                 OpenBracket = 0;
@@ -1095,7 +1093,7 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                 //
                 // remove the last character and append it to the ConditionBuffer
                 //
-                SaveBuffer.push_back(Section.substr(0, Section.size() - 1));
+                SaveBuffer.emplace_back(Section.begin(), Section.begin() + Section.size() - 1);
 
                 IsEnded = TRUE;
                 break;
@@ -1144,8 +1142,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                 //
                 IndexesToRemove.push_back(Index);
 
-                Temp = Section.erase(0, 1);
-                SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                string str = Section.erase(0, 1);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded = TRUE;
                 break;
@@ -1250,8 +1248,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                     // remove the last character and first character append it to the
                     // ConditionBuffer
                     //
-                    Temp = Section.erase(0, 10);
-                    SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                    string str = Section.erase(0, 10);
+                    SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                     IsEnded = TRUE;
                     break;
@@ -1287,8 +1285,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                     // remove the last character and first character append it to the
                     // ConditionBuffer
                     //
-                    Temp = Section.erase(0, 5);
-                    SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                    string str = Section.erase(0, 5);
+                    SaveBuffer.emplace_back(str.begin() , str.begin() + str.size() - 1);
 
                     IsEnded = TRUE;
                     break;
@@ -1428,7 +1426,6 @@ InterpretOutput(vector<string> * SplittedCommand,
     BOOLEAN        IsTextVisited = FALSE;
     BOOLEAN        IsInState     = FALSE;
     BOOLEAN        IsEnded       = FALSE;
-    string         Temp;
     string         AppendedFinalBuffer;
     vector<string> SaveBuffer;
     vector<int>    IndexesToRemove;
@@ -1473,8 +1470,8 @@ InterpretOutput(vector<string> * SplittedCommand,
                 //
                 // remove the last character and append it to the output buffer
                 //
-                SaveBuffer.push_back(
-                    SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).substr(0, SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).size() - 1));
+                string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded = TRUE;
                 break;
@@ -1523,8 +1520,8 @@ InterpretOutput(vector<string> * SplittedCommand,
                 //
                 IndexesToRemove.push_back(Index);
 
-                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
-                SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 1);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded = TRUE;
                 break;
@@ -1588,8 +1585,8 @@ InterpretOutput(vector<string> * SplittedCommand,
                 // remove the last character and first character append it to the
                 // Output
                 //
-                Temp = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
-                SaveBuffer.push_back(Temp.substr(0, Temp.size() - 1));
+                string str = SplittedCommandCaseSensitiveInstance.at(IndexInCommandCaseSensitive - 1).erase(0, 7);
+                SaveBuffer.emplace_back(str.begin(), str.begin() + str.size() - 1);
 
                 IsEnded = TRUE;
                 break;

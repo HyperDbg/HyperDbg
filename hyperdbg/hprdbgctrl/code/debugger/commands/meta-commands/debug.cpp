@@ -74,7 +74,7 @@ CommandDebugCheckBaudrate(DWORD Baudrate)
  * @return BOOLEAN
  */
 BOOLEAN
-CommandDebugCheckComPort(string ComPort, UINT32 * Port)
+CommandDebugCheckComPort(const string & ComPort, UINT32 * Port)
 {
     if (!ComPort.compare("com1"))
     {

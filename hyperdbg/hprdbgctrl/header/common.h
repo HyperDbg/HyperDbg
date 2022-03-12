@@ -35,7 +35,7 @@ vector<string>
 SplitIp(const string & str, char delim);
 
 BOOLEAN
-IsHexNotation(string s);
+IsHexNotation(const string & s);
 
 vector<char>
 HexToBytes(const string & hex);

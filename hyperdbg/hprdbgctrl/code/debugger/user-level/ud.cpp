@@ -107,7 +107,6 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
     g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
     g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
     g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
-    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
 
     //
     // Set pausing state
