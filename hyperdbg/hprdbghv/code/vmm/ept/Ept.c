@@ -413,6 +413,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
             }
         }
     }
+
     //
     // Finally, commit the memory type to the entry
     //

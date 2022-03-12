@@ -209,6 +209,18 @@ CommandEventsShowEvents()
         TempList = TempList->Blink;
 
         PDEBUGGER_GENERAL_EVENT_DETAIL CommandDetail = CONTAINING_RECORD(TempList, DEBUGGER_GENERAL_EVENT_DETAIL, CommandsEventList);
+        string                         CommandMessage((char *)CommandDetail->CommandStringBuffer);
+
+        //
+        // Do not show the \n(s)
+        //
+        ReplaceAll(CommandMessage, "\n", " ");
+
+        if (CommandMessage.length() > 70)
+        {
+            CommandMessage = CommandMessage.substr(0, 70);
+            CommandMessage += "...";
+        }
 
         ShowMessages("%x\t(%s)\t    %s\n",
                      CommandDetail->Tag - DebuggerEventTagStartSeed,
@@ -216,7 +228,7 @@ CommandEventsShowEvents()
                      CommandEventQueryEventState(CommandDetail->Tag)
                          ? "enabled"
                          : "disabled", /* Query is live now */
-                     CommandDetail->CommandStringBuffer);
+                     CommandMessage.c_str());
 
         if (!IsThereAnyEvents)
         {
