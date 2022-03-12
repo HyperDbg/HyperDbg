@@ -121,7 +121,7 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
 
 BOOLEAN
-KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY);
+KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem);
 
 BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size);

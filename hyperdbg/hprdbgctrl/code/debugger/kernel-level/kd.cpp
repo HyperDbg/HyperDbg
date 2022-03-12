@@ -477,15 +477,31 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
 BOOLEAN
 KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
 {
+    PDEBUGGER_READ_MEMORY ActualBufferToSend = NULL;
+    UINT                  Size               = 0;
+
+    Size               = ReadMem->Size * sizeof(unsigned char) + sizeof(DEBUGGER_READ_MEMORY);
+    ActualBufferToSend = (PDEBUGGER_READ_MEMORY)malloc(Size);
+
+    if (ActualBufferToSend == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(ActualBufferToSend, Size);
+
+    memcpy(ActualBufferToSend, ReadMem, sizeof(DEBUGGER_READ_MEMORY));
+
     //
-    // Send d command as read memory packet
+    // Send u-d command as read memory packet
     //
     if (!KdCommandPacketAndBufferToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
             DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY,
-            (CHAR *)ReadMem,
-            sizeof(DEBUGGER_READ_MEMORY)))
+            (CHAR *)ActualBufferToSend,
+            Size))
     {
+        free(ActualBufferToSend);
         return FALSE;
     }
 
@@ -494,6 +510,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
     //
     DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
+    free(ActualBufferToSend);
     return TRUE;
 }
 
