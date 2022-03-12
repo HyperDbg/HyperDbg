@@ -216,6 +216,9 @@ CommandEventsShowEvents()
         //
         ReplaceAll(CommandMessage, "\n", " ");
 
+        //
+        // Only show portion of message
+        //
         if (CommandMessage.length() > 70)
         {
             CommandMessage = CommandMessage.substr(0, 70);

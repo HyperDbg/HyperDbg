@@ -2236,7 +2236,13 @@ InterpretGeneralEventAndActionsFields(
     //
     // Check if there is a Script block in the command
     //
-    if (!InterpretScript(SplittedCommand, SplittedCommandCaseSensitive, &HasScriptSyntaxError, &ScriptBufferAddress, &ScriptBufferLength, &ScriptBufferPointer, &ScriptCodeBuffer))
+    if (!InterpretScript(SplittedCommand,
+                         SplittedCommandCaseSensitive,
+                         &HasScriptSyntaxError,
+                         &ScriptBufferAddress,
+                         &ScriptBufferLength,
+                         &ScriptBufferPointer,
+                         &ScriptCodeBuffer))
     {
         //
         // Indicate code is not available

@@ -3971,7 +3971,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)&SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
