@@ -1169,7 +1169,7 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerEnableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x).", Value);
+        LogInfo("Invalid tag id (%x)", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1187,7 +1187,7 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerDisableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x).", Value);
+        LogInfo("Invalid tag id (%x)", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -4020,7 +4020,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         SrcVal2 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
