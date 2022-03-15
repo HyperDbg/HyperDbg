@@ -53,7 +53,7 @@ IsDirExists(const std::string & DirPath)
 BOOLEAN
 CreateDirectoryRecursive(const std::string & Path)
 {
-    unsigned int Pos = 0;
+    size_t Pos = 0;
     do
     {
         Pos = Path.find_first_of("\\/", Pos + 1);
