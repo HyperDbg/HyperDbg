@@ -23,7 +23,7 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
     IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
     SIZE_T             VmxonSize;
-    int                VmxonStatus;
+    UINT8              VmxonStatus;
     UINT8 *            VmxonRegion;
     UINT64             VmxonRegionPhysicalAddr;
     UINT64             AlignedVmxonRegion;
