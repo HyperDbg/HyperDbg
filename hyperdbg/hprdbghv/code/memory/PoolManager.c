@@ -266,6 +266,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
         //
         InsertHeadList(&g_ListOfAllocatedPoolsHead, &(SinglePool->PoolsList));
     }
+    return TRUE;
 }
 
 /**
