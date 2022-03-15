@@ -24,6 +24,7 @@
 #include <wdm.h>
 #include <ntstrsafe.h>
 #include <Windef.h>
+#include <intrin.h>
 
 //
 // Scope definitions
