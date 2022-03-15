@@ -1466,7 +1466,7 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
     if (SplitedsymPath[1].find(":\\") == string::npos)
         return FALSE;
 
-    SymDir = SplitedsymPath[1];
+    Tmp = SymDir = SplitedsymPath[1];
 
     //
     // Split each module and details
@@ -1619,7 +1619,7 @@ SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::stri
     {
         if (!IsSilentLoad)
         {
-            ShowMessages("err, unable to create sympath directory '%s'\n", SymFullDir);
+            ShowMessages("err, unable to create sympath directory '%s'\n", SymFullDir.c_str());
         }
         return FALSE;
     }
