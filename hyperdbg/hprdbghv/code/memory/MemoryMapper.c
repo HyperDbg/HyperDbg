@@ -245,6 +245,83 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
 }
 
 /**
+ * @brief This function checks if the page has NX bit or not
+ * 
+ * @param Va Virtual Address
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
+{
+    PPAGE_ENTRY PageEntry;
+
+    //
+    // Find the page table entry
+    //
+    PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
+
+    if (PageEntry != NULL && !PageEntry->ExecuteDisable)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
+ * @brief This function checks target process to see
+ * if the page has NX bit or not
+ * 
+ * @param Va Virtual Address
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
+{
+    BOOLEAN     Result;
+    CR3_TYPE    GuestCr3;
+    PPAGE_ENTRY PageEntry;
+    CR3_TYPE    CurrentProcessCr3 = {0};
+
+    //
+    // Move to guest process as we're currently in system cr3
+    //
+
+    //
+    // Find the current process cr3
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
+
+    //
+    // Find the page table entry
+    //
+    PageEntry = MemoryMapperGetPteVa(Va, PT);
+
+    if (PageEntry != NULL && !PageEntry->ExecuteDisable)
+    {
+        Result = TRUE;
+    }
+    else
+    {
+        Result = FALSE;
+    }
+
+    //
+    // Restore the original process
+    //
+    RestoreToPreviousProcess(CurrentProcessCr3);
+
+    return Result;
+}
+
+/**
  * @brief This function reserve memory from system range (without physically allocating them)
  * 
  * @param Size Size of reserving buffers

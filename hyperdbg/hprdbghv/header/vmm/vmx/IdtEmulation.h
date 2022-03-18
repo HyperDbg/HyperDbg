@@ -11,6 +11,10 @@
  */
 #pragma once
 
+//////////////////////////////////////////////////
+//				     Structures		      		//
+//////////////////////////////////////////////////
+
 /**
  * @brief Guest interruptibility state
  * 
@@ -50,6 +54,10 @@ typedef union _VMEXIT_INTERRUPT_INFO
     };
     UINT32 Flags;
 } VMEXIT_INTERRUPT_INFO, *PVMEXIT_INTERRUPT_INFO;
+
+//////////////////////////////////////////////////
+//				     Functions		      		//
+//////////////////////////////////////////////////
 
 VOID
 IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);

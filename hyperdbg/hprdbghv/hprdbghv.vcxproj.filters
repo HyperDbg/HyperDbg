@@ -308,6 +308,9 @@
     <ClCompile Include="code\debugger\user-level\ThreadHolder.c">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\commands\Callstack.c">
+      <Filter>code\debugger\commands</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -459,6 +462,9 @@
     </ClInclude>
     <ClInclude Include="header\debugger\user-level\ThreadHolder.h">
       <Filter>header\debugger\user-level</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\commands\Callstack.h">
+      <Filter>header\debugger\commands</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

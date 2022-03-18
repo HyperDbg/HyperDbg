@@ -462,6 +462,7 @@ const unsigned char BuildVersion[] =
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY                         0x11
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD                       0x12
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY                          0x13
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT                    0x14
 
 /**
  * @brief Maximum number of event handles in user-debugger
@@ -596,6 +597,11 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
  * @brief maximum instruction size in intel
  */
 #define MAXIMUM_INSTR_SIZE 16
+
+/**
+ * @brief maximum size for call instruction in Intel
+ */
+#define MAXIMUM_CALL_INSTR_SIZE 7
 
 //////////////////////////////////////////////////
 //            Callback Definitions              //
@@ -955,6 +961,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CLOSE_AND_UNLOAD_DEBUGGEE,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_CORE,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_FLUSH_BUFFERS,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CALLSTACK,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_PROCESS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD,
@@ -983,6 +990,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_RUNNING_SCRIPT,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FORMATS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_FLUSH,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_TEST_QUERY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_REGISTERING_EVENT,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_ADDING_ACTION_TO_EVENT,
@@ -1595,6 +1603,57 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief The structure for saving the callstack frame of one parameter
+ *
+ */
+typedef struct _DEBUGGER_SINGLE_CALLSTACK_FRAME
+{
+    BOOLEAN IsStackAddressValid;
+    BOOLEAN IsValidAddress;
+    BOOLEAN IsExecutable;
+    UINT64  Value;
+    BYTE    InstructionBytesOnRip[MAXIMUM_CALL_INSTR_SIZE];
+
+} DEBUGGER_SINGLE_CALLSTACK_FRAME, *PDEBUGGER_SINGLE_CALLSTACK_FRAME;
+
+#define SIZEOF_DEBUGGER_CALLSTACK_REQUEST \
+    sizeof(DEBUGGER_CALLSTACK_REQUEST)
+
+/**
+ * @brief callstack showing method
+ *
+ */
+typedef enum _DEBUGGER_CALLSTACK_DISPLAY_METHOD
+{
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITHOUT_PARAMS,
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD_WITH_PARAMS,
+
+} DEBUGGER_CALLSTACK_DISPLAY_METHOD;
+
+/**
+ * @brief request for callstack frames
+ *
+ */
+typedef struct _DEBUGGER_CALLSTACK_REQUEST
+{
+    BOOLEAN                           Is32Bit;
+    UINT32                            KernelStatus;
+    DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod;
+    UINT32                            Size;
+    UINT32                            FrameCount;
+    UINT64                            BaseAddress;
+    UINT64                            BufferSize;
+
+    //
+    // Here is the size of stack frames
+    //
+
+} DEBUGGER_CALLSTACK_REQUEST, *PDEBUGGER_CALLSTACK_REQUEST;
 
 /* ==============================================================================================
  */
@@ -2554,6 +2613,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * 
  */
 #define DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS 0xc0000037
+
+/**
+ * @brief error, unable to get the callstack
+ * 
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK 0xc0000038
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

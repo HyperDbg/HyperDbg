@@ -167,7 +167,12 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger, ActionBreakToDebuggerLength, ActionCustomCode, ActionCustomCodeLength, ActionScript, ActionScriptLength))
+    if (!RegisterActionToEvent(ActionBreakToDebugger,
+                               ActionBreakToDebuggerLength,
+                               ActionCustomCode,
+                               ActionCustomCodeLength,
+                               ActionScript,
+                               ActionScriptLength))
     {
         //
         // There was an error

@@ -173,7 +173,13 @@ DisassembleBuffer(ZydisDecoder * decoder,
             //
             // Showing function names here
             //
-            SymbolShowFunctionNameBasedOnAddress(runtime_address, &UsedBaseAddress);
+            if (SymbolShowFunctionNameBasedOnAddress(runtime_address, &UsedBaseAddress))
+            {
+                //
+                // The symbol address is showed
+                //
+                ShowMessages(":\n");
+            }
         }
 
         // ZYAN_PRINTF("%016" PRIX64 "  ", runtime_address);

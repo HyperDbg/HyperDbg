@@ -13,6 +13,10 @@
  */
 #pragma once
 
+//////////////////////////////////////////////////
+//				     Functions		      		//
+//////////////////////////////////////////////////
+
 NTSTATUS
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize);
 

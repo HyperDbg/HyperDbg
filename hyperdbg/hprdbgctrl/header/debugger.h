@@ -81,6 +81,15 @@ InterpretGeneralEventAndActionsFields(
     PUINT32                             ActionBufferLengthScript,
     PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing);
 
+BOOLEAN
+CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCallFromReturnAddress);
+
+VOID
+CallstackShowFrames(PDEBUGGER_SINGLE_CALLSTACK_FRAME  CallstackFrames,
+                    UINT32                            FrameCount,
+                    DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                    BOOLEAN                           Is32Bit);
+
 UINT64
 GetNewDebuggerEventTag();
 

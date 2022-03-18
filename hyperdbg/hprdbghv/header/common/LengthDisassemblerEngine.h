@@ -43,7 +43,7 @@ parseModRM(UINT8 ** b, const BOOLEAN addressPrefix)
 {
     UINT8 modrm = *++*b;
 
-    if (!addressPrefix || (addressPrefix && **b >= 0x40))
+    if (!addressPrefix || **b >= 0x40)
     {
         BOOLEAN hasSIB = FALSE; //Check for SIB byte
         if (**b < 0xC0 && (**b & 0b111) == 0b100 && !addressPrefix)

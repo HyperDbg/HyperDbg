@@ -272,6 +272,7 @@ KdResponsePacketToDebugger(
     UINT32                                  OptionalBufferLength)
 {
     DEBUGGER_REMOTE_PACKET Packet = {0};
+    BOOLEAN                Result = FALSE;
 
     //
     // Make the packet's structure
@@ -299,7 +300,7 @@ KdResponsePacketToDebugger(
         //
         SpinlockLock(&DebuggerResponseLock);
 
-        SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
+        Result = SerialConnectionSend((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET));
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -317,7 +318,7 @@ KdResponsePacketToDebugger(
         //
         SpinlockLock(&DebuggerResponseLock);
 
-        SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
+        Result = SerialConnectionSendTwoBuffers((CHAR *)&Packet, sizeof(DEBUGGER_REMOTE_PACKET), OptionalBuffer, OptionalBufferLength);
 
         SpinlockUnlock(&DebuggerResponseLock);
     }
@@ -330,7 +331,8 @@ KdResponsePacketToDebugger(
         //
         RtlZeroMemory(&g_IgnoreBreaksToDebugger, sizeof(DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT));
     }
-    return TRUE;
+
+    return Result;
 }
 
 /**
@@ -348,6 +350,7 @@ KdLoggingResponsePacketToDebugger(
     UINT32 OperationCode)
 {
     DEBUGGER_REMOTE_PACKET Packet = {0};
+    BOOLEAN                Result = FALSE;
 
     //
     // Make the packet's structure
@@ -376,16 +379,16 @@ KdLoggingResponsePacketToDebugger(
     //
     SpinlockLock(&DebuggerResponseLock);
 
-    SerialConnectionSendThreeBuffers((CHAR *)&Packet,
-                                     sizeof(DEBUGGER_REMOTE_PACKET),
-                                     &OperationCode,
-                                     sizeof(UINT32),
-                                     OptionalBuffer,
-                                     OptionalBufferLength);
+    Result = SerialConnectionSendThreeBuffers((CHAR *)&Packet,
+                                              sizeof(DEBUGGER_REMOTE_PACKET),
+                                              &OperationCode,
+                                              sizeof(UINT32),
+                                              OptionalBuffer,
+                                              OptionalBufferLength);
 
     SpinlockUnlock(&DebuggerResponseLock);
 
-    return TRUE;
+    return Result;
 }
 
 /**
@@ -1619,6 +1622,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_CHANGE_CORE_PACKET                        ChangeCorePacket;
     PDEBUGGEE_STEP_PACKET                               SteppingPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS                     FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                         CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME                    CallstackFrameBuffer;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER                TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION                 ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                               ReadMemoryPacket;
@@ -1864,6 +1869,48 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 break;
 
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CALLSTACK:
+
+                CallstackPacket = (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) +
+                                                                 sizeof(DEBUGGER_REMOTE_PACKET));
+
+                CallstackFrameBuffer = (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) +
+                                                                           sizeof(DEBUGGER_REMOTE_PACKET) +
+                                                                           sizeof(DEBUGGER_CALLSTACK_REQUEST));
+
+                //
+                // If the address is null, we use the current RSP register
+                //
+                if (CallstackPacket->BaseAddress == NULL)
+                {
+                    CallstackPacket->BaseAddress = GuestRegs->rsp;
+                }
+
+                //
+                // Feel the callstack frames the buffers
+                //
+                if (CallstackWalkthroughStack(CallstackFrameBuffer,
+                                              CallstackPacket->BaseAddress,
+                                              CallstackPacket->Size,
+                                              CallstackPacket->Is32Bit))
+                {
+                    CallstackPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    CallstackPacket->KernelStatus = DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK;
+                }
+
+                //
+                // Send the result of flushing back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK,
+                                           CallstackPacket,
+                                           CallstackPacket->BufferSize);
+
+                break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_TEST_QUERY:
 
                 TestQueryPacket = (DEBUGGER_DEBUGGER_TEST_QUERY_BUFFER *)(((CHAR *)TheActualPacket) +
@@ -1939,6 +1986,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            SizeToSend);
 
                 break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_READ_MEMORY:
 
                 ReadMemoryPacket = (DEBUGGER_READ_MEMORY *)(((CHAR *)TheActualPacket) +

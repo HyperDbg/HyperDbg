@@ -142,6 +142,7 @@
     <ClCompile Include="code\debugger\core\interpreter.cpp" />
     <ClCompile Include="code\debugger\kernel-level\kd.cpp" />
     <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp" />
+    <ClCompile Include="code\debugger\misc\callstack.cpp" />
     <ClCompile Include="code\debugger\misc\disassembler.cpp" />
     <ClCompile Include="code\debugger\misc\readmem.cpp" />
     <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp" />

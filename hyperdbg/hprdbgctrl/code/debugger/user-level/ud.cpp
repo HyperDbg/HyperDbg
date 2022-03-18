@@ -72,8 +72,7 @@ UdUninitializeUserDebugger()
             {
                 if (g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState)
                 {
-                    g_UserSyncronizationObjectsHandleTable[i].IsOnWaitingState = FALSE;
-                    SetEvent(g_UserSyncronizationObjectsHandleTable[i].EventHandle);
+                    DbgReceivedUserResponse(i);
                 }
 
                 CloseHandle(g_UserSyncronizationObjectsHandleTable[i].EventHandle);
@@ -107,7 +106,6 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
     g_ActiveProcessDebuggingState.ProcessId             = ProcessId;
     g_ActiveProcessDebuggingState.ThreadId              = ThreadId;
     g_ActiveProcessDebuggingState.Is32Bit               = Is32Bit;
-    g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
     g_ActiveProcessDebuggingState.ProcessDebuggingToken = DebuggingId;
 
     //

@@ -234,7 +234,7 @@ __declspec(dllimport) VOID
 //
 UINT64
 GetValue(PGUEST_REGS                    GuestRegs,
-         ACTION_BUFFER                  ActionBuffer,
+         PACTION_BUFFER                 ActionBuffer,
          SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
          PSYMBOL                        Symbol,
          BOOLEAN                        ReturnReference);
@@ -1169,7 +1169,7 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerEnableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x).", Value);
+        LogInfo("Invalid tag id (%x)", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1187,7 +1187,7 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     if (!DebuggerDisableEvent(Value + DebuggerEventTagStartSeed))
     {
-        LogInfo("Invalid tag id (%x).", Value);
+        LogInfo("Invalid tag id (%x)", Value);
     }
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
@@ -1206,7 +1206,7 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
     // pause(); function is only working when kernel debugger is working
     // it's not designed to work on vmi-mode (local debugging)
     //
-    if (g_KernelDebuggerState)
+    if (g_KernelDebuggerState && g_DebuggeeHaltReason == DEBUGGEE_PAUSING_REASON_NOT_PAUSED)
     {
         DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
         UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
@@ -1232,12 +1232,14 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
             // The guest is on vmx non-root mode, the first parameter
             // is context and the second parameter is tag
             //
-            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, 0);
+            AsmVmxVmcall(VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT, Context, Tag, GuestRegs);
         }
     }
     else
     {
-        LogInfo("The 'pause();' function is called but you're not allowed to use it on vmi-mode (local debugging)");
+        LogInfo("The 'pause();' function is either called from the vmi-mode or is "
+                "evaluated by the '?' command. It's not allowed to use it on vmi-mode "
+                "(local debugging) or by the '?' command");
     }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
@@ -1529,7 +1531,7 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 VOID
 ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,
-                           ACTION_BUFFER                  ActionDetail,
+                           ACTION_BUFFER *                ActionDetail,
                            SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
                            UINT64                         Tag,
                            BOOLEAN                        ImmediateMessagePassing,
@@ -2680,7 +2682,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
     }
 }
 UINT64
-GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
+GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
 {
     switch (Symbol->Value)
     {
@@ -2703,17 +2705,17 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
     case PSEUDO_REGISTER_IP:
         return ScriptEnginePseudoRegGetIp();
     case PSEUDO_REGISTER_BUFFER:
-        if (ActionBuffer.CurrentAction != NULL)
+        if (ActionBuffer->CurrentAction != NULL)
         {
             return ScriptEnginePseudoRegGetBuffer(
-                (UINT64 *)ActionBuffer.CurrentAction);
+                (UINT64 *)ActionBuffer->CurrentAction);
         }
         else
         {
             return NULL;
         }
     case PSEUDO_REGISTER_CONTEXT:
-        return ActionBuffer.Context;
+        return ActionBuffer->Context;
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
@@ -2724,11 +2726,11 @@ GetPseudoRegValue(PSYMBOL Symbol, ACTION_BUFFER ActionBuffer)
 }
 
 UINT64
-GetValue(PGUEST_REGS                    GuestRegs,
-         ACTION_BUFFER                  ActionBuffer,
-         SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-         PSYMBOL                        Symbol,
-         BOOLEAN                        ReturnReference)
+GetValue(PGUEST_REGS                   GuestRegs,
+         PACTION_BUFFER                ActionBuffer,
+         PSCRIPT_ENGINE_VARIABLES_LIST VariablesList,
+         PSYMBOL                       Symbol,
+         BOOLEAN                       ReturnReference)
 {
     switch (Symbol->Type)
     {
@@ -3845,11 +3847,11 @@ ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName)
 
 BOOL
 ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
-                    ACTION_BUFFER                  ActionDetail,
+                    ACTION_BUFFER *                ActionDetail,
                     SCRIPT_ENGINE_VARIABLES_LIST * VariablesList,
-                    PSYMBOL_BUFFER                 CodeBuffer,
+                    SYMBOL_BUFFER *                CodeBuffer,
                     int *                          Indx,
-                    PSYMBOL                        ErrorOperator)
+                    SYMBOL *                       ErrorOperator)
 {
     PSYMBOL Operator;
     PSYMBOL Src0;
@@ -3969,7 +3971,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)&SrcVal1, SrcVal0, &HasError);
+        DesVal = ScriptEngineFunctionInterlockedExchange((volatile long long *)SrcVal1, SrcVal0, &HasError);
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
@@ -4018,7 +4020,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         SrcVal2 =
-            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -4049,10 +4051,10 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_PAUSE:
-        ScriptEngineFunctionPause(ActionDetail.Tag,
-                                  ActionDetail.ImmediatelySendTheResults,
+        ScriptEngineFunctionPause(ActionDetail->Tag,
+                                  ActionDetail->ImmediatelySendTheResults,
                                   GuestRegs,
-                                  ActionDetail.Context);
+                                  ActionDetail->Context);
         return HasError;
 
     case FUNC_OR:
@@ -4765,8 +4767,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         //
         // Call the target function
         //
-        ScriptEngineFunctionPrint(ActionDetail.Tag,
-                                  ActionDetail.ImmediatelySendTheResults,
+        ScriptEngineFunctionPrint(ActionDetail->Tag,
+                                  ActionDetail->ImmediatelySendTheResults,
                                   SrcVal0);
         return HasError;
 
@@ -4780,8 +4782,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         //
         // Call the target function
         //
-        ScriptEngineFunctionTestStatement(ActionDetail.Tag,
-                                          ActionDetail.ImmediatelySendTheResults,
+        ScriptEngineFunctionTestStatement(ActionDetail->Tag,
+                                          ActionDetail->ImmediatelySendTheResults,
                                           SrcVal0);
         return HasError;
 
@@ -4822,8 +4824,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         ScriptEngineFunctionDisableEvent(
-            ActionDetail.Tag,
-            ActionDetail.ImmediatelySendTheResults,
+            ActionDetail->Tag,
+            ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
         return HasError;
 
@@ -4834,8 +4836,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
         ScriptEngineFunctionEnableEvent(
-            ActionDetail.Tag,
-            ActionDetail.ImmediatelySendTheResults,
+            ActionDetail->Tag,
+            ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
         return HasError;
 
@@ -4851,8 +4853,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         // Call the target function
         //
         ScriptEngineFunctionFormats(
-            ActionDetail.Tag,
-            ActionDetail.ImmediatelySendTheResults,
+            ActionDetail->Tag,
+            ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
         return HasError;
 
@@ -4943,8 +4945,8 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             GuestRegs,
             ActionDetail,
             VariablesList,
-            ActionDetail.Tag,
-            ActionDetail.ImmediatelySendTheResults,
+            ActionDetail->Tag,
+            ActionDetail->ImmediatelySendTheResults,
             (char *)&Src0->Value,
             Src1->Value,
             Src2,

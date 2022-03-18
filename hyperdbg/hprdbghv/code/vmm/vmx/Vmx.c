@@ -499,7 +499,7 @@ VmxVmptrst()
 BOOLEAN
 VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
-    int VmclearStatus;
+    UINT8 VmclearStatus;
 
     //
     // Clear the state of the VMCS to inactive

@@ -12,6 +12,30 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//		            Definitions                 //
+//////////////////////////////////////////////////
+
+#define DbgWaitForKernelResponse(KernelSyncObjectId)                       \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = TRUE;                     \
+        WaitForSingleObject(SyncronizationObject->EventHandle, INFINITE);  \
+    } while (FALSE);
+
+#define DbgReceivedKernelResponse(KernelSyncObjectId)                      \
+    do                                                                     \
+    {                                                                      \
+        DEBUGGER_SYNCRONIZATION_EVENTS_STATE * SyncronizationObject =      \
+            &g_KernelSyncronizationObjectsHandleTable[KernelSyncObjectId]; \
+                                                                           \
+        SyncronizationObject->IsOnWaitingState = FALSE;                    \
+        SetEvent(SyncronizationObject->EventHandle);                       \
+    } while (FALSE);
+
+//////////////////////////////////////////////////
 //		    Display Windows Details             //
 //////////////////////////////////////////////////
 
@@ -83,6 +107,12 @@ BOOLEAN
 KdSendFlushPacketToDebuggee();
 
 BOOLEAN
+KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
+                                UINT32                            Size,
+                                DEBUGGER_CALLSTACK_DISPLAY_METHOD DisplayMethod,
+                                BOOLEAN                           Is32Bit);
+
+BOOLEAN
 KdSendTestQueryPacketToDebuggee(UINT32 RequestIndex);
 
 BOOLEAN
@@ -91,7 +121,7 @@ KdSendSymbolReloadPacketToDebuggee(UINT32 ProcessId);
 BOOLEAN KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION);
 
 BOOLEAN
-KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY);
+KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem);
 
 BOOLEAN
 KdSendEditMemoryPacketToDebuggee(PDEBUGGER_EDIT_MEMORY EditMem, UINT32 Size);

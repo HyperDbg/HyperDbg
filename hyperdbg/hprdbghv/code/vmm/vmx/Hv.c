@@ -313,7 +313,7 @@ HvResumeToNextInstruction()
 {
     ULONG64 ResumeRIP             = NULL;
     ULONG64 CurrentRIP            = NULL;
-    ULONG   ExitInstructionLength = 0;
+    size_t  ExitInstructionLength = 0;
 
     __vmx_vmread(GUEST_RIP, &CurrentRIP);
     __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);

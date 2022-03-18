@@ -56,6 +56,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
+    PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
+    PDEBUGGER_SINGLE_CALLSTACK_FRAME            CallstackFramePacket;
     PDEBUGGER_DEBUGGER_TEST_QUERY_BUFFER        TestQueryPacket;
     PDEBUGGEE_REGISTER_READ_DESCRIPTION         ReadRegisterPacket;
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
@@ -167,12 +169,7 @@ StartAgain:
             //
             // Signal the event that the debugger started
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_STARTED_PACKET_RECEIVED);
 
             break;
 
@@ -332,12 +329,7 @@ StartAgain:
                 //
                 // Unpause the debugger to get commands
                 //
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
 
                 break;
 
@@ -347,12 +339,7 @@ StartAgain:
                 // Unpause the debugger to get commands
                 //
                 ShowMessages("\n");
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_IS_DEBUGGER_RUNNING);
 
                 break;
 
@@ -368,12 +355,7 @@ StartAgain:
                 //
                 // Signal the event relating to receiving result of core change
                 //
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
 
                 break;
 
@@ -383,13 +365,7 @@ StartAgain:
                 // Signal the event relating to result of command execution finished
                 //
                 ShowMessages("\n");
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(
-                    g_KernelSyncronizationObjectsHandleTable
-                        [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_DEBUGGEE_FINISHED_COMMAND_EXECUTION]
-                            .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_DEBUGGEE_FINISHED_COMMAND_EXECUTION);
 
                 break;
 
@@ -399,12 +375,7 @@ StartAgain:
                 // Signal the event relating to commands that are waiting for
                 // the details of a halted debuggeee
                 //
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PAUSED_DEBUGGEE_DETAILS);
 
                 break;
 
@@ -435,12 +406,7 @@ StartAgain:
                 //
                 // Signal the event relating to receiving result of core change
                 //
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CORE_SWITCHING_RESULT);
             }
 
             break;
@@ -476,12 +442,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of process change
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
 
             break;
 
@@ -518,12 +479,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of thread change
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_THREAD_SWITCHING_RESULT);
 
             break;
 
@@ -552,12 +508,39 @@ StartAgain:
             //
             // Signal the event relating to receiving result of flushing
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_FLUSH_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CALLSTACK:
+
+            CallstackPacket =
+                (DEBUGGER_CALLSTACK_REQUEST *)(((CHAR *)TheActualPacket) +
+                                               sizeof(DEBUGGER_REMOTE_PACKET));
+            CallstackFramePacket =
+                (DEBUGGER_SINGLE_CALLSTACK_FRAME *)(((CHAR *)TheActualPacket) +
+                                                    sizeof(DEBUGGER_REMOTE_PACKET) +
+                                                    sizeof(DEBUGGER_CALLSTACK_REQUEST));
+
+            if (CallstackPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // Show the callstack
+                //
+                CallstackShowFrames(CallstackFramePacket,
+                                    CallstackPacket->FrameCount,
+                                    CallstackPacket->DisplayMethod,
+                                    CallstackPacket->Is32Bit);
+            }
+            else
+            {
+                ShowErrorMessage(CallstackPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of callstack
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT);
 
             break;
 
@@ -581,12 +564,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of test query
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY);
 
             break;
 
@@ -611,23 +589,13 @@ StartAgain:
                 //
                 // Signal the event relating to receiving result of .formats command
                 //
-                g_KernelSyncronizationObjectsHandleTable
-                    [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT]
-                        .IsOnWaitingState = FALSE;
-                SetEvent(g_KernelSyncronizationObjectsHandleTable
-                             [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT]
-                                 .EventHandle);
+                DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_FORMATS_RESULT);
             }
 
             //
             // Signal the event relating to receiving result of running script
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_RUNNING_RESULT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_RUNNING_RESULT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SCRIPT_RUNNING_RESULT);
 
             break;
 
@@ -662,12 +630,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of register event
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_REGISTER_EVENT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_REGISTER_EVENT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_REGISTER_EVENT);
 
             break;
 
@@ -686,12 +649,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of adding action to event
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_ADD_ACTION_TO_EVENT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_ADD_ACTION_TO_EVENT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_ADD_ACTION_TO_EVENT);
 
             break;
 
@@ -730,12 +688,7 @@ StartAgain:
             // Signal the event relating to receiving result of event query and
             // modification
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_MODIFY_AND_QUERY_EVENT]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_MODIFY_AND_QUERY_EVENT]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_MODIFY_AND_QUERY_EVENT);
 
             break;
 
@@ -767,12 +720,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of symbol reload
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD);
 
             break;
 
@@ -859,12 +807,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of reading registers
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_REGISTERS);
 
             break;
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_READING_MEMORY:
@@ -943,12 +886,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of reading registers
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_READ_MEMORY);
 
             break;
 
@@ -973,12 +911,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of reading registers
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_EDIT_MEMORY);
 
             break;
 
@@ -1001,11 +934,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of putting breakpoints
             //
-            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP]
-                .IsOnWaitingState = FALSE;
-            SetEvent(
-                g_KernelSyncronizationObjectsHandleTable[DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP]
-                    .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
 
             break;
 
@@ -1031,12 +960,7 @@ StartAgain:
             // Signal the event relating to receiving result of modifying or listing
             // breakpoints
             //
-            g_KernelSyncronizationObjectsHandleTable
-                [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS]
-                    .IsOnWaitingState = FALSE;
-            SetEvent(g_KernelSyncronizationObjectsHandleTable
-                         [DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS]
-                             .EventHandle);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_LIST_OR_MODIFY_BREAKPOINTS);
 
             break;
 

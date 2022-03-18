@@ -114,6 +114,7 @@
     <ClCompile Include="code\debugger\broadcast\Broadcast.c" />
     <ClCompile Include="code\debugger\broadcast\DpcRoutines.c" />
     <ClCompile Include="code\debugger\commands\BreakpointCommands.c" />
+    <ClCompile Include="code\debugger\commands\Callstack.c" />
     <ClCompile Include="code\debugger\commands\DebuggerCommands.c" />
     <ClCompile Include="code\debugger\commands\ExtensionCommands.c" />
     <ClCompile Include="code\debugger\communication\SerialConnection.c" />
@@ -181,6 +182,7 @@
     <ClInclude Include="header\debugger\broadcast\Broadcast.h" />
     <ClInclude Include="header\debugger\broadcast\DpcRoutines.h" />
     <ClInclude Include="header\debugger\commands\BreakpointCommands.h" />
+    <ClInclude Include="header\debugger\commands\Callstack.h" />
     <ClInclude Include="header\debugger\commands\DebuggerCommands.h" />
     <ClInclude Include="header\debugger\commands\ExtensionCommands.h" />
     <ClInclude Include="header\debugger\communication\SerialConnection.h" />

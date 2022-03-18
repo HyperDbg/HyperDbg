@@ -497,7 +497,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
         // Add it to the action
         //
         Action->RequestedBuffer.EnabledRequestBuffer = TRUE;
-        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfCustomCode->OptionalRequestedBufferSize;
+        Action->RequestedBuffer.RequestBufferSize    = InTheCaseOfRunScript->OptionalRequestedBufferSize;
         Action->RequestedBuffer.RequstBufferAddress  = RequestedBuffer;
     }
 
@@ -1190,7 +1190,7 @@ DebuggerPerformRunScript(UINT64                  Tag,
         // If has error, show error message and abort.
         //
         if (ScriptEngineExecute(Regs,
-                                ActionBuffer,
+                                &ActionBuffer,
                                 &VariablesList,
                                 &CodeBuffer,
                                 &i,
