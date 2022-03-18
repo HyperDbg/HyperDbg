@@ -224,8 +224,6 @@ ScriptEngineParse(char * str)
         {
             if (!strcmp(TopToken->Value, "BOOLEAN_EXPRESSION"))
             {
-                
-               
                 UINT64 BooleanExpressionSize = BooleanExpressionExtractEnd(str, &WaitForWaitStatementBooleanExpression, CurrentIn);
 
                 ScriptEngineBooleanExpresssionParse(BooleanExpressionSize, CurrentIn, MatchedStack, CodeBuffer, str, &c, &Error);
@@ -353,7 +351,7 @@ ScriptEngineParse(char * str)
         ErrorMessage = HandleError(&Error, str);
         CleanTempList();
     }
-    else 
+    else
     {
         ErrorMessage = NULL;
     }
@@ -1042,7 +1040,10 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                     break;
                 }
                 JumpAddress = DecimalToInt(JumpAddressToken->Value);
+
+#ifdef _SCRIPT_ENGINE_LL1_DBG_EN
                 printf("Jz Jump Address = %d\n", JumpAddress);
+#endif
                 JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress);
                 JumpAddressSymbol->Value = CurrentPointer;
 
@@ -1535,7 +1536,6 @@ ScriptEngineBooleanExpresssionParse(
     strcpy(State->Value, "0");
 
     Push(Stack, State);
-    
 
 #ifdef _SCRIPT_ENGINE_LALR_DBG_EN
     printf("Boolean Expression: ");
@@ -1701,9 +1701,6 @@ ScriptEngineBooleanExpresssionParse(
             Push(Stack, State);
         }
     }
-
-   
-
 
     if (EndToken)
         RemoveToken(EndToken);
@@ -2041,7 +2038,7 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 {
     //
-    // calculate position of current line 
+    // calculate position of current line
     //
     unsigned int LineEnd;
     for (int i = InputIdx;; i++)
@@ -2052,7 +2049,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
             break;
         }
     }
-    
+
     //
     // allocate required memory for message, 16 for line, 100 for error information,
     // (CurrentTokenIdx - CurrentLineIdx) for space and,
@@ -2069,18 +2066,13 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     sprintf(Line, "%d:\n", CurrentLine);
     strcat(Message, Line);
 
-    
-
     //
     // add the line which error happened at
     //
-    
-    
+
     strncat(Message, (str + CurrentLineIdx), LineEnd - CurrentLineIdx);
     strcat(Message, "\n");
 
-
-   
     //
     // add pointer
     //
@@ -2116,7 +2108,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
         strcat(Message, "Unhandled Semantic Rule");
         return Message;
 
-    case SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL: 
+    case SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL:
         strcat(Message, "Internal Error: ");
         strcat(Message, "Please split the expression to many smaller expressions.");
         return Message;
