@@ -19,7 +19,7 @@ NewToken()
     //
     // Init fields
     //
-    //strcpy(Token->Value, "");
+    strcpy(Token->Value, "");
     Token->Type    = UNKNOWN;
     Token->len     = 0;
     Token->max_len = TOKEN_VALUE_MAX_LEN;
@@ -32,7 +32,6 @@ NewToken()
  *
  * @param Token
  */
-int glob = 0;
 void
 RemoveToken(TOKEN Token)
 {
@@ -155,7 +154,7 @@ Append(TOKEN Token, char c)
         // Double the length of the allocated space for the string
         //
         Token->max_len *= 2;
-        char * NewValue = (char *)calloc(Token->max_len, sizeof(char));
+        char * NewValue = (char *)calloc(Token->max_len + 1, sizeof(char));
 
         //
         // Free Old buffer and update the pointer

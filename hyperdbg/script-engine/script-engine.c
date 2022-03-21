@@ -119,7 +119,6 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
     return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
 }
 
-int glob2 = 0;
 VOID
 ScriptEngineSymbolAbortLoading()
 {
@@ -785,7 +784,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -829,7 +828,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -868,7 +867,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type  = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -901,7 +900,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            str = malloc(16);
+            str = malloc(20);
             sprintf(str, "%llu", CurrentPointer + 1);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -984,7 +983,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type  = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -1071,7 +1070,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type  = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -1146,7 +1145,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             CurrentAddressToken->Type  = DECIMAL;
             free(CurrentAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", CurrentPointer);
             CurrentAddressToken->Value = str;
             Push(MatchedStack, CurrentAddressToken);
@@ -1203,7 +1202,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
             JzAddressToken->Type = DECIMAL;
             free(JzAddressToken->Value);
 
-            char * str = malloc(16);
+            char * str = malloc(20);
             sprintf(str, "%llu", JumpAddress - 4);
             JzAddressToken->Value = str;
             Push(MatchedStack, JzAddressToken);
@@ -1313,7 +1312,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCR
                     CurrentAddressToken->Type  = DECIMAL;
                     free(CurrentAddressToken->Value);
 
-                    char * str = malloc(16);
+                    char * str = malloc(20);
                     sprintf(str, "%llu", CurrentPointer);
                     CurrentAddressToken->Value = str;
                     Push(MatchedStack, CurrentAddressToken);
@@ -1617,7 +1616,7 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(16);
+            State->Value = malloc(20);
             sprintf(State->Value, "%d", StateId);
             Push(Stack, State);
 
@@ -1696,7 +1695,7 @@ ScriptEngineBooleanExpresssionParse(
             State->Type = STATE_ID;
             free(State->Value);
 
-            State->Value = malloc(16);
+            State->Value = malloc(20);
             sprintf(State->Value, "%d", Goto);
             Push(Stack, LhsCopy);
             Push(Stack, State);
