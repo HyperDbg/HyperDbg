@@ -119,6 +119,7 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
     return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
 }
 
+int glob2 = 0;
 VOID
 ScriptEngineSymbolAbortLoading()
 {

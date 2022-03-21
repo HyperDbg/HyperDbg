@@ -14,12 +14,12 @@ NewToken()
     // Allocates memory for token and its value
     //
     Token        = (TOKEN)malloc(sizeof(*Token));
-    Token->Value = (char *)calloc(TOKEN_VALUE_MAX_LEN, sizeof(char));
+    Token->Value = (char *)calloc(TOKEN_VALUE_MAX_LEN + 1, sizeof(char));
 
     //
     // Init fields
     //
-    strcpy(Token->Value, "");
+    //strcpy(Token->Value, "");
     Token->Type    = UNKNOWN;
     Token->len     = 0;
     Token->max_len = TOKEN_VALUE_MAX_LEN;
@@ -32,6 +32,7 @@ NewToken()
  *
  * @param Token
  */
+int glob = 0;
 void
 RemoveToken(TOKEN Token)
 {
