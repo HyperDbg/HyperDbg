@@ -1012,11 +1012,11 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
         return FALSE;
     }
 
-    if (SetHookForWrite && !SetHookForRead)
+    if (!SetHookForWrite && SetHookForRead)
     {
         //
         // The hidden hook with Write Enable and Read Disabled will cause EPT violation!
-        //
+        // fixed 
         return FALSE;
     }
 
