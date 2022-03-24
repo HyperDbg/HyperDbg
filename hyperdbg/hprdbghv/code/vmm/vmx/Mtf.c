@@ -195,6 +195,12 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // Handle break of the core
         //
         KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+
+        //
+        // We already disabled MTF once we're here,
+        // if the guest set it, then we should avoid unsetting it
+        //
+        g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = TRUE;
     }
 
     //
@@ -206,6 +212,12 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // We don't need MTF anymore if it set to disable MTF
         //
         HvSetMonitorTrapFlag(FALSE);
+    }
+    else
+    {
+        //
+        // Set it to false to avoid future errors
+        //
         g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
     }
 }

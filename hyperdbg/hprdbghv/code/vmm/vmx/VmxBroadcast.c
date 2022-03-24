@@ -28,21 +28,21 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
+    // make sure, nobody is in the middle of sending anything
+    //
+    SpinlockLock(&DebuggerResponseLock);
+
+    //
     // Indicate that we're waiting for NMI
     //
     for (size_t i = 0; i < CoreCount; i++)
     {
         if (i != CurrentCoreIndex)
         {
-            g_GuestState[i].DebuggingState.WaitingForNmi      = TRUE;
             g_GuestState[i].DebuggingState.NmiBroadcastAction = VmxBroadcastAction;
+            g_GuestState[i].DebuggingState.WaitingForNmi      = TRUE;
         }
     }
-
-    //
-    // make sure, nobody is in the middle of sending anything
-    //
-    SpinlockLock(&DebuggerResponseLock);
 
     //
     // Broadcast NMI through APIC (xAPIC or x2APIC)
@@ -110,7 +110,19 @@ VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, 
 VOID
 VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
 {
-    switch (g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction)
+    NMI_BROADCAST_ACTION_TYPE BroadcastAction;
+
+    //
+    // Save action somewhere
+    //
+    BroadcastAction = g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction;
+
+    //
+    // Set NMI broadcasting action to none
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction = NMI_BROADCAST_ACTION_NONE;
+
+    switch (BroadcastAction)
     {
     case NMI_BROADCAST_ACTION_KD_HALT_CORE:
 
@@ -123,13 +135,8 @@ VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN I
 
     default:
 
-        // LogError("Err, invalid NMI reason received");
+        LogError("Err, invalid NMI reason received");
 
         break;
     }
-
-    //
-    // Set NMI broadcasting action to none
-    //
-    g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction = NMI_BROADCAST_ACTION_NONE;
 }

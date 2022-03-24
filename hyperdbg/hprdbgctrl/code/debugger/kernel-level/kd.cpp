@@ -1305,7 +1305,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
             //
             // Error
             //
-            // ShowMessages("err, on sending serial packets (0x%x)", LastErrorCode);
+            // ShowMessages("err, on sending serial packets (%x)", LastErrorCode);
             return FALSE;
         }
 
