@@ -22,6 +22,7 @@ VOID
 MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     BOOLEAN                          IsMtfForReApplySoftwareBreakpoint = FALSE;
+    BOOLEAN                          IgnoreOneMtf                      = FALSE;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag                     = {0};
     BOOLEAN                          AvoidUnsetMtf;
     UINT16                           CsSel;
@@ -35,6 +36,16 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     // Explicitly say that we want to unset MTFs
     //
     g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
+
+    //
+    // Check for ignoring MTFs
+    //
+    IgnoreOneMtf = g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf;
+
+    //
+    // Not ignoring MTF for next step
+    //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
 
     //
     // Check if we need to re-apply a breakpoint or not
@@ -164,12 +175,11 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf)
+    else if (IgnoreOneMtf)
     {
         //
         // Nothing to do, just ignore
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
     }
     else if (!IsMtfForReApplySoftwareBreakpoint &&
              !g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
@@ -195,16 +205,10 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // Handle break of the core
         //
         KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
-
-        //
-        // We already disabled MTF once we're here,
-        // if the guest set it, then we should avoid unsetting it
-        //
-        g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = TRUE;
     }
 
     //
-    // Final check to unset mtf
+    // Final check to unset MTF
     //
     if (!g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset)
     {

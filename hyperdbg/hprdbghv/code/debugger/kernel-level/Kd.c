@@ -995,11 +995,6 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
 
     //
-    // Early disable of MTF, we reached here
-    //
-    HvSetMonitorTrapFlag(FALSE);
-
-    //
     // Handle halt of the current core as an NMI
     //
     KdHandleNmi(CurrentProcessorIndex, GuestRegs);
@@ -1039,7 +1034,8 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
         // check the condition of passing the execution to NMIs
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        { //
+        {
+            //
             // We should ignore one MTF as we touched MTF and it's not usable anymore
             //
             g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = TRUE;

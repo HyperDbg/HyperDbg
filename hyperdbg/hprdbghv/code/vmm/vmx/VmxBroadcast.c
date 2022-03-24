@@ -113,12 +113,14 @@ VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN I
     NMI_BROADCAST_ACTION_TYPE BroadcastAction;
 
     //
-    // Save action somewhere
+    // Save action somewhere other than the handler itself, it's because
+    // this field might be change in the calling functions so we save the reason
+    // and clear the action
     //
     BroadcastAction = g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction;
 
     //
-    // Set NMI broadcasting action to none
+    // Set NMI broadcasting action to none (clear the action)
     //
     g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction = NMI_BROADCAST_ACTION_NONE;
 
