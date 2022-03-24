@@ -21,11 +21,10 @@
 VOID
 MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    BOOLEAN                          IsMtfForReApplySoftwareBreakpoint = FALSE;
-    BOOLEAN                          IgnoreOneMtf                      = FALSE;
-    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag                     = {0};
+    DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     BOOLEAN                          AvoidUnsetMtf;
     UINT16                           CsSel;
+    BOOLEAN                          IsMtfHandled = FALSE;
 
     //
     // Redo the instruction
@@ -38,29 +37,22 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
 
     //
-    // Check for ignoring MTFs
-    //
-    IgnoreOneMtf = g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf;
-
-    //
-    // Not ignoring MTF for next step
-    //
-    g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
-
-    //
     // Check if we need to re-apply a breakpoint or not
     // We check it separately because the guest might step
     // instructions on an MTF so we want to check for the step too
     //
     if (g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState != NULL)
     {
-        BYTE BreakpointByte               = 0xcc;
-        IsMtfForReApplySoftwareBreakpoint = TRUE;
+        BYTE BreakpointByte = 0xcc;
+
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
 
         //
         // Restore previous breakpoint byte
         //
-
         MemoryMapperWriteMemorySafeByPhysicalAddress(
             g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->PhysAddress,
             &BreakpointByte,
@@ -88,6 +80,11 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
     {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+
         //
         // Check for user-mode attaching mechanisms
         //
@@ -131,8 +128,17 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = FALSE;
         }
     }
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+
+    //
+    // Check for insturmentation step-in
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
     {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+
         //
         // Check if the cs selector changed or not, which indicates that the
         // execution changed from user-mode to kernel-mode or kernel-mode to
@@ -175,17 +181,6 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
-    else if (IgnoreOneMtf)
-    {
-        //
-        // Nothing to do, just ignore
-        //
-    }
-    else if (!IsMtfForReApplySoftwareBreakpoint &&
-             !g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-    {
-        LogError("Err, why MTF occurred?!");
-    }
 
     //
     // check the condition of passing the execution to NMIs
@@ -202,9 +197,35 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
     {
         //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+
+        //
         // Handle break of the core
         //
         KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+    }
+
+    //
+    // Check for ignored MTFs
+    //
+    if (g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf)
+    {
+        //
+        // MTF is handled
+        //
+        IsMtfHandled = TRUE;
+
+        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
+    }
+
+    //
+    // Check for possible unhandled MTFs to avoid setting unusable MTFs
+    //
+    if (!IsMtfHandled)
+    {
+        LogError("Err, why MTF occurred?!");
     }
 
     //
