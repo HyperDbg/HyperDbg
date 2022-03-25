@@ -133,6 +133,7 @@ typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
     volatile LONG                              Lock;
+    volatile BOOLEAN                           WaitingToBeLocked;
     volatile BOOLEAN                           MainDebuggingCore;
     volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
     BOOLEAN                                    IgnoreOneMtf;

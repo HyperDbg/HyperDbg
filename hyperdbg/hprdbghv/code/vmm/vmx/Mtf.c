@@ -194,7 +194,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked)
     {
         //
         // MTF is handled
@@ -204,7 +204,20 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Handle break of the core
         //
-        KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        {
+            //
+            // Handle it like an NMI is received from VMX root
+            //
+            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+        }
+        else
+        {
+            //
+            // Handle halt of the current core as an NMI
+            //
+            KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+        }
     }
 
     //

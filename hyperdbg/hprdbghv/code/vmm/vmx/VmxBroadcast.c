@@ -64,6 +64,16 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
 VOID
 VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
 {
+    //
+    // We use it as a global flag (for both vmx-root and vmx non-root), because
+    // generally it doesn't have any use case in vmx-root (IsOnVmxNmiHandler == FALSE)
+    // but in some cases, we might set the MTF but another vm-exit receives before
+    // MTF and in that place if it tries to trigger and event, then the MTF is not
+    // handled and the core is not locked properly, just waits to get the handle
+    // of the "DebuggerHandleBreakpointLock", so we check this flag there
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingToBeLocked = TRUE;
+
     if (IsOnVmxNmiHandler)
     {
         //
