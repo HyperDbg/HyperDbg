@@ -995,11 +995,6 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
 
     //
-    // Early disable of MTF, we reached here
-    //
-    HvSetMonitorTrapFlag(FALSE);
-
-    //
     // Handle halt of the current core as an NMI
     //
     KdHandleNmi(CurrentProcessorIndex, GuestRegs);
@@ -1036,10 +1031,11 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
         }
 
         //
-        // check the condition of passing the execution to NMIs
+        // check if the core needs to be locked
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        { //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked)
+        {
+            //
             // We should ignore one MTF as we touched MTF and it's not usable anymore
             //
             g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = TRUE;
@@ -1047,7 +1043,20 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
             //
             // Handle break of the core
             //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+            {
+                //
+                // Handle it like an NMI is received from VMX root
+                //
+                KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+            }
+            else
+            {
+                //
+                // Handle halt of the current core as an NMI
+                //
+                KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+            }
         }
 
         //
@@ -1107,6 +1116,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock current core
     //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
@@ -1189,6 +1199,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Lock current core
     //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
@@ -1468,6 +1479,29 @@ KdQuerySystemState()
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Query core debugging Lock info
+    //
+    Log("================================================ Debugging Lock Info ================================================\n");
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].DebuggingState.Lock)
+        {
+            LogInfo("Core : %d is locked", i);
+        }
+        else
+        {
+            LogInfo("Core : %d isn't locked", i);
+        }
+    }
+
+    //
+    // Query if the core is halted (or NMI is received) when the debuggee
+    // was in the vmx-root mode
+    //
+    Log("\n================================================ NMI Receiver State =======+=========================================\n");
 
     for (size_t i = 0; i < CoreCount; i++)
     {
@@ -2497,6 +2531,7 @@ StartAgain:
         // Lock and unlock the lock so all core can get the lock
         // and continue their normal execution
         //
+        g_GuestState[CurrentCore].DebuggingState.WaitingToBeLocked = FALSE;
         SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
 
         //

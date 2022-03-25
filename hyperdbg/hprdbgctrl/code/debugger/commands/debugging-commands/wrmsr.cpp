@@ -160,7 +160,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code (0x%x), either msr index or core id is invalid\n",
+        ShowMessages("ioctl failed with code (%x), either msr index or core id is invalid\n",
                      GetLastError());
         return;
     }

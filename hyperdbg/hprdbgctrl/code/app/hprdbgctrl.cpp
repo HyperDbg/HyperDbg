@@ -158,7 +158,7 @@ ReadIrpBasedBuffer()
         }
         else
         {
-            ShowMessages("err, CreateFile failed with (0x%x)\n", ErrorNum);
+            ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
         }
         g_DeviceHandle = NULL;
         Handle         = NULL;
@@ -634,7 +634,7 @@ HyperdbgLoadVmm()
         }
         else
         {
-            ShowMessages("err, CreateFile failed (0x%x)\n", ErrorNum);
+            ShowMessages("err, CreateFile failed (%x)\n", ErrorNum);
         }
 
         g_DeviceHandle = NULL;

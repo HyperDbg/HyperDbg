@@ -28,21 +28,21 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
+    // make sure, nobody is in the middle of sending anything
+    //
+    SpinlockLock(&DebuggerResponseLock);
+
+    //
     // Indicate that we're waiting for NMI
     //
     for (size_t i = 0; i < CoreCount; i++)
     {
         if (i != CurrentCoreIndex)
         {
-            g_GuestState[i].DebuggingState.WaitingForNmi      = TRUE;
             g_GuestState[i].DebuggingState.NmiBroadcastAction = VmxBroadcastAction;
+            g_GuestState[i].DebuggingState.WaitingForNmi      = TRUE;
         }
     }
-
-    //
-    // make sure, nobody is in the middle of sending anything
-    //
-    SpinlockLock(&DebuggerResponseLock);
 
     //
     // Broadcast NMI through APIC (xAPIC or x2APIC)
@@ -64,6 +64,16 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
 VOID
 VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
 {
+    //
+    // We use it as a global flag (for both vmx-root and vmx non-root), because
+    // generally it doesn't have any use case in vmx-root (IsOnVmxNmiHandler == FALSE)
+    // but in some cases, we might set the MTF but another vm-exit receives before
+    // MTF and in that place if it tries to trigger and event, then the MTF is not
+    // handled and the core is not locked properly, just waits to get the handle
+    // of the "DebuggerHandleBreakpointLock", so we check this flag there
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingToBeLocked = TRUE;
+
     if (IsOnVmxNmiHandler)
     {
         //
@@ -110,7 +120,21 @@ VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, 
 VOID
 VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
 {
-    switch (g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction)
+    NMI_BROADCAST_ACTION_TYPE BroadcastAction;
+
+    //
+    // Save action somewhere other than the handler itself, it's because
+    // this field might be change in the calling functions so we save the reason
+    // and clear the action
+    //
+    BroadcastAction = g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction;
+
+    //
+    // Set NMI broadcasting action to none (clear the action)
+    //
+    g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction = NMI_BROADCAST_ACTION_NONE;
+
+    switch (BroadcastAction)
     {
     case NMI_BROADCAST_ACTION_KD_HALT_CORE:
 
@@ -123,13 +147,8 @@ VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN I
 
     default:
 
-        // LogError("Err, invalid NMI reason received");
+        LogError("Err, invalid NMI reason received");
 
         break;
     }
-
-    //
-    // Set NMI broadcasting action to none
-    //
-    g_GuestState[CurrentCoreIndex].DebuggingState.NmiBroadcastAction = NMI_BROADCAST_ACTION_NONE;
 }
