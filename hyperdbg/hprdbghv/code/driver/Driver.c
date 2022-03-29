@@ -26,12 +26,11 @@ DriverEntry(
     PDRIVER_OBJECT  DriverObject,
     PUNICODE_STRING RegistryPath)
 {
-    NTSTATUS       Ntstatus       = STATUS_SUCCESS;
-    UINT64         Index          = 0;
-    UINT32         ProcessorCount = 0;
-    PDEVICE_OBJECT DeviceObject   = NULL;
-    UNICODE_STRING DriverName     = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
-    UNICODE_STRING DosDeviceName  = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
+    NTSTATUS       Ntstatus      = STATUS_SUCCESS;
+    UINT64         Index         = 0;
+    PDEVICE_OBJECT DeviceObject  = NULL;
+    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
+    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
 
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
@@ -62,28 +61,9 @@ DriverEntry(
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Allocate global variable to hold Guest(s) state
-    //
-
-    g_GuestState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount, POOLTAG);
-    if (!g_GuestState)
-    {
-        //
-        // we use DbgPrint as the vmx-root or non-root is not initialized
-        //
-
-        DbgPrint("err, insufficient memory\n");
-        DbgBreakPoint();
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
+    Ntstatus = GuestStateAllocateZeroedMemory();
+    if (!NT_SUCCESS(Ntstatus))
+        return Ntstatus;
 
     LogDebugInfo("Hyperdbg is loaded :)");
 
@@ -181,7 +161,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free g_GuestState
     //
-    ExFreePoolWithTag(g_GuestState, POOLTAG);
+    GuestStateFreeMemory();
 
     //
     // Stop the tracing

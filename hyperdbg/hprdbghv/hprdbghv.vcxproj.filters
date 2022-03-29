@@ -311,6 +311,9 @@
     <ClCompile Include="code\debugger\commands\Callstack.c">
       <Filter>code\debugger\commands</Filter>
     </ClCompile>
+    <ClCompile Include="code\Globals\GlobalVariableManagement.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -465,6 +468,9 @@
     </ClInclude>
     <ClInclude Include="header\debugger\commands\Callstack.h">
       <Filter>header\debugger\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="header\misc\GlobalVariableManagement.h">
+      <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

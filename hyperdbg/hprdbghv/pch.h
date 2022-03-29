@@ -92,3 +92,4 @@
 // Global Variables should be the last header to include
 //
 #include "..\hprdbghv\header\misc\GlobalVariables.h"
+#include "..\hprdbghv\header\misc\GlobalVariableManagement.h"
