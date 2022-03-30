@@ -1,5 +1,21 @@
+/**
+ * @file GlobalVariableManagement.c
+ * @author Behrooz Abbassi (BehroozAbbassi@hyperdbg.org)
+ * @brief Management of global variables
+ * @details 
+ * @version 0.1
+ * @date 2022-03-29
+ * 
+ * @copyright This project is released under the GNU Public License v3.
+ * 
+ */
 #include "..\hprdbghv\pch.h"
 
+/**
+ * @brief Allocate guest state memory
+ * 
+ * @return NTSTATUS
+*/
 NTSTATUS
 GuestStateAllocateZeroedMemory(VOID)
 {
@@ -29,6 +45,11 @@ GuestStateAllocateZeroedMemory(VOID)
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Free guest state memory
+ * 
+ * @return NTSTATUS
+*/
 VOID GuestStateFreeMemory(VOID)
 {
     ExFreePoolWithTag(g_GuestState, POOLTAG);

@@ -150,6 +150,12 @@
     <Filter Include="header\platform">
       <UniqueIdentifier>{4caf74e9-0bbf-4e81-84ff-0cdf14f79c16}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\globals">
+      <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\globals">
+      <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -311,8 +317,8 @@
     <ClCompile Include="code\debugger\commands\Callstack.c">
       <Filter>code\debugger\commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\Globals\GlobalVariableManagement.c">
-      <Filter>code</Filter>
+    <ClCompile Include="code\globals\GlobalVariableManagement.c">
+      <Filter>code\globals</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -336,9 +342,6 @@
     </ClInclude>
     <ClInclude Include="header\common\Trace.h">
       <Filter>header\common</Filter>
-    </ClInclude>
-    <ClInclude Include="header\misc\GlobalVariables.h">
-      <Filter>header\misc</Filter>
     </ClInclude>
     <ClInclude Include="header\misc\InlineAsm.h">
       <Filter>header\misc</Filter>
@@ -469,8 +472,11 @@
     <ClInclude Include="header\debugger\commands\Callstack.h">
       <Filter>header\debugger\commands</Filter>
     </ClInclude>
-    <ClInclude Include="header\misc\GlobalVariableManagement.h">
-      <Filter>header</Filter>
+    <ClInclude Include="header\globals\GlobalVariableManagement.h">
+      <Filter>header\globals</Filter>
+    </ClInclude>
+    <ClInclude Include="header\globals\GlobalVariables.h">
+      <Filter>header\globals</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
