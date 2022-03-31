@@ -16,6 +16,12 @@
 //////////////////////////////////////////////////
 
 NTSTATUS
-GuestStateAllocateZeroedMemory(VOID);
+GlobalGuestStateAllocateZeroedMemory(VOID);
 
-VOID GuestStateFreeMemory(VOID);
+VOID GlobalGuestStateFreeMemory(VOID);
+
+BOOLEAN
+GlobalEventsAllocateZeroedMemory(VOID);
+
+BOOLEAN
+GlobalEventsFreeMemory(VOID);

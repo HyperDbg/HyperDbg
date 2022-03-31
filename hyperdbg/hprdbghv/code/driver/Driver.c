@@ -61,7 +61,7 @@ DriverEntry(
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
 
-    Ntstatus = GuestStateAllocateZeroedMemory();
+    Ntstatus = GlobalGuestStateAllocateZeroedMemory();
     if (!NT_SUCCESS(Ntstatus))
         return Ntstatus;
 
@@ -109,8 +109,9 @@ DriverEntry(
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
 {
-    UNICODE_STRING DosDeviceName;
-    UINT32         ProcessorCount;
+    UNICODE_STRING              DosDeviceName;
+    ULONG                       ProcessorCount;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
@@ -132,7 +133,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free g_Events
     //
-    ExFreePoolWithTag(g_Events, POOLTAG);
+    GlobalEventsFreeMemory();
 
     //
     // Free g_ScriptGlobalVariables
@@ -145,23 +146,25 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free core specific local and temp variables
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (SIZE_T i = 0; i < ProcessorCount; i++)
     {
-        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable != NULL)
+        CurrentDebuggerState = &g_GuestState[i].DebuggingState;
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
-            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
         }
 
-        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable != NULL)
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
         {
-            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, POOLTAG);
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
 
     //
     // Free g_GuestState
     //
-    GuestStateFreeMemory();
+    GlobalGuestStateFreeMemory();
 
     //
     // Stop the tracing
