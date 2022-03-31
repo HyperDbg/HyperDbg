@@ -34,9 +34,10 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                                                    PGUEST_REGS             GuestRegs,
                                                    PBOOLEAN                AvoidUnsetMtf);
 
-VOID
+BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
                      UINT64                  StartAddress,
                      UINT64                  EndAddress,
-                     BOOLEAN                 IsDebuggeePaused);
+                     BOOLEAN                 IsDebuggeePaused,
+                     PUINT32                 CountOfMatchedCases);

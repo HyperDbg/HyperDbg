@@ -515,16 +515,18 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
  * @param EndAddress valid end address based on target process
  * @param IsDebuggeePaused Set to true when the search is performed in
  * the debugger mode
- * @return VOID the results won't be returned, instead will be
- * saved into AddressToSaveResults
+ * @param CountOfMatchedCases Number of matched cases
+ * @return BOOLEAN Whether the search was successful or not
  */
-VOID
+BOOLEAN
 PerformSearchAddress(UINT64 *                AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
                      UINT64                  StartAddress,
                      UINT64                  EndAddress,
-                     BOOLEAN                 IsDebuggeePaused)
+                     BOOLEAN                 IsDebuggeePaused,
+                     PUINT32                 CountOfMatchedCases)
 {
+    UINT32   CountOfOccurance      = 0;
     UINT64   Cmp64                 = 0;
     UINT32   IndexToArrayOfResults = 0;
     UINT32   LengthOfEachChunk     = 0;
@@ -555,7 +557,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         //
         // Invalid parameter
         //
-        return;
+        return FALSE;
     }
 
     //
@@ -679,6 +681,8 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     // We found the a matching address, let's save the
                     // address for future use
                     //
+                    CountOfOccurance++;
+
                     if (IsDebuggeePaused)
                     {
                         if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY)
@@ -724,9 +728,10 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     else
                     {
                         //
-                        // The result buffer is full !
+                        // The result buffer is full!
                         //
-                        return;
+                        *CountOfMatchedCases = CountOfOccurance;
+                        return TRUE;
                     }
                 }
             }
@@ -756,15 +761,21 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         //
         LogError("Err, searching physical memory is not allowed without virtual address");
 
-        return;
+        return FALSE;
     }
     else
     {
         //
         // Invalid parameter
         //
-        return;
+        return FALSE;
     }
+
+    //
+    // As we're here the search is finished without error
+    //
+    *CountOfMatchedCases = CountOfOccurance;
+    return TRUE;
 }
 
 /**
@@ -781,22 +792,30 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
  * @param EndAddress start address of searching based on target process
  * @param IsDebuggeePaused Set to true when the search is performed in
  * the debugger mode
- * @return VOID the results won't be returned, instead will be
- * saved into AddressToSaveResults 
+ * @param CountOfMatchedCases Number of matched cases
+ * @return BOOLEAN Whether there was any error or not 
  */
-VOID
+BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
                      UINT64                  StartAddress,
                      UINT64                  EndAddress,
-                     BOOLEAN                 IsDebuggeePaused)
+                     BOOLEAN                 IsDebuggeePaused,
+                     PUINT32                 CountOfMatchedCases)
 {
     CR3_TYPE CurrentProcessCr3;
     UINT64   BaseAddress         = 0;
     UINT64   CurrentValue        = 0;
     UINT64   RealPhysicalAddress = 0;
     UINT64   TempValue           = NULL;
+    UINT64   TempStartAddress    = NULL;
     BOOLEAN  DoesBaseAddrSaved   = FALSE;
+    BOOLEAN  SearchResult        = FALSE;
+
+    //
+    // Reset the count of matched cases
+    //
+    *CountOfMatchedCases = 0;
 
     if (SearchMemRequest->MemoryType == SEARCH_VIRTUAL_MEMORY)
     {
@@ -807,7 +826,8 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         // Align the page and search with alignement
         //
-        StartAddress = PAGE_ALIGN(StartAddress);
+        TempStartAddress = StartAddress;
+        StartAddress     = PAGE_ALIGN(StartAddress);
 
         if (IsDebuggeePaused)
         {
@@ -844,7 +864,7 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                 //
                 if (!DoesBaseAddrSaved)
                 {
-                    BaseAddress       = StartAddress;
+                    BaseAddress       = TempStartAddress;
                     DoesBaseAddrSaved = TRUE;
                 }
             }
@@ -855,27 +875,36 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
                 //
                 break;
             }
+
+            //
+            // Make the start address ready for next address
+            //
             StartAddress += PAGE_SIZE;
         }
 
-        if (IsDebuggeePaused)
-        {
-            //
-            // Restore the original process
-            //
-            RestoreToPreviousProcess(CurrentProcessCr3);
-        }
+        //
+        // Restore the original process
+        //
+        RestoreToPreviousProcess(CurrentProcessCr3);
 
         //
         // All of the address chunk was valid
         //
         if (DoesBaseAddrSaved && StartAddress > BaseAddress)
         {
-            PerformSearchAddress(AddressToSaveResults, SearchMemRequest, BaseAddress, StartAddress, IsDebuggeePaused);
+            SearchResult = PerformSearchAddress(AddressToSaveResults,
+                                                SearchMemRequest,
+                                                BaseAddress,
+                                                EndAddress,
+                                                IsDebuggeePaused,
+                                                CountOfMatchedCases);
         }
         else
         {
-            return;
+            //
+            // There was an error, address was probably not contiguous
+            //
+            return FALSE;
         }
     }
     else if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_MEMORY)
@@ -914,7 +943,12 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         // Call the wrapper
         //
-        PerformSearchAddress(AddressToSaveResults, SearchMemRequest, SearchMemRequest->Address, EndAddress, IsDebuggeePaused);
+        SearchResult = PerformSearchAddress(AddressToSaveResults,
+                                            SearchMemRequest,
+                                            SearchMemRequest->Address,
+                                            EndAddress,
+                                            IsDebuggeePaused,
+                                            CountOfMatchedCases);
 
         //
         // Restore the previous state
@@ -922,6 +956,8 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         SearchMemRequest->MemoryType = SEARCH_PHYSICAL_MEMORY;
         SearchMemRequest->Address    = RealPhysicalAddress;
     }
+
+    return SearchResult;
 }
 
 /**
@@ -939,6 +975,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     UINT64  AddressTo            = 0;
     UINT64  CurrentValue         = 0;
     UINT32  ResultsIndex         = 0;
+    UINT32  CountOfResults       = 0;
 
     //
     // Check if process id is valid or not
@@ -981,7 +1018,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Call the wrapper
     //
-    SearchAddressWrapper(SearchResultsStorage, SearchMemRequest, AddressFrom, AddressTo, FALSE);
+    SearchAddressWrapper(SearchResultsStorage, SearchMemRequest, AddressFrom, AddressTo, FALSE, &CountOfResults);
 
     //
     // In this point, we to store the results (if any) to the user-mode

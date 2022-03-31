@@ -2184,13 +2184,26 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 // Perfom the search in debuggee debuggee
                 // Call the search wrapper
                 //
-                SearchAddressWrapper(NULL,
-                                     SearchQueryPacket,
-                                     SearchQueryPacket->Address,
-                                     SearchQueryPacket->Address + SearchQueryPacket->Length,
-                                     TRUE);
 
-                SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                if (SearchAddressWrapper(NULL,
+                                         SearchQueryPacket,
+                                         SearchQueryPacket->Address,
+                                         SearchQueryPacket->Address + SearchQueryPacket->Length,
+                                         TRUE,
+                                         &SearchPacketResult.CountOfResults))
+                {
+                    //
+                    // The search was successful
+                    //
+                    SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    //
+                    // There was an error, probably the address was not valid
+                    //
+                    SearchPacketResult.Result = DEBUGGER_ERROR_INVALID_ADDRESS;
+                }
 
                 //
                 // Send the result of 's*' back to the debuggee

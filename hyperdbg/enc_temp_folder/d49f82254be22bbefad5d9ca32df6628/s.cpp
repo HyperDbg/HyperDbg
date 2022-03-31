@@ -378,7 +378,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee && ProcId != 0)
     {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
         return;
     }
 

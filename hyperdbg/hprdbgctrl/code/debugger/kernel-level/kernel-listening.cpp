@@ -455,7 +455,10 @@ StartAgain:
 
             if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
             {
-                ShowMessages("Hi, I'm here");
+                if (SearchResultsPacket->CountOfResults == 0)
+                {
+                    ShowMessages("not found\n");
+                }
             }
             else
             {
