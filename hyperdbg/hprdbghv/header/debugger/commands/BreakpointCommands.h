@@ -33,3 +33,10 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                                                    DEBUGGEE_PAUSING_REASON Reason,
                                                    PGUEST_REGS             GuestRegs,
                                                    PBOOLEAN                AvoidUnsetMtf);
+
+VOID
+SearchAddressWrapper(PUINT64                 AddressToSaveResults,
+                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
+                     UINT64                  StartAddress,
+                     UINT64                  EndAddress,
+                     BOOLEAN                 IsDebuggeePaused);

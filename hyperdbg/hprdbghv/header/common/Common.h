@@ -646,6 +646,9 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3);
 UINT64
 PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress);
 
+CR3_TYPE
+GetRunningCr3OnTargetProcess();
+
 int
 MathPower(int Base, int Exp);
 

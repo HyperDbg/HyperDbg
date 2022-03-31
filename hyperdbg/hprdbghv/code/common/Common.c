@@ -412,6 +412,26 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 }
 
 /**
+ * @brief Get cr3 of the target running process
+ *   
+ * @return CR3_TYPE Returns the cr3 of running process
+ */
+CR3_TYPE
+GetRunningCr3OnTargetProcess()
+{
+    CR3_TYPE GuestCr3;
+
+    //
+    // Due to KVA Shadowing, we need to switch to a different directory table base
+    // if the PCID indicates this is a user mode directory table base.
+    //
+    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
+    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+
+    return GuestCr3;
+}
+
+/**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process id's kernel cr3
  *

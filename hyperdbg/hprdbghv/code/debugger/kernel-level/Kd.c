@@ -1666,15 +1666,17 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET          ChangeThreadPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
+    PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
-    UINT32                                              SizeToSend       = 0;
-    BOOLEAN                                             UnlockTheNewCore = FALSE;
-    size_t                                              ReturnSize       = 0;
+    UINT32                                              SizeToSend         = 0;
+    BOOLEAN                                             UnlockTheNewCore   = FALSE;
+    size_t                                              ReturnSize         = 0;
+    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult = {0};
 
     while (TRUE)
     {
@@ -2170,6 +2172,33 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 KdContinueDebuggee(CurrentCore, FALSE, DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_NO_ACTION);
                 EscapeFromTheLoop = TRUE;
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SEARCH_QUERY:
+
+                SearchQueryPacket = (DEBUGGER_SEARCH_MEMORY *)(((CHAR *)TheActualPacket) +
+                                                               sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perfom the search in debuggee debuggee
+                // Call the search wrapper
+                //
+                SearchAddressWrapper(NULL,
+                                     SearchQueryPacket,
+                                     SearchQueryPacket->Address,
+                                     SearchQueryPacket->Address + SearchQueryPacket->Length,
+                                     TRUE);
+
+                SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+                //
+                // Send the result of 's*' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
+                                           &SearchPacketResult,
+                                           sizeof(DEBUGGEE_RESULT_OF_SEARCH_PACKET));
 
                 break;
 

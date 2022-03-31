@@ -503,7 +503,7 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
 /**
  * @brief Search on virtual memory (not work on physical memory)
  * 
- * @details This function should NOT be called from vmx-root mode
+ * @details This function can be called from vmx-root mode
  * Do NOT directly call this function as the virtual addresses
  * should be valid on the target process memory layout
  * instead call : SearchAddressWrapper
@@ -513,6 +513,8 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
  * @param SearchMemRequest request structure of searching memory
  * @param StartAddress valid start address based on target process
  * @param EndAddress valid end address based on target process
+ * @param IsDebuggeePaused Set to true when the search is performed in
+ * the debugger mode
  * @return VOID the results won't be returned, instead will be
  * saved into AddressToSaveResults
  */
@@ -520,7 +522,8 @@ VOID
 PerformSearchAddress(UINT64 *                AddressToSaveResults,
                      PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
                      UINT64                  StartAddress,
-                     UINT64                  EndAddress)
+                     UINT64                  EndAddress,
+                     BOOLEAN                 IsDebuggeePaused)
 {
     UINT64   Cmp64                 = 0;
     UINT32   IndexToArrayOfResults = 0;
@@ -529,6 +532,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
     PVOID    SourceAddress         = 0;
     PVOID    TempSourceAddress     = 0;
     BOOLEAN  StillMatch            = FALSE;
+    UINT64   TempValue             = NULL;
     CR3_TYPE CurrentProcessCr3;
 
     //
@@ -557,7 +561,8 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
     //
     // Check if address is virtual address or physical address
     //
-    if (SearchMemRequest->MemoryType == SEARCH_VIRTUAL_MEMORY)
+    if (SearchMemRequest->MemoryType == SEARCH_VIRTUAL_MEMORY ||
+        SearchMemRequest->MemoryType == SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY)
     {
         //
         // Search the memory
@@ -567,9 +572,19 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Change the memory layout (cr3), if the user specified a
         // special process
         //
-        if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+        if (IsDebuggeePaused)
         {
-            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+            //
+            // Switch to target process memory layout
+            //
+            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+        }
+        else
+        {
+            if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+            {
+                CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+            }
         }
 
         //
@@ -586,11 +601,26 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
             RtlCopyMemory(&Cmp64, (PVOID)BaseIterator, LengthOfEachChunk);
 
             //
-            // Search the memory
+            // *** Search the memory ***
+            //
+
+            //
+            // Check if we should access the memory directly,
+            // or through safe memory routine from vmx-root
+            //
+            if (IsDebuggeePaused)
+            {
+                MemoryMapperReadMemorySafe(SourceAddress, &TempValue, sizeof(UINT64));
+            }
+            else
+            {
+                TempValue = *(UINT64 *)SourceAddress;
+            }
+
             //
             // Check whether the byte matches the source or not
             //
-            if (Cmp64 == *(UINT64 *)SourceAddress)
+            if (Cmp64 == TempValue)
             {
                 //
                 // Indicate that it matches until now
@@ -613,7 +643,20 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     //
                     RtlCopyMemory(&Cmp64, (PVOID)(BaseIterator + (LengthOfEachChunk * i)), LengthOfEachChunk);
 
-                    if (!(Cmp64 == *(UINT64 *)TempSourceAddress))
+                    //
+                    // Check if we should access the memory directly,
+                    // or through safe memory routine from vmx-root
+                    //
+                    if (IsDebuggeePaused)
+                    {
+                        MemoryMapperReadMemorySafe(TempSourceAddress, &TempValue, sizeof(UINT64));
+                    }
+                    else
+                    {
+                        TempValue = *(UINT64 *)TempSourceAddress;
+                    }
+
+                    if (!(Cmp64 == TempValue))
                     {
                         //
                         // One thing didn't match so this is not the pattern
@@ -636,7 +679,41 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
                     // We found the a matching address, let's save the
                     // address for future use
                     //
-                    AddressToSaveResults[IndexToArrayOfResults] = BaseIterator;
+                    if (IsDebuggeePaused)
+                    {
+                        if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY)
+                        {
+                            //
+                            // It's a physical memory
+                            //
+                            Log("%llx\n", VirtualAddressToPhysicalAddress(BaseIterator));
+                        }
+                        else
+                        {
+                            //
+                            // It's a virtual memory
+                            //
+                            Log("%llx\n", BaseIterator);
+                        }
+                    }
+                    else
+                    {
+                        if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY)
+                        {
+                            //
+                            // It's a physical memory
+                            //
+                            AddressToSaveResults[IndexToArrayOfResults] = VirtualAddressToPhysicalAddress(BaseIterator);
+                        }
+                        else
+                        {
+                            //
+                            // It's a virtual memory
+                            //
+                            AddressToSaveResults[IndexToArrayOfResults] = BaseIterator;
+                        }
+                    }
+
                     //
                     // Increase the array pointer if it doesn't exceed the limitation
                     //
@@ -666,14 +743,20 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         // Restore the previous memory layout (cr3), if the user specified a
         // special process
         //
-        if (SearchMemRequest->ProcessId != PsGetCurrentProcessId())
+        if (IsDebuggeePaused || SearchMemRequest->ProcessId != PsGetCurrentProcessId())
         {
             RestoreToPreviousProcess(CurrentProcessCr3);
         }
     }
     else if (SearchMemRequest->MemoryType == SEARCH_PHYSICAL_MEMORY)
     {
-        DbgBreakPoint();
+        //
+        // That's an error, the physical memory is handled like virtual memory and
+        // thus we should never reach here
+        //
+        LogError("Err, searching physical memory is not allowed without virtual address");
+
+        return;
     }
     else
     {
@@ -688,7 +771,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
  * @brief The wrapper to check for validity of addresses and call
  * the search routines for both physical and virtual memory
  * 
- * @details This function should NOT be called from vmx-root mode
+ * @details This function can be called from vmx-root mode
  * The address between start address and end address will be checked
  * to make a contiguous address
  * 
@@ -696,17 +779,23 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
  * @param SearchMemRequest request structure of searching memory
  * @param StartAddress start address of searching based on target process
  * @param EndAddress start address of searching based on target process
+ * @param IsDebuggeePaused Set to true when the search is performed in
+ * the debugger mode
  * @return VOID the results won't be returned, instead will be
  * saved into AddressToSaveResults 
  */
 VOID
-SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY SearchMemRequest, UINT64 StartAddress, UINT64 EndAddress)
+SearchAddressWrapper(PUINT64                 AddressToSaveResults,
+                     PDEBUGGER_SEARCH_MEMORY SearchMemRequest,
+                     UINT64                  StartAddress,
+                     UINT64                  EndAddress,
+                     BOOLEAN                 IsDebuggeePaused)
 {
     CR3_TYPE CurrentProcessCr3;
-    UINT32   ProcId              = 0;
     UINT64   BaseAddress         = 0;
     UINT64   CurrentValue        = 0;
     UINT64   RealPhysicalAddress = 0;
+    UINT64   TempValue           = NULL;
     BOOLEAN  DoesBaseAddrSaved   = FALSE;
 
     if (SearchMemRequest->MemoryType == SEARCH_VIRTUAL_MEMORY)
@@ -720,10 +809,20 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
         //
         StartAddress = PAGE_ALIGN(StartAddress);
 
-        //
-        // Switch to new process's memory layout
-        //
-        CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+        if (IsDebuggeePaused)
+        {
+            //
+            // Switch to new process's memory layout
+            //
+            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GetRunningCr3OnTargetProcess());
+        }
+        else
+        {
+            //
+            // Switch to new process's memory layout
+            //
+            CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayout(SearchMemRequest->ProcessId);
+        }
 
         //
         // We will try to find a contigues address
@@ -735,7 +834,9 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
             // Generally, we can use VirtualAddressToPhysicalAddressByProcessId
             // but let's not change the cr3 multiple times
             //
-            if (VirtualAddressToPhysicalAddress(StartAddress) != 0)
+            TempValue = VirtualAddressToPhysicalAddress(StartAddress);
+
+            if (TempValue != 0)
             {
                 //
                 // Address is valid, let's add a page size to it
@@ -757,17 +858,20 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
             StartAddress += PAGE_SIZE;
         }
 
-        //
-        // Restore the original process
-        //
-        RestoreToPreviousProcess(CurrentProcessCr3);
+        if (IsDebuggeePaused)
+        {
+            //
+            // Restore the original process
+            //
+            RestoreToPreviousProcess(CurrentProcessCr3);
+        }
 
         //
         // All of the address chunk was valid
         //
         if (DoesBaseAddrSaved && StartAddress > BaseAddress)
         {
-            PerformSearchAddress(AddressToSaveResults, SearchMemRequest, BaseAddress, StartAddress);
+            PerformSearchAddress(AddressToSaveResults, SearchMemRequest, BaseAddress, StartAddress, IsDebuggeePaused);
         }
         else
         {
@@ -786,7 +890,12 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
         //
         // Change the start address
         //
-        if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
+        if (IsDebuggeePaused)
+        {
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress, SearchMemRequest->ProcessId);
+            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress, SearchMemRequest->ProcessId);
+        }
+        else if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
         {
             SearchMemRequest->Address = PhysicalAddressToVirtualAddress(StartAddress);
             EndAddress                = PhysicalAddressToVirtualAddress(EndAddress);
@@ -800,49 +909,18 @@ SearchAddressWrapper(PUINT64 AddressToSaveResults, PDEBUGGER_SEARCH_MEMORY Searc
         //
         // Change the type of memory
         //
-        SearchMemRequest->MemoryType = SEARCH_VIRTUAL_MEMORY;
+        SearchMemRequest->MemoryType = SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY;
 
         //
         // Call the wrapper
         //
-        PerformSearchAddress(AddressToSaveResults, SearchMemRequest, SearchMemRequest->Address, EndAddress);
+        PerformSearchAddress(AddressToSaveResults, SearchMemRequest, SearchMemRequest->Address, EndAddress, IsDebuggeePaused);
 
         //
         // Restore the previous state
         //
         SearchMemRequest->MemoryType = SEARCH_PHYSICAL_MEMORY;
         SearchMemRequest->Address    = RealPhysicalAddress;
-
-        //
-        // Save the process id to avoid calling PsGetCurrentProcessId()
-        // multiple times
-        //
-        ProcId = PsGetCurrentProcessId();
-
-        //
-        // Results should be ready (if any) in AddressToSaveResults
-        // we should convert it to a physical format as the search
-        // was on virtual format
-        //
-        for (size_t i = 0; i < MaximumSearchResults; i++)
-        {
-            CurrentValue = AddressToSaveResults[i];
-
-            if (SearchMemRequest->ProcessId == ProcId && CurrentValue != NULL)
-            {
-                AddressToSaveResults[i] = VirtualAddressToPhysicalAddress(CurrentValue);
-            }
-            else if (CurrentValue != NULL)
-            {
-                AddressToSaveResults[i] = VirtualAddressToPhysicalAddressByProcessId(CurrentValue, SearchMemRequest->ProcessId);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return;
     }
 }
 
@@ -903,7 +981,7 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
     //
     // Call the wrapper
     //
-    SearchAddressWrapper(SearchResultsStorage, SearchMemRequest, AddressFrom, AddressTo);
+    SearchAddressWrapper(SearchResultsStorage, SearchMemRequest, AddressFrom, AddressTo, FALSE);
 
     //
     // In this point, we to store the results (if any) to the user-mode
