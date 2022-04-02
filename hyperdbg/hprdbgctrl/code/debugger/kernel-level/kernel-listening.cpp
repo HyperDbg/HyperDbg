@@ -54,6 +54,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
     PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_RESULT_OF_SEARCH_PACKET           SearchResultsPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
     PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
@@ -443,6 +444,31 @@ StartAgain:
             // Signal the event relating to receiving result of process change
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PROCESS_SWITCHING_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY:
+
+            SearchResultsPacket =
+                (DEBUGGEE_RESULT_OF_SEARCH_PACKET *)(((CHAR *)TheActualPacket) +
+                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (SearchResultsPacket->CountOfResults == 0)
+                {
+                    ShowMessages("not found\n");
+                }
+            }
+            else
+            {
+                ShowErrorMessage(SearchResultsPacket->Result);
+            }
+
+            //
+            // Signal the event relating to receiving result of search query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 
             break;
 

@@ -968,6 +968,36 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBre
 }
 
 /**
+ * @brief Sends seach query request packet to the debuggee
+ * @param SearchRequestBuffer
+ * @param SearchRequestBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchRequestBufferSize)
+{
+    //
+    // Send search request packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SEARCH_QUERY,
+            (CHAR *)SearchRequestBuffer,
+            SearchRequestBufferSize))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of search request received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends p (step out) and t (step in) packet to the debuggee
  *
  * @return BOOLEAN

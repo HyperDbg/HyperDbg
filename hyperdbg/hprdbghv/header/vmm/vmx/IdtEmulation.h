@@ -60,19 +60,24 @@ typedef union _VMEXIT_INTERRUPT_INFO
 //////////////////////////////////////////////////
 
 VOID
-IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
+IdtEmulationHandleExceptionAndNmi(_In_ UINT32                   CurrentProcessorIndex,
+                                  _Inout_ VMEXIT_INTERRUPT_INFO InterruptExit,
+                                  _Inout_ PGUEST_REGS           GuestRegs);
 
 VOID
-IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs);
+IdtEmulationHandleExternalInterrupt(_In_ UINT32                   CurrentProcessorIndex,
+                                    _Inout_ VMEXIT_INTERRUPT_INFO InterruptExit,
+                                    _Inout_ PGUEST_REGS           GuestRegs);
 
 VOID
-IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
+IdtEmulationHandleNmiWindowExiting(UINT32      CurrentProcessorIndex,
+                                   PGUEST_REGS GuestRegs);
 
 VOID
-IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex);
+IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex);
 
 BOOLEAN
-IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
-                             VMEXIT_INTERRUPT_INFO InterruptExit,
-                             UINT64                Address,
-                             ULONG                 ErrorCode);
+IdtEmulationHandlePageFaults(_In_ UINT32                CurrentProcessorIndex,
+                             _In_ VMEXIT_INTERRUPT_INFO InterruptExit,
+                             _In_ UINT64                Address,
+                             _In_ ULONG                 ErrorCode);

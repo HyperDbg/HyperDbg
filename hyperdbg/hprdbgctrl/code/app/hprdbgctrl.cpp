@@ -133,7 +133,6 @@ ReadIrpBasedBuffer()
     // even if it's odd but that what happens, so this way we can solve it
     // if you know why this problem happens, then contact me !
     //
-
     Handle = CreateFileA(
         "\\\\.\\HyperdbgHypervisorDevice",
         GENERIC_READ | GENERIC_WRITE,
@@ -160,8 +159,10 @@ ReadIrpBasedBuffer()
         {
             ShowMessages("err, CreateFile failed with (%x)\n", ErrorNum);
         }
+
         g_DeviceHandle = NULL;
         Handle         = NULL;
+
         return;
     }
 

@@ -4003,7 +4003,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
     case FUNC_INTERLOCKED_COMPARE_EXCHANGE:
 
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
 
         *Indx = *Indx + 1;
