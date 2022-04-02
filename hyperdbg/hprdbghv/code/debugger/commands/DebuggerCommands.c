@@ -598,26 +598,27 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((DWORD64)EndAddress); BaseIterator += LengthOfEachChunk)
         {
             //
-            // Copy 64bit, 32bit or one byte value into Cmp64 buffer and then compare it
-            //
-            RtlCopyMemory(&Cmp64, (PVOID)BaseIterator, LengthOfEachChunk);
-
-            //
             // *** Search the memory ***
             //
 
             //
-            // Check if we should access the memory directly,
-            // or through safe memory routine from vmx-root
+            // Copy 64bit, 32bit or one byte value into Cmp64 buffer and then compare it
+            // Check if we should access the memory directly, or through safe memory
+            // routine from vmx-root
             //
             if (IsDebuggeePaused)
             {
-                MemoryMapperReadMemorySafe(SourceAddress, &TempValue, sizeof(UINT64));
+                MemoryMapperReadMemorySafe((PVOID)BaseIterator, &Cmp64, LengthOfEachChunk);
             }
             else
             {
-                TempValue = *(UINT64 *)SourceAddress;
+                RtlCopyMemory(&Cmp64, (PVOID)BaseIterator, LengthOfEachChunk);
             }
+
+            //
+            // Get the searching bytes
+            //
+            TempValue = *(UINT64 *)SourceAddress;
 
             //
             // Check whether the byte matches the source or not
@@ -642,8 +643,17 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
 
                     //
                     // Add i to BaseIterator and recompute the Cmp64
+                    // Check if we should access the memory directly, or through safe memory
+                    // routine from vmx-root
                     //
-                    RtlCopyMemory(&Cmp64, (PVOID)(BaseIterator + (LengthOfEachChunk * i)), LengthOfEachChunk);
+                    if (IsDebuggeePaused)
+                    {
+                        MemoryMapperReadMemorySafe((PVOID)(BaseIterator + (LengthOfEachChunk * i)), &Cmp64, LengthOfEachChunk);
+                    }
+                    else
+                    {
+                        RtlCopyMemory(&Cmp64, (PVOID)(BaseIterator + (LengthOfEachChunk * i)), LengthOfEachChunk);
+                    }
 
                     //
                     // Check if we should access the memory directly,

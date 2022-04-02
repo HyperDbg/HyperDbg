@@ -63,7 +63,6 @@ DebuggerInitialize()
     ULONG                       ProcessorCount       = KeQueryActiveProcessorCount(0);
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
-
     //
     // Allocate buffer for saving events
     //
@@ -145,7 +144,7 @@ DebuggerInitialize()
     {
         CurrentDebuggerState = &g_GuestState[i].DebuggingState;
 
-        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
             CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable =
                 ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);

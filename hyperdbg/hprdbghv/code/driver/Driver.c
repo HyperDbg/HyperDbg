@@ -261,7 +261,6 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Initialize the debugger
         //
-
         if (DebuggerInitialize())
         {
             LogDebugInfo("Hyperdbg's debugger loaded successfully");
