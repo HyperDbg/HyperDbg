@@ -29,15 +29,15 @@
 VOID
 SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 {
-    EFER_MSR           MsrValue;
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
-    UINT32             VmEntryControls = 0;
-    UINT32             VmExitControls  = 0;
+    IA32_EFER_REGISTER      MsrValue;
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
+    UINT32                  VmEntryControls = 0;
+    UINT32                  VmExitControls  = 0;
 
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
 
     //
     // Read previous VM-Entry and VM-Exit controls
@@ -54,12 +54,12 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
@@ -78,12 +78,12 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
@@ -112,7 +112,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
+    SEGMENT_SELECTOR_refactoring Cs, Ss;
     UINT32           InstructionLength;
     UINT64           MsrValue;
     ULONG64          GuestRip;
@@ -178,7 +178,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
+    SEGMENT_SELECTOR_refactoring Cs, Ss;
     UINT64           MsrValue;
     ULONG64          GuestRip;
     ULONG64          GuestRflags;

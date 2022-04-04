@@ -41,7 +41,7 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
-    SEGMENT_SELECTOR SegmentSelector = {0};
+    SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
     ULONG            AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
@@ -220,7 +220,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             // normally (automatically) flush the tlb, we have to do
             // it manually
             //
-            InvvpidSingleContext(VPID_TAG);
+            InvvpidSingleContext_fn(VPID_TAG);
 
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
@@ -288,7 +288,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
-    SEGMENT_SELECTOR SegmentSelector = {0};
+    SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
     ULONG            AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
@@ -622,7 +622,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     MOV_TO_DEBUG_REG_QUALIFICATION ExitQualification;
     CONTROL_REGISTER_4             Cr4;
     DEBUG_REGISTER_7               Dr7;
-    SEGMENT_SELECTOR               Cs;
+    SEGMENT_SELECTOR_refactoring               Cs;
     UINT64 *                       GpRegs = Regs;
     //
     // The implementation is derived from Hvpp

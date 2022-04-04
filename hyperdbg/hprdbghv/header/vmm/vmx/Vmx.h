@@ -399,7 +399,7 @@ typedef enum _VMCS_FIELDS
     APIC_ACCESS_ADDR       = 0x00002014,
     PI_DESC_ADDR           = 0x00002016,
     VM_FUNCTION_CONTROL    = 0x00002018,
-    EPT_POINTER            = 0x0000201a,
+    EPT_POINTER_refact            = 0x0000201a,
     EOI_EXIT_BITMAP0       = 0x0000201c,
 #define EOI_EXIT_BITMAP(n) (EOI_EXIT_BITMAP0 + (n)*2) /* n = 0...3 */
     EPTP_LIST_ADDR           = 0x00002024,
@@ -586,24 +586,24 @@ typedef struct _VIRTUAL_MACHINE_STATE
  * @brief vm-exit qualification for I/O instructions
  * 
  */
-typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
-{
-    union
-    {
-        ULONG64 Flags;
-
-        struct
-        {
-            ULONG64 SizeOfAccess : 3;
-            ULONG64 AccessType : 1;
-            ULONG64 StringInstruction : 1;
-            ULONG64 RepPrefixed : 1;
-            ULONG64 OperandEncoding : 1;
-            ULONG64 Reserved1 : 9;
-            ULONG64 PortNumber : 16;
-        };
-    };
-} VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
+//typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
+//{
+//    union
+//    {
+//        ULONG64 Flags;
+//
+//        struct
+//        {
+//            ULONG64 SizeOfAccess : 3;
+//            ULONG64 AccessType : 1;
+//            ULONG64 StringInstruction : 1;
+//            ULONG64 RepPrefixed : 1;
+//            ULONG64 OperandEncoding : 1;
+//            ULONG64 Reserved1 : 9;
+//            ULONG64 PortNumber : 16;
+//        };
+//    };
+//} VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
 /**
  * @brief vm-exit qualification for the CR access

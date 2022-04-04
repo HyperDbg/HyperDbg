@@ -432,7 +432,7 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
 
             Rflags.TrapFlag = FALSE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue = FALSE;
         }
@@ -1355,7 +1355,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
         {
             Rflags.TrapFlag = TRUE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue = TRUE;
         }
@@ -2477,7 +2477,7 @@ StartAgain:
         // Set rflags for finding the results of conditional jumps
         //
         __vmx_vmread(GUEST_RFLAGS, &Rflags);
-        PausePacket.Rflags.Value = Rflags.Value;
+        PausePacket.Rflags.Flags = Rflags.Flags;
 
         //
         // Set the event tag (if it's an event)

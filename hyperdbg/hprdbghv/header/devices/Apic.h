@@ -24,7 +24,7 @@
 #define APIC_EXTD              (1UL << 10)
 #define APIC_EN                (1UL << 11)
 
-#define APIC_ID 0x20
+
 
 #define APIC_LVR            0x30
 #define APIC_LVR_MASK       0xFF00FF
@@ -38,7 +38,7 @@
 #define APIC_ARBPRI                  0x90
 #define APIC_ARBPRI_MASK             0xFFu
 #define APIC_PROCPRI                 0xA0
-#define APIC_EOI                     0xB0
+
 #define APIC_EIO_ACK                 0x0
 #define APIC_RRR                     0xC0
 #define APIC_LDR                     0xD0

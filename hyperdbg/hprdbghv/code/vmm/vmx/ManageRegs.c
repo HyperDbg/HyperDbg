@@ -45,10 +45,10 @@ SetGuestCs(PSEGMENT_SELECTOR Cs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestCs()
 {
-    SEGMENT_SELECTOR Cs;
+    SEGMENT_SELECTOR_refactoring Cs;
 
     __vmx_vmread(GUEST_CS_BASE, &Cs.BASE);
     __vmx_vmread(GUEST_CS_LIMIT, &Cs.LIMIT);
@@ -90,10 +90,10 @@ SetGuestSs(PSEGMENT_SELECTOR Ss)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestSs()
 {
-    SEGMENT_SELECTOR Ss;
+    SEGMENT_SELECTOR_refactoring Ss;
 
     __vmx_vmread(GUEST_SS_BASE, &Ss.BASE);
     __vmx_vmread(GUEST_SS_LIMIT, &Ss.LIMIT);
@@ -135,10 +135,10 @@ SetGuestDs(PSEGMENT_SELECTOR Ds)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestDs()
 {
-    SEGMENT_SELECTOR Ds;
+    SEGMENT_SELECTOR_refactoring Ds;
 
     __vmx_vmread(GUEST_DS_BASE, &Ds.BASE);
     __vmx_vmread(GUEST_DS_LIMIT, &Ds.LIMIT);
@@ -180,10 +180,10 @@ SetGuestFs(PSEGMENT_SELECTOR Fs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestFs()
 {
-    SEGMENT_SELECTOR Fs;
+    SEGMENT_SELECTOR_refactoring Fs;
 
     __vmx_vmread(GUEST_FS_BASE, &Fs.BASE);
     __vmx_vmread(GUEST_FS_LIMIT, &Fs.LIMIT);
@@ -225,10 +225,10 @@ SetGuestGs(PSEGMENT_SELECTOR Gs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestGs()
 {
-    SEGMENT_SELECTOR Gs;
+    SEGMENT_SELECTOR_refactoring Gs;
 
     __vmx_vmread(GUEST_GS_BASE, &Gs.BASE);
     __vmx_vmread(GUEST_GS_LIMIT, &Gs.LIMIT);
@@ -270,10 +270,10 @@ SetGuestEs(PSEGMENT_SELECTOR Es)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+SEGMENT_SELECTOR_refactoring
 GetGuestEs()
 {
-    SEGMENT_SELECTOR Es;
+    SEGMENT_SELECTOR_refactoring Es;
 
     __vmx_vmread(GUEST_ES_BASE, &Es.BASE);
     __vmx_vmread(GUEST_ES_LIMIT, &Es.LIMIT);

@@ -13,6 +13,20 @@
  */
 #pragma once
 
+//
+// IA32-doc has structures for the entire intel SDM.
+//
+
+#define USE_LIB_IA32
+#if defined(USE_LIB_IA32)
+#    pragma warning(push, 0)
+//#    pragma warning(disable : 4201) // suppress nameless struct/union warning
+#    include <ia32-doc/out/ia32.h>
+#    pragma warning(pop)
+typedef RFLAGS * PRFLAGS;
+#endif //USE_LIB_IA32
+
+
 //////////////////////////////////////////////////
 //			 Version Information                //
 //////////////////////////////////////////////////
@@ -687,35 +701,35 @@ typedef struct GUEST_EXTRA_REGISTERS
  * @brief RFLAGS in structure format
  *
  */
-typedef union _RFLAGS
-{
-    struct
-    {
-        UINT64 CarryFlag : 1;
-        UINT64 ReadAs1 : 1;
-        UINT64 ParityFlag : 1;
-        UINT64 Reserved1 : 1;
-        UINT64 AuxiliaryCarryFlag : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 ZeroFlag : 1;
-        UINT64 SignFlag : 1;
-        UINT64 TrapFlag : 1;
-        UINT64 InterruptEnableFlag : 1;
-        UINT64 DirectionFlag : 1;
-        UINT64 OverflowFlag : 1;
-        UINT64 IoPrivilegeLevel : 2;
-        UINT64 NestedTaskFlag : 1;
-        UINT64 Reserved3 : 1;
-        UINT64 ResumeFlag : 1;
-        UINT64 Virtual8086ModeFlag : 1;
-        UINT64 AlignmentCheckFlag : 1;
-        UINT64 VirtualInterruptFlag : 1;
-        UINT64 VirtualInterruptPendingFlag : 1;
-        UINT64 IdentificationFlag : 1;
-    };
-
-    UINT64 Value;
-} RFLAGS, *PRFLAGS;
+//typedef union _RFLAGS
+//{
+//    struct
+//    {
+//        UINT64 CarryFlag : 1;
+//        UINT64 ReadAs1 : 1;
+//        UINT64 ParityFlag : 1;
+//        UINT64 Reserved1 : 1;
+//        UINT64 AuxiliaryCarryFlag : 1;
+//        UINT64 Reserved2 : 1;
+//        UINT64 ZeroFlag : 1;
+//        UINT64 SignFlag : 1;
+//        UINT64 TrapFlag : 1;
+//        UINT64 InterruptEnableFlag : 1;
+//        UINT64 DirectionFlag : 1;
+//        UINT64 OverflowFlag : 1;
+//        UINT64 IoPrivilegeLevel : 2;
+//        UINT64 NestedTaskFlag : 1;
+//        UINT64 Reserved3 : 1;
+//        UINT64 ResumeFlag : 1;
+//        UINT64 Virtual8086ModeFlag : 1;
+//        UINT64 AlignmentCheckFlag : 1;
+//        UINT64 VirtualInterruptFlag : 1;
+//        UINT64 VirtualInterruptPendingFlag : 1;
+//        UINT64 IdentificationFlag : 1;
+//    };
+//
+//    UINT64 Value;
+//} RFLAGS, *PRFLAGS;
 
 /**
  * @brief enum to show type of all HyperDbg events

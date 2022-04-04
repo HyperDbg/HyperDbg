@@ -67,7 +67,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 
             __vmx_vmread(GUEST_RFLAGS, &Rflags);
             Rflags.InterruptEnableFlag = TRUE;
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
         }

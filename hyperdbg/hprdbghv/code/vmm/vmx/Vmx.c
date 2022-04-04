@@ -19,8 +19,8 @@
 BOOLEAN
 VmxCheckVmxSupport()
 {
-    CPUID                    Data              = {0};
-    IA32_FEATURE_CONTROL_MSR FeatureControlMsr = {0};
+    CPUID                         Data              = {0};
+    IA32_FEATURE_CONTROL_REGISTER FeatureControlMsr = {0};
 
     //
     // Gets Processor Info and Feature Bits
@@ -38,7 +38,7 @@ VmxCheckVmxSupport()
         return FALSE;
     }
 
-    FeatureControlMsr.All = __readmsr(IA32_FEATURE_CONTROL);
+    FeatureControlMsr.Flags = __readmsr(IA32_FEATURE_CONTROL);
 
     //
     // Commented because of https://stackoverflow.com/questions/34900224/
@@ -59,7 +59,7 @@ VmxCheckVmxSupport()
     // }
     // else
 
-    if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
+    if (FeatureControlMsr.EnableVmxOutsideSmx == FALSE)
     {
         LogError("Err, you should enable vt-x from BIOS");
         return FALSE;
@@ -76,9 +76,7 @@ VmxCheckVmxSupport()
 BOOLEAN
 VmxInitialize()
 {
-    int                LogicalProcessorsCount;
-    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
-
+    ULONG LogicalProcessorsCount;
     //
     // ****** Start Virtualizing Current System ******
     //
@@ -551,17 +549,17 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 {
-    ULONG              CpuBasedVmExecControls;
-    ULONG              SecondaryProcBasedVmExecControls;
-    PVOID              HostRsp;
-    ULONG64            GdtBase         = 0;
-    SEGMENT_SELECTOR   SegmentSelector = {0};
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
+    ULONG                   CpuBasedVmExecControls;
+    ULONG                   SecondaryProcBasedVmExecControls;
+    PVOID                   HostRsp;
+    ULONG64                 GdtBase         = 0;
+    SEGMENT_SELECTOR_refactoring        SegmentSelector = {0};
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
 
     __vmx_vmwrite(HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
     __vmx_vmwrite(HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
@@ -608,12 +606,12 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
 
     CpuBasedVmExecControls = HvAdjustControls(CPU_BASED_ACTIVATE_IO_BITMAP | CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS,
-                                              VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
+                                              VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
 
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
 
     LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
-                 VmxBasicMsr.Fields.VmxCapabilityHint ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
+                 VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
 
     SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP |
@@ -625,11 +623,11 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
     LogDebugInfo("Secondary Proc Based VM Exec Controls (IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
 
-    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(0, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
+    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(0, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
 
-    __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+    __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
-    __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+    __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
     __vmx_vmwrite(CR0_GUEST_HOST_MASK, 0);
     __vmx_vmwrite(CR4_GUEST_HOST_MASK, 0);
@@ -692,7 +690,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     // Set up EPT
     //
-    __vmx_vmwrite(EPT_POINTER, g_EptState->EptPointer.Flags);
+    __vmx_vmwrite(EPT_POINTER_refact, g_EptState->EptPointer.Flags);
 
     //
     // Set up VPID

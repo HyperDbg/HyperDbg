@@ -36,4 +36,4 @@ UCHAR
 InveptAllContexts();
 
 UCHAR
-InveptSingleContext(UINT64 EptPonter);
+InveptSingleContext_fn(UINT64 EptPonter);

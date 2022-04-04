@@ -162,7 +162,7 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
 
         Rflags.TrapFlag = TRUE;
 
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
         //
         // Rflags' trap flag is set
@@ -406,7 +406,7 @@ UdHandleAfterSteppingReason(UINT32                             CurrentCore,
 
     Rflags.TrapFlag = FALSE;
 
-    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
     //
     // Rflags' trap flag is not set anymore
@@ -548,7 +548,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     // Set rflags for finding the results of conditional jumps
     //
     __vmx_vmread(GUEST_RFLAGS, &Rflags);
-    PausePacket.Rflags.Value = Rflags.Value;
+    PausePacket.Rflags.Flags = Rflags.Flags;
 
     //
     // Set the event tag (if it's an event)

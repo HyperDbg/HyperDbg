@@ -259,7 +259,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                 if (Rflags.InterruptEnableFlag)
                 {
                     Rflags.InterruptEnableFlag = FALSE;
-                    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+                    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
 
                     //
                     // An indicator to restore RFLAGS if to enabled state

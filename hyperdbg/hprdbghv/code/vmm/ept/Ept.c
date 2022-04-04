@@ -783,7 +783,7 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     //
     if (InvalidationType == INVEPT_SINGLE_CONTEXT)
     {
-        InveptSingleContext(g_EptState->EptPointer.Flags);
+        InveptSingleContext_fn(g_EptState->EptPointer.Flags);
     }
     else if (InvalidationType == INVEPT_ALL_CONTEXTS)
     {

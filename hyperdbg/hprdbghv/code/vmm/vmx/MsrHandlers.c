@@ -100,7 +100,7 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             //
             if (GuestRegs->rcx == IA32_EFER)
             {
-                EFER_MSR MsrEFER;
+                IA32_EFER_REGISTER MsrEFER;
                 MsrEFER.Flags         = Msr.Content;
                 MsrEFER.SyscallEnable = TRUE;
                 Msr.Content           = MsrEFER.Flags;
@@ -173,7 +173,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         case IA32_DS_AREA:
         case IA32_FS_BASE:
         case IA32_GS_BASE:
-        case IA32_KERNEL_GSBASE:
+        case IA32_KERNEL_GS_BASE:
         case IA32_LSTAR:
         case IA32_SYSENTER_EIP:
         case IA32_SYSENTER_ESP:

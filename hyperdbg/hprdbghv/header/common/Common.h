@@ -15,6 +15,7 @@
 //					Enums						//
 //////////////////////////////////////////////////
 
+
 /**
  * @brief Segment selector registers in x86
  * 
@@ -294,13 +295,15 @@ typedef struct _SEGMENT_DESCRIPTOR
  * @brief Segment selector
  * 
  */
+
+// TODO : replace with SEGMENT_SELECTOR_refac
 typedef struct _SEGMENT_SELECTOR
 {
     USHORT             SEL;
     SEGMENT_ATTRIBUTES ATTRIBUTES;
     ULONG32            LIMIT;
     ULONG64            BASE;
-} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
+} SEGMENT_SELECTOR_refactoring, *PSEGMENT_SELECTOR;
 
 /**
  * @brief CPUID Registers

@@ -15,6 +15,8 @@
 
 #define _NO_CRT_STDIO_INLINE
 
+#pragma warning(disable : 4201) // suppress nameless struct/union warning
+
 //
 // Windows defined functions
 //
@@ -32,15 +34,7 @@
 #define SCRIPT_ENGINE_KERNEL_MODE
 #define HYPERDBG_KERNEL_MODE
 
-/*
- * IA32-doc has structures for the entire intel SDM.
- */
-#if defined(USE_LIB_IA32)
-#    pragma warning(push, 0)
-#    pragma warning(disable : 4201) // suppress nameless struct/union warning
-#    include <ia32-doc/out/ia32.h>
-#    pragma warning(pop)
-#endif //USE_LIB_IA32
+
 
 //
 // HyperDbg Kernel-mode headers
@@ -49,6 +43,7 @@
 #include "Configuration.h"
 #include "platform/CrossApi.h"
 #include "platform/Environment.h"
+
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
@@ -62,8 +57,8 @@
 #include "..\hprdbghv\header\misc\InlineAsm.h"
 #include "..\hprdbghv\header\vmm\ept\Vpid.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
-#include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\common\Common.h"
+#include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\devices\Apic.h"
 #include "..\hprdbghv\header\debugger\kernel-level\Kd.h"

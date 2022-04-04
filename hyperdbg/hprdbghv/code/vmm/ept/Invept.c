@@ -37,7 +37,7 @@ Invept(UINT32 Type, INVEPT_DESC * Descriptor)
  * @return UCHAR 
  */
 UCHAR
-InveptSingleContext(UINT64 EptPointer)
+InveptSingleContext_fn(UINT64 EptPointer)
 {
     INVEPT_DESC Descriptor = {0};
     Descriptor.EptPointer  = EptPointer;

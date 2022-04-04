@@ -32,18 +32,6 @@ typedef enum _INVVPID_ENUM
 //					Structures					//
 //////////////////////////////////////////////////
 
-/**
- * @brief INVVPID Descriptors
- * 
- */
-typedef struct _INVVPID_DESCRIPTOR
-{
-    UINT64 VPID : 16;
-    UINT64 RESERVED : 48;
-    UINT64 LINEAR_ADDRESS;
-
-} INVVPID_DESCRIPTOR, *PINVVPID_DESCRIPTOR;
-
 //////////////////////////////////////////////////
 //					Definitions					//
 //////////////////////////////////////////////////
@@ -59,16 +47,16 @@ typedef struct _INVVPID_DESCRIPTOR
 //////////////////////////////////////////////////
 
 VOID
-Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor);
+Invvpid_fn(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor);
 
 VOID
-InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress);
+InvvpidIndividualAddress_fn(UINT16 Vpid, UINT64 LinearAddress);
 
 VOID
-InvvpidSingleContext(UINT16 Vpid);
+InvvpidSingleContext_fn(UINT16 Vpid);
 
 VOID
-InvvpidAllContexts();
+InvvpidAllContexts_fn();
 
 VOID
-InvvpidSingleContextRetainingGlobals(UINT16 Vpid);
+InvvpidSingleContextRetainingGlobals_fn(UINT16 Vpid);
