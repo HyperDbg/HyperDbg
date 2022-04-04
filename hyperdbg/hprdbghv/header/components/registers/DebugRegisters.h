@@ -12,66 +12,6 @@
  */
 #pragma once
 
-//////////////////////////////////////////////////
-//				   Structures					//
-//////////////////////////////////////////////////
-
-/**
- * @brief Debug Register 7 Structure
- * 
- */
-typedef union _DEBUG_REGISTER_7
-{
-    UINT64 Flags;
-
-    struct
-    {
-        UINT64 LocalBreakpoint0 : 1;
-        UINT64 GlobalBreakpoint0 : 1;
-        UINT64 LocalBreakpoint1 : 1;
-        UINT64 GlobalBreakpoint1 : 1;
-        UINT64 LocalBreakpoint2 : 1;
-        UINT64 GlobalBreakpoint2 : 1;
-        UINT64 LocalBreakpoint3 : 1;
-        UINT64 GlobalBreakpoint3 : 1;
-        UINT64 LocalExactBreakpoint : 1;
-        UINT64 GlobalExactBreakpoint : 1;
-        UINT64 Reserved1 : 1; // always 1
-        UINT64 RestrictedTransactionalMemory : 1;
-        UINT64 Reserved2 : 1; // always 0
-        UINT64 GeneralDetect : 1;
-        UINT64 Reserved3 : 2; // always 0
-        UINT64 ReadWrite0 : 2;
-        UINT64 Length0 : 2;
-        UINT64 ReadWrite1 : 2;
-        UINT64 Length1 : 2;
-        UINT64 ReadWrite2 : 2;
-        UINT64 Length2 : 2;
-        UINT64 ReadWrite3 : 2;
-        UINT64 Length3 : 2;
-    };
-} DEBUG_REGISTER_7, *PDEBUG_REGISTER_7;
-
-/**
- * @brief Debug Register 6 Structure
- * 
- */
-typedef union DEBUG_REGISTER_6
-{
-    UINT64 Flags;
-
-    struct
-    {
-        UINT64 BreakpointCondition : 4;
-        UINT64 Reserved1 : 8; // always 1
-        UINT64 Reserved2 : 1; // always 0
-        UINT64 DebugRegisterAccessDetected : 1;
-        UINT64 SingleInstruction : 1;
-        UINT64 TaskSwitch : 1;
-        UINT64 RestrictedTransactionalMemory : 1;
-        UINT64 Reserved3 : 15; // always 1
-    };
-} DEBUG_REGISTER_6, *PDEBUG_REGISTER_6;
 
 //////////////////////////////////////////////////
 //				   	Enums 		     			//

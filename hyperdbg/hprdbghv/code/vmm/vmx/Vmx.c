@@ -306,8 +306,8 @@ VOID
 VmxFixCr4AndCr0Bits()
 {
     CR_FIXED           CrFixed = {0};
-    CONTROL_REGISTER_4 Cr4     = {0};
-    CONTROL_REGISTER_0 Cr0     = {0};
+    CR4 Cr4     = {0};
+    CR0 Cr0     = {0};
 
     //
     // Fix Cr0

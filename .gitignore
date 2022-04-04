@@ -385,3 +385,4 @@ MigrationBackup/
 
 compile_commands.json
 StructLayoutSettings.json
+*.metaproj

@@ -42,7 +42,7 @@ BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
     SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
-    ULONG            AccessRights;
+    ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
     AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
@@ -289,7 +289,7 @@ VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
     SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
-    ULONG            AccessRights;
+    ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
     AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
@@ -620,9 +620,9 @@ VOID
 HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 {
     MOV_TO_DEBUG_REG_QUALIFICATION ExitQualification;
-    CONTROL_REGISTER_4             Cr4;
-    DEBUG_REGISTER_7               Dr7;
-    SEGMENT_SELECTOR_refactoring               Cs;
+    CR4                            Cr4;
+    DR7                            Dr7;
+    SEGMENT_SELECTOR_refactoring   Cs;
     UINT64 *                       GpRegs = Regs;
     //
     // The implementation is derived from Hvpp
@@ -718,10 +718,11 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
     if (Dr7.GeneralDetect)
     {
-        DEBUG_REGISTER_6 Dr6;
-        Dr6.Flags                       = __readdr(6);
-        Dr6.BreakpointCondition         = 0;
-        Dr6.DebugRegisterAccessDetected = TRUE;
+        DR6 Dr6 = {
+            .Flags                       = __readdr(6),
+            .BreakpointCondition         = 0,
+            .DebugRegisterAccessDetected = TRUE};
+
         __writedr(6, Dr6.Flags);
 
         Dr7.GeneralDetect = FALSE;

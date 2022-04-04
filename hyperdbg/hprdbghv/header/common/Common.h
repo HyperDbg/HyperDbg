@@ -346,69 +346,7 @@ typedef union _PAGE_FAULT_ERROR_CODE
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
-/**
- * @brief Control Register 4 Structure
- * 
- */
-typedef struct _CONTROL_REGISTER_4
-{
-    union
-    {
-        UINT64 Flags;
 
-        struct
-        {
-            UINT64 VirtualModeExtensions : 1;
-            UINT64 ProtectedModeVirtualInterrupts : 1;
-            UINT64 TimestampDisable : 1;
-            UINT64 DebuggingExtensions : 1;
-            UINT64 PageSizeExtensions : 1;
-            UINT64 PhysicalAddressExtension : 1;
-            UINT64 MachineCheckEnable : 1;
-            UINT64 PageGlobalEnable : 1;
-            UINT64 PerformanceMonitoringCounterEnable : 1;
-            UINT64 OsFxsaveFxrstorSupport : 1;
-            UINT64 OsXmmExceptionSupport : 1;
-            UINT64 UsermodeInstructionPrevention : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 VmxEnable : 1;
-            UINT64 SmxEnable : 1;
-            UINT64 Reserved2 : 1;
-            UINT64 FsGsBaseEnable : 1;
-            UINT64 PcidEnable : 1;
-            UINT64 OsXsave : 1;
-            UINT64 Reserved3 : 1;
-            UINT64 SmepEnable : 1;
-            UINT64 SmapEnable : 1;
-            UINT64 ProtectionKeyEnable : 1;
-        };
-    };
-} CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
-
-typedef union _CONTROL_REGISTER_0
-{
-    UINT64 Flags;
-
-    struct
-    {
-        UINT64 ProtectionEnable : 1;
-        UINT64 MonitorCoprocessor : 1;
-        UINT64 EmulateFpu : 1;
-        UINT64 TaskSwitched : 1;
-        UINT64 ExtensionType : 1;
-        UINT64 NumericError : 1;
-        UINT64 Reserved1 : 10;
-        UINT64 WriteProtect : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 AlignmentMask : 1;
-        UINT64 Reserved3 : 10;
-        UINT64 NotWriteThrough : 1;
-        UINT64 CacheDisable : 1;
-        UINT64 PagingEnable : 1;
-        UINT64 Reserved4 : 32;
-    };
-
-} CONTROL_REGISTER_0, *PCONTROL_REGISTER_0;
 
 typedef union _CR_FIXED
 {
