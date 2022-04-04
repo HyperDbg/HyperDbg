@@ -32,6 +32,16 @@
 #define SCRIPT_ENGINE_KERNEL_MODE
 #define HYPERDBG_KERNEL_MODE
 
+/*
+ * IA32-doc has structures for the entire intel SDM.
+ */
+#if defined(USE_LIB_IA32)
+#    pragma warning(push, 0)
+#    pragma warning(disable : 4201) // suppress nameless struct/union warning
+#    include <ia32-doc/out/ia32.h>
+#    pragma warning(pop)
+#endif //USE_LIB_IA32
+
 //
 // HyperDbg Kernel-mode headers
 //
