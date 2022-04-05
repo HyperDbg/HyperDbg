@@ -30,13 +30,23 @@ typedef struct _SYMBOL_LOADED_MODULE_DETAILS
     UINT64  BaseAddress;
     DWORD64 ModuleBase;
     char    ModuleName[_MAX_FNAME];
+    char    PdbFilePath[MAX_PATH];
 
 } SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
 
 //////////////////////////////////////////////////
-//					Exports                     //
+//				Exports & Imports               //
 //////////////////////////////////////////////////
 extern "C" {
+
+//
+// Imports
+//
+__declspec(dllimport) int pdbex_main_impl_export(int argc, char ** argv);
+
+//
+// Exports
+//
 __declspec(dllexport) VOID SymSetTextMessageCallback(PVOID handler);
 __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();

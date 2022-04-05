@@ -70,12 +70,13 @@ ShowMessages(const char * Fmt, ...)
 }
 
 /**
- * @brief Interpret and find module base , based on module name 
+ * @brief Interpret and find module base, based on module name 
  * @param SearchMask
  * 
- * @return DWORD64 NULL means error or not found, otherwise the address
+ * @return PSYMBOL_LOADED_MODULE_DETAILS NULL means error or not found, 
+ * otherwise it returns the instance of loaded module based on search mask
  */
-DWORD64
+PSYMBOL_LOADED_MODULE_DETAILS
 SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlobally)
 {
     string Token;
@@ -171,7 +172,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
                 g_CurrentModuleName = (char *)item->ModuleName;
             }
 
-            return item->ModuleBase;
+            return item;
         }
     }
 
@@ -333,6 +334,8 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     char                          AlternateModuleName[_MAX_FNAME] = {0};
     PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
 
+    pdbex_main_impl_export(0, NULL);
+
     //
     // Get options
     //
@@ -484,6 +487,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     //
     ModuleDetails->BaseAddress = BaseAddress;
     strcpy((char *)ModuleDetails->ModuleName, ModuleName);
+    strcpy((char *)ModuleDetails->PdbFilePath, PdbFileName);
 
     //
     // Save it
@@ -695,7 +699,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
     //
     // Find module base
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
+    ModuleBase = SymGetModuleBaseFromSearchMask(TypeName, TRUE)->ModuleBase;
 
     //
     // Find the module name
@@ -758,7 +762,7 @@ SymSearchSymbolForMask(const char * SearchMask)
     //
     // Find module base
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE)->ModuleBase;
 
     //
     // Find the module name
