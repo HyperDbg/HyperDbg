@@ -33,7 +33,7 @@ typedef struct _INTERRUPTIBILITY_STATE
             UINT32 BlockingByNmi : 1;
             UINT32 EnclaveInterruption : 1;
             UINT32 Reserved : 27;
-        };
+        } Fields;
     };
 } INTERRUPTIBILITY_STATE, *PINTERRUPTIBILITY_STATE;
 
@@ -51,7 +51,8 @@ typedef union _VMEXIT_INTERRUPT_INFO
         UINT32 NmiUnblocking : 1;
         UINT32 Reserved : 18;
         UINT32 Valid : 1;
-    };
+    } Fields;
+
     UINT32 Flags;
 } VMEXIT_INTERRUPT_INFO, *PVMEXIT_INTERRUPT_INFO;
 

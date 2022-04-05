@@ -113,7 +113,7 @@ typedef struct _PAGE_ENTRY
             UINT64 Ignored2 : 7;
             UINT64 ProtectionKey : 4;
             UINT64 ExecuteDisable : 1;
-        };
+        } Fields;
     };
 } PAGE_ENTRY, *PPAGE_ENTRY;
 
@@ -134,7 +134,7 @@ typedef struct _CR3_TYPE
             UINT64 Reserved1 : 12;
             UINT64 Reserved_2 : 3;
             UINT64 PcidInvalidate : 1;
-        };
+        } Fields;
     };
 } CR3_TYPE, *PCR3_TYPE;
 

@@ -24,9 +24,9 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 {
     MSR MsrValue = {0};
 
-    MsrValue.Content = __readmsr(Msr);
-    Ctl &= MsrValue.High; /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Low;  /* bit == 1 in low word  ==> must be one  */
+    MsrValue.Flags = __readmsr(Msr);
+    Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
+    Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 
@@ -629,7 +629,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     //
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
-    UINT64 GpRegister = GpRegs[ExitQualification.GpRegister];
+    UINT64 GpRegister = GpRegs[ExitQualification.Fields.GpRegister];
 
     //
     // The MOV DR instruction causes a VM exit if the "MOV-DR exiting"
@@ -679,7 +679,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     //
     __vmx_vmread(GUEST_CR4, &Cr4);
 
-    if (ExitQualification.DrNumber == 4 || ExitQualification.DrNumber == 5)
+    if (ExitQualification.Fields.DrNumber == 4 || ExitQualification.Fields.DrNumber == 5)
     {
         if (Cr4.DebuggingExtensions)
         {
@@ -691,7 +691,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         }
         else
         {
-            ExitQualification.DrNumber += 2;
+            ExitQualification.Fields.DrNumber += 2;
         }
     }
 
@@ -744,8 +744,8 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     // 32 bits results in a #GP(0) exception.
     // (ref: Vol3B[17.2.6(Debug Registers and Intel� 64 Processors)])
     //
-    if (ExitQualification.AccessType == AccessToDebugRegister &&
-        (ExitQualification.DrNumber == 6 || ExitQualification.DrNumber == 7) &&
+    if (ExitQualification.Fields.AccessType == AccessToDebugRegister &&
+        (ExitQualification.Fields.DrNumber == 6 || ExitQualification.Fields.DrNumber == 7) &&
         (GpRegister >> 32) != 0)
     {
         EventInjectGeneralProtection();
@@ -757,10 +757,10 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         return;
     }
 
-    switch (ExitQualification.AccessType)
+    switch (ExitQualification.Fields.AccessType)
     {
     case AccessToDebugRegister:
-        switch (ExitQualification.DrNumber)
+        switch (ExitQualification.Fields.DrNumber)
         {
         case 0:
             __writedr(0, GpRegister);
@@ -786,7 +786,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         break;
 
     case AccessFromDebugRegister:
-        switch (ExitQualification.DrNumber)
+        switch (ExitQualification.Fields.DrNumber)
         {
         case 0:
             GpRegister = __readdr(0);

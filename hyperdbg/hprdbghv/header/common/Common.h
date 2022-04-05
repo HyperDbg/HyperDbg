@@ -15,7 +15,6 @@
 //					Enums						//
 //////////////////////////////////////////////////
 
-
 /**
  * @brief Segment selector registers in x86
  * 
@@ -260,7 +259,7 @@ SpinlockUnlock(volatile LONG * Lock);
  */
 typedef union _SEGMENT_ATTRIBUTES
 {
-    USHORT UCHARs;
+    USHORT Flags;
     struct
     {
         USHORT TYPE : 4; /* 0;  Bit 40-43 */
@@ -335,7 +334,7 @@ typedef struct _NT_KPROCESS
  */
 typedef union _PAGE_FAULT_ERROR_CODE
 {
-    ULONG32 All;
+    ULONG32 Flags;
     struct
     {
         ULONG32 Present : 1;  // 0 = NotPresent
@@ -346,18 +345,16 @@ typedef union _PAGE_FAULT_ERROR_CODE
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
-
-
 typedef union _CR_FIXED
 {
+    UINT64 Flags;
+
     struct
     {
         unsigned long Low;
         long          High;
 
-    } Value;
-
-    UINT64 Flags;
+    } Fields;
 
 } CR_FIXED, *PCR_FIXED;
 

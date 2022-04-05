@@ -49,9 +49,9 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
     else
     {
         HYPERCALL_INPUT_VALUE InputValue = {0};
-        InputValue.Value                 = GuestRegs->rcx;
+        InputValue.Flags                 = GuestRegs->rcx;
 
-        switch (InputValue.Bitmap.CallCode)
+        switch (InputValue.Fields.CallCode)
         {
         case HvSwitchVirtualAddressSpace:
         case HvFlushVirtualAddressSpace:

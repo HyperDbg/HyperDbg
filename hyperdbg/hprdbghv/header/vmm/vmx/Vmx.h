@@ -225,7 +225,7 @@
  */
 typedef union _HYPERCALL_INPUT_VALUE
 {
-    UINT64 Value;
+    UINT64 Flags;
     struct
     {
         UINT64 CallCode : 16; // HYPERCALL_CODE
@@ -237,7 +237,8 @@ typedef union _HYPERCALL_INPUT_VALUE
         UINT64 Reserved1 : 4;
         UINT64 RepStartIndex : 12;
         UINT64 Reserved2 : 4;
-    } Bitmap;
+    } Fields;
+
 } HYPERCALL_INPUT_VALUE, *PHYPERCALL_INPUT_VALUE;
 
 /**
@@ -399,7 +400,7 @@ typedef enum _VMCS_FIELDS
     APIC_ACCESS_ADDR       = 0x00002014,
     PI_DESC_ADDR           = 0x00002016,
     VM_FUNCTION_CONTROL    = 0x00002018,
-    EPT_POINTER_refact            = 0x0000201a,
+    EPT_POINTER_refact     = 0x0000201a,
     EOI_EXIT_BITMAP0       = 0x0000201c,
 #define EOI_EXIT_BITMAP(n) (EOI_EXIT_BITMAP0 + (n)*2) /* n = 0...3 */
     EPTP_LIST_ADDR           = 0x00002024,
@@ -601,7 +602,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
 //            ULONG64 OperandEncoding : 1;
 //            ULONG64 Reserved1 : 9;
 //            ULONG64 PortNumber : 16;
-//        };
+//        } Fields;
 //    };
 //} VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
@@ -611,7 +612,7 @@ typedef struct _VIRTUAL_MACHINE_STATE
  */
 typedef union _MOV_CR_QUALIFICATION
 {
-    ULONG_PTR All;
+    ULONG_PTR Flags;
     struct
     {
         ULONG ControlRegister : 4;
@@ -640,7 +641,8 @@ typedef union _MOV_TO_DEBUG_REG_QUALIFICATION
         UINT64 AccessType : 1;
         UINT64 Reserved2 : 3;
         UINT64 GpRegister : 4;
-    };
+    } Fields;
+
 } MOV_TO_DEBUG_REG_QUALIFICATION, *PMOV_TO_DEBUG_REG_QUALIFICATION;
 
 //////////////////////////////////////////////////

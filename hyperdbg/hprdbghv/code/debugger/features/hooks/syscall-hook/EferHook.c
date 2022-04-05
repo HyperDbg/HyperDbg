@@ -113,10 +113,10 @@ BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
     SEGMENT_SELECTOR_refactoring Cs, Ss;
-    UINT32           InstructionLength;
-    UINT64           MsrValue;
-    ULONG64          GuestRip;
-    ULONG64          GuestRflags;
+    UINT32                       InstructionLength;
+    UINT64                       MsrValue;
+    ULONG64                      GuestRip;
+    ULONG64                      GuestRflags;
 
     //
     // Reading guest's RIP
@@ -153,17 +153,17 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
-    Cs.SEL               = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
-    Cs.BASE              = 0;                               // flat segment
-    Cs.LIMIT             = (UINT32)~0;                      // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA09B;                          // L+DB+P+S+DPL0+Code
+    MsrValue            = __readmsr(IA32_STAR);
+    Cs.SEL              = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
+    Cs.BASE             = 0;                               // flat segment
+    Cs.LIMIT            = (UINT32)~0;                      // 4GB limit
+    Cs.ATTRIBUTES.Flags = 0xA09B;                          // L+DB+P+S+DPL0+Code
     SetGuestCs(&Cs);
 
-    Ss.SEL               = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
-    Ss.BASE              = 0;                                     // flat segment
-    Ss.LIMIT             = (UINT32)~0;                            // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC093;                                // G+DB+P+S+DPL0+Data
+    Ss.SEL              = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
+    Ss.BASE             = 0;                                     // flat segment
+    Ss.LIMIT            = (UINT32)~0;                            // 4GB limit
+    Ss.ATTRIBUTES.Flags = 0xC093;                                // G+DB+P+S+DPL0+Data
     SetGuestSs(&Ss);
 
     return TRUE;
@@ -179,9 +179,9 @@ BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
     SEGMENT_SELECTOR_refactoring Cs, Ss;
-    UINT64           MsrValue;
-    ULONG64          GuestRip;
-    ULONG64          GuestRflags;
+    UINT64                       MsrValue;
+    ULONG64                      GuestRip;
+    ULONG64                      GuestRflags;
 
     //
     // Load RIP from RCX
@@ -198,17 +198,17 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
-    Cs.SEL               = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
-    Cs.BASE              = 0;                                     // Flat segment
-    Cs.LIMIT             = (UINT32)~0;                            // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA0FB;                                // L+DB+P+S+DPL3+Code
+    MsrValue            = __readmsr(IA32_STAR);
+    Cs.SEL              = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
+    Cs.BASE             = 0;                                     // Flat segment
+    Cs.LIMIT            = (UINT32)~0;                            // 4GB limit
+    Cs.ATTRIBUTES.Flags = 0xA0FB;                                // L+DB+P+S+DPL3+Code
     SetGuestCs(&Cs);
 
-    Ss.SEL               = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
-    Ss.BASE              = 0;                                    // Flat segment
-    Ss.LIMIT             = (UINT32)~0;                           // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC0F3;                               // G+DB+P+S+DPL3+Data
+    Ss.SEL              = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
+    Ss.BASE             = 0;                                    // Flat segment
+    Ss.LIMIT            = (UINT32)~0;                           // 4GB limit
+    Ss.ATTRIBUTES.Flags = 0xC0F3;                               // G+DB+P+S+DPL3+Data
     SetGuestSs(&Ss);
 
     return TRUE;

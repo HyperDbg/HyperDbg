@@ -23,11 +23,13 @@
 typedef struct _NOTIFY_RECORD
 {
     NOTIFY_TYPE Type;
+
     union
     {
         PKEVENT Event;
         PIRP    PendingIrp;
     } Message;
+
     KDPC    Dpc;
     BOOLEAN CheckVmxRootMessagePool; // Set so that notify callback can understand where to check (Vmx root or Vmx non-root)
 } NOTIFY_RECORD, *PNOTIFY_RECORD;

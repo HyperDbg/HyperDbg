@@ -498,11 +498,11 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 // [+0x000 (31:31)] Valid            : 0x1 [Type: unsigned int]
                 // [+0x000] Flags                    : 0x80000b0e [Type: unsigned int]
                 //
-                InterruptInfo.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
-                InterruptInfo.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
-                InterruptInfo.ErrorCodeValid   = TRUE;
-                InterruptInfo.NmiUnblocking    = FALSE;
-                InterruptInfo.Valid            = TRUE;
+                InterruptInfo.Fields.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
+                InterruptInfo.Fields.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
+                InterruptInfo.Fields.ErrorCodeValid   = TRUE;
+                InterruptInfo.Fields.NmiUnblocking    = FALSE;
+                InterruptInfo.Fields.Valid            = TRUE;
 
                 IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, ProcessDebuggingDetail->EntrypointOfMainModule, 0x14);
 

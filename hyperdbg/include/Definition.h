@@ -26,7 +26,6 @@
 typedef RFLAGS * PRFLAGS;
 #endif //USE_LIB_IA32
 
-
 //////////////////////////////////////////////////
 //			 Version Information                //
 //////////////////////////////////////////////////
@@ -726,7 +725,7 @@ typedef struct GUEST_EXTRA_REGISTERS
 //        UINT64 VirtualInterruptFlag : 1;
 //        UINT64 VirtualInterruptPendingFlag : 1;
 //        UINT64 IdentificationFlag : 1;
-//    };
+//    } Fields;
 //
 //    UINT64 Value;
 //} RFLAGS, *PRFLAGS;

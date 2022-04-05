@@ -55,9 +55,8 @@ VmxCheckVmxSupport()
     // {
     //     FeatureControlMsr.Fields.Lock        = TRUE;
     //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
-    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.All);
+    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
     // }
-    // else
 
     if (FeatureControlMsr.EnableVmxOutsideSmx == FALSE)
     {
@@ -305,18 +304,18 @@ VmxPerformVirtualizationOnSpecificCore()
 VOID
 VmxFixCr4AndCr0Bits()
 {
-    CR_FIXED           CrFixed = {0};
-    CR4 Cr4     = {0};
-    CR0 Cr0     = {0};
+    CR_FIXED CrFixed = {0};
+    CR4      Cr4     = {0};
+    CR0      Cr0     = {0};
 
     //
     // Fix Cr0
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED0);
     Cr0.Flags     = __readcr0();
-    Cr0.Flags |= CrFixed.Value.Low;
+    Cr0.Flags |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED1);
-    Cr0.Flags &= CrFixed.Value.Low;
+    Cr0.Flags &= CrFixed.Fields.Low;
     __writecr0(Cr0.Flags);
 
     //
@@ -324,9 +323,9 @@ VmxFixCr4AndCr0Bits()
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED0);
     Cr4.Flags     = __readcr4();
-    Cr4.Flags |= CrFixed.Value.Low;
+    Cr4.Flags |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED1);
-    Cr4.Flags &= CrFixed.Value.Low;
+    Cr4.Flags &= CrFixed.Fields.Low;
     __writecr4(Cr4.Flags);
 }
 
@@ -549,12 +548,12 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 {
-    ULONG                   CpuBasedVmExecControls;
-    ULONG                   SecondaryProcBasedVmExecControls;
-    PVOID                   HostRsp;
-    ULONG64                 GdtBase         = 0;
-    SEGMENT_SELECTOR_refactoring        SegmentSelector = {0};
-    IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
+    ULONG                        CpuBasedVmExecControls;
+    ULONG                        SecondaryProcBasedVmExecControls;
+    PVOID                        HostRsp;
+    ULONG64                      GdtBase         = 0;
+    SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
+    IA32_VMX_BASIC_REGISTER      VmxBasicMsr     = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR

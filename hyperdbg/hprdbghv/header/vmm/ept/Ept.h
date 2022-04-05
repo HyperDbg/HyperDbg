@@ -51,7 +51,6 @@
 #define MSR_IA32_MTRR_PHYSMASK8 0x00000211
 #define MSR_IA32_MTRR_PHYSMASK9 0x00000213
 
-
 /**
  * @brief Page attributes for internal use
  * 
@@ -185,7 +184,6 @@ volatile LONG Pml1ModificationAndInvalidationLock;
 //				Unions & Structs    			//
 //////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////
 //				      typedefs         			 //
 //////////////////////////////////////////////////
@@ -266,11 +264,10 @@ typedef union _EPTP
 		 */
         UINT64 PageFrameNumber : 36;
         UINT64 Reserved2 : 16;
-    };
+    } Fields;
 
     UINT64 Flags;
 } EPTP, *PEPTP;
-
 
 /**
  * @brief MTRR Range Descriptor
@@ -329,7 +326,6 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     LIST_ENTRY DynamicSplitList;
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
-
 
 /**
  * @brief Structure to save the state of each hooked pages

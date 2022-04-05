@@ -31,7 +31,7 @@ IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFO InterruptExi
     //
     // re-write error code (if any)
     //
-    if (InterruptExit.ErrorCodeValid)
+    if (InterruptExit.Fields.ErrorCodeValid)
     {
         //
         // Read the error code
@@ -93,7 +93,7 @@ IdtEmulationHandlePageFaults(_In_ UINT32                CurrentProcessorIndex,
     //
 
     //
-    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
+    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
     CurrentGuestState->IncrementRip = FALSE;
@@ -106,7 +106,7 @@ IdtEmulationHandlePageFaults(_In_ UINT32                CurrentProcessorIndex,
     //
     // re-write error code (if any)
     //
-    if (InterruptExit.ErrorCodeValid)
+    if (InterruptExit.Fields.ErrorCodeValid)
     {
         //
         // Write the error code
@@ -138,8 +138,8 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                   CurrentProcessor
     // NMI, we want to halt the debuggee. We perform the checks here to
     // avoid triggering an event for NMIs when the debuggee requested it
     //
-    if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
-        InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
+    if (InterruptExit.Fields.InterruptionType == INTERRUPT_TYPE_NMI &&
+        InterruptExit.Fields.Vector == EXCEPTION_VECTOR_NMI)
     {
         //
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
@@ -181,7 +181,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                   CurrentProcessor
     // As the context to event trigger, we send the vector
     // or IDT Index
     //
-    DebuggerTriggerEvents(EXCEPTION_OCCURRED, GuestRegs, InterruptExit.Vector);
+    DebuggerTriggerEvents(EXCEPTION_OCCURRED, GuestRegs, InterruptExit.Fields.Vector);
 
     //
     // Now, we check if the guest enabled MTF for instrumentation stepping
@@ -210,7 +210,7 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                   CurrentProcessor
     // Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
     //
 
-    switch (InterruptExit.Vector)
+    switch (InterruptExit.Fields.Vector)
     {
     case EXCEPTION_VECTOR_BREAKPOINT:
 
@@ -416,8 +416,8 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                CurrentProcess
     //
     if ((CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
          CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
-        ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
-         (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
+        ((CurrentProcessorIndex == 0 && InterruptExit.Fields.Vector == CLOCK_INTERRUPT) ||
+         (CurrentProcessorIndex != 0 && InterruptExit.Fields.Vector == IPI_INTERRUPT)))
     {
         //
         // We only handle interrupts that are related to the clock-timer interrupt
@@ -463,7 +463,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                   CurrentProcess
     // Check for immediate vm-exit mechanism
     //
     if (CurrentGuestState->WaitForImmediateVmexit &&
-        InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
+        InterruptExit.Fields.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
     {
         //
         // Disable vm-exit on external interrupts
@@ -526,7 +526,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                   CurrentProcess
         //
         CurrentGuestState->IncrementRip = FALSE;
     }
-    else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
+    else if (InterruptExit.Fields.Valid && InterruptExit.Fields.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
         __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
         __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityState);
@@ -536,7 +536,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                   CurrentProcess
         // guest if guest isn't interruptible (e.g.: guest
         // is blocked by "mov ss", or EFLAGS.IF == 0).
         //
-        Interruptible = GuestRflags.InterruptEnableFlag && !InterruptibilityState.BlockingByMovSs;
+        Interruptible = GuestRflags.InterruptEnableFlag && !InterruptibilityState.Fields.BlockingByMovSs;
 
         if (Interruptible)
         {
@@ -581,7 +581,7 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                   CurrentProcess
     // because the guest is not in a interruptible state and will
     // be re-injected when the guest is ready for interrupts
     //
-    DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
+    DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Fields.Vector);
 }
 
 /**
@@ -651,7 +651,7 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
         //
         // re-write error code (if any)
         //
-        if (InterruptExit.ErrorCodeValid)
+        if (InterruptExit.Fields.ErrorCodeValid)
         {
             //
             // Read the error code

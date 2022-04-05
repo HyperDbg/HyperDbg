@@ -22,7 +22,6 @@
 //				    Structures					//
 //////////////////////////////////////////////////
 
-
 /**
  * @brief General MSR Structure
  * 
@@ -33,7 +32,8 @@ typedef union _MSR
     {
         ULONG Low;
         ULONG High;
-    };
+    } Fields;
 
-    ULONG64 Content;
+    ULONG64 Flags;
+
 } MSR, *PMSR;

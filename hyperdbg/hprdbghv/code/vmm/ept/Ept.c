@@ -567,23 +567,23 @@ EptLogicalProcessorInitialize()
     //
     // For performance, we let the processor know it can cache the EPT
     //
-    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
+    EPTP.Fields.MemoryType = MEMORY_TYPE_WRITE_BACK;
 
     //
     // We are not utilizing the 'access' and 'dirty' flag features
     //
-    EPTP.EnableAccessAndDirtyFlags = FALSE;
+    EPTP.Fields.EnableAccessAndDirtyFlags = FALSE;
 
     //
     // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
     // see Section 28.2.2
     //
-    EPTP.PageWalkLength = 3;
+    EPTP.Fields.PageWalkLength = 3;
 
     //
     // The physical page number of the page table we will be using
     //
-    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
+    EPTP.Fields.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
 
     //
     // We will write the EPTP to the VMCS later

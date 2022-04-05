@@ -23,11 +23,11 @@
 VOID
 EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode)
 {
-    INTERRUPT_INFO Inject = {0};
-    Inject.Valid          = TRUE;
-    Inject.InterruptType  = InterruptionType;
-    Inject.Vector         = Vector;
-    Inject.DeliverCode    = DeliverErrorCode;
+    INTERRUPT_INFO Inject       = {0};
+    Inject.Fields.Valid         = TRUE;
+    Inject.Fields.InterruptType = InterruptionType;
+    Inject.Fields.Vector        = Vector;
+    Inject.Fields.DeliverCode   = DeliverErrorCode;
     __vmx_vmwrite(VM_ENTRY_INTR_INFO, Inject.Flags);
 
     if (DeliverErrorCode)
@@ -119,5 +119,5 @@ EventInjectPageFault(UINT64 PageFaultAddress)
     //
     // Error code is from PAGE_FAULT_ERROR_CODE structure
     //
-    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.All);
+    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.Flags);
 }

@@ -107,7 +107,7 @@ typedef union _INTERRUPT_INFO
         UINT32 DeliverCode : 1; /* 0=Do not deliver, 1=Deliver */
         UINT32 Reserved : 19;
         UINT32 Valid : 1; /* 0=Not valid, 1=Valid. Must be checked first */
-    };
+    } Fields;
     UINT32 Flags;
 } INTERRUPT_INFO, *PINTERRUPT_INFO;
 
