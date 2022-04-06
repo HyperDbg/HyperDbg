@@ -334,8 +334,6 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     char                          AlternateModuleName[_MAX_FNAME] = {0};
     PSYMBOL_LOADED_MODULE_DETAILS ModuleDetails                   = NULL;
 
-    pdbex_main_impl_export(0, NULL);
-
     //
     // Get options
     //

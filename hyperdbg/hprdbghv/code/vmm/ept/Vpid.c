@@ -19,15 +19,21 @@
  * @return VOID
  */
 VOID
-Invvpid_fn(_In_ INVVPID_TYPE Type, _Inout_ INVVPID_DESCRIPTOR * Descriptor)
+Invvpid_fn(_In_ INVVPID_TYPE Type, _In_ INVVPID_DESCRIPTOR * Descriptor)
 {
+    INVVPID_DESCRIPTOR * TargetDescriptor = NULL;
+    INVVPID_DESCRIPTOR   ZeroDescriptor   = {0};
+
     if (!Descriptor)
     {
-        static INVVPID_DESCRIPTOR ZeroDescriptor = {0};
-        Descriptor                               = &ZeroDescriptor;
+        TargetDescriptor = &ZeroDescriptor;
+    }
+    else
+    {
+        TargetDescriptor = Descriptor;
     }
 
-    AsmInvvpid(Type, Descriptor);
+    AsmInvvpid(Type, TargetDescriptor);
 }
 
 /**
