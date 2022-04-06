@@ -1148,7 +1148,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // Reading guest's RIP
         //
-        __vmx_vmread(GUEST_RIP, &GuestRip);
+        __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
 
         //
         // Generally, we should never reach here, we didn't implement HyperDbg like this ;)

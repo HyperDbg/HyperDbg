@@ -57,23 +57,23 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_CS, &Msr);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_ESP, &Msr);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_EIP, &Msr);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmread(GUEST_GS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_GS_BASE, &Msr);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmread(GUEST_FS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_FS_BASE, &Msr);
             break;
 
         default:
@@ -197,23 +197,23 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Flags);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Flags);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Flags);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmwrite(GUEST_GS_BASE, Msr.Flags);
+            __vmx_vmwrite(VMCS_GUEST_GS_BASE, Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmwrite(GUEST_FS_BASE, Msr.Flags);
+            __vmx_vmwrite(VMCS_GUEST_FS_BASE, Msr.Flags);
             break;
 
         default:

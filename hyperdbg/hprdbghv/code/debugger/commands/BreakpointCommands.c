@@ -254,12 +254,12 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                 // instruction is our next instruction in the current execution
                 // context
                 //
-                __vmx_vmread(GUEST_RFLAGS, &Rflags);
+                __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
                 if (Rflags.InterruptEnableFlag)
                 {
                     Rflags.InterruptEnableFlag = FALSE;
-                    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
+                    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
                     //
                     // An indicator to restore RFLAGS if to enabled state
@@ -302,7 +302,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Don't increment rip by default

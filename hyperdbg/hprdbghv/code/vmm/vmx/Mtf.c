@@ -65,9 +65,9 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         {
             RFLAGS Rflags = {0};
 
-            __vmx_vmread(GUEST_RFLAGS, &Rflags);
+            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
             Rflags.InterruptEnableFlag = TRUE;
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Flags);
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
         }
@@ -144,7 +144,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // execution changed from user-mode to kernel-mode or kernel-mode to
         // user-mode
         //
-        __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+        __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
         KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel,
                                          CsSel);

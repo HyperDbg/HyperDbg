@@ -29,7 +29,7 @@ ScriptEngineWrapperGetInstructionPointer()
     //
     if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
     {
-        __vmx_vmread(GUEST_RIP, &GuestRip);
+        __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
         return GuestRip;
     }
     else

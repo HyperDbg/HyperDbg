@@ -21,7 +21,7 @@
  * @return VOID
  */
 VOID
-IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags)
+IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
     UINT16 Port  = 0;
     UINT32 Count = 0;
@@ -67,7 +67,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
         // String operations always operate either on RDI (in) or
         // RSI (out) registers.
         //
-        PortValue.AsPtr = IoQualification.AccessType == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
+        PortValue.AsPtr = IoQualification.DirectionOfAccess == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
     }
     else
     {
@@ -91,7 +91,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
 
     Size = IoQualification.SizeOfAccess + 1;
 
-    switch (IoQualification.AccessType)
+    switch (IoQualification.DirectionOfAccess)
     {
     case AccessIn:
         if (IoQualification.StringInstruction)
@@ -179,7 +179,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
         //
         // For in the register is RDI, for out it's RSI.
         //
-        UINT64 GpReg = IoQualification.AccessType == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
+        UINT64 GpReg = IoQualification.DirectionOfAccess == AccessIn ? GuestRegs->rdi : GuestRegs->rsi;
 
         if (Flags.DirectionFlag)
         {
@@ -212,7 +212,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, 
  * @return VOID
  */
 VOID
-IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags)
+IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
     UINT64 GuestCr3;
     UINT64 OriginalCr3;
