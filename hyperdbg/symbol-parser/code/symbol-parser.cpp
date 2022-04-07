@@ -161,7 +161,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
     }
 
     //
-    // ************* Interpret based on remarks of the "X" command *************
+    // ************* Interpret based on remarks type name *************
     //
     for (auto item : g_LoadedModules)
     {
@@ -1666,4 +1666,49 @@ SymbolAbortLoading()
         g_AbortLoadingExecution = TRUE;
         ShowMessages("\naborting, please wait...\n");
     }
+}
+
+/**
+ * @brief Perform task for showing structures and data
+ * @details used by dt command
+ *
+ * @param TypeName
+ * @param Address
+ * @param BufferAddress
+ * @param AdditionalParameters
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymShowDataBasedOnSymbolTypes(const char * TypeName,
+                              UINT64       Address,
+                              PVOID        BufferAddress,
+                              char *       AdditionalParameters)
+{
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
+
+    //
+    // Find the symbol info (to get the PDB address)
+    //
+    SymbolInfo = SymGetModuleBaseFromSearchMask(TypeName, FALSE);
+
+    if (!SymbolInfo)
+    {
+        //
+        // Symbol not found
+        //
+        return FALSE;
+    }
+
+    //
+    // Static test of pdbex
+    //
+    char * ArgvArray[20];
+    ArgvArray[0] = NULL; // for file name
+    ArgvArray[1] = (char *)TypeName;
+    ArgvArray[2] = SymbolInfo->PdbFilePath;
+
+    pdbex_main_impl_export(3, ArgvArray);
+
+    return TRUE;
 }

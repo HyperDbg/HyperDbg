@@ -53,6 +53,13 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   const char *          SymbolPath,
                                   BOOLEAN               IsSilentLoad);
 
+BOOLEAN
+ScriptEngineShowDataBasedOnSymbolTypesWrapper(
+    const char * TypeName,
+    UINT64       Address,
+    PVOID        BufferAddress,
+    char *       AdditionalParameters);
+
 VOID
 ScriptEngineSymbolAbortLoadingWrapper();
 
