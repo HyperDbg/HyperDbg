@@ -41,10 +41,10 @@ CommandDtHelp()
 VOID
 CommandDt(vector<string> SplittedCommand, string Command)
 {
-    string              TempTypeNameHolder;
-    UINT64              TargetAddress                      = NULL;
-    PVOID               BufferAddressRetrievedFromDebuggee = NULL;
-    std::vector<char *> TempCharArrayVector;
+    std::string TempTypeNameHolder;
+    std::string TempExtraParamHolder;
+    UINT64      TargetAddress                      = NULL;
+    PVOID       BufferAddressRetrievedFromDebuggee = NULL;
 
     if (SplittedCommand.size() == 1)
     {
@@ -52,17 +52,6 @@ CommandDt(vector<string> SplittedCommand, string Command)
         CommandDtHelp();
         return;
     }
-
-    //
-    // Configure default parameters
-    //
-    const int    SizeOfDefaultParams                         = 4;
-    const char * SimpleStructShowParams[SizeOfDefaultParams] = {0};
-
-    SimpleStructShowParams[0] = "-j-";
-    SimpleStructShowParams[1] = "-k-";
-    SimpleStructShowParams[2] = "-e";
-    SimpleStructShowParams[3] = "n";
 
     //
     // Trim the command
@@ -96,8 +85,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
         ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
                                                       NULL,
                                                       NULL,
-                                                      (char *)SimpleStructShowParams,
-                                                      SizeOfDefaultParams);
+                                                      PDBEX_DEFAULT_CONFIGURATION);
     }
     else
     {
@@ -124,6 +112,33 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 // The second argument is also not buffer address
                 // probably the user entered a structure (type) name along with some params
                 //
+                TempTypeNameHolder = TempSplittedCommand.at(0);
+
+                //
+                // Remove the first argument
+                //
+                TempSplittedCommand.erase(TempSplittedCommand.begin());
+
+                //
+                // Concat extra parameters
+                //
+                for (auto item : TempSplittedCommand)
+                {
+                    TempExtraParamHolder = TempExtraParamHolder + " " + item;
+                }
+
+                //
+                // removes first space character
+                //
+                TempExtraParamHolder.erase(0, 1);
+
+                //
+                // Call the wrapper of pdbex
+                //
+                ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
+                                                              TargetAddress,
+                                                              BufferAddressRetrievedFromDebuggee,
+                                                              TempExtraParamHolder.c_str());
             }
             else
             {
@@ -131,13 +146,60 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 // The second argument is a buffer address
                 // The user entered a structure (type) name along with buffer address
                 //
+                if (TempSplittedCommand.size() == 2)
+                {
+                    //
+                    // There is not parameters, only a symbol name and then a buffer address
+                    // Call it with default configuration
+                    //
+                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
+                                                                  TargetAddress,
+                                                                  BufferAddressRetrievedFromDebuggee,
+                                                                  PDBEX_DEFAULT_CONFIGURATION);
+                }
+                else
+                {
+                    //
+                    // Other than the first argument which is a structure (type) name, and
+                    // the second argument which is buffer address, there are other parameters, so
+                    // we WON'T call it with default parameters
+                    //
+                    TempTypeNameHolder = TempSplittedCommand.at(0);
+
+                    //
+                    // Remove the first, and the second arguments
+                    //
+                    TempSplittedCommand.erase(TempSplittedCommand.begin());
+                    TempSplittedCommand.erase(TempSplittedCommand.begin());
+
+                    //
+                    // Concat extra parameters
+                    //
+                    for (auto item : TempSplittedCommand)
+                    {
+                        TempExtraParamHolder = TempExtraParamHolder + " " + item;
+                    }
+
+                    //
+                    // removes first space character
+                    //
+                    TempExtraParamHolder.erase(0, 1);
+
+                    //
+                    // Call the wrapper of pdbex
+                    //
+                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
+                                                                  TargetAddress,
+                                                                  BufferAddressRetrievedFromDebuggee,
+                                                                  TempExtraParamHolder.c_str());
+                }
             }
         }
         else
         {
             //
             // The first argument is a buffer address, so we get the first argument as
-            // a buffer address and the second argument as the the structure (type) name
+            // a buffer address and the second argument as the structure (type) name
             //
             if (TempSplittedCommand.size() == 2)
             {
@@ -148,8 +210,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(1).c_str(),
                                                               TargetAddress,
                                                               BufferAddressRetrievedFromDebuggee,
-                                                              (char *)SimpleStructShowParams,
-                                                              SizeOfDefaultParams);
+                                                              PDBEX_DEFAULT_CONFIGURATION);
             }
             else
             {
@@ -167,12 +228,17 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 TempSplittedCommand.erase(TempSplittedCommand.begin());
 
                 //
-                // Convert it to char* array (argv)
+                // Concat extra parameters
                 //
-                std::transform(TempSplittedCommand.begin(),
-                               TempSplittedCommand.end(),
-                               std::back_inserter(TempCharArrayVector),
-                               ConvertStringVectorToCharPointerArray);
+                for (auto item : TempSplittedCommand)
+                {
+                    TempExtraParamHolder = TempExtraParamHolder + " " + item;
+                }
+
+                //
+                // removes first space character
+                //
+                TempExtraParamHolder.erase(0, 1);
 
                 //
                 // Call the wrapper of pdbex
@@ -180,17 +246,8 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
                                                               TargetAddress,
                                                               BufferAddressRetrievedFromDebuggee,
-                                                              TempCharArrayVector[0],
-                                                              TempCharArrayVector.size());
+                                                              TempExtraParamHolder.c_str());
             }
         }
-    }
-
-    //
-    // Remove the temporary vector array if anything is allocated
-    //
-    for (size_t i = 0; i < TempCharArrayVector.size(); i++)
-    {
-        delete[] TempCharArrayVector[i];
     }
 }

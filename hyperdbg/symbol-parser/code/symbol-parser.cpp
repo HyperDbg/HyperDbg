@@ -1676,7 +1676,6 @@ SymbolAbortLoading()
  * @param Address
  * @param BufferAddress
  * @param AdditionalParameters
- * @param AdditionalParametersSize
  * 
  * @return BOOLEAN
  */
@@ -1684,8 +1683,7 @@ BOOLEAN
 SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               UINT64       Address,
                               PVOID        BufferAddress,
-                              char *       AdditionalParameters,
-                              UINT32       AdditionalParametersSize)
+                              const char * AdditionalParameters)
 {
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
     UINT32                        SizeOfArgv = 0;
@@ -1702,33 +1700,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
         return FALSE;
     }
 
-    //
-    // Allocate array of calling the pdbex,
-    // + 1 : for file name
-    // + 1 : for type name
-    // + 1 : path of PDB file
-    // + AdditionalParametersSize
-    //
-    SizeOfArgv        = 1 + 1 + 1 + AdditionalParametersSize;
-    char ** ArgvArray = (char **)malloc(sizeof(char *) * (SizeOfArgv));
-
-    if (!ArgvArray)
-    {
-        return FALSE;
-    }
-
-    ArgvArray[0] = NULL; // for file name
-    ArgvArray[1] = (char *)TypeName;
-    ArgvArray[2] = SymbolInfo->PdbFilePath;
-
-    if (AdditionalParametersSize != 0)
-    {
-        memcpy(&ArgvArray[3], AdditionalParameters, sizeof(char *) * (AdditionalParametersSize));
-    }
-
-    pdbex_main_impl_export(SizeOfArgv, ArgvArray);
-
-    free(ArgvArray);
+    // pdbex_main_impl_export(SizeOfArgv, ArgvArray);
 
     return TRUE;
 }

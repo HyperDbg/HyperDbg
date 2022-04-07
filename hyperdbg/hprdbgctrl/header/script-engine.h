@@ -58,8 +58,7 @@ ScriptEngineShowDataBasedOnSymbolTypesWrapper(
     const char * TypeName,
     UINT64       Address,
     PVOID        BufferAddress,
-    char *       AdditionalParameters,
-    UINT32       AdditionalParametersSize);
+    const char * AdditionalParameters);
 
 VOID
 ScriptEngineSymbolAbortLoadingWrapper();
