@@ -3179,7 +3179,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestDsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestDsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3194,7 +3194,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestEsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestEsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3209,7 +3209,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestFsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestFsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3224,7 +3224,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestGsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestGsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3239,7 +3239,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestCsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestCsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3254,7 +3254,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestSsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestSsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;

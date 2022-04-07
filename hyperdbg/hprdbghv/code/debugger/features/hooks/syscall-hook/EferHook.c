@@ -112,7 +112,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR_refactoring Cs, Ss;
+    VMX_SEGMENT_SELECTOR Cs, Ss;
     UINT32                       InstructionLength;
     UINT64                       MsrValue;
     ULONG64                      GuestRip;
@@ -178,7 +178,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR_refactoring Cs, Ss;
+    VMX_SEGMENT_SELECTOR Cs, Ss;
     UINT64                       MsrValue;
     ULONG64                      GuestRip;
     ULONG64                      GuestRflags;

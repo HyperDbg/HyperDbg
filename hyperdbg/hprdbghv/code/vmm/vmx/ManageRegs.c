@@ -19,7 +19,7 @@
  * @return VOID 
  */
 VOID
-SetGuestCsSel(PSEGMENT_SELECTOR Cs)
+SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
 {
     __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->SEL);
 }
@@ -32,7 +32,7 @@ SetGuestCsSel(PSEGMENT_SELECTOR Cs)
  */
 
 VOID
-SetGuestCs(PSEGMENT_SELECTOR Cs)
+SetGuestCs(PVMX_SEGMENT_SELECTOR Cs)
 {
     __vmx_vmwrite(VMCS_GUEST_CS_BASE, Cs->BASE);
     __vmx_vmwrite(VMCS_GUEST_CS_LIMIT, Cs->LIMIT);
@@ -45,10 +45,10 @@ SetGuestCs(PSEGMENT_SELECTOR Cs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestCs()
 {
-    SEGMENT_SELECTOR_refactoring Cs;
+    VMX_SEGMENT_SELECTOR Cs;
 
     __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.BASE);
     __vmx_vmread(VMCS_GUEST_CS_LIMIT, &Cs.LIMIT);
@@ -65,7 +65,7 @@ GetGuestCs()
  * @return VOID 
  */
 VOID
-SetGuestSsSel(PSEGMENT_SELECTOR Ss)
+SetGuestSsSel(PVMX_SEGMENT_SELECTOR Ss)
 {
     __vmx_vmwrite(VMCS_GUEST_SS_SELECTOR, Ss->SEL);
 }
@@ -77,7 +77,7 @@ SetGuestSsSel(PSEGMENT_SELECTOR Ss)
  * @return VOID 
  */
 VOID
-SetGuestSs(PSEGMENT_SELECTOR Ss)
+SetGuestSs(PVMX_SEGMENT_SELECTOR Ss)
 {
     __vmx_vmwrite(VMCS_GUEST_SS_BASE, Ss->BASE);
     __vmx_vmwrite(VMCS_GUEST_SS_LIMIT, Ss->LIMIT);
@@ -90,10 +90,10 @@ SetGuestSs(PSEGMENT_SELECTOR Ss)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestSs()
 {
-    SEGMENT_SELECTOR_refactoring Ss;
+    VMX_SEGMENT_SELECTOR Ss;
 
     __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.BASE);
     __vmx_vmread(VMCS_GUEST_SS_LIMIT, &Ss.LIMIT);
@@ -110,7 +110,7 @@ GetGuestSs()
  * @return VOID 
  */
 VOID
-SetGuestDsSel(PSEGMENT_SELECTOR Ds)
+SetGuestDsSel(PVMX_SEGMENT_SELECTOR Ds)
 {
     __vmx_vmwrite(VMCS_GUEST_DS_SELECTOR, Ds->SEL);
 }
@@ -122,7 +122,7 @@ SetGuestDsSel(PSEGMENT_SELECTOR Ds)
  * @return VOID 
  */
 VOID
-SetGuestDs(PSEGMENT_SELECTOR Ds)
+SetGuestDs(PVMX_SEGMENT_SELECTOR Ds)
 {
     __vmx_vmwrite(VMCS_GUEST_DS_BASE, Ds->BASE);
     __vmx_vmwrite(VMCS_GUEST_DS_LIMIT, Ds->LIMIT);
@@ -135,10 +135,10 @@ SetGuestDs(PSEGMENT_SELECTOR Ds)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestDs()
 {
-    SEGMENT_SELECTOR_refactoring Ds;
+    VMX_SEGMENT_SELECTOR Ds;
 
     __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.BASE);
     __vmx_vmread(VMCS_GUEST_DS_LIMIT, &Ds.LIMIT);
@@ -155,7 +155,7 @@ GetGuestDs()
  * @return VOID 
  */
 VOID
-SetGuestFsSel(PSEGMENT_SELECTOR Fs)
+SetGuestFsSel(PVMX_SEGMENT_SELECTOR Fs)
 {
     __vmx_vmwrite(VMCS_GUEST_FS_SELECTOR, Fs->SEL);
 }
@@ -167,7 +167,7 @@ SetGuestFsSel(PSEGMENT_SELECTOR Fs)
  * @return VOID 
  */
 VOID
-SetGuestFs(PSEGMENT_SELECTOR Fs)
+SetGuestFs(PVMX_SEGMENT_SELECTOR Fs)
 {
     __vmx_vmwrite(VMCS_GUEST_FS_BASE, Fs->BASE);
     __vmx_vmwrite(VMCS_GUEST_FS_LIMIT, Fs->LIMIT);
@@ -180,10 +180,10 @@ SetGuestFs(PSEGMENT_SELECTOR Fs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestFs()
 {
-    SEGMENT_SELECTOR_refactoring Fs;
+    VMX_SEGMENT_SELECTOR Fs;
 
     __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.BASE);
     __vmx_vmread(VMCS_GUEST_FS_LIMIT, &Fs.LIMIT);
@@ -200,7 +200,7 @@ GetGuestFs()
  * @return VOID 
  */
 VOID
-SetGuestGsSel(PSEGMENT_SELECTOR Gs)
+SetGuestGsSel(PVMX_SEGMENT_SELECTOR Gs)
 {
     __vmx_vmwrite(VMCS_GUEST_GS_SELECTOR, Gs->SEL);
 }
@@ -212,7 +212,7 @@ SetGuestGsSel(PSEGMENT_SELECTOR Gs)
  * @return VOID 
  */
 VOID
-SetGuestGs(PSEGMENT_SELECTOR Gs)
+SetGuestGs(PVMX_SEGMENT_SELECTOR Gs)
 {
     __vmx_vmwrite(VMCS_GUEST_GS_BASE, Gs->BASE);
     __vmx_vmwrite(VMCS_GUEST_GS_LIMIT, Gs->LIMIT);
@@ -225,10 +225,10 @@ SetGuestGs(PSEGMENT_SELECTOR Gs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestGs()
 {
-    SEGMENT_SELECTOR_refactoring Gs;
+    VMX_SEGMENT_SELECTOR Gs;
 
     __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.BASE);
     __vmx_vmread(VMCS_GUEST_GS_LIMIT, &Gs.LIMIT);
@@ -245,7 +245,7 @@ GetGuestGs()
  * @return VOID 
  */
 VOID
-SetGuestEsSel(PSEGMENT_SELECTOR Es)
+SetGuestEsSel(PVMX_SEGMENT_SELECTOR Es)
 {
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR, Es->SEL);
 }
@@ -257,7 +257,7 @@ SetGuestEsSel(PSEGMENT_SELECTOR Es)
  * @return VOID 
  */
 VOID
-SetGuestEs(PSEGMENT_SELECTOR Es)
+SetGuestEs(PVMX_SEGMENT_SELECTOR Es)
 {
     __vmx_vmwrite(VMCS_GUEST_ES_BASE, Es->BASE);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT, Es->LIMIT);
@@ -270,10 +270,10 @@ SetGuestEs(PSEGMENT_SELECTOR Es)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR_refactoring
+VMX_SEGMENT_SELECTOR
 GetGuestEs()
 {
-    SEGMENT_SELECTOR_refactoring Es;
+    VMX_SEGMENT_SELECTOR Es;
 
     __vmx_vmread(VMCS_GUEST_ES_BASE, &Es.BASE);
     __vmx_vmread(VMCS_GUEST_ES_LIMIT, &Es.LIMIT);

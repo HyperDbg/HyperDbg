@@ -19,7 +19,7 @@
  * @return VOID
  */
 VOID
-Invvpid_fn(_In_ INVVPID_TYPE Type, _In_ INVVPID_DESCRIPTOR * Descriptor)
+VpidInvvpid(_In_ INVVPID_TYPE Type, _In_ INVVPID_DESCRIPTOR * Descriptor)
 {
     INVVPID_DESCRIPTOR * TargetDescriptor = NULL;
     INVVPID_DESCRIPTOR   ZeroDescriptor   = {0};
@@ -44,10 +44,10 @@ Invvpid_fn(_In_ INVVPID_TYPE Type, _In_ INVVPID_DESCRIPTOR * Descriptor)
  * @return VOID
  */
 VOID
-InvvpidIndividualAddress_fn(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress)
+VpidInvvpidIndividualAddress(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, LinearAddress};
-    Invvpid_fn(InvvpidIndividualAddress, &Descriptor);
+    VpidInvvpid(InvvpidIndividualAddress, &Descriptor);
 }
 
 /**
@@ -57,10 +57,10 @@ InvvpidIndividualAddress_fn(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress)
  * @return VOID
  */
 VOID
-InvvpidSingleContext_fn(_In_ UINT16 Vpid)
+VpidInvvpidSingleContext(_In_ UINT16 Vpid)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, 0};
-    Invvpid_fn(InvvpidSingleContext, &Descriptor);
+    VpidInvvpid(InvvpidSingleContext, &Descriptor);
 }
 
 /**
@@ -69,9 +69,9 @@ InvvpidSingleContext_fn(_In_ UINT16 Vpid)
  * @return VOID
  */
 VOID
-InvvpidAllContexts_fn()
+VpidInvvpidAllContext()
 {
-    Invvpid_fn(InvvpidAllContext, NULL);
+    VpidInvvpid(InvvpidAllContext, NULL);
 }
 
 /**
@@ -81,8 +81,8 @@ InvvpidAllContexts_fn()
  * @return VOID
  */
 VOID
-InvvpidSingleContextRetainingGlobals_fn(_In_ UINT16 Vpid)
+VpidInvvpidSingleContextRetainingGlobals(_In_ UINT16 Vpid)
 {
     INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, 0};
-    Invvpid_fn(InvvpidSingleContextRetainingGlobals, &Descriptor);
+    VpidInvvpid(InvvpidSingleContextRetainingGlobals, &Descriptor);
 }

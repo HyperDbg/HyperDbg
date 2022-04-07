@@ -231,7 +231,7 @@ SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
  * @return BOOLEAN 
  */
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
+GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
 {
     PSEGMENT_DESCRIPTOR SegDesc;
 

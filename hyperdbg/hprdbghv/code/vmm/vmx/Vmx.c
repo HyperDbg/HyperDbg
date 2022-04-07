@@ -552,7 +552,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     ULONG                        SecondaryProcBasedVmExecControls;
     PVOID                        HostRsp;
     ULONG64                      GdtBase         = 0;
-    SEGMENT_SELECTOR_refactoring SegmentSelector = {0};
+    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
     IA32_VMX_BASIC_REGISTER      VmxBasicMsr     = {0};
 
     //

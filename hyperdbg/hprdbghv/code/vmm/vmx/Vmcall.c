@@ -59,7 +59,7 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
         case HvCallFlushVirtualAddressSpaceEx:
         case HvCallFlushVirtualAddressListEx:
         {
-            InvvpidAllContexts_fn();
+            VpidInvvpidAllContext();
             break;
         }
         case HvCallFlushGuestPhysicalAddressSpace:

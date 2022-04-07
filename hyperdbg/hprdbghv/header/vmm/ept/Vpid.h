@@ -34,16 +34,16 @@
 //////////////////////////////////////////////////
 
 VOID
-Invvpid_fn(_In_ INVVPID_TYPE Type, _Inout_ INVVPID_DESCRIPTOR * Descriptor);
+VpidInvvpid(_In_ INVVPID_TYPE Type, _Inout_ INVVPID_DESCRIPTOR * Descriptor);
 
 VOID
-InvvpidIndividualAddress_fn(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress);
+VpidInvvpidIndividualAddress(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress);
 
 VOID
-InvvpidSingleContext_fn(_In_ UINT16 Vpid);
+VpidInvvpidSingleContext(_In_ UINT16 Vpid);
 
 VOID
-InvvpidAllContexts_fn();
+VpidInvvpidAllContext();
 
 VOID
-InvvpidSingleContextRetainingGlobals_fn(_In_ UINT16 Vpid);
+VpidInvvpidSingleContextRetainingGlobals(_In_ UINT16 Vpid);

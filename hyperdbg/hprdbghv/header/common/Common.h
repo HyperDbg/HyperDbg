@@ -295,14 +295,13 @@ typedef struct _SEGMENT_DESCRIPTOR
  * 
  */
 
-// TODO : replace with SEGMENT_SELECTOR_refac
-typedef struct _SEGMENT_SELECTOR
+typedef struct _VMX_SEGMENT_SELECTOR
 {
     USHORT             SEL;
     SEGMENT_ATTRIBUTES ATTRIBUTES;
     ULONG32            LIMIT;
     ULONG64            BASE;
-} SEGMENT_SELECTOR_refactoring, *PSEGMENT_SELECTOR;
+} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
  * @brief CPUID Registers
@@ -713,7 +712,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
  * 
  */
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
+GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
 
 /**
  * @brief Kill a process using different methods
