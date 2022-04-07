@@ -58,17 +58,17 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
         case HvFlushVirtualAddressList:
         case HvCallFlushVirtualAddressSpaceEx:
         case HvCallFlushVirtualAddressListEx:
-        {
+
             VpidInvvpidAllContext();
             break;
-        }
+
         case HvCallFlushGuestPhysicalAddressSpace:
         case HvCallFlushGuestPhysicalAddressList:
-        {
+
             InveptSingleContext_fn(g_EptState->EptPointer.Flags);
             break;
         }
-        }
+
         //
         // Let the top-level hypervisor to manage it
         //

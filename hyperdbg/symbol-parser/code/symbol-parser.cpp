@@ -1685,8 +1685,11 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               PVOID        BufferAddress,
                               const char * AdditionalParameters)
 {
+    vector<string>                SplitedsymPath;
+    char **                       ArgvArray  = NULL;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
     UINT32                        SizeOfArgv = 0;
+
     //
     // Find the symbol info (to get the PDB address)
     //
@@ -1697,10 +1700,70 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
         //
         // Symbol not found
         //
+        ShowMessages("err, couldn't resolve error at '%s'\n", TypeName);
+
         return FALSE;
     }
 
-    // pdbex_main_impl_export(SizeOfArgv, ArgvArray);
+    //
+    // Convert char* to string
+    //
+    std::string TypeNameString(AdditionalParameters);
+
+    //
+    // Split the arguments by space
+    //
+    SplitedsymPath = Split(TypeNameString, ' ');
+
+    //
+    // Allocate buffer to convert it to the char*
+    // + 3 is because of
+    //      1. file name
+    //      2. type (structure) name
+    //      3. PDB file location
+    //
+    SizeOfArgv = SplitedsymPath.size() + 3;
+    ArgvArray  = (char **)malloc(SizeOfArgv * sizeof(char *));
+
+    if (ArgvArray == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(ArgvArray, SizeOfArgv * sizeof(char *));
+
+    //
+    // First argument is the file name, we let it blank
+    //
+    ArgvArray[0] = NULL;
+
+    //
+    // Second argument is the type (structure) name
+    //
+    ArgvArray[1] = (char *)TypeName;
+
+    //
+    // Third argument is the PDB file location
+    //
+    ArgvArray[2] = SymbolInfo->PdbFilePath;
+
+    //
+    // Fill the parameter with char array
+    //
+    for (size_t i = 3; i < SizeOfArgv; i++)
+    {
+        ArgvArray[i] = (char *)SplitedsymPath.at(i - 3).c_str();
+    }
+
+    //
+    // Call the pdbex wrapper
+    //
+    pdbex_main_impl_export(SizeOfArgv, ArgvArray);
+
+    //
+    // Free the buffer allocated for argv
+    //
+    free(ArgvArray);
 
     return TRUE;
 }
