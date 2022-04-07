@@ -88,6 +88,9 @@ FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);
 size_t
 FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos);
 
+char *
+ConvertStringVectorToCharPointerArray(const std::string & s);
+
 std::vector<std::string>
 ListDirectory(const std::string & Directory, const std::string & Extension);
 

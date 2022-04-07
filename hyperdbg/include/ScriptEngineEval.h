@@ -225,7 +225,7 @@ __declspec(dllimport) BOOLEAN
 __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllimport) BOOLEAN
-    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, PVOID BufferAddress, char * AdditionalParameters);
+    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, PVOID BufferAddress, char * AdditionalParameters, UINT32 AdditionalParametersSize);
 __declspec(dllimport) VOID
     ScriptEngineSymbolAbortLoading();
 }
