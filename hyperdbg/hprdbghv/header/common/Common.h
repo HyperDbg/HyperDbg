@@ -290,6 +290,10 @@ typedef struct _SEGMENT_DESCRIPTOR
     UINT8  BaseHigh;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
 
+
+#define refactoring_test
+
+#ifdef refactoring_test
 //0x10 bytes (sizeof)
 typedef union _KGDTENTRY64
 {
@@ -329,6 +333,7 @@ typedef union _KGDTENTRY64
     };
     LONGLONG DataHigh; //0x8
 } KGDTENTRY64, *PKGDTENTRY64;
+#endif
 
 /**
  * @brief Segment selector
@@ -337,10 +342,28 @@ typedef union _KGDTENTRY64
 
 typedef struct _VMX_SEGMENT_SELECTOR
 {
+#ifdef refactoring_test
+    UINT64 Base;
+    UINT32 Limit;
+    union
+    {
+        struct
+        {
+            UINT8 Flags1;
+            UINT8 Flags2;
+            UINT8 Flags3;
+            UINT8 Flags4;
+        } Bytes;
+        VMX_SEGMENT_ACCESS_RIGHTS Attributes;
+        UINT32                    AccessRights;
+    };
+    UINT16 Selector;
+#else
     UINT16             Selector;
     SEGMENT_ATTRIBUTES Attributes;
     UINT32             Limit;
     UINT64             Base;
+#endif
 } VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
