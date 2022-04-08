@@ -21,7 +21,7 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    VMEXIT_INTERRUPT_INFO                 InterruptExit         = {0};
+    VMEXIT_INTERRUPT_INFORMATION                 InterruptExit         = {0};
     VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification       = {0};
     RFLAGS                                Flags                 = {0};
     UINT64                                GuestPhysicalAddr     = 0;

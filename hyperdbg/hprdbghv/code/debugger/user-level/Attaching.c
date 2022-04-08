@@ -476,7 +476,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 //
                 // Inject #PF
                 //
-                VMEXIT_INTERRUPT_INFO InterruptInfo = {0};
+                VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
 
                 //
                 // We're waiting for this pointer to be called again after handling page-fault
@@ -498,11 +498,11 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 // [+0x000 (31:31)] Valid            : 0x1 [Type: unsigned int]
                 // [+0x000] Flags                    : 0x80000b0e [Type: unsigned int]
                 //
-                InterruptInfo.Fields.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
-                InterruptInfo.Fields.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
-                InterruptInfo.Fields.ErrorCodeValid   = TRUE;
-                InterruptInfo.Fields.NmiUnblocking    = FALSE;
-                InterruptInfo.Fields.Valid            = TRUE;
+                InterruptInfo.Vector           = EXCEPTION_VECTOR_PAGE_FAULT;
+                InterruptInfo.InterruptionType = INTERRUPT_TYPE_HARDWARE_EXCEPTION;
+                InterruptInfo.ErrorCodeValid   = TRUE;
+                InterruptInfo.NmiUnblocking    = FALSE;
+                InterruptInfo.Valid            = TRUE;
 
                 IdtEmulationHandlePageFaults(CurrentProcessorIndex, InterruptInfo, ProcessDebuggingDetail->EntrypointOfMainModule, 0x14);
 
@@ -632,11 +632,11 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
-                                         PGUEST_REGS           GuestRegs,
-                                         VMEXIT_INTERRUPT_INFO InterruptExit,
-                                         UINT64                Address,
-                                         ULONG                 ErrorCode)
+AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentProcessorIndex,
+                                         PGUEST_REGS                  GuestRegs,
+                                         VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                         UINT64                       Address,
+                                         ULONG                        ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 
