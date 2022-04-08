@@ -254,24 +254,24 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 /**
- * @brief Segment attributes
+ * @brief Attribute for segment selector. This is a copy of bit 40:47 & 52:55 of the
+ * segment descriptor. 
  * 
  */
 typedef union _SEGMENT_ATTRIBUTES
 {
-    USHORT Flags;
+    UINT16 Flags;
     struct
     {
-        USHORT TYPE : 4; /* 0;  Bit 40-43 */
-        USHORT S : 1;    /* 4;  Bit 44 */
-        USHORT DPL : 2;  /* 5;  Bit 45-46 */
-        USHORT P : 1;    /* 7;  Bit 47 */
-
-        USHORT AVL : 1; /* 8;  Bit 52 */
-        USHORT L : 1;   /* 9;  Bit 53 */
-        USHORT DB : 1;  /* 10; Bit 54 */
-        USHORT G : 1;   /* 11; Bit 55 */
-        USHORT GAP : 4;
+        UINT16 Type : 4;                     /* 0;  Bit 40-43 */
+        UINT16 DescriptorType : 1;           /* 4;  Bit 44 */
+        UINT16 DescriptorPrivilegeLevel : 2; /* 5;  Bit 45-46 */
+        UINT16 Present : 1;                  /* 7;  Bit 47 */
+        UINT16 AvailableBit : 1;             /* 8;  Bit 52 */
+        UINT16 LongMode : 1;                 /* 9;  Bit 53 */
+        UINT16 DefaultBig : 1;               /* 10; Bit 54 */
+        UINT16 Granularity : 1;              /* 11; Bit 55 */
+        UINT16 Reserved1 : 4;
 
     } Fields;
 } SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
@@ -282,13 +282,53 @@ typedef union _SEGMENT_ATTRIBUTES
  */
 typedef struct _SEGMENT_DESCRIPTOR
 {
-    USHORT LIMIT0;
-    USHORT BASE0;
-    UCHAR  BASE1;
-    UCHAR  ATTR0;
-    UCHAR  LIMIT1ATTR1;
-    UCHAR  BASE2;
+    UINT16 LimitLow;
+    UINT16 BaseLow;
+    UINT8  BaseMiddle;
+    UINT8  ATTR0;
+    UINT8  LIMIT1ATTR1;
+    UINT8  BaseHigh;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
+
+//0x10 bytes (sizeof)
+typedef union _KGDTENTRY64
+{
+    struct
+    {
+        UINT16 LimitLow; //0x0
+        UINT16 BaseLow;  //0x2
+    };
+    struct
+    {
+        UINT8 BaseMiddle; //0x4
+        UINT8 Flags1;     //0x5
+        UINT8 Flags2;     //0x6
+        UINT8 BaseHigh;   //0x7
+    } Bytes;              //0x4
+    struct
+    {
+        struct
+        {
+            UINT32 BaseMiddle : 8;               //0x4
+            UINT32 DescriptorType : 5;           //0x4
+            UINT32 DescriptorPrivilegeLevel : 2; //0x4
+            UINT32 Present : 1;                  //0x4
+            UINT32 LimitHigh : 4;                //0x4
+            UINT32 AvailableBit : 1;             //0x4
+            UINT32 LongMode : 1;                 //0x4
+            UINT32 DefaultBig : 1;               //0x4
+            UINT32 Granularity : 1;              //0x4
+            UINT32 BaseHigh : 8;                 //0x4
+        } Bits;                                  //0x4
+        ULONG BaseUpper;                         //0x8
+    };
+    struct
+    {
+        ULONG    MustBeZero; //0xc
+        LONGLONG DataLow;    //0x0
+    };
+    LONGLONG DataHigh; //0x8
+} KGDTENTRY64, *PKGDTENTRY64;
 
 /**
  * @brief Segment selector
@@ -297,10 +337,10 @@ typedef struct _SEGMENT_DESCRIPTOR
 
 typedef struct _VMX_SEGMENT_SELECTOR
 {
-    USHORT             SEL;
-    SEGMENT_ATTRIBUTES ATTRIBUTES;
-    ULONG32            LIMIT;
-    ULONG64            BASE;
+    UINT16             Selector;
+    SEGMENT_ATTRIBUTES Attributes;
+    UINT32             Limit;
+    UINT64             Base;
 } VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
@@ -712,7 +752,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
  * 
  */
 BOOLEAN
-GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
+GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector, PUCHAR GdtBase);
 
 /**
  * @brief Kill a process using different methods

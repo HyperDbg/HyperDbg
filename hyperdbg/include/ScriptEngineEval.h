@@ -2143,7 +2143,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestDs().SEL;
+        return GetGuestDs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2155,7 +2155,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestEs().SEL;
+        return GetGuestEs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2167,7 +2167,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestFs().SEL;
+        return GetGuestFs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2179,7 +2179,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestGs().SEL;
+        return GetGuestGs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2191,7 +2191,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestCs().SEL;
+        return GetGuestCs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2203,7 +2203,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestSs().SEL;
+        return GetGuestSs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;

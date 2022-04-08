@@ -45,15 +45,15 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
     ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
     if (!Selector)
         AccessRights |= 0x10000;
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.LIMIT);
+    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
     __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.BASE);
+    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
 }
@@ -295,15 +295,15 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
     ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
     if (!Selector)
         AccessRights |= 0x10000;
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.LIMIT);
+    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
     __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
-    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.BASE);
+    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
 /**
@@ -656,7 +656,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
     Cs = GetGuestCs();
 
-    if (Cs.ATTRIBUTES.Fields.DPL != 0)
+    if (Cs.Attributes.Fields.DescriptorPrivilegeLevel != 0)
     {
         EventInjectGeneralProtection();
 
