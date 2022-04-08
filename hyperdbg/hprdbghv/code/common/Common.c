@@ -253,7 +253,6 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
     //
     SegDesc = (PSEGMENT_DESCRIPTOR)((PUCHAR)GdtBase + (Selector & ~0x7));
 
-#ifndef refactoring_test
     SegmentSelector->Selector         = Selector;
     SegmentSelector->Base             = SegDesc->BaseLow | SegDesc->BaseMiddle << 16 | SegDesc->BaseHigh << 24;
     SegmentSelector->Limit            = SegDesc->LimitLow | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
@@ -282,62 +281,6 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
     }
 
     return TRUE;
-#else
-
-    //
-    // Test _KGDTENTRY64
-    // @Begin
-    //
-
-    PVMX_SEGMENT_SELECTOR VmxGdtEntry = GdtBase;
-
-    PKGDTENTRY64 gdtEntry;
-    gdtEntry = (PKGDTENTRY64)((PUCHAR)GdtBase + (Selector & ~0x7));
-
-    SegmentSelector->Selector = Selector;
-    SegmentSelector->Limit    = __segmentlimit(Selector);
-    SegmentSelector->Base     = ((gdtEntry->Bytes.BaseHigh << 24) | (gdtEntry->Bytes.BaseMiddle << 16) | (gdtEntry->BaseLow));
-
-    //
-    // Load the access rights
-    //
-    VmxGdtEntry->AccessRights = 0;
-    VmxGdtEntry->Bytes.Flags1 = gdtEntry->Bytes.Flags1;
-    VmxGdtEntry->Bytes.Flags2 = gdtEntry->Bytes.Flags2;
-
-    //
-    // Finally, handle the VMX-specific bits
-    //
-    VmxGdtEntry->Attributes.Reserved1 = 0;
-    VmxGdtEntry->Attributes.Unusable  = !gdtEntry->Bits.Present;
-
-    if ((gdtEntry->Bits.DescriptorType & 0x10) == 0)
-    {
-        //
-        // LA_ACCESSED
-        //
-        ULONG64 tmp;
-
-        //
-        // this is a TSS or callgate etc, save the base high part
-        //
-        tmp                   = ((uintptr_t)gdtEntry->BaseUpper);
-        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (tmp << 32);
-    }
-    if (SegmentSelector->Attributes.Granularity)
-    {
-        //
-        // 4096-bit granularity is enabled for this segment, scale the limit
-        //
-        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
-    }
-
-    return TRUE;
-
-    //
-    // @end
-    //
-#endif
 }
 
 /**

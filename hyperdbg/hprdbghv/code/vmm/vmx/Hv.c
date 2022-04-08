@@ -656,7 +656,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
     Cs = GetGuestCs();
 
-    if (Cs.Attributes.DescriptorPrivilegeLevel != 0)
+    if (Cs.Attributes.Fields.DescriptorPrivilegeLevel != 0)
     {
         EventInjectGeneralProtection();
 

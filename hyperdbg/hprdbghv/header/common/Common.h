@@ -290,51 +290,6 @@ typedef struct _SEGMENT_DESCRIPTOR
     UINT8  BaseHigh;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
 
-
-#define refactoring_test
-
-#ifdef refactoring_test
-//0x10 bytes (sizeof)
-typedef union _KGDTENTRY64
-{
-    struct
-    {
-        UINT16 LimitLow; //0x0
-        UINT16 BaseLow;  //0x2
-    };
-    struct
-    {
-        UINT8 BaseMiddle; //0x4
-        UINT8 Flags1;     //0x5
-        UINT8 Flags2;     //0x6
-        UINT8 BaseHigh;   //0x7
-    } Bytes;              //0x4
-    struct
-    {
-        struct
-        {
-            UINT32 BaseMiddle : 8;               //0x4
-            UINT32 DescriptorType : 5;           //0x4
-            UINT32 DescriptorPrivilegeLevel : 2; //0x4
-            UINT32 Present : 1;                  //0x4
-            UINT32 LimitHigh : 4;                //0x4
-            UINT32 AvailableBit : 1;             //0x4
-            UINT32 LongMode : 1;                 //0x4
-            UINT32 DefaultBig : 1;               //0x4
-            UINT32 Granularity : 1;              //0x4
-            UINT32 BaseHigh : 8;                 //0x4
-        } Bits;                                  //0x4
-        ULONG BaseUpper;                         //0x8
-    };
-    struct
-    {
-        ULONG    MustBeZero; //0xc
-        LONGLONG DataLow;    //0x0
-    };
-    LONGLONG DataHigh; //0x8
-} KGDTENTRY64, *PKGDTENTRY64;
-#endif
-
 /**
  * @brief Segment selector
  * 
@@ -342,28 +297,10 @@ typedef union _KGDTENTRY64
 
 typedef struct _VMX_SEGMENT_SELECTOR
 {
-#ifdef refactoring_test
-    UINT64 Base;
-    UINT32 Limit;
-    union
-    {
-        struct
-        {
-            UINT8 Flags1;
-            UINT8 Flags2;
-            UINT8 Flags3;
-            UINT8 Flags4;
-        } Bytes;
-        VMX_SEGMENT_ACCESS_RIGHTS Attributes;
-        UINT32                    AccessRights;
-    };
-    UINT16 Selector;
-#else
     UINT16             Selector;
     SEGMENT_ATTRIBUTES Attributes;
     UINT32             Limit;
     UINT64             Base;
-#endif
 } VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
