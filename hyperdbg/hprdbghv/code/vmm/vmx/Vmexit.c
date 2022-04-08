@@ -245,7 +245,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exits of VMCALLs
         //
-        VmxHandleVmcallVmExit(GuestRegs, CurrentProcessorIndex);
+        VmxHandleVmcallVmExit(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
