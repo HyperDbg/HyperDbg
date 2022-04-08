@@ -34,8 +34,6 @@
 #define SCRIPT_ENGINE_KERNEL_MODE
 #define HYPERDBG_KERNEL_MODE
 
-
-
 //
 // HyperDbg Kernel-mode headers
 //

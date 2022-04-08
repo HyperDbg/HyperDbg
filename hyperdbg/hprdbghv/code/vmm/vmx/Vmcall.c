@@ -400,9 +400,10 @@ VmxVmcallHandler(_In_ UINT32         CurrentCoreIndex,
     }
     case VMCALL_VM_EXIT_HALT_SYSTEM_AS_A_RESULT_OF_TRIGGERING_EVENT:
     {
-        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {
-            .Context = OptionalParam1,
-            .Tag     = OptionalParam2};
+        DEBUGGER_TRIGGERED_EVENT_DETAILS TriggeredEventDetail = {0};
+
+        TriggeredEventDetail.Context = OptionalParam1;
+        TriggeredEventDetail.Tag     = OptionalParam2;
 
         KdHandleBreakpointAndDebugBreakpoints(CurrentCoreIndex,
                                               OptionalParam3, // We won't send current vmcall registers

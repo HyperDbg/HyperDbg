@@ -690,19 +690,19 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 BOOLEAN
 SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
 {
-    BOOL    Ret        = FALSE;
-    DWORD64 ModuleBase = NULL;
-    UINT32  Index      = 0;
+    BOOL                          Ret        = FALSE;
+    UINT32                        Index      = 0;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
 
     //
-    // Find module base
+    // Find module info
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(TypeName, TRUE)->ModuleBase;
+    SymbolInfo = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
 
     //
-    // Find the module name
+    // Check if module is found
     //
-    if (ModuleBase == NULL)
+    if (SymbolInfo == NULL)
     {
         //
         // Module not found or there was an error
@@ -741,7 +741,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
     WCHAR *      FieldNameW    = new wchar_t[FieldNameSize];
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
-    return SymGetFieldOffsetFromModule(ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+    return SymGetFieldOffsetFromModule(SymbolInfo->ModuleBase, TypeNameW, FieldNameW, FieldOffset);
 }
 
 /**
@@ -754,18 +754,18 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
 UINT32
 SymSearchSymbolForMask(const char * SearchMask)
 {
-    BOOL    Ret        = FALSE;
-    DWORD64 ModuleBase = NULL;
+    BOOL                          Ret        = FALSE;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
 
     //
-    // Find module base
+    // Get the module info
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE)->ModuleBase;
+    SymbolInfo = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
 
     //
-    // Find the module name
+    // Check to see if module info is found
     //
-    if (ModuleBase == NULL)
+    if (SymbolInfo == NULL)
     {
         //
         // Module not found or there was an error
@@ -775,7 +775,7 @@ SymSearchSymbolForMask(const char * SearchMask)
 
     Ret = SymEnumSymbols(
         GetCurrentProcess(),           // Process handle of the current process
-        ModuleBase,                    // Base address of the module
+        SymbolInfo->ModuleBase,        // Base address of the module
         SearchMask,                    // Mask (NULL -> all symbols)
         SymDisplayMaskSymbolsCallback, // The callback function
         NULL                           // A used-defined context can be passed here, if necessary
@@ -1686,9 +1686,10 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               const char * AdditionalParameters)
 {
     vector<string>                SplitedsymPath;
-    char **                       ArgvArray  = NULL;
-    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
-    UINT32                        SizeOfArgv = 0;
+    char **                       ArgvArray     = NULL;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo    = NULL;
+    UINT32                        SizeOfArgv    = 0;
+    UINT32                        TypeNameIndex = 0;
 
     //
     // Find the symbol info (to get the PDB address)
@@ -1708,12 +1709,12 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // Convert char* to string
     //
-    std::string TypeNameString(AdditionalParameters);
+    std::string AdditionalParametersString(AdditionalParameters);
 
     //
     // Split the arguments by space
     //
-    SplitedsymPath = Split(TypeNameString, ' ');
+    SplitedsymPath = Split(AdditionalParametersString, ' ');
 
     //
     // Allocate buffer to convert it to the char*
@@ -1736,6 +1737,20 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     // First argument is the file name, we let it blank
     //
     ArgvArray[0] = NULL;
+
+    //
+    // Remove the module name (if any)
+    //
+    while (TypeName[TypeNameIndex] != NULL)
+    {
+        if (TypeName[TypeNameIndex] == '!')
+        {
+            TypeName = &TypeName[++TypeNameIndex];
+            break;
+        }
+
+        TypeNameIndex++;
+    }
 
     //
     // Second argument is the type (structure) name
