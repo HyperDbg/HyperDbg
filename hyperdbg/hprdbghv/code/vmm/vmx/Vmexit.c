@@ -19,32 +19,33 @@
  *  or return false if we are still in vmx (so we should use vm resume)
  */
 BOOLEAN
-VmxVmexitHandler(PGUEST_REGS GuestRegs)
+VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    VMEXIT_INTERRUPT_INFO InterruptExit         = {0};
+    VMEXIT_INTERRUPT_INFO                 InterruptExit         = {0};
     VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification       = {0};
-    RFLAGS                Flags                 = {0};
-    UINT64                GuestPhysicalAddr     = 0;
-    UINT64                GuestRsp              = 0;
-    UINT64                GuestRip              = 0;
-    ULONG                 ExitReason            = 0;
-    ULONG                 ExitQualification     = 0;
-    ULONG                 Rflags                = 0;
-    ULONG                 EcxReg                = 0;
-    ULONG                 ExitInstructionLength = 0;
-    ULONG                 CurrentProcessorIndex = 0;
-    BOOLEAN               Result                = FALSE;
-    BOOLEAN               ShouldEmulateRdtscp   = TRUE;
-
+    RFLAGS                                Flags                 = {0};
+    UINT64                                GuestPhysicalAddr     = 0;
+    UINT64                                GuestRsp              = 0;
+    UINT64                                GuestRip              = 0;
+    ULONG                                 ExitReason            = 0;
+    ULONG                                 ExitQualification     = 0;
+    ULONG                                 Rflags                = 0;
+    ULONG                                 EcxReg                = 0;
+    ULONG                                 ExitInstructionLength = 0;
+    ULONG                                 CurrentProcessorIndex = 0;
+    BOOLEAN                               Result                = FALSE;
+    BOOLEAN                               ShouldEmulateRdtscp   = TRUE;
+    VIRTUAL_MACHINE_STATE *               CurrentGuestState     = NULL;
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Indicates we are in Vmx root mode in this logical core
     //
-    g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
+    CurrentGuestState->IsOnVmxRootMode = TRUE;
 
     //
     // read the exit reason and exit qualification
@@ -64,13 +65,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     // Increase the RIP by default
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+    CurrentGuestState->IncrementRip = TRUE;
 
     //
     // Save the current rip
     //
     __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
-    g_GuestState[CurrentProcessorIndex].LastVmexitRip = GuestRip;
+    CurrentGuestState->LastVmexitRip = GuestRip;
 
     //
     // Set the rsp in general purpose registers structure
@@ -380,7 +381,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // because on detecting thread scheduling we ignore the hardware debug
         // registers modifications
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        if (!CurrentGuestState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 
@@ -422,7 +423,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //
-    if (!g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted && g_GuestState[CurrentProcessorIndex].IncrementRip)
+    if (!CurrentGuestState->VmxoffState.IsVmxoffExecuted && CurrentGuestState->IncrementRip)
     {
         HvResumeToNextInstruction();
     }
@@ -430,12 +431,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     // Set indicator of Vmx non root mode to false
     //
-    g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
+    CurrentGuestState->IsOnVmxRootMode = FALSE;
 
     //
     // Check for vmxoff request
     //
-    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
+    if (CurrentGuestState->VmxoffState.IsVmxoffExecuted)
         Result = TRUE;
 
     //
@@ -449,7 +450,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
             // We not wanna change the global timer while RDTSC and RDTSCP
             // was the reason of vm-exit
             //
-            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, g_GuestState[CurrentProcessorIndex].TransparencyState.PreviousTimeStampCounter);
+            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, CurrentGuestState->TransparencyState.PreviousTimeStampCounter);
         }
     }
 
