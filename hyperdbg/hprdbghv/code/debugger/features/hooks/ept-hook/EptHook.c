@@ -341,7 +341,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
             //
             // Apply the hook to EPT
             //
-            EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+            EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
         }
     }
 
@@ -448,7 +448,7 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
             //
             // Undo the hook on the EPT table
             //
-            EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+            EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
             return TRUE;
         }
@@ -489,7 +489,7 @@ EptHookRestoreAllHooksToOrginalEntry()
         //
         // Undo the hook on the EPT table
         //
-        EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+        EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
     }
 }
 
@@ -974,7 +974,7 @@ EptHookPerformPageHook2(PVOID TargetAddress, PVOID HookFunction, CR3_TYPE Proces
         //
         // Apply the hook to EPT
         //
-        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, INVEPT_SINGLE_CONTEXT);
+        EptSetPML1AndInvalidateTLB(TargetPage, ChangedEntry, InveptSingleContext);
     }
 
     return TRUE;

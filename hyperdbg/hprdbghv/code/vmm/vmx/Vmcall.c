@@ -65,7 +65,7 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
         case HvCallFlushGuestPhysicalAddressSpace:
         case HvCallFlushGuestPhysicalAddressList:
 
-            InveptSingleContext_fn(g_EptState->EptPointer.Flags);
+            EptInveptSingleContext(g_EptState->EptPointer.Flags);
             break;
         }
 
@@ -144,13 +144,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_INVEPT_SINGLE_CONTEXT:
     {
-        InveptSingleContext_fn(OptionalParam1);
+        EptInveptSingleContext(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_INVEPT_ALL_CONTEXTS:
     {
-        InveptAllContexts();
+        EptInveptAllContexts();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

@@ -57,9 +57,9 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
 
                     //
-                    // Restore to its orginal entry for one instruction
+                    // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -248,7 +248,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                 // As we want to continue debuggee, the MTF might arrive when the
                 // host finish executing it's time slice; thus, a clock interrupt
                 // or an IPI might be arrived and the next instruction is not what
-                // we expect, becuase of that we check if the IF (Interrupt enable)
+                // we expect, because of that we check if the IF (Interrupt enable)
                 // flag of RFLAGS is enabled or not, if enabled then we remove it
                 // to avoid any clock-interrupt or IPI to arrive and the next
                 // instruction is our next instruction in the current execution

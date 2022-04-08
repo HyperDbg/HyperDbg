@@ -24,7 +24,7 @@ EptCheckFeatures()
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
 
     VpidRegister.Flags = __readmsr(IA32_VMX_EPT_VPID_CAP);
-    MTRRDefType.Flags  = __readmsr(MSR_IA32_MTRR_DEF_TYPE);
+    MTRRDefType.Flags  = __readmsr(IA32_MTRR_DEF_TYPE);
 
     if (!VpidRegister.PageWalkLength4 || !VpidRegister.MemoryTypeWriteBack || !VpidRegister.Pde2MbPages)
     {
@@ -72,15 +72,15 @@ EptBuildMtrrMap()
     ULONG                           CurrentRegister;
     ULONG                           NumberOfBitsInMask;
 
-    MTRRCap.Flags = __readmsr(MSR_IA32_MTRR_CAPABILITIES);
+    MTRRCap.Flags = __readmsr(IA32_MTRR_CAPABILITIES);
 
     for (CurrentRegister = 0; CurrentRegister < MTRRCap.VariableRangeCount; CurrentRegister++)
     {
         //
         // For each dynamic register pair
         //
-        CurrentPhysBase.Flags = __readmsr(MSR_IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
-        CurrentPhysMask.Flags = __readmsr(MSR_IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
+        CurrentPhysBase.Flags = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
+        CurrentPhysMask.Flags = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
 
         //
         // Is the range enabled?
@@ -547,7 +547,7 @@ BOOLEAN
 EptLogicalProcessorInitialize()
 {
     PVMM_EPT_PAGE_TABLE PageTable;
-    EPTP                EPTP = {0};
+    EPT_POINTER         EPTP = {0};
 
     //
     // Allocate the identity mapped page table
@@ -567,23 +567,23 @@ EptLogicalProcessorInitialize()
     //
     // For performance, we let the processor know it can cache the EPT
     //
-    EPTP.Fields.MemoryType = MEMORY_TYPE_WRITE_BACK;
+    EPTP.MemoryType = MEMORY_TYPE_WRITE_BACK;
 
     //
     // We are not utilizing the 'access' and 'dirty' flag features
     //
-    EPTP.Fields.EnableAccessAndDirtyFlags = FALSE;
+    EPTP.EnableAccessAndDirtyFlags = FALSE;
 
     //
     // Bits 5:3 (1 less than the EPT page-walk length) must be 3, indicating an EPT page-walk length of 4;
     // see Section 28.2.2
     //
-    EPTP.Fields.PageWalkLength = 3;
+    EPTP.PageWalkLength = 3;
 
     //
     // The physical page number of the page table we will be using
     //
-    EPTP.Fields.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
+    EPTP.PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML4) / PAGE_SIZE;
 
     //
     // We will write the EPTP to the VMCS later
@@ -603,7 +603,7 @@ EptLogicalProcessorInitialize()
  * 
  * @param ViolationQualification The violation qualification in vm-exit
  * @param GuestPhysicalAddr The GUEST_PHYSICAL_ADDRESS that caused this EPT violation
- * @return BOOLEAN Returns true if it was successfull or false if the violation was not due to a page hook
+ * @return BOOLEAN Returns true if it was successful or false if the violation was not due to a page hook
  */
 BOOLEAN
 EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
@@ -632,9 +632,9 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
             if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr))
             {
                 //
-                // Restore to its orginal entry for one instruction
+                // Restore to its original entry for one instruction
                 //
-                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
                 //
                 // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -735,7 +735,7 @@ EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
     //
     // restore the hooked state
     //
-    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->ChangedEntry, INVEPT_SINGLE_CONTEXT);
+    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->ChangedEntry, InveptSingleContext);
 }
 
 /**
@@ -781,13 +781,13 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     //
     // invalidate the cache
     //
-    if (InvalidationType == INVEPT_SINGLE_CONTEXT)
+    if (InvalidationType == InveptSingleContext)
     {
-        InveptSingleContext_fn(g_EptState->EptPointer.Flags);
+        EptInveptSingleContext(g_EptState->EptPointer.Flags);
     }
-    else if (InvalidationType == INVEPT_ALL_CONTEXTS)
+    else if (InvalidationType == InveptAllContext)
     {
-        InveptAllContexts();
+        EptInveptAllContexts();
     }
     else
     {

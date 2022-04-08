@@ -22,60 +22,12 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief MTRR Physical Base MSRs
- * 
- */
-#define MSR_IA32_MTRR_PHYSBASE0 0x00000200
-#define MSR_IA32_MTRR_PHYSBASE1 0x00000202
-#define MSR_IA32_MTRR_PHYSBASE2 0x00000204
-#define MSR_IA32_MTRR_PHYSBASE3 0x00000206
-#define MSR_IA32_MTRR_PHYSBASE4 0x00000208
-#define MSR_IA32_MTRR_PHYSBASE5 0x0000020A
-#define MSR_IA32_MTRR_PHYSBASE6 0x0000020C
-#define MSR_IA32_MTRR_PHYSBASE7 0x0000020E
-#define MSR_IA32_MTRR_PHYSBASE8 0x00000210
-#define MSR_IA32_MTRR_PHYSBASE9 0x00000212
-
-/**
- * @brief MTRR Physical Mask MSRs
- * 
- */
-#define MSR_IA32_MTRR_PHYSMASK0 0x00000201
-#define MSR_IA32_MTRR_PHYSMASK1 0x00000203
-#define MSR_IA32_MTRR_PHYSMASK2 0x00000205
-#define MSR_IA32_MTRR_PHYSMASK3 0x00000207
-#define MSR_IA32_MTRR_PHYSMASK4 0x00000209
-#define MSR_IA32_MTRR_PHYSMASK5 0x0000020B
-#define MSR_IA32_MTRR_PHYSMASK6 0x0000020D
-#define MSR_IA32_MTRR_PHYSMASK7 0x0000020F
-#define MSR_IA32_MTRR_PHYSMASK8 0x00000211
-#define MSR_IA32_MTRR_PHYSMASK9 0x00000213
-
-/**
  * @brief Page attributes for internal use
  * 
  */
 #define PAGE_ATTRIB_READ  0x2
 #define PAGE_ATTRIB_WRITE 0x4
 #define PAGE_ATTRIB_EXEC  0x8
-
-/**
- * @brief VMX EPT & VPID Capabilities MSR
- * 
- */
-#define IA32_VMX_EPT_VPID_CAP 0x0000048C
-
-/**
- * @brief MTRR Def MSR
- * 
- */
-#define MSR_IA32_MTRR_DEF_TYPE 0x000002FF
-
-/**
- * @brief MTRR Capabilities MSR
- * 
- */
-#define MSR_IA32_MTRR_CAPABILITIES 0x000000FE
 
 /**
  * @brief The number of 512GB PML4 entries in the page table
@@ -139,37 +91,6 @@
  */
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
-/**
- * @details 
- * Linked list for-each macro for traversing LIST_ENTRY structures.
- *
- * _LISTHEAD_ is a pointer to the struct that the list head belongs to.
- * _LISTHEAD_NAME_ is the name of the variable which contains the list head. Should match the same name as the list entry struct member in the actual record.
- * _TARGET_TYPE_ is the type name of the struct of each item in the list
- * _TARGET_NAME_ is the name which will contain the pointer to the item each iteration
- *
- * Example:
- * FOR_EACH_LIST_ENTRY(ProcessorContext->EptPageTable, DynamicSplitList, VMM_EPT_DYNAMIC_SPLIT, Split)
- * 		OsFreeNonpagedMemory(Split);
- * }
- *
- * ProcessorContext->EptPageTable->DynamicSplitList is the head of the list.
- * VMM_EPT_DYNAMIC_SPLIT is the struct of each item in the list.
- * Split is the name of the local variable which will hold the pointer to the item.
- * 
- */
-#define FOR_EACH_LIST_ENTRY(_LISTHEAD_, _LISTHEAD_NAME_, _TARGET_TYPE_, _TARGET_NAME_)                                       \
-    for (PLIST_ENTRY Entry = _LISTHEAD_->_LISTHEAD_NAME_.Flink; Entry != &_LISTHEAD_->_LISTHEAD_NAME_; Entry = Entry->Flink) \
-    {                                                                                                                        \
-        P##_TARGET_TYPE_ _TARGET_NAME_ = CONTAINING_RECORD(Entry, _TARGET_TYPE_, _LISTHEAD_NAME_);
-
-/**
- * @details The braces for the block are messy due to the need to define a local variable in the for loop scope.
- * Therefore, this macro just ends the for each block without messing up code editors trying to detect
- * the block indent level.
- */
-#define FOR_EACH_LIST_ENTRY_END() }
-
 //////////////////////////////////////////////////
 //	    			Variables 	 	            //
 //////////////////////////////////////////////////
@@ -227,49 +148,6 @@ typedef struct _VMM_EPT_PAGE_TABLE
 } VMM_EPT_PAGE_TABLE, *PVMM_EPT_PAGE_TABLE;
 
 /**
- * @brief EPT Pointer (EPTP or GUEST_EPTP)
- * 
- */
-typedef union _EPTP
-{
-    struct
-    {
-        /**
-		 * @brief [Bits 2:0] EPT paging-structure memory type:
-		 * - 0 = Uncacheable (UC)
-		 * - 6 = Write-back (WB)
-		 * Other values are reserved.
-		 *
-		 * @see Vol3C[28.2.6(EPT and memory Typing)]
-		 */
-        UINT64 MemoryType : 3;
-
-        /**
-		 * @brief [Bits 5:3] This value is 1 less than the EPT page-walk length.
-		 *
-		 * @see Vol3C[28.2.6(EPT and memory Typing)]
-		 */
-        UINT64 PageWalkLength : 3;
-
-        /**
-		 * @brief [Bit 6] Setting this control to 1 enables accessed and dirty flags for EPT.
-		 *
-		 * @see Vol3C[28.2.4(Accessed and Dirty Flags for EPT)]
-		 */
-        UINT64 EnableAccessAndDirtyFlags : 1;
-        UINT64 Reserved1 : 5;
-
-        /**
-		 * @brief [Bits 47:12] Bits N-1:12 of the physical address of the 4-KByte aligned EPT PML4 table.
-		 */
-        UINT64 PageFrameNumber : 36;
-        UINT64 Reserved2 : 16;
-    } Fields;
-
-    UINT64 Flags;
-} EPTP, *PEPTP;
-
-/**
  * @brief MTRR Range Descriptor
  * 
  */
@@ -284,13 +162,14 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
  * @brief Main structure for saving the state of EPT among the project
  * 
  */
+#define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
 typedef struct _EPT_STATE
 {
-    LIST_ENTRY            HookedPagesList;             // A list of the details about hooked pages
-    MTRR_RANGE_DESCRIPTOR MemoryRanges[9];             // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
-    ULONG                 NumberOfEnabledMemoryRanges; // Number of memory ranges specified in MemoryRanges
-    EPTP                  EptPointer;                  // Extended-Page-Table Pointer
-    PVMM_EPT_PAGE_TABLE   EptPageTable;                // Page table entries for EPT operation
+    LIST_ENTRY            HookedPagesList;                             // A list of the details about hooked pages
+    MTRR_RANGE_DESCRIPTOR MemoryRanges[EPT_MTRR_RANGE_DESCRIPTOR_MAX]; // Physical memory ranges described by the BIOS in the MTRRs. Used to build the EPT identity mapping.
+    ULONG                 NumberOfEnabledMemoryRanges;                 // Number of memory ranges specified in MemoryRanges
+    EPT_POINTER           EptPointer;                                  // Extended-Page-Table Pointer
+    PVMM_EPT_PAGE_TABLE   EptPageTable;                                // Page table entries for EPT operation
 
     PVMM_EPT_PAGE_TABLE SecondaryEptPageTable; // Secondary Page table entries for EPT operation (Used in debugger mechanisms)
 
@@ -419,16 +298,6 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
 //////////////////////////////////////////////////
 //                    Enums		    			//
 //////////////////////////////////////////////////
-
-/**
- * @brief INVEPT Enum
- * 
- */
-typedef enum _INVEPT_TYPE
-{
-    INVEPT_SINGLE_CONTEXT = 0x00000001,
-    INVEPT_ALL_CONTEXTS   = 0x00000002
-} INVEPT_TYPE;
 
 //////////////////////////////////////////////////
 //				    Functions					//
