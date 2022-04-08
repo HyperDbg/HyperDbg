@@ -606,7 +606,7 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
     // Now, it's time to check and play with RDTSC/P and CPUID
     //
 
-    if (ExitReason == EXIT_REASON_RDTSC || ExitReason == EXIT_REASON_RDTSCP)
+    if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSC || ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
     {
         if (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc == NULL)
         {
@@ -649,7 +649,7 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
         //
         // Check if we need to adjust rcx as a result of rdtscp
         //
-        if (ExitReason == EXIT_REASON_RDTSCP)
+        if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
         {
             GuestRegs->rcx = 0x00000000ffffffff & Aux;
         }
@@ -658,7 +658,7 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
         //
         Result = FALSE;
     }
-    else if (ExitReason == EXIT_REASON_CPUID &&
+    else if (ExitReason == VMX_EXIT_REASON_EXECUTE_CPUID &&
              g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc != NULL)
     {
         //

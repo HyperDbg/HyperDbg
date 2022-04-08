@@ -93,7 +93,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
     switch (ExitReason)
     {
-    case EXIT_REASON_TRIPLE_FAULT:
+    case VMX_EXIT_REASON_TRIPLE_FAULT:
     {
         LogError("Err, triple fault error occurred");
 
@@ -106,15 +106,15 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
         //
 
-    case EXIT_REASON_VMCLEAR:
-    case EXIT_REASON_VMPTRLD:
-    case EXIT_REASON_VMPTRST:
-    case EXIT_REASON_VMREAD:
-    case EXIT_REASON_VMRESUME:
-    case EXIT_REASON_VMWRITE:
-    case EXIT_REASON_VMXOFF:
-    case EXIT_REASON_VMXON:
-    case EXIT_REASON_VMLAUNCH:
+    case VMX_EXIT_REASON_EXECUTE_VMCLEAR:
+    case VMX_EXIT_REASON_EXECUTE_VMPTRLD:
+    case VMX_EXIT_REASON_EXECUTE_VMPTRST:
+    case VMX_EXIT_REASON_EXECUTE_VMREAD:
+    case VMX_EXIT_REASON_EXECUTE_VMRESUME:
+    case VMX_EXIT_REASON_EXECUTE_VMWRITE:
+    case VMX_EXIT_REASON_EXECUTE_VMXOFF:
+    case VMX_EXIT_REASON_EXECUTE_VMXON:
+    case VMX_EXIT_REASON_EXECUTE_VMLAUNCH:
     {
         //
         // cf=1 indicate vm instructions fail
@@ -129,10 +129,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_INVEPT:
-    case EXIT_REASON_INVVPID:
-    case EXIT_REASON_GETSEC:
-    case EXIT_REASON_INVD:
+    case VMX_EXIT_REASON_EXECUTE_INVEPT:
+    case VMX_EXIT_REASON_EXECUTE_INVVPID:
+    case VMX_EXIT_REASON_EXECUTE_GETSEC:
+    case VMX_EXIT_REASON_EXECUTE_INVD:
     {
         //
         // Handle unconditional vm-exits (inject #ud)
@@ -141,12 +141,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_CR_ACCESS:
+    case VMX_EXIT_REASON_MOV_CR:
     {
         HvHandleControlRegisterAccess(GuestRegs, CurrentProcessorIndex);
         break;
     }
-    case EXIT_REASON_MSR_READ:
+    case VMX_EXIT_REASON_EXECUTE_RDMSR:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
 
@@ -163,7 +163,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_MSR_WRITE:
+    case VMX_EXIT_REASON_EXECUTE_WRMSR:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
 
@@ -180,13 +180,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_CPUID:
+    case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
         HvHandleCpuid(GuestRegs);
         break;
     }
 
-    case EXIT_REASON_IO_INSTRUCTION:
+    case VMX_EXIT_REASON_EXECUTE_IO_INSTRUCTION:
     {
         //
         // Read the I/O Qualification which indicates the I/O instruction
@@ -217,7 +217,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EPT_VIOLATION:
+    case VMX_EXIT_REASON_EPT_VIOLATION:
     {
         //
         // Reading guest physical address
@@ -231,7 +231,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EPT_MISCONFIG:
+    case VMX_EXIT_REASON_EPT_MISCONFIGURATION:
     {
         __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
@@ -239,7 +239,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_VMCALL:
+    case VMX_EXIT_REASON_EXECUTE_VMCALL:
     {
         //
         // Handle vm-exits of VMCALLs
@@ -248,7 +248,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EXCEPTION_NMI:
+    case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
     {
         //
         // read the exit reason
@@ -262,7 +262,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EXTERNAL_INTERRUPT:
+    case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
     {
         //
         // read the exit reason (for interrupt)
@@ -276,7 +276,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_PENDING_VIRT_INTR:
+    case VMX_EXIT_REASON_INTERRUPT_WINDOW:
     {
         //
         // Call the interrupt-window exiting handler to re-inject the previous
@@ -286,7 +286,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_PENDING_VIRT_NMI:
+    case VMX_EXIT_REASON_NMI_WINDOW:
     {
         //
         // Call the NMI-window exiting handler
@@ -295,7 +295,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_MONITOR_TRAP_FLAG:
+    case VMX_EXIT_REASON_MONITOR_TRAP_FLAG:
     {
         //
         // General handler to monitor trap flags (MTF)
@@ -304,7 +304,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_HLT:
+    case VMX_EXIT_REASON_EXECUTE_HLT:
     {
         //
         // We don't wanna halt
@@ -315,7 +315,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         break;
     }
-    case EXIT_REASON_RDTSC:
+    case VMX_EXIT_REASON_EXECUTE_RDTSC:
     {
         //
         // Check whether we are allowed to change
@@ -337,7 +337,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         }
         break;
     }
-    case EXIT_REASON_RDTSCP:
+    case VMX_EXIT_REASON_EXECUTE_RDTSCP:
     {
         //
         // Check whether we are allowed to change
@@ -359,7 +359,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_RDPMC:
+    case VMX_EXIT_REASON_EXECUTE_RDPMC:
     {
         //
         // handle rdpmc (emulate rdpmc)
@@ -373,7 +373,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_DR_ACCESS:
+    case VMX_EXIT_REASON_MOV_DR:
     {
         //
         // Handle access to debug registers, if we should not ignore it, it is
@@ -393,7 +393,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_XSETBV:
+    case VMX_EXIT_REASON_EXECUTE_XSETBV:
     {
         //
         // Handle xsetbv (unconditional vm-exit)
@@ -403,7 +403,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
+    case VMX_EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
     {
         //
         // Handle the VMX preemption timer vm-exit
@@ -443,7 +443,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     if (g_TransparentMode)
     {
-        if (ExitReason != EXIT_REASON_RDTSC && ExitReason != EXIT_REASON_RDTSCP && ExitReason != EXIT_REASON_CPUID)
+        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID)
         {
             //
             // We not wanna change the global timer while RDTSC and RDTSCP
