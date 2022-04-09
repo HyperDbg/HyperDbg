@@ -15,20 +15,6 @@
 //                 Structures	    			//
 //////////////////////////////////////////////////
 
-/**
- * @brief exit-qualification for I/O instructions vm-exits
- * 
- */
-typedef struct _IO_EXIT_QUALIFICATION
-{
-    UINT64 SizeOfAccess : 3;
-    UINT64 AccessType : 1;
-    UINT64 StringInstruction : 1;
-    UINT64 RepPrefixed : 1;
-    UINT64 OperandEncoding : 1;
-    UINT64 Reserved : 9;
-    UINT64 PortNumber : 16;
-} IO_EXIT_QUALIFICATION, *PIO_EXIT_QUALIFICATION;
 
 //////////////////////////////////////////////////
 //                     Enums	    			//
@@ -183,10 +169,10 @@ IoOutDwordString(UINT16 port, UINT32 * data, UINT32 count)
 //////////////////////////////////////////////////
 
 VOID
-IoHandleIoVmExits(PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags);
+IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
-IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, IO_EXIT_QUALIFICATION IoQualification, RFLAGS Flags);
+IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags);
 
 VOID
 IoHandlePerformIoBitmapChange(UINT64 Port);

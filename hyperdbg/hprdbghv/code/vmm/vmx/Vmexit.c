@@ -19,37 +19,39 @@
  *  or return false if we are still in vmx (so we should use vm resume)
  */
 BOOLEAN
-VmxVmexitHandler(PGUEST_REGS GuestRegs)
+VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    VMEXIT_INTERRUPT_INFO InterruptExit         = {0};
-    IO_EXIT_QUALIFICATION IoQualification       = {0};
-    RFLAGS                Flags                 = {0};
-    UINT64                GuestPhysicalAddr     = 0;
-    UINT64                GuestRsp              = 0;
-    UINT64                GuestRip              = 0;
-    ULONG                 ExitReason            = 0;
-    ULONG                 ExitQualification     = 0;
-    ULONG                 Rflags                = 0;
-    ULONG                 EcxReg                = 0;
-    ULONG                 ExitInstructionLength = 0;
-    ULONG                 CurrentProcessorIndex = 0;
-    BOOLEAN               Result                = FALSE;
-    BOOLEAN               ShouldEmulateRdtscp   = TRUE;
+    VMEXIT_INTERRUPT_INFORMATION          InterruptExit         = {0};
+    VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification       = {0};
+    RFLAGS                                Flags                 = {0};
+    UINT64                                GuestPhysicalAddr     = 0;
+    UINT64                                GuestRsp              = 0;
+    UINT64                                GuestRip              = 0;
+    ULONG                                 ExitReason            = 0;
+    ULONG                                 ExitQualification     = 0;
+    ULONG                                 Rflags                = 0;
+    ULONG                                 EcxReg                = 0;
+    ULONG                                 ExitInstructionLength = 0;
+    ULONG                                 CurrentProcessorIndex = 0;
+    BOOLEAN                               Result                = FALSE;
+    BOOLEAN                               ShouldEmulateRdtscp   = TRUE;
+    VIRTUAL_MACHINE_STATE *               CurrentGuestState     = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
     CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Indicates we are in Vmx root mode in this logical core
     //
-    g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = TRUE;
+    CurrentGuestState->IsOnVmxRootMode = TRUE;
 
     //
     // read the exit reason and exit qualification
     //
-    __vmx_vmread(VM_EXIT_REASON, &ExitReason);
+    __vmx_vmread(VMCS_EXIT_REASON, &ExitReason);
     ExitReason &= 0xffff;
 
     //
@@ -64,36 +66,36 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     // Increase the RIP by default
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+    CurrentGuestState->IncrementRip = TRUE;
 
     //
     // Save the current rip
     //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
-    g_GuestState[CurrentProcessorIndex].LastVmexitRip = GuestRip;
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
+    CurrentGuestState->LastVmexitRip = GuestRip;
 
     //
     // Set the rsp in general purpose registers structure
     //
-    __vmx_vmread(GUEST_RSP, &GuestRsp);
+    __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
     GuestRegs->rsp = GuestRsp;
 
     //
     // Read the exit qualification
     //
 
-    __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
     //
     // Debugging purpose
     //
     // LogInfo("VM_EXIT_REASON : 0x%x", ExitReason);
-    // LogInfo("EXIT_QUALIFICATION : 0x%llx", ExitQualification);
+    // LogInfo("VMCS_EXIT_QUALIFICATION : 0x%llx", ExitQualification);
     //
 
     switch (ExitReason)
     {
-    case EXIT_REASON_TRIPLE_FAULT:
+    case VMX_EXIT_REASON_TRIPLE_FAULT:
     {
         LogError("Err, triple fault error occurred");
 
@@ -106,21 +108,21 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
         //
 
-    case EXIT_REASON_VMCLEAR:
-    case EXIT_REASON_VMPTRLD:
-    case EXIT_REASON_VMPTRST:
-    case EXIT_REASON_VMREAD:
-    case EXIT_REASON_VMRESUME:
-    case EXIT_REASON_VMWRITE:
-    case EXIT_REASON_VMXOFF:
-    case EXIT_REASON_VMXON:
-    case EXIT_REASON_VMLAUNCH:
+    case VMX_EXIT_REASON_EXECUTE_VMCLEAR:
+    case VMX_EXIT_REASON_EXECUTE_VMPTRLD:
+    case VMX_EXIT_REASON_EXECUTE_VMPTRST:
+    case VMX_EXIT_REASON_EXECUTE_VMREAD:
+    case VMX_EXIT_REASON_EXECUTE_VMRESUME:
+    case VMX_EXIT_REASON_EXECUTE_VMWRITE:
+    case VMX_EXIT_REASON_EXECUTE_VMXOFF:
+    case VMX_EXIT_REASON_EXECUTE_VMXON:
+    case VMX_EXIT_REASON_EXECUTE_VMLAUNCH:
     {
         //
         // cf=1 indicate vm instructions fail
         //
-        //__vmx_vmread(GUEST_RFLAGS, &Rflags);
-        //__vmx_vmwrite(GUEST_RFLAGS, Rflags | 0x1);
+        //__vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        //__vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags | 0x1);
 
         //
         // Handle unconditional vm-exits (inject #ud)
@@ -129,10 +131,10 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_INVEPT:
-    case EXIT_REASON_INVVPID:
-    case EXIT_REASON_GETSEC:
-    case EXIT_REASON_INVD:
+    case VMX_EXIT_REASON_EXECUTE_INVEPT:
+    case VMX_EXIT_REASON_EXECUTE_INVVPID:
+    case VMX_EXIT_REASON_EXECUTE_GETSEC:
+    case VMX_EXIT_REASON_EXECUTE_INVD:
     {
         //
         // Handle unconditional vm-exits (inject #ud)
@@ -141,12 +143,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_CR_ACCESS:
+    case VMX_EXIT_REASON_MOV_CR:
     {
         HvHandleControlRegisterAccess(GuestRegs, CurrentProcessorIndex);
         break;
     }
-    case EXIT_REASON_MSR_READ:
+    case VMX_EXIT_REASON_EXECUTE_RDMSR:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
 
@@ -163,7 +165,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_MSR_WRITE:
+    case VMX_EXIT_REASON_EXECUTE_WRMSR:
     {
         EcxReg = GuestRegs->rcx & 0xffffffff;
 
@@ -180,23 +182,23 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_CPUID:
+    case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
         HvHandleCpuid(GuestRegs);
         break;
     }
 
-    case EXIT_REASON_IO_INSTRUCTION:
+    case VMX_EXIT_REASON_EXECUTE_IO_INSTRUCTION:
     {
         //
         // Read the I/O Qualification which indicates the I/O instruction
         //
-        __vmx_vmread(EXIT_QUALIFICATION, &IoQualification);
+        __vmx_vmread(VMCS_EXIT_QUALIFICATION, &IoQualification);
 
         //
         // Read Guest's RFLAGS
         //
-        __vmx_vmread(GUEST_RFLAGS, &Flags);
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Flags);
 
         //
         // Call the I/O Handler
@@ -206,23 +208,23 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         // As the context to event trigger, port address
         //
-        if (IoQualification.AccessType == AccessIn)
+        if (IoQualification.DirectionOfAccess == AccessIn)
         {
             DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
         }
-        else if (IoQualification.AccessType == AccessOut)
+        else if (IoQualification.DirectionOfAccess == AccessOut)
         {
             DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
         }
 
         break;
     }
-    case EXIT_REASON_EPT_VIOLATION:
+    case VMX_EXIT_REASON_EPT_VIOLATION:
     {
         //
         // Reading guest physical address
         //
-        __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+        __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
         if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
         {
@@ -231,29 +233,29 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EPT_MISCONFIG:
+    case VMX_EXIT_REASON_EPT_MISCONFIGURATION:
     {
-        __vmx_vmread(GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+        __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
         EptHandleMisconfiguration(GuestPhysicalAddr);
 
         break;
     }
-    case EXIT_REASON_VMCALL:
+    case VMX_EXIT_REASON_EXECUTE_VMCALL:
     {
         //
         // Handle vm-exits of VMCALLs
         //
-        VmxHandleVmcallVmExit(GuestRegs, CurrentProcessorIndex);
+        VmxHandleVmcallVmExit(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
-    case EXIT_REASON_EXCEPTION_NMI:
+    case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
     {
         //
         // read the exit reason
         //
-        __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
+        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
 
         //
         // Handle the emulation
@@ -262,12 +264,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_EXTERNAL_INTERRUPT:
+    case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
     {
         //
         // read the exit reason (for interrupt)
         //
-        __vmx_vmread(VM_EXIT_INTR_INFO, &InterruptExit);
+        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
 
         //
         // Call External Interrupt Handler
@@ -276,7 +278,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_PENDING_VIRT_INTR:
+    case VMX_EXIT_REASON_INTERRUPT_WINDOW:
     {
         //
         // Call the interrupt-window exiting handler to re-inject the previous
@@ -286,7 +288,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_PENDING_VIRT_NMI:
+    case VMX_EXIT_REASON_NMI_WINDOW:
     {
         //
         // Call the NMI-window exiting handler
@@ -295,7 +297,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_MONITOR_TRAP_FLAG:
+    case VMX_EXIT_REASON_MONITOR_TRAP_FLAG:
     {
         //
         // General handler to monitor trap flags (MTF)
@@ -304,7 +306,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_HLT:
+    case VMX_EXIT_REASON_EXECUTE_HLT:
     {
         //
         // We don't wanna halt
@@ -315,7 +317,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         //
         break;
     }
-    case EXIT_REASON_RDTSC:
+    case VMX_EXIT_REASON_EXECUTE_RDTSC:
     {
         //
         // Check whether we are allowed to change
@@ -337,7 +339,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
         }
         break;
     }
-    case EXIT_REASON_RDTSCP:
+    case VMX_EXIT_REASON_EXECUTE_RDTSCP:
     {
         //
         // Check whether we are allowed to change
@@ -359,7 +361,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_RDPMC:
+    case VMX_EXIT_REASON_EXECUTE_RDPMC:
     {
         //
         // handle rdpmc (emulate rdpmc)
@@ -373,14 +375,14 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_DR_ACCESS:
+    case VMX_EXIT_REASON_MOV_DR:
     {
         //
         // Handle access to debug registers, if we should not ignore it, it is
         // because on detecting thread scheduling we ignore the hardware debug
         // registers modifications
         //
-        if (!g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        if (!CurrentGuestState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
 
@@ -393,7 +395,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_XSETBV:
+    case VMX_EXIT_REASON_EXECUTE_XSETBV:
     {
         //
         // Handle xsetbv (unconditional vm-exit)
@@ -403,7 +405,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
 
         break;
     }
-    case EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
+    case VMX_EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED:
     {
         //
         // Handle the VMX preemption timer vm-exit
@@ -422,7 +424,7 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //
-    if (!g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted && g_GuestState[CurrentProcessorIndex].IncrementRip)
+    if (!CurrentGuestState->VmxoffState.IsVmxoffExecuted && CurrentGuestState->IncrementRip)
     {
         HvResumeToNextInstruction();
     }
@@ -430,12 +432,12 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     // Set indicator of Vmx non root mode to false
     //
-    g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode = FALSE;
+    CurrentGuestState->IsOnVmxRootMode = FALSE;
 
     //
     // Check for vmxoff request
     //
-    if (g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted)
+    if (CurrentGuestState->VmxoffState.IsVmxoffExecuted)
         Result = TRUE;
 
     //
@@ -443,13 +445,13 @@ VmxVmexitHandler(PGUEST_REGS GuestRegs)
     //
     if (g_TransparentMode)
     {
-        if (ExitReason != EXIT_REASON_RDTSC && ExitReason != EXIT_REASON_RDTSCP && ExitReason != EXIT_REASON_CPUID)
+        if (ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSC && ExitReason != VMX_EXIT_REASON_EXECUTE_RDTSCP && ExitReason != VMX_EXIT_REASON_EXECUTE_CPUID)
         {
             //
             // We not wanna change the global timer while RDTSC and RDTSCP
             // was the reason of vm-exit
             //
-            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, g_GuestState[CurrentProcessorIndex].TransparencyState.PreviousTimeStampCounter);
+            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, CurrentGuestState->TransparencyState.PreviousTimeStampCounter);
         }
     }
 

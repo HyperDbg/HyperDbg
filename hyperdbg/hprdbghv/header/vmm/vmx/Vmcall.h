@@ -19,145 +19,145 @@
  * @brief VMCALL to test hypervisor
  * 
  */
-#define VMCALL_TEST 0x1
+#define VMCALL_TEST 0x00000001
 
 /**
  * @brief VMCALL to Call VMXOFF to turn off the hypervisor
  * 
  */
-#define VMCALL_VMXOFF 0x2
+#define VMCALL_VMXOFF 0x00000002
 
 /**
  * @brief VMCALL to Hook Change the attribute bits of the EPT Table
  * 
  */
-#define VMCALL_CHANGE_PAGE_ATTRIB 0x3
+#define VMCALL_CHANGE_PAGE_ATTRIB 0x00000003
 
 /**
  * @brief VMCALL to invalidate EPT (All Contexts)
  * 
  */
-#define VMCALL_INVEPT_ALL_CONTEXTS 0x4
+#define VMCALL_INVEPT_ALL_CONTEXTS 0x00000004
 
 /**
  * @brief VMCALL to invalidate EPT (A Single Context)
  * 
  */
-#define VMCALL_INVEPT_SINGLE_CONTEXT 0x5
+#define VMCALL_INVEPT_SINGLE_CONTEXT 0x00000005
 
 /**
  * @brief VMCALL to remove a all physical addresses from hook list
  * 
  */
-#define VMCALL_UNHOOK_ALL_PAGES 0x6
+#define VMCALL_UNHOOK_ALL_PAGES 0x00000006
 
 /**
  * @brief VMCALL to remove a single physical address from hook list
  * 
  */
-#define VMCALL_UNHOOK_SINGLE_PAGE 0x7
+#define VMCALL_UNHOOK_SINGLE_PAGE 0x00000007
 
 /**
  * @brief VMCALL to enable syscall hook using EFER SCE bit
  * 
  */
-#define VMCALL_ENABLE_SYSCALL_HOOK_EFER 0x8
+#define VMCALL_ENABLE_SYSCALL_HOOK_EFER 0x00000008
 
 /**
  * @brief VMCALL to disable syscall hook using EFER SCE bit
  * 
  */
-#define VMCALL_DISABLE_SYSCALL_HOOK_EFER 0x9
+#define VMCALL_DISABLE_SYSCALL_HOOK_EFER 0x00000009
 
 /**
  * @brief VMCALL to change MSR Bitmap Read
  * 
  */
-#define VMCALL_CHANGE_MSR_BITMAP_READ 0xa
+#define VMCALL_CHANGE_MSR_BITMAP_READ 0x0000000A
 
 /**
  * @brief VMCALL to change MSR Bitmap Write
  * 
  */
-#define VMCALL_CHANGE_MSR_BITMAP_WRITE 0xb
+#define VMCALL_CHANGE_MSR_BITMAP_WRITE 0x0000000B
 
 /**
  * @brief VMCALL to enable rdtsc/rdtscp exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_SET_RDTSC_EXITING 0xc
+#define VMCALL_SET_RDTSC_EXITING 0x0000000C
 
 /**
  * @brief VMCALL to enable rdpmc exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_SET_RDPMC_EXITING 0xd
+#define VMCALL_SET_RDPMC_EXITING 0x0000000D
 
 /**
  * @brief VMCALL to set exception bitmap on VMCS
  * 
  */
-#define VMCALL_SET_EXCEPTION_BITMAP 0xe
+#define VMCALL_SET_EXCEPTION_BITMAP 0x0000000E
 
 /**
  * @brief VMCALL to enable mov to debug registers exiting
  * 
  */
-#define VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING 0xf
+#define VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING 0x0000000F
 
 /**
  * @brief VMCALL to enable external interrupt exiting
  * 
  */
-#define VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x10
+#define VMCALL_ENABLE_EXTERNAL_INTERRUPT_EXITING 0x00000010
 
 /**
  * @brief VMCALL to change I/O Bitmaps (A & B)
  * 
  */
-#define VMCALL_CHANGE_IO_BITMAP 0x11
+#define VMCALL_CHANGE_IO_BITMAP 0x00000011
 
 /**
  * @brief VMCALL to put hidden breakpoints (using EPT)
  * 
  */
-#define VMCALL_SET_HIDDEN_CC_BREAKPOINT 0x12
+#define VMCALL_SET_HIDDEN_CC_BREAKPOINT 0x00000012
 
 /**
  * @brief VMCALL to disable rdtsc/rdtscp exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_UNSET_RDTSC_EXITING 0x13
+#define VMCALL_UNSET_RDTSC_EXITING 0x00000013
 
 /**
  * @brief VMCALL to disable external interrupt exiting only to clear !interrupt commands
  * 
  */
-#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS 0x14
+#define VMCALL_DISABLE_EXTERNAL_INTERRUPT_EXITING_ONLY_TO_CLEAR_INTERRUPT_COMMANDS 0x00000014
 
 /**
  * @brief VMCALL to disable rdpmc exiting in primary cpu-based controls
  * 
  */
-#define VMCALL_UNSET_RDPMC_EXITING 0x15
+#define VMCALL_UNSET_RDPMC_EXITING 0x00000015
 
 /**
  * @brief VMCALL to disable mov to debug registers exiting
  * 
  */
-#define VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING 0x16
+#define VMCALL_DISABLE_MOV_TO_DEBUG_REGS_EXITING 0x00000016
 
 /**
  * @brief VMCALL to reset MSR Bitmap Read
  * 
  */
-#define VMCALL_RESET_MSR_BITMAP_READ 0x17
+#define VMCALL_RESET_MSR_BITMAP_READ 0x00000017
 
 /**
  * @brief VMCALL to reset MSR Bitmap Write
  * 
  */
-#define VMCALL_RESET_MSR_BITMAP_WRITE 0x18
+#define VMCALL_RESET_MSR_BITMAP_WRITE 0x00000018
 
 /**
  * @brief VMCALL to reset exception bitmap on VMCS
@@ -165,31 +165,31 @@
  * RESETING (CLEARING) EXCEPTION EVENTS
  * 
  */
-#define VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x19
+#define VMCALL_RESET_EXCEPTION_BITMAP_ONLY_ON_CLEARING_EXCEPTION_EVENTS 0x00000019
 
 /**
  * @brief VMCALL to reset I/O Bitmaps (A & B)
  * 
  */
-#define VMCALL_RESET_IO_BITMAP 0x1a
+#define VMCALL_RESET_IO_BITMAP 0x0000001A
 
 /**
  * @brief VMCALL to enable cr3 exiting
  * 
  */
-#define VMCALL_ENABLE_MOV_TO_CR3_EXITING 0x1b
+#define VMCALL_ENABLE_MOV_TO_CR3_EXITING 0x0000001B
 
 /**
  * @brief VMCALL to disable cr3 exiting
  * 
  */
-#define VMCALL_DISABLE_MOV_TO_CR3_EXITING 0x1c
+#define VMCALL_DISABLE_MOV_TO_CR3_EXITING 0x0000001C
 
 /**
  * @brief VMCALL to unset exception bitmap on VMCS
  * 
  */
-#define VMCALL_UNSET_EXCEPTION_BITMAP 0x1d
+#define VMCALL_UNSET_EXCEPTION_BITMAP 0x0000001D
 
 /**
  * @brief VMCALL to set VM-entry LOAD DEBUG CONTROLS
@@ -197,7 +197,7 @@
  * IA32_DEBUGCTL MSR are loaded on VM entry.
  * 
  */
-#define VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x1e
+#define VMCALL_SET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x0000001E
 
 /**
  * @brief VMCALL to unset VM-entry LOAD DEBUG CONTROLS
@@ -205,7 +205,7 @@
  * IA32_DEBUGCTL MSR are loaded on VM entry.
  * 
  */
-#define VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x1f
+#define VMCALL_UNSET_VM_ENTRY_LOAD_DEBUG_CONTROLS 0x0000001F
 
 /**
  * @brief VMCALL to set VM-exit SAVE DEBUG CONTROLS
@@ -213,7 +213,7 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  * 
  */
-#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x20
+#define VMCALL_SET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x0000020
 
 /**
  * @brief VMCALL to unset VM-exit SAVE DEBUG CONTROLS
@@ -221,25 +221,25 @@
  * IA32_DEBUGCTL MSR are saved on VM exit.
  * 
  */
-#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x21
+#define VMCALL_UNSET_VM_EXIT_SAVE_DEBUG_CONTROLS 0x0000021
 
 /**
  * @brief VMCALL to cause vm-exit and halt the system
  * 
  */
-#define VMCALL_VM_EXIT_HALT_SYSTEM 0x22
+#define VMCALL_VM_EXIT_HALT_SYSTEM 0x0000022
 
 /**
  * @brief VMCALL to cause vm-exit on NMIs
  * 
  */
-#define VMCALL_SET_VM_EXIT_ON_NMIS 0x23
+#define VMCALL_SET_VM_EXIT_ON_NMIS 0x0000023
 
 /**
  * @brief VMCALL to not cause vm-exit on NMIs
  * 
  */
-#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x24
+#define VMCALL_UNSET_VM_EXIT_ON_NMIS 0x0000024
 
 /**
  * @brief VMCALL to signal debugger that debuggee finished
@@ -293,7 +293,8 @@
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex);
+VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
+                      _Inout_ PGUEST_REGS GuestRegs);
 
 /**
  * @brief Main handler for VMCALLs
@@ -305,15 +306,15 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex);
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxVmcallHandler(UINT64      VmcallNumber,
-                 UINT64      OptionalParam1,
-                 UINT64      OptionalParam2,
-                 UINT64      OptionalParam3,
-                 PGUEST_REGS GuestRegs,
-                 UINT32      CurrentCoreIndex);
+VmxVmcallHandler(_In_ UINT32         CurrentCoreIndex,
+                 _In_ UINT64         VmcallNumber,
+                 _In_ UINT64         OptionalParam1,
+                 _In_ UINT64         OptionalParam2,
+                 _In_ UINT64         OptionalParam3,
+                 _Inout_ PGUEST_REGS GuestRegs);
 
 /**
- * @brief Test function which shows a message to test a successfull VMCALL
+ * @brief Test function which shows a message to test a successful VMCALL
  * 
  * @param Param1 
  * @param Param2 
@@ -321,4 +322,6 @@ VmxVmcallHandler(UINT64      VmcallNumber,
  * @return NTSTATUS 
  */
 NTSTATUS
-VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3);
+VmcallTest(_In_ UINT64 Param1,
+           _In_ UINT64 Param2,
+           _In_ UINT64 Param3);

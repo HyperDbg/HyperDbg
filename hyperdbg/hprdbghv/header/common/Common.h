@@ -254,24 +254,24 @@ SpinlockUnlock(volatile LONG * Lock);
 //////////////////////////////////////////////////
 
 /**
- * @brief Segment attributes
+ * @brief Attribute for segment selector. This is a copy of bit 40:47 & 52:55 of the
+ * segment descriptor. 
  * 
  */
 typedef union _SEGMENT_ATTRIBUTES
 {
-    USHORT UCHARs;
+    UINT16 Flags;
     struct
     {
-        USHORT TYPE : 4; /* 0;  Bit 40-43 */
-        USHORT S : 1;    /* 4;  Bit 44 */
-        USHORT DPL : 2;  /* 5;  Bit 45-46 */
-        USHORT P : 1;    /* 7;  Bit 47 */
-
-        USHORT AVL : 1; /* 8;  Bit 52 */
-        USHORT L : 1;   /* 9;  Bit 53 */
-        USHORT DB : 1;  /* 10; Bit 54 */
-        USHORT G : 1;   /* 11; Bit 55 */
-        USHORT GAP : 4;
+        UINT16 Type : 4;                     /* 0;  Bit 40-43 */
+        UINT16 DescriptorType : 1;           /* 4;  Bit 44 */
+        UINT16 DescriptorPrivilegeLevel : 2; /* 5;  Bit 45-46 */
+        UINT16 Present : 1;                  /* 7;  Bit 47 */
+        UINT16 AvailableBit : 1;             /* 8;  Bit 52 */
+        UINT16 LongMode : 1;                 /* 9;  Bit 53 */
+        UINT16 DefaultBig : 1;               /* 10; Bit 54 */
+        UINT16 Granularity : 1;              /* 11; Bit 55 */
+        UINT16 Reserved1 : 4;
 
     } Fields;
 } SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
@@ -282,25 +282,26 @@ typedef union _SEGMENT_ATTRIBUTES
  */
 typedef struct _SEGMENT_DESCRIPTOR
 {
-    USHORT LIMIT0;
-    USHORT BASE0;
-    UCHAR  BASE1;
-    UCHAR  ATTR0;
-    UCHAR  LIMIT1ATTR1;
-    UCHAR  BASE2;
+    UINT16 LimitLow;
+    UINT16 BaseLow;
+    UINT8  BaseMiddle;
+    UINT8  ATTR0;
+    UINT8  LIMIT1ATTR1;
+    UINT8  BaseHigh;
 } SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
 
 /**
  * @brief Segment selector
  * 
  */
-typedef struct _SEGMENT_SELECTOR
+
+typedef struct _VMX_SEGMENT_SELECTOR
 {
-    USHORT             SEL;
-    SEGMENT_ATTRIBUTES ATTRIBUTES;
-    ULONG32            LIMIT;
-    ULONG64            BASE;
-} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
+    UINT16             Selector;
+    SEGMENT_ATTRIBUTES Attributes;
+    UINT32             Limit;
+    UINT64             Base;
+} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
  * @brief CPUID Registers
@@ -332,7 +333,7 @@ typedef struct _NT_KPROCESS
  */
 typedef union _PAGE_FAULT_ERROR_CODE
 {
-    ULONG32 All;
+    ULONG32 Flags;
     struct
     {
         ULONG32 Present : 1;  // 0 = NotPresent
@@ -343,80 +344,16 @@ typedef union _PAGE_FAULT_ERROR_CODE
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
-/**
- * @brief Control Register 4 Structure
- * 
- */
-typedef struct _CONTROL_REGISTER_4
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 VirtualModeExtensions : 1;
-            UINT64 ProtectedModeVirtualInterrupts : 1;
-            UINT64 TimestampDisable : 1;
-            UINT64 DebuggingExtensions : 1;
-            UINT64 PageSizeExtensions : 1;
-            UINT64 PhysicalAddressExtension : 1;
-            UINT64 MachineCheckEnable : 1;
-            UINT64 PageGlobalEnable : 1;
-            UINT64 PerformanceMonitoringCounterEnable : 1;
-            UINT64 OsFxsaveFxrstorSupport : 1;
-            UINT64 OsXmmExceptionSupport : 1;
-            UINT64 UsermodeInstructionPrevention : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 VmxEnable : 1;
-            UINT64 SmxEnable : 1;
-            UINT64 Reserved2 : 1;
-            UINT64 FsGsBaseEnable : 1;
-            UINT64 PcidEnable : 1;
-            UINT64 OsXsave : 1;
-            UINT64 Reserved3 : 1;
-            UINT64 SmepEnable : 1;
-            UINT64 SmapEnable : 1;
-            UINT64 ProtectionKeyEnable : 1;
-        };
-    };
-} CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
-
-typedef union _CONTROL_REGISTER_0
+typedef union _CR_FIXED
 {
     UINT64 Flags;
 
-    struct
-    {
-        UINT64 ProtectionEnable : 1;
-        UINT64 MonitorCoprocessor : 1;
-        UINT64 EmulateFpu : 1;
-        UINT64 TaskSwitched : 1;
-        UINT64 ExtensionType : 1;
-        UINT64 NumericError : 1;
-        UINT64 Reserved1 : 10;
-        UINT64 WriteProtect : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 AlignmentMask : 1;
-        UINT64 Reserved3 : 10;
-        UINT64 NotWriteThrough : 1;
-        UINT64 CacheDisable : 1;
-        UINT64 PagingEnable : 1;
-        UINT64 Reserved4 : 32;
-    };
-
-} CONTROL_REGISTER_0, *PCONTROL_REGISTER_0;
-
-typedef union _CR_FIXED
-{
     struct
     {
         unsigned long Low;
         long          High;
 
-    } Value;
-
-    UINT64 Flags;
+    } Fields;
 
 } CR_FIXED, *PCR_FIXED;
 
@@ -775,7 +712,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
  * 
  */
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
+GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector, PUCHAR GdtBase);
 
 /**
  * @brief Kill a process using different methods

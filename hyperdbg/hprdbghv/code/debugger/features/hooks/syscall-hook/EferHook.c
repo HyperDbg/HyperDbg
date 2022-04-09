@@ -29,21 +29,21 @@
 VOID
 SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 {
-    EFER_MSR           MsrValue;
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
-    UINT32             VmEntryControls = 0;
-    UINT32             VmExitControls  = 0;
+    IA32_EFER_REGISTER      MsrValue;
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
+    UINT32                  VmEntryControls = 0;
+    UINT32                  VmExitControls  = 0;
 
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
 
     //
     // Read previous VM-Entry and VM-Exit controls
     //
-    __vmx_vmread(VM_ENTRY_CONTROLS, &VmEntryControls);
-    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmEntryControls);
+    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmExitControls);
 
     MsrValue.Flags = __readmsr(IA32_EFER);
 
@@ -54,17 +54,17 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls | VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls | VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
         //
-        __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+        __vmx_vmwrite(VMCS_GUEST_EFER, MsrValue.Flags);
 
         //
         // also, we have to set exception bitmap to cause vm-exit on #UDs
@@ -78,17 +78,17 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
         //
         // Set VM-Entry controls to load EFER
         //
-        __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VmEntryControls & ~VM_ENTRY_LOAD_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
         //
         // Set VM-Exit controls to save EFER
         //
-        __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+        __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, HvAdjustControls(VmExitControls & ~VM_EXIT_SAVE_IA32_EFER, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
         //
         // Set the GUEST EFER to use this value as the EFER
         //
-        __vmx_vmwrite(GUEST_EFER, MsrValue.Flags);
+        __vmx_vmwrite(VMCS_GUEST_EFER, MsrValue.Flags);
 
         //
         // Because we're not save or load EFER on vm-exits so
@@ -112,26 +112,26 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
-    UINT32           InstructionLength;
-    UINT64           MsrValue;
-    ULONG64          GuestRip;
-    ULONG64          GuestRflags;
+    VMX_SEGMENT_SELECTOR Cs, Ss;
+    UINT32                       InstructionLength;
+    UINT64                       MsrValue;
+    ULONG64                      GuestRip;
+    ULONG64                      GuestRflags;
 
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Reading instruction length
     //
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &InstructionLength);
+    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &InstructionLength);
 
     //
     // Reading guest's Rflags
     //
-    __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
 
     //
     // Save the address of the instruction following SYSCALL into RCX and then
@@ -140,7 +140,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     MsrValue  = __readmsr(IA32_LSTAR);
     Regs->rcx = GuestRip + InstructionLength;
     GuestRip  = MsrValue;
-    __vmx_vmwrite(GUEST_RIP, GuestRip);
+    __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Save RFLAGS into R11 and then mask RFLAGS using IA32_FMASK
@@ -148,22 +148,22 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     MsrValue  = __readmsr(IA32_FMASK);
     Regs->r11 = GuestRflags;
     GuestRflags &= ~(MsrValue | X86_FLAGS_RF);
-    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
-    Cs.SEL               = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
-    Cs.BASE              = 0;                               // flat segment
-    Cs.LIMIT             = (UINT32)~0;                      // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA09B;                          // L+DB+P+S+DPL0+Code
+    MsrValue            = __readmsr(IA32_STAR);
+    Cs.Selector              = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
+    Cs.Base             = 0;                               // flat segment
+    Cs.Limit            = (UINT32)~0;                      // 4GB limit
+    Cs.Attributes.Flags = 0xA09B;                          // L+DB+P+S+DPL0+Code
     SetGuestCs(&Cs);
 
-    Ss.SEL               = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
-    Ss.BASE              = 0;                                     // flat segment
-    Ss.LIMIT             = (UINT32)~0;                            // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC093;                                // G+DB+P+S+DPL0+Data
+    Ss.Selector              = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
+    Ss.Base             = 0;                                     // flat segment
+    Ss.Limit            = (UINT32)~0;                            // 4GB limit
+    Ss.Attributes.Flags = 0xC093;                                // G+DB+P+S+DPL0+Data
     SetGuestSs(&Ss);
 
     return TRUE;
@@ -178,37 +178,37 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
-    SEGMENT_SELECTOR Cs, Ss;
-    UINT64           MsrValue;
-    ULONG64          GuestRip;
-    ULONG64          GuestRflags;
+    VMX_SEGMENT_SELECTOR Cs, Ss;
+    UINT64                       MsrValue;
+    ULONG64                      GuestRip;
+    ULONG64                      GuestRflags;
 
     //
     // Load RIP from RCX
     //
     GuestRip = Regs->rcx;
-    __vmx_vmwrite(GUEST_RIP, GuestRip);
+    __vmx_vmwrite(VMCS_GUEST_RIP, GuestRip);
 
     //
     // Load RFLAGS from R11. Clear RF, VM, reserved bits
     //
     GuestRflags = (Regs->r11 & ~(X86_FLAGS_RF | X86_FLAGS_VM | X86_FLAGS_RESERVED_BITS)) | X86_FLAGS_FIXED;
-    __vmx_vmwrite(GUEST_RFLAGS, GuestRflags);
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, GuestRflags);
 
     //
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
     //
-    MsrValue             = __readmsr(IA32_STAR);
-    Cs.SEL               = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
-    Cs.BASE              = 0;                                     // Flat segment
-    Cs.LIMIT             = (UINT32)~0;                            // 4GB limit
-    Cs.ATTRIBUTES.UCHARs = 0xA0FB;                                // L+DB+P+S+DPL3+Code
+    MsrValue            = __readmsr(IA32_STAR);
+    Cs.Selector              = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
+    Cs.Base             = 0;                                     // Flat segment
+    Cs.Limit            = (UINT32)~0;                            // 4GB limit
+    Cs.Attributes.Flags = 0xA0FB;                                // L+DB+P+S+DPL3+Code
     SetGuestCs(&Cs);
 
-    Ss.SEL               = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
-    Ss.BASE              = 0;                                    // Flat segment
-    Ss.LIMIT             = (UINT32)~0;                           // 4GB limit
-    Ss.ATTRIBUTES.UCHARs = 0xC0F3;                               // G+DB+P+S+DPL3+Data
+    Ss.Selector              = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
+    Ss.Base             = 0;                                    // Flat segment
+    Ss.Limit            = (UINT32)~0;                           // 4GB limit
+    Ss.Attributes.Flags = 0xC0F3;                               // G+DB+P+S+DPL3+Data
     SetGuestSs(&Ss);
 
     return TRUE;
@@ -232,7 +232,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(GUEST_RIP, &Rip);
+    __vmx_vmread(VMCS_GUEST_RIP, &Rip);
 
     if (g_IsUnsafeSyscallOrSysretHandling)
     {

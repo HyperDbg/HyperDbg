@@ -721,3 +721,22 @@ FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
     // Find sub string in given string
     return Input.find(ToSearch, Pos);
 }
+
+/**
+ * @brief Convert vector<string> to char*
+ * @details use it like :
+ *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);  
+ *  from: https://stackoverflow.com/questions/7048888/stdvectorstdstring-to-char-array
+ * 
+ * @param Input
+ * @param ToSearch
+ * @param Pos
+ * @return size_t
+ */
+char *
+ConvertStringVectorToCharPointerArray(const std::string & s)
+{
+    char * pc = new char[s.size() + 1];
+    std::strcpy(pc, s.c_str());
+    return pc;
+}

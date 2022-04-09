@@ -70,12 +70,13 @@ ShowMessages(const char * Fmt, ...)
 }
 
 /**
- * @brief Interpret and find module base , based on module name 
+ * @brief Interpret and find module base, based on module name 
  * @param SearchMask
  * 
- * @return DWORD64 NULL means error or not found, otherwise the address
+ * @return PSYMBOL_LOADED_MODULE_DETAILS NULL means error or not found, 
+ * otherwise it returns the instance of loaded module based on search mask
  */
-DWORD64
+PSYMBOL_LOADED_MODULE_DETAILS
 SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlobally)
 {
     string Token;
@@ -160,7 +161,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
     }
 
     //
-    // ************* Interpret based on remarks of the "X" command *************
+    // ************* Interpret based on remarks type name *************
     //
     for (auto item : g_LoadedModules)
     {
@@ -171,7 +172,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
                 g_CurrentModuleName = (char *)item->ModuleName;
             }
 
-            return item->ModuleBase;
+            return item;
         }
     }
 
@@ -484,6 +485,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     //
     ModuleDetails->BaseAddress = BaseAddress;
     strcpy((char *)ModuleDetails->ModuleName, ModuleName);
+    strcpy((char *)ModuleDetails->PdbFilePath, PdbFileName);
 
     //
     // Save it
@@ -688,19 +690,19 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 BOOLEAN
 SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
 {
-    BOOL    Ret        = FALSE;
-    DWORD64 ModuleBase = NULL;
-    UINT32  Index      = 0;
+    BOOL                          Ret        = FALSE;
+    UINT32                        Index      = 0;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
 
     //
-    // Find module base
+    // Find module info
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
+    SymbolInfo = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
 
     //
-    // Find the module name
+    // Check if module is found
     //
-    if (ModuleBase == NULL)
+    if (SymbolInfo == NULL)
     {
         //
         // Module not found or there was an error
@@ -739,7 +741,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
     WCHAR *      FieldNameW    = new wchar_t[FieldNameSize];
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
-    return SymGetFieldOffsetFromModule(ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+    return SymGetFieldOffsetFromModule(SymbolInfo->ModuleBase, TypeNameW, FieldNameW, FieldOffset);
 }
 
 /**
@@ -752,18 +754,18 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
 UINT32
 SymSearchSymbolForMask(const char * SearchMask)
 {
-    BOOL    Ret        = FALSE;
-    DWORD64 ModuleBase = NULL;
+    BOOL                          Ret        = FALSE;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
 
     //
-    // Find module base
+    // Get the module info
     //
-    ModuleBase = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
+    SymbolInfo = SymGetModuleBaseFromSearchMask(SearchMask, TRUE);
 
     //
-    // Find the module name
+    // Check to see if module info is found
     //
-    if (ModuleBase == NULL)
+    if (SymbolInfo == NULL)
     {
         //
         // Module not found or there was an error
@@ -773,7 +775,7 @@ SymSearchSymbolForMask(const char * SearchMask)
 
     Ret = SymEnumSymbols(
         GetCurrentProcess(),           // Process handle of the current process
-        ModuleBase,                    // Base address of the module
+        SymbolInfo->ModuleBase,        // Base address of the module
         SearchMask,                    // Mask (NULL -> all symbols)
         SymDisplayMaskSymbolsCallback, // The callback function
         NULL                           // A used-defined context can be passed here, if necessary
@@ -1664,4 +1666,119 @@ SymbolAbortLoading()
         g_AbortLoadingExecution = TRUE;
         ShowMessages("\naborting, please wait...\n");
     }
+}
+
+/**
+ * @brief Perform task for showing structures and data
+ * @details used by dt command
+ *
+ * @param TypeName
+ * @param Address
+ * @param BufferAddress
+ * @param AdditionalParameters
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+SymShowDataBasedOnSymbolTypes(const char * TypeName,
+                              UINT64       Address,
+                              PVOID        BufferAddress,
+                              const char * AdditionalParameters)
+{
+    vector<string>                SplitedsymPath;
+    char **                       ArgvArray     = NULL;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo    = NULL;
+    UINT32                        SizeOfArgv    = 0;
+    UINT32                        TypeNameIndex = 0;
+
+    //
+    // Find the symbol info (to get the PDB address)
+    //
+    SymbolInfo = SymGetModuleBaseFromSearchMask(TypeName, FALSE);
+
+    if (!SymbolInfo)
+    {
+        //
+        // Symbol not found
+        //
+        ShowMessages("err, couldn't resolve error at '%s'\n", TypeName);
+
+        return FALSE;
+    }
+
+    //
+    // Convert char* to string
+    //
+    std::string AdditionalParametersString(AdditionalParameters);
+
+    //
+    // Split the arguments by space
+    //
+    SplitedsymPath = Split(AdditionalParametersString, ' ');
+
+    //
+    // Allocate buffer to convert it to the char*
+    // + 3 is because of
+    //      1. file name
+    //      2. type (structure) name
+    //      3. PDB file location
+    //
+    SizeOfArgv = SplitedsymPath.size() + 3;
+    ArgvArray  = (char **)malloc(SizeOfArgv * sizeof(char *));
+
+    if (ArgvArray == NULL)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(ArgvArray, SizeOfArgv * sizeof(char *));
+
+    //
+    // First argument is the file name, we let it blank
+    //
+    ArgvArray[0] = NULL;
+
+    //
+    // Remove the module name (if any)
+    //
+    while (TypeName[TypeNameIndex] != NULL)
+    {
+        if (TypeName[TypeNameIndex] == '!')
+        {
+            TypeName = &TypeName[++TypeNameIndex];
+            break;
+        }
+
+        TypeNameIndex++;
+    }
+
+    //
+    // Second argument is the type (structure) name
+    //
+    ArgvArray[1] = (char *)TypeName;
+
+    //
+    // Third argument is the PDB file location
+    //
+    ArgvArray[2] = SymbolInfo->PdbFilePath;
+
+    //
+    // Fill the parameter with char array
+    //
+    for (size_t i = 3; i < SizeOfArgv; i++)
+    {
+        ArgvArray[i] = (char *)SplitedsymPath.at(i - 3).c_str();
+    }
+
+    //
+    // Call the pdbex wrapper
+    //
+    pdbex_main_impl_export(SizeOfArgv, ArgvArray);
+
+    //
+    // Free the buffer allocated for argv
+    //
+    free(ArgvArray);
+
+    return TRUE;
 }

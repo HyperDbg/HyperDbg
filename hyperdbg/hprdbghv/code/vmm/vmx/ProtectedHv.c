@@ -279,7 +279,7 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     // PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT in vmx
     // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
     // we should enable VM_EXIT_ACK_INTR_ON_EXIT on vmx vm-exit
-    // controls (VM_EXIT_CONTROLS), also this function might not
+    // controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function might not
     // always be successful if the guest is not in the interruptible
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
@@ -288,8 +288,8 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     //
     // Read the previous flags
     //
-    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
-    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -305,8 +305,8 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     //
     // Set the new value
     //
-    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
-    __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -393,7 +393,7 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -406,7 +406,7 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -470,7 +470,7 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -484,7 +484,7 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -536,7 +536,7 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -550,7 +550,7 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**

@@ -772,7 +772,7 @@ StartAgain:
                                                           sizeof(GUEST_REGS));
 
                     RFLAGS Rflags = {0};
-                    Rflags.Value  = ExtraRegs->RFLAGS;
+                    Rflags.Flags  = ExtraRegs->RFLAGS;
 
                     ShowMessages(
                         "RAX=%016llx RBX=%016llx RCX=%016llx\n"

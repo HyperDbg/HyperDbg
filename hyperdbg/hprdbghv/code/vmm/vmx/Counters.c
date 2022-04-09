@@ -77,7 +77,7 @@ CounterSetPreemptionTimer(UINT32 TimerValue)
     //
     // Set the time value
     //
-    __vmx_vmwrite(GUEST_PREEMPTION_TIMER, TimerValue);
+    __vmx_vmwrite(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, TimerValue);
 }
 
 /**
@@ -91,5 +91,5 @@ CounterClearPreemptionTimer()
     //
     // Set the time value to NULL
     //
-    __vmx_vmwrite(GUEST_PREEMPTION_TIMER, NULL);
+    __vmx_vmwrite(VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE, NULL);
 }

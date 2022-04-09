@@ -36,7 +36,7 @@
 BOOLEAN
 DebugRegistersSet(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN ApplyToVmcs, UINT64 TargetAddress)
 {
-    DEBUG_REGISTER_7 Dr7 = {0};
+    DR7 Dr7 = {0};
 
     //
     // Debug registers can be dr0, dr1, dr2, dr3
@@ -248,7 +248,7 @@ DebugRegistersSet(UINT32 DebugRegNum, DEBUG_REGISTER_TYPE ActionType, BOOLEAN Ap
     //
     if (ApplyToVmcs)
     {
-        __vmx_vmwrite(GUEST_DR7, Dr7.Flags);
+        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.Flags);
     }
     else
     {

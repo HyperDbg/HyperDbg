@@ -104,7 +104,7 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
     //
     // Configure the RIP again
     //
-    __vmx_vmwrite(GUEST_RIP, ThreadDebuggingDetails->ThreadRip);
+    __vmx_vmwrite(VMCS_GUEST_RIP, ThreadDebuggingDetails->ThreadRip);
 }
 
 /**
@@ -158,11 +158,11 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
         //
         // Set the trap-flag
         //
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
         Rflags.TrapFlag = TRUE;
 
-        __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+        __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
         //
         // Rflags' trap flag is set
@@ -372,12 +372,12 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
     //
     // Save the RIP for future return
     //
-    __vmx_vmread(GUEST_RIP, &ThreadDebuggingDetails->ThreadRip);
+    __vmx_vmread(VMCS_GUEST_RIP, &ThreadDebuggingDetails->ThreadRip);
 
     //
     // Set the rip to new spinning address
     //
-    __vmx_vmwrite(GUEST_RIP, ProcessDebuggingDetails->UsermodeReservedBuffer);
+    __vmx_vmwrite(VMCS_GUEST_RIP, ProcessDebuggingDetails->UsermodeReservedBuffer);
 
     //
     // Indicate that it's spinning
@@ -402,11 +402,11 @@ UdHandleAfterSteppingReason(UINT32                             CurrentCore,
     //
     // Unset the trap-flag
     //
-    __vmx_vmread(GUEST_RFLAGS, &Rflags);
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
     Rflags.TrapFlag = FALSE;
 
-    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
     //
     // Rflags' trap flag is not set anymore
@@ -547,8 +547,8 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     //
     // Set rflags for finding the results of conditional jumps
     //
-    __vmx_vmread(GUEST_RFLAGS, &Rflags);
-    PausePacket.Rflags.Value = Rflags.Value;
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+    PausePacket.Rflags.Flags = Rflags.Flags;
 
     //
     // Set the event tag (if it's an event)
@@ -571,7 +571,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
         // Reading instruction length proved to provide wrong results,
         // so we won't use it anymore
         //
-        // __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+        // __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
         //
 
         //

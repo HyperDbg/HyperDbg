@@ -224,6 +224,8 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllimport) BOOLEAN
+    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, PVOID BufferAddress, const char * AdditionalParameters);
 __declspec(dllimport) VOID
     ScriptEngineSymbolAbortLoading();
 }
@@ -2141,7 +2143,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestDs().SEL;
+        return GetGuestDs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2153,7 +2155,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestEs().SEL;
+        return GetGuestEs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2165,7 +2167,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestFs().SEL;
+        return GetGuestFs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2177,7 +2179,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestGs().SEL;
+        return GetGuestGs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2189,7 +2191,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestCs().SEL;
+        return GetGuestCs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2201,7 +2203,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestSs().SEL;
+        return GetGuestSs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3177,7 +3179,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestDsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestDsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3192,7 +3194,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestEsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestEsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3207,7 +3209,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestFsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestFsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3222,7 +3224,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestGsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestGsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3237,7 +3239,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestCsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestCsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3252,7 +3254,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestSsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestSsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;

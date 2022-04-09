@@ -18,10 +18,11 @@
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
+VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
+                      _Inout_ PGUEST_REGS GuestRegs)
 {
     //
-    // Triggeer the event
+    // Trigger the event
     //
     // As the context to event trigger, we send NULL
     // Registers are the best source to know the purpose
@@ -39,36 +40,35 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
         //
         // Then we have to manage it as it relates to us
         //
-        GuestRegs->rax = VmxVmcallHandler(GuestRegs->rcx,
+        GuestRegs->rax = VmxVmcallHandler(CoreIndex,
+                                          GuestRegs->rcx,
                                           GuestRegs->rdx,
                                           GuestRegs->r8,
                                           GuestRegs->r9,
-                                          GuestRegs,
-                                          CoreIndex);
+                                          GuestRegs);
     }
     else
     {
-        HYPERCALL_INPUT_VALUE InputValue = {0};
-        InputValue.Value                 = GuestRegs->rcx;
+        HYPERCALL_INPUT_VALUE InputValue = {.Flags = GuestRegs->rcx};
 
-        switch (InputValue.Bitmap.CallCode)
+        switch (InputValue.Fields.CallCode)
         {
         case HvSwitchVirtualAddressSpace:
         case HvFlushVirtualAddressSpace:
         case HvFlushVirtualAddressList:
         case HvCallFlushVirtualAddressSpaceEx:
         case HvCallFlushVirtualAddressListEx:
-        {
-            InvvpidAllContexts();
+
+            VpidInvvpidAllContext();
             break;
-        }
+
         case HvCallFlushGuestPhysicalAddressSpace:
         case HvCallFlushGuestPhysicalAddressList:
-        {
-            InveptSingleContext(g_EptState->EptPointer.Flags);
+
+            EptInveptSingleContext(g_EptState->EptPointer.Flags);
             break;
         }
-        }
+
         //
         // Let the top-level hypervisor to manage it
         //
@@ -87,12 +87,12 @@ VmxHandleVmcallVmExit(PGUEST_REGS GuestRegs, UINT32 CoreIndex)
  * @return NTSTATUS 
  */
 NTSTATUS
-VmxVmcallHandler(UINT64      VmcallNumber,
-                 UINT64      OptionalParam1,
-                 UINT64      OptionalParam2,
-                 UINT64      OptionalParam3,
-                 PGUEST_REGS GuestRegs,
-                 UINT32      CurrentCoreIndex)
+VmxVmcallHandler(_In_ UINT32         CurrentCoreIndex,
+                 _In_ UINT64         VmcallNumber,
+                 _In_ UINT64         OptionalParam1,
+                 _In_ UINT64         OptionalParam2,
+                 _In_ UINT64         OptionalParam3,
+                 _Inout_ PGUEST_REGS GuestRegs)
 {
     NTSTATUS VmcallStatus = STATUS_UNSUCCESSFUL;
     BOOLEAN  HookResult   = FALSE;
@@ -128,8 +128,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
         UnsetWrite = (AttributeMask & PAGE_ATTRIB_WRITE) ? TRUE : FALSE;
         UnsetExec  = (AttributeMask & PAGE_ATTRIB_EXEC) ? TRUE : FALSE;
 
-        CR3_TYPE ProcCr3 = {0};
-        ProcCr3.Flags    = OptionalParam3;
+        CR3_TYPE ProcCr3 = {.Flags = OptionalParam3};
 
         HookResult = EptHookPerformPageHook2(OptionalParam1 /* TargetAddress */,
                                              OptionalParam2 /* Hook Function*/,
@@ -144,13 +143,13 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_INVEPT_SINGLE_CONTEXT:
     {
-        InveptSingleContext(OptionalParam1);
+        EptInveptSingleContext(OptionalParam1);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
     case VMCALL_INVEPT_ALL_CONTEXTS:
     {
-        InveptAllContexts();
+        EptInveptAllContexts();
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
@@ -228,8 +227,7 @@ VmxVmcallHandler(UINT64      VmcallNumber,
     }
     case VMCALL_SET_HIDDEN_CC_BREAKPOINT:
     {
-        CR3_TYPE ProcCr3 = {0};
-        ProcCr3.Flags    = OptionalParam2;
+        CR3_TYPE ProcCr3 = {.Flags = OptionalParam2};
 
         HookResult = EptHookPerformPageHook(OptionalParam1, /* TargetAddress */
                                             ProcCr3);       /* process cr3 */
@@ -448,7 +446,9 @@ VmxVmcallHandler(UINT64      VmcallNumber,
  * @return NTSTATUS 
  */
 NTSTATUS
-VmcallTest(UINT64 Param1, UINT64 Param2, UINT64 Param3)
+VmcallTest(_In_ UINT64 Param1,
+           _In_ UINT64 Param2,
+           _In_ UINT64 Param3)
 {
     LogDebugInfo("VmcallTest called with @Param1 = 0x%llx , @Param2 = 0x%llx , @Param3 = 0x%llx",
                  Param1,

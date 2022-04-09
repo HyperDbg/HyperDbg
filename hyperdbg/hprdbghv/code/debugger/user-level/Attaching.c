@@ -476,7 +476,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
                 //
                 // Inject #PF
                 //
-                VMEXIT_INTERRUPT_INFO InterruptInfo = {0};
+                VMEXIT_INTERRUPT_INFORMATION InterruptInfo = {0};
 
                 //
                 // We're waiting for this pointer to be called again after handling page-fault
@@ -632,11 +632,11 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
-                                         PGUEST_REGS           GuestRegs,
-                                         VMEXIT_INTERRUPT_INFO InterruptExit,
-                                         UINT64                Address,
-                                         ULONG                 ErrorCode)
+AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentProcessorIndex,
+                                         PGUEST_REGS                  GuestRegs,
+                                         VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                         UINT64                       Address,
+                                         ULONG                        ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
 

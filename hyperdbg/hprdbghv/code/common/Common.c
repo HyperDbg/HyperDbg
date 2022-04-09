@@ -231,24 +231,32 @@ SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
  * @return BOOLEAN 
  */
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
+GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector, PUCHAR GdtBase)
 {
     PSEGMENT_DESCRIPTOR SegDesc;
 
     if (!SegmentSelector)
         return FALSE;
 
-    if (Selector & 0x4)
+#define SELECTOR_TABLE_INDEX 0x04
+    //
+    // Ignore IDT
+    //
+
+    if ((Selector == 0x0) || (Selector & SELECTOR_TABLE_INDEX) != 0)
     {
         return FALSE;
     }
 
+    //
+    // Read the GDT entry at the given selector ?
+    //
     SegDesc = (PSEGMENT_DESCRIPTOR)((PUCHAR)GdtBase + (Selector & ~0x7));
 
-    SegmentSelector->SEL               = Selector;
-    SegmentSelector->BASE              = SegDesc->BASE0 | SegDesc->BASE1 << 16 | SegDesc->BASE2 << 24;
-    SegmentSelector->LIMIT             = SegDesc->LIMIT0 | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
-    SegmentSelector->ATTRIBUTES.UCHARs = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
+    SegmentSelector->Selector         = Selector;
+    SegmentSelector->Base             = SegDesc->BaseLow | SegDesc->BaseMiddle << 16 | SegDesc->BaseHigh << 24;
+    SegmentSelector->Limit            = SegDesc->LimitLow | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
+    SegmentSelector->Attributes.Flags = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
 
     if (!(SegDesc->ATTR0 & 0x10))
     {
@@ -261,15 +269,15 @@ GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR 
         // this is a TSS or callgate etc, save the base high part
         //
         tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
-        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (tmp << 32);
     }
 
-    if (SegmentSelector->ATTRIBUTES.Fields.G)
+    if (SegmentSelector->Attributes.Fields.Granularity)
     {
         //
         // 4096-bit granularity is enabled for this segment, scale the limit
         //
-        SegmentSelector->LIMIT = (SegmentSelector->LIMIT << 12) + 0xfff;
+        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
     }
 
     return TRUE;

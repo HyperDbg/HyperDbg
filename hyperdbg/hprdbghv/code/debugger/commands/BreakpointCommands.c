@@ -57,9 +57,9 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64
                     DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
 
                     //
-                    // Restore to its orginal entry for one instruction
+                    // Restore to its original entry for one instruction
                     //
-                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, INVEPT_SINGLE_CONTEXT);
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
@@ -248,18 +248,18 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                 // As we want to continue debuggee, the MTF might arrive when the
                 // host finish executing it's time slice; thus, a clock interrupt
                 // or an IPI might be arrived and the next instruction is not what
-                // we expect, becuase of that we check if the IF (Interrupt enable)
+                // we expect, because of that we check if the IF (Interrupt enable)
                 // flag of RFLAGS is enabled or not, if enabled then we remove it
                 // to avoid any clock-interrupt or IPI to arrive and the next
                 // instruction is our next instruction in the current execution
                 // context
                 //
-                __vmx_vmread(GUEST_RFLAGS, &Rflags);
+                __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
                 if (Rflags.InterruptEnableFlag)
                 {
                     Rflags.InterruptEnableFlag = FALSE;
-                    __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+                    __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
                     //
                     // An indicator to restore RFLAGS if to enabled state
@@ -302,7 +302,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Reading guest's RIP
     //
-    __vmx_vmread(GUEST_RIP, &GuestRip);
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
 
     //
     // Don't increment rip by default

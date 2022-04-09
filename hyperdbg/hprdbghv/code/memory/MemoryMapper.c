@@ -137,7 +137,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
     //
     // Cr3 should be shifted 12 to the left because it's PFN
     //
-    TempCr3 = Cr3.PageFrameNumber << 12;
+    TempCr3 = Cr3.Fields.PageFrameNumber << 12;
 
     //
     // we need VA of Cr3, not PA
@@ -156,12 +156,12 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
 
     PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
 
-    if (!Pml4e->Present || Level == PML4)
+    if (!Pml4e->Fields.Present || Level == PML4)
     {
         return Pml4e;
     }
 
-    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->PageFrameNumber << 12);
+    PdptVa = PhysicalAddressToVirtualAddress(Pml4e->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -175,12 +175,12 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
 
     PPAGE_ENTRY Pdpte = &PdptVa[Offset];
 
-    if (!Pdpte->Present || Pdpte->LargePage || Level == PDPT)
+    if (!Pdpte->Fields.Present || Pdpte->Fields.LargePage || Level == PDPT)
     {
         return Pdpte;
     }
 
-    PdVa = PhysicalAddressToVirtualAddress(Pdpte->PageFrameNumber << 12);
+    PdVa = PhysicalAddressToVirtualAddress(Pdpte->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -194,12 +194,12 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
 
     PPAGE_ENTRY Pde = &PdVa[Offset];
 
-    if (!Pde->Present || Pde->LargePage || Level == PD)
+    if (!Pde->Fields.Present || Pde->Fields.LargePage || Level == PD)
     {
         return Pde;
     }
 
-    PtVa = PhysicalAddressToVirtualAddress(Pde->PageFrameNumber << 12);
+    PtVa = PhysicalAddressToVirtualAddress(Pde->Fields.PageFrameNumber << 12);
 
     //
     // Check for invalid address
@@ -234,7 +234,7 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
     //
     PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
 
-    if (PageEntry != NULL && PageEntry->Present)
+    if (PageEntry != NULL && PageEntry->Fields.Present)
     {
         return TRUE;
     }
@@ -261,7 +261,7 @@ MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
     //
     PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
 
-    if (PageEntry != NULL && !PageEntry->ExecuteDisable)
+    if (PageEntry != NULL && !PageEntry->Fields.ExecuteDisable)
     {
         return TRUE;
     }
@@ -304,7 +304,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     PageEntry = MemoryMapperGetPteVa(Va, PT);
 
-    if (PageEntry != NULL && !PageEntry->ExecuteDisable)
+    if (PageEntry != NULL && !PageEntry->Fields.ExecuteDisable)
     {
         Result = TRUE;
     }
@@ -479,23 +479,23 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
     //
     PageEntry.Flags = Pte->Flags;
 
-    PageEntry.Present = 1;
+    PageEntry.Fields.Present = 1;
 
     //
     // Generally we want each page to be writable
     //
-    PageEntry.Write = 1;
+    PageEntry.Fields.Write = 1;
 
     //
     // Do not flush this page from the TLB on CR3 switch, by setting the
     // global bit in the PTE.
     //
-    PageEntry.Global = 1;
+    PageEntry.Fields.Global = 1;
 
     //
     // Set the PFN of this PTE to that of the provided physical address,
     //
-    PageEntry.PageFrameNumber = PaAddressToRead.QuadPart >> 12;
+    PageEntry.Fields.PageFrameNumber = PaAddressToRead.QuadPart >> 12;
 
     //
     // Apply the page entry in a single instruction
@@ -565,23 +565,23 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
     //
     PageEntry.Flags = Pte->Flags;
 
-    PageEntry.Present = 1;
+    PageEntry.Fields.Present = 1;
 
     //
     // Generally we want each page to be writable
     //
-    PageEntry.Write = 1;
+    PageEntry.Fields.Write = 1;
 
     //
     // Do not flush this page from the TLB on CR3 switch, by setting the
     // global bit in the PTE.
     //
-    PageEntry.Global = 1;
+    PageEntry.Fields.Global = 1;
 
     //
     // Set the PFN of this PTE to that of the provided physical address.
     //
-    PageEntry.PageFrameNumber = PaAddressToWrite.QuadPart >> 12;
+    PageEntry.Fields.PageFrameNumber = PaAddressToWrite.QuadPart >> 12;
 
     //
     // Apply the page entry in a single instruction
@@ -1343,28 +1343,28 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     // Make sure that the target PTE is readable, writable, executable
     // present, global, etc.
     //
-    PageEntry.Present = 1;
+    PageEntry.Fields.Present = 1;
 
     //
     // It's not a supervisor page
     //
-    PageEntry.Supervisor = 1;
+    PageEntry.Fields.Supervisor = 1;
 
     //
     // Generally we want each page to be writable
     //
-    PageEntry.Write = 1;
+    PageEntry.Fields.Write = 1;
 
     //
     // Do not flush this page from the TLB on CR3 switch, by setting the
     // global bit in the PTE.
     //
-    PageEntry.Global = 1;
+    PageEntry.Fields.Global = 1;
 
     //
     // Set the PFN of this PTE to that of the provided physical address.
     //
-    PageEntry.PageFrameNumber = PhysicalAddress.QuadPart >> 12;
+    PageEntry.Fields.PageFrameNumber = PhysicalAddress.QuadPart >> 12;
 
     //
     // Apply the page entry in a single instruction
@@ -1411,11 +1411,11 @@ MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Lev
     //
     if (Set)
     {
-        Pml->Supervisor = 1;
+        Pml->Fields.Supervisor = 1;
     }
     else
     {
-        Pml->Supervisor = 0;
+        Pml->Fields.Supervisor = 0;
     }
 
     return TRUE;

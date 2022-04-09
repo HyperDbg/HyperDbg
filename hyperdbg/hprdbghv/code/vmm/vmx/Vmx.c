@@ -19,8 +19,8 @@
 BOOLEAN
 VmxCheckVmxSupport()
 {
-    CPUID                    Data              = {0};
-    IA32_FEATURE_CONTROL_MSR FeatureControlMsr = {0};
+    CPUID                         Data              = {0};
+    IA32_FEATURE_CONTROL_REGISTER FeatureControlMsr = {0};
 
     //
     // Gets Processor Info and Feature Bits
@@ -38,7 +38,7 @@ VmxCheckVmxSupport()
         return FALSE;
     }
 
-    FeatureControlMsr.All = __readmsr(IA32_FEATURE_CONTROL);
+    FeatureControlMsr.Flags = __readmsr(IA32_FEATURE_CONTROL);
 
     //
     // Commented because of https://stackoverflow.com/questions/34900224/
@@ -55,11 +55,10 @@ VmxCheckVmxSupport()
     // {
     //     FeatureControlMsr.Fields.Lock        = TRUE;
     //     FeatureControlMsr.Fields.EnableVmxon = TRUE;
-    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.All);
+    //     __writemsr(IA32_FEATURE_CONTROL, FeatureControlMsr.Flags);
     // }
-    // else
 
-    if (FeatureControlMsr.Fields.EnableVmxon == FALSE)
+    if (FeatureControlMsr.EnableVmxOutsideSmx == FALSE)
     {
         LogError("Err, you should enable vt-x from BIOS");
         return FALSE;
@@ -76,9 +75,7 @@ VmxCheckVmxSupport()
 BOOLEAN
 VmxInitialize()
 {
-    int                LogicalProcessorsCount;
-    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
-
+    ULONG LogicalProcessorsCount;
     //
     // ****** Start Virtualizing Current System ******
     //
@@ -307,18 +304,18 @@ VmxPerformVirtualizationOnSpecificCore()
 VOID
 VmxFixCr4AndCr0Bits()
 {
-    CR_FIXED           CrFixed = {0};
-    CONTROL_REGISTER_4 Cr4     = {0};
-    CONTROL_REGISTER_0 Cr0     = {0};
+    CR_FIXED CrFixed = {0};
+    CR4      Cr4     = {0};
+    CR0      Cr0     = {0};
 
     //
     // Fix Cr0
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED0);
     Cr0.Flags     = __readcr0();
-    Cr0.Flags |= CrFixed.Value.Low;
+    Cr0.Flags |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED1);
-    Cr0.Flags &= CrFixed.Value.Low;
+    Cr0.Flags &= CrFixed.Fields.Low;
     __writecr0(Cr0.Flags);
 
     //
@@ -326,14 +323,14 @@ VmxFixCr4AndCr0Bits()
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED0);
     Cr4.Flags     = __readcr4();
-    Cr4.Flags |= CrFixed.Value.Low;
+    Cr4.Flags |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED1);
-    Cr4.Flags &= CrFixed.Value.Low;
+    Cr4.Flags &= CrFixed.Fields.Low;
     __writecr4(Cr4.Flags);
 }
 
 /**
- * @brief It can deteministcly check whether the caller is on vmx-root mode
+ * @brief It can deterministically check whether the caller is on vmx-root mode
  * or not
  * 
  * @return BOOLEAN Returns true if current operation mode is vmx-root and false
@@ -346,7 +343,7 @@ VmxCheckIsOnVmxRoot()
 
     __try
     {
-        if (!__vmx_vmread(VMCS_LINK_POINTER, &VmcsLink))
+        if (!__vmx_vmread(VMCS_GUEST_VMCS_LINK_POINTER, &VmcsLink))
         {
             if (VmcsLink != 0)
             {
@@ -364,7 +361,7 @@ VmxCheckIsOnVmxRoot()
 /**
  * @brief Initialize VMX Operation
  * 
- * @param GuestStack Guest stack for the this core (GUEST_RSP)
+ * @param GuestStack Guest stack for the this core (VMCS_GUEST_RSP)
  * @return BOOLEAN This function won't return true as when Vmlaunch is executed the
    rest of the function never executes but returning FALSE is an indication of error
  */
@@ -415,7 +412,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
 
     //
-    // If failed, then indiacte that current core is not currently virtualized
+    // If failed, then indicate that current core is not currently virtualized
     //
     g_GuestState[ProcessorID].HasLaunched = FALSE;
 
@@ -424,7 +421,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     __vmx_off();
 
-    __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
+    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
     LogError("Err, unable to execute VMLAUNCH, status : 0x%llx", ErrorCode);
 
     LogError("Err, VMXOFF Executed Successfully but it was because of an error");
@@ -551,47 +548,47 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 {
-    ULONG              CpuBasedVmExecControls;
-    ULONG              SecondaryProcBasedVmExecControls;
-    PVOID              HostRsp;
-    ULONG64            GdtBase         = 0;
-    SEGMENT_SELECTOR   SegmentSelector = {0};
-    IA32_VMX_BASIC_MSR VmxBasicMsr     = {0};
+    ULONG                        CpuBasedVmExecControls;
+    ULONG                        SecondaryProcBasedVmExecControls;
+    PVOID                        HostRsp;
+    ULONG64                      GdtBase         = 0;
+    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
+    IA32_VMX_BASIC_REGISTER      VmxBasicMsr     = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
 
-    __vmx_vmwrite(HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
-    __vmx_vmwrite(HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
-    __vmx_vmwrite(HOST_SS_SELECTOR, AsmGetSs() & 0xF8);
-    __vmx_vmwrite(HOST_DS_SELECTOR, AsmGetDs() & 0xF8);
-    __vmx_vmwrite(HOST_FS_SELECTOR, AsmGetFs() & 0xF8);
-    __vmx_vmwrite(HOST_GS_SELECTOR, AsmGetGs() & 0xF8);
-    __vmx_vmwrite(HOST_TR_SELECTOR, AsmGetTr() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_SS_SELECTOR, AsmGetSs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_DS_SELECTOR, AsmGetDs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_FS_SELECTOR, AsmGetFs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_GS_SELECTOR, AsmGetGs() & 0xF8);
+    __vmx_vmwrite(VMCS_HOST_TR_SELECTOR, AsmGetTr() & 0xF8);
 
     //
     // Setting the link pointer to the required value for 4KB VMCS
     //
-    __vmx_vmwrite(VMCS_LINK_POINTER, ~0ULL);
+    __vmx_vmwrite(VMCS_GUEST_VMCS_LINK_POINTER, ~0ULL);
 
-    __vmx_vmwrite(GUEST_IA32_DEBUGCTL, __readmsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
-    __vmx_vmwrite(GUEST_IA32_DEBUGCTL_HIGH, __readmsr(IA32_DEBUGCTL) >> 32);
+    __vmx_vmwrite(VMCS_GUEST_DEBUGCTL, __readmsr(IA32_DEBUGCTL) & 0xFFFFFFFF);
+    __vmx_vmwrite(VMCS_GUEST_DEBUGCTL_HIGH, __readmsr(IA32_DEBUGCTL) >> 32);
 
     //
     // ******* Time-stamp counter offset *******
     //
-    __vmx_vmwrite(TSC_OFFSET, 0);
+    __vmx_vmwrite(VMCS_CTRL_TSC_OFFSET, 0);
 
-    __vmx_vmwrite(PAGE_FAULT_ERROR_CODE_MASK, 0);
-    __vmx_vmwrite(PAGE_FAULT_ERROR_CODE_MATCH, 0);
+    __vmx_vmwrite(VMCS_CTRL_PAGEFAULT_ERROR_CODE_MASK, 0);
+    __vmx_vmwrite(VMCS_CTRL_PAGEFAULT_ERROR_CODE_MATCH, 0);
 
-    __vmx_vmwrite(VM_EXIT_MSR_STORE_COUNT, 0);
-    __vmx_vmwrite(VM_EXIT_MSR_LOAD_COUNT, 0);
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_MSR_STORE_COUNT, 0);
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_MSR_LOAD_COUNT, 0);
 
-    __vmx_vmwrite(VM_ENTRY_MSR_LOAD_COUNT, 0);
-    __vmx_vmwrite(VM_ENTRY_INTR_INFO, 0);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_MSR_LOAD_COUNT, 0);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, 0);
 
     GdtBase = AsmGetGdtBase();
 
@@ -604,16 +601,16 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     HvFillGuestSelectorData((PVOID)GdtBase, LDTR, AsmGetLdtr());
     HvFillGuestSelectorData((PVOID)GdtBase, TR, AsmGetTr());
 
-    __vmx_vmwrite(GUEST_FS_BASE, __readmsr(IA32_FS_BASE));
-    __vmx_vmwrite(GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
+    __vmx_vmwrite(VMCS_GUEST_FS_BASE, __readmsr(IA32_FS_BASE));
+    __vmx_vmwrite(VMCS_GUEST_GS_BASE, __readmsr(IA32_GS_BASE));
 
     CpuBasedVmExecControls = HvAdjustControls(CPU_BASED_ACTIVATE_IO_BITMAP | CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS,
-                                              VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
+                                              VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PROCBASED_CTLS : IA32_VMX_PROCBASED_CTLS);
 
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 
     LogDebugInfo("CPU Based VM Exec Controls (Based on %s) : 0x%x",
-                 VmxBasicMsr.Fields.VmxCapabilityHint ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
+                 VmxBasicMsr.VmxControls ? "IA32_VMX_TRUE_PROCBASED_CTLS" : "IA32_VMX_PROCBASED_CTLS",
                  CpuBasedVmExecControls);
 
     SecondaryProcBasedVmExecControls = HvAdjustControls(CPU_BASED_CTL2_RDTSCP |
@@ -621,78 +618,78 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
                                                             CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_VPID,
                                                         IA32_VMX_PROCBASED_CTLS2);
 
-    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, SecondaryProcBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_SECONDARY_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, SecondaryProcBasedVmExecControls);
 
     LogDebugInfo("Secondary Proc Based VM Exec Controls (IA32_VMX_PROCBASED_CTLS2) : 0x%x", SecondaryProcBasedVmExecControls);
 
-    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, HvAdjustControls(0, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
+    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, HvAdjustControls(0, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
 
-    __vmx_vmwrite(VM_EXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
-    __vmx_vmwrite(VM_ENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.Fields.VmxCapabilityHint ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
-    __vmx_vmwrite(CR0_GUEST_HOST_MASK, 0);
-    __vmx_vmwrite(CR4_GUEST_HOST_MASK, 0);
+    __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
+    __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
 
-    __vmx_vmwrite(CR0_READ_SHADOW, 0);
-    __vmx_vmwrite(CR4_READ_SHADOW, 0);
+    __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);
+    __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, 0);
 
-    __vmx_vmwrite(GUEST_CR0, __readcr0());
-    __vmx_vmwrite(GUEST_CR3, __readcr3());
-    __vmx_vmwrite(GUEST_CR4, __readcr4());
+    __vmx_vmwrite(VMCS_GUEST_CR0, __readcr0());
+    __vmx_vmwrite(VMCS_GUEST_CR3, __readcr3());
+    __vmx_vmwrite(VMCS_GUEST_CR4, __readcr4());
 
-    __vmx_vmwrite(GUEST_DR7, 0x400);
+    __vmx_vmwrite(VMCS_GUEST_DR7, 0x400);
 
-    __vmx_vmwrite(HOST_CR0, __readcr0());
-    __vmx_vmwrite(HOST_CR4, __readcr4());
+    __vmx_vmwrite(VMCS_HOST_CR0, __readcr0());
+    __vmx_vmwrite(VMCS_HOST_CR4, __readcr4());
 
     //
     // Because we may be executing in an arbitrary user-mode, process as part
-    // of the DPC interrupt we execute in We have to save Cr3, for HOST_CR3
+    // of the DPC interrupt we execute in We have to save Cr3, for VMCS_HOST_CR3
     //
 
-    __vmx_vmwrite(HOST_CR3, FindSystemDirectoryTableBase());
+    __vmx_vmwrite(VMCS_HOST_CR3, FindSystemDirectoryTableBase());
 
-    __vmx_vmwrite(GUEST_GDTR_BASE, AsmGetGdtBase());
-    __vmx_vmwrite(GUEST_IDTR_BASE, AsmGetIdtBase());
+    __vmx_vmwrite(VMCS_GUEST_GDTR_BASE, AsmGetGdtBase());
+    __vmx_vmwrite(VMCS_GUEST_IDTR_BASE, AsmGetIdtBase());
 
-    __vmx_vmwrite(GUEST_GDTR_LIMIT, AsmGetGdtLimit());
-    __vmx_vmwrite(GUEST_IDTR_LIMIT, AsmGetIdtLimit());
+    __vmx_vmwrite(VMCS_GUEST_GDTR_LIMIT, AsmGetGdtLimit());
+    __vmx_vmwrite(VMCS_GUEST_IDTR_LIMIT, AsmGetIdtLimit());
 
-    __vmx_vmwrite(GUEST_RFLAGS, AsmGetRflags());
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, AsmGetRflags());
 
-    __vmx_vmwrite(GUEST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    __vmx_vmwrite(GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    __vmx_vmwrite(GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
+    __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
+    __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
     GetSegmentDescriptor(&SegmentSelector, AsmGetTr(), (PUCHAR)AsmGetGdtBase());
-    __vmx_vmwrite(HOST_TR_BASE, SegmentSelector.BASE);
+    __vmx_vmwrite(VMCS_HOST_TR_BASE, SegmentSelector.Base);
 
-    __vmx_vmwrite(HOST_FS_BASE, __readmsr(IA32_FS_BASE));
-    __vmx_vmwrite(HOST_GS_BASE, __readmsr(IA32_GS_BASE));
+    __vmx_vmwrite(VMCS_HOST_FS_BASE, __readmsr(IA32_FS_BASE));
+    __vmx_vmwrite(VMCS_HOST_GS_BASE, __readmsr(IA32_GS_BASE));
 
-    __vmx_vmwrite(HOST_GDTR_BASE, AsmGetGdtBase());
-    __vmx_vmwrite(HOST_IDTR_BASE, AsmGetIdtBase());
+    __vmx_vmwrite(VMCS_HOST_GDTR_BASE, AsmGetGdtBase());
+    __vmx_vmwrite(VMCS_HOST_IDTR_BASE, AsmGetIdtBase());
 
-    __vmx_vmwrite(HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
-    __vmx_vmwrite(HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
-    __vmx_vmwrite(HOST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
+    __vmx_vmwrite(VMCS_HOST_SYSENTER_CS, __readmsr(IA32_SYSENTER_CS));
+    __vmx_vmwrite(VMCS_HOST_SYSENTER_EIP, __readmsr(IA32_SYSENTER_EIP));
+    __vmx_vmwrite(VMCS_HOST_SYSENTER_ESP, __readmsr(IA32_SYSENTER_ESP));
 
     //
     // Set MSR Bitmaps
     //
-    __vmx_vmwrite(MSR_BITMAP, CurrentGuestState->MsrBitmapPhysicalAddress);
+    __vmx_vmwrite(VMCS_CTRL_MSR_BITMAP_ADDRESS, CurrentGuestState->MsrBitmapPhysicalAddress);
 
     //
     // Set I/O Bitmaps
     //
-    __vmx_vmwrite(IO_BITMAP_A, CurrentGuestState->IoBitmapPhysicalAddressA);
-    __vmx_vmwrite(IO_BITMAP_B, CurrentGuestState->IoBitmapPhysicalAddressB);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_A_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressA);
+    __vmx_vmwrite(VMCS_CTRL_IO_BITMAP_B_ADDRESS, CurrentGuestState->IoBitmapPhysicalAddressB);
 
     //
     // Set up EPT
     //
-    __vmx_vmwrite(EPT_POINTER, g_EptState->EptPointer.Flags);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.Flags);
 
     //
     // Set up VPID
@@ -706,21 +703,21 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     //setup guest rsp
     //
-    __vmx_vmwrite(GUEST_RSP, (ULONG64)GuestStack);
+    __vmx_vmwrite(VMCS_GUEST_RSP, (ULONG64)GuestStack);
 
     //
     //setup guest rip
     //
-    __vmx_vmwrite(GUEST_RIP, (ULONG64)AsmVmxRestoreState);
+    __vmx_vmwrite(VMCS_GUEST_RIP, (ULONG64)AsmVmxRestoreState);
 
     //
     // Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
-    // needs aligment to 16
+    // needs alignment to 16
     //
     HostRsp = (ULONG64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
     HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
-    __vmx_vmwrite(HOST_RSP, HostRsp);
-    __vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
+    __vmx_vmwrite(VMCS_HOST_RSP, HostRsp);
+    __vmx_vmwrite(VMCS_HOST_RIP, (ULONG64)AsmVmexitHandler);
 
     return TRUE;
 }
@@ -741,7 +738,7 @@ VmxVmresume()
     // if VMRESUME succeed will never be here !
     //
 
-    __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
+    __vmx_vmread(VMCS_VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
 
     //
@@ -778,23 +775,23 @@ VmxVmxoff()
     //  	process continues to run with its expected address space mappings.
     //
 
-    __vmx_vmread(GUEST_CR3, &GuestCr3);
+    __vmx_vmread(VMCS_GUEST_CR3, &GuestCr3);
     __writecr3(GuestCr3);
 
     //
     // Read guest rsp and rip
     //
-    __vmx_vmread(GUEST_RIP, &GuestRIP);
-    __vmx_vmread(GUEST_RSP, &GuestRSP);
+    __vmx_vmread(VMCS_GUEST_RIP, &GuestRIP);
+    __vmx_vmread(VMCS_GUEST_RSP, &GuestRSP);
 
     //
     // Read instruction length
     //
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
     GuestRIP += ExitInstructionLength;
 
     //
-    // Set the previous registe states
+    // Set the previous register states
     //
     g_GuestState[CurrentProcessorIndex].VmxoffState.GuestRip = GuestRIP;
     g_GuestState[CurrentProcessorIndex].VmxoffState.GuestRsp = GuestRSP;
@@ -821,7 +818,7 @@ VmxVmxoff()
     __vmx_off();
 
     //
-    // Inidcate the current core is not currently virtualized
+    // Indicate the current core is not currently virtualized
     //
     g_GuestState[CurrentProcessorIndex].HasLaunched = FALSE;
 
@@ -832,7 +829,7 @@ VmxVmxoff()
 }
 
 /**
- * @brief Get the RIP of guest (GUEST_RIP) in the case of return from VMXOFF
+ * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
  * 
  * @return UINT64 Returns the stack pointer, to change in the case of Vmxoff
  */
@@ -843,7 +840,7 @@ VmxReturnStackPointerForVmxoff()
 }
 
 /**
- * @brief Get the RIP of guest (GUEST_RIP) in the case of return from VMXOFF
+ * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
  * 
  * @return UINT64 Returns the instruction pointer, to change in the case of Vmxoff
  */
@@ -873,7 +870,7 @@ VmxPerformTermination()
     TransparentUnhideDebugger();
 
     //
-    // Remve All the hooks if any
+    // Remove All the hooks if any
     //
     EptHookUnHookAll();
 

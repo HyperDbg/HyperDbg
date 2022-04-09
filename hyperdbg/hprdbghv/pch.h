@@ -15,6 +15,8 @@
 
 #define _NO_CRT_STDIO_INLINE
 
+#pragma warning(disable : 4201) // suppress nameless struct/union warning
+
 //
 // Windows defined functions
 //
@@ -39,6 +41,7 @@
 #include "Configuration.h"
 #include "platform/CrossApi.h"
 #include "platform/Environment.h"
+
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"
 #include "..\hprdbghv\header\common\LengthDisassemblerEngine.h"
@@ -52,8 +55,8 @@
 #include "..\hprdbghv\header\misc\InlineAsm.h"
 #include "..\hprdbghv\header\vmm\ept\Vpid.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
-#include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\common\Common.h"
+#include "..\hprdbghv\header\vmm\vmx\Events.h"
 #include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\devices\Apic.h"
 #include "..\hprdbghv\header\debugger\kernel-level\Kd.h"

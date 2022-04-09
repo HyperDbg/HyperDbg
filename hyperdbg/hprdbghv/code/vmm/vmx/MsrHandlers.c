@@ -57,23 +57,23 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_CS, &Msr);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_ESP, &Msr);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_EIP, &Msr);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmread(GUEST_GS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_GS_BASE, &Msr);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmread(GUEST_FS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_FS_BASE, &Msr);
             break;
 
         default:
@@ -93,17 +93,17 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Msr is valid
             //
-            Msr.Content = __readmsr(TargetMsr);
+            Msr.Flags = __readmsr(TargetMsr);
 
             //
             // Check if it's EFER MSR then we show a false SCE state
             //
             if (GuestRegs->rcx == IA32_EFER)
             {
-                EFER_MSR MsrEFER;
-                MsrEFER.Flags         = Msr.Content;
+                IA32_EFER_REGISTER MsrEFER;
+                MsrEFER.Flags         = Msr.Flags;
                 MsrEFER.SyscallEnable = TRUE;
-                Msr.Content           = MsrEFER.Flags;
+                Msr.Flags             = MsrEFER.Flags;
             }
 
             break;
@@ -112,8 +112,8 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         GuestRegs->rax = NULL;
         GuestRegs->rdx = NULL;
 
-        GuestRegs->rax = Msr.Low;
-        GuestRegs->rdx = Msr.High;
+        GuestRegs->rax = Msr.Fields.Low;
+        GuestRegs->rdx = Msr.Fields.High;
     }
     else
     {
@@ -152,8 +152,8 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
     //
     TargetMsr = GuestRegs->rcx & 0xffffffff;
 
-    Msr.Low  = (ULONG)GuestRegs->rax;
-    Msr.High = (ULONG)GuestRegs->rdx;
+    Msr.Fields.Low  = (ULONG)GuestRegs->rax;
+    Msr.Fields.High = (ULONG)GuestRegs->rdx;
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -173,12 +173,12 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         case IA32_DS_AREA:
         case IA32_FS_BASE:
         case IA32_GS_BASE:
-        case IA32_KERNEL_GSBASE:
+        case IA32_KERNEL_GS_BASE:
         case IA32_LSTAR:
         case IA32_SYSENTER_EIP:
         case IA32_SYSENTER_ESP:
 
-            if (!CheckCanonicalVirtualAddress(Msr.Content, &UnusedIsKernel))
+            if (!CheckCanonicalVirtualAddress(Msr.Flags, &UnusedIsKernel))
             {
                 //
                 // Address is not canonical, inject #GP
@@ -197,23 +197,23 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmwrite(GUEST_GS_BASE, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_GS_BASE, Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmwrite(GUEST_FS_BASE, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_FS_BASE, Msr.Flags);
             break;
 
         default:
@@ -221,7 +221,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Perform the WRMSR
             //
-            __writemsr(GuestRegs->rcx, Msr.Content);
+            __writemsr(GuestRegs->rcx, Msr.Flags);
             break;
         }
     }

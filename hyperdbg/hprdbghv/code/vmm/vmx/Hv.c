@@ -24,9 +24,9 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 {
     MSR MsrValue = {0};
 
-    MsrValue.Content = __readmsr(Msr);
-    Ctl &= MsrValue.High; /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Low;  /* bit == 1 in low word  ==> must be one  */
+    MsrValue.Flags = __readmsr(Msr);
+    Ctl &= MsrValue.Fields.High; /* bit == 0 in high word ==> must be zero */
+    Ctl |= MsrValue.Fields.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 
@@ -41,19 +41,19 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
-    SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG            AccessRights;
+    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
+    ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
     if (!Selector)
         AccessRights |= 0x10000;
 
-    __vmx_vmwrite(GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + SegmentRegister * 2, AccessRights);
-    __vmx_vmwrite(GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.BASE);
+    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
+    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
 }
@@ -166,17 +166,17 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
 VOID
 HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 {
-    ULONG                 ExitQualification = 0;
-    PMOV_CR_QUALIFICATION CrExitQualification;
-    PULONG64              RegPtr;
-    UINT64                NewCr3;
-    CR3_TYPE              NewCr3Reg;
+    ULONG                           ExitQualification = 0;
+    VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification;
+    PULONG64                        RegPtr;
+    UINT64                          NewCr3;
+    CR3_TYPE                        NewCr3Reg;
 
-    __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
-    CrExitQualification = (PMOV_CR_QUALIFICATION)&ExitQualification;
+    CrExitQualification = (VMX_EXIT_QUALIFICATION_MOV_CR *)&ExitQualification;
 
-    RegPtr = (PULONG64)&GuestState->rax + CrExitQualification->Fields.Register;
+    RegPtr = (PULONG64)&GuestState->rax + CrExitQualification->GeneralPurposeRegister;
 
     //
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
@@ -190,22 +190,22 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
     /*    
     if (CrExitQualification->Fields.Register == 4)
     {
-        __vmx_vmread(GUEST_RSP, &GuestRsp);
+        __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
         *RegPtr = GuestRsp;
     }
     */
 
-    switch (CrExitQualification->Fields.AccessType)
+    switch (CrExitQualification->AccessType)
     {
-    case TYPE_MOV_TO_CR:
+    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_TO_CR:
     {
-        switch (CrExitQualification->Fields.ControlRegister)
+        switch (CrExitQualification->ControlRegister)
         {
-        case 0:
-            __vmx_vmwrite(GUEST_CR0, *RegPtr);
-            __vmx_vmwrite(CR0_READ_SHADOW, *RegPtr);
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
+            __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
+            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
             break;
-        case 3:
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
             NewCr3          = (*RegPtr & ~(1ULL << 63));
             NewCr3Reg.Flags = NewCr3;
@@ -213,14 +213,14 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             //
             // Apply the new cr3
             //
-            __vmx_vmwrite(GUEST_CR3, NewCr3Reg.Flags);
+            __vmx_vmwrite(VMCS_GUEST_CR3, NewCr3Reg.Flags);
 
             //
             // Invalidate as we used VPID tags so the vm-exit won't
-            // normally (automatically) flush the tlb, we have to do
+            // normally (automatically) flush the TLB, we have to do
             // it manually
             //
-            InvvpidSingleContext(VPID_TAG);
+            VpidInvvpidSingleContext(VPID_TAG);
 
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
@@ -239,40 +239,43 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             }
 
             break;
-        case 4:
-            __vmx_vmwrite(GUEST_CR4, *RegPtr);
-            __vmx_vmwrite(CR4_READ_SHADOW, *RegPtr);
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
+            __vmx_vmwrite(VMCS_GUEST_CR4, *RegPtr);
+            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
 
             break;
         default:
-            LogWarning("Unsupported register 0x%x in handling control registers access", CrExitQualification->Fields.ControlRegister);
+            LogWarning("Unsupported register 0x%x in handling control registers access",
+                       CrExitQualification->ControlRegister);
             break;
         }
     }
     break;
 
-    case TYPE_MOV_FROM_CR:
+    case VMX_EXIT_QUALIFICATION_ACCESS_MOV_FROM_CR:
     {
-        switch (CrExitQualification->Fields.ControlRegister)
+        switch (CrExitQualification->ControlRegister)
         {
-        case 0:
-            __vmx_vmread(GUEST_CR0, RegPtr);
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
+            __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
             break;
-        case 3:
-            __vmx_vmread(GUEST_CR3, RegPtr);
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
+            __vmx_vmread(VMCS_GUEST_CR3, RegPtr);
             break;
-        case 4:
-            __vmx_vmread(GUEST_CR4, RegPtr);
+        case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
+            __vmx_vmread(VMCS_GUEST_CR4, RegPtr);
             break;
         default:
-            LogWarning("Unsupported register 0x%x in handling control registers access", CrExitQualification->Fields.ControlRegister);
+            LogWarning("Unsupported register 0x%x in handling control registers access",
+                       CrExitQualification->ControlRegister);
             break;
         }
     }
     break;
 
     default:
-        LogWarning("Unsupported operation 0x%x in handling control registers access", CrExitQualification->Fields.AccessType);
+        LogWarning("Unsupported operation 0x%x in handling control registers access",
+                   CrExitQualification->AccessType);
         break;
     }
 }
@@ -288,19 +291,19 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
-    SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG            AccessRights;
+    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
+    ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
     if (!Selector)
         AccessRights |= 0x10000;
 
-    __vmx_vmwrite(GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
-    __vmx_vmwrite(GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + SegmentRegister * 2, AccessRights);
-    __vmx_vmwrite(GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.BASE);
+    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
+    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
+    __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
 /**
@@ -315,12 +318,12 @@ HvResumeToNextInstruction()
     ULONG64 CurrentRIP            = NULL;
     size_t  ExitInstructionLength = 0;
 
-    __vmx_vmread(GUEST_RIP, &CurrentRIP);
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+    __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
+    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
 
     ResumeRIP = CurrentRIP + ExitInstructionLength;
 
-    __vmx_vmwrite(GUEST_RIP, ResumeRIP);
+    __vmx_vmwrite(VMCS_GUEST_RIP, ResumeRIP);
 }
 
 /**
@@ -337,7 +340,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -351,7 +354,7 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -368,7 +371,7 @@ HvSetLoadDebugControls(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(VM_ENTRY_CONTROLS, &VmentryControls);
+    __vmx_vmread(VMCS_CTRL_VMENTRY_CONTROLS, &VmentryControls);
 
     if (Set)
     {
@@ -382,7 +385,7 @@ HvSetLoadDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VM_ENTRY_CONTROLS, VmentryControls);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, VmentryControls);
 }
 
 /**
@@ -399,7 +402,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(VM_EXIT_CONTROLS, &VmexitControls);
+    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmexitControls);
 
     if (Set)
     {
@@ -413,7 +416,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VM_EXIT_CONTROLS, VmexitControls);
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -434,28 +437,28 @@ HvRestoreRegisters()
     //
     // Restore FS Base
     //
-    __vmx_vmread(GUEST_FS_BASE, &FsBase);
+    __vmx_vmread(VMCS_GUEST_FS_BASE, &FsBase);
     __writemsr(IA32_FS_BASE, FsBase);
 
     //
     // Restore Gs Base
     //
-    __vmx_vmread(GUEST_GS_BASE, &GsBase);
+    __vmx_vmread(VMCS_GUEST_GS_BASE, &GsBase);
     __writemsr(IA32_GS_BASE, GsBase);
 
     //
     // Restore GDTR
     //
-    __vmx_vmread(GUEST_GDTR_BASE, &GdtrBase);
-    __vmx_vmread(GUEST_GDTR_LIMIT, &GdtrLimit);
+    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &GdtrBase);
+    __vmx_vmread(VMCS_GUEST_GDTR_LIMIT, &GdtrLimit);
 
     AsmReloadGdtr(GdtrBase, GdtrLimit);
 
     //
     // Restore IDTR
     //
-    __vmx_vmread(GUEST_IDTR_BASE, &IdtrBase);
-    __vmx_vmread(GUEST_IDTR_LIMIT, &IdtrLimit);
+    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &IdtrBase);
+    __vmx_vmread(VMCS_GUEST_IDTR_LIMIT, &IdtrLimit);
 
     AsmReloadIdtr(IdtrBase, IdtrLimit);
 }
@@ -475,7 +478,7 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     if (Set)
     {
@@ -489,7 +492,7 @@ HvSetPmcVmexit(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -519,7 +522,7 @@ HvWriteExceptionBitmap(UINT32 BitmapMask)
     //
     // Set the new value
     //
-    __vmx_vmwrite(EXCEPTION_BITMAP, BitmapMask);
+    __vmx_vmwrite(VMCS_CTRL_EXCEPTION_BITMAP, BitmapMask);
 }
 
 /**
@@ -536,7 +539,7 @@ HvReadExceptionBitmap()
     //
     // Read the current bitmap
     //
-    __vmx_vmread(EXCEPTION_BITMAP, &ExceptionBitmap);
+    __vmx_vmread(VMCS_CTRL_EXCEPTION_BITMAP, &ExceptionBitmap);
 
     return ExceptionBitmap;
 }
@@ -555,7 +558,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -572,7 +575,7 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -589,7 +592,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(CPU_BASED_VM_EXEC_CONTROL, &CpuBasedVmExecControls);
+    __vmx_vmread(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, &CpuBasedVmExecControls);
 
     //
     // interrupt-window exiting
@@ -606,7 +609,7 @@ HvSetNmiWindowExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, CpuBasedVmExecControls);
+    __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
 }
 
 /**
@@ -619,17 +622,17 @@ HvSetNmiWindowExiting(BOOLEAN Set)
 VOID
 HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 {
-    MOV_TO_DEBUG_REG_QUALIFICATION ExitQualification;
-    CONTROL_REGISTER_4             Cr4;
-    DEBUG_REGISTER_7               Dr7;
-    SEGMENT_SELECTOR               Cs;
-    UINT64 *                       GpRegs = Regs;
+    VMX_EXIT_QUALIFICATION_MOV_DR ExitQualification;
+    CR4                           Cr4;
+    DR7                           Dr7;
+    VMX_SEGMENT_SELECTOR  Cs;
+    UINT64 *                      GpRegs = Regs;
     //
     // The implementation is derived from Hvpp
     //
-    __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
-    UINT64 GpRegister = GpRegs[ExitQualification.GpRegister];
+    UINT64 GpRegister = GpRegs[ExitQualification.GeneralPurposeRegister];
 
     //
     // The MOV DR instruction causes a VM exit if the "MOV-DR exiting"
@@ -653,7 +656,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
     Cs = GetGuestCs();
 
-    if (Cs.ATTRIBUTES.Fields.DPL != 0)
+    if (Cs.Attributes.Fields.DescriptorPrivilegeLevel != 0)
     {
         EventInjectGeneralProtection();
 
@@ -677,9 +680,9 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     //
     // Read guest cr4
     //
-    __vmx_vmread(GUEST_CR4, &Cr4);
+    __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
 
-    if (ExitQualification.DrNumber == 4 || ExitQualification.DrNumber == 5)
+    if (ExitQualification.DebugRegister == 4 || ExitQualification.DebugRegister == 5)
     {
         if (Cr4.DebuggingExtensions)
         {
@@ -691,7 +694,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         }
         else
         {
-            ExitQualification.DrNumber += 2;
+            ExitQualification.DebugRegister += 2;
         }
     }
 
@@ -714,19 +717,20 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     //
     // Read the DR7
     //
-    __vmx_vmread(GUEST_DR7, &Dr7);
+    __vmx_vmread(VMCS_GUEST_DR7, &Dr7);
 
     if (Dr7.GeneralDetect)
     {
-        DEBUG_REGISTER_6 Dr6;
-        Dr6.Flags                       = __readdr(6);
-        Dr6.BreakpointCondition         = 0;
-        Dr6.DebugRegisterAccessDetected = TRUE;
+        DR6 Dr6 = {
+            .Flags                       = __readdr(6),
+            .BreakpointCondition         = 0,
+            .DebugRegisterAccessDetected = TRUE};
+
         __writedr(6, Dr6.Flags);
 
         Dr7.GeneralDetect = FALSE;
 
-        __vmx_vmwrite(GUEST_DR7, Dr7.Flags);
+        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.Flags);
 
         EventInjectDebugBreakpoint();
 
@@ -741,10 +745,11 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     // In 64-bit mode, the upper 32 bits of DR6 and DR7 are reserved
     // and must be written with zeros.  Writing 1 to any of the upper
     // 32 bits results in a #GP(0) exception.
-    // (ref: Vol3B[17.2.6(Debug Registers and Intel� 64 Processors)])
+    // (ref: Vol3B[17.2.6(Debug Registers and Intel 64 Processors)])
     //
-    if (ExitQualification.AccessType == AccessToDebugRegister &&
-        (ExitQualification.DrNumber == 6 || ExitQualification.DrNumber == 7) &&
+    if (ExitQualification.DirectionOfAccess == VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR &&
+        (ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR6 ||
+         ExitQualification.DebugRegister == VMX_EXIT_QUALIFICATION_REGISTER_DR7) &&
         (GpRegister >> 32) != 0)
     {
         EventInjectGeneralProtection();
@@ -756,59 +761,58 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         return;
     }
 
-    switch (ExitQualification.AccessType)
+    switch (ExitQualification.DirectionOfAccess)
     {
-    case AccessToDebugRegister:
-        switch (ExitQualification.DrNumber)
+    case VMX_EXIT_QUALIFICATION_DIRECTION_MOV_TO_DR:
+        switch (ExitQualification.DebugRegister)
         {
-        case 0:
-            __writedr(0, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR0, GpRegister);
             break;
-        case 1:
-            __writedr(1, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR1, GpRegister);
             break;
-        case 2:
-            __writedr(2, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR2, GpRegister);
             break;
-        case 3:
-            __writedr(3, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR3, GpRegister);
             break;
-        case 6:
-            __writedr(6, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR6, GpRegister);
             break;
-        case 7:
-            __writedr(7, GpRegister);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
+            __writedr(VMX_EXIT_QUALIFICATION_REGISTER_DR7, GpRegister);
             break;
         default:
             break;
         }
         break;
 
-    case AccessFromDebugRegister:
-        switch (ExitQualification.DrNumber)
+    case VMX_EXIT_QUALIFICATION_DIRECTION_MOV_FROM_DR:
+        switch (ExitQualification.DebugRegister)
         {
-        case 0:
-            GpRegister = __readdr(0);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR0:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR0);
             break;
-        case 1:
-            GpRegister = __readdr(1);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR1:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR1);
             break;
-        case 2:
-            GpRegister = __readdr(2);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR2:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR2);
             break;
-        case 3:
-            GpRegister = __readdr(3);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR3:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR3);
             break;
-        case 6:
-            GpRegister = __readdr(6);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR6:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR6);
             break;
-        case 7:
-            GpRegister = __readdr(7);
+        case VMX_EXIT_QUALIFICATION_REGISTER_DR7:
+            GpRegister = __readdr(VMX_EXIT_QUALIFICATION_REGISTER_DR7);
             break;
         default:
             break;
         }
-        break;
 
     default:
         break;
@@ -830,8 +834,8 @@ HvSetNmiExiting(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
-    __vmx_vmread(VM_EXIT_CONTROLS, &VmExitControls);
+    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
+    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -847,8 +851,8 @@ HvSetNmiExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
-    __vmx_vmwrite(VM_EXIT_CONTROLS, VmExitControls);
+    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
+    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**
@@ -865,7 +869,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(PIN_BASED_VM_EXEC_CONTROL, &PinBasedControls);
+    __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
 
     if (Set)
     {
@@ -879,7 +883,7 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, PinBasedControls);
+    __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
 }
 
 /**

@@ -199,7 +199,7 @@ KdNmiCallback(PVOID Context, BOOLEAN Handled)
     // inject NMIs to other cores and those cores are already operating
     // in vmx-root mode; however, this is not the approach to solve the
     // problem. In order to solve this problem, we should create our own
-    // host IDT in vmx-root mode (Note that we should set HOST_IDTR_BASE
+    // host IDT in vmx-root mode (Note that we should set VMCS_HOST_IDTR_BASE
     // and there is no need to LIMIT as it's fixed at 0xffff for VMX
     // operations).
     // Because we want to use the debugging mechanism of the Windows
@@ -428,11 +428,11 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue)
         {
-            __vmx_vmread(GUEST_RFLAGS, &Rflags);
+            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
             Rflags.TrapFlag = FALSE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue = FALSE;
         }
@@ -1231,7 +1231,7 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Read cs to have a trace of the execution mode of running application
     // in the debuggee
     //
-    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
     g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.CsSel = CsSel;
 
     //
@@ -1349,13 +1349,13 @@ KdRegularStepInInstruction(UINT32 CoreId)
     //
     if (!g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue)
     {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
         if (Rflags.TrapFlag == FALSE)
         {
             Rflags.TrapFlag = TRUE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue = TRUE;
         }
@@ -1375,7 +1375,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
     // in pending debug exceptions being set, but that's not
     // correct for the guest debugging case
     //
-    __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityOld);
+    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityOld);
 
     Interruptibility = InterruptibilityOld;
 
@@ -1383,7 +1383,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
 
     if ((Interruptibility != InterruptibilityOld))
     {
-        __vmx_vmwrite(GUEST_INTERRUPTIBILITY_INFO, Interruptibility);
+        __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, Interruptibility);
     }
 }
 
@@ -2385,7 +2385,7 @@ KdIsGuestOnUsermode32Bit()
     //
     // Read guest's cs selector
     //
-    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
     if (CsSel == KGDT64_R0_CODE)
     {
@@ -2476,8 +2476,8 @@ StartAgain:
         //
         // Set rflags for finding the results of conditional jumps
         //
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
-        PausePacket.Rflags.Value = Rflags.Value;
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        PausePacket.Rflags.Flags = Rflags.Flags;
 
         //
         // Set the event tag (if it's an event)
@@ -2500,7 +2500,7 @@ StartAgain:
             // Reading instruction length proved to provide wrong results,
             // so we won't use it anymore
             //
-            // __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+            // __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
             //
 
             //

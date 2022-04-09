@@ -77,7 +77,7 @@ AttachingInitialize();
 BOOLEAN
 AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
                                          PGUEST_REGS           GuestRegs,
-                                         VMEXIT_INTERRUPT_INFO InterruptExit,
+                                         VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                                          UINT64                Address,
                                          ULONG                 ErrorCode);
 
