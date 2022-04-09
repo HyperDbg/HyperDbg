@@ -33,6 +33,11 @@ void
 SymSetTextMessageCallback(PVOID handler)
 {
     g_MessageHandler = (Callback)handler;
+
+    //
+    // Set the pdbex's message handler
+    //
+    pdbex_set_logging_method_export(handler);
 }
 
 /**

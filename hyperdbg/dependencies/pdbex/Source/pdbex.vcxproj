@@ -99,13 +99,15 @@ copy "$(SolutionDir)libraries\pdbex\$(PlatformTarget)\symsrv.dll" "$(OutDir)"</C
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HyperDbgIntegration.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PDB.cpp" />
     <ClCompile Include="PDBExtractor.cpp" />
     <ClCompile Include="PDBHeaderReconstructor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="export.h" />
+    <ClInclude Include="HyperDbgExport.h" />
+    <ClInclude Include="HyperDbgGlobals.h" />
     <ClInclude Include="PDB.h" />
     <ClInclude Include="PDBCallback.h" />
     <ClInclude Include="PDBExtractor.h" />

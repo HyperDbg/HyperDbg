@@ -27,6 +27,9 @@
     <ClCompile Include="PDBExtractor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HyperDbgIntegration.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PDB.h">
@@ -65,7 +68,10 @@
     <ClInclude Include="PDBCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="export.h">
+    <ClInclude Include="HyperDbgGlobals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HyperDbgExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

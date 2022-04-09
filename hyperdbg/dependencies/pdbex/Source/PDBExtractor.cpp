@@ -9,6 +9,10 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "HyperDbgExport.h"
+#include "HyperDbgGlobals.h"
+
+
 namespace
 {
 	//
@@ -220,6 +224,10 @@ PDBExtractor::ParseParameters(
 		//
 		// Handling of options.
 		//
+#ifdef HYPERDBG_CODES
+        g_IsOutputToFile = FALSE;
+#endif
+
 
 		switch (CurrentArgument[1])
 		{
@@ -231,6 +239,10 @@ PDBExtractor::ParseParameters(
 
 				++ArgumentPointer;
 				m_Settings.OutputFilename = NextArgument;
+			
+#ifdef HYPERDBG_CODES
+                g_IsOutputToFile = TRUE;
+#endif
 
 				if (m_Settings.SymbolName != "%")
 				{

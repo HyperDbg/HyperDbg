@@ -9,6 +9,10 @@
 
 #include <cassert>
 
+#include "HyperDbgExport.h"
+#include "HyperDbgGlobals.h"
+
+
 PDBHeaderReconstructor::PDBHeaderReconstructor(
 	Settings* VisitorSettings
 	)
@@ -491,8 +495,22 @@ PDBHeaderReconstructor::Write(
 	vsprintf_s(TempBuffer, Format, ArgPtr);
 	va_end(ArgPtr);
 
-	m_Settings->OutputFile->write(TempBuffer, strlen(TempBuffer));
-}
+#ifdef HYPERDBG_CODES
+
+    if (!g_IsOutputToFile)
+    {
+        g_MessageHandler(TempBuffer);
+    }
+    else
+    {
+#endif
+
+        m_Settings->OutputFile->write(TempBuffer, strlen(TempBuffer));
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
+    }
 
 void
 PDBHeaderReconstructor::WriteIndent()
