@@ -1741,7 +1741,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // First argument is the file name, we let it blank
     //
-    ArgvArray[0] = NULL;
+    ArgvArray[0] = (char *)1;
 
     //
     // Remove the module name (if any)
