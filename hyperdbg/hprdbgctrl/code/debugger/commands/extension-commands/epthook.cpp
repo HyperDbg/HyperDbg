@@ -19,7 +19,7 @@
 VOID
 CommandEptHookHelp()
 {
-    ShowMessages("!epthook : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
+    ShowMessages("!epthook : puts a hidden-hook EPT (hidden breakpoints).\n\n");
     ShowMessages(
         "syntax : \t!epthook [Address (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
         "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

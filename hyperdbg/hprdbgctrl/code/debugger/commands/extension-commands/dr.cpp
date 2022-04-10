@@ -19,7 +19,7 @@
 VOID
 CommandDrHelp()
 {
-    ShowMessages("!dr : Monitors any access to debug registers.\n\n");
+    ShowMessages("!dr : monitors any access to debug registers.\n\n");
     ShowMessages("syntax : \t!dr [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "

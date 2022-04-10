@@ -19,7 +19,7 @@
 VOID
 CommandTscHelp()
 {
-    ShowMessages("!tsc : Monitors execution of rdtsc/rdtscp instructions.\n\n");
+    ShowMessages("!tsc : monitors execution of rdtsc/rdtscp instructions.\n\n");
     ShowMessages("syntax : \t!tsc [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "

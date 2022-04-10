@@ -19,7 +19,7 @@
 VOID
 CommandFormatsHelp()
 {
-    ShowMessages(".formats : Show a value or register in different formats.\n\n");
+    ShowMessages(".formats : shows a value or register in different formats.\n\n");
     ShowMessages("syntax : \t.formats [Expression (string)]\n");
 
     ShowMessages("\t\te.g : .formats nt!ExAllocatePoolWithTag\n");

@@ -26,7 +26,7 @@ extern BOOLEAN g_ExecutingScript;
 VOID
 CommandScriptHelp()
 {
-    ShowMessages(".script : run a HyperDbg script.\n\n");
+    ShowMessages(".script : runs a HyperDbg script.\n\n");
     ShowMessages("syntax : \.script [FilePath (string)] [Args (string)]\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg\n");
     ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg 95 85 @rsp\n");

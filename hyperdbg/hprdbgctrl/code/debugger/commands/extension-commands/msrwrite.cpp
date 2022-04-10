@@ -19,7 +19,7 @@
 VOID
 CommandMsrwriteHelp()
 {
-    ShowMessages("!msrwrite : Detects the execution of wrmsr instructions.\n\n");
+    ShowMessages("!msrwrite : detects the execution of wrmsr instructions.\n\n");
     ShowMessages("syntax : \t!msrwrite [Msr (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");

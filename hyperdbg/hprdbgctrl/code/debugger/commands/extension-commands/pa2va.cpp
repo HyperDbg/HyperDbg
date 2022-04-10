@@ -25,7 +25,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandPa2vaHelp()
 {
-    ShowMessages("!pa2va : Converts virtual address to physical address.\n\n");
+    ShowMessages("!pa2va : converts virtual address to physical address.\n\n");
     ShowMessages("syntax : \t!pa2va [PhysicalAddress (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("\t\te.g : !pa2va nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !pa2va nt!ExAllocatePoolWithTag+5\n");

@@ -19,7 +19,7 @@
 VOID
 CommandMsrreadHelp()
 {
-    ShowMessages("!msrread : Detects the execution of rdmsr instructions.\n\n");
+    ShowMessages("!msrread : detects the execution of rdmsr instructions.\n\n");
     ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");

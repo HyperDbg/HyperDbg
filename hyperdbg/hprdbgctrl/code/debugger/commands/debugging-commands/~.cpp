@@ -25,7 +25,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandCoreHelp()
 {
-    ShowMessages("~ : show and change the operating processor.\n\n");
+    ShowMessages("~ : shows and changes the operating processor.\n\n");
     ShowMessages("syntax : \t~\n");
     ShowMessages("syntax : \t~ [CoreNumber (hex)]\n");
     ShowMessages("\t\te.g : ~ \n");

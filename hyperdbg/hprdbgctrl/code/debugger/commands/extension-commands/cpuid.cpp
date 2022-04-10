@@ -19,7 +19,7 @@
 VOID
 CommandCpuidHelp()
 {
-    ShowMessages("!cpuid : Monitors execution of a special cpuid index or all "
+    ShowMessages("!cpuid : monitors execution of a special cpuid index or all "
                  "cpuids instructions.\n\n");
     ShowMessages("syntax : \t!cpuid [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

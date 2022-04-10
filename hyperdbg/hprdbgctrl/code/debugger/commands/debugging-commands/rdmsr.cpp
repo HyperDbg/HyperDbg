@@ -19,7 +19,7 @@
 VOID
 CommandRdmsrHelp()
 {
-    ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
+    ShowMessages("rdmsr : reads a model-specific register (MSR).\n\n");
     ShowMessages("syntax : \trdmsr [Msr (hex)] [core CoreNumber (hex)]\n");
     ShowMessages("\t\te.g : rdmsr c0000082\n");
     ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");

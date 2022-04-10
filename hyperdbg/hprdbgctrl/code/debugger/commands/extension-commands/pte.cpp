@@ -19,7 +19,7 @@
 VOID
 CommandPteHelp()
 {
-    ShowMessages("!pte : Find virtual address of different paging-levels.\n\n");
+    ShowMessages("!pte : finds virtual addresses of different paging-levels.\n\n");
     ShowMessages("syntax : \t!pte [VirtualAddress (hex)]\n");
     ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag+5\n");

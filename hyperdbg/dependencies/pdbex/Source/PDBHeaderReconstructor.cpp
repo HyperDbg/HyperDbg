@@ -223,7 +223,7 @@ PDBHeaderReconstructor::OnUdtBegin(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -252,7 +252,7 @@ PDBHeaderReconstructor::OnUdtBegin(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -279,7 +279,7 @@ PDBHeaderReconstructor::OnUdtEnd(
     if (g_ShowInOffestFormat)
     {
         //
-		// Ignore the idents
+		// Ignore
 		//
     }
     else
@@ -306,7 +306,7 @@ PDBHeaderReconstructor::OnUdtEnd(
         if (g_ShowInOffestFormat)
         {
             //
-            // Ignore the idents
+            // Ignore
             //
         }
         else
@@ -326,7 +326,7 @@ PDBHeaderReconstructor::OnUdtEnd(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -439,7 +439,7 @@ PDBHeaderReconstructor::OnAnonymousUdtBegin(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -473,7 +473,7 @@ PDBHeaderReconstructor::OnAnonymousUdtEnd(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -494,7 +494,7 @@ PDBHeaderReconstructor::OnAnonymousUdtEnd(
     if (g_ShowInOffestFormat)
     {
         //
-        // Ignore the idents
+        // Ignore
         //
     }
     else
@@ -528,7 +528,7 @@ PDBHeaderReconstructor::OnUdtFieldBitFieldBegin(
             if (g_ShowInOffestFormat)
             {
                 //
-                // Ignore the idents
+                // Ignore
                 //
             }
             else
@@ -564,7 +564,7 @@ PDBHeaderReconstructor::OnUdtFieldBitFieldEnd(
             if (g_ShowInOffestFormat)
             {
                 //
-                // Ignore the idents
+                // Ignore
                 //
             }
             else
@@ -606,7 +606,23 @@ PDBHeaderReconstructor::OnPaddingMember(
 			Write("[%u]", PaddingSize);
 		}
 
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+            //
+            // Ignore
+            //
+        }
+        else
+        {
+#endif
 		Write(";\n");
+
+#ifdef HYPERDBG_CODES
+        }
+#endif
+
 	}
 }
 
@@ -721,7 +737,7 @@ PDBHeaderReconstructor::WriteIndent()
     if (g_ShowInOffestFormat)
     {
         //
-		// Ignore the idents
+		// Ignore
 		//
     }
     else
@@ -834,7 +850,7 @@ PDBHeaderReconstructor::WriteTypedefEnd(
         if (g_ShowInOffestFormat)
         {
             //
-            // Ignore the idents
+            // Ignore
             //
         }
         else

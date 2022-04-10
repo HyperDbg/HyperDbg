@@ -29,7 +29,7 @@ VOID
 CommandDebugHelp()
 {
     ShowMessages(
-        ".debug : debug target machine or make this machine a debuggee.\n\n");
+        ".debug : debugs a target machine or makes this machine a debuggee.\n\n");
     ShowMessages(
         "syntax : \t.debug [remote] [serial|namedpipe] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages(

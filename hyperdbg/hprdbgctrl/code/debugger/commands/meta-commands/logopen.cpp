@@ -27,7 +27,7 @@ extern ofstream g_LogOpenFile;
 VOID
 CommandLogopenHelp()
 {
-    ShowMessages(".logopen : save commands and results in a file.\n\n");
+    ShowMessages(".logopen : saves commands and results in a file.\n\n");
     ShowMessages("syntax : \t.logopen [FilePath (string)]\n");
 }
 

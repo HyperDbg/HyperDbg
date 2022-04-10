@@ -19,7 +19,7 @@
 VOID
 CommandXHelp()
 {
-    ShowMessages("x : search and show symbols (wildcard) and corresponding addresses.\n\n");
+    ShowMessages("x : searches and shows symbols (wildcard) and corresponding addresses.\n\n");
     ShowMessages("syntax : \tx [Module!Name (wildcard string)]\n");
     ShowMessages("\t\te.g : x nt!ExAllocatePoolWithTag \n");
     ShowMessages("\t\te.g : x nt!ExAllocatePool* \n");

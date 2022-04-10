@@ -27,7 +27,7 @@ extern HANDLE  g_EndOfMessageReceivedEvent;
 VOID
 CommandDisconnectHelp()
 {
-    ShowMessages(".disconnect : disconnect from a debugging session (it won't "
+    ShowMessages(".disconnect : disconnects from a debugging session (it won't "
                  "unload the modules).\n\n");
     ShowMessages("syntax : \t.disconnect \n");
 }

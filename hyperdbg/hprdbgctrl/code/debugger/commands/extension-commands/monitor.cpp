@@ -19,7 +19,7 @@
 VOID
 CommandMonitorHelp()
 {
-    ShowMessages("!monitor : Monitor address range for read and writes.\n\n");
+    ShowMessages("!monitor : monitors address range for read and writes.\n\n");
     ShowMessages("syntax : \t!monitor [Mode (string)] [FromAddress (hex)] "
                  "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

@@ -24,7 +24,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandKillHelp()
 {
-    ShowMessages(".kill : terminate the current running process.\n\n");
+    ShowMessages(".kill : terminates the current running process.\n\n");
     ShowMessages("syntax : \t.kill \n");
 }
 

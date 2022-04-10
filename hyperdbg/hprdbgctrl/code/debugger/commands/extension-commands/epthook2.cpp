@@ -19,7 +19,7 @@
 VOID
 CommandEptHook2Help()
 {
-    ShowMessages("!epthook2 : Puts a hidden-hook EPT (detours) .\n\n");
+    ShowMessages("!epthook2 : puts a hidden-hook EPT (detours).\n\n");
     ShowMessages(
         "syntax : \t!epthook2 [Address (hex)] [pid ProcessId (hex)] "
         "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

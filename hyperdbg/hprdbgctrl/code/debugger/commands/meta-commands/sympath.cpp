@@ -23,7 +23,7 @@
 VOID
 CommandSympathHelp()
 {
-    ShowMessages(".sympath : show and set the symbol server and path.\n\n");
+    ShowMessages(".sympath : shows and sets the symbol server and path.\n\n");
 
     ShowMessages("syntax : \t.sympath\n");
     ShowMessages("syntax : \t.sympath [SymServer (string)]\n");

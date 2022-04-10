@@ -25,7 +25,7 @@ extern ofstream g_LogOpenFile;
 VOID
 CommandLogcloseHelp()
 {
-    ShowMessages(".logclose : close the previously opened log.\n\n");
+    ShowMessages(".logclose : closes the previously opened log.\n\n");
     ShowMessages("syntax : \t.logclose\n");
 }
 

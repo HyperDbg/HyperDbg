@@ -24,8 +24,8 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandThreadHelp()
 {
-    ShowMessages(".thread, .thread2 : show and change the threads. "
-                 "This command needs public symbols for ntoskrnl.exe if "
+    ShowMessages(".thread, .thread2 : shows and changes the threads. "
+                 "This command needs public symbols for 'ntoskrnl.exe' if "
                  "you want to see the threads list. Please visit the "
                  "documentation to know about the difference between '.thread' "
                  "and '.thread2'.\n\n");
