@@ -24,7 +24,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandProcessHelp()
 {
-    ShowMessages(".process, .process2 : show and change the processes. "
+    ShowMessages(".process, .process2 : shows and changes the processes. "
                  "This command needs public symbols for ntoskrnl.exe if "
                  "you want to see the processes list. Please visit the "
                  "documentation to know about the difference between '.process' "

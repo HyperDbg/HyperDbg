@@ -9,6 +9,10 @@
 
 #include <cassert>
 
+#include "HyperDbgExport.h"
+#include "HyperDbgGlobals.h"
+
+
 PDBHeaderReconstructor::PDBHeaderReconstructor(
 	Settings* VisitorSettings
 	)
@@ -172,10 +176,25 @@ PDBHeaderReconstructor::OnUdt(
 	{
 		std::string CorrectedName = GetCorrectedSymbolName(Symbol);
 
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+			//
+			// Sina: Needs to be modified
+			//
+            Write("%s", CorrectedName.c_str());
+        }
+        else
+        {
+#endif
 		WriteConstAndVolatile(Symbol);
 
 		Write("%s %s", PDB::GetUdtKindString(Symbol->u.Udt.Kind), CorrectedName.c_str());
 
+#ifdef HYPERDBG_CODES
+        }
+#endif
 		//
 		// If we're not expanding the type at the root level,
 		// OnUdtEnd() won't be called, so print the semicolon here.
@@ -199,11 +218,26 @@ PDBHeaderReconstructor::OnUdtBegin(
 	// Handle begin of the typedef.
 	//
 
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
 	WriteTypedefBegin(Symbol);
 
 	WriteConstAndVolatile(Symbol);
 
 	Write("%s", PDB::GetUdtKindString(Symbol->u.Udt.Kind));
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	if (!PDB::IsUnnamedSymbol(Symbol))
 	{
@@ -213,8 +247,22 @@ PDBHeaderReconstructor::OnUdtBegin(
 
 	Write("\n");
 
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
 	WriteIndent();
 	Write("{\n");
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	m_Depth += 1;
 }
@@ -226,8 +274,24 @@ PDBHeaderReconstructor::OnUdtEnd(
 {
 	m_Depth -= 1;
 
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+		// Ignore
+		//
+    }
+    else
+    {
+#endif
+
 	WriteIndent();
 	Write("}");
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	//
 	// Handle end of the typedef.
@@ -237,10 +301,43 @@ PDBHeaderReconstructor::OnUdtEnd(
 
 	if (m_Depth == 0)
 	{
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+            //
+            // Ignore
+            //
+        }
+        else
+        {
+#endif
+
 		Write(";");
+
+#ifdef HYPERDBG_CODES
+        }
+#endif
+
 	}
 
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
+
 	Write(" /* size: 0x%04x */", Symbol->Size);
+
+#ifdef HYPERDBG_CODES
+}
+#endif
 
 	if (m_Depth == 0)
 	{
@@ -293,11 +390,25 @@ PDBHeaderReconstructor::OnUdtField(
 	UdtFieldDefinitionBase* MemberDefinition
 	)
 {
+
 	Write("%s", MemberDefinition->GetPrintableDefinition().c_str());
 
 	//
 	// BitField handling.
 	//
+
+	#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+		if (UdtField->Bits != 0)
+        {
+            Write(" : Pos %i, %i Bit", UdtField->BitPosition, UdtField->Bits);
+        }
+    }
+    else
+    {
+#endif
 
 	if (UdtField->Bits != 0)
 	{
@@ -310,6 +421,9 @@ PDBHeaderReconstructor::OnUdtField(
 	{
 		Write(" /* bit position: %i */", UdtField->BitPosition);
 	}
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	Write("\n");
 }
@@ -320,11 +434,26 @@ PDBHeaderReconstructor::OnAnonymousUdtBegin(
 	const SYMBOL_UDT_FIELD* FirstUdtField
 	)
 {
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
 	WriteIndent();
 	Write("%s\n", PDB::GetUdtKindString(Kind));
 
 	WriteIndent();
 	Write("{\n");
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	m_Depth += 1;
 }
@@ -338,16 +467,47 @@ PDBHeaderReconstructor::OnAnonymousUdtEnd(
 	)
 {
 	m_Depth -= 1;
+
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
+
 	WriteIndent();
 	Write("}");
 
+#ifdef HYPERDBG_CODES
+    }
+#endif
+
 	WriteUnnamedDataType(Kind);
 
-	Write(";");
+#ifdef HYPERDBG_CODES
 
+    if (g_ShowInOffestFormat)
+    {
+        //
+        // Ignore
+        //
+    }
+    else
+    {
+#endif
+    Write(";");
 	Write(" /* size: 0x%04x */", Size);
+    Write("\n");
 
-	Write("\n");
+#ifdef HYPERDBG_CODES
+    }
+#endif
+
 }
 
 void
@@ -363,12 +523,25 @@ PDBHeaderReconstructor::OnUdtFieldBitFieldBegin(
 		//
 		if (FirstUdtFieldBitField != LastUdtFieldBitField)
 		{
+#ifdef HYPERDBG_CODES
+
+            if (g_ShowInOffestFormat)
+            {
+                //
+                // Ignore
+                //
+            }
+            else
+            {
+#endif
 			WriteIndent();
 			Write("%s /* bitfield */\n", PDB::GetUdtKindString(UdtStruct));
 
 			WriteIndent();
 			Write("{\n");
-
+#ifdef HYPERDBG_CODES
+            }
+#endif
 			m_Depth += 1;
 		}
 	}
@@ -386,8 +559,23 @@ PDBHeaderReconstructor::OnUdtFieldBitFieldEnd(
 		{
 			m_Depth -= 1;
 
+#ifdef HYPERDBG_CODES
+
+            if (g_ShowInOffestFormat)
+            {
+                //
+                // Ignore
+                //
+            }
+            else
+            {
+#endif
 			WriteIndent();
 			Write("}; /* bitfield */\n");
+
+#ifdef HYPERDBG_CODES
+            }
+#endif
 		}
 	}
 }
@@ -418,7 +606,23 @@ PDBHeaderReconstructor::OnPaddingMember(
 			Write("[%u]", PaddingSize);
 		}
 
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+            //
+            // Ignore
+            //
+        }
+        else
+        {
+#endif
 		Write(";\n");
+
+#ifdef HYPERDBG_CODES
+        }
+#endif
+
 	}
 }
 
@@ -469,11 +673,29 @@ PDBHeaderReconstructor::OnPaddingBitFieldField(
 
 	assert(Bits != 0);
 
+	
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+
+    Write(" : Pos %i, %i Bit", BitPosition, Bits);
+
+    }
+    else
+    {
+#endif
+
+
 	Write(" : %i", Bits);
 
 	Write(";");
 
 	Write(" /* bit position: %i */", BitPosition);
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
 
 	Write("\n");
 }
@@ -491,17 +713,47 @@ PDBHeaderReconstructor::Write(
 	vsprintf_s(TempBuffer, Format, ArgPtr);
 	va_end(ArgPtr);
 
-	m_Settings->OutputFile->write(TempBuffer, strlen(TempBuffer));
-}
+#ifdef HYPERDBG_CODES
+
+    if (!g_IsOutputToFile)
+    {
+        g_MessageHandler(TempBuffer);
+    }
+    else
+    {
+#endif
+        m_Settings->OutputFile->write(TempBuffer, strlen(TempBuffer));
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
+    }
 
 void
 PDBHeaderReconstructor::WriteIndent()
 {
-	for (DWORD i = 0; i < m_Depth; i++)
-	{
-		Write("  ");
-	}
-}
+#ifdef HYPERDBG_CODES
+
+    if (g_ShowInOffestFormat)
+    {
+        //
+		// Ignore
+		//
+    }
+    else
+    {
+#endif
+
+        for (DWORD i = 0; i < m_Depth; i++)
+        {
+            Write("  ");
+        }
+
+#ifdef HYPERDBG_CODES
+    }
+#endif
+
+ }
 
 void
 PDBHeaderReconstructor::WriteVariant(
@@ -592,9 +844,26 @@ PDBHeaderReconstructor::WriteTypedefEnd(
 
 	if (UseTypedef && m_Depth == 0)
 	{
+
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+            //
+            // Ignore
+            //
+        }
+        else
+        {
+#endif
+
 		Write(" %s, *P%s", &CorrectedName[1], &CorrectedName[1]);
+
+#ifdef HYPERDBG_CODES
+        }
+#endif
 	}
-}
+    }
 
 void
 PDBHeaderReconstructor::WriteConstAndVolatile(
@@ -627,7 +896,21 @@ PDBHeaderReconstructor::WriteOffset(
 {
 	if (m_Settings->ShowOffsets)
 	{
-		Write("/* 0x%04x */ ", UdtField->Offset + PaddingOffset);
+#ifdef HYPERDBG_CODES
+
+        if (g_ShowInOffestFormat)
+        {
+            Write("  +0x%04x ", UdtField->Offset + PaddingOffset);
+        }
+        else
+        {
+#endif
+            Write("/* 0x%04x */ ", UdtField->Offset + PaddingOffset);
+
+#ifdef HYPERDBG_CODES
+        }
+#endif
+
 	}
 }
 

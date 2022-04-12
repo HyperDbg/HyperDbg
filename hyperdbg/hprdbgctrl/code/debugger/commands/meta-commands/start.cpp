@@ -26,7 +26,7 @@ extern BOOLEAN      g_IsSerialConnectedToRemoteDebugger;
 VOID
 CommandStartHelp()
 {
-    ShowMessages(".start : run a user-mode process.\n\n");
+    ShowMessages(".start : runs a user-mode process.\n\n");
     ShowMessages("syntax : \t.start [path Path (string)] [Parameters (string)]\n");
     ShowMessages("\t\te.g : .start path c:\\users\\sina\\reverse eng\\my_file.exe\n");
 }

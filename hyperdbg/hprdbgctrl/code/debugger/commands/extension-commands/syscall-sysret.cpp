@@ -19,9 +19,9 @@
 VOID
 CommandSyscallHelp()
 {
-    ShowMessages("!syscall : Monitors and hooks all execution of syscall "
+    ShowMessages("!syscall : monitors and hooks all execution of syscall "
                  "instructions (by accessing memory and checking for instructions).\n\n");
-    ShowMessages("!syscall2 : Monitors and hooks all execution of syscall "
+    ShowMessages("!syscall2 : monitors and hooks all execution of syscall "
                  "instructions (by emulating all #UDs).\n\n");
     ShowMessages("syntax : \t[SyscallNumber (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
@@ -44,9 +44,9 @@ CommandSyscallHelp()
 VOID
 CommandSysretHelp()
 {
-    ShowMessages("!sysret : Monitors and hooks all execution of sysret "
+    ShowMessages("!sysret : monitors and hooks all execution of sysret "
                  "instructions (by accessing memory and checking for instructions).\n\n");
-    ShowMessages("!sysret2 : Monitors and hooks all execution of sysret "
+    ShowMessages("!sysret2 : monitors and hooks all execution of sysret "
                  "instructions (by emulating all #UDs).\n\n");
     ShowMessages("syntax : \t!sysret [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

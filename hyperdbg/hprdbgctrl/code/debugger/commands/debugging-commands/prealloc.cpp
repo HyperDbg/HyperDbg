@@ -19,7 +19,7 @@
 VOID
 CommandPreallocHelp()
 {
-    ShowMessages("prealloc : Pre-allocates buffer for special purposes.\n\n");
+    ShowMessages("prealloc : pre-allocates buffer for special purposes.\n\n");
     ShowMessages("syntax : \tprealloc  [Type (string)] [Count (hex)]\n");
 
     ShowMessages("\t\te.g : prealloc monitor 10\n");

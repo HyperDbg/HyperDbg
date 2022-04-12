@@ -28,7 +28,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandListenHelp()
 {
-    ShowMessages(".listen : listen for a client to connect to HyperDbg (works as "
+    ShowMessages(".listen : listens for a client to connect to HyperDbg (works as "
                  "a guest server).\n\n");
 
     ShowMessages("note : \tif you don't specify port then HyperDbg uses the "

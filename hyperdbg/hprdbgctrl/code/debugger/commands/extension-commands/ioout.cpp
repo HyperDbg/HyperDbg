@@ -19,7 +19,7 @@
 VOID
 CommandIooutHelp()
 {
-    ShowMessages("!ioout : Detects the execution of OUT (I/O instructions) "
+    ShowMessages("!ioout : detects the execution of OUT (I/O instructions) "
                  "instructions.\n\n");
     ShowMessages("syntax : \t!ioout [Port (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "

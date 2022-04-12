@@ -19,7 +19,7 @@
 VOID
 CommandExceptionHelp()
 {
-    ShowMessages("!exception : Monitors the first 32 entry of IDT (starting from "
+    ShowMessages("!exception : monitors the first 32 entry of IDT (starting from "
                  "zero).\n\n");
     ShowMessages(
         "syntax : \t!exception [IdtIndex (hex)] [pid ProcessId (hex)] "

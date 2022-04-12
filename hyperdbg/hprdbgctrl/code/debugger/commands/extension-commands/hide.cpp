@@ -33,7 +33,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandHideHelp()
 {
-    ShowMessages("!hide : Tries to make HyperDbg transparent from anti-debugging "
+    ShowMessages("!hide : tries to make HyperDbg transparent from anti-debugging "
                  "and anti-hypervisor methods.\n\n");
     ShowMessages("syntax : \t!hide\n");
     ShowMessages("syntax : \t!hide [pid ProcessId (hex)]\n");

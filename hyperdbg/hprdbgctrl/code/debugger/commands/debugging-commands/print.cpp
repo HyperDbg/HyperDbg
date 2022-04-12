@@ -27,7 +27,7 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandPrintHelp()
 {
-    ShowMessages("print : evaluate expressions.\n\n");
+    ShowMessages("print : evaluates expressions.\n\n");
     ShowMessages("syntax : \tprint [Expression (string)]\n");
     ShowMessages("\t\te.g : print dq(poi(@rcx))\n");
 }

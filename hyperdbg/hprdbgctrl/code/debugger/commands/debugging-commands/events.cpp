@@ -31,7 +31,7 @@ extern UINT64     g_EventTag;
 VOID
 CommandEventsHelp()
 {
-    ShowMessages("events : show active and disabled events\n");
+    ShowMessages("events : shows active and disabled events\n");
     ShowMessages("syntax : \tevents\n");
     ShowMessages("syntax : \tevents [e|d|c all|EventNumber (hex)]\n");
     ShowMessages("e : enable\n");

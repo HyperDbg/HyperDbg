@@ -25,7 +25,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandReadMemoryAndDisassemblerHelp()
 {
-    ShowMessages("db dc dd dq !db !dc !dd !dq & u !u u2 !u2 : read the  "
+    ShowMessages("db dc dd dq !db !dc !dd !dq & u !u u2 !u2 : reads the  "
                  "memory different shapes (hex) and disassembler\n");
     ShowMessages("db  Byte and ASCII characters\n");
     ShowMessages("dc  Double-word values (4 bytes) and ASCII characters\n");

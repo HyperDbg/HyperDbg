@@ -253,42 +253,8 @@ SpinlockUnlock(volatile LONG * Lock);
 //					 Structures					//
 //////////////////////////////////////////////////
 
-/**
- * @brief Attribute for segment selector. This is a copy of bit 40:47 & 52:55 of the
- * segment descriptor. 
- * 
- */
-typedef union _SEGMENT_ATTRIBUTES
-{
-    UINT16 Flags;
-    struct
-    {
-        UINT16 Type : 4;                     /* 0;  Bit 40-43 */
-        UINT16 DescriptorType : 1;           /* 4;  Bit 44 */
-        UINT16 DescriptorPrivilegeLevel : 2; /* 5;  Bit 45-46 */
-        UINT16 Present : 1;                  /* 7;  Bit 47 */
-        UINT16 AvailableBit : 1;             /* 8;  Bit 52 */
-        UINT16 LongMode : 1;                 /* 9;  Bit 53 */
-        UINT16 DefaultBig : 1;               /* 10; Bit 54 */
-        UINT16 Granularity : 1;              /* 11; Bit 55 */
-        UINT16 Reserved1 : 4;
 
-    } Fields;
-} SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
-
-/**
- * @brief Segment Descriptor
- * 
- */
-typedef struct _SEGMENT_DESCRIPTOR
-{
-    UINT16 LimitLow;
-    UINT16 BaseLow;
-    UINT8  BaseMiddle;
-    UINT8  ATTR0;
-    UINT8  LIMIT1ATTR1;
-    UINT8  BaseHigh;
-} SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
+typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
 
 /**
  * @brief Segment selector
@@ -297,10 +263,10 @@ typedef struct _SEGMENT_DESCRIPTOR
 
 typedef struct _VMX_SEGMENT_SELECTOR
 {
-    UINT16             Selector;
-    SEGMENT_ATTRIBUTES Attributes;
-    UINT32             Limit;
-    UINT64             Base;
+    UINT16                    Selector;
+    VMX_SEGMENT_ACCESS_RIGHTS Attributes;
+    UINT32                    Limit;
+    UINT64                    Base;
 } VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**

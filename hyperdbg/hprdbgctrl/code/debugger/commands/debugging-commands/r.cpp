@@ -150,7 +150,7 @@ std::map<std::string, REGS_ENUM> RegistersMap = {
 VOID
 CommandRHelp()
 {
-    ShowMessages("r : read or modify registers.\n\n");
+    ShowMessages("r : reads or modifies registers.\n\n");
     ShowMessages("syntax : \tr\n");
     ShowMessages("syntax : \tr [Register (string)] [= Expr (string)]\n");
     ShowMessages("\t\te.g : r\n");

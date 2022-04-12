@@ -25,7 +25,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandSwitchHelp()
 {
-    ShowMessages(".switch : viewing a list of active debugging threads and switch "
+    ShowMessages(".switch : shows the list of active debugging threads and switches "
                  "between processes and threads in VMI Mode.\n\n");
     ShowMessages("syntax : \t.switch \n");
     ShowMessages("syntax : \t.switch [pid ProcessId (hex)]\n");

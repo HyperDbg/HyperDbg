@@ -25,7 +25,7 @@ extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandDetachHelp()
 {
-    ShowMessages(".detach : detach from debugging a user-mode process.\n\n");
+    ShowMessages(".detach : detaches from debugging a user-mode process.\n\n");
     ShowMessages("syntax : \t.detach \n");
 }
 

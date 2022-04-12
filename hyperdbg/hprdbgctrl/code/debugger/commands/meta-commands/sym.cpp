@@ -25,7 +25,7 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandSymHelp()
 {
-    ShowMessages(".sym : perfrom the symbol actions.\n\n");
+    ShowMessages(".sym : perfroms the symbol actions.\n\n");
 
     ShowMessages("syntax : \t.sym [table]\n");
     ShowMessages("syntax : \t.sym [reload] [pid ProcessId (hex)]\n");

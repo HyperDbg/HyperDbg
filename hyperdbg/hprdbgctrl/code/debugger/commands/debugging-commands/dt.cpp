@@ -19,16 +19,13 @@
 VOID
 CommandDtHelp()
 {
-    ShowMessages(".formats : Show a value or register in different formats.\n\n");
-    ShowMessages("syntax : \t.formats [Expression (string)]\n");
+    ShowMessages("dt : displays information about a local variable, global "
+        "variable or data type.\n\n");
+    ShowMessages("syntax : \tdt [Module!SymbolName (string)] [Expression (string)]\n");
 
-    ShowMessages("\t\te.g : .formats nt!ExAllocatePoolWithTag\n");
-    ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask\n");
-    ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask+5\n");
-    ShowMessages("\t\te.g : .formats 55\n");
-    ShowMessages("\t\te.g : .formats @rax\n");
-    ShowMessages("\t\te.g : .formats @rbx+@rcx\n");
-    ShowMessages("\t\te.g : .formats $pid\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS @rbx+@rcx\n");
 }
 
 /**
