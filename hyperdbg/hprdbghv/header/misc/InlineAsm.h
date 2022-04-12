@@ -215,7 +215,10 @@ extern unsigned long long inline AsmGetIdtBase();
 extern unsigned short
 AsmGetIdtLimit();
 
-//
+
+extern UINT32
+AsmGetAccessRights(unsigned short Selector);
+    //
 // ====================  Common Functions ====================
 // File : AsmCommon.asm
 //

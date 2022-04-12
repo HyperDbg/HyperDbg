@@ -42,17 +42,16 @@ BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG                        AccessRights;
-
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
-    if (!Selector)
-        AccessRights |= 0x10000;
+    if (Selector == 0x0)
+    {
+        SegmentSelector.Attributes.Unusable = TRUE;
+    }
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.Flags);
     __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
@@ -292,17 +291,17 @@ VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    ULONG                        AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    AccessRights = ((PUCHAR)&SegmentSelector.Attributes)[0] + (((PUCHAR)&SegmentSelector.Attributes)[1] << 12);
 
-    if (!Selector)
-        AccessRights |= 0x10000;
+    if (Selector == 0x0)
+    {
+        SegmentSelector.Attributes.Unusable = TRUE;
+    }
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, AccessRights);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.Flags);
     __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
@@ -625,7 +624,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     VMX_EXIT_QUALIFICATION_MOV_DR ExitQualification;
     CR4                           Cr4;
     DR7                           Dr7;
-    VMX_SEGMENT_SELECTOR  Cs;
+    VMX_SEGMENT_SELECTOR          Cs;
     UINT64 *                      GpRegs = Regs;
     //
     // The implementation is derived from Hvpp
@@ -656,7 +655,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
     Cs = GetGuestCs();
 
-    if (Cs.Attributes.Fields.DescriptorPrivilegeLevel != 0)
+    if (Cs.Attributes.DescriptorPrivilegeLevel != 0)
     {
         EventInjectGeneralProtection();
 

@@ -17,9 +17,9 @@ PUBLIC AsmGetIdtLimit
 
 AsmGetGdtBase PROC
 
-    LOCAL	gdtr[10]:BYTE
-    sgdt	gdtr
-    mov		rax, QWORD PTR gdtr[2]
+    LOCAL   gdtr[10]:BYTE
+    sgdt    gdtr
+    mov     rax, QWORD PTR gdtr[2]
     ret
 
 AsmGetGdtBase ENDP
@@ -28,7 +28,7 @@ AsmGetGdtBase ENDP
 
 AsmGetCs PROC
 
-    mov		rax, cs
+    mov     rax, cs
     ret
 
 AsmGetCs ENDP
@@ -37,7 +37,7 @@ AsmGetCs ENDP
 
 AsmGetDs PROC
 
-    mov		rax, ds
+    mov     rax, ds
     ret
 
 AsmGetDs ENDP
@@ -46,7 +46,7 @@ AsmGetDs ENDP
 
 AsmGetEs PROC
 
-    mov		rax, es
+    mov     rax, es
     ret
 
 AsmGetEs ENDP
@@ -55,7 +55,7 @@ AsmGetEs ENDP
 
 AsmGetSs PROC
 
-    mov		rax, ss
+    mov     rax, ss
     ret
 
 AsmGetSs ENDP
@@ -64,7 +64,7 @@ AsmGetSs ENDP
 
 AsmGetFs PROC
 
-    mov		rax, fs
+    mov     rax, fs
     ret
 
 AsmGetFs ENDP
@@ -73,7 +73,7 @@ AsmGetFs ENDP
 
 AsmGetGs PROC
 
-    mov		rax, gs
+    mov     rax, gs
     ret
 
 AsmGetGs ENDP
@@ -82,7 +82,7 @@ AsmGetGs ENDP
 
 AsmGetLdtr PROC
 
-    sldt	rax
+    sldt    rax
     ret
 
 AsmGetLdtr ENDP
@@ -91,7 +91,7 @@ AsmGetLdtr ENDP
 
 AsmGetTr PROC
 
-    str	rax
+    str     rax
     ret
 
 AsmGetTr ENDP
@@ -100,10 +100,10 @@ AsmGetTr ENDP
 
 AsmGetIdtBase PROC
 
-    LOCAL	idtr[10]:BYTE
+    LOCAL   idtr[10]:BYTE
     
-    sidt	idtr
-    mov		rax, QWORD PTR idtr[2]
+    sidt    idtr
+    mov     rax, QWORD PTR idtr[2]
     ret
 
 AsmGetIdtBase ENDP
@@ -112,10 +112,10 @@ AsmGetIdtBase ENDP
 
 AsmGetGdtLimit PROC
 
-    LOCAL	gdtr[10]:BYTE
+    LOCAL    gdtr[10]:BYTE
     
-    sgdt	gdtr
-    mov		ax, WORD PTR gdtr[0]
+    sgdt    gdtr
+    mov     ax, WORD PTR gdtr[0]
     ret
 
 AsmGetGdtLimit ENDP
@@ -124,14 +124,22 @@ AsmGetGdtLimit ENDP
 
 AsmGetIdtLimit PROC
 
-    LOCAL	idtr[10]:BYTE
+    LOCAL    idtr[10]:BYTE
     
-    sidt	idtr
-    mov		ax, WORD PTR idtr[0]
+    sidt    idtr
+    mov     ax, WORD PTR idtr[0]
     ret
 
 AsmGetIdtLimit ENDP
 
 ;------------------------------------------------------------------------
+
+AsmGetAccessRights PROC
+    lar     rax, rcx
+    jz      no_error
+    xor     rax, rax
+no_error:
+    ret
+AsmGetAccessRights ENDP
 
 END
