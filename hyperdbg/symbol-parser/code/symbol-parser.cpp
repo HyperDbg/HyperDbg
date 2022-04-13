@@ -199,7 +199,7 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
-SymGetFieldOffsetFromModule(DWORD64 Base, WCHAR * TypeName, WCHAR * FieldName, DWORD32 * FieldOffset)
+SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UINT32 * FieldOffset)
 {
     BOOLEAN Found = FALSE;
 
@@ -281,7 +281,7 @@ SymGetFieldOffsetFromModule(DWORD64 Base, WCHAR * TypeName, WCHAR * FieldName, D
         // Grab the child size - this is useful to know if a field is a bit or a
         // normal field
         //
-        ULONG64 ChildSize = 0;
+        UINT64 ChildSize = 0;
         SymGetTypeInfo(GetCurrentProcess(), Base, ChildId, TI_GET_LENGTH, &ChildSize);
 
         //
@@ -626,7 +626,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
     BOOLEAN      Found   = FALSE;
     UINT64       Address = NULL;
-    ULONG64      Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(ULONG64) - 1) / sizeof(ULONG64)];
+    UINT64       Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(UINT64) - 1) / sizeof(UINT64)];
     PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
 
     //
@@ -693,7 +693,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
-SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 {
     BOOL                          Ret        = FALSE;
     UINT32                        Index      = 0;
@@ -989,7 +989,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
  * @return VOID
  */
 VOID
-SymShowSymbolInfo(DWORD64 ModuleBase)
+SymShowSymbolInfo(UINT64 ModuleBase)
 {
     //
     // Get module information

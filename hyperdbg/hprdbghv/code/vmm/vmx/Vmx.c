@@ -339,7 +339,7 @@ VmxFixCr4AndCr0Bits()
 BOOLEAN
 VmxCheckIsOnVmxRoot()
 {
-    ULONG64 VmcsLink = 0;
+    UINT64 VmcsLink = 0;
 
     __try
     {
@@ -368,8 +368,8 @@ VmxCheckIsOnVmxRoot()
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
-    ULONG64 ErrorCode   = 0;
-    INT     ProcessorID = 0;
+    UINT64 ErrorCode   = 0;
+    INT    ProcessorID = 0;
 
     ProcessorID = KeGetCurrentProcessorNumber();
 
@@ -548,12 +548,12 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 {
-    ULONG                        CpuBasedVmExecControls;
-    ULONG                        SecondaryProcBasedVmExecControls;
-    PVOID                        HostRsp;
-    ULONG64                      GdtBase         = 0;
-    VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    IA32_VMX_BASIC_REGISTER      VmxBasicMsr     = {0};
+    ULONG                   CpuBasedVmExecControls;
+    ULONG                   SecondaryProcBasedVmExecControls;
+    PVOID                   HostRsp;
+    UINT64                  GdtBase         = 0;
+    VMX_SEGMENT_SELECTOR    SegmentSelector = {0};
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr     = {0};
 
     //
     // Reading IA32_VMX_BASIC_MSR
@@ -703,21 +703,21 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     //setup guest rsp
     //
-    __vmx_vmwrite(VMCS_GUEST_RSP, (ULONG64)GuestStack);
+    __vmx_vmwrite(VMCS_GUEST_RSP, (UINT64)GuestStack);
 
     //
     //setup guest rip
     //
-    __vmx_vmwrite(VMCS_GUEST_RIP, (ULONG64)AsmVmxRestoreState);
+    __vmx_vmwrite(VMCS_GUEST_RIP, (UINT64)AsmVmxRestoreState);
 
     //
     // Stack should be aligned to 16 because we wanna save XMM and FPU registers and those instructions
     // needs alignment to 16
     //
-    HostRsp = (ULONG64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
+    HostRsp = (UINT64)CurrentGuestState->VmmStack + VMM_STACK_SIZE - 1;
     HostRsp = ((PVOID)((ULONG_PTR)(HostRsp) & ~(16 - 1)));
     __vmx_vmwrite(VMCS_HOST_RSP, HostRsp);
-    __vmx_vmwrite(VMCS_HOST_RIP, (ULONG64)AsmVmexitHandler);
+    __vmx_vmwrite(VMCS_HOST_RIP, (UINT64)AsmVmexitHandler);
 
     return TRUE;
 }
@@ -730,7 +730,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 VOID
 VmxVmresume()
 {
-    ULONG64 ErrorCode = 0;
+    UINT64 ErrorCode = 0;
 
     __vmx_vmresume();
 

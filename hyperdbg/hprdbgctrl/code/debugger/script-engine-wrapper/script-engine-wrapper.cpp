@@ -116,7 +116,7 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 
 {
     return ScriptEngineGetFieldOffset(TypeName, FieldName, FieldOffset);
@@ -423,8 +423,8 @@ AllocateStructForCasting()
 {
     typedef struct _UNICODE_STRING
     {
-        USHORT Length;        // +0x000
-        USHORT MaximumLength; // +0x002
+        UINT16 Length;        // +0x000
+        UINT16 MaximumLength; // +0x002
         PWSTR  Buffer;        // +0x004
     } UNICODE_STRING, *PUNICODE_STRING;
 
@@ -538,8 +538,8 @@ ScriptEngineWrapperTestParser(const string & Expr)
     GuestRegs.r11 = 0xc;
     GuestRegs.r12 = 0xd;
     GuestRegs.r13 = 0xe;
-    GuestRegs.r14 = (ULONG64)testw;
-    GuestRegs.r15 = (ULONG64)test;
+    GuestRegs.r14 = (UINT64)testw;
+    GuestRegs.r15 = (UINT64)test;
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
     free(TestStruct);

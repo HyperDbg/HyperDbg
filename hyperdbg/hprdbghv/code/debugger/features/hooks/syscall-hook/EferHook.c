@@ -113,10 +113,10 @@ BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
     VMX_SEGMENT_SELECTOR Cs, Ss;
-    UINT32                       InstructionLength;
-    UINT64                       MsrValue;
-    ULONG64                      GuestRip;
-    ULONG64                      GuestRflags;
+    UINT32               InstructionLength;
+    UINT64               MsrValue;
+    UINT64               GuestRip;
+    UINT64               GuestRflags;
 
     //
     // Reading guest's RIP
@@ -154,13 +154,13 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
     // Load the CS and SS selectors with values derived from bits 47:32 of IA32_STAR
     //
     MsrValue            = __readmsr(IA32_STAR);
-    Cs.Selector              = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
+    Cs.Selector         = (UINT16)((MsrValue >> 32) & ~3); // STAR[47:32] & ~RPL3
     Cs.Base             = 0;                               // flat segment
     Cs.Limit            = (UINT32)~0;                      // 4GB limit
     Cs.Attributes.Flags = 0xA09B;                          // L+DB+P+S+DPL0+Code
     SetGuestCs(&Cs);
 
-    Ss.Selector              = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
+    Ss.Selector         = (UINT16)(((MsrValue >> 32) & ~3) + 8); // STAR[47:32] + 8
     Ss.Base             = 0;                                     // flat segment
     Ss.Limit            = (UINT32)~0;                            // 4GB limit
     Ss.Attributes.Flags = 0xC093;                                // G+DB+P+S+DPL0+Data
@@ -179,9 +179,9 @@ BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
     VMX_SEGMENT_SELECTOR Cs, Ss;
-    UINT64                       MsrValue;
-    ULONG64                      GuestRip;
-    ULONG64                      GuestRflags;
+    UINT64               MsrValue;
+    UINT64               GuestRip;
+    UINT64               GuestRflags;
 
     //
     // Load RIP from RCX
@@ -199,13 +199,13 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
     // SYSRET loads the CS and SS selectors with values derived from bits 63:48 of IA32_STAR
     //
     MsrValue            = __readmsr(IA32_STAR);
-    Cs.Selector              = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
+    Cs.Selector         = (UINT16)(((MsrValue >> 48) + 16) | 3); // (STAR[63:48]+16) | 3 (* RPL forced to 3 *)
     Cs.Base             = 0;                                     // Flat segment
     Cs.Limit            = (UINT32)~0;                            // 4GB limit
     Cs.Attributes.Flags = 0xA0FB;                                // L+DB+P+S+DPL3+Code
     SetGuestCs(&Cs);
 
-    Ss.Selector              = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
+    Ss.Selector         = (UINT16)(((MsrValue >> 48) + 8) | 3); // (STAR[63:48]+8) | 3 (* RPL forced to 3 *)
     Ss.Base             = 0;                                    // Flat segment
     Ss.Limit            = (UINT32)~0;                           // 4GB limit
     Ss.Attributes.Flags = 0xC0F3;                               // G+DB+P+S+DPL3+Data

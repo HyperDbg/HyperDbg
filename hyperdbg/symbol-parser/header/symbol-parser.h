@@ -27,10 +27,10 @@
  */
 typedef struct _SYMBOL_LOADED_MODULE_DETAILS
 {
-    UINT64  BaseAddress;
-    DWORD64 ModuleBase;
-    char    ModuleName[_MAX_FNAME];
-    char    PdbFilePath[MAX_PATH];
+    UINT64 BaseAddress;
+    UINT64 ModuleBase;
+    char   ModuleName[_MAX_FNAME];
+    char   PdbFilePath[MAX_PATH];
 
 } SYMBOL_LOADED_MODULE_DETAILS, *PSYMBOL_LOADED_MODULE_DETAILS;
 
@@ -53,7 +53,7 @@ __declspec(dllexport) UINT32 SymLoadFileSymbol(UINT64 BaseAddress, const char * 
 __declspec(dllexport) UINT32 SymUnloadAllSymbols();
 __declspec(dllexport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
 __declspec(dllexport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
-__declspec(dllexport) BOOLEAN SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
+__declspec(dllexport) BOOLEAN SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
 __declspec(dllexport) BOOLEAN SymCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllexport) UINT64 SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllexport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
@@ -76,7 +76,7 @@ BOOL
 SymGetFileSize(const char * FileName, DWORD & FileSize);
 
 VOID
-SymShowSymbolInfo(DWORD64 ModBase);
+SymShowSymbolInfo(UINT64 ModBase);
 
 BOOL CALLBACK
 SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID UserContext);

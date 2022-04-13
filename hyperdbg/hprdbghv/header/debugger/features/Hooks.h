@@ -69,7 +69,7 @@ typedef struct _SSDTStruct
     LONG * pServiceTable;
     PVOID  pCounterTable;
 #ifdef _WIN64
-    ULONGLONG NumberOfServices;
+    UINT64 NumberOfServices;
 #else
     ULONG NumberOfServices;
 #endif
@@ -98,10 +98,10 @@ typedef struct _SYSTEM_MODULE_ENTRY
     PVOID  ImageBase;
     ULONG  ImageSize;
     ULONG  Flags;
-    USHORT LoadOrderIndex;
-    USHORT InitOrderIndex;
-    USHORT LoadCount;
-    USHORT OffsetToFileName;
+    UINT16 LoadOrderIndex;
+    UINT16 InitOrderIndex;
+    UINT16 LoadCount;
+    UINT16 OffsetToFileName;
     UCHAR  FullPathName[256];
 } SYSTEM_MODULE_ENTRY, *PSYSTEM_MODULE_ENTRY;
 

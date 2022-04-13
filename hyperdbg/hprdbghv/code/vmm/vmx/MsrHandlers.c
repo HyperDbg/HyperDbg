@@ -245,7 +245,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {
@@ -294,7 +294,7 @@ MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLE
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
     if (!ReadDetection && !WriteDetection)
     {

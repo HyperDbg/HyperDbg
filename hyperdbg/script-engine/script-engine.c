@@ -80,7 +80,7 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
 }
 
 BOOLEAN
-ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 {
     //
     // A wrapper for search for fields in the structure

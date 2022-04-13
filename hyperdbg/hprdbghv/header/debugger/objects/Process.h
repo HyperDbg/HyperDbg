@@ -23,7 +23,7 @@ BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);
 
 BOOLEAN
-ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG ActiveProcessLinksOffset);
+ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset);
 
 VOID
 ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,

@@ -33,7 +33,7 @@ UINT32
 ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
 BOOLEAN
-ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
+ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
 
 BOOLEAN
 ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);

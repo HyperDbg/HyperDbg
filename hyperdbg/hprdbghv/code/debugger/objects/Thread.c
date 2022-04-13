@@ -117,7 +117,7 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 BOOLEAN
 ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
 {
-    ULONG64    Thread = NULL;
+    UINT64     Thread = NULL;
     UINT64     ThreadListHead;
     LIST_ENTRY ThreadLinks = {0};
     CLIENT_ID  ThreadCid   = {0};
@@ -192,7 +192,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
     //
     // Find the top of ETHREAD from nt!_ETHREAD.ThreadListEntry
     //
-    Thread = (ULONG64)ThreadLinks.Flink - ThreadListEntryOffset;
+    Thread = (UINT64)ThreadLinks.Flink - ThreadListEntryOffset;
 
     do
     {
@@ -215,9 +215,9 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
         //
         // Find the next process from the list of this process
         //
-        Thread = (ULONG64)ThreadLinks.Flink - ThreadListEntryOffset;
+        Thread = (UINT64)ThreadLinks.Flink - ThreadListEntryOffset;
 
-    } while ((ULONG64)ThreadLinks.Flink != ThreadListHead);
+    } while ((UINT64)ThreadLinks.Flink != ThreadListHead);
 
     return TRUE;
 }

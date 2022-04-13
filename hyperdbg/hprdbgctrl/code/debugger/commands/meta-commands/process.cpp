@@ -56,9 +56,9 @@ CommandProcess(vector<string> SplittedCommand, string Command)
     UINT32                               TargetProcessId            = 0;
     UINT64                               TargetProcess              = 0;
     UINT64                               AddressOfActiveProcessHead = 0; // nt!PsActiveProcessHead
-    DWORD32                              OffsetOfImageFileName      = 0; // nt!_EPROCESS.ImageFileName
-    DWORD32                              OffsetOfUniqueProcessId    = 0; // nt!_EPROCESS.UniqueProcessId
-    DWORD32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
+    UINT32                               OffsetOfImageFileName      = 0; // nt!_EPROCESS.ImageFileName
+    UINT32                               OffsetOfUniqueProcessId    = 0; // nt!_EPROCESS.UniqueProcessId
+    UINT32                               OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
     BOOLEAN                              ResultOfGettingOffsets     = FALSE;
     BOOLEAN                              IsSetByClkIntr             = FALSE;
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS ProcessListNeededItems     = {0};

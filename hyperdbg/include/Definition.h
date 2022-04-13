@@ -662,22 +662,22 @@ typedef struct GUEST_REGS
     // DO NOT FUCKING TOUCH THIS STRUCTURE WITHOUT COORDINATION WITH SINA
     //
 
-    ULONG64 rax; // 0x00
-    ULONG64 rcx; // 0x08
-    ULONG64 rdx; // 0x10
-    ULONG64 rbx; // 0x18
-    ULONG64 rsp; // 0x20
-    ULONG64 rbp; // 0x28
-    ULONG64 rsi; // 0x30
-    ULONG64 rdi; // 0x38
-    ULONG64 r8;  // 0x40
-    ULONG64 r9;  // 0x48
-    ULONG64 r10; // 0x50
-    ULONG64 r11; // 0x58
-    ULONG64 r12; // 0x60
-    ULONG64 r13; // 0x68
-    ULONG64 r14; // 0x70
-    ULONG64 r15; // 0x78
+    UINT64 rax; // 0x00
+    UINT64 rcx; // 0x08
+    UINT64 rdx; // 0x10
+    UINT64 rbx; // 0x18
+    UINT64 rsp; // 0x20
+    UINT64 rbp; // 0x28
+    UINT64 rsi; // 0x30
+    UINT64 rdi; // 0x38
+    UINT64 r8;  // 0x40
+    UINT64 r9;  // 0x48
+    UINT64 r10; // 0x50
+    UINT64 r11; // 0x58
+    UINT64 r12; // 0x60
+    UINT64 r13; // 0x68
+    UINT64 r14; // 0x70
+    UINT64 r15; // 0x78
 
     //
     // DO NOT FUCKING TOUCH THIS STRUCTURE WITHOUT COORDINATION WITH SINA
@@ -692,12 +692,12 @@ typedef struct GUEST_REGS
  */
 typedef struct GUEST_EXTRA_REGISTERS
 {
-    USHORT CS;
-    USHORT DS;
-    USHORT FS;
-    USHORT GS;
-    USHORT ES;
-    USHORT SS;
+    UINT16 CS;
+    UINT16 DS;
+    UINT16 FS;
+    UINT16 GS;
+    UINT16 ES;
+    UINT16 SS;
     UINT64 RFLAGS;
     UINT64 RIP;
 } GUEST_EXTRA_REGISTERS, *PGUEST_EXTRA_REGISTERS;
@@ -1880,7 +1880,7 @@ typedef struct _DEBUGGEE_KD_PAUSED_PACKET
     UINT64                  EventTag;
     RFLAGS                  Rflags;
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    USHORT                  ReadInstructionLen;
+    UINT16                  ReadInstructionLen;
 
 } DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
 
@@ -1899,7 +1899,7 @@ typedef struct _DEBUGGEE_UD_PAUSED_PACKET
     UINT64                  EventTag;
     RFLAGS                  Rflags;
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    USHORT                  ReadInstructionLen;
+    UINT16                  ReadInstructionLen;
     GUEST_REGS              GuestRegs;
 
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;

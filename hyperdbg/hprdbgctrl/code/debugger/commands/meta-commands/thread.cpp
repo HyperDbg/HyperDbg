@@ -36,7 +36,6 @@ CommandThreadHelp()
     ShowMessages("syntax : \t.thread2 [tid ThreadId (hex)]\n");
     ShowMessages("syntax : \t.thread2 [thread Ethread (hex)]\n");
 
-
     ShowMessages("\t\te.g : .thread\n");
     ShowMessages("\t\te.g : .thread tid 48a4\n");
     ShowMessages("\t\te.g : .thread2 tid 48a4\n");
@@ -51,7 +50,7 @@ CommandThreadListThreads(UINT64 Eprocess)
     UINT32                              ThreadListHeadOffset       = 0; // nt!_EPROCESS.ThreadListHead
     UINT32                              ThreadListEntryOffset      = 0; // nt!_ETHREAD.ThreadListEntry
     UINT32                              CidOffset                  = 0; // nt!_ETHREAD.Cid
-    DWORD32                             OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
+    UINT32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
     UINT64                              AddressOfActiveProcessHead = 0; // nt!PsActiveProcessHead
     DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems      = {0};
 

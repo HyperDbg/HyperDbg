@@ -253,7 +253,6 @@ SpinlockUnlock(volatile LONG * Lock);
 //					 Structures					//
 //////////////////////////////////////////////////
 
-
 typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
 
 /**
@@ -299,14 +298,14 @@ typedef struct _NT_KPROCESS
  */
 typedef union _PAGE_FAULT_ERROR_CODE
 {
-    ULONG32 Flags;
+    UINT32 Flags;
     struct
     {
-        ULONG32 Present : 1;  // 0 = NotPresent
-        ULONG32 Write : 1;    // 0 = Read
-        ULONG32 User : 1;     // 0 = CPL==0
-        ULONG32 Reserved : 1; //
-        ULONG32 Fetch : 1;    //
+        UINT32 Present : 1;  // 0 = NotPresent
+        UINT32 Write : 1;    // 0 = Read
+        UINT32 User : 1;     // 0 = CPL==0
+        UINT32 Reserved : 1; //
+        UINT32 Fetch : 1;    //
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 

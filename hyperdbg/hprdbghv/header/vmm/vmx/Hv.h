@@ -25,7 +25,7 @@
  * @return BOOLEAN 
  */
 BOOLEAN
-HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
+HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
 
 /**
  * @brief Returns the Cpu Based and Secondary Processor Based Controls and other 
@@ -56,7 +56,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState);
  * @return VOID 
  */
 VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector);
+HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector);
 
 /**
  * @brief Handle Guest's Control Registers Access

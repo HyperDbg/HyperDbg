@@ -26,7 +26,7 @@ CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
     // to solve it, in the future we solve it using tsc offsectiong
     // or tsc scalling (The reason is because of that fucking patchguard :( )
     //
-    ULONG64 Tsc    = __rdtsc();
+    UINT64 Tsc     = __rdtsc();
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
 }
@@ -40,8 +40,8 @@ CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
 VOID
 CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
 {
-    int     Aux    = 0;
-    ULONG64 Tsc    = __rdtscp(&Aux);
+    int    Aux     = 0;
+    UINT64 Tsc     = __rdtscp(&Aux);
     GuestRegs->rax = 0x00000000ffffffff & Tsc;
     GuestRegs->rdx = 0x00000000ffffffff & (Tsc >> 32);
 
@@ -60,7 +60,7 @@ CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
     ULONG EcxReg = 0;
 
     EcxReg         = GuestRegs->rcx & 0xffffffff;
-    ULONG64 Pmc    = __readpmc(EcxReg);
+    UINT64 Pmc     = __readpmc(EcxReg);
     GuestRegs->rax = 0x00000000ffffffff & Pmc;
     GuestRegs->rdx = 0x00000000ffffffff & (Pmc >> 32);
 }
