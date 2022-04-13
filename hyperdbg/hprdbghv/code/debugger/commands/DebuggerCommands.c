@@ -931,8 +931,8 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         if (IsDebuggeePaused)
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress, SearchMemRequest->ProcessId);
-            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress, SearchMemRequest->ProcessId);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress);
+            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress);
         }
         else if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
         {
