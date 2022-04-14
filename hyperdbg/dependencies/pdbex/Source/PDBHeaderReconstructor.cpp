@@ -377,6 +377,7 @@ PDBHeaderReconstructor::OnUdtFieldEnd(
 	const SYMBOL_UDT_FIELD* UdtField
 	)
 {
+
 	//
 	// Pop offset of the current UDT field.
 	//
@@ -390,7 +391,7 @@ PDBHeaderReconstructor::OnUdtField(
 	UdtFieldDefinitionBase* MemberDefinition
 	)
 {
-
+	
 	Write("%s", MemberDefinition->GetPrintableDefinition().c_str());
 
 	//
@@ -403,7 +404,7 @@ PDBHeaderReconstructor::OnUdtField(
     {
 		if (UdtField->Bits != 0)
         {
-            Write(" : Pos %i, %i Bit", UdtField->BitPosition, UdtField->Bits);
+            Write(", Pos %i, %i Bit", UdtField->BitPosition, UdtField->Bits);
         }
     }
     else
@@ -424,6 +425,74 @@ PDBHeaderReconstructor::OnUdtField(
 #ifdef HYPERDBG_CODES
     }
 #endif
+
+
+#ifdef HYPERDBG_CODES
+
+	//
+	// Check if we should show the data
+	//
+    if (g_MappingBufferAddress != NULL)
+    {
+        Write(" : ");
+
+		//
+		// Size : UdtField->Type->Size
+		// Offset : UdtField->Offset
+		//
+
+		//
+		// Compute the address based on buffer
+		//
+        CHAR * StartAddressOfBuffer = g_MappingBufferAddress + UdtField->Offset;
+        UINT64 TempBuffer           = NULL;
+
+        if (sizeof(CHAR) <= UdtField->Type->Size && UdtField->Type->Size <= sizeof(UINT64))
+        {
+            memcpy(&TempBuffer, StartAddressOfBuffer, UdtField->Type->Size);
+
+			if (UdtField->Bits != 0)
+            {
+                UINT32  CurrentBit = 0;
+                UINT64  BitsFormat = ExtractBits(TempBuffer, UdtField->BitPosition, UdtField->BitPosition + UdtField->Bits - 1);
+                // Write("0y%llx", BitsFormat);
+                Write("0y");
+
+				while (CurrentBit < UdtField->Bits)
+                {
+                    if (BitsFormat & 0x1)
+                    {
+                        Write("1");
+                    }
+                    else
+                    {
+                        Write("0");
+                    }
+
+                    CurrentBit++;
+                    BitsFormat = BitsFormat >> 1;
+                }
+
+
+            }
+			else if (TempBuffer == NULL)
+            {
+                Write("(null)");
+            }
+            else
+            {
+                Write("0x%llx", TempBuffer);
+            }
+        }
+        else
+        {
+            Write("(%s)", UdtField->Type->Name);
+        }
+
+    }
+#endif
+
+
 
 	Write("\n");
 }

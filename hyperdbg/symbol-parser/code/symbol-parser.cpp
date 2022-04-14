@@ -1690,6 +1690,8 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               PVOID        BufferAddress,
                               const char * AdditionalParameters)
 {
+    BOOLEAN IsStruct = FALSE;
+
     vector<string>                SplitedsymPath;
     char **                       ArgvArray     = NULL;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo    = NULL;
@@ -1741,7 +1743,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // First argument is the file name, we let it blank
     //
-    ArgvArray[0] = (char *)1;
+    ArgvArray[0] = (char *)NULL;
 
     //
     // Remove the module name (if any)
@@ -1778,7 +1780,14 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // Call the pdbex wrapper
     //
-    pdbex_main_impl_export(SizeOfArgv, ArgvArray);
+    if (IsStruct)
+    {
+        pdbex_export(SizeOfArgv, ArgvArray, true, BufferAddress);
+    }
+    else
+    {
+        pdbex_export(SizeOfArgv, ArgvArray, false, BufferAddress);
+    }
 
     //
     // Free the buffer allocated for argv

@@ -42,7 +42,7 @@ extern "C" {
 //
 // Imports
 //
-__declspec(dllimport) int pdbex_main_impl_export(int argc, char ** argv);
+__declspec(dllimport) int pdbex_export(int argc, char ** argv, bool is_struct, void * buffer_address);
 __declspec(dllimport) void pdbex_set_logging_method_export(PVOID handler);
 
 //
