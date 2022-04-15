@@ -217,6 +217,8 @@ __declspec(dllimport) UINT32
 __declspec(dllimport) BOOLEAN
     ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
 __declspec(dllimport) BOOLEAN
+    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
+__declspec(dllimport) BOOLEAN
     ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);

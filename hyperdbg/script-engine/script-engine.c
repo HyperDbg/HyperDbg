@@ -89,6 +89,15 @@ ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffs
 }
 
 BOOLEAN
+ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
+{
+    //
+    // A wrapper for getting size of the structure
+    //
+    return SymGetDataTypeSize(TypeName, TypeSize);
+}
+
+BOOLEAN
 ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
 {
     //

@@ -24,7 +24,9 @@ __declspec(dllimport) UINT32 SymUnloadAllSymbols();
 __declspec(dllimport) UINT32 SymUnloadModuleSymbol(char * ModuleName);
 __declspec(dllimport) UINT32 SymSearchSymbolForMask(const char * SearchMask);
 __declspec(dllimport) BOOLEAN ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+__declspec(dllimport) BOOLEAN ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllimport) BOOLEAN SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+__declspec(dllimport) BOOLEAN SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllimport) BOOLEAN SymCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllimport) BOOLEAN SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
 __declspec(dllimport) BOOLEAN SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
@@ -49,6 +51,8 @@ __declspec(dllexport) UINT32
     ScriptEngineSearchSymbolForMask(const char * SearchMask);
 __declspec(dllexport) BOOLEAN
     ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+__declspec(dllexport) BOOLEAN
+    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllexport) BOOLEAN
     ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllexport) BOOLEAN

@@ -297,6 +297,7 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
             const IMAGEHLP_SYMBOL_TYPE_INFO Info =
                 (ChildSize == 1) ? TI_GET_BITPOSITION : TI_GET_OFFSET;
             SymGetTypeInfo(GetCurrentProcess(), Base, ChildId, Info, FieldOffset);
+
             Found = TRUE;
         }
 
@@ -316,6 +317,53 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
     }
 
     return Found;
+}
+
+/**
+ * @brief Get the size of a data type (structure)
+ * @param Base
+ * @param TypeName
+ * @param TypeSize
+ * 
+ * @return BOOLEAN Whether the module is found successfully or not
+ */
+BOOLEAN
+SymGetDataTypeSizeFromModule(UINT64 Base, WCHAR * TypeName, UINT64 * TypeSize)
+{
+    //
+    // Allocate a buffer to back the SYMBOL_INFO structure
+    //
+    const DWORD SizeOfStruct =
+        sizeof(SYMBOL_INFOW) + ((MAX_SYM_NAME - 1) * sizeof(wchar_t));
+    uint8_t SymbolInfoBuffer[SizeOfStruct];
+    auto    SymbolInfo = PSYMBOL_INFOW(SymbolInfoBuffer);
+
+    //
+    // Initialize the fields that need initialization
+    //
+    SymbolInfo->SizeOfStruct = sizeof(SYMBOL_INFOW);
+    SymbolInfo->MaxNameLen   = MAX_SYM_NAME;
+
+    //
+    // Retrieve a type index for the type we're after
+    //
+    if (!SymGetTypeFromNameW(GetCurrentProcess(), Base, TypeName, SymbolInfo))
+    {
+        // ShowMessages("err, SymGetTypeFromName failed (%x)\n",
+        //              GetLastError());
+        return FALSE;
+    }
+
+    if (!SymGetTypeInfo(GetCurrentProcess(), Base, SymbolInfo->TypeIndex, TI_GET_LENGTH, TypeSize))
+    {
+        // ShowMessages("err, SymGetTypeInfo failed (%x)\n",
+        //              GetLastError());
+        return FALSE;
+    }
+
+    // ShowMessages("type size : %llx\n", TypeSize);
+
+    return TRUE;
 }
 
 /**
@@ -731,7 +779,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     }
 
     //
-    // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
+    // Convert TypeName to wide-char, it's because SymGetTypeInfo supports
     // wide-char
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
@@ -747,6 +795,64 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
     return SymGetFieldOffsetFromModule(SymbolInfo->ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+}
+
+/**
+ * @brief Get the size of structures from the symbols 
+ *
+ * @param TypeName
+ * @param FieldName
+ * @param FieldOffset
+ * 
+ * @return BOOLEAN Whether the module is found successfully or not
+ */
+BOOLEAN
+SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
+{
+    BOOL                          Ret        = FALSE;
+    UINT32                        Index      = 0;
+    PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
+
+    //
+    // Find module info
+    //
+    SymbolInfo = SymGetModuleBaseFromSearchMask(TypeName, TRUE);
+
+    //
+    // Check if module is found
+    //
+    if (SymbolInfo == NULL)
+    {
+        //
+        // Module not found or there was an error
+        //
+        return FALSE;
+    }
+
+    //
+    // Remove the *!Name from TypeName as it not supports module name
+    // at the beginning of a type name
+    //
+    while (TypeName[Index] != '\0')
+    {
+        if (TypeName[Index] == '!')
+        {
+            TypeName = (CHAR *)(TypeName + Index + 1);
+            break;
+        }
+
+        Index++;
+    }
+
+    //
+    // Convert FieldName to wide-char, it's because SymGetTypeInfo supports
+    // wide-char
+    //
+    const size_t TypeNameSize = strlen(TypeName) + 1;
+    WCHAR *      TypeNameW    = new wchar_t[TypeNameSize];
+    mbstowcs(TypeNameW, TypeName, TypeNameSize);
+
+    return SymGetDataTypeSizeFromModule(SymbolInfo->ModuleBase, TypeNameW, TypeSize);
 }
 
 /**

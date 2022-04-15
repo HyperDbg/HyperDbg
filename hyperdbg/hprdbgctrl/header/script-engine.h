@@ -36,6 +36,9 @@ BOOLEAN
 ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
 
 BOOLEAN
+ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize);
+
+BOOLEAN
 ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);
 
 BOOLEAN

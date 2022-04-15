@@ -123,6 +123,20 @@ ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * Fi
 }
 
 /**
+ * @brief ScriptEngineGetDataTypeSize wrapper
+ *
+ * @param TypeName
+ * @param TypeSize
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize)
+{
+    return ScriptEngineGetDataTypeSize(TypeName, TypeSize);
+}
+
+/**
  * @brief ScriptEngineCreateSymbolTableForDisassembler wrapper
  *
  * @param CallbackFunction

@@ -43,6 +43,65 @@ CommandStructHelp()
 }
 
 /**
+ * @brief Show data based on the symbol structure and data types
+ *
+ * @param TypeName
+ * @param Address
+ * @param IsStruct
+ * @param BufferAddress
+ * @param AdditionalParameters
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandDtShowDataBasedOnSymbolTypes(
+    const char * TypeName,
+    UINT64       Address,
+    BOOLEAN      IsStruct,
+    PVOID        BufferAddress,
+    const char * AdditionalParameters)
+{
+    UINT64  StructureSize       = 0;
+    BOOLEAN ResultOfFindingSize = FALSE;
+
+    if (Address != NULL)
+    {
+        //
+        // *** We need to read the memory here ***
+        //
+
+        //
+        // Get the field size
+        //
+        ResultOfFindingSize = ScriptEngineGetDataTypeSizeWrapper((char *)TypeName, &StructureSize);
+
+        //
+        // Check if size is found
+        //
+        if (!ResultOfFindingSize || StructureSize == 0)
+        {
+            //
+            // Field not found or size is invalid
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n", TypeName);
+            return FALSE;
+        }
+
+        //
+        // *** Read the memory ***
+        //
+    }
+    else
+    {
+        //
+        // It's a simple structure without an address
+        // Call the pdbex wrapper
+        //
+        return ScriptEngineShowDataBasedOnSymbolTypesWrapper(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
+    }
+}
+
+/**
  * @brief dt and struct command handler
  *
  * @param SplittedCommand
@@ -73,7 +132,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
 
     if (SplittedCommand.size() == 1)
     {
-        ShowMessages("incorrect use of 'dt'\n\n");
+        ShowMessages("incorrect use of '%s'\n\n", SplittedCommand.at(0).c_str());
 
         if (IsStruct)
         {
@@ -116,11 +175,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
         // Call the dt parser wrapper, it's only a structure (type) name
         // Call it with default configuration
         //
-        ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
-                                                      NULL,
-                                                      IsStruct,
-                                                      NULL,
-                                                      PDBEX_DEFAULT_CONFIGURATION);
+        CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(0).c_str(),
+                                            NULL,
+                                            IsStruct,
+                                            NULL,
+                                            PDBEX_DEFAULT_CONFIGURATION);
     }
     else
     {
@@ -170,11 +229,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 //
                 // Call the wrapper of pdbex
                 //
-                ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
-                                                              TargetAddress,
-                                                              IsStruct,
-                                                              BufferAddressRetrievedFromDebuggee,
-                                                              TempExtraParamHolder.c_str());
+                CommandDtShowDataBasedOnSymbolTypes(TempTypeNameHolder.c_str(),
+                                                    TargetAddress,
+                                                    IsStruct,
+                                                    BufferAddressRetrievedFromDebuggee,
+                                                    TempExtraParamHolder.c_str());
             }
             else
             {
@@ -188,11 +247,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                     // There is not parameters, only a symbol name and then a buffer address
                     // Call it with default configuration
                     //
-                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
-                                                                  TargetAddress,
-                                                                  IsStruct,
-                                                                  BufferAddressRetrievedFromDebuggee,
-                                                                  PDBEX_DEFAULT_CONFIGURATION);
+                    CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(0).c_str(),
+                                                        TargetAddress,
+                                                        IsStruct,
+                                                        BufferAddressRetrievedFromDebuggee,
+                                                        PDBEX_DEFAULT_CONFIGURATION);
                 }
                 else
                 {
@@ -225,11 +284,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                     //
                     // Call the wrapper of pdbex
                     //
-                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
-                                                                  TargetAddress,
-                                                                  IsStruct,
-                                                                  BufferAddressRetrievedFromDebuggee,
-                                                                  TempExtraParamHolder.c_str());
+                    CommandDtShowDataBasedOnSymbolTypes(TempTypeNameHolder.c_str(),
+                                                        TargetAddress,
+                                                        IsStruct,
+                                                        BufferAddressRetrievedFromDebuggee,
+                                                        TempExtraParamHolder.c_str());
                 }
             }
         }
@@ -245,11 +304,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 // There is not parameters, only a buffer address and then a symbol name
                 // Call it with default configuration
                 //
-                ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(1).c_str(),
-                                                              TargetAddress,
-                                                              IsStruct,
-                                                              BufferAddressRetrievedFromDebuggee,
-                                                              PDBEX_DEFAULT_CONFIGURATION);
+                CommandDtShowDataBasedOnSymbolTypes(TempSplittedCommand.at(1).c_str(),
+                                                    TargetAddress,
+                                                    IsStruct,
+                                                    BufferAddressRetrievedFromDebuggee,
+                                                    PDBEX_DEFAULT_CONFIGURATION);
             }
             else
             {
@@ -282,11 +341,11 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 //
                 // Call the wrapper of pdbex
                 //
-                ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
-                                                              TargetAddress,
-                                                              IsStruct,
-                                                              BufferAddressRetrievedFromDebuggee,
-                                                              TempExtraParamHolder.c_str());
+                CommandDtShowDataBasedOnSymbolTypes(TempTypeNameHolder.c_str(),
+                                                    TargetAddress,
+                                                    IsStruct,
+                                                    BufferAddressRetrievedFromDebuggee,
+                                                    TempExtraParamHolder.c_str());
             }
         }
     }
