@@ -247,6 +247,9 @@ VOID
 CommandDtHelp();
 
 VOID
+CommandStructHelp();
+
+VOID
 CommandKHelp();
 
 VOID

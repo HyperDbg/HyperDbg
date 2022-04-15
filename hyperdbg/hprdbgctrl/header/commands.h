@@ -359,6 +359,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_DT_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
+#define DEBUGGER_COMMAND_STRUCT_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
 //////////////////////////////////////////////////
@@ -589,7 +592,7 @@ VOID
 CommandPrealloc(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandDt(vector<string> SplittedCommand, string Command);
+CommandDtAndStruct(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandK(vector<string> SplittedCommand, string Command);

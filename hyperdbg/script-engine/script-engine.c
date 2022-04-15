@@ -122,13 +122,14 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
                                        UINT64       Address,
+                                       BOOLEAN      IsStruct,
                                        PVOID        BufferAddress,
                                        const char * AdditionalParameters)
 {
     //
     // A wrapper for showing types and data within structures
     //
-    return SymShowDataBasedOnSymbolTypes(TypeName, Address, BufferAddress, AdditionalParameters);
+    return SymShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
 
 VOID

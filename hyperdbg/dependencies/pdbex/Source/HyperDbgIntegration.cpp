@@ -1,5 +1,7 @@
 #include "PDBExtractor.h"
 #include "HyperDbgExport.h"
+#include <sstream>
+#include <iomanip>
 
 Callback g_MessageHandler       = NULL;
 BOOLEAN  g_IsOutputToFile       = FALSE;
@@ -30,12 +32,6 @@ pdbex_export(int     argc,
     //
     g_MappingBufferAddress = (CHAR *)buffer_address;
 
-	//
-	// Temp setting buffer, should be removed
-	//
-    g_MappingBufferAddress = (CHAR *)malloc(0x6000);
-    memset(g_MappingBufferAddress, 0x55555555, 0x6000);
-
     return Instance.Run(argc, argv);
 }
 
@@ -46,8 +42,21 @@ pdbex_set_logging_method_export(PVOID handler)
 }
 
 UINT64
-ExtractBits(UINT64 Orig64Bit, unsigned int From, unsigned int To)
+ExtractBits(UINT64 Orig64Bit, UINT64 From, UINT64 To)
 {
-    UINT64 Mask = ((1 << (To - From + 1)) - 1) << From;
+    UINT64 Mask = ((1ull << (To - From + 1ull)) - 1ull) << From;
     return (Orig64Bit & Mask) >> From;
+}
+
+std::string
+SymSeparateTo64BitValue(UINT64 Value)
+{
+    std::ostringstream OstringStream;
+    std::string        Temp;
+
+    OstringStream << std::setw(16) << std::setfill('0') << std::hex << Value;
+    Temp = OstringStream.str();
+
+    Temp.insert(8, 1, '`');
+    return Temp;
 }

@@ -16,4 +16,7 @@ __declspec(dllexport) void pdbex_set_logging_method_export(PVOID handler);
 }
 
 UINT64
-ExtractBits(UINT64 Orig64Bit, unsigned int From, unsigned int To);
+ExtractBits(UINT64 Orig64Bit, UINT64 From, UINT64 To);
+
+std::string
+SymSeparateTo64BitValue(UINT64 Value);

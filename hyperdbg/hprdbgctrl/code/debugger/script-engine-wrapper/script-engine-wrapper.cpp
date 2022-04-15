@@ -176,6 +176,7 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
  *
  * @param TypeName
  * @param Address
+ * @param IsStruct
  * @param BufferAddress
  * @param AdditionalParameters
  * 
@@ -185,10 +186,11 @@ BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypesWrapper(
     const char * TypeName,
     UINT64       Address,
+    BOOLEAN      IsStruct,
     PVOID        BufferAddress,
     const char * AdditionalParameters)
 {
-    return ScriptEngineShowDataBasedOnSymbolTypes(TypeName, Address, BufferAddress, AdditionalParameters);
+    return ScriptEngineShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
 
 /**

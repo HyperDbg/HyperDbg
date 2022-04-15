@@ -1679,6 +1679,7 @@ SymbolAbortLoading()
  *
  * @param TypeName
  * @param Address
+ * @param IsStruct
  * @param BufferAddress
  * @param AdditionalParameters
  * 
@@ -1687,11 +1688,10 @@ SymbolAbortLoading()
 BOOLEAN
 SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               UINT64       Address,
+                              BOOLEAN      IsStruct,
                               PVOID        BufferAddress,
                               const char * AdditionalParameters)
 {
-    BOOLEAN IsStruct = FALSE;
-
     vector<string>                SplitedsymPath;
     char **                       ArgvArray     = NULL;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo    = NULL;

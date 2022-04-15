@@ -434,7 +434,6 @@ PDBHeaderReconstructor::OnUdtField(
 	//
     if (g_MappingBufferAddress != NULL)
     {
-        Write(" : ");
 
 		//
 		// Size : UdtField->Type->Size
@@ -449,12 +448,18 @@ PDBHeaderReconstructor::OnUdtField(
 
         if (sizeof(CHAR) <= UdtField->Type->Size && UdtField->Type->Size <= sizeof(UINT64))
         {
+            Write(" : ");
+
             memcpy(&TempBuffer, StartAddressOfBuffer, UdtField->Type->Size);
 
 			if (UdtField->Bits != 0)
             {
                 UINT32  CurrentBit = 0;
-                UINT64  BitsFormat = ExtractBits(TempBuffer, UdtField->BitPosition, UdtField->BitPosition + UdtField->Bits - 1);
+                UINT64 BitsFormat = ExtractBits(TempBuffer,
+					(UINT64)UdtField->BitPosition,
+					(UINT64)(UdtField->BitPosition + UdtField->Bits - 1));
+
+
                 // Write("0y%llx", BitsFormat);
                 Write("0y");
 
@@ -479,15 +484,36 @@ PDBHeaderReconstructor::OnUdtField(
             {
                 Write("(null)");
             }
+            else if (UdtField->Type->Size == sizeof(UINT64))
+            {
+                Write("%s", SymSeparateTo64BitValue(TempBuffer).c_str());
+            }
             else
             {
-                Write("0x%llx", TempBuffer);
+                Write("0x%x",TempBuffer);
             }
         }
-        else
+        else if (UdtField->Type->Name != NULL)
         {
-            Write("(%s)", UdtField->Type->Name);
+			//
+			// The size is above 8 bytes
+			//
+
+            Write(" : %s", UdtField->Type->Name);
+
+			//
+			// Check if the structure is a _LIST_ENTRY
+			//
+            if (UdtField->Type->Size == sizeof(LIST_ENTRY) &&
+                strcmp(UdtField->Type->Name, "_LIST_ENTRY") == 0)
+            {
+                PLIST_ENTRY ListEntry = (PLIST_ENTRY)(g_MappingBufferAddress + UdtField->Offset);
+                Write(" [ %s - %s ]",
+					SymSeparateTo64BitValue((UINT64)ListEntry->Flink).c_str(),
+                      SymSeparateTo64BitValue((UINT64)ListEntry->Blink).c_str());
+            }
         }
+
 
     }
 #endif
@@ -682,6 +708,7 @@ PDBHeaderReconstructor::OnPaddingMember(
             //
             // Ignore
             //
+            Write("\n");
         }
         else
         {

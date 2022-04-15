@@ -57,6 +57,7 @@ BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypesWrapper(
     const char * TypeName,
     UINT64       Address,
+    BOOLEAN      IsStruct,
     PVOID        BufferAddress,
     const char * AdditionalParameters);
 

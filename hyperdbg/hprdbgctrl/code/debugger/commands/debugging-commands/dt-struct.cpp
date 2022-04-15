@@ -1,7 +1,7 @@
 /**
- * @file dt.cpp
+ * @file dt-struct.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief dt command
+ * @brief dt and struct command
  * @details
  * @version 0.1
  * @date 2021-12-13
@@ -20,7 +20,7 @@ VOID
 CommandDtHelp()
 {
     ShowMessages("dt : displays information about a local variable, global "
-        "variable or data type.\n\n");
+                 "variable or data type.\n\n");
     ShowMessages("syntax : \tdt [Module!SymbolName (string)] [Expression (string)]\n");
 
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
@@ -29,24 +29,61 @@ CommandDtHelp()
 }
 
 /**
- * @brief dt command handler
+ * @brief help of struct command
+ *
+ * @return VOID
+ */
+VOID
+CommandStructHelp()
+{
+    ShowMessages("struct : displays a data type, enum, or structure derived from PDB symbols.\n\n");
+    ShowMessages("syntax : \struct [Module!SymbolName (string)]\n");
+
+    ShowMessages("\t\te.g : struct nt!_EPROCESS\n");
+}
+
+/**
+ * @brief dt and struct command handler
  *
  * @param SplittedCommand
  * @param Command
  * @return VOID
  */
 VOID
-CommandDt(vector<string> SplittedCommand, string Command)
+CommandDtAndStruct(vector<string> SplittedCommand, string Command)
 {
     std::string TempTypeNameHolder;
     std::string TempExtraParamHolder;
+    BOOLEAN     IsStruct                           = FALSE;
     UINT64      TargetAddress                      = NULL;
     PVOID       BufferAddressRetrievedFromDebuggee = NULL;
+
+    //
+    // Check if command is 'dt' or 'struct'
+    //
+    if (!SplittedCommand.at(0).compare("struct") ||
+        !SplittedCommand.at(0).compare("structure"))
+    {
+        IsStruct = TRUE;
+    }
+    else
+    {
+        IsStruct = FALSE;
+    }
 
     if (SplittedCommand.size() == 1)
     {
         ShowMessages("incorrect use of 'dt'\n\n");
-        CommandDtHelp();
+
+        if (IsStruct)
+        {
+            CommandStructHelp();
+        }
+        else
+        {
+            CommandDtHelp();
+        }
+
         return;
     }
 
@@ -56,9 +93,9 @@ CommandDt(vector<string> SplittedCommand, string Command)
     Trim(Command);
 
     //
-    // Remove dt from it
+    // Remove dt, struct, or structure from it
     //
-    Command.erase(0, 2);
+    Command.erase(0, SplittedCommand.at(0).size());
 
     //
     // Trim it again
@@ -81,6 +118,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
         //
         ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
                                                       NULL,
+                                                      IsStruct,
                                                       NULL,
                                                       PDBEX_DEFAULT_CONFIGURATION);
     }
@@ -134,6 +172,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 //
                 ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
                                                               TargetAddress,
+                                                              IsStruct,
                                                               BufferAddressRetrievedFromDebuggee,
                                                               TempExtraParamHolder.c_str());
             }
@@ -151,6 +190,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                     //
                     ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(0).c_str(),
                                                                   TargetAddress,
+                                                                  IsStruct,
                                                                   BufferAddressRetrievedFromDebuggee,
                                                                   PDBEX_DEFAULT_CONFIGURATION);
                 }
@@ -187,6 +227,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                     //
                     ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
                                                                   TargetAddress,
+                                                                  IsStruct,
                                                                   BufferAddressRetrievedFromDebuggee,
                                                                   TempExtraParamHolder.c_str());
                 }
@@ -206,6 +247,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 //
                 ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempSplittedCommand.at(1).c_str(),
                                                               TargetAddress,
+                                                              IsStruct,
                                                               BufferAddressRetrievedFromDebuggee,
                                                               PDBEX_DEFAULT_CONFIGURATION);
             }
@@ -242,6 +284,7 @@ CommandDt(vector<string> SplittedCommand, string Command)
                 //
                 ScriptEngineShowDataBasedOnSymbolTypesWrapper(TempTypeNameHolder.c_str(),
                                                               TargetAddress,
+                                                              IsStruct,
                                                               BufferAddressRetrievedFromDebuggee,
                                                               TempExtraParamHolder.c_str());
             }
