@@ -19,7 +19,7 @@
  * @param PID Target Process Id
  * @param Address Target Address
  * @param MemType Type of memory
- * @param UserBuffer Buffer to save to the user
+ * @param UserBuffer Buffer to save to the user. This buffer must be in nonpageable memory.
  * @param Size Size of read
  * @param ReturnSize Return Size
  * @return NTSTATUS 
