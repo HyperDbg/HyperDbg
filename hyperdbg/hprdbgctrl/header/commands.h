@@ -33,14 +33,6 @@ ReadVendorString();
 VOID
 ShowMessages(const char * Fmt, ...);
 
-VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
-                                 UINT64                     Address,
-                                 DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                                 DEBUGGER_READ_READING_TYPE ReadingType,
-                                 UINT32                     Pid,
-                                 UINT                       Size);
-
 string
 SeparateTo64BitValue(UINT64 Value);
 
@@ -92,12 +84,13 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
     PUINT32         CallLength);
 
 VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
-                                 UINT64                     Address,
-                                 DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                                 DEBUGGER_READ_READING_TYPE ReadingType,
-                                 UINT32                     Pid,
-                                 UINT                       Size);
+HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
+                                 UINT64                       Address,
+                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                 DEBUGGER_READ_READING_TYPE   ReadingType,
+                                 UINT32                       Pid,
+                                 UINT32                       Size,
+                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
 
 VOID
 InitializeCommandsDictionary();

@@ -1176,6 +1176,27 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
 /* ==============================================================================================
  */
 
+#define SIZEOF_DEBUGGER_DT_COMMAND_OPTIONS \
+    sizeof(DEBUGGER_DT_COMMAND_OPTIONS)
+
+/**
+ * @brief requests options for dt and struct command
+ *
+ */
+typedef struct _DEBUGGER_DT_COMMAND_OPTIONS
+{
+    const char * TypeName;
+    UINT64       SizeOfTypeName;
+    UINT64       Address;
+    BOOLEAN      IsStruct;
+    PVOID        BufferAddress;
+    const char * AdditionalParameters;
+
+} DEBUGGER_DT_COMMAND_OPTIONS, *PDEBUGGER_DT_COMMAND_OPTIONS;
+
+/* ==============================================================================================
+ */
+
 /**
  * @brief different types of prealloc requests
  *
@@ -1240,6 +1261,7 @@ typedef enum _DEBUGGER_READ_MEMORY_TYPE
  */
 typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
 {
+    DEBUGGER_SHOW_COMMAND_DT = 1,
     DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
     DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
     DEBUGGER_SHOW_COMMAND_DB,

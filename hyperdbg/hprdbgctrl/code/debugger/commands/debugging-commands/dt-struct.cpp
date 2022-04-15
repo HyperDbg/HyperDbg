@@ -61,8 +61,18 @@ CommandDtShowDataBasedOnSymbolTypes(
     PVOID        BufferAddress,
     const char * AdditionalParameters)
 {
-    UINT64  StructureSize       = 0;
-    BOOLEAN ResultOfFindingSize = FALSE;
+    UINT64                      StructureSize       = 0;
+    BOOLEAN                     ResultOfFindingSize = FALSE;
+    DEBUGGER_DT_COMMAND_OPTIONS DtOptions           = {0};
+
+    //
+    // Set the options
+    //
+    DtOptions.TypeName             = TypeName;
+    DtOptions.Address              = Address;
+    DtOptions.IsStruct             = IsStruct;
+    DtOptions.BufferAddress        = NULL; // we didn't read it yet
+    DtOptions.AdditionalParameters = AdditionalParameters;
 
     if (Address != NULL)
     {
@@ -88,8 +98,20 @@ CommandDtShowDataBasedOnSymbolTypes(
         }
 
         //
-        // *** Read the memory ***
+        // Set the type (structure) size
         //
+        DtOptions.SizeOfTypeName = StructureSize;
+
+        //
+        // Read the memory
+        //
+        HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DT,
+                                         Address,
+                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         READ_FROM_KERNEL,
+                                         GetCurrentProcessId(),
+                                         StructureSize,
+                                         &DtOptions);
     }
     else
     {

@@ -226,7 +226,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dc"))
     {
@@ -235,7 +236,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dd"))
     {
@@ -244,7 +246,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dq"))
     {
@@ -253,7 +256,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!db"))
     {
@@ -262,7 +266,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dc"))
     {
@@ -271,7 +276,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dd"))
     {
@@ -280,7 +286,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dq"))
     {
@@ -289,7 +296,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
 
     //
@@ -303,7 +311,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_VIRTUAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("!u"))
     {
@@ -313,7 +322,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_PHYSICAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("u2"))
     {
@@ -323,7 +333,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_VIRTUAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("!u2"))
     {
@@ -333,6 +344,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_PHYSICAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
 }
