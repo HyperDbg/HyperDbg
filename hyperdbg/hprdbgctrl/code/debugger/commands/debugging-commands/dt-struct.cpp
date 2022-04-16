@@ -19,13 +19,17 @@
 VOID
 CommandDtHelp()
 {
-    ShowMessages("dt : displays information about a local variable, global "
+    ShowMessages("dt !dt : displays information about a local variable, global "
                  "variable or data type.\n\n");
+    ShowMessages("\nIf you want to read physical memory then add '!' at the "
+                 "start of the command\n");
+
     ShowMessages("syntax : \tdt [Module!SymbolName (string)] [Expression (string)]\n");
 
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS @rbx+@rcx\n");
+    ShowMessages("\t\te.g : !dt nt!_EPROCESS 1f0300\n");
 }
 
 /**
@@ -50,6 +54,7 @@ CommandStructHelp()
  * @param IsStruct
  * @param BufferAddress
  * @param TargetPid
+ * @param IsPhysicalAddress
  * @param AdditionalParameters
  * 
  * @return BOOLEAN
@@ -61,6 +66,7 @@ CommandDtShowDataBasedOnSymbolTypes(
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
     UINT32       TargetPid,
+    BOOLEAN      IsPhysicalAddress,
     const char * AdditionalParameters)
 {
     UINT64                      StructureSize       = 0;
@@ -110,7 +116,7 @@ CommandDtShowDataBasedOnSymbolTypes(
         //
         HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_COMMAND_DT,
                                          Address,
-                                         DEBUGGER_READ_VIRTUAL_ADDRESS,
+                                         IsPhysicalAddress ? DEBUGGER_READ_PHYSICAL_ADDRESS : DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          TargetPid,
                                          StructureSize,
@@ -142,6 +148,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     UINT64      TargetAddress                      = NULL;
     PVOID       BufferAddressRetrievedFromDebuggee = NULL;
     UINT32      TargetPid                          = NULL;
+    BOOLEAN     IsPhysicalAddress                  = FALSE;
 
     //
     // Test for the pid
@@ -149,7 +156,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     TargetPid = GetCurrentProcessId();
 
     //
-    // Check if command is 'dt' or 'struct'
+    // Check if command is 'struct' or not
     //
     if (!SplittedCommand.at(0).compare("struct") ||
         !SplittedCommand.at(0).compare("structure"))
@@ -159,6 +166,18 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     else
     {
         IsStruct = FALSE;
+    }
+
+    //
+    // Check if command is '!dt' for physical address or not
+    //
+    if (!SplittedCommand.at(0).compare("!dt"))
+    {
+        IsPhysicalAddress = TRUE;
+    }
+    else
+    {
+        IsPhysicalAddress = FALSE;
     }
 
     if (SplittedCommand.size() == 1)
@@ -211,6 +230,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                             IsStruct,
                                             NULL,
                                             TargetPid,
+                                            IsPhysicalAddress,
                                             PDBEX_DEFAULT_CONFIGURATION);
     }
     else
@@ -266,6 +286,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
                                                     TargetPid,
+                                                    IsPhysicalAddress,
                                                     TempExtraParamHolder.c_str());
             }
             else
@@ -285,6 +306,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                         IsStruct,
                                                         BufferAddressRetrievedFromDebuggee,
                                                         TargetPid,
+                                                        IsPhysicalAddress,
                                                         PDBEX_DEFAULT_CONFIGURATION);
                 }
                 else
@@ -323,6 +345,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                         IsStruct,
                                                         BufferAddressRetrievedFromDebuggee,
                                                         TargetPid,
+                                                        IsPhysicalAddress,
                                                         TempExtraParamHolder.c_str());
                 }
             }
@@ -344,6 +367,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
                                                     TargetPid,
+                                                    IsPhysicalAddress,
                                                     PDBEX_DEFAULT_CONFIGURATION);
             }
             else
@@ -382,6 +406,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
                                                     TargetPid,
+                                                    IsPhysicalAddress,
                                                     TempExtraParamHolder.c_str());
             }
         }

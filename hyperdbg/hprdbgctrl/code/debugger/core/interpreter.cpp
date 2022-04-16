@@ -784,7 +784,8 @@ InitializeCommandsDictionary()
     g_CommandsList["kd"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
     g_CommandsList["kq"] = {&CommandK, &CommandKHelp, DEBUGGER_COMMAND_K_ATTRIBUTES};
 
-    g_CommandsList["dt"] = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
+    g_CommandsList["dt"]  = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
+    g_CommandsList["!dt"] = {&CommandDtAndStruct, &CommandDtHelp, DEBUGGER_COMMAND_DT_ATTRIBUTES};
 
     g_CommandsList["struct"]    = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
     g_CommandsList["structure"] = {&CommandDtAndStruct, &CommandStructHelp, DEBUGGER_COMMAND_STRUCT_ATTRIBUTES};
