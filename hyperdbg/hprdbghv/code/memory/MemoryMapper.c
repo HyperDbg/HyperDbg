@@ -21,7 +21,7 @@
  * @return UINT64 
  */
 UINT64
-MemoryMapperGetIndex(PML Level, UINT64 Va)
+MemoryMapperGetIndex(_In_ PML Level, _In_ UINT64 Va)
 {
     UINT64 Result = Va;
     Result >>= 12 + Level * 9;
@@ -37,7 +37,7 @@ MemoryMapperGetIndex(PML Level, UINT64 Va)
  * @return UINT32 
  */
 UINT32
-MemoryMapperGetOffset(PML Level, UINT64 Va)
+MemoryMapperGetOffset(_In_ PML Level, _In_ UINT64 Va)
 {
     UINT64 Result = MemoryMapperGetIndex(Level, Va);
     Result &= (1 << 9) - 1; // 0x1ff
@@ -462,12 +462,12 @@ MemoryMapperUninitialize()
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
-                                PVOID            BufferToSaveMemory,
-                                SIZE_T           SizeToRead,
-                                UINT64           PteVaAddress,
-                                UINT64           MappingVa,
-                                BOOLEAN          InvalidateVpids)
+MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,
+                                _Inout_ PVOID         BufferToSaveMemory,
+                                _In_ SIZE_T           SizeToRead,
+                                _In_ UINT64           PteVaAddress,
+                                _In_ UINT64           MappingVa,
+                                _In_ BOOLEAN          InvalidateVpids)
 {
     PVOID       Va = MappingVa;
     PVOID       NewAddress;
@@ -548,12 +548,12 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
-                                 PHYSICAL_ADDRESS PaAddressToWrite,
-                                 SIZE_T           SizeToWrite,
-                                 UINT64           PteVaAddress,
-                                 UINT64           MappingVa,
-                                 BOOLEAN          InvalidateVpids)
+MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
+                                 _In_ PHYSICAL_ADDRESS PaAddressToWrite,
+                                 _In_ SIZE_T           SizeToWrite,
+                                 _Inout_ UINT64        PteVaAddress,
+                                 _Inout_ UINT64        MappingVa,
+                                 _In_ BOOLEAN          InvalidateVpids)
 {
     PVOID       Va = MappingVa;
     PVOID       NewAddress;
@@ -629,8 +629,8 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
  */
 UINT64
 inline MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
-    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    UINT64                                 AddressToRead)
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -670,20 +670,21 @@ inline MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
  */
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
-    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    UINT64                                 AddressToRead,
-    UINT64                                 BufferToSaveMemory,
-    SIZE_T                                 SizeToRead)
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead,
+    _Inout_ UINT64                              BufferToSaveMemory,
+    _In_ SIZE_T                                 SizeToRead)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64           AddressToCheck;
-    PHYSICAL_ADDRESS PhysicalAddress;
+    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64                  AddressToCheck;
+    PHYSICAL_ADDRESS        PhysicalAddress;
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
-        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    if (CurrentVmState->MemoryMapper.VirualAddress == NULL ||
+        CurrentVmState->MemoryMapper.PteVirtualAddress == NULL)
     {
         //
         // Not initialized
@@ -739,9 +740,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                     PhysicalAddress,
                     BufferToSaveMemory,
                     ReadSize,
-                    g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
-                    g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
-                    g_GuestState[ProcessorIndex].IsOnVmxRootMode))
+                    CurrentVmState->MemoryMapper.PteVirtualAddress,
+                    CurrentVmState->MemoryMapper.VirualAddress,
+                    CurrentVmState->IsOnVmxRootMode))
             {
                 return FALSE;
             }
@@ -768,9 +769,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             PhysicalAddress,
             BufferToSaveMemory,
             SizeToRead,
-            g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
-            g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
-            g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+            CurrentVmState->MemoryMapper.PteVirtualAddress,
+            CurrentVmState->MemoryMapper.VirualAddress,
+            CurrentVmState->IsOnVmxRootMode);
     }
 }
 
@@ -784,7 +785,9 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
  * unsuccessful then it returns FALSE
  */
 BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 BufferToSaveMemory, SIZE_T SizeToRead)
+MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead,
+                                            UINT64 BufferToSaveMemory,
+                                            SIZE_T SizeToRead)
 {
     //
     // Call the wrapper
@@ -915,10 +918,10 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
  * @return UINT64 returns the target physical address and NULL if it fails 
  */
 UINT64
-inline MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
-                                                      UINT64                                 DestinationAddr,
-                                                      PCR3_TYPE                              TargetProcessCr3,
-                                                      UINT32                                 TargetProcessId)
+inline MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                                      _In_ UINT64                                 DestinationAddr,
+                                                      _In_ PCR3_TYPE                              TargetProcessCr3,
+                                                      _In_ UINT32                                 TargetProcessId)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -978,22 +981,23 @@ inline MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
-                                   UINT64                                 DestinationAddr,
-                                   UINT64                                 Source,
-                                   SIZE_T                                 SizeToWrite,
-                                   PCR3_TYPE                              TargetProcessCr3,
-                                   UINT32                                 TargetProcessId)
+MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                   _Inout_ UINT64                              DestinationAddr,
+                                   _In_ UINT64                                 Source,
+                                   _In_ SIZE_T                                 SizeToWrite,
+                                   _In_ PCR3_TYPE                              TargetProcessCr3,
+                                   _In_ UINT32                                 TargetProcessId)
 {
-    ULONG            ProcessorIndex = KeGetCurrentProcessorNumber();
-    UINT64           AddressToCheck;
-    PHYSICAL_ADDRESS PhysicalAddress;
+    ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
+    UINT64                  AddressToCheck;
+    PHYSICAL_ADDRESS        PhysicalAddress;
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
 
     //
     // Check to see if PTE and Reserved VA already initialized
     //
-    if (g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress == NULL ||
-        g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress == NULL)
+    if (CurrentVmState->MemoryMapper.VirualAddress == NULL ||
+        CurrentVmState->MemoryMapper.PteVirtualAddress == NULL)
     {
         //
         // Not initialized
@@ -1004,8 +1008,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
     //
     // Check whether it needs multiple accesses to different pages or no
     //
-    AddressToCheck =
-        (CHAR *)DestinationAddr + SizeToWrite - ((CHAR *)PAGE_ALIGN(DestinationAddr));
+    AddressToCheck = (CHAR *)DestinationAddr + SizeToWrite - ((CHAR *)PAGE_ALIGN(DestinationAddr));
 
     if (AddressToCheck > PAGE_SIZE)
     {
@@ -1014,14 +1017,13 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
         //
         UINT64 PageCount = SizeToWrite / PAGE_SIZE + 1;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        for (SIZE_T i = 0; i <= PageCount; i++)
         {
             UINT64 WriteSize = 0;
 
             if (i == 0)
             {
-                WriteSize =
-                    (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
+                WriteSize = (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
             }
             else if (i == PageCount)
             {
@@ -1048,9 +1050,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
                     Source,
                     PhysicalAddress,
                     WriteSize,
-                    g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
-                    g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
-                    g_GuestState[ProcessorIndex].IsOnVmxRootMode))
+                    CurrentVmState->MemoryMapper.PteVirtualAddress,
+                    CurrentVmState->MemoryMapper.VirualAddress,
+                    CurrentVmState->IsOnVmxRootMode))
             {
                 return FALSE;
             }
@@ -1075,9 +1077,9 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
             Source,
             PhysicalAddress,
             SizeToWrite,
-            g_GuestState[ProcessorIndex].MemoryMapper.PteVirtualAddress,
-            g_GuestState[ProcessorIndex].MemoryMapper.VirualAddress,
-            g_GuestState[ProcessorIndex].IsOnVmxRootMode);
+            CurrentVmState->MemoryMapper.PteVirtualAddress,
+            CurrentVmState->MemoryMapper.VirualAddress,
+            CurrentVmState->IsOnVmxRootMode);
     }
 }
 
@@ -1094,7 +1096,10 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, CR3_TYPE TargetProcessCr3)
+MemoryMapperWriteMemorySafe(UINT64   Destination,
+                            PVOID    Source,
+                            SIZE_T   SizeToWrite,
+                            CR3_TYPE TargetProcessCr3)
 {
     return MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE,
                                               Destination,
@@ -1137,7 +1142,9 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite)
+MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
+                                             _In_ UINT64    Source,
+                                             _In_ SIZE_T    SizeToWrite)
 {
     //
     // Call the wrapper for safe memory read
@@ -1238,7 +1245,8 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allo
  * @return BOOLEAN whether the operation was successful or not
  */
 BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress)
+MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId,
+                                      PVOID  BaseAddress)
 {
     NTSTATUS   Status;
     SIZE_T     AllocSize = PAGE_SIZE;

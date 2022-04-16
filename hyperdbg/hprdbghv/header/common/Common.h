@@ -525,16 +525,18 @@ BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
 
 UINT64
-PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
+PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
 
 UINT64
-VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
 
 UINT64
-VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId);
+VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
+                                           _In_ UINT32 ProcessId);
 
 UINT64
-VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3);
+VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
+                                            _In_ CR3_TYPE TargetCr3);
 
 UINT64
 VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress);
@@ -558,10 +560,10 @@ UINT64
 FindSystemDirectoryTableBase();
 
 CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId);
+SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
 
 CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3);
+SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
 
 VOID
 RestoreToPreviousProcess(CR3_TYPE PreviousProcess);

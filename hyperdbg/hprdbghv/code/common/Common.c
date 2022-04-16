@@ -111,7 +111,7 @@ SetBit(int nth, unsigned long * addr)
  * @return UINT64 Returns the physical address
  */
 UINT64
-VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }
@@ -296,7 +296,7 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
  * @return VOID 
  */
 VOID
-RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
+RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess)
 {
     //
     // Restore the original cr3

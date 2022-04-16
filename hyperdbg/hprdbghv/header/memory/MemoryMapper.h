@@ -143,34 +143,54 @@ typedef struct _CR3_TYPE
 //////////////////////////////////////////////////
 
 BOOLEAN
-MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
+                           _Inout_ PVOID BufferToSaveMemory,
+                           _In_ SIZE_T   SizeToRead);
 
 BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 BufferToSaveMemory, SIZE_T SizeToRead);
+MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64    PaAddressToRead,
+                                            _Inout_ UINT64 BufferToSaveMemory,
+                                            _In_ SIZE_T    SizeToRead);
 
 BOOLEAN
-MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
+                                          _Inout_ PVOID BufferToSaveMemory,
+                                          _In_ SIZE_T   SizeToRead);
 
 BOOLEAN
-MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size);
+MemoryMapperWriteMemorySafeOnTargetProcess(_Inout_ UINT64 Destination,
+                                           _In_ PVOID     Source,
+                                           _In_ SIZE_T    Size);
 
 BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, CR3_TYPE TargetProcessCr3);
+MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
+                            _In_ PVOID     Source,
+                            _In_ SIZE_T    SizeToWrite,
+                            _In_ CR3_TYPE  TargetProcessCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVa(PVOID Va, PML Level);
+MemoryMapperGetPteVa(_In_ PVOID Va,
+                     _In_ PML   Level);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaByCr3(_In_ PVOID    Va,
+                          _In_ PML      Level,
+                          _In_ CR3_TYPE TargetCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID    Va,
+                                          _In_ PML      Level,
+                                          _In_ CR3_TYPE TargetCr3);
 
 BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID    Va,
+                                                  _In_ BOOLEAN Set,
+                                                  _In_ PML      Level,
+                                                  _In_ CR3_TYPE TargetCr3);
 
 BOOLEAN
-MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3);
+MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
+                                      _In_ CR3_TYPE TargetCr3);
 
 VOID
 MemoryMapperInitialize();
@@ -179,21 +199,28 @@ VOID
 MemoryMapperUninitialize();
 
 VOID
-MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
-                                    PVOID            TargetProcessVirtualAddress,
-                                    CR3_TYPE         TargetProcessKernelCr3);
+MemoryMapperMapPhysicalAddressToPte(_In_ PHYSICAL_ADDRESS PhysicalAddress,
+                                    _In_ PVOID            TargetProcessVirtualAddress,
+                                    _In_ CR3_TYPE         TargetProcessKernelCr3);
 
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate);
+MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
+                                                  _In_ BOOLEAN Allocate);
 
 BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress);
+MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
+                                      _Inout_ PVOID BaseAddress);
 
 BOOLEAN
-MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId);
+MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
+                              _In_ PVOID     Source,
+                              _In_ SIZE_T    SizeToWrite,
+                              _In_ UINT32    TargetProcessId);
 
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite);
+MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
+                                             _In_ UINT64    Source,
+                                             _In_ SIZE_T    SizeToWrite);
 
 BOOLEAN
-MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va);
+MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);
