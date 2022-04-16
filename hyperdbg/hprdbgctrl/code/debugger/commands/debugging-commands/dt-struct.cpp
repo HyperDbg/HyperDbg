@@ -49,6 +49,7 @@ CommandStructHelp()
  * @param Address
  * @param IsStruct
  * @param BufferAddress
+ * @param TargetPid
  * @param AdditionalParameters
  * 
  * @return BOOLEAN
@@ -59,6 +60,7 @@ CommandDtShowDataBasedOnSymbolTypes(
     UINT64       Address,
     BOOLEAN      IsStruct,
     PVOID        BufferAddress,
+    UINT32       TargetPid,
     const char * AdditionalParameters)
 {
     UINT64                      StructureSize       = 0;
@@ -72,6 +74,7 @@ CommandDtShowDataBasedOnSymbolTypes(
     DtOptions.Address              = Address;
     DtOptions.IsStruct             = IsStruct;
     DtOptions.BufferAddress        = NULL; // we didn't read it yet
+    DtOptions.TargetPid            = TargetPid;
     DtOptions.AdditionalParameters = AdditionalParameters;
 
     if (Address != NULL)
@@ -109,7 +112,7 @@ CommandDtShowDataBasedOnSymbolTypes(
                                          Address,
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
-                                         GetCurrentProcessId(),
+                                         TargetPid,
                                          StructureSize,
                                          &DtOptions);
     }
@@ -138,6 +141,12 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
     BOOLEAN     IsStruct                           = FALSE;
     UINT64      TargetAddress                      = NULL;
     PVOID       BufferAddressRetrievedFromDebuggee = NULL;
+    UINT32      TargetPid                          = NULL;
+
+    //
+    // Test for the pid
+    //
+    TargetPid = GetCurrentProcessId();
 
     //
     // Check if command is 'dt' or 'struct'
@@ -201,6 +210,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                             NULL,
                                             IsStruct,
                                             NULL,
+                                            TargetPid,
                                             PDBEX_DEFAULT_CONFIGURATION);
     }
     else
@@ -255,6 +265,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     TargetAddress,
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
+                                                    TargetPid,
                                                     TempExtraParamHolder.c_str());
             }
             else
@@ -273,6 +284,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                         TargetAddress,
                                                         IsStruct,
                                                         BufferAddressRetrievedFromDebuggee,
+                                                        TargetPid,
                                                         PDBEX_DEFAULT_CONFIGURATION);
                 }
                 else
@@ -310,6 +322,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                         TargetAddress,
                                                         IsStruct,
                                                         BufferAddressRetrievedFromDebuggee,
+                                                        TargetPid,
                                                         TempExtraParamHolder.c_str());
                 }
             }
@@ -330,6 +343,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     TargetAddress,
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
+                                                    TargetPid,
                                                     PDBEX_DEFAULT_CONFIGURATION);
             }
             else
@@ -367,6 +381,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     TargetAddress,
                                                     IsStruct,
                                                     BufferAddressRetrievedFromDebuggee,
+                                                    TargetPid,
                                                     TempExtraParamHolder.c_str());
             }
         }

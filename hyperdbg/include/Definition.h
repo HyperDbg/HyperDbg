@@ -241,7 +241,7 @@ const unsigned char BuildVersion[] =
  * @warning we redefine it on ScriptEngineEval.h change it on
  * that file too
  */
-#define PacketChunkSize 3000
+#define PacketChunkSize 4096 // PAGE_SIZE
 
 /**
  * @brief size of user-mode buffer
@@ -1190,6 +1190,7 @@ typedef struct _DEBUGGER_DT_COMMAND_OPTIONS
     UINT64       Address;
     BOOLEAN      IsStruct;
     PVOID        BufferAddress;
+    UINT32       TargetPid;
     const char * AdditionalParameters;
 
 } DEBUGGER_DT_COMMAND_OPTIONS, *PDEBUGGER_DT_COMMAND_OPTIONS;
@@ -1276,14 +1277,15 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
  */
 typedef struct _DEBUGGER_READ_MEMORY
 {
-    UINT32                     Pid; // Read from cr3 of what process
-    UINT64                     Address;
-    UINT32                     Size;
-    DEBUGGER_READ_MEMORY_TYPE  MemoryType;
-    DEBUGGER_READ_READING_TYPE ReadingType;
-    DEBUGGER_SHOW_MEMORY_STYLE Style;        // not used in local debugging
-    UINT32                     ReturnLength; // not used in local debugging
-    UINT32                     KernelStatus; // not used in local debugging
+    UINT32                       Pid; // Read from cr3 of what process
+    UINT64                       Address;
+    UINT32                       Size;
+    DEBUGGER_READ_MEMORY_TYPE    MemoryType;
+    DEBUGGER_READ_READING_TYPE   ReadingType;
+    PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;
+    DEBUGGER_SHOW_MEMORY_STYLE   Style;        // not used in local debugging
+    UINT32                       ReturnLength; // not used in local debugging
+    UINT32                       KernelStatus; // not used in local debugging
 
 } DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
 

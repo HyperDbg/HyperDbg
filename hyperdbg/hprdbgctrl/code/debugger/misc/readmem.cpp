@@ -51,6 +51,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
     ReadMem.MemoryType  = MemoryType;
     ReadMem.ReadingType = ReadingType;
     ReadMem.Style       = Style;
+    ReadMem.DtDetails   = DtDetails;
 
     //
     // send the request
