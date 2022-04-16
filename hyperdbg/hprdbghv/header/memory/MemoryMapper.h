@@ -205,16 +205,16 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
 static UINT64
 MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
                                                _In_ UINT64                                 DestinationAddr,
-                                               _In_ PCR3_TYPE                              TargetProcessCr3,
-                                               _In_ UINT32                                 TargetProcessId);
+                                               _In_opt_ PCR3_TYPE                          TargetProcessCr3,
+                                               _In_opt_ UINT32                             TargetProcessId);
 
 static BOOLEAN
 MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
                                    _Inout_ UINT64                              DestinationAddr,
                                    _In_ UINT64                                 Source,
                                    _In_ SIZE_T                                 SizeToWrite,
-                                   _In_ PCR3_TYPE                              TargetProcessCr3,
-                                   _In_ UINT32                                 TargetProcessId);
+                                   _In_opt_ PCR3_TYPE                          TargetProcessCr3,
+                                   _In_opt_ UINT32                             TargetProcessId);
 
 // ----------------------------------------------------------------------------
 // Public Interfaces

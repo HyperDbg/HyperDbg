@@ -20,6 +20,7 @@
  * @param Va Virtual Address
  * @return UINT64 
  */
+_Use_decl_annotations_
 UINT64
 MemoryMapperGetIndex(PAGING_LEVEL Level, UINT64 Va)
 {
@@ -36,6 +37,7 @@ MemoryMapperGetIndex(PAGING_LEVEL Level, UINT64 Va)
  * @param Va Virtual Address
  * @return UINT32 
  */
+_Use_decl_annotations_
 UINT32
 MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
 {
@@ -52,6 +54,7 @@ MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
  * @param Level PMLx
  * @return PPAGE_ENTRY virtual address of PTE
  */
+_Use_decl_annotations_
 PPAGE_ENTRY
 MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
 {
@@ -80,6 +83,7 @@ MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
  * @param TargetCr3 kernel cr3 of target process
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
+_Use_decl_annotations_
 PPAGE_ENTRY
 MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
@@ -121,6 +125,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
  * @param TargetCr3 kernel cr3 of target process
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
+_Use_decl_annotations_
 PPAGE_ENTRY
 MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
@@ -224,6 +229,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE
  * @param TargetCr3 kernel cr3 of target process
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
 {
@@ -251,6 +257,7 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
  * @param TargetCr3 kernel cr3 of target process
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
 {
@@ -279,6 +286,7 @@ MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
  * @param TargetCr3 kernel cr3 of target process
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
 {
@@ -327,6 +335,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
  * @param Size Size of reserving buffers
  * @return PVOID Return the VA of the page 
  */
+_Use_decl_annotations_
 PVOID
 MemoryMapperMapReservedPageRange(SIZE_T Size)
 {
@@ -344,6 +353,7 @@ MemoryMapperMapReservedPageRange(SIZE_T Size)
  * @param VirtualAddress Virtual Address
  * @return VOID 
  */
+_Use_decl_annotations_
 VOID
 MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
 {
@@ -356,6 +366,7 @@ MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
  * @param VirtualAddress Virtual Address
  * @return virtual address of PTE (Pml4e)
  */
+_Use_decl_annotations_
 PVOID
 MemoryMapperGetPte(PVOID VirtualAddress)
 {
@@ -370,6 +381,7 @@ MemoryMapperGetPte(PVOID VirtualAddress)
  * @param TargetCr3 Target process cr3
  * @return virtual address of PTE (Pml4e)
  */
+_Use_decl_annotations_
 PVOID
 MemoryMapperGetPteByCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 {
@@ -383,6 +395,7 @@ MemoryMapperGetPteByCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
  * @param PteAddress Address of Page Table Entry
  * @return virtual address of mapped (not physically) address
  */
+_Use_decl_annotations_
 PVOID
 MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
 {
@@ -468,6 +481,7 @@ MemoryMapperUninitialize()
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
                                 PVOID            BufferToSaveMemory,
@@ -554,6 +568,7 @@ MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
  * @param InvalidateVpids Invalidate VPIDs or not
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
                                  PHYSICAL_ADDRESS PaAddressToWrite,
@@ -634,6 +649,7 @@ MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
  * @param AddressToRead Physical Address to read
  * @return UINT64 returns the target physical address and NULL if it fails
  */
+_Use_decl_annotations_
 UINT64
 MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
@@ -675,6 +691,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
@@ -790,6 +807,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead,
                                             UINT64 BufferToSaveMemory,
@@ -813,6 +831,7 @@ MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead,
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
 {
@@ -831,6 +850,7 @@ MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZ
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead)
 {
@@ -876,6 +896,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
  * @return BOOLEAN if it was successful the returns TRUE and if it was 
  * unsuccessful then it returns FALSE
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size)
 {
@@ -923,6 +944,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
  * 
  * @return UINT64 returns the target physical address and NULL if it fails 
  */
+_Use_decl_annotations_
 UINT64
 MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
                                                UINT64                                 DestinationAddr,
@@ -954,7 +976,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
 
     case MEMORY_MAPPER_WRAPPER_WRITE_VIRTUAL_MEMORY_SAFE:
 
-        if (TargetProcessCr3->Flags == NULL)
+        if (TargetProcessCr3 == NULL || TargetProcessCr3->Flags == NULL)
         {
             PhysicalAddress.QuadPart = VirtualAddressToPhysicalAddress(DestinationAddr);
         }
@@ -986,6 +1008,7 @@ MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
                                    UINT64                                 DestinationAddr,
@@ -1101,6 +1124,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemorySafe(UINT64   Destination,
                             PVOID    Source,
@@ -1127,6 +1151,7 @@ MemoryMapperWriteMemorySafe(UINT64   Destination,
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId)
 {
@@ -1147,6 +1172,7 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
  * 
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa,
                                              UINT64 Source,
@@ -1171,6 +1197,7 @@ MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa,
  * @param Allocate Whether allocate or just reserve
  * @return Reserved address in the target user mode application
  */
+_Use_decl_annotations_
 UINT64
 MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate)
 {
@@ -1250,6 +1277,7 @@ MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allo
  * @param BaseAddress Previously allocated base address
  * @return BOOLEAN whether the operation was successful or not
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId,
                                       PVOID  BaseAddress)
@@ -1328,6 +1356,7 @@ MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId,
  * 
  * @return VOID
  */
+_Use_decl_annotations_
 VOID
 MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
                                     PVOID            TargetProcessVirtualAddress,
@@ -1408,6 +1437,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
  * @param TargetCr3 kernel cr3 of target process
  * @return BOOLEAN whether was successful or not
  */
+_Use_decl_annotations_
 BOOLEAN
 MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
