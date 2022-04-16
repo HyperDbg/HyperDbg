@@ -135,7 +135,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     //
     // Read the PML4E
     //
-    PPAGE_ENTRY Pml4e = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PML4);
+    PPAGE_ENTRY Pml4e = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageMapLevel4);
     if (Pml4e)
     {
         PteDetails->Pml4eVirtualAddress = Pml4e;
@@ -145,7 +145,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     //
     // Read the PDPTE
     //
-    PPAGE_ENTRY Pdpte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PDPT);
+    PPAGE_ENTRY Pdpte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageDirectoryPointerTable);
     if (Pdpte)
     {
         PteDetails->PdpteVirtualAddress = Pdpte;
@@ -155,7 +155,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     //
     // Read the PDE
     //
-    PPAGE_ENTRY Pde = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PD);
+    PPAGE_ENTRY Pde = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageDirectory);
     if (Pde)
     {
         PteDetails->PdeVirtualAddress = Pde;
@@ -165,7 +165,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     //
     // Read the PTE
     //
-    PPAGE_ENTRY Pte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PT);
+    PPAGE_ENTRY Pte = MemoryMapperGetPteVa(PteDetails->VirtualAddress, PagingLevelPageTable);
     if (Pte)
     {
         PteDetails->PteVirtualAddress = Pte;

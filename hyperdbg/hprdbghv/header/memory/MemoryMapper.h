@@ -31,13 +31,13 @@
  * @brief Different levels of paging
  * 
  */
-typedef enum _PML
+typedef enum _PAGING_LEVEL
 {
-    PT = 0, // Page Table
-    PD,     // Page Directory
-    PDPT,   // Page Directory Pointer Table
-    PML4    // Page Map Level 4
-} PML;
+    PagingLevelPageTable = 0,
+    PagingLevelPageDirectory,
+    PagingLevelPageDirectoryPointerTable,
+    PagingLevelPageMapLevel4
+} PAGING_LEVEL;
 
 /**
  * @brief Memory wrapper for reading safe from the memory
@@ -142,6 +142,84 @@ typedef struct _CR3_TYPE
 //					Functions					//
 //////////////////////////////////////////////////
 
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+static UINT64
+MemoryMapperGetIndex(_In_ PAGING_LEVEL Level,
+                     _In_ UINT64       Va);
+
+static UINT32
+MemoryMapperGetOffset(_In_ PAGING_LEVEL Level,
+                      _In_ UINT64       Va);
+
+static BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetByCr3(_In_ PVOID    Va,
+                                       _In_ CR3_TYPE TargetCr3);
+
+static PVOID
+MemoryMapperMapReservedPageRange(_In_ SIZE_T Size);
+
+static VOID
+MemoryMapperUnmapReservedPageRange(_In_ PVOID VirtualAddress);
+
+static PVOID
+MemoryMapperGetPte(_In_ PVOID VirtualAddress);
+
+static PVOID
+MemoryMapperGetPteByCr3(_In_ PVOID    VirtualAddress,
+                        _In_ CR3_TYPE TargetCr3);
+
+static PVOID
+MemoryMapperMapPageAndGetPte(_Out_ PUINT64 PteAddress);
+
+static BOOLEAN
+MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,
+                                _Inout_ PVOID         BufferToSaveMemory,
+                                _In_ SIZE_T           SizeToRead,
+                                _In_ UINT64           PteVaAddress,
+                                _In_ UINT64           MappingVa,
+                                _In_ BOOLEAN          InvalidateVpids);
+
+static BOOLEAN
+MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
+                                 _In_ PHYSICAL_ADDRESS PaAddressToWrite,
+                                 _In_ SIZE_T           SizeToWrite,
+                                 _Inout_ UINT64        PteVaAddress,
+                                 _Inout_ UINT64        MappingVa,
+                                 _In_ BOOLEAN          InvalidateVpids);
+
+static UINT64
+MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead);
+
+static BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead,
+    _Inout_ UINT64                              BufferToSaveMemory,
+    _In_ SIZE_T                                 SizeToRead);
+
+static UINT64
+MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                               _In_ UINT64                                 DestinationAddr,
+                                               _In_ PCR3_TYPE                              TargetProcessCr3,
+                                               _In_ UINT32                                 TargetProcessId);
+
+static BOOLEAN
+MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                   _Inout_ UINT64                              DestinationAddr,
+                                   _In_ UINT64                                 Source,
+                                   _In_ SIZE_T                                 SizeToWrite,
+                                   _In_ PCR3_TYPE                              TargetProcessCr3,
+                                   _In_ UINT32                                 TargetProcessId);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
+
 BOOLEAN
 MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
                            _Inout_ PVOID BufferToSaveMemory,
@@ -169,24 +247,24 @@ MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
                             _In_ CR3_TYPE  TargetProcessCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVa(_In_ PVOID Va,
-                     _In_ PML   Level);
+MemoryMapperGetPteVa(_In_ PVOID        Va,
+                     _In_ PAGING_LEVEL Level);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3(_In_ PVOID    Va,
-                          _In_ PML      Level,
-                          _In_ CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaByCr3(_In_ PVOID        Va,
+                          _In_ PAGING_LEVEL Level,
+                          _In_ CR3_TYPE     TargetCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID    Va,
-                                          _In_ PML      Level,
-                                          _In_ CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                          _In_ PAGING_LEVEL Level,
+                                          _In_ CR3_TYPE     TargetCr3);
 
 BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID    Va,
-                                                  _In_ BOOLEAN Set,
-                                                  _In_ PML      Level,
-                                                  _In_ CR3_TYPE TargetCr3);
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                                  _In_ BOOLEAN      Set,
+                                                  _In_ PAGING_LEVEL Level,
+                                                  _In_ CR3_TYPE     TargetCr3);
 
 BOOLEAN
 MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,

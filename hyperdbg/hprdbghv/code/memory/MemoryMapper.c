@@ -21,7 +21,7 @@
  * @return UINT64 
  */
 UINT64
-MemoryMapperGetIndex(_In_ PML Level, _In_ UINT64 Va)
+MemoryMapperGetIndex(PAGING_LEVEL Level, UINT64 Va)
 {
     UINT64 Result = Va;
     Result >>= 12 + Level * 9;
@@ -37,7 +37,7 @@ MemoryMapperGetIndex(_In_ PML Level, _In_ UINT64 Va)
  * @return UINT32 
  */
 UINT32
-MemoryMapperGetOffset(_In_ PML Level, _In_ UINT64 Va)
+MemoryMapperGetOffset(PAGING_LEVEL Level, UINT64 Va)
 {
     UINT64 Result = MemoryMapperGetIndex(Level, Va);
     Result &= (1 << 9) - 1; // 0x1ff
@@ -53,7 +53,7 @@ MemoryMapperGetOffset(_In_ PML Level, _In_ UINT64 Va)
  * @return PPAGE_ENTRY virtual address of PTE
  */
 PPAGE_ENTRY
-MemoryMapperGetPteVa(PVOID Va, PML Level)
+MemoryMapperGetPteVa(PVOID Va, PAGING_LEVEL Level)
 {
     CR3_TYPE Cr3;
 
@@ -81,7 +81,7 @@ MemoryMapperGetPteVa(PVOID Va, PML Level)
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
 PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
+MemoryMapperGetPteVaByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     PPAGE_ENTRY PageEntry         = NULL;
     CR3_TYPE    CurrentProcessCr3 = {0};
@@ -122,7 +122,7 @@ MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
  * @return PPAGE_ENTRY virtual address of PTE based on cr3
  */
 PPAGE_ENTRY
-MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3)
+MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     CR3_TYPE Cr3;
     UINT64   TempCr3;
@@ -152,11 +152,11 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
         return NULL;
     }
 
-    Offset = MemoryMapperGetOffset(PML4, Va);
+    Offset = MemoryMapperGetOffset(PagingLevelPageMapLevel4, Va);
 
     PPAGE_ENTRY Pml4e = &Cr3Va[Offset];
 
-    if (!Pml4e->Fields.Present || Level == PML4)
+    if (!Pml4e->Fields.Present || Level == PagingLevelPageMapLevel4)
     {
         return Pml4e;
     }
@@ -171,11 +171,11 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
         return NULL;
     }
 
-    Offset = MemoryMapperGetOffset(PDPT, Va);
+    Offset = MemoryMapperGetOffset(PagingLevelPageDirectoryPointerTable, Va);
 
     PPAGE_ENTRY Pdpte = &PdptVa[Offset];
 
-    if (!Pdpte->Fields.Present || Pdpte->Fields.LargePage || Level == PDPT)
+    if (!Pdpte->Fields.Present || Pdpte->Fields.LargePage || Level == PagingLevelPageDirectoryPointerTable)
     {
         return Pdpte;
     }
@@ -190,11 +190,11 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
         return NULL;
     }
 
-    Offset = MemoryMapperGetOffset(PD, Va);
+    Offset = MemoryMapperGetOffset(PagingLevelPageDirectory, Va);
 
     PPAGE_ENTRY Pde = &PdVa[Offset];
 
-    if (!Pde->Fields.Present || Pde->Fields.LargePage || Level == PD)
+    if (!Pde->Fields.Present || Pde->Fields.LargePage || Level == PagingLevelPageDirectory)
     {
         return Pde;
     }
@@ -209,7 +209,7 @@ MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr
         return NULL;
     }
 
-    Offset = MemoryMapperGetOffset(PT, Va);
+    Offset = MemoryMapperGetOffset(PagingLevelPageTable, Va);
 
     PPAGE_ENTRY Pt = &PtVa[Offset];
 
@@ -232,7 +232,7 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
     //
     // Find the page table entry
     //
-    PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
+    PageEntry = MemoryMapperGetPteVaByCr3(Va, PagingLevelPageTable, TargetCr3);
 
     if (PageEntry != NULL && PageEntry->Fields.Present)
     {
@@ -259,7 +259,7 @@ MemoryMapperCheckIfPageIsNxBitSetByCr3(PVOID Va, CR3_TYPE TargetCr3)
     //
     // Find the page table entry
     //
-    PageEntry = MemoryMapperGetPteVaByCr3(Va, PT, TargetCr3);
+    PageEntry = MemoryMapperGetPteVaByCr3(Va, PagingLevelPageTable, TargetCr3);
 
     if (PageEntry != NULL && !PageEntry->Fields.ExecuteDisable)
     {
@@ -302,7 +302,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Find the page table entry
     //
-    PageEntry = MemoryMapperGetPteVa(Va, PT);
+    PageEntry = MemoryMapperGetPteVa(Va, PagingLevelPageTable);
 
     if (PageEntry != NULL && !PageEntry->Fields.ExecuteDisable)
     {
@@ -359,7 +359,7 @@ MemoryMapperUnmapReservedPageRange(PVOID VirtualAddress)
 PVOID
 MemoryMapperGetPte(PVOID VirtualAddress)
 {
-    return MemoryMapperGetPteVa(VirtualAddress, PT);
+    return MemoryMapperGetPteVa(VirtualAddress, PagingLevelPageTable);
 }
 
 /**
@@ -373,7 +373,7 @@ MemoryMapperGetPte(PVOID VirtualAddress)
 PVOID
 MemoryMapperGetPteByCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 {
-    return MemoryMapperGetPteVaByCr3(VirtualAddress, PT, TargetCr3);
+    return MemoryMapperGetPteVaByCr3(VirtualAddress, PagingLevelPageTable, TargetCr3);
 }
 
 /**
@@ -414,16 +414,19 @@ MemoryMapperMapPageAndGetPte(PUINT64 PteAddress)
 VOID
 MemoryMapperInitialize()
 {
-    UINT64 TempPte;
-    UINT32 ProcessorCount = KeQueryActiveProcessorCount(0);
+    UINT64                  TempPte;
+    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
+    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
 
     //
     // Reserve the address for all cores (read pte and va)
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
-        g_GuestState[i].MemoryMapper.VirualAddress     = MemoryMapperMapPageAndGetPte(&TempPte);
-        g_GuestState[i].MemoryMapper.PteVirtualAddress = TempPte;
+        CurrentVmState = &g_GuestState[i];
+
+        CurrentVmState->MemoryMapper.VirualAddress     = MemoryMapperMapPageAndGetPte(&TempPte);
+        CurrentVmState->MemoryMapper.PteVirtualAddress = TempPte;
     }
 }
 
@@ -437,16 +440,20 @@ MemoryMapperInitialize()
 VOID
 MemoryMapperUninitialize()
 {
-    UINT32 ProcessorCount = KeQueryActiveProcessorCount(0);
+    UINT32                  ProcessorCount = KeQueryActiveProcessorCount(0);
+    VIRTUAL_MACHINE_STATE * CurrentVmState = NULL;
 
     for (size_t i = 0; i < ProcessorCount; i++)
     {
+        CurrentVmState = &g_GuestState[i];
         //
         // Unmap and free the reserved buffer
         //
-        MemoryMapperUnmapReservedPageRange(g_GuestState[i].MemoryMapper.VirualAddress);
-        g_GuestState[i].MemoryMapper.VirualAddress     = NULL;
-        g_GuestState[i].MemoryMapper.PteVirtualAddress = NULL;
+        if (CurrentVmState->MemoryMapper.VirualAddress != NULL)
+            MemoryMapperUnmapReservedPageRange(CurrentVmState->MemoryMapper.VirualAddress);
+
+        CurrentVmState->MemoryMapper.VirualAddress     = NULL;
+        CurrentVmState->MemoryMapper.PteVirtualAddress = NULL;
     }
 }
 
@@ -462,12 +469,12 @@ MemoryMapperUninitialize()
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,
-                                _Inout_ PVOID         BufferToSaveMemory,
-                                _In_ SIZE_T           SizeToRead,
-                                _In_ UINT64           PteVaAddress,
-                                _In_ UINT64           MappingVa,
-                                _In_ BOOLEAN          InvalidateVpids)
+MemoryMapperReadMemorySafeByPte(PHYSICAL_ADDRESS PaAddressToRead,
+                                PVOID            BufferToSaveMemory,
+                                SIZE_T           SizeToRead,
+                                UINT64           PteVaAddress,
+                                UINT64           MappingVa,
+                                BOOLEAN          InvalidateVpids)
 {
     PVOID       Va = MappingVa;
     PVOID       NewAddress;
@@ -548,12 +555,12 @@ MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
-                                 _In_ PHYSICAL_ADDRESS PaAddressToWrite,
-                                 _In_ SIZE_T           SizeToWrite,
-                                 _Inout_ UINT64        PteVaAddress,
-                                 _Inout_ UINT64        MappingVa,
-                                 _In_ BOOLEAN          InvalidateVpids)
+MemoryMapperWriteMemorySafeByPte(PVOID            SourceVA,
+                                 PHYSICAL_ADDRESS PaAddressToWrite,
+                                 SIZE_T           SizeToWrite,
+                                 UINT64           PteVaAddress,
+                                 UINT64           MappingVa,
+                                 BOOLEAN          InvalidateVpids)
 {
     PVOID       Va = MappingVa;
     PVOID       NewAddress;
@@ -628,9 +635,9 @@ MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
  * @return UINT64 returns the target physical address and NULL if it fails
  */
 UINT64
-inline MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
-    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    _In_ UINT64                                 AddressToRead)
+MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    UINT64                                 AddressToRead)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -670,10 +677,10 @@ inline MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
  */
 BOOLEAN
 MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
-    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
-    _In_ UINT64                                 AddressToRead,
-    _Inout_ UINT64                              BufferToSaveMemory,
-    _In_ SIZE_T                                 SizeToRead)
+    MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    UINT64                                 AddressToRead,
+    UINT64                                 BufferToSaveMemory,
+    SIZE_T                                 SizeToRead)
 {
     ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
     UINT64                  AddressToCheck;
@@ -695,8 +702,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
     //
     // Check whether we should apply multiple accesses or not
     //
-    AddressToCheck =
-        (CHAR *)AddressToRead + SizeToRead - ((CHAR *)PAGE_ALIGN(AddressToRead));
+    AddressToCheck = (CHAR *)AddressToRead + SizeToRead - ((CHAR *)PAGE_ALIGN(AddressToRead));
 
     if (AddressToCheck > PAGE_SIZE)
     {
@@ -918,10 +924,10 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
  * @return UINT64 returns the target physical address and NULL if it fails 
  */
 UINT64
-inline MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
-                                                      _In_ UINT64                                 DestinationAddr,
-                                                      _In_ PCR3_TYPE                              TargetProcessCr3,
-                                                      _In_ UINT32                                 TargetProcessId)
+MemoryMapperWriteMemorySafeWrapperAddressMaker(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                               UINT64                                 DestinationAddr,
+                                               PCR3_TYPE                              TargetProcessCr3,
+                                               UINT32                                 TargetProcessId)
 {
     PHYSICAL_ADDRESS PhysicalAddress = {0};
 
@@ -981,12 +987,12 @@ inline MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
-                                   _Inout_ UINT64                              DestinationAddr,
-                                   _In_ UINT64                                 Source,
-                                   _In_ SIZE_T                                 SizeToWrite,
-                                   _In_ PCR3_TYPE                              TargetProcessCr3,
-                                   _In_ UINT32                                 TargetProcessId)
+MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                   UINT64                                 DestinationAddr,
+                                   UINT64                                 Source,
+                                   SIZE_T                                 SizeToWrite,
+                                   PCR3_TYPE                              TargetProcessCr3,
+                                   UINT32                                 TargetProcessId)
 {
     ULONG                   ProcessorIndex = KeGetCurrentProcessorNumber();
     UINT64                  AddressToCheck;
@@ -1142,9 +1148,9 @@ MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWri
  * @return BOOLEAN returns TRUE if it was successfull and FALSE if there was error 
  */
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
-                                             _In_ UINT64    Source,
-                                             _In_ SIZE_T    SizeToWrite)
+MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa,
+                                             UINT64 Source,
+                                             SIZE_T SizeToWrite)
 {
     //
     // Call the wrapper for safe memory read
@@ -1335,7 +1341,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
     // Find the page table entry of the reserved page in the target
     // process memory layout
     //
-    PreviousPteEntry = MemoryMapperGetPteVaByCr3(TargetProcessVirtualAddress, PT, TargetProcessKernelCr3);
+    PreviousPteEntry = MemoryMapperGetPteVaByCr3(TargetProcessVirtualAddress, PagingLevelPageTable, TargetProcessKernelCr3);
 
     //
     // Switch to new process's memory layout
@@ -1403,7 +1409,7 @@ MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
  * @return BOOLEAN whether was successful or not
  */
 BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3)
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PAGING_LEVEL Level, CR3_TYPE TargetCr3)
 {
     PPAGE_ENTRY Pml = NULL;
 

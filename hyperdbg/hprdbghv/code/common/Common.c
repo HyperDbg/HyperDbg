@@ -296,7 +296,7 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
  * @return VOID 
  */
 VOID
-RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess)
+RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 {
     //
     // Restore the original cr3
