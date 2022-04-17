@@ -46,8 +46,15 @@ CommandDtHelp()
     ShowMessages("\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010\n");
-    ShowMessages("\t\te.g : dt nt!_EPROCESS @rbx+@rcx\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS $proc\n");
+    ShowMessages("\t\te.g : dt nt!_KPROCESS @rax+@rbx+c0\n");
     ShowMessages("\t\te.g : !dt nt!_EPROCESS 1f0300\n");
+    ShowMessages("\t\te.g : dt nt!_MY_STRUCT 7ff00040 pid 1420\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS $proc inline all\n");
+    ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010 inline no\n");
+
+
+   
 }
 
 /**
@@ -65,7 +72,12 @@ CommandStructHelp()
                  "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
                  "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : struct nt!_EPROCESS\n");
+    ShowMessages("\t\te.g : struct nt!*\n");
+    ShowMessages("\t\te.g : struct nt!* output ntheader.h\n");
+    ShowMessages("\t\te.g : struct nt!* func yes output ntheader.h\n");
+    ShowMessages("\t\te.g : struct nt!* func yes output ntheader.h\n");
 }
 
 /**
@@ -512,15 +524,15 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
         //
         // Check if the first parameter is an address or valid expression
         //
-        if (!SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(0).c_str(),
-                                              &TargetAddress))
+        if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(0).c_str(),
+                                                          &TargetAddress))
         {
             //
             // No it's not, we'll get the first argument as the structure (type) name
             // And we have to check whether the second argument is a buffer address or not
             //
-            if (!SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(1).c_str(),
-                                                  &TargetAddress))
+            if (IsStruct || !SymbolConvertNameOrExprToAddress(TempSplittedCommand.at(1).c_str(),
+                                                              &TargetAddress))
             {
                 //
                 // The second argument is also not buffer address

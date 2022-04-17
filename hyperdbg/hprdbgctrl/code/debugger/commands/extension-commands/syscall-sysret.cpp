@@ -53,11 +53,13 @@ CommandSysretHelp()
                  "instructions (by accessing memory and checking for instructions).\n\n");
     ShowMessages("!sysret2 : monitors and hooks all execution of sysret "
                  "instructions (by emulating all #UDs).\n\n");
+
     ShowMessages("syntax : \t!sysret [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !sysret\n");
     ShowMessages("\t\te.g : !sysret2\n");
     ShowMessages("\t\te.g : !sysret pid 400\n");
