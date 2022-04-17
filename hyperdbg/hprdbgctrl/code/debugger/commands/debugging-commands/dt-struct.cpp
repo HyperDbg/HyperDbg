@@ -11,6 +11,12 @@
  */
 #include "..\hprdbgctrl\pch.h"
 
+//
+// Global Variables
+//
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
+
 /**
  * @brief help of dt command
  *
@@ -21,11 +27,23 @@ CommandDtHelp()
 {
     ShowMessages("dt !dt : displays information about a local variable, global "
                  "variable or data type.\n\n");
-    ShowMessages("\nIf you want to read physical memory then add '!' at the "
-                 "start of the command\n");
 
-    ShowMessages("syntax : \tdt [Module!SymbolName (string)] [Expression (string)]\n");
+    ShowMessages("If you want to read physical memory then add '!' at the "
+                 "start of the command\n\n");
 
+    ShowMessages("syntax : \tdt [Module!SymbolName (string)] [AddressExpression (string)] "
+                 "[pid ProcessId (hex)] [padding Padding (yesno)] [offset Offset (yesno)] "
+                 "[bitfield Bitfield (yesno)] [native Native (yesno)] [decl Declaration (yesno)] "
+                 "[def Definitions (yesno)] [func Functions (yesno)] [pragma Pragma (yesno)] "
+                 "[prefix Prefix (string)] [suffix Suffix (string)] [inline Expantion (string)] "
+                 "[output FileName (string)]\n\n");
+    ShowMessages("syntax : \t!dt [Module!SymbolName (string)] [AddressExpression (string)] "
+                 "[padding Padding (yesno)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
+                 "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
+                 "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
+                 "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS @rbx+@rcx\n");
@@ -41,9 +59,233 @@ VOID
 CommandStructHelp()
 {
     ShowMessages("struct : displays a data type, enum, or structure derived from PDB symbols.\n\n");
-    ShowMessages("syntax : \struct [Module!SymbolName (string)]\n");
+
+    ShowMessages("syntax : \struct [Module!SymbolName (string)] [offset Offset (yesno)] [bitfield Bitfield (yesno)] "
+                 "[native Native (yesno)] [decl Declaration (yesno)] [def Definitions (yesno)] "
+                 "[func Functions (yesno)] [pragma Pragma (yesno)] [prefix Prefix (string)] "
+                 "[suffix Suffix (string)] [inline Expantion (string)] [output FileName (string)]\n");
 
     ShowMessages("\t\te.g : struct nt!_EPROCESS\n");
+}
+
+/**
+ * @brief Convert HyperDbg arguments for dt and struct commands to pdbex arguments 
+ * @details This is because we don't wanna modify the internal structure of pdbex
+ * so let's pdbex parse its standard commands
+ * 
+ * @param ExtraArgs
+ * @param PdbexArgs
+ * @param ProcessId
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<string> ExtraArgs,
+                                             std::string &  PdbexArgs,
+                                             UINT32 *       ProcessId)
+{
+    UINT32  TargetProcessId     = NULL;
+    BOOLEAN NextItemIsYesNo     = FALSE;
+    BOOLEAN NextItemIsString    = FALSE;
+    BOOLEAN NextItemIsInline    = FALSE;
+    BOOLEAN NextItemIsFileName  = FALSE;
+    BOOLEAN NextItemIsProcessId = FALSE;
+
+    //
+    // Clear the args
+    //
+    PdbexArgs = "";
+
+    //
+    // Traverse through the extra arguments
+    //
+    for (auto Item : ExtraArgs)
+    {
+        //
+        // Check for output file name
+        //
+        if (NextItemIsFileName)
+        {
+            PdbexArgs += Item + " ";
+
+            NextItemIsFileName = FALSE;
+            continue;
+        }
+
+        //
+        // Check for process id
+        //
+        if (NextItemIsProcessId)
+        {
+            if (!ConvertStringToUInt32(Item, &TargetProcessId))
+            {
+                ShowMessages("err, you should enter a valid process id\n\n");
+                return FALSE;
+            }
+
+            NextItemIsProcessId = FALSE;
+            continue;
+        }
+
+        //
+        // Check if we expect yes/no answers
+        //
+        if (NextItemIsYesNo)
+        {
+            if (!Item.compare("yes"))
+            {
+                PdbexArgs += " ";
+            }
+            else if (!Item.compare("no"))
+            {
+                PdbexArgs += "- ";
+            }
+            else
+            {
+                //
+                // Yes/no expected but didn't see it
+                //
+                ShowMessages("err, please insert 'yes' or 'no' as the argument\n\n");
+                return FALSE;
+            }
+
+            NextItemIsYesNo = FALSE;
+            continue;
+        }
+
+        //
+        // Check if we expect inline param answers
+        //
+        if (NextItemIsInline)
+        {
+            if (!Item.compare("none"))
+            {
+                PdbexArgs += "n ";
+            }
+            else if (!Item.compare("all"))
+            {
+                PdbexArgs += "a ";
+            }
+            else if (!Item.compare("unnamed") || !Item.compare("unamed"))
+            {
+                PdbexArgs += "i ";
+            }
+            else
+            {
+                //
+                // none/inline/all expected but didn't see it
+                //
+                ShowMessages("err, please insert 'none', 'inline', or 'all' as the argument\n\n");
+                return FALSE;
+            }
+
+            NextItemIsInline = FALSE;
+            continue;
+        }
+
+        //
+        // Check if we expect string answers
+        //
+        if (NextItemIsString)
+        {
+            PdbexArgs += Item + " ";
+
+            NextItemIsString = FALSE;
+            continue;
+        }
+
+        //
+        // Check for args
+        //
+        if (!Item.compare("pid"))
+        {
+            NextItemIsProcessId = TRUE;
+        }
+        else if (!Item.compare("output"))
+        {
+            NextItemIsFileName = TRUE;
+            PdbexArgs += "-o ";
+        }
+        else if (!Item.compare("inline"))
+        {
+            NextItemIsInline = TRUE;
+            PdbexArgs += "-e ";
+        }
+        else if (!Item.compare("prefix"))
+        {
+            NextItemIsString = TRUE;
+            PdbexArgs += "-r ";
+        }
+        else if (!Item.compare("suffix"))
+        {
+            NextItemIsString = TRUE;
+            PdbexArgs += "-g ";
+        }
+        else if (!Item.compare("padding"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-p";
+        }
+        else if (!Item.compare("offset") || !Item.compare("offsets"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-x";
+        }
+        else if (!Item.compare("bitfield") || !Item.compare("bitfields"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-b";
+        }
+        else if (!Item.compare("native"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-i";
+        }
+        else if (!Item.compare("decl"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-n";
+        }
+        else if (!Item.compare("def"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-l";
+        }
+        else if (!Item.compare("func"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-f";
+        }
+        else if (!Item.compare("pragma"))
+        {
+            NextItemIsYesNo = TRUE;
+            PdbexArgs += "-z";
+        }
+        else
+        {
+            //
+            // Unknown args
+            //
+            ShowMessages("err, unknown argument at '%s'\n\n", Item.c_str());
+            return FALSE;
+        }
+    }
+
+    //
+    // Check if user enetered yes/no or string when expected or not
+    //
+    if (NextItemIsYesNo || NextItemIsString || NextItemIsInline || NextItemIsFileName || NextItemIsProcessId)
+    {
+        ShowMessages("err, incomplete argument\n\n");
+        return FALSE;
+    }
+
+    //
+    // Set the process id
+    //
+    *ProcessId = TargetProcessId;
+
+    return TRUE;
 }
 
 /**
@@ -72,6 +314,37 @@ CommandDtShowDataBasedOnSymbolTypes(
     UINT64                      StructureSize       = 0;
     BOOLEAN                     ResultOfFindingSize = FALSE;
     DEBUGGER_DT_COMMAND_OPTIONS DtOptions           = {0};
+
+    //
+    // Check for pid
+    //
+
+    if (g_IsSerialConnectedToRemoteDebuggee && TargetPid != 0)
+    {
+        //
+        // Check to prevent using process id in dt command
+        //
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+        return FALSE;
+    }
+    else if (TargetPid == NULL)
+    {
+        //
+        // By default if the user-debugger is active, we use these commands
+        // on the memory layout of the debuggee process
+        //
+        if (g_ActiveProcessDebuggingState.IsActive)
+        {
+            TargetPid = g_ActiveProcessDebuggingState.ProcessId;
+        }
+        else
+        {
+            //
+            // Use the current process for the pid
+            //
+            TargetPid = GetCurrentProcessId();
+        }
+    }
 
     //
     // Set the options
@@ -143,17 +416,12 @@ VOID
 CommandDtAndStruct(vector<string> SplittedCommand, string Command)
 {
     std::string TempTypeNameHolder;
-    std::string TempExtraParamHolder;
+    std::string PdbexArgs                          = "";
     BOOLEAN     IsStruct                           = FALSE;
     UINT64      TargetAddress                      = NULL;
     PVOID       BufferAddressRetrievedFromDebuggee = NULL;
     UINT32      TargetPid                          = NULL;
     BOOLEAN     IsPhysicalAddress                  = FALSE;
-
-    //
-    // Test for the pid
-    //
-    TargetPid = GetCurrentProcessId();
 
     //
     // Check if command is 'struct' or not
@@ -266,17 +534,21 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 TempSplittedCommand.erase(TempSplittedCommand.begin());
 
                 //
-                // Concat extra parameters
+                // Convert to pdbex args
                 //
-                for (auto item : TempSplittedCommand)
+                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
                 {
-                    TempExtraParamHolder = TempExtraParamHolder + " " + item;
-                }
+                    if (IsStruct)
+                    {
+                        CommandStructHelp();
+                    }
+                    else
+                    {
+                        CommandDtHelp();
+                    }
 
-                //
-                // removes first space character
-                //
-                TempExtraParamHolder.erase(0, 1);
+                    return;
+                }
 
                 //
                 // Call the wrapper of pdbex
@@ -287,7 +559,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     BufferAddressRetrievedFromDebuggee,
                                                     TargetPid,
                                                     IsPhysicalAddress,
-                                                    TempExtraParamHolder.c_str());
+                                                    PdbexArgs.c_str());
             }
             else
             {
@@ -325,17 +597,21 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                     TempSplittedCommand.erase(TempSplittedCommand.begin());
 
                     //
-                    // Concat extra parameters
+                    // Convert to pdbex args
                     //
-                    for (auto item : TempSplittedCommand)
+                    if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
                     {
-                        TempExtraParamHolder = TempExtraParamHolder + " " + item;
-                    }
+                        if (IsStruct)
+                        {
+                            CommandStructHelp();
+                        }
+                        else
+                        {
+                            CommandDtHelp();
+                        }
 
-                    //
-                    // removes first space character
-                    //
-                    TempExtraParamHolder.erase(0, 1);
+                        return;
+                    }
 
                     //
                     // Call the wrapper of pdbex
@@ -346,7 +622,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                         BufferAddressRetrievedFromDebuggee,
                                                         TargetPid,
                                                         IsPhysicalAddress,
-                                                        TempExtraParamHolder.c_str());
+                                                        PdbexArgs.c_str());
                 }
             }
         }
@@ -386,17 +662,21 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                 TempSplittedCommand.erase(TempSplittedCommand.begin());
 
                 //
-                // Concat extra parameters
+                // Convert to pdbex args
                 //
-                for (auto item : TempSplittedCommand)
+                if (!CommandDtAndStructConvertHyperDbgArgsToPdbex(TempSplittedCommand, PdbexArgs, &TargetPid))
                 {
-                    TempExtraParamHolder = TempExtraParamHolder + " " + item;
-                }
+                    if (IsStruct)
+                    {
+                        CommandStructHelp();
+                    }
+                    else
+                    {
+                        CommandDtHelp();
+                    }
 
-                //
-                // removes first space character
-                //
-                TempExtraParamHolder.erase(0, 1);
+                    return;
+                }
 
                 //
                 // Call the wrapper of pdbex
@@ -407,7 +687,7 @@ CommandDtAndStruct(vector<string> SplittedCommand, string Command)
                                                     BufferAddressRetrievedFromDebuggee,
                                                     TargetPid,
                                                     IsPhysicalAddress,
-                                                    TempExtraParamHolder.c_str());
+                                                    PdbexArgs.c_str());
             }
         }
     }

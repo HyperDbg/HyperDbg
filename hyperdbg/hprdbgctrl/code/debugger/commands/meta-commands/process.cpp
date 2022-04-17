@@ -29,6 +29,7 @@ CommandProcessHelp()
                  "you want to see the processes list. Please visit the "
                  "documentation to know about the difference between '.process' "
                  "and '.process2'.\n\n");
+
     ShowMessages("syntax : \t.process\n");
     ShowMessages("syntax : \t.process [list]\n");
     ShowMessages("syntax : \t.process [pid ProcessId (hex)]\n");
@@ -36,6 +37,7 @@ CommandProcessHelp()
     ShowMessages("syntax : \t.process2 [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t.process2 [process Eprocess (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .process\n");
     ShowMessages("\t\te.g : .process list\n");
     ShowMessages("\t\te.g : .process pid 4\n");

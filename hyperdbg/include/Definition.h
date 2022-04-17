@@ -217,7 +217,7 @@ const unsigned char BuildVersion[] =
 //			    	    Pdbex                   //
 //////////////////////////////////////////////////
 
-#define PDBEX_DEFAULT_CONFIGURATION "-j- -k- -e n"
+#define PDBEX_DEFAULT_CONFIGURATION "-j- -k- -e n -i"
 
 //////////////////////////////////////////////////
 //				Message Tracing                 //

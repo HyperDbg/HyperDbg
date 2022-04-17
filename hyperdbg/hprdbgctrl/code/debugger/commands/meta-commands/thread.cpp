@@ -29,6 +29,7 @@ CommandThreadHelp()
                  "you want to see the threads list. Please visit the "
                  "documentation to know about the difference between '.thread' "
                  "and '.thread2'.\n\n");
+
     ShowMessages("syntax : \t.thread\n");
     ShowMessages("syntax : \t.thread [list] [process Eprocess (hex)]\n");
     ShowMessages("syntax : \t.thread [tid ThreadId (hex)]\n");
@@ -36,6 +37,7 @@ CommandThreadHelp()
     ShowMessages("syntax : \t.thread2 [tid ThreadId (hex)]\n");
     ShowMessages("syntax : \t.thread2 [thread Ethread (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .thread\n");
     ShowMessages("\t\te.g : .thread tid 48a4\n");
     ShowMessages("\t\te.g : .thread2 tid 48a4\n");

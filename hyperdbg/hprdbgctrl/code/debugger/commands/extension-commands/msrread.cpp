@@ -20,10 +20,12 @@ VOID
 CommandMsrreadHelp()
 {
     ShowMessages("!msrread : detects the execution of rdmsr instructions.\n\n");
+
     ShowMessages("syntax : \t!msrread [Msr (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !msrread\n");
     ShowMessages("\t\te.g : !msrread 0xc0000082\n");
     ShowMessages("\t\te.g : !msread pid 400\n");

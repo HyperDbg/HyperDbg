@@ -37,8 +37,11 @@ CommandConnectHelp()
 {
     ShowMessages(".connect : connects to a remote or local machine to start "
                  "debugging.\n\n");
+
     ShowMessages("syntax : \t.connect [local]\n");
     ShowMessages("syntax : \t.connect [Ip (string)] [Port (decimal)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .connect local\n");
     ShowMessages("\t\te.g : .connect 192.168.1.5 50000\n");
 }

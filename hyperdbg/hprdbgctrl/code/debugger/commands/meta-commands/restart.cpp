@@ -28,6 +28,7 @@ CommandRestartHelp()
 {
     ShowMessages(".restart : restarts the previously started process "
                  "(using '.start' command).\n\n");
+
     ShowMessages(
         "syntax : \t.restart \n");
 }

@@ -25,7 +25,10 @@ VOID
 CommandBcHelp()
 {
     ShowMessages("bc : clears a breakpoint using breakpoint id.\n\n");
+
     ShowMessages("syntax : \tbc [BreakpointId (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : bc 0\n");
     ShowMessages("\t\te.g : bc 2\n");
 }

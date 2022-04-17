@@ -27,7 +27,10 @@ VOID
 CommandEvalHelp()
 {
     ShowMessages("? : evaluates and execute expressions in debuggee.\n\n");
+
     ShowMessages("syntax : \t? [Expression (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : ? print(dq(poi(@rcx)));\n");
     ShowMessages("\t\te.g : ? json(dq(poi(@rcx)));\n");
 }

@@ -20,7 +20,10 @@ VOID
 CommandUnhideHelp()
 {
     ShowMessages("!unhide : reverts the transparency measures of the '!hide' command.\n\n");
+
     ShowMessages("syntax : \t!unhide\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !unhide\n");
 }
 

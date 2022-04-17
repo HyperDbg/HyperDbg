@@ -23,10 +23,15 @@ CommandSyscallHelp()
                  "instructions (by accessing memory and checking for instructions).\n\n");
     ShowMessages("!syscall2 : monitors and hooks all execution of syscall "
                  "instructions (by emulating all #UDs).\n\n");
-    ShowMessages("syntax : \t[SyscallNumber (hex)] [pid ProcessId (hex)] "
+
+    ShowMessages("syntax : \t!syscall [SyscallNumber (hex)] [pid ProcessId (hex)] "
+                 "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
+                 "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
+    ShowMessages("syntax : \t!syscall2 [SyscallNumber (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !syscall\n");
     ShowMessages("\t\te.g : !syscall2\n");
     ShowMessages("\t\te.g : !syscall 0x55\n");

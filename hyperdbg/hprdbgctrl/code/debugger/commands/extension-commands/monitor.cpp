@@ -20,12 +20,14 @@ VOID
 CommandMonitorHelp()
 {
     ShowMessages("!monitor : monitors address range for read and writes.\n\n");
+
     ShowMessages("syntax : \t!monitor [Mode (string)] [FromAddress (hex)] "
                  "[ToAddress (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !monitor rw fffff801deadb000 fffff801deadbfff\n");
     ShowMessages("\t\te.g : !monitor rw nt!Kd_DEFAULT_Mask Kd_DEFAULT_Mask+5\n");
     ShowMessages("\t\te.g : !monitor r fffff801deadb000 fffff801deadbfff pid 400\n");

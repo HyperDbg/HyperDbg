@@ -27,9 +27,12 @@ CommandSwitchHelp()
 {
     ShowMessages(".switch : shows the list of active debugging threads and switches "
                  "between processes and threads in VMI Mode.\n\n");
+
     ShowMessages("syntax : \t.switch \n");
     ShowMessages("syntax : \t.switch [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \t.switch [tid ThreadId (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .switch list\n");
     ShowMessages("\t\te.g : .switch pid b60 \n");
     ShowMessages("\t\te.g : .switch tid b60 \n");

@@ -21,11 +21,13 @@ CommandCpuidHelp()
 {
     ShowMessages("!cpuid : monitors execution of a special cpuid index or all "
                  "cpuids instructions.\n\n");
+
     ShowMessages("syntax : \t!cpuid [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !cpuid\n");
     ShowMessages("\t\te.g : !cpuid pid 400\n");
     ShowMessages("\t\te.g : !cpuid core 2 pid 400\n");

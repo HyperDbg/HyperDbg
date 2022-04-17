@@ -25,11 +25,15 @@ VOID
 CommandBpHelp()
 {
     ShowMessages("bp : puts a breakpoint (0xcc).\n");
+
     ShowMessages(
         "Note : 'bp' is not an event, if you want to use an event version "
         "of breakpoints use !epthook or !epthook2 instead. See "
         "documentation for more inforamtion.\n\n");
+
     ShowMessages("syntax : \tbp [Address (hex)] [pid ProcessId (hex)] [tid ThreadId (hex)] [core CoreId (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : bp nt!ExAllocatePoolWithTag+@rcx+rbx\n");

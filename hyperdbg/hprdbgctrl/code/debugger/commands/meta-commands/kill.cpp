@@ -25,6 +25,7 @@ VOID
 CommandKillHelp()
 {
     ShowMessages(".kill : terminates the current running process.\n\n");
+
     ShowMessages("syntax : \t.kill \n");
 }
 

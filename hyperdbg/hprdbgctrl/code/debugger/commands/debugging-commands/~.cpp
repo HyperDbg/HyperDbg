@@ -26,8 +26,11 @@ VOID
 CommandCoreHelp()
 {
     ShowMessages("~ : shows and changes the operating processor.\n\n");
+
     ShowMessages("syntax : \t~\n");
     ShowMessages("syntax : \t~ [CoreNumber (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : ~ \n");
     ShowMessages("\t\te.g : ~ 2 \n");
 }

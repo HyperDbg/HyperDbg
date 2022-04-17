@@ -33,6 +33,8 @@ CommandSymHelp()
     ShowMessages("syntax : \t.sym [load]\n");
     ShowMessages("syntax : \t.sym [unload]\n");
     ShowMessages("syntax : \t.sym [add] [base Address (hex)] [path Path (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .sym table\n");
     ShowMessages("\t\te.g : .sym reload\n");
     ShowMessages("\t\te.g : .sym load\n");

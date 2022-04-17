@@ -21,10 +21,12 @@ CommandIoinHelp()
 {
     ShowMessages("!ioin : detects the execution of IN (I/O instructions) "
                  "instructions.\n\n");
+
     ShowMessages("syntax : \t!ioin [Port (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] [script { Script (string) }] "
                  "[condition { Condition (hex) }] [code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !ioin\n");
     ShowMessages("\t\te.g : !ioin 0x64\n");
     ShowMessages("\t\te.g : !ioin pid 400\n");

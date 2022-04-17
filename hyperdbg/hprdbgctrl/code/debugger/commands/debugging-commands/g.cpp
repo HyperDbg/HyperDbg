@@ -28,6 +28,7 @@ VOID
 CommandGHelp()
 {
     ShowMessages("g : continues debuggee or continues processing kernel messages.\n\n");
+
     ShowMessages("syntax : \tg \n");
 }
 

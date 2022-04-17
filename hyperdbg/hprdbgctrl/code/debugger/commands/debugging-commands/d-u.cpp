@@ -44,6 +44,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("syntax : \tu [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask+10\n");
     ShowMessages("\t\te.g : db @rax\n");

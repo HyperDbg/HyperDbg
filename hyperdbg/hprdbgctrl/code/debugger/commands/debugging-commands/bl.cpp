@@ -25,6 +25,7 @@ VOID
 CommandBlHelp()
 {
     ShowMessages("bl : lists all the enabled and disabled breakpoints.\n\n");
+
     ShowMessages("syntax : \tbl\n");
 }
 
