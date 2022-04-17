@@ -33,14 +33,6 @@ ReadVendorString();
 VOID
 ShowMessages(const char * Fmt, ...);
 
-VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
-                                 UINT64                     Address,
-                                 DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                                 DEBUGGER_READ_READING_TYPE ReadingType,
-                                 UINT32                     Pid,
-                                 UINT                       Size);
-
 string
 SeparateTo64BitValue(UINT64 Value);
 
@@ -92,12 +84,13 @@ HyperDbgCheckWhetherTheCurrentInstructionIsCall(
     PUINT32         CallLength);
 
 VOID
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
-                                 UINT64                     Address,
-                                 DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                                 DEBUGGER_READ_READING_TYPE ReadingType,
-                                 UINT32                     Pid,
-                                 UINT                       Size);
+HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
+                                 UINT64                       Address,
+                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                 DEBUGGER_READ_READING_TYPE   ReadingType,
+                                 UINT32                       Pid,
+                                 UINT32                       Size,
+                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails);
 
 VOID
 InitializeCommandsDictionary();
@@ -359,6 +352,9 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 #define DEBUGGER_COMMAND_DT_ATTRIBUTES \
     DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
 
+#define DEBUGGER_COMMAND_STRUCT_ATTRIBUTES \
+    DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_COMMAND_IN_DEBUGGER_MODE | DEBUGGER_COMMAND_ATTRIBUTE_LOCAL_CASE_SENSITIVE
+
 #define DEBUGGER_COMMAND_PE_ATTRIBUTES NULL
 
 //////////////////////////////////////////////////
@@ -589,7 +585,7 @@ VOID
 CommandPrealloc(vector<string> SplittedCommand, string Command);
 
 VOID
-CommandDt(vector<string> SplittedCommand, string Command);
+CommandDtAndStruct(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandK(vector<string> SplittedCommand, string Command);

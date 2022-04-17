@@ -111,7 +111,7 @@ SetBit(int nth, unsigned long * addr)
  * @return UINT64 Returns the physical address
  */
 UINT64
-VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }

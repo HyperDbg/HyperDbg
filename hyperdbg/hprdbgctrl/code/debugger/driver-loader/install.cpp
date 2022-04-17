@@ -113,13 +113,13 @@ InstallDriver(SC_HANDLE SchSCManager, LPCTSTR DriverName, LPCTSTR ServiceExe)
 /**
  * @brief Manage Driver
  *
- * @param LPCTSTR
- * @param LPCTSTR
- * @param USHORT
+ * @param DriverName
+ * @param ServiceName
+ * @param Function
  * @return BOOLEAN
  */
 BOOLEAN
-ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, USHORT Function)
+ManageDriver(LPCTSTR DriverName, LPCTSTR ServiceName, UINT16 Function)
 {
     SC_HANDLE schSCManager;
     BOOLEAN   Res = TRUE;

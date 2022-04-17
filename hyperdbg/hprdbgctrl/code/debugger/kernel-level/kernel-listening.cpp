@@ -852,56 +852,82 @@ StartAgain:
                                                  sizeof(DEBUGGER_REMOTE_PACKET) +
                                                  sizeof(DEBUGGER_READ_MEMORY));
 
-                if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
+                switch (ReadMemoryPacket->Style)
                 {
+                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
+
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-                }
-                else if (ReadMemoryPacket->Style ==
-                         DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
+
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DB)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DB:
+
                     ShowMemoryCommandDB(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DC)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DC:
+
                     ShowMemoryCommandDC(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DD)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DD:
+
                     ShowMemoryCommandDD(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DQ)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DQ:
+
                     ShowMemoryCommandDQ(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DT:
+
+                    //
+                    // Show the 'dt' command view
+                    //
+                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(ReadMemoryPacket->DtDetails->TypeName,
+                                                                  ReadMemoryPacket->Address,
+                                                                  FALSE,
+                                                                  MemoryBuffer,
+                                                                  ReadMemoryPacket->DtDetails->AdditionalParameters);
+
+                    break;
                 }
             }
             else

@@ -26,14 +26,18 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
  * @param ReadingType read from kernel or vmx-root
  * @param Pid The target process id
  * @param Size size of memory to read
+ * @param DtDetails Options for dt structure show details
+ * 
+ * @return VOID
  */
-void
-HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
-                                 UINT64                     Address,
-                                 DEBUGGER_READ_MEMORY_TYPE  MemoryType,
-                                 DEBUGGER_READ_READING_TYPE ReadingType,
-                                 UINT32                     Pid,
-                                 UINT                       Size)
+VOID
+HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
+                                 UINT64                       Address,
+                                 DEBUGGER_READ_MEMORY_TYPE    MemoryType,
+                                 DEBUGGER_READ_READING_TYPE   ReadingType,
+                                 UINT32                       Pid,
+                                 UINT32                       Size,
+                                 PDEBUGGER_DT_COMMAND_OPTIONS DtDetails)
 {
     BOOL                 Status;
     ULONG                ReturnedLength;
@@ -47,6 +51,7 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
     ReadMem.MemoryType  = MemoryType;
     ReadMem.ReadingType = ReadingType;
     ReadMem.Style       = Style;
+    ReadMem.DtDetails   = DtDetails;
 
     //
     // send the request
@@ -87,35 +92,58 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE Style,
         return;
     }
 
-    if (Style == DEBUGGER_SHOW_COMMAND_DB)
+    switch (Style)
     {
+    case DEBUGGER_SHOW_COMMAND_DT:
+
+        //
+        // Show the 'dt' command view
+        //
+        ScriptEngineShowDataBasedOnSymbolTypesWrapper(DtDetails->TypeName, Address, FALSE, OutputBuffer, DtDetails->AdditionalParameters);
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DB:
+
         ShowMemoryCommandDB(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
-    }
-    else if (Style == DEBUGGER_SHOW_COMMAND_DC)
-    {
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DC:
+
         ShowMemoryCommandDC(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
-    }
-    else if (Style == DEBUGGER_SHOW_COMMAND_DD)
-    {
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DD:
+
         ShowMemoryCommandDD(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
-    }
-    else if (Style == DEBUGGER_SHOW_COMMAND_DQ)
-    {
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DQ:
+
         ShowMemoryCommandDQ(OutputBuffer, Size, Address, MemoryType, ReturnedLength);
-    }
-    else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
-    {
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
+
         //
         // Show diassembles
         //
         HyperDbgDisassembler64(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
-    }
-    else if (Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
-    {
+
+        break;
+
+    case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
+
         //
         // Show diassembles
         //
         HyperDbgDisassembler32(OutputBuffer, Address, ReturnedLength, 0, FALSE, NULL);
+
+        break;
     }
 
     //

@@ -80,12 +80,21 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
 }
 
 BOOLEAN
-ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 {
     //
     // A wrapper for search for fields in the structure
     //
     return SymGetFieldOffset(TypeName, FieldName, FieldOffset);
+}
+
+BOOLEAN
+ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
+{
+    //
+    // A wrapper for getting size of the structure
+    //
+    return SymGetDataTypeSize(TypeName, TypeSize);
 }
 
 BOOLEAN
@@ -122,13 +131,14 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
                                        UINT64       Address,
+                                       BOOLEAN      IsStruct,
                                        PVOID        BufferAddress,
                                        const char * AdditionalParameters)
 {
     //
     // A wrapper for showing types and data within structures
     //
-    return SymShowDataBasedOnSymbolTypes(TypeName, Address, BufferAddress, AdditionalParameters);
+    return SymShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
 
 VOID

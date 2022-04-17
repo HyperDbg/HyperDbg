@@ -20,8 +20,10 @@ VOID
 CommandFormatsHelp()
 {
     ShowMessages(".formats : shows a value or register in different formats.\n\n");
+
     ShowMessages("syntax : \t.formats [Expression (string)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .formats nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask\n");
     ShowMessages("\t\te.g : .formats nt!Kd_DEFAULT_Mask+5\n");

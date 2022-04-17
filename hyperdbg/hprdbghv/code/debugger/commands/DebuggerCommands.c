@@ -595,7 +595,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
         //
         SourceAddress = (UINT64)SearchMemRequest + SIZEOF_DEBUGGER_SEARCH_MEMORY;
 
-        for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((DWORD64)EndAddress); BaseIterator += LengthOfEachChunk)
+        for (size_t BaseIterator = (size_t)StartAddress; BaseIterator < ((UINT64)EndAddress); BaseIterator += LengthOfEachChunk)
         {
             //
             // *** Search the memory ***
@@ -931,8 +931,8 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
         //
         if (IsDebuggeePaused)
         {
-            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress, SearchMemRequest->ProcessId);
-            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress, SearchMemRequest->ProcessId);
+            SearchMemRequest->Address = PhysicalAddressToVirtualAddressOnTargetProcess(StartAddress);
+            EndAddress                = PhysicalAddressToVirtualAddressOnTargetProcess(EndAddress);
         }
         else if (SearchMemRequest->ProcessId == PsGetCurrentProcessId())
         {

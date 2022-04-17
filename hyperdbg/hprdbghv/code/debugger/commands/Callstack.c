@@ -28,7 +28,7 @@ CallstackWalkthroughStack(PDEBUGGER_SINGLE_CALLSTACK_FRAME AddressToSaveFrames,
                           BOOLEAN                          Is32Bit)
 {
     UINT32 FrameIndex          = 0;
-    USHORT AddressMode         = 0;
+    UINT16 AddressMode         = 0;
     UINT64 Value               = NULL;
     UINT64 CurrentStackAddress = NULL;
 

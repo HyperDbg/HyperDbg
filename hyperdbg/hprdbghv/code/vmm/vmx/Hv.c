@@ -39,7 +39,7 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
  * @return BOOLEAN 
  */
 BOOLEAN
-HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
+HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
@@ -167,7 +167,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 {
     ULONG                           ExitQualification = 0;
     VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification;
-    PULONG64                        RegPtr;
+    UINT64 *                        RegPtr;
     UINT64                          NewCr3;
     CR3_TYPE                        NewCr3Reg;
 
@@ -175,7 +175,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 
     CrExitQualification = (VMX_EXIT_QUALIFICATION_MOV_CR *)&ExitQualification;
 
-    RegPtr = (PULONG64)&GuestState->rax + CrExitQualification->GeneralPurposeRegister;
+    RegPtr = (UINT64 *)&GuestState->rax + CrExitQualification->GeneralPurposeRegister;
 
     //
     // Because its RSP and as we didn't save RSP correctly (because of pushes)
@@ -288,7 +288,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
  * @return VOID 
  */
 VOID
-HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
+HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
@@ -313,9 +313,9 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, USHORT Selector)
 VOID
 HvResumeToNextInstruction()
 {
-    ULONG64 ResumeRIP             = NULL;
-    ULONG64 CurrentRIP            = NULL;
-    size_t  ExitInstructionLength = 0;
+    UINT64 ResumeRIP             = NULL;
+    UINT64 CurrentRIP            = NULL;
+    size_t ExitInstructionLength = 0;
 
     __vmx_vmread(VMCS_GUEST_RIP, &CurrentRIP);
     __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
@@ -426,12 +426,12 @@ HvSetSaveDebugControls(BOOLEAN Set)
 VOID
 HvRestoreRegisters()
 {
-    ULONG64 FsBase;
-    ULONG64 GsBase;
-    ULONG64 GdtrBase;
-    ULONG64 GdtrLimit;
-    ULONG64 IdtrBase;
-    ULONG64 IdtrLimit;
+    UINT64 FsBase;
+    UINT64 GsBase;
+    UINT64 GdtrBase;
+    UINT64 GdtrLimit;
+    UINT64 IdtrBase;
+    UINT64 IdtrLimit;
 
     //
     // Restore FS Base

@@ -20,8 +20,10 @@ VOID
 CommandPreallocHelp()
 {
     ShowMessages("prealloc : pre-allocates buffer for special purposes.\n\n");
+
     ShowMessages("syntax : \tprealloc  [Type (string)] [Count (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : prealloc monitor 10\n");
     ShowMessages("\t\te.g : prealloc thread-interception 8\n");
 }

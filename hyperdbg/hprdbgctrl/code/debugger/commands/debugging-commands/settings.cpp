@@ -36,6 +36,7 @@ CommandSettingsHelp()
     ShowMessages("syntax : \tsettings [OptionName (string)] [Value (string)]\n");
     ShowMessages("syntax : \tsettings [OptionName (string)] [on|off]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : settings autounpause\n");
     ShowMessages("\t\te.g : settings autounpause on\n");
     ShowMessages("\t\te.g : settings autounpause off\n");

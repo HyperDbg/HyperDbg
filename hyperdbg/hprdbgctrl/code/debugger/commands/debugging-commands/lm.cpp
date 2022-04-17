@@ -27,7 +27,10 @@ VOID
 CommandLmHelp()
 {
     ShowMessages("lm : lists kernel modules' base address, size, name and path.\n\n");
+
     ShowMessages("syntax : \tlm [m Name (string)] [pid ProcessId (hex)] [Filter (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : lm\n");
     ShowMessages("\t\te.g : lm km\n");
     ShowMessages("\t\te.g : lm um\n");

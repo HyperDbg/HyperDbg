@@ -22,6 +22,7 @@ CommandSleepHelp()
     ShowMessages("sleep : sleeps the debugger; this command is used in scripts, it doesn't breaks "
                  "the debugger but the debugger still shows the buffers received "
                  "from kernel.\n\n");
+
     ShowMessages("syntax : \tsleep [MillisecondsTime (hex)]\n");
 }
 

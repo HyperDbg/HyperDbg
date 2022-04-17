@@ -21,7 +21,7 @@
  * @return BOOLEAN
  */
 BOOLEAN
-BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, ULONG64 GuestRip, PGUEST_REGS GuestRegs)
+BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 GuestRip, PGUEST_REGS GuestRegs)
 {
     PLIST_ENTRY TempList           = 0;
     BOOLEAN     IsHandledByEptHook = FALSE;
@@ -294,7 +294,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
 VOID
 BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
-    ULONG64                          GuestRip           = NULL;
+    UINT64                           GuestRip           = NULL;
     BOOLEAN                          IsHandledByEptHook = FALSE;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag      = {0};
     BOOLEAN                          AvoidUnsetMtf; // not used here

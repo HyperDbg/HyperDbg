@@ -44,6 +44,7 @@ CommandReadMemoryAndDisassemblerHelp()
     ShowMessages("syntax : \tu [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tu2 [Address (hex)] [l Length (hex)] [pid ProcessId (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask\n");
     ShowMessages("\t\te.g : db nt!Kd_DEFAULT_Mask+10\n");
     ShowMessages("\t\te.g : db @rax\n");
@@ -226,7 +227,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dc"))
     {
@@ -235,7 +237,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dd"))
     {
@@ -244,7 +247,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("dq"))
     {
@@ -253,7 +257,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_VIRTUAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!db"))
     {
@@ -262,7 +267,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dc"))
     {
@@ -271,7 +277,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dd"))
     {
@@ -280,7 +287,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
     else if (!FirstCommand.compare("!dq"))
     {
@@ -289,7 +297,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
                                          DEBUGGER_READ_PHYSICAL_ADDRESS,
                                          READ_FROM_KERNEL,
                                          Pid,
-                                         Length);
+                                         Length,
+                                         NULL);
     }
 
     //
@@ -303,7 +312,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_VIRTUAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("!u"))
     {
@@ -313,7 +323,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_PHYSICAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("u2"))
     {
@@ -323,7 +334,8 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_VIRTUAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
     else if (!FirstCommand.compare("!u2"))
     {
@@ -333,6 +345,7 @@ CommandReadMemoryAndDisassembler(vector<string> SplittedCommand, string Command)
             DEBUGGER_READ_PHYSICAL_ADDRESS,
             READ_FROM_KERNEL,
             Pid,
-            Length);
+            Length,
+            NULL);
     }
 }

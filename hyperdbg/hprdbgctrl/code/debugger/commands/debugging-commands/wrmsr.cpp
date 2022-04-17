@@ -20,7 +20,10 @@ VOID
 CommandWrmsrHelp()
 {
     ShowMessages("wrmsr : writes on a model-specific register (MSR).\n\n");
+
     ShowMessages("syntax : \twrmsr [Msr (hex)] [Value (hex)] [core CoreNumber (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010\n");
     ShowMessages("\t\te.g : wrmsr c0000082 @rcx\n");
     ShowMessages("\t\te.g : wrmsr c0000082 @rcx+@rdx+12\n");

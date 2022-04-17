@@ -132,8 +132,8 @@ int TransparentTableLog[] =
 UINT32
 TransparentGetRand()
 {
-    ULONG64 Tsc;
-    UINT32  Rand;
+    UINT64 Tsc;
+    UINT32 Rand;
 
     Tsc  = __rdtsc();
     Rand = Tsc & 0xffff;
@@ -510,11 +510,11 @@ BOOLEAN
 TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitReason)
 {
     int         Aux                = 0;
-    ULONG64     GuestCsSel         = 0;
+    UINT64      GuestCsSel         = 0;
     PLIST_ENTRY TempList           = 0;
     PCHAR       CurrentProcessName = 0;
     PCHAR       CurrentProcessId;
-    ULONG64     CurrrentTime;
+    UINT64      CurrrentTime;
     HANDLE      CurrentThreadId;
     BOOLEAN     Result                      = TRUE;
     BOOLEAN     IsProcessOnTransparencyList = FALSE;

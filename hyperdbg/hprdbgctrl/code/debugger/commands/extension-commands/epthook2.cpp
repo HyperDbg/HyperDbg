@@ -20,11 +20,13 @@ VOID
 CommandEptHook2Help()
 {
     ShowMessages("!epthook2 : puts a hidden-hook EPT (detours).\n\n");
+
     ShowMessages(
         "syntax : \t!epthook2 [Address (hex)] [pid ProcessId (hex)] "
         "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
         "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !epthook2 nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !epthook2 nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : !epthook2 fffff801deadb000\n");

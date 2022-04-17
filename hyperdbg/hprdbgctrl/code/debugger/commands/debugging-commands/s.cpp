@@ -30,6 +30,7 @@ CommandSearchMemoryHelp()
     ShowMessages("sb  Byte and ASCII characters\n");
     ShowMessages("sd  Double-word values (4 bytes)\n");
     ShowMessages("sq  Quad-word values (8 bytes). \n");
+
     ShowMessages(
         "\n If you want to search in physical (address) memory then add '!' "
         "at the start of the command\n");
@@ -38,6 +39,7 @@ CommandSearchMemoryHelp()
     ShowMessages("syntax : \tsd [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tsq [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag+5 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb @rcx+5 90 85 95 l ffff \n");

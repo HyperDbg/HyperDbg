@@ -1016,7 +1016,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
     {
         //
         // The hidden hook with Write Enable and Read Disabled will cause EPT violation!
-        // fixed 
+        // fixed
         return FALSE;
     }
 
@@ -1120,10 +1120,10 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress)
 {
-    ULONG64                     GuestRip;
-    ULONG64                     ExactAccessedVirtualAddress;
-    ULONG64                     AlignedVirtualAddress;
-    ULONG64                     AlignedPhysicalAddress;
+    UINT64                      GuestRip;
+    UINT64                      ExactAccessedVirtualAddress;
+    UINT64                      AlignedVirtualAddress;
+    UINT64                      AlignedPhysicalAddress;
     EPT_HOOKS_TEMPORARY_CONTEXT TemporaryContext = {0};
 
     //

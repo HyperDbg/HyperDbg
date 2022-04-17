@@ -28,7 +28,10 @@ VOID
 CommandLoadHelp()
 {
     ShowMessages("load : installs the drivers and load the modules.\n\n");
+
     ShowMessages("syntax : \tload [ModuleName (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : load vmm\n");
 }
 

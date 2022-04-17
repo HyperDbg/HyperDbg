@@ -20,11 +20,13 @@ VOID
 CommandTscHelp()
 {
     ShowMessages("!tsc : monitors execution of rdtsc/rdtscp instructions.\n\n");
+
     ShowMessages("syntax : \t!tsc [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !tsc\n");
     ShowMessages("\t\te.g : !tsc pid 400\n");
     ShowMessages("\t\te.g : !tsc core 2 pid 400\n");

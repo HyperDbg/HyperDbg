@@ -34,6 +34,6 @@ typedef union _MSR
         ULONG High;
     } Fields;
 
-    ULONG64 Flags;
+    UINT64 Flags;
 
 } MSR, *PMSR;

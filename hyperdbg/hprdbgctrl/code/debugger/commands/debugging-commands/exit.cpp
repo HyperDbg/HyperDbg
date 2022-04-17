@@ -26,6 +26,7 @@ CommandExitHelp()
 {
     ShowMessages(
         "exit : unloads and uninstalls the drivers and closes the debugger.\n\n");
+
     ShowMessages("syntax : \texit\n");
 }
 

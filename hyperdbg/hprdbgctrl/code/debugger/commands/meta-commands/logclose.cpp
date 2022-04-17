@@ -26,6 +26,7 @@ VOID
 CommandLogcloseHelp()
 {
     ShowMessages(".logclose : closes the previously opened log.\n\n");
+
     ShowMessages("syntax : \t.logclose\n");
 }
 

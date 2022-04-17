@@ -20,6 +20,7 @@ VOID
 CommandCpuHelp()
 {
     ShowMessages("cpu : collects a report from cpu features.\n\n");
+
     ShowMessages("syntax : \tcpu \n");
 }
 

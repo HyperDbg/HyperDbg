@@ -112,10 +112,10 @@ IsEmptyString(char * Text);
 //    PVOID  ImageBase;
 //    ULONG  ImageSize;
 //    ULONG  Flags;
-//    USHORT LoadOrderIndex;
-//    USHORT InitOrderIndex;
-//    USHORT LoadCount;
-//    USHORT OffsetToFileName;
+//    UINT16 LoadOrderIndex;
+//    UINT16 InitOrderIndex;
+//    UINT16 LoadCount;
+//    UINT16 OffsetToFileName;
 //    UCHAR  FullPathName[256];
 //} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 //

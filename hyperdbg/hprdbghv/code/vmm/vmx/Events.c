@@ -21,7 +21,7 @@
  * @return VOID 
  */
 VOID
-EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode)
+EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode)
 {
     INTERRUPT_INFO Inject       = {0};
     Inject.Fields.Valid         = TRUE;

@@ -768,7 +768,7 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
                 //
                 if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL,
                                                                        TRUE,
-                                                                       PML4,
+                                                                       PagingLevelPageMapLevel4,
                                                                        ProcessDebuggingDetail->InterceptedCr3[i]))
                 {
                     return FALSE;
@@ -1047,7 +1047,7 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
     //
     // This thread should be intercepted
     //
-    if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL, FALSE, PML4, NewCr3))
+    if (!MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(NULL, FALSE, PagingLevelPageMapLevel4, NewCr3))
     {
         return FALSE;
     }

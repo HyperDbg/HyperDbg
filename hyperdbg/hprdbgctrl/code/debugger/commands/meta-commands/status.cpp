@@ -34,6 +34,7 @@ CommandStatusHelp()
                  "system (if you connected to a remote system then '.status' "
                  "shows the state of current debugger, while 'status' shows the "
                  "state of remote debuggee).\n\n");
+
     ShowMessages("syntax : \t.status\n");
     ShowMessages("syntax : \tstatus\n");
 }

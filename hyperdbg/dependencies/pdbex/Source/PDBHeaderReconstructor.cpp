@@ -377,6 +377,7 @@ PDBHeaderReconstructor::OnUdtFieldEnd(
 	const SYMBOL_UDT_FIELD* UdtField
 	)
 {
+
 	//
 	// Pop offset of the current UDT field.
 	//
@@ -390,7 +391,7 @@ PDBHeaderReconstructor::OnUdtField(
 	UdtFieldDefinitionBase* MemberDefinition
 	)
 {
-
+	
 	Write("%s", MemberDefinition->GetPrintableDefinition().c_str());
 
 	//
@@ -403,7 +404,7 @@ PDBHeaderReconstructor::OnUdtField(
     {
 		if (UdtField->Bits != 0)
         {
-            Write(" : Pos %i, %i Bit", UdtField->BitPosition, UdtField->Bits);
+            Write(", Pos %i, %i Bit", UdtField->BitPosition, UdtField->Bits);
         }
     }
     else
@@ -424,6 +425,100 @@ PDBHeaderReconstructor::OnUdtField(
 #ifdef HYPERDBG_CODES
     }
 #endif
+
+
+#ifdef HYPERDBG_CODES
+
+	//
+	// Check if we should show the data
+	//
+    if (g_MappingBufferAddress != NULL)
+    {
+
+		//
+		// Size : UdtField->Type->Size
+		// Offset : UdtField->Offset
+		//
+
+		//
+		// Compute the address based on buffer
+		//
+        CHAR * StartAddressOfBuffer = g_MappingBufferAddress + UdtField->Offset;
+        UINT64 TempBuffer           = NULL;
+
+        if (sizeof(CHAR) <= UdtField->Type->Size && UdtField->Type->Size <= sizeof(UINT64))
+        {
+            Write(" : ");
+
+            memcpy(&TempBuffer, StartAddressOfBuffer, UdtField->Type->Size);
+
+			if (UdtField->Bits != 0)
+            {
+                UINT32  CurrentBit = 0;
+                UINT64 BitsFormat = ExtractBits(TempBuffer,
+					(UINT64)UdtField->BitPosition,
+					(UINT64)(UdtField->BitPosition + UdtField->Bits - 1));
+
+
+                // Write("0y%llx", BitsFormat);
+                Write("0y");
+
+				while (CurrentBit < UdtField->Bits)
+                {
+                    if (BitsFormat & 0x1)
+                    {
+                        Write("1");
+                    }
+                    else
+                    {
+                        Write("0");
+                    }
+
+                    CurrentBit++;
+                    BitsFormat = BitsFormat >> 1;
+                }
+
+
+            }
+			else if (TempBuffer == NULL)
+            {
+                Write("(null)");
+            }
+            else if (UdtField->Type->Size == sizeof(UINT64))
+            {
+                Write("%s", SymSeparateTo64BitValue(TempBuffer).c_str());
+            }
+            else
+            {
+                Write("0x%x",TempBuffer);
+            }
+        }
+        else if (UdtField->Type->Name != NULL)
+        {
+			//
+			// The size is above 8 bytes
+			//
+
+            Write(" : %s", UdtField->Type->Name);
+
+			//
+			// Check if the structure is a _LIST_ENTRY
+			//
+            if (UdtField->Type->Size == sizeof(LIST_ENTRY) &&
+                strcmp(UdtField->Type->Name, "_LIST_ENTRY") == 0)
+            {
+                PLIST_ENTRY ListEntry = (PLIST_ENTRY)(g_MappingBufferAddress + UdtField->Offset);
+                Write(" [ %s - %s ]",
+					SymSeparateTo64BitValue((UINT64)ListEntry->Flink).c_str(),
+                      SymSeparateTo64BitValue((UINT64)ListEntry->Blink).c_str());
+            }
+        }
+
+
+    }
+#endif
+
+
 
 	Write("\n");
 }
@@ -613,6 +708,7 @@ PDBHeaderReconstructor::OnPaddingMember(
             //
             // Ignore
             //
+            Write("\n");
         }
         else
         {

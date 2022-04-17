@@ -25,7 +25,10 @@ VOID
 CommandBeHelp()
 {
     ShowMessages("be : enables a breakpoint using breakpoint id.\n\n");
+
     ShowMessages("syntax : \tbe [BreakpointId (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : be 0\n");
     ShowMessages("\t\te.g : be 2\n");
 }

@@ -151,8 +151,11 @@ VOID
 CommandRHelp()
 {
     ShowMessages("r : reads or modifies registers.\n\n");
+
     ShowMessages("syntax : \tr\n");
     ShowMessages("syntax : \tr [Register (string)] [= Expr (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : r\n");
     ShowMessages("\t\te.g : r @rax\n");
     ShowMessages("\t\te.g : r rax\n");
