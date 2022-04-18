@@ -53,6 +53,7 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 * VMX-root Compatible Message Tracing [<a href="https://docs.hyperdbg.org/design/features/vmm-module/vmx-root-mode-compatible-message-tracing" target="_blank">link</a>]
 * Powerful Kernel Side Scripting Engine [<a href="https://docs.hyperdbg.org/commands/scripting-language" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/design/script-engine" target="_blank">link</a>]
 * Support To Symbols (Parsing PDB Files) [<a href="https://docs.hyperdbg.org/commands/meta-commands/.sympath" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/meta-commands/.sym" target="_blank">link</a>]
+* Mapping Data To Symbols & Create Structures From PDB Files [<a href="https://docs.hyperdbg.org/commands/debugging-commands/dt" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/debugging-commands/struct" target="_blank">link</a>]
 * Event Forwarding (#DFIR) [<a href="https://docs.hyperdbg.org/tips-and-tricks/misc/event-forwarding" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/commands/debugging-commands/output" target="_blank">link</a>]
 * Transparent Breakpoint Handler [<a href="https://docs.hyperdbg.org/commands/debugging-commands/bp" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging/examples/basics/setting-breakpoints-and-stepping-instructions" target="_blank">link</a>]
 * Various Custom Scripts [<a href="https://github.com/HyperDbg/scripts" target="_blank">link</a>]
@@ -86,7 +87,6 @@ You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automat
 - Website by Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
 - Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
 - Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
-- Soroush Meghdadi Zanjani
 - Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
 - Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
 - Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
