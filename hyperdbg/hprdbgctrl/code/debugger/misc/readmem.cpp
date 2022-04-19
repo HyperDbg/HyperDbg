@@ -99,7 +99,22 @@ HyperDbgReadMemoryAndDisassemble(DEBUGGER_SHOW_MEMORY_STYLE   Style,
         //
         // Show the 'dt' command view
         //
-        ScriptEngineShowDataBasedOnSymbolTypesWrapper(DtDetails->TypeName, Address, FALSE, OutputBuffer, DtDetails->AdditionalParameters);
+        if (Size == ReturnedLength)
+        {
+            ScriptEngineShowDataBasedOnSymbolTypesWrapper(DtDetails->TypeName,
+                                                          Address,
+                                                          FALSE,
+                                                          OutputBuffer,
+                                                          DtDetails->AdditionalParameters);
+        }
+        else if (ReturnedLength == 0)
+        {
+            ShowMessages("err, invalid address");
+        }
+        else
+        {
+            ShowMessages("err, invalid address or memory is smaller than the structure size");
+        }
 
         break;
 
