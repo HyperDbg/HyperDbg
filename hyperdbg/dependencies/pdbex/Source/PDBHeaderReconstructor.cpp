@@ -391,7 +391,7 @@ PDBHeaderReconstructor::OnUdtField(
 	UdtFieldDefinitionBase* MemberDefinition
 	)
 {
-	
+
 	Write("%s", MemberDefinition->GetPrintableDefinition().c_str());
 
 	//
@@ -458,6 +458,7 @@ PDBHeaderReconstructor::OnUdtField(
                 UINT64 BitsFormat = ExtractBits(TempBuffer,
 					(UINT64)UdtField->BitPosition,
 					(UINT64)(UdtField->BitPosition + UdtField->Bits - 1));
+                const UINT64 ExtractedBits = BitsFormat;
 
 
                 // Write("0y%llx", BitsFormat);
@@ -478,6 +479,10 @@ PDBHeaderReconstructor::OnUdtField(
                     BitsFormat = BitsFormat >> 1;
                 }
 
+				if (UdtField->Bits >= 2)
+                {
+                    Write(" (0x%llx)", ExtractedBits);
+                }
 
             }
 			else if (TempBuffer == NULL)
@@ -491,6 +496,22 @@ PDBHeaderReconstructor::OnUdtField(
             else
             {
                 Write("0x%x",TempBuffer);
+            }
+        }
+        else if (UdtField->Type->Name != NULL && UdtField->Type->Name[0] == '\0')
+        {
+			//
+			// There is no type name, it might be an array, or sth unknown
+			//
+            if (UdtField->Type->Tag == SymTagArrayType)
+            {
+                Write(" : (array)");
+            }
+            else
+            {
+				//
+				// Nothing to show :(
+				//
             }
         }
         else if (UdtField->Type->Name != NULL)
