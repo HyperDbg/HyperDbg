@@ -260,9 +260,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
+            // at the same place (it's not in vmx-root)
             //
-            ExtensionCommandPte(DebuggerPteRequest);
+            ExtensionCommandPte(DebuggerPteRequest, FALSE);
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS;
             Status                    = STATUS_SUCCESS;
@@ -472,9 +472,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             //
             // Both usermode and to send to usermode and the comming buffer are
-            // at the same place
+            // at the same place (we're not in vmx-root here)
             //
-            ExtensionCommandVa2paAndPa2va(DebuggerVa2paAndPa2vaRequest);
+            ExtensionCommandVa2paAndPa2va(DebuggerVa2paAndPa2vaRequest, FALSE);
 
             //
             // Configure IRP status

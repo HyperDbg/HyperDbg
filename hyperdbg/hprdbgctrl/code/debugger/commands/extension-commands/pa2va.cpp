@@ -134,68 +134,80 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         }
     }
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
-
-    //
-    // Check to prevent using process id in !pa2va command
-    //
-    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
-    {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
-        return;
-    }
-
-    if (Pid == 0)
-    {
-        Pid = GetCurrentProcessId();
-    }
-
     //
     // Prepare the buffer
     // We use same buffer for input and output
     //
     AddressDetails.PhysicalAddress    = TargetPa;
-    AddressDetails.ProcessId          = Pid;
+    AddressDetails.ProcessId          = Pid; // it's null if in debugger mode
     AddressDetails.IsVirtual2Physical = FALSE;
 
-    //
-    // Send IOCTL
-    //
-    Status = DeviceIoControl(
-        g_DeviceHandle,                           // Handle to device
-        IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control code
-        &AddressDetails,                          // Input Buffer to driver.
-        SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Input buffer length
-        &AddressDetails,                          // Output Buffer from driver.
-        SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Length of output
-                                                  // buffer in bytes.
-        &ReturnedLength,                          // Bytes placed in buffer.
-        NULL                                      // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
-    }
-
-    if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
-        // Show the results
+        // Check to prevent using process id in !pa2va command
         //
-        ShowMessages("%llx\n", AddressDetails.VirtualAddress);
+        if (Pid != 0)
+        {
+            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+            return;
+        }
+
+        //
+        // Send the request over serial kernel debugger
+        //
+
+        KdSendVa2paAndPa2vaPacketToDebuggee(&AddressDetails);
     }
     else
     {
+        if (!g_DeviceHandle)
+        {
+            ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                         "use 'load' command?\n");
+            return;
+        }
+
+        if (Pid == 0)
+        {
+            Pid                      = GetCurrentProcessId();
+            AddressDetails.ProcessId = Pid;
+        }
+
         //
-        // An err occurred, no results
+        // Send IOCTL
         //
-        ShowErrorMessage(AddressDetails.KernelStatus);
+        Status = DeviceIoControl(
+            g_DeviceHandle,                           // Handle to device
+            IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control code
+            &AddressDetails,                          // Input Buffer to driver.
+            SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Input buffer length
+            &AddressDetails,                          // Output Buffer from driver.
+            SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Length of output
+                                                      // buffer in bytes.
+            &ReturnedLength,                          // Bytes placed in buffer.
+            NULL                                      // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return;
+        }
+
+        if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            //
+            // Show the results
+            //
+            ShowMessages("%llx\n", AddressDetails.VirtualAddress);
+        }
+        else
+        {
+            //
+            // An err occurred, no results
+            //
+            ShowErrorMessage(AddressDetails.KernelStatus);
+        }
     }
 }

@@ -1668,6 +1668,8 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
     PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
@@ -2302,6 +2304,47 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_BP,
                                            BpPacket,
                                            sizeof(DEBUGGEE_BP_PACKET));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_QUERY_PTE:
+
+                PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) +
+                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Get the page table details (it's not in vmx-root)
+                //
+                ExtensionCommandPte(PtePacket, FALSE);
+
+                //
+                // Send the result of '!pte' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
+                                           PtePacket,
+                                           sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PA2VA_AND_VA2PA:
+
+                Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) +
+                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the virtual to physical or physical to virtual address
+                // conversion (it's on vmx-root mode)
+                //
+                ExtensionCommandVa2paAndPa2va(Va2paPa2vaPacket, TRUE);
+
+                //
+                // Send the result of '!va2pa' or '!pa2va' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,
+                                           Va2paPa2vaPacket,
+                                           sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS));
 
                 break;
 
