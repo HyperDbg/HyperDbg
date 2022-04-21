@@ -302,8 +302,7 @@ MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     CurrentProcessCr3 = SwitchOnAnotherProcessMemoryLayoutByCr3(GuestCr3);
 
@@ -865,8 +864,7 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferTo
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -911,8 +909,7 @@ MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZ
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3

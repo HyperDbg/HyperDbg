@@ -2313,9 +2313,9 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                                          sizeof(DEBUGGER_REMOTE_PACKET));
 
                 //
-                // Get the page table details (it's not in vmx-root)
+                // Get the page table details (it's in vmx-root)
                 //
-                ExtensionCommandPte(PtePacket, FALSE);
+                ExtensionCommandPte(PtePacket, TRUE);
 
                 //
                 // Send the result of '!pte' back to the debuggee

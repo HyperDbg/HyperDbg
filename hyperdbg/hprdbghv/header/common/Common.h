@@ -563,6 +563,9 @@ CR3_TYPE
 SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
 
 CR3_TYPE
+SwitchOnMemoryLayoutOfTargetProcess();
+
+CR3_TYPE
 SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
 
 VOID

@@ -81,7 +81,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
             //
             // Couldn't resolve or unkonwn parameter
             //
-            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+            ShowMessages("err, couldn't resolve error at '%s'\n",
                          SplittedCommandCaseSensitive.at(1).c_str());
             return;
         }
@@ -95,7 +95,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         {
             if (!ConvertStringToUInt32(SplittedCommand.at(2), &Pid))
             {
-                ShowMessages("incorrect address, please enter a valid process id\n\n");
+                ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
             if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetPa))
@@ -103,7 +103,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 //
                 // Couldn't resolve or unkonwn parameter
                 //
-                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(3).c_str());
                 return;
             }
@@ -115,14 +115,14 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
                 //
                 // Couldn't resolve or unkonwn parameter
                 //
-                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(1).c_str());
 
                 return;
             }
             if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
             {
-                ShowMessages("incorrect address, please enter a valid process id\n\n");
+                ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
         }
@@ -149,7 +149,7 @@ CommandPa2va(vector<string> SplittedCommand, string Command)
         //
         if (Pid != 0)
         {
-            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
             return;
         }
 

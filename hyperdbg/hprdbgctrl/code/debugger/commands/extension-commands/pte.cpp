@@ -14,7 +14,8 @@
 //
 // Global Variables
 //
-extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
+extern BOOLEAN                  g_IsSerialConnectedToRemoteDebuggee;
+extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 
 /**
  * @brief help of !pte command
@@ -26,12 +27,13 @@ CommandPteHelp()
 {
     ShowMessages("!pte : finds virtual addresses of different paging-levels.\n\n");
 
-    ShowMessages("syntax : \t!pte [VirtualAddress (hex)]\n");
+    ShowMessages("syntax : \t!pte [VirtualAddress (hex)] [pid ProcessId (hex)]\n");
 
     ShowMessages("\n");
     ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !pte nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : !pte fffff801deadbeef\n");
+    ShowMessages("\t\te.g : !pte 0x400021000 pid 1c0\n");
 }
 
 /**
@@ -91,9 +93,12 @@ CommandPte(vector<string> SplittedCommand, string Command)
     BOOL                                     Status;
     ULONG                                    ReturnedLength;
     UINT64                                   TargetVa;
-    DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteRead = {0};
+    UINT32                                   Pid            = 0;
+    DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS AddressDetails = {0};
+    vector<string>                           SplittedCommandCaseSensitive {Split(Command, ' ')};
 
-    if (SplittedCommand.size() != 2)
+    if (SplittedCommand.size() == 1 || SplittedCommand.size() >= 5 ||
+        SplittedCommand.size() == 3)
     {
         ShowMessages("incorrect use of '!pte'\n\n");
         CommandPteHelp();
@@ -101,43 +106,101 @@ CommandPte(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Trim the command
+    // By default if the user-debugger is active, we use these commands
+    // on the memory layout of the debuggee process
     //
-    Trim(Command);
+    if (g_ActiveProcessDebuggingState.IsActive)
+    {
+        Pid = g_ActiveProcessDebuggingState.ProcessId;
+    }
 
-    //
-    // Remove !pte from it
-    //
-    Command.erase(0, 4);
-
-    //
-    // Trim it again
-    //
-    Trim(Command);
-
-    if (!SymbolConvertNameOrExprToAddress(Command, &TargetVa))
+    if (SplittedCommand.size() == 2)
     {
         //
-        // Couldn't resolve or unkonwn parameter
+        // It's just an address for current process
         //
-        ShowMessages("err, couldn't resolve error at '%s'\n\n",
-                     Command.c_str());
+        if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+        {
+            //
+            // Couldn't resolve or unkonwn parameter
+            //
+            ShowMessages("err, couldn't resolve error at '%s'\n",
+                         SplittedCommandCaseSensitive.at(1).c_str());
+            return;
+        }
+    }
+    else
+    {
+        //
+        // It might be address + pid
+        //
+        if (!SplittedCommand.at(1).compare("pid"))
+        {
+            if (!ConvertStringToUInt32(SplittedCommand.at(2), &Pid))
+            {
+                ShowMessages("incorrect address, please enter a valid process id\n");
+                return;
+            }
 
-        return;
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(3), &TargetVa))
+            {
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n",
+                             SplittedCommandCaseSensitive.at(3).c_str());
+                return;
+            }
+        }
+        else if (!SplittedCommand.at(2).compare("pid"))
+        {
+            if (!SymbolConvertNameOrExprToAddress(SplittedCommandCaseSensitive.at(1), &TargetVa))
+            {
+                //
+                // Couldn't resolve or unkonwn parameter
+                //
+                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                             SplittedCommandCaseSensitive.at(1).c_str());
+                return;
+            }
+
+            if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
+            {
+                ShowMessages("incorrect address, please enter a valid process id\n");
+                return;
+            }
+        }
+        else
+        {
+            ShowMessages("incorrect use of '!pte'\n\n");
+            CommandPteHelp();
+            return;
+        }
     }
 
     //
     // Prepare the buffer
     // We use same buffer for input and output
     //
-    PteRead.VirtualAddress = TargetVa;
+    AddressDetails.VirtualAddress = TargetVa;
+    AddressDetails.ProcessId      = Pid; // null in debugger mode
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
+        // Check to prevent using process id in !pte command
+        //
+        if (Pid != 0)
+        {
+            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            return;
+        }
+
+        //
         // Send the request over serial kernel debugger
         //
-        KdSendPtePacketToDebuggee(&PteRead);
+
+        KdSendPtePacketToDebuggee(&AddressDetails);
     }
     else
     {
@@ -148,15 +211,21 @@ CommandPte(vector<string> SplittedCommand, string Command)
             return;
         }
 
+        if (Pid == 0)
+        {
+            Pid                      = GetCurrentProcessId();
+            AddressDetails.ProcessId = Pid;
+        }
+
         //
         // Send IOCTL
         //
         Status = DeviceIoControl(
             g_DeviceHandle,                                  // Handle to device
             IOCTL_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS,  // IO Control code
-            &PteRead,                                        // Input Buffer to driver.
+            &AddressDetails,                                 // Input Buffer to driver.
             SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Input buffer length
-            &PteRead,                                        // Output Buffer from driver.
+            &AddressDetails,                                 // Output Buffer from driver.
             SIZEOF_DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS, // Length of output
                                                              // buffer in bytes.
             &ReturnedLength,                                 // Bytes placed in buffer.
@@ -169,15 +238,15 @@ CommandPte(vector<string> SplittedCommand, string Command)
             return;
         }
 
-        if (PteRead.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (AddressDetails.KernelStatus != DEBUGGER_OPERATION_WAS_SUCCESSFULL)
         {
-            ShowErrorMessage(PteRead.KernelStatus);
+            ShowErrorMessage(AddressDetails.KernelStatus);
             return;
         }
 
         //
         // Show the results
         //
-        CommandPteShowResults(TargetVa, &PteRead);
+        CommandPteShowResults(TargetVa, &AddressDetails);
     }
 }

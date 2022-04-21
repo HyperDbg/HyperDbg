@@ -1141,6 +1141,7 @@ typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
 typedef struct _DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS
 {
     UINT64 VirtualAddress;
+    UINT32 ProcessId;
 
     UINT64 Pml4eVirtualAddress;
     UINT64 Pml4eValue;

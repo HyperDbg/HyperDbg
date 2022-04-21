@@ -214,20 +214,17 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION I
 VOID
 IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
-    UINT64 GuestCr3;
-    UINT64 OriginalCr3;
-    size_t InstructionLength;
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    size_t   InstructionLength;
 
     //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
+    // Find the current process's running cr3
     //
-
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3                     = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     OriginalCr3 = __readcr3();
-    __writecr3(GuestCr3);
+    __writecr3(GuestCr3.Flags);
 
     //
     // Read the memory

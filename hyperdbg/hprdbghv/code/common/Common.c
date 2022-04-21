@@ -197,6 +197,35 @@ SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
 }
 
 /**
+ * @brief Switch to guest's running process's cr3
+ * 
+ * @details this function can be called from vmx-root mode
+ *
+ * @return CR3_TYPE The cr3 of current process which can be
+ * used by RestoreToPreviousProcess function
+ */
+CR3_TYPE
+SwitchOnMemoryLayoutOfTargetProcess()
+{
+    CR3_TYPE GuestCr3;
+    CR3_TYPE CurrentProcessCr3 = {0};
+
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+
+    //
+    // Read the current cr3
+    //
+    CurrentProcessCr3.Flags = __readcr3();
+
+    //
+    // Change to a new cr3 (of target process)
+    //
+    __writecr3(GuestCr3.Flags);
+
+    return CurrentProcessCr3;
+}
+
+/**
  * @brief Switch to another process's cr3
  *
  * @param TargetCr3 cr3 to switch
@@ -412,12 +441,7 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 {
     CR3_TYPE GuestCr3;
 
-    //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     UINT64 Temp = (UINT64)PhysicalAddress;
 
@@ -546,12 +570,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     CR3_TYPE GuestCr3;
     UINT64   PhysicalAddress;
 
-    //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Switch to new process's memory layout
@@ -871,8 +890,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -969,8 +987,7 @@ VmxrootCompatibleStrlen(const CHAR * S)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -1059,8 +1076,7 @@ VmxrootCompatibleWcslen(const wchar_t * S)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3

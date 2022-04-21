@@ -166,21 +166,13 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
 BOOLEAN
 ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEAN IsOperatingInVmxRoot)
 {
+    BOOLEAN  Result     = FALSE;
+    CR3_TYPE RestoreCr3 = {0};
+
     //
-    // Check if address is valid
+    // Check for validations
     //
     if (IsOperatingInVmxRoot)
-    {
-        if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
-        {
-            //
-            // Address is not valid (doesn't have Physical Address)
-            //
-            PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-            return FALSE;
-        }
-    }
-    else
     {
         if (!VirtualAddressToPhysicalAddressOnTargetProcess(PteDetails->VirtualAddress))
         {
@@ -189,6 +181,50 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
             //
             PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
             return FALSE;
+        }
+
+        //
+        // Switch on running process's cr3
+        //
+        RestoreCr3.Flags = SwitchOnMemoryLayoutOfTargetProcess().Flags;
+    }
+    else
+    {
+        if (PteDetails->ProcessId != PsGetCurrentProcessId())
+        {
+            //
+            // It's on another process address space
+            //
+
+            //
+            // Check if pid is valid
+            //
+            if (!IsProcessExist(PteDetails->ProcessId))
+            {
+                //
+                // Process id is invalid
+                //
+                PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+                return;
+            }
+
+            //
+            // Switch to new process's memory layout
+            //
+            RestoreCr3.Flags = SwitchOnAnotherProcessMemoryLayout(PteDetails->ProcessId).Flags;
+        }
+
+        //
+        // Check if address is valid
+        //
+        if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
+        {
+            //
+            // Address is not valid (doesn't have Physical Address)
+            //
+            PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+            Result                   = FALSE;
+            goto RestoreTheState;
         }
     }
 
@@ -233,7 +269,19 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
     }
 
     PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-    return TRUE;
+    Result                   = TRUE;
+
+RestoreTheState:
+
+    //
+    // Check to restore the current cr3 if it's changed
+    //
+    if (RestoreCr3.Flags != NULL)
+    {
+        RestoreToPreviousProcess(RestoreCr3);
+    }
+
+    return Result;
 }
 
 /**

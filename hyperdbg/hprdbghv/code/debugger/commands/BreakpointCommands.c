@@ -154,8 +154,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Convert breakpoint to physical address
@@ -572,8 +571,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // *** Validate arguments ***

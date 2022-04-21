@@ -260,12 +260,9 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     else
     {
         //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base.
+        // Get the guest's running process's cr3
         //
-
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+        GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
         //
         // No, longer needs to be checked because we're sticking to system process
