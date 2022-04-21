@@ -109,6 +109,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
  * @param Regs Guest registers
  * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
@@ -175,6 +176,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
  * @param Regs Guest registers
  * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
@@ -221,6 +223,7 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
  * @param CoreIndex Logical core index
  * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {

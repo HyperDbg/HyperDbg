@@ -42,7 +42,7 @@ BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {
@@ -292,7 +292,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
-    GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {

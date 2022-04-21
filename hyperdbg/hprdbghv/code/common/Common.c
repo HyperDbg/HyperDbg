@@ -49,6 +49,7 @@ MathPower(int Base, int Exp)
  * @param Routine The fucntion that should be executed on the target core
  * @return BOOLEAN Returns true if it was successfull
  */
+_Use_decl_annotations_
 BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
@@ -110,6 +111,7 @@ SetBit(int nth, unsigned long * addr)
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
@@ -124,6 +126,7 @@ VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
  * @param ProcessId ProcessId to switch
  * @return CR3_TYPE The cr3 of the target process 
  */
+_Use_decl_annotations_
 CR3_TYPE
 GetCr3FromProcessId(UINT32 ProcessId)
 {
@@ -159,6 +162,7 @@ GetCr3FromProcessId(UINT32 ProcessId)
  * @return CR3_TYPE The cr3 of current process which can be
  * used by RestoreToPreviousProcess function
  */
+_Use_decl_annotations_
 CR3_TYPE
 SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
 {
@@ -232,11 +236,11 @@ SwitchOnMemoryLayoutOfTargetProcess()
  * @return CR3_TYPE The cr3 of current process which can be
  * used by RestoreToPreviousProcess function
  */
+_Use_decl_annotations_
 CR3_TYPE
 SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
 {
-    PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
+    CR3_TYPE CurrentProcessCr3 = {0};
 
     //
     // Read the current cr3
@@ -259,8 +263,9 @@ SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
  * @param GdtBase
  * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
-GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector, PUCHAR GdtBase)
+GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
 {
     SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
     SEGMENT_DESCRIPTOR_32 * Descriptor32;
@@ -324,6 +329,7 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
  * is returned by SwitchOnAnotherProcessMemoryLayout
  * @return VOID 
  */
+_Use_decl_annotations_
 VOID
 RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 {
@@ -343,6 +349,7 @@ RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
  * @param ProcessId The target's process id
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId)
 {
@@ -390,6 +397,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
  * @param TargetCr3 The target's process cr3
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
 {
@@ -436,6 +444,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
  * @param PhysicalAddress The target physical address
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 {
@@ -478,6 +487,7 @@ GetRunningCr3OnTargetProcess()
  * @param ProcessId The target's process id
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId)
 {
@@ -521,6 +531,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
  * @param TargetCr3 The target's process cr3
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 {
@@ -563,6 +574,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
 {
@@ -607,6 +619,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
  * @param PhysicalAddress The target physical address
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 {
@@ -1187,8 +1200,9 @@ AllocateInvalidMsrBimap()
  * 
  * @return NTSTATUS 
  */
+_Use_decl_annotations_
 NTSTATUS
-GetHandleFromProcess(PHANDLE Handle, UINT32 ProcessId)
+GetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
 {
     NTSTATUS Status;
     Status = STATUS_SUCCESS;
@@ -1271,6 +1285,7 @@ UndocumentedNtOpenProcess(
  * 
  * @return BOOLEAN 
  */
+_Use_decl_annotations_
 BOOLEAN
 KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 {
@@ -1280,7 +1295,6 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 
     if (ProcessId == NULL)
     {
-        Status = STATUS_UNSUCCESSFUL;
         return FALSE;
     }
 
@@ -1288,7 +1302,7 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     {
     case PROCESS_KILL_METHOD_1:
 
-        Status = GetHandleFromProcess(&ProcessHandle, ProcessId);
+        Status = GetHandleFromProcess(ProcessId, &ProcessHandle);
 
         if (!NT_SUCCESS(Status) || ProcessHandle == NULL)
         {

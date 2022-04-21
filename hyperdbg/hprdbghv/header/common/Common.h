@@ -509,6 +509,17 @@ MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap pro
 //			 Function Definitions				//
 //////////////////////////////////////////////////
 
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+static NTSTATUS
+GetHandleFromProcess(_In_ UINT32 ProcessId, _Out_ PHANDLE Handle);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
+
 int
 TestBit(int nth, unsigned long * addr);
 
@@ -519,10 +530,10 @@ void
 SetBit(int nth, unsigned long * addr);
 
 CR3_TYPE
-GetCr3FromProcessId(UINT32 ProcessId);
+GetCr3FromProcessId(_In_ UINT32 ProcessId);
 
 BOOLEAN
-BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
+BroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
 UINT64
 PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
@@ -539,16 +550,16 @@ VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
                                             _In_ CR3_TYPE TargetCr3);
 
 UINT64
-VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress);
+VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
 
 UINT64
-PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId);
+PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress,_In_ UINT32 ProcessId);
 
 UINT64
-PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3);
+PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
 
 UINT64
-PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress);
+PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
 
 CR3_TYPE
 GetRunningCr3OnTargetProcess();
@@ -569,7 +580,7 @@ CR3_TYPE
 SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
 
 VOID
-RestoreToPreviousProcess(CR3_TYPE PreviousProcess);
+RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 
 PCHAR
 GetProcessNameFromEprocess(PEPROCESS eprocess);
@@ -661,32 +672,33 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
  * 
  */
 BOOLEAN
-SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex);
+SyscallHookHandleUD(_Inout_ PGUEST_REGS Regs, _In_ UINT32 CoreIndex);
 
 /**
  * @brief SYSRET instruction emulation routine
  * 
  */
 BOOLEAN
-SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
+SyscallHookEmulateSYSRET(_In_ PGUEST_REGS Regs);
 
 /**
  * @brief SYSCALL instruction emulation routine
  * 
  */
 BOOLEAN
-SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
+SyscallHookEmulateSYSCALL(_Out_ PGUEST_REGS Regs);
 
 /**
  * @brief Get Segment Descriptor
  * 
  */
+_Success_(return)
 BOOLEAN
-GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector, PUCHAR GdtBase);
+GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 
 /**
  * @brief Kill a process using different methods
  * 
  */
 BOOLEAN
-KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
+KillProcess(_In_ UINT32 ProcessId, _In_ PROCESS_KILL_METHODS KillingMethod);
