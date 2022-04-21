@@ -264,7 +264,8 @@ VmxPerformVirtualizationOnAllCores()
 BOOLEAN
 VmxPerformVirtualizationOnSpecificCore()
 {
-    int CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+    ULONG                   CurrentProcessorNumber = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState         = &g_GuestState[CurrentProcessorNumber];
 
     LogDebugInfo("Allocating vmx regions for logical core %d", CurrentProcessorNumber);
 
@@ -280,12 +281,12 @@ VmxPerformVirtualizationOnSpecificCore()
 
     LogDebugInfo("VMX-Operation enabled successfully");
 
-    if (!VmxAllocateVmxonRegion(&g_GuestState[CurrentProcessorNumber]))
+    if (!VmxAllocateVmxonRegion(CurrentVmState))
     {
         LogError("Err, allocating memory for vmxon region was not successfull");
         return FALSE;
     }
-    if (!VmxAllocateVmcsRegion(&g_GuestState[CurrentProcessorNumber]))
+    if (!VmxAllocateVmcsRegion(CurrentVmState))
     {
         LogError("Err, allocating memory for vmcs region was not successfull");
         return FALSE;
@@ -368,17 +369,16 @@ VmxCheckIsOnVmxRoot()
 BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack)
 {
-    UINT64 ErrorCode   = 0;
-    INT    ProcessorID = 0;
-
-    ProcessorID = KeGetCurrentProcessorNumber();
+    UINT64                  ErrorCode      = 0;
+    ULONG                   ProcessorID    = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
 
     LogDebugInfo("Virtualizing current system (logical core : 0x%x)", ProcessorID);
 
     //
     // Clear the VMCS State
     //
-    if (!VmxClearVmcsState(&g_GuestState[ProcessorID]))
+    if (!VmxClearVmcsState(CurrentVmState))
     {
         LogError("Err, failed to clear vmcs");
         return FALSE;
@@ -387,7 +387,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // Load VMCS (Set the Current VMCS)
     //
-    if (!VmxLoadVmcs(&g_GuestState[ProcessorID]))
+    if (!VmxLoadVmcs(CurrentVmState))
     {
         LogError("Err, failed to load vmcs");
         return FALSE;
@@ -403,7 +403,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     // Setting the state to indicate current core is currently virtualized
     //
 
-    g_GuestState[ProcessorID].HasLaunched = TRUE;
+    CurrentVmState->HasLaunched = TRUE;
 
     __vmx_vmlaunch();
 
@@ -414,7 +414,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
     //
     // If failed, then indicate that current core is not currently virtualized
     //
-    g_GuestState[ProcessorID].HasLaunched = FALSE;
+    CurrentVmState->HasLaunched = FALSE;
 
     //
     // Execute Vmxoff
@@ -438,13 +438,9 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 BOOLEAN
 VmxTerminate()
 {
-    NTSTATUS Status           = STATUS_SUCCESS;
-    INT      CurrentCoreIndex = 0;
-
-    //
-    // Get the current core index
-    //
-    CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    NTSTATUS                Status           = STATUS_SUCCESS;
+    ULONG                   CurrentCoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState   = &g_GuestState[CurrentCoreIndex];
 
     //
     // Execute Vmcall to to turn off vmx from Vmx root mode
@@ -458,12 +454,12 @@ VmxTerminate()
         //
         // Free the destination memory
         //
-        MmFreeContiguousMemory(g_GuestState[CurrentCoreIndex].VmxonRegionVirtualAddress);
-        MmFreeContiguousMemory(g_GuestState[CurrentCoreIndex].VmcsRegionVirtualAddress);
-        ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].VmmStack, POOLTAG);
-        ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].MsrBitmapVirtualAddress, POOLTAG);
-        ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressA, POOLTAG);
-        ExFreePoolWithTag(g_GuestState[CurrentCoreIndex].IoBitmapVirtualAddressB, POOLTAG);
+        MmFreeContiguousMemory(CurrentVmState->VmxonRegionVirtualAddress);
+        MmFreeContiguousMemory(CurrentVmState->VmcsRegionVirtualAddress);
+        ExFreePoolWithTag(CurrentVmState->VmmStack, POOLTAG);
+        ExFreePoolWithTag(CurrentVmState->MsrBitmapVirtualAddress, POOLTAG);
+        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressA, POOLTAG);
+        ExFreePoolWithTag(CurrentVmState->IoBitmapVirtualAddressB, POOLTAG);
 
         return TRUE;
     }
@@ -493,6 +489,7 @@ VmxVmptrst()
  * @return BOOLEAN If vmclear execution was successful it returns true
  * otherwise and if there was error with vmclear then it returns false
  */
+_Use_decl_annotations_
 BOOLEAN
 VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
@@ -524,6 +521,7 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
  * @return BOOLEAN If vmptrld was unsuccessful then it returns false otherwise
  * it returns false
  */
+_Use_decl_annotations_
 BOOLEAN
 VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
@@ -545,6 +543,7 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
  * @param GuestStack 
  * @return BOOLEAN 
  */
+_Use_decl_annotations_
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 {
@@ -756,13 +755,14 @@ VmxVmresume()
 VOID
 VmxVmxoff()
 {
-    INT    CurrentProcessorIndex = 0;
+    ULONG  CurrentProcessorIndex = 0;
     UINT64 GuestRSP              = 0; // Save a pointer to guest rsp for times that we want to return to previous guest stateS
     UINT64 GuestRIP              = 0; // Save a pointer to guest rip for times that we want to return to previous guest state
     UINT64 GuestCr3              = 0;
     UINT64 ExitInstructionLength = 0;
 
-    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    CurrentProcessorIndex                  = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentProcessorIndex];
 
     //
     // According to SimpleVisor :
@@ -793,13 +793,13 @@ VmxVmxoff()
     //
     // Set the previous register states
     //
-    g_GuestState[CurrentProcessorIndex].VmxoffState.GuestRip = GuestRIP;
-    g_GuestState[CurrentProcessorIndex].VmxoffState.GuestRsp = GuestRSP;
+    CurrentVmState->VmxoffState.GuestRip = GuestRIP;
+    CurrentVmState->VmxoffState.GuestRsp = GuestRSP;
 
     //
     // Notify the Vmexit handler that VMX already turned off
     //
-    g_GuestState[CurrentProcessorIndex].VmxoffState.IsVmxoffExecuted = TRUE;
+    CurrentVmState->VmxoffState.IsVmxoffExecuted = TRUE;
 
     //
     // Restore the previous FS, GS , GDTR and IDTR register as patchguard might find the modified
@@ -810,7 +810,7 @@ VmxVmxoff()
     // Before using vmxoff, you first need to use vmclear on any VMCSes that you want to be able to use again.
     // See sections 24.1 and 24.11 of the SDM.
     //
-    VmxClearVmcsState(&g_GuestState[CurrentProcessorIndex]);
+    VmxClearVmcsState(CurrentVmState);
 
     //
     // Execute Vmxoff
@@ -820,7 +820,7 @@ VmxVmxoff()
     //
     // Indicate the current core is not currently virtualized
     //
-    g_GuestState[CurrentProcessorIndex].HasLaunched = FALSE;
+    CurrentVmState->HasLaunched = FALSE;
 
     //
     // Now that VMX is OFF, we have to unset vmx-enable bit on cr4
