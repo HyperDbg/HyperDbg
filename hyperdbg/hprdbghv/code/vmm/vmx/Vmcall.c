@@ -21,6 +21,8 @@ NTSTATUS
 VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
                       _Inout_ PGUEST_REGS GuestRegs)
 {
+    UINT64 GuestRsp = NULL;
+
     //
     // Trigger the event
     //
@@ -70,10 +72,20 @@ VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
         }
 
         //
+        // Save the guest rsp as it will be modified during the Hyper-V's
+        // VMCALL process
+        //
+        GuestRsp = GuestRegs->rsp;
+
+        //
         // Let the top-level hypervisor to manage it
         //
-        //GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
         AsmHypervVmcall(GuestRegs);
+
+        //
+        // Restore the guest's RSP
+        //
+        GuestRegs->rsp = GuestRsp;
     }
     return STATUS_SUCCESS;
 }
