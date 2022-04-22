@@ -20,10 +20,8 @@ AsmEnableVmxOperation ENDP
 
 AsmVmxVmcall PROC
 
-    ; We change r10 to HVFS Hex ASCII and r11 to VMCALL Hex ASCII and r12 to NOHYPERV Hex ASCII so we can make sure that the calling Vmcall comes
-    ; from our hypervisor and we're resposible for managing it, otherwise it has to be managed by Hyper-V
-
     pushfq
+
     push    r10
     push    r11
     push    r12
@@ -44,7 +42,85 @@ AsmVmxVmcall ENDP
 
 AsmHypervVmcall PROC
 
+    pushfq
+
+    push r15
+    push r14
+    push r13
+    push r12
+    push r11
+    push r10
+    push r9
+    push r8        
+    push rdi
+    push rsi
+    push rbp
+    push rbp	; rsp
+    push rbx
+    push rdx
+    push rcx
+    push rax
+
+    mov rax, qword ptr [rcx+0h]
+    mov rdx, qword ptr [rcx+10h]
+    mov rbx, qword ptr [rcx+18h]
+    ; mov rsp, qword ptr [rcx+20h]
+    mov rbp, qword ptr [rcx+28h]
+    mov rsi, qword ptr [rcx+30h]
+    mov rdi, qword ptr [rcx+38h]
+    mov r8, qword ptr [rcx+40h]
+    mov r9, qword ptr [rcx+48h]
+    mov r10, qword ptr [rcx+50h]
+    mov r11, qword ptr [rcx+58h]
+    mov r12, qword ptr [rcx+60h]
+    mov r13, qword ptr [rcx+68h]
+    mov r14, qword ptr [rcx+70h]
+    mov r15, qword ptr [rcx+78h]
+
+    push rcx
+    mov rcx, qword ptr [rcx+08h]
+
     vmcall                          ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
+
+    pop rcx
+
+    mov qword ptr [rcx+0h], rax
+    mov qword ptr [rcx+10h], rdx
+    mov qword ptr [rcx+18h], rbx
+    ; mov qword ptr [rcx+20h], rsp
+    mov qword ptr [rcx+28h], rbp
+    mov qword ptr [rcx+30h], rsi
+    mov qword ptr [rcx+38h], rdi
+    mov qword ptr [rcx+40h], r8
+    mov qword ptr [rcx+48h], r9
+    mov qword ptr [rcx+50h], r10
+    mov qword ptr [rcx+58h], r11
+    mov qword ptr [rcx+60h], r12
+    mov qword ptr [rcx+68h], r13
+    mov qword ptr [rcx+70h], r14
+    mov qword ptr [rcx+78h], r15
+
+    mov qword ptr [rcx+08h], rcx
+
+    pop rax
+    pop rcx
+    pop rdx
+    pop rbx
+    pop rbp		; rsp
+    pop rbp
+    pop rsi
+    pop rdi 
+    pop r8
+    pop r9
+    pop r10
+    pop r11
+    pop r12
+    pop r13
+    pop r14
+    pop r15
+
+    popfq
+
     ret
 
 AsmHypervVmcall ENDP

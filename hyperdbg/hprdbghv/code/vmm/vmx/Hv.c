@@ -112,6 +112,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             //
             CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
         }
+        /*
         else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
         {
             //
@@ -134,6 +135,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             CpuInfo[0] = '0#vH'; // Hv#0
             CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
+        */
     }
 
     //

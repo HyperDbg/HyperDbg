@@ -72,7 +72,8 @@ VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
         //
         // Let the top-level hypervisor to manage it
         //
-        GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
+        //GuestRegs->rax = AsmHypervVmcall(GuestRegs->rcx, GuestRegs->rdx, GuestRegs->r8, GuestRegs->r9);
+        AsmHypervVmcall(GuestRegs);
     }
     return STATUS_SUCCESS;
 }
