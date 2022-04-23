@@ -55,14 +55,6 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
         //
-        // Invalidate EPT if out-of-range MSRs are used
-        //
-        if (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI))
-        {
-            EptInveptAllContexts();
-        }
-
-        //
         // Apply the RDMS
         //
         switch (TargetMsr)
@@ -172,14 +164,6 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
-        //
-        // Invalidate EPT if out-of-range MSRs are used
-        //
-        if (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI))
-        {
-            EptInveptAllContexts();
-        }
-
         //
         // If the source register contains a non-canonical address and ECX specifies
         // one of the following MSRs:
