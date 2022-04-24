@@ -59,6 +59,12 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
 void
 SpinlockUnlock(volatile LONG * Lock);
 
+void
+SpinlockInterlockedCompareExchange(
+    LONG volatile * Destination,
+    LONG            Exchange,
+    LONG            Comperand);
+
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
@@ -553,7 +559,7 @@ UINT64
 VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
 
 UINT64
-PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress,_In_ UINT32 ProcessId);
+PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress, _In_ UINT32 ProcessId);
 
 UINT64
 PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
@@ -692,7 +698,7 @@ SyscallHookEmulateSYSCALL(_Out_ PGUEST_REGS Regs);
  * @brief Get Segment Descriptor
  * 
  */
-_Success_(return)
+_Success_(return )
 BOOLEAN
 GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 

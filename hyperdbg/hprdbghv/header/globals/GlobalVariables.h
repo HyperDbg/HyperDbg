@@ -160,6 +160,13 @@ UINT64 g_DebuggeeHaltTag;
 PVOID g_NmiHandlerForKeDeregisterNmiCallback;
 
 /**
+ * @brief check for broadcasting NMI mechanism support and its 
+ * initialization
+ * 
+ */
+BOOLEAN g_NmiBroadcastingInitialized;
+
+/**
  * @brief check for RTM support
  * 
  */

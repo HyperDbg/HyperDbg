@@ -26,33 +26,18 @@ KdInitializeKernelDebugger()
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Initialize APIC
-    //
-    ApicInitialize();
-
-    //
     // Allocate DPC routine
     //
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
-
-        if (g_GuestState[i].KdDpcObject == NULL)
-        {
-            LogError("Err, allocating dpc holder for debuggee");
-            return;
-        }
-    }
-
+    // for (size_t i = 0; i < CoreCount; i++)
+    // {
+    //     g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
     //
-    // Register NMI handler for vmx-root
-    //
-    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&KdNmiCallback, NULL);
-
-    //
-    // Broadcast on all core to cause exit for NMIs
-    //
-    BroadcastEnableNmiExitingAllCores();
+    //     if (g_GuestState[i].KdDpcObject == NULL)
+    //     {
+    //         LogError("Err, allocating dpc holder for debuggee");
+    //         return;
+    //     }
+    // }
 
     //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
@@ -110,33 +95,10 @@ KdUninitializeKernelDebugger()
         BreakpointRemoveAllBreakpoints();
 
         //
-        // De-register NMI handler
-        //
-        KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
-
-        //
-        // Broadcast on all core to cause not to exit for NMIs
-        //
-        BroadcastDisableNmiExitingAllCores();
-
-        //
         // Disable vm-exit on Hardware debug exceptions and breakpoints
         // so, not intercept #DBs and #BP by changing exception bitmap (one core)
         //
         BroadcastDisableDbAndBpExitingAllCores();
-
-        //
-        // Free DPC holder
-        //
-        for (size_t i = 0; i < CoreCount; i++)
-        {
-            ExFreePoolWithTag(g_GuestState[i].KdDpcObject, POOLTAG);
-        }
-
-        //
-        // Uinitialize APIC related function
-        //
-        ApicUninitialize();
     }
 }
 
@@ -177,61 +139,6 @@ KdFireDpc(PVOID Routine, PVOID Paramter)
     KeInitializeDpc(g_GuestState[CurrentCore].KdDpcObject, Routine, Paramter);
 
     KeInsertQueueDpc(g_GuestState[CurrentCore].KdDpcObject, NULL, NULL);
-}
-
-/**
- * @brief Handles NMIs in kernel-mode
- *
- * @param Context
- * @param Handled
- * @return BOOLEAN
- */
-BOOLEAN
-KdNmiCallback(PVOID Context, BOOLEAN Handled)
-{
-    ULONG CurrentCoreIndex;
-
-    CurrentCoreIndex = KeGetCurrentProcessorNumber();
-
-    //
-    // This mechanism tries to solve the problem of receiving NMIs
-    // when we're already in vmx-root mode, e.g., when we want to
-    // inject NMIs to other cores and those cores are already operating
-    // in vmx-root mode; however, this is not the approach to solve the
-    // problem. In order to solve this problem, we should create our own
-    // host IDT in vmx-root mode (Note that we should set VMCS_HOST_IDTR_BASE
-    // and there is no need to LIMIT as it's fixed at 0xffff for VMX
-    // operations).
-    // Because we want to use the debugging mechanism of the Windows
-    // we use the same IDT with the guest (guest and host IDT is the
-    // same), but in the future versions we solve this problem by our
-    // own ISR NMI handler in vmx-root mode
-    //
-
-    //
-    // We should check whether the NMI is in vmx-root mode or not
-    // if it's not in vmx-root mode then it's not related to us
-    //
-    if (g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi == FALSE)
-    {
-        return Handled;
-    }
-
-    //
-    // If we're here then it related to us
-    // We set a flag to indicate that this core should be halted
-    //
-    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
-
-    //
-    // Handle NMI Broadcast
-    //
-    VmxBroadcastNmiHandler(CurrentCoreIndex, NULL, TRUE);
-
-    //
-    // Also, return true to show that it's handled
-    //
-    return TRUE;
 }
 
 /**
