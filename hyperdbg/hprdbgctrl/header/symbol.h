@@ -17,7 +17,7 @@
 
 /**
  * @brief Save the local function symbols' description
- * 
+ *
  */
 typedef struct _LOCAL_FUNCTION_DESCRIPTION
 {

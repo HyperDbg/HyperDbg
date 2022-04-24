@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Headers of Debugger functions for terminating events
  * @details
- * 
+ *
  * @version 0.1
  * @date 2020-08-16
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 

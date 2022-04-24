@@ -2,12 +2,12 @@
  * @file DpcRoutines.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief headers of all the dpc routines which relates to executing on a single core
- * 
+ *
  * @version 0.1
  * @date 2020-04-29
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 

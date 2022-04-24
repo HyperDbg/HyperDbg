@@ -52,9 +52,6 @@ CommandDtHelp()
     ShowMessages("\t\te.g : dt nt!_MY_STRUCT 7ff00040 pid 1420\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS $proc inline all\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010 inline no\n");
-
-
-   
 }
 
 /**
@@ -81,14 +78,14 @@ CommandStructHelp()
 }
 
 /**
- * @brief Convert HyperDbg arguments for dt and struct commands to pdbex arguments 
+ * @brief Convert HyperDbg arguments for dt and struct commands to pdbex arguments
  * @details This is because we don't wanna modify the internal structure of pdbex
  * so let's pdbex parse its standard commands
- * 
+ *
  * @param ExtraArgs
  * @param PdbexArgs
  * @param ProcessId
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -310,7 +307,7 @@ CommandDtAndStructConvertHyperDbgArgsToPdbex(vector<string> ExtraArgs,
  * @param TargetPid
  * @param IsPhysicalAddress
  * @param AdditionalParameters
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN

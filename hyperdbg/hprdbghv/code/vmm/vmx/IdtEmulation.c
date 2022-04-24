@@ -1,22 +1,22 @@
 /**
  * @file IdtEmulation.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Handlers of Guest's IDT Emulator 
+ * @brief Handlers of Guest's IDT Emulator
  * @details
  * @version 0.1
  * @date 2020-06-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief re-inject interrupt or exception to the guest
- * 
+ *
  * @param InterruptExit interrupt info from vm-exit
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
@@ -47,13 +47,13 @@ IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION Inter
 
 /**
  * @brief inject #PFs to the guest
- * 
+ *
  * @param CurrentProcessorIndex processor index
  * @param InterruptExit interrupt info from vm-exit
  * @param Address cr2 address
  * @param ErrorCode Page-fault error code
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorIndex,
@@ -117,11 +117,11 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
 
 /**
  * @brief Handle Nmi and expection vm-exits
- * 
+ *
  * @param CurrentProcessorIndex index of processor
  * @param InterruptExit vm-exit information for interrupt
  * @param GuestRegs guest registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 IdtEmulationHandleExceptionAndNmi(_In_ UINT32                          CurrentProcessorIndex,
@@ -357,10 +357,10 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                          CurrentPr
  * @brief if the guest is not interruptible, then we save the details of each
  * interrupt so we can re-inject them to the guest whenever the interrupt window
  * is open
- * 
+ *
  * @param InterruptExit interrupt info from vm-exit
  * @param CurrentProcessorIndex processor index
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
@@ -394,12 +394,12 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFOR
 
 /**
  * @brief Handle process or thread switches
- * 
+ *
  * @param CurrentProcessorIndex processor index
  * @param InterruptExit interrupt info from vm-exit
  * @param GuestRegs guest context
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       CurrentProcessorIndex,
@@ -440,12 +440,12 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       Current
 
 /**
  * @brief external-interrupt vm-exit handler
- * 
+ *
  * @param CurrentProcessorIndex processor index
  * @param InterruptExit interrupt info from vm-exit
  * @param GuestRegs guest contexts
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 IdtEmulationHandleExternalInterrupt(_In_ UINT32                          CurrentProcessorIndex,
@@ -586,10 +586,10 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32                          Current
 
 /**
  * @brief Handle NMI-window exitings
- * 
+ *
  * @param CurrentProcessorIndex processor index
  * @param GuestRegs guest context
- * @return VOID 
+ * @return VOID
  */
 VOID
 IdtEmulationHandleNmiWindowExiting(_In_ UINT32 CurrentProcessorIndex, _Inout_ PGUEST_REGS GuestRegs)
@@ -599,9 +599,9 @@ IdtEmulationHandleNmiWindowExiting(_In_ UINT32 CurrentProcessorIndex, _Inout_ PG
 
 /**
  * @brief Handle interrupt-window exitings
- * 
+ *
  * @param CurrentProcessorIndex processor index
- * @return VOID 
+ * @return VOID
  */
 VOID
 IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)

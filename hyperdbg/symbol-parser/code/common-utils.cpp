@@ -14,7 +14,7 @@
 
 /**
  * @brief check if a file exist or not
- * 
+ *
  * @param FileName path of file
  * @return BOOLEAN shows whether the file exist or not
  */
@@ -35,7 +35,7 @@ IsDirExists(const std::string & DirPath)
 {
     DWORD Ftyp = GetFileAttributesA(DirPath.c_str());
     if (Ftyp == INVALID_FILE_ATTRIBUTES)
-        return FALSE; //something is wrong with your path!
+        return FALSE; // something is wrong with your path!
 
     if (Ftyp & FILE_ATTRIBUTE_DIRECTORY)
         return TRUE; // this is a directory!
@@ -45,10 +45,10 @@ IsDirExists(const std::string & DirPath)
 
 /**
  * @brief create a directory recursivly
- * 
+ *
  * @param Path path of file
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 CreateDirectoryRecursive(const std::string & Path)

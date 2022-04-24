@@ -35,7 +35,7 @@ CommandTestHelp()
 }
 
 /**
- * @brief Send an IOCTL to the kernel to run the 
+ * @brief Send an IOCTL to the kernel to run the
  *
  * @return BOOLEAN
  */

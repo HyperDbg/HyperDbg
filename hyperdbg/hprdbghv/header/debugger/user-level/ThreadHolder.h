@@ -2,12 +2,12 @@
  * @file ThreadHolder.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief User debugger's thread holder headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2022-01-28
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,7 +17,7 @@
 
 /**
  * @brief Vmx-root lock for thread holding
- * 
+ *
  */
 volatile LONG VmxRootThreadHoldingLock;
 
@@ -27,7 +27,7 @@ volatile LONG VmxRootThreadHoldingLock;
 
 /**
  * @brief Details of each thread in process
- * 
+ *
  */
 typedef struct _USERMODE_DEBUGGING_THREAD_DETAILS
 {
@@ -41,7 +41,7 @@ typedef struct _USERMODE_DEBUGGING_THREAD_DETAILS
 
 /**
  * @brief The holder for detail of each thread in process
- * 
+ *
  */
 typedef struct _USERMODE_DEBUGGING_THREAD_HOLDER
 {

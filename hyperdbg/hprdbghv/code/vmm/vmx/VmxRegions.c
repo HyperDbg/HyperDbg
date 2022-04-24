@@ -5,16 +5,16 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Allocates Vmxon region and set the Revision ID based on IA32_VMX_BASIC_MSR
- * 
- * @param CurrentGuestState 
+ *
+ * @param CurrentGuestState
  * @return BOOLEAN Returns true if allocation was successfull and vmxon executed without error
  * otherwise returns false
  */
@@ -66,7 +66,7 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
-    //Changing Revision Identifier
+    // Changing Revision Identifier
     //
     *(UINT64 *)AlignedVmxonRegion = VmxBasicMsr.VmcsRevisionId;
 
@@ -92,8 +92,8 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Allocate Vmcs region and set the Revision ID based on IA32_VMX_BASIC_MSR
- * 
- * @param CurrentGuestState 
+ *
+ * @param CurrentGuestState
  * @return BOOLEAN Returns true if allocation was successfull and vmptrld executed without error
  * otherwise returns false
  */
@@ -141,7 +141,7 @@ VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
-    //Changing Revision Identifier
+    // Changing Revision Identifier
     //
     *(UINT64 *)AlignedVmcsRegion = VmxBasicMsr.VmcsRevisionId;
 
@@ -157,7 +157,7 @@ VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Allocate VMM Stack
- * 
+ *
  * @param ProcessorID Logical Core Id
  * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
  */
@@ -185,8 +185,8 @@ VmxAllocateVmmStack(_In_ INT ProcessorID)
 
 /**
  * @brief Allocate a buffer forr Msr Bitmap
- * 
- * @param ProcessorID 
+ *
+ * @param ProcessorID
  * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
  */
 BOOLEAN
@@ -216,8 +216,8 @@ VmxAllocateMsrBitmap(_In_ INT ProcessorID)
 
 /**
  * @brief Allocate a buffer forr I/O Bitmap
- * 
- * @param ProcessorID 
+ *
+ * @param ProcessorID
  * @return BOOLEAN Returns true if allocation was successfull otherwise returns false
  */
 BOOLEAN

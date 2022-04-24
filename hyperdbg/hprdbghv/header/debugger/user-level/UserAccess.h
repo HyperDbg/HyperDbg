@@ -5,9 +5,9 @@
  * @details Access to Portable Executables
  * @version 0.1
  * @date 2021-12-24
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,7 +17,7 @@
 
 /**
  * @brief PEB LDR Data
- * 
+ *
  */
 typedef struct _PEB_LDR_DATA
 {
@@ -31,7 +31,7 @@ typedef struct _PEB_LDR_DATA
 
 /**
  * @brief User process params
- * 
+ *
  */
 typedef struct _RTL_USER_PROCESS_PARAMETERS
 {
@@ -43,13 +43,13 @@ typedef struct _RTL_USER_PROCESS_PARAMETERS
 
 /**
  * @brief Random windows type
- * 
+ *
  */
 typedef void(__stdcall * PPS_POST_PROCESS_INIT_ROUTINE)(void); // not exported
 
 /**
  * @brief PEB 64-bit
- * 
+ *
  */
 typedef struct _PEB
 {
@@ -76,7 +76,7 @@ typedef struct _PEB
 
 /**
  * @brief PEB 32-bit
- * 
+ *
  */
 typedef struct _PEB32
 {
@@ -102,7 +102,7 @@ typedef struct _PEB32
 
 /**
  * @brief LDR Data 32-bit
- * 
+ *
  */
 typedef struct _PEB_LDR_DATA32
 {
@@ -116,7 +116,7 @@ typedef struct _PEB_LDR_DATA32
 
 /**
  * @brief LDR Data Table 32-bit
- * 
+ *
  */
 typedef struct _LDR_DATA_TABLE_ENTRY32
 {
@@ -137,7 +137,7 @@ typedef struct _LDR_DATA_TABLE_ENTRY32
 
 /**
  * @brief LDR Data Table 64-bit
- * 
+ *
  */
 typedef struct _LDR_DATA_TABLE_ENTRY
 {
@@ -182,19 +182,19 @@ typedef PPEB32(NTAPI * PsGetProcessWow64Process)(PEPROCESS Process);
 
 /**
  * @brief Address of ZwQueryInformationProcess
- * 
+ *
  */
 ZwQueryInformationProcess g_ZwQueryInformationProcess;
 
 /**
  * @brief Address of PsGetProcessPeb
- * 
+ *
  */
 PsGetProcessPeb g_PsGetProcessPeb;
 
 /**
  * @brief Address of PsGetProcessWow64Process
- * 
+ *
  */
 PsGetProcessWow64Process g_PsGetProcessWow64Process;
 

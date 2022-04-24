@@ -4,22 +4,22 @@
  * @brief Implementation of different EPT hidden hooks functions
  * @details All the R/W hooks, Execute hooks and hardware register simulators
  * are implemented here
- *  
+ *
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag
- * 
- * @param PoolType 
- * @param NumberOfBytes 
- * @param Tag 
- * @return PVOID 
+ *
+ * @param PoolType
+ * @param NumberOfBytes
+ * @param Tag
+ * @return PVOID
  */
 PVOID
 ExAllocatePoolWithTagHook(
@@ -35,7 +35,7 @@ ExAllocatePoolWithTagHook(
  * @brief The main function that performs EPT page hook with hidden breakpoint
  * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
  * This function have to be called through a VMCALL in VMX Root Mode
- * 
+ *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessCr3 The process cr3 to translate based on that process's cr3
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
@@ -351,14 +351,14 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
 /**
  * @brief This function allocates a buffer in VMX Non Root Mode and then invokes a VMCALL to set the hook
  *
- * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE 
+ * @details this command uses hidden breakpoints (0xcc) to hook, THIS FUNCTION SHOULD BE CALLED WHEN THE
  * VMLAUNCH ALREADY EXECUTED, it is because, broadcasting to enable exception bitmap for breakpoint is not
- * clear here, if we want to broadcast to enable exception bitmaps on all cores when vmlaunch is not executed 
- * then that's ok but a user might call this function when we didn't configure the vmcs, it's a problem! we 
+ * clear here, if we want to broadcast to enable exception bitmaps on all cores when vmlaunch is not executed
+ * then that's ok but a user might call this function when we didn't configure the vmcs, it's a problem! we
  * can solve it by giving a hint to vmcs configure function to make it ok for future configuration but that
  * sounds stupid, I think it's better to not support this feature. Btw, debugger won't use this function in
  * the above mentioned method, so we won't have any problem with this :)
- * 
+ *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessId The process id to translate based on that process's cr3
  * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
@@ -420,9 +420,9 @@ EptHook(PVOID TargetAddress, UINT32 ProcessId)
  * @brief Remove and Invalidate Hook in TLB (Hidden Detours and if counter of hidden breakpoint is zero)
  * @warning This function won't remove entries from LIST_ENTRY,
  *  just invalidate the paging, use EptHookUnHookSingleAddress instead
- * 
- * 
- * @param PhysicalAddress 
+ *
+ *
+ * @param PhysicalAddress
  * @return BOOLEAN Return false if there was an error or returns true if it was successfull
  */
 BOOLEAN
@@ -463,8 +463,8 @@ EptHookRestoreSingleHookToOrginalEntry(SIZE_T PhysicalAddress)
 /**
  * @brief Remove and Invalidate Hook in TLB
  * @warning This function won't remove entries from LIST_ENTRY, just invalidate the paging, use EptHookUnHookAll instead
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 EptHookRestoreAllHooksToOrginalEntry()
@@ -495,10 +495,10 @@ EptHookRestoreAllHooksToOrginalEntry()
 
 /**
  * @brief Write an absolute x64 jump to an arbitrary address to a buffer
- * 
- * @param TargetBuffer 
- * @param TargetAddress 
- * @return VOID 
+ *
+ * @param TargetBuffer
+ * @param TargetAddress
+ * @return VOID
  */
 VOID
 EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
@@ -543,10 +543,10 @@ EptHookWriteAbsoluteJump(PCHAR TargetBuffer, SIZE_T TargetAddress)
 
 /**
  * @brief Write an absolute x64 jump to an arbitrary address to a buffer
- * 
- * @param TargetBuffer 
- * @param TargetAddress 
- * @return VOID 
+ *
+ * @param TargetBuffer
+ * @param TargetAddress
+ * @return VOID
  */
 VOID
 EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
@@ -582,7 +582,7 @@ EptHookWriteAbsoluteJump2(PCHAR TargetBuffer, SIZE_T TargetAddress)
 
 /**
  * @brief Hook ins
- * 
+ *
  * @param Hook The details of hooked pages
  * @param ProcessCr3 The target Process CR3
  * @param TargetFunction Target function that needs to be hooked
@@ -712,7 +712,7 @@ EptHookInstructionMemory(PEPT_HOOKED_PAGE_DETAIL Hook, CR3_TYPE ProcessCr3, PVOI
  * @brief The main function that performs EPT page hook with hidden detours and monitor
  * @details This function returns false in VMX Non-Root Mode if the VM is already initialized
  * This function have to be called through a VMCALL in VMX Root Mode
- * 
+ *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param HookFunction The function that will be called when hook triggered
  * @param ProcessCr3 The process cr3 to translate based on that process's cr3
@@ -1106,12 +1106,12 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
 
 /**
  * @brief Handles page hooks
- * 
+ *
  * @param Regs Guest registers
  * @param HookedEntryDetails The entry that describes the hooked page
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
- * @return BOOLEAN Returns TRUE if the function was hook was handled or returns false 
+ * @return BOOLEAN Returns TRUE if the function was hook was handled or returns false
  * if there was an unexpected ept violation
  */
 BOOLEAN
@@ -1217,7 +1217,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
  * @brief Remove the enrty from g_EptHook2sDetourListHead in the case
  * of !epthook2 details
  * @param Address Address to remove
- * @return BOOLEAN TRUE if successfully removed and false if not found 
+ * @return BOOLEAN TRUE if successfully removed and false if not found
  */
 BOOLEAN
 EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
@@ -1262,8 +1262,8 @@ EptHookRemoveEntryAndFreePoolFromEptHook2sDetourList(UINT64 Address)
 /**
  * @brief get the length of active EPT hooks (!epthook and !epthook2)
  * @param IsEptHook2 Whether the length should be for !epthook or !epthook2
- * 
- * @return UINT32 Count of remained breakpoints 
+ *
+ * @return UINT32 Count of remained breakpoints
  */
 UINT32
 EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
@@ -1299,7 +1299,7 @@ EptHookGetCountOfEpthooks(BOOLEAN IsEptHook2)
 /**
  * @brief Remove single hook of detours type
  * @details Should be called from vmx non-root
- * 
+ *
  * @param HookedEntry entry detail of hooked address
  * @return BOOLEAN If unhook was successful it returns true or if it
  * was not successful returns false
@@ -1339,7 +1339,7 @@ EptHookUnHookSingleAddressDetours(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
 /**
  * @brief Remove single hook of hidden breakpoint type
  * @details Should be called from vmx non-root
- * 
+ *
  * @param HookedEntry entry detail of hooked address
  * @param VirtualAddress virtual address to unhook
  * @return BOOLEAN If unhook was successful it returns true or if it
@@ -1470,12 +1470,12 @@ EptHookUnHookSingleAddressHiddenBreakpoint(PEPT_HOOKED_PAGE_DETAIL HookedEntry, 
 /**
  * @brief Remove single hook from the hooked pages list and invalidate TLB
  * @details Should be called from vmx non-root
- * 
+ *
  * @param VirtualAddress Virtual address to unhook
  * @param PhysAddress Physical address to unhook (optional)
  * @param ProcessId The process id of target process
  * @details in unhooking for some hooks only physical address is availables
- * 
+ *
  * @return BOOLEAN If unhook was successful it returns true or if it was not successful returns false
  */
 BOOLEAN
@@ -1545,8 +1545,8 @@ EptHookUnHookSingleAddress(UINT64 VirtualAddress, UINT64 PhysAddress, UINT32 Pro
 /**
  * @brief Remove all hooks from the hooked pages list and invalidate TLB
  * @detailsShould be called from Vmx Non-root
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 EptHookUnHookAll()

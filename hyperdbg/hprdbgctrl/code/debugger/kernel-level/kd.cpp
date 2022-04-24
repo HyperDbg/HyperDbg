@@ -302,7 +302,7 @@ KdSendFlushPacketToDebuggee()
  * @param Size
  * @param DisplayMethod
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -377,7 +377,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
 
 /**
  * @brief Send a test query request to the debuggee
- * 
+ *
  * @param Option
  * @return BOOLEAN
  */
@@ -471,7 +471,7 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
 /**
  * @brief Send a Read memory packet to the debuggee
  * @param ReadMem
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -518,7 +518,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
  * @brief Send an Edit memory packet to the debuggee
  * @param EditMem
  * @param Size
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -2228,12 +2228,12 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
 }
 
 /**
- * @brief Send the packets of reloading symbols to build a new 
+ * @brief Send the packets of reloading symbols to build a new
  * symbol table to the debugger and send the finished packet to
  * the debugger
  * @param PauseDebuggee
  * @param UserProcessId
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -2639,7 +2639,7 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
  * @param SymbolDetailPacket
  * @param CurrentSymbolInfoIndex
  * @param TotalSymbols
- * 
+ *
  * @return VOID
  */
 VOID

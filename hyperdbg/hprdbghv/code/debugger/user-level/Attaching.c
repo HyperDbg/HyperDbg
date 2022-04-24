@@ -2,13 +2,13 @@
  * @file Attaching.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Attaching and detaching for debugging user-mode processes
- * @details 
+ * @details
  *
  * @version 0.1
  * @date 2021-12-28
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
@@ -88,14 +88,14 @@ AttachingInitialize()
 }
 
 /**
- * @brief Create user-mode debugging details for threads 
- * 
- * @param ProcessId 
- * @param Is32Bit 
- * @param Eprocess 
- * @param PebAddressToMonitor 
- * @param UsermodeReservedBuffer 
- * @return UINT64 returns the unique token 
+ * @brief Create user-mode debugging details for threads
+ *
+ * @param ProcessId
+ * @param Is32Bit
+ * @param Eprocess
+ * @param PebAddressToMonitor
+ * @param UsermodeReservedBuffer
+ * @return UINT64 returns the unique token
  */
 UINT64
 AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
@@ -157,9 +157,9 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
 
 /**
  * @brief Find user-mode debugging details for threads by token
- * 
- * @param Token 
- * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
+ *
+ * @param Token
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS
  */
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByToken(UINT64 Token)
@@ -188,9 +188,9 @@ AttachingFindProcessDebuggingDetailsByToken(UINT64 Token)
 
 /**
  * @brief Find user-mode debugging details for threads by process Id
- * 
- * @param ProcessId 
- * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
+ *
+ * @param ProcessId
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS
  */
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
@@ -220,8 +220,8 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
 /**
  * @brief Find user-mode debugging details for threads that is in
  * the start-up phase
- * 
- * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS 
+ *
+ * @return PUSERMODE_DEBUGGING_PROCESS_DETAILS
  */
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsInStartingPhase()
@@ -247,8 +247,8 @@ AttachingFindProcessDebuggingDetailsInStartingPhase()
 
 /**
  * @brief Remove and deallocate all thread debuggig details
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails()
@@ -282,9 +282,9 @@ AttachingRemoveAndFreeAllProcessDebuggingDetails()
 
 /**
  * @brief Remove user-mode debugging details for threads by its token
- * 
- * @param Token 
- * @return BOOLEAN 
+ *
+ * @param Token
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
@@ -324,10 +324,10 @@ AttachingRemoveProcessDebuggingDetailsByToken(UINT64 Token)
 
 /**
  * @brief Set the start up phase of a debugging thread buffer by its token
- * 
- * @param Set 
- * @param Token 
- * @return BOOLEAN 
+ *
+ * @param Set
+ * @param Token
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 Token)
@@ -370,13 +370,13 @@ AttachingSetStartingPhaseOfProcessDebuggingDetailsByToken(BOOLEAN Set, UINT64 To
 }
 
 /**
- * @brief Handle the state when it reached to the entrypoint 
- * of the user-mode process 
- * 
- * @param CurrentProcessorIndex 
- * @param GuestRegs 
- * @param ThreadDebuggingToken 
- * @return VOID 
+ * @brief Handle the state when it reached to the entrypoint
+ * of the user-mode process
+ *
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ * @param ThreadDebuggingToken
+ * @return VOID
  */
 VOID
 AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs, UINT64 ThreadDebuggingToken)
@@ -412,11 +412,11 @@ AttachingReachedToProcessEntrypoint(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
 }
 
 /**
- * @brief Handle debug register event (#DB) for attaching to user-mode process 
- * 
- * @param CurrentProcessorIndex 
- * @param GuestRegs 
- * @return VOID 
+ * @brief Handle debug register event (#DB) for attaching to user-mode process
+ *
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ * @return VOID
  */
 VOID
 AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
@@ -560,11 +560,11 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
 }
 
 /**
- * @brief Allocate a nop-sled buffer 
+ * @brief Allocate a nop-sled buffer
  * @param ReservedBuffAddress
  * @param ProcessId
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
@@ -628,7 +628,7 @@ AttachingAdjustNopSledBuffer(UINT64 ReservedBuffAddress, UINT32 ProcessId)
  * @param InterruptExit
  * @param Address
  * @param ErrorCode
- * 
+ *
  * @return BOOLEAN if TRUE show that the page-fault injection should be ignored
  */
 BOOLEAN
@@ -691,10 +691,10 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentPro
 /**
  * @brief Enable or disable the thread intercepting phase
  * @details this function should be called in vmx non-root
- * 
- * @param ProcessDebuggingToken 
- * @param Enable 
- * @return BOOLEAN 
+ *
+ * @param ProcessDebuggingToken
+ * @param Enable
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable)
@@ -783,10 +783,10 @@ AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enab
 /**
  * @brief Attach to the target process
  * @details this function should not be called in vmx-root
- * 
- * @param AttachRequest 
- * @param IsAttachingToEntrypoint 
- * @return BOOLEAN 
+ *
+ * @param AttachRequest
+ * @param IsAttachingToEntrypoint
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest, BOOLEAN IsAttachingToEntrypoint)
@@ -997,10 +997,10 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
 /**
  * @brief Handle the cr3 vm-exits for thread interception
  * @details this function should be called in vmx-root
- * 
- * @param CurrentCoreIndex 
- * @param NewCr3 
- * @return BOOLEAN 
+ *
+ * @param CurrentCoreIndex
+ * @param NewCr3
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE NewCr3)
@@ -1063,9 +1063,9 @@ AttachingHandleCr3VmexitsForThreadInterception(UINT32 CurrentCoreIndex, CR3_TYPE
 /**
  * @brief Clearing hooks after resuming the process
  * @details this function should not be called in vmx-root
- * 
- * @param AttachRequest 
- * @return BOOLEAN 
+ *
+ * @param AttachRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
@@ -1122,11 +1122,11 @@ AttachingRemoveHooks(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS AttachRequest)
 }
 
 /**
- * @brief Pauses the target process 
+ * @brief Pauses the target process
  * @details this function should not be called in vmx-root
- * 
- * @param PauseRequest 
- * @return BOOLEAN 
+ *
+ * @param PauseRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
@@ -1149,9 +1149,9 @@ AttachingPauseProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS PauseRequest)
 /**
  * @brief Kill the target process from kernel-mode
  * @details this function should not be called in vmx-root
- * 
- * @param KillRequest 
- * @return BOOLEAN 
+ *
+ * @param KillRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingKillProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS KillRequest)
@@ -1223,9 +1223,9 @@ Success:
 /**
  * @brief Clearing hooks after resuming the process
  * @details this function should not be called in vmx-root
- * 
- * @param DetachRequest 
- * @return BOOLEAN 
+ *
+ * @param DetachRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
@@ -1283,9 +1283,9 @@ AttachingPerformDetach(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS DetachRequest)
 
 /**
  * @brief Switch to the target thread
- * 
- * @param SwitchRequest 
- * @return BOOLEAN 
+ *
+ * @param SwitchRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
@@ -1371,9 +1371,9 @@ AttachingSwitchProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS SwitchRequest)
 
 /**
  * @brief Query count of active debugging threads
- * 
- * @param QueryCountOfDebugThreadsRequest 
- * @return BOOLEAN 
+ *
+ * @param QueryCountOfDebugThreadsRequest
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingQueryCountOfActiveDebuggingThreadsAndProcesses(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS QueryCountOfDebugThreadsRequest)
@@ -1396,10 +1396,10 @@ AttachingQueryCountOfActiveDebuggingThreadsAndProcesses(PDEBUGGER_ATTACH_DETACH_
 
 /**
  * @brief Query details of active debugging threads
- * 
- * @param BufferToStoreDetails 
- * @param BufferSize 
- * @return BOOLEAN 
+ *
+ * @param BufferToStoreDetails
+ * @param BufferSize
+ * @return BOOLEAN
  */
 BOOLEAN
 AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDetails, UINT32 BufferSize)
@@ -1429,9 +1429,9 @@ AttachingQueryDetailsOfActiveDebuggingThreadsAndProcesses(PVOID BufferToStoreDet
 /**
  * @brief Dispatch and perform attaching tasks
  * @details this function should not be called in vmx-root
- * 
- * @param AttachRequest 
- * @return VOID 
+ *
+ * @param AttachRequest
+ * @return VOID
  */
 VOID
 AttachingTargetProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Request)

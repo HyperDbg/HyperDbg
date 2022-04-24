@@ -1,13 +1,13 @@
 /**
  * @file Events.h
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection 
+ * @brief Headers relating to Exception Bitmap and Event (Interrupt and Exception) Injection
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -24,7 +24,7 @@
 
 /**
  * @brief Exceptions enum
- * 
+ *
  */
 typedef enum _EXCEPTION_VECTORS
 {
@@ -74,7 +74,7 @@ typedef enum _EXCEPTION_VECTORS
 
 /**
  * @brief Type of interrupts
- * 
+ *
  */
 typedef enum _INTERRUPT_TYPE
 {
@@ -94,7 +94,7 @@ typedef enum _INTERRUPT_TYPE
 
 /**
  * @brief Interrupt injection and event format
- * 
+ *
  */
 typedef union _INTERRUPT_INFO
 {
@@ -102,7 +102,7 @@ typedef union _INTERRUPT_INFO
     {
         UINT32 Vector : 8;
         /* 0=Ext Int, 1=Rsvd, 2=NMI, 3=Exception, 4=Soft INT,
-		 * 5=Priv Soft Trap, 6=Unpriv Soft Trap, 7=Other */
+         * 5=Priv Soft Trap, 6=Unpriv Soft Trap, 7=Other */
         UINT32 InterruptType : 3;
         UINT32 DeliverCode : 1; /* 0=Do not deliver, 1=Deliver */
         UINT32 Reserved : 19;
@@ -113,7 +113,7 @@ typedef union _INTERRUPT_INFO
 
 /**
  * @brief Event information
- * 
+ *
  */
 typedef struct _EVENT_INFORMATION
 {

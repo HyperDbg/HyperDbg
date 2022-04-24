@@ -4,27 +4,27 @@
  * @brief Implenetation of the fucntions related to the EFER Syscall Hook
  * @details This is derived by the method demonstrated at
  * - https://revers.engineering/syscall-hooking-via-extended-feature-enable-register-efer/
- * 
+ *
  * also some of the functions derived from hvpp
  * - https://github.com/wbenny/hvpp
- * 
+ *
  * @version 0.1
  * @date 2020-04-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief This function enables or disables EFER syscall hoo
  * @details This function should be called for the first time
- * that we want to enable EFER hook because after calling this 
+ * that we want to enable EFER hook because after calling this
  * function EFER MSR is loaded from GUEST_EFER instead of loading
  * from the regular EFER MSR.
- * 
+ *
  * @param EnableEFERSyscallHook Determines whether we want to enable syscall hook or disable syscall hook
- * @return VOID 
+ * @return VOID
  */
 VOID
 SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
@@ -104,8 +104,8 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
 }
 
 /**
- * @brief This function emulates the SYSCALL execution 
- * 
+ * @brief This function emulates the SYSCALL execution
+ *
  * @param Regs Guest registers
  * @return BOOLEAN
  */
@@ -170,8 +170,8 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 }
 
 /**
- * @brief This function emulates the SYSRET execution 
- * 
+ * @brief This function emulates the SYSRET execution
+ *
  * @param Regs Guest registers
  * @return BOOLEAN
  */
@@ -216,7 +216,7 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 
 /**
  * @brief Detect whether the #UD was because of Syscall or Sysret or not
- * 
+ *
  * @param Regs Guest register
  * @param CoreIndex Logical core index
  * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not

@@ -1,21 +1,21 @@
 /**
  * @file Counters.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions for emulating counters 
+ * @brief The functions for emulating counters
  * @details
  * @version 0.1
  * @date 2020-06-14
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Emulate RDTSC
- * 
+ *
  * @param GuestRegs guest registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
@@ -33,9 +33,9 @@ CounterEmulateRdtsc(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Emulate RDTSCP
- * 
+ *
  * @param GuestRegs Guest Registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
@@ -50,9 +50,9 @@ CounterEmulateRdtscp(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Emulate RDPMC
- * 
+ *
  * @param GuestRegs Guest Register
- * @return VOID 
+ * @return VOID
  */
 VOID
 CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
@@ -67,9 +67,9 @@ CounterEmulateRdpmc(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Set the timer value for preemption timer
- * 
+ *
  * @param TimerValue Value of the timer
- * @return VOID 
+ * @return VOID
  */
 VOID
 CounterSetPreemptionTimer(UINT32 TimerValue)
@@ -81,9 +81,9 @@ CounterSetPreemptionTimer(UINT32 TimerValue)
 }
 
 /**
- * @brief Clears the preemption timer 
- * 
- * @return VOID 
+ * @brief Clears the preemption timer
+ *
+ * @return VOID
  */
 VOID
 CounterClearPreemptionTimer()

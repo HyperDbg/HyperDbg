@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2021-12-31
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,7 +17,7 @@
 
 /**
  * @brief Types of actions for NMI broadcasting
- * 
+ *
  */
 typedef enum _NMI_BROADCAST_ACTION_TYPE
 {

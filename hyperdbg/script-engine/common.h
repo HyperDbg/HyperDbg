@@ -4,23 +4,23 @@
 #    define COMMON_H
 
 /**
-* @brief initial size of symbol buffer
-*/
+ * @brief initial size of symbol buffer
+ */
 #    define SYMBOL_BUFFER_INIT_SIZE 64
 
 /**
-* @brief maximum length of string in the token
-*/
+ * @brief maximum length of string in the token
+ */
 #    define TOKEN_VALUE_MAX_LEN 8
 
 /**
-* @brief init size of token list
-*/
+ * @brief init size of token list
+ */
 #    define TOKEN_LIST_INIT_SIZE 256
 
 /**
-* @brief enumerates possible types for token
-*/
+ * @brief enumerates possible types for token
+ */
 typedef enum TOKEN_TYPE
 {
     LOCAL_ID,
@@ -48,8 +48,8 @@ typedef enum TOKEN_TYPE
 } TOKEN_TYPE;
 
 /**
-* @brief read tokens from input stored in this structure
-*/
+ * @brief read tokens from input stored in this structure
+ */
 struct _TOKEN
 {
     TOKEN_TYPE   Type;
@@ -59,13 +59,13 @@ struct _TOKEN
 };
 
 /**
-* @brief Pointer to _TOKEN structure
-*/
+ * @brief Pointer to _TOKEN structure
+ */
 typedef struct _TOKEN * TOKEN;
 
 /**
-* @brief this structure is a dynamic containter of TOKENS
-*/
+ * @brief this structure is a dynamic containter of TOKENS
+ */
 typedef struct _TOKEN_LIST
 {
     TOKEN *      Head;

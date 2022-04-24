@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,19 +17,19 @@
 
 /**
  * @brief VMCS Region Size
- * 
+ *
  */
 #define VMCS_SIZE 4096
 
 /**
  * @brief VMXON Region Size
- * 
+ *
  */
 #define VMXON_SIZE 4096
 
 /**
  * @brief PIN-Based Execution
- * 
+ *
  */
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING               0x00000008
@@ -39,7 +39,7 @@
 
 /**
  * @brief CPU-Based Controls
- * 
+ *
  */
 #define CPU_BASED_VIRTUAL_INTR_PENDING        0x00000004
 #define CPU_BASED_USE_TSC_OFFSETING           0x00000008
@@ -65,7 +65,7 @@
 
 /**
  * @brief Secondary CPU-Based Controls
- * 
+ *
  */
 #define CPU_BASED_CTL2_ENABLE_EPT                 0x2
 #define CPU_BASED_CTL2_RDTSCP                     0x8
@@ -78,7 +78,7 @@
 
 /**
  * @brief VM-exit Control Bits
- * 
+ *
  */
 #define VM_EXIT_SAVE_DEBUG_CONTROLS        0x00000004
 #define VM_EXIT_HOST_ADDR_SPACE_SIZE       0x00000200
@@ -92,7 +92,7 @@
 
 /**
  * @brief VM-entry Control Bits
- * 
+ *
  */
 #define VM_ENTRY_LOAD_DEBUG_CONTROLS        0x00000004
 #define VM_ENTRY_IA32E_MODE                 0x00000200
@@ -102,11 +102,9 @@
 #define VM_ENTRY_LOAD_IA32_PAT              0x00004000
 #define VM_ENTRY_LOAD_IA32_EFER             0x00008000
 
-
-
 /**
  * @brief CPUID RCX(s) - Based on Hyper-V
- * 
+ *
  */
 #define HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS 0x40000000
 #define HYPERV_CPUID_INTERFACE                0x40000001
@@ -120,7 +118,7 @@
 
 /**
  * @brief GUEST_INTERRUPTIBILITY_INFO flags
- * 
+ *
  */
 #define GUEST_INTR_STATE_STI          0x00000001
 #define GUEST_INTR_STATE_MOV_SS       0x00000002
@@ -130,20 +128,20 @@
 
 /**
  * @brief Interrupt shadow states
- * 
+ *
  */
 #define SHADOW_INT_MOV_SS 0x01
 #define SHADOW_INT_STI    0x02
 
 /**
  * @brief Stack Size
- * 
+ *
  */
 #define VMM_STACK_SIZE 0x8000
 
 /**
  * @brief Pending External Interrups Buffer Capacity
- * 
+ *
  */
 #define PENDING_INTERRUPTS_BUFFER_CAPACITY 64
 
@@ -154,7 +152,7 @@
 
 /**
  * @brief Hypercalls for Hyper-V
- * 
+ *
  */
 typedef union _HYPERCALL_INPUT_VALUE
 {
@@ -176,7 +174,7 @@ typedef union _HYPERCALL_INPUT_VALUE
 
 /**
  * @brief Hyper-V Hypercalls
- * 
+ *
  */
 enum HYPERCALL_CODE
 {
@@ -302,7 +300,7 @@ enum HYPERCALL_CODE
 
 /**
  * @brief MOV to debug registers states
- * 
+ *
  */
 typedef enum MOV_TO_DEBUG_REG
 {
@@ -316,7 +314,7 @@ typedef enum MOV_TO_DEBUG_REG
 
 /**
  * @brief Save the state of core in the case of VMXOFF
- * 
+ *
  */
 typedef struct _VMX_VMXOFF_STATE
 {
@@ -328,7 +326,7 @@ typedef struct _VMX_VMXOFF_STATE
 
 /**
  * @brief The status of each core after and before VMX
- * 
+ *
  */
 typedef struct _VIRTUAL_MACHINE_STATE
 {

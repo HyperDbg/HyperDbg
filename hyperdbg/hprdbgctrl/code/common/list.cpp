@@ -13,23 +13,23 @@
 //
 ///**
 // * @brief List initializer
-// * 
-// * @param ListHead 
+// *
+// * @param ListHead
 // */
-//void
-//InitializeListHead(PLIST_ENTRY ListHead)
+// void
+// InitializeListHead(PLIST_ENTRY ListHead)
 //{
 //    ListHead->Flink = ListHead->Blink = ListHead;
 //}
 //
 ///**
 // * @brief insert entry to the top of the list
-// * 
-// * @param ListHead 
-// * @param Entry 
+// *
+// * @param ListHead
+// * @param Entry
 // */
-//void
-//InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
+// void
+// InsertHeadList(PLIST_ENTRY ListHead, PLIST_ENTRY Entry)
 //{
 //    PLIST_ENTRY Flink;
 //
@@ -42,12 +42,12 @@
 //
 ///**
 // * @brief remove the entry from the list
-// * 
-// * @param Entry 
-// * @return BOOLEAN 
+// *
+// * @param Entry
+// * @return BOOLEAN
 // */
-//BOOLEAN
-//RemoveEntryList(PLIST_ENTRY Entry)
+// BOOLEAN
+// RemoveEntryList(PLIST_ENTRY Entry)
 //{
 //    PLIST_ENTRY PrevEntry;
 //    PLIST_ENTRY NextEntry;

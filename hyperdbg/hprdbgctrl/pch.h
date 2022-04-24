@@ -32,7 +32,7 @@
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
-#endif //USE_LIB_IA32
+#endif // USE_LIB_IA32
 
 //
 // Native API header files for the Process Hacker project.

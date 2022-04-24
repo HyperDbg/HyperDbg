@@ -2,12 +2,12 @@
  * @file IoHandler.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The I/O Handler for vm-exit headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-06-06
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -15,14 +15,13 @@
 //                 Structures	    			//
 //////////////////////////////////////////////////
 
-
 //////////////////////////////////////////////////
 //                     Enums	    			//
 //////////////////////////////////////////////////
 
 /**
  * @brief IN Instruction or OUT Instruction
- * 
+ *
  */
 typedef enum
 {
@@ -32,7 +31,7 @@ typedef enum
 
 /**
  * @brief Immediate value or in DX
- * 
+ *
  */
 typedef enum
 {

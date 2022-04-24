@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 
 #pragma once
@@ -18,7 +18,7 @@
 
 /**
  * @brief The usermode request
- * 
+ *
  */
 typedef struct _NOTIFY_RECORD
 {
@@ -36,7 +36,7 @@ typedef struct _NOTIFY_RECORD
 
 /**
  * @brief Message buffer structure
- * 
+ *
  */
 typedef struct _BUFFER_HEADER
 {
@@ -47,7 +47,7 @@ typedef struct _BUFFER_HEADER
 
 /**
  * @brief Core-specific buffers
- * 
+ *
  */
 typedef struct _LOG_BUFFER_INFORMATION
 {
@@ -83,19 +83,19 @@ typedef struct _LOG_BUFFER_INFORMATION
 
 /**
  * @brief Global Variable for buffer on all cores
- * 
+ *
  */
 LOG_BUFFER_INFORMATION * MessageBufferInformation;
 
 /**
  * @brief Vmx-root lock for logging
- * 
+ *
  */
 volatile LONG VmxRootLoggingLock;
 
 /**
  * @brief Vmx-root lock for logging
- * 
+ *
  */
 volatile LONG VmxRootLoggingLockForNonImmBuffers;
 
@@ -108,43 +108,43 @@ volatile LONG VmxRootLoggingLockForNonImmBuffers;
 A core buffer is like this , it's divided into MaximumPacketsCapacity chucks,
 each chunk has PacketChunkSize + sizeof(BUFFER_HEADER) size
 
-			 _________________________
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
-			|						  |
-			|						  |
-			|						  |
-			|						  |
-			|			.			  |
-			|			.			  |
-			|			.			  |
-			|						  |
-			|						  |
-			|						  |
-			|						  |
-			|_________________________|
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
+             _________________________
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |						  |
+            |           BODY		  |
+            |         (Buffer)		  |
+            | size = PacketChunkSize  |
+            |						  |
+            |_________________________|
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |						  |
+            |           BODY		  |
+            |         (Buffer)		  |
+            | size = PacketChunkSize  |
+            |						  |
+            |_________________________|
+            |						  |
+            |						  |
+            |						  |
+            |						  |
+            |			.			  |
+            |			.			  |
+            |			.			  |
+            |						  |
+            |						  |
+            |						  |
+            |						  |
+            |_________________________|
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |						  |
+            |           BODY		  |
+            |         (Buffer)		  |
+            | size = PacketChunkSize  |
+            |						  |
+            |_________________________|
 
 */
 

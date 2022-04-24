@@ -259,7 +259,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
     SplitPathAndArgs(PathAndArgs, Command);
 
     /*
-    
+
     for (auto item : PathAndArgs)
     {
         //

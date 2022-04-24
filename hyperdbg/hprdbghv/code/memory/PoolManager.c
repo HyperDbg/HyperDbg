@@ -4,19 +4,19 @@
  * @brief The pool manager used in vmx root
  * @details As we cannot allocate pools in vmx root, we need a pool
  * manager to manage the pools
- * 
+ *
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Initializes the pool manager
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 PoolManagerInitialize()
@@ -78,8 +78,8 @@ PoolManagerInitialize()
 
 /**
  * @brief Uninitialize the pool manager (free the buffers, etc.)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 PoolManagerUninitialize()
@@ -122,9 +122,9 @@ PoolManagerUninitialize()
 /**
  * @brief This function set a pool flag to be freed, and it will be freed
  * on the next IOCTL when it's safe to remove
- * 
+ *
  * @param AddressToFree The pool address that was previously obtained from the pool manager
- * @return BOOLEAN If the address was already in the list of allocated pools by pool 
+ * @return BOOLEAN If the address was already in the list of allocated pools by pool
  * manager then it returns TRUE; otherwise, FALSE
  */
 BOOLEAN
@@ -167,7 +167,7 @@ PoolManagerFreePool(UINT64 AddressToFree)
  * @brief This function should be called from vmx-root in order to get a pool from the list
  * @details If RequestNewPool is TRUE then Size is used, otherwise Size is useless
  * Note : Most of the times this function called from vmx root but not all the time
- * 
+ *
  * @param Intention The intention why we need this pool for (buffer tag)
  * @param RequestNewPool Create a request to allocate a new pool with the same size, next time
  * that it's safe to allocate (this way we never ran out of pools for this "Intention")
@@ -220,7 +220,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
 /**
  * @brief Allocate the new pools and add them to pool table
  * @details This function doesn't need lock as it just calls once from PASSIVE_LEVEL
- * 
+ *
  * @param Size Size of each chunk
  * @param Count Count of chunks
  * @param Intention The Intention of the buffer (buffer tag)
@@ -271,7 +271,7 @@ PoolManagerAllocateAndAddToPoolTable(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_
 
 /**
  * @brief This function performs allocations from VMX non-root based on g_RequestNewAllocation
- * 
+ *
  * @return BOOLEAN If the the pool manager allocates buffer or there was no buffer to allocate
  * then it returns true, if there was any error then it returns false
  */
@@ -376,8 +376,8 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
 
 /**
  * @brief Request to allocate new buffers
- * 
- * @param Size Request new buffer to allocate 
+ *
+ * @param Size Request new buffer to allocate
  * @param Count Count of chunks
  * @param Intention The intention of chunks (buffer tag)
  * @return BOOLEAN If the request is save it returns true otherwise it returns false

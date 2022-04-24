@@ -1,25 +1,25 @@
 /**
  * @file Driver.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The project entry 
+ * @brief The project entry
  * @details This file contains major functions and all the interactions
  * with usermode codes are managed from here.
  * e.g debugger commands and extension commands
  * @version 0.1
  * @date 2020-04-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 #include "Driver.tmh"
 
 /**
  * @brief Main Driver Entry in the case of driver load
- * 
- * @param DriverObject 
- * @param RegistryPath 
- * @return NTSTATUS 
+ *
+ * @param DriverObject
+ * @param RegistryPath
+ * @return NTSTATUS
  */
 NTSTATUS
 DriverEntry(
@@ -102,9 +102,9 @@ DriverEntry(
 
 /**
  * @brief Run in the case of driver unload to unregister the devices
- * 
- * @param DriverObject 
- * @return VOID 
+ *
+ * @param DriverObject
+ * @return VOID
  */
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
@@ -174,10 +174,10 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
 
 /**
  * @brief IRP_MJ_CREATE Function handler
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -299,10 +299,10 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /**
  * @brief IRP_MJ_READ Function handler
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -318,10 +318,10 @@ DrvRead(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /**
  * @brief IRP_MJ_WRITE Function handler
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -337,10 +337,10 @@ DrvWrite(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /**
  * @brief IRP_MJ_CLOSE Function handler
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -361,10 +361,10 @@ DrvClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 /**
  * @brief Unsupported message for all other IRP_MJ_* handlers
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvUnsupported(PDEVICE_OBJECT DeviceObject, PIRP Irp)

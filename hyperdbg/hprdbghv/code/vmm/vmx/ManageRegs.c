@@ -6,17 +6,17 @@
  * @details
  * @version 0.1
  * @date 2020-06-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Set just the Guest Cs selector
- * 
+ *
  * @param Cs The CS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
@@ -25,10 +25,10 @@ SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
 }
 
 /**
- * @brief Set the Guest Cs  
- * 
+ * @brief Set the Guest Cs
+ *
  * @param Cs The CS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 
 VOID
@@ -42,8 +42,8 @@ SetGuestCs(PVMX_SEGMENT_SELECTOR Cs)
 
 /**
  * @brief Get the Guest Cs Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestCs()
@@ -60,9 +60,9 @@ GetGuestCs()
 
 /**
  * @brief Set just the Guest Ss selector
- * 
+ *
  * @param Ss The SS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestSsSel(PVMX_SEGMENT_SELECTOR Ss)
@@ -72,9 +72,9 @@ SetGuestSsSel(PVMX_SEGMENT_SELECTOR Ss)
 
 /**
  * @brief Set the Guest Ss selector
- * 
+ *
  * @param Ss The SS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestSs(PVMX_SEGMENT_SELECTOR Ss)
@@ -87,8 +87,8 @@ SetGuestSs(PVMX_SEGMENT_SELECTOR Ss)
 
 /**
  * @brief Get the Guest Ss Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestSs()
@@ -105,9 +105,9 @@ GetGuestSs()
 
 /**
  * @brief Set just the Guest Ds selector
- * 
+ *
  * @param Ds The DS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDsSel(PVMX_SEGMENT_SELECTOR Ds)
@@ -117,9 +117,9 @@ SetGuestDsSel(PVMX_SEGMENT_SELECTOR Ds)
 
 /**
  * @brief Set the Guest Ds selector
- * 
+ *
  * @param Ds The DS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDs(PVMX_SEGMENT_SELECTOR Ds)
@@ -132,8 +132,8 @@ SetGuestDs(PVMX_SEGMENT_SELECTOR Ds)
 
 /**
  * @brief Get the Guest Ds Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestDs()
@@ -150,9 +150,9 @@ GetGuestDs()
 
 /**
  * @brief Set just the Guest Fs selector
- * 
+ *
  * @param Fs The FS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestFsSel(PVMX_SEGMENT_SELECTOR Fs)
@@ -162,9 +162,9 @@ SetGuestFsSel(PVMX_SEGMENT_SELECTOR Fs)
 
 /**
  * @brief Set the Guest Fs selector
- * 
+ *
  * @param Fs The FS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestFs(PVMX_SEGMENT_SELECTOR Fs)
@@ -177,8 +177,8 @@ SetGuestFs(PVMX_SEGMENT_SELECTOR Fs)
 
 /**
  * @brief Get the Guest Fs Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestFs()
@@ -195,9 +195,9 @@ GetGuestFs()
 
 /**
  * @brief Set just the Guest Gs selector
- * 
+ *
  * @param Gs The GS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestGsSel(PVMX_SEGMENT_SELECTOR Gs)
@@ -207,9 +207,9 @@ SetGuestGsSel(PVMX_SEGMENT_SELECTOR Gs)
 
 /**
  * @brief Set the Guest Gs selector
- * 
+ *
  * @param Gs The GS Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestGs(PVMX_SEGMENT_SELECTOR Gs)
@@ -222,8 +222,8 @@ SetGuestGs(PVMX_SEGMENT_SELECTOR Gs)
 
 /**
  * @brief Get the Guest Gs Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestGs()
@@ -240,9 +240,9 @@ GetGuestGs()
 
 /**
  * @brief Set just the Guest Es selector
- * 
+ *
  * @param Es The ES Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestEsSel(PVMX_SEGMENT_SELECTOR Es)
@@ -252,9 +252,9 @@ SetGuestEsSel(PVMX_SEGMENT_SELECTOR Es)
 
 /**
  * @brief Set the Guest Es selector
- * 
+ *
  * @param Es The ES Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestEs(PVMX_SEGMENT_SELECTOR Es)
@@ -267,8 +267,8 @@ SetGuestEs(PVMX_SEGMENT_SELECTOR Es)
 
 /**
  * @brief Get the Guest Es Selector
- * 
- * @return SEGMENT_SELECTOR 
+ *
+ * @return SEGMENT_SELECTOR
  */
 VMX_SEGMENT_SELECTOR
 GetGuestEs()
@@ -285,9 +285,9 @@ GetGuestEs()
 
 /**
  * @brief Set the Guest Idtr
- * 
+ *
  * @param Idtr The Idtr Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestIdtr(UINT64 Idtr)
@@ -297,8 +297,8 @@ SetGuestIdtr(UINT64 Idtr)
 
 /**
  * @brief Get the Guest Idtr
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 GetGuestIdtr()
@@ -312,9 +312,9 @@ GetGuestIdtr()
 
 /**
  * @brief Set the Guest Ldtr
- * 
+ *
  * @param Ldtr The Idtr Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestLdtr(UINT64 Ldtr)
@@ -324,8 +324,8 @@ SetGuestLdtr(UINT64 Ldtr)
 
 /**
  * @brief Get the Guest Ldtr
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 GetGuestLdtr()
@@ -339,9 +339,9 @@ GetGuestLdtr()
 
 /**
  * @brief Set the Guest Gdtr
- * 
+ *
  * @param Gdtr The Gdtr Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestGdtr(UINT64 Gdtr)
@@ -351,8 +351,8 @@ SetGuestGdtr(UINT64 Gdtr)
 
 /**
  * @brief Get the Guest Gdtr
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 GetGuestGdtr()
@@ -366,7 +366,7 @@ GetGuestGdtr()
 
 /**
  * @param Tr The Tr Selector for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestTr(UINT64 Tr)
@@ -376,8 +376,8 @@ SetGuestTr(UINT64 Tr)
 
 /**
  * @brief Get the Guest Tr
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 GetGuestTr()
@@ -390,9 +390,9 @@ GetGuestTr()
 }
 /**
  * @brief Set the Guest RFLAGS Register
- * 
+ *
  * @param Rflags The Rflags Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestRFlags(UINT64 RFlags)
@@ -402,7 +402,7 @@ SetGuestRFlags(UINT64 RFlags)
 
 /**
  * @brief Get the Guest Rflags value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -415,9 +415,9 @@ GetGuestRFlags()
 
 /**
  * @brief Set the Guest RIP Register
- * 
+ *
  * @param RIP The RIP Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestRIP(UINT64 RIP)
@@ -427,9 +427,9 @@ SetGuestRIP(UINT64 RIP)
 
 /**
  * @brief Set the Guest RSP Register
- * 
+ *
  * @param RSP The RSP Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestRSP(UINT64 RSP)
@@ -439,7 +439,7 @@ SetGuestRSP(UINT64 RSP)
 
 /**
  * @brief Get the Guest RIP value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -453,7 +453,7 @@ GetGuestRIP()
 
 /**
  * @brief Get the Guest Cr0 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -467,7 +467,7 @@ GetGuestCr0()
 
 /**
  * @brief Get the Guest Cr2 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -481,7 +481,7 @@ GetGuestCr2()
 
 /**
  * @brief Get the Guest Cr3 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -495,7 +495,7 @@ GetGuestCr3()
 
 /**
  * @brief Get the Guest Cr4 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -509,7 +509,7 @@ GetGuestCr4()
 
 /**
  * @brief Get the Guest Cr8 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -523,9 +523,9 @@ GetGuestCr8()
 
 /**
  * @brief Set the Guest Cr0 Register
- * 
+ *
  * @param Cr0 The Cr0 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCr0(UINT64 Cr0)
@@ -535,9 +535,9 @@ SetGuestCr0(UINT64 Cr0)
 
 /**
  * @brief Set the Guest Cr2 Register
- * 
+ *
  * @param Cr2 The Cr2 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCr2(UINT64 Cr2)
@@ -547,9 +547,9 @@ SetGuestCr2(UINT64 Cr2)
 
 /**
  * @brief Set the Guest Cr3 Register
- * 
+ *
  * @param Cr3 The Cr3 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCr3(UINT64 Cr3)
@@ -559,9 +559,9 @@ SetGuestCr3(UINT64 Cr3)
 
 /**
  * @brief Set the Guest Cr4 Register
- * 
+ *
  * @param Cr4 The Cr4 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCr4(UINT64 Cr4)
@@ -571,9 +571,9 @@ SetGuestCr4(UINT64 Cr4)
 
 /**
  * @brief Set the Guest Cr8 Register
- * 
+ *
  * @param Cr8 The Cr8 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestCr8(UINT64 Cr8)
@@ -583,9 +583,9 @@ SetGuestCr8(UINT64 Cr8)
 
 /**
  * @brief Set the Guest Dr0 Register
- * 
+ *
  * @param Dr0 The Dr0 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr0(UINT64 value)
@@ -595,9 +595,9 @@ SetGuestDr0(UINT64 value)
 
 /**
  * @brief Set the Guest Dr1 Register
- * 
+ *
  * @param Dr1 The Dr1 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr1(UINT64 value)
@@ -607,9 +607,9 @@ SetGuestDr1(UINT64 value)
 
 /**
  * @brief Set the Guest Dr2 Register
- * 
+ *
  * @param Dr2 The Dr2 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr2(UINT64 value)
@@ -619,9 +619,9 @@ SetGuestDr2(UINT64 value)
 
 /**
  * @brief Set the Guest Dr3 Register
- * 
+ *
  * @param Dr3 The Dr3 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr3(UINT64 value)
@@ -631,9 +631,9 @@ SetGuestDr3(UINT64 value)
 
 /**
  * @brief Set the Guest Dr6 Register
- * 
+ *
  * @param Dr6 The Dr6 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr6(UINT64 value)
@@ -643,9 +643,9 @@ SetGuestDr6(UINT64 value)
 
 /**
  * @brief Set the Guest Dr7 Register
- * 
+ *
  * @param Dr7 The Dr7 Value for the guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 SetGuestDr7(UINT64 value)
@@ -655,7 +655,7 @@ SetGuestDr7(UINT64 value)
 
 /**
  * @brief Get the Guest Dr0 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -668,7 +668,7 @@ GetGuestDr0()
 
 /**
  * @brief Get the Guest Dr1 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -681,7 +681,7 @@ GetGuestDr1()
 
 /**
  * @brief Get the Guest Dr2 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -694,7 +694,7 @@ GetGuestDr2()
 
 /**
  * @brief Get the Guest Dr3 value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -707,7 +707,7 @@ GetGuestDr3()
 
 /**
  * @brief Get the Guest Dr6 (breakpoint status) value
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -720,7 +720,7 @@ GetGuestDr6()
 
 /**
  * @brief Get the Guest Dr7 (breakpoint trigger) value
- * 
+ *
  * @return UINT64
  */
 UINT64

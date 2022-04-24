@@ -30,13 +30,13 @@ TransparentUnhideDebugger();
 
 /**
  * @brief IA32_TIME_STAMP_COUNTER MSR (rcx)
- * 
+ *
  */
 #define MSR_IA32_TIME_STAMP_COUNTER 0x10
 
 /**
  * @brief Maximum value that can be returned by the rand function
- * 
+ *
  */
 #define RAND_MAX 0x7fff
 
@@ -46,7 +46,7 @@ TransparentUnhideDebugger();
 
 /**
  * @brief The status of transparency of each core after and before VMX
- * 
+ *
  */
 typedef struct _VM_EXIT_TRANSPARENCY
 {
@@ -60,7 +60,7 @@ typedef struct _VM_EXIT_TRANSPARENCY
 
 /**
  * @brief The measurments from user-mode and kernel-mode
- * 
+ *
  */
 typedef struct _TRANSPARENCY_MEASUREMENTS
 {
@@ -78,7 +78,7 @@ typedef struct _TRANSPARENCY_MEASUREMENTS
 
 /**
  * @brief The ProcessList of TRANSPARENCY_MEASUREMENTS is from this architecture
- * 
+ *
  */
 typedef struct _TRANSPARENCY_PROCESS
 {

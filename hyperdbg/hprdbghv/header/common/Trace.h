@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 
 #pragma once
@@ -78,7 +78,7 @@
 //
 //
 //begin_wpp config
-//USEPREFIX (TRACE_RETURN, "%!STDPREFIX!");
+// USEPREFIX (TRACE_RETURN, "%!STDPREFIX!");
 //FUNC TRACE_RETURN{FLAG=FLAG_ONE}(EXP);
 //USESUFFIX (TRACE_RETURN, "Function Return=%!STATUS!",EXP);
 //end_wpp

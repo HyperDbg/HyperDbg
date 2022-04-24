@@ -21,7 +21,7 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
 
 /**
  * @brief Initialize the user debugger in user mode
- * 
+ *
  * @return VOID
  */
 VOID
@@ -49,7 +49,7 @@ UdInitializeUserDebugger()
 
 /**
  * @brief Uninitialize the user debugger in user mode
- * 
+ *
  * @return VOID
  */
 VOID
@@ -93,7 +93,7 @@ UdUninitializeUserDebugger()
  * @param ProcessId
  * @param ThreadId
  * @param Is32Bit
- * 
+ *
  * @return VOID
  */
 VOID
@@ -121,8 +121,8 @@ UdSetActiveDebuggingProcess(UINT64  DebuggingId,
 
 /**
  * @brief Remove the current active debugging process (thread)
- * @param DontSwitchToNewProcess 
- * 
+ * @param DontSwitchToNewProcess
+ *
  * @return VOID
  */
 VOID
@@ -137,7 +137,7 @@ UdRemoveActiveDebuggingProcess(BOOLEAN DontSwitchToNewProcess)
 /**
  * @brief print error messages relating to the finding thread id
  * @details this function is used only in the scope of Thread32First
- * 
+ *
  * @return VOID
  */
 VOID
@@ -299,7 +299,7 @@ UdCheckThreadByProcessId(DWORD Pid, DWORD Tid)
  * @param FileName
  * @param CommandLine
  * @param ProcessInformation
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -546,7 +546,7 @@ UdAttachToProcess(UINT32        TargetPid,
  * thread id is valid or not
  *
  * @param TargetPid
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -627,7 +627,7 @@ UdKillProcess(UINT32 TargetPid)
  *
  * @param TargetPid
  * @param ProcessDetailToken
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -711,7 +711,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
  * @brief Pause the target process
  *
  * @param ProcessDebuggingToken
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -790,7 +790,7 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
  * @param OptionalParam2
  * @param OptionalParam3
  * @param OptionalParam4
- * 
+ *
  * @return VOID
  */
 VOID
@@ -855,7 +855,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
 /**
  * @brief Continue the target user debugger
  * @param ProcessDetailToken
- * 
+ *
  * @return VOID
  */
 VOID
@@ -879,7 +879,7 @@ UdContinueDebuggee(UINT64 ProcessDetailToken)
  * @param ProcessDetailToken
  * @param TargetThreadId
  * @param StepType
- * 
+ *
  * @return VOID
  */
 VOID
@@ -912,11 +912,11 @@ UdSendStepPacketToDebuggee(UINT64 ProcessDetailToken, UINT32 TargetThreadId, DEB
 }
 
 /**
- * @brief Set the active debugging thread by process id or thread id 
+ * @brief Set the active debugging thread by process id or thread id
  *
  * @param TargetPidOrTid
  * @param IsTid
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1002,7 +1002,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
 }
 
 /**
- * @brief Show list of active debugging processes and threads 
+ * @brief Show list of active debugging processes and threads
  *
  * @return BOOLEAN
  */

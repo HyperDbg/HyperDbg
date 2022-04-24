@@ -2,19 +2,19 @@
  * @file DebuggerEvents.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger events (triggers and enable events)
- * 
+ *
  * @version 0.1
  * @date 2020-05-12
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief routines for !syscall command (enable syscall hook)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 DebuggerEventEnableEferOnAllProcessors()
@@ -24,8 +24,8 @@ DebuggerEventEnableEferOnAllProcessors()
 
 /**
  * @brief routines for !syscall command (disable syscall hook)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 DebuggerEventDisableEferOnAllProcessors()
@@ -35,8 +35,8 @@ DebuggerEventDisableEferOnAllProcessors()
 
 /**
  * @brief routines for debugging threads (enable mov-to-cr3 exiting)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
@@ -46,8 +46,8 @@ DebuggerEventEnableMovToCr3ExitingOnAllProcessors()
 
 /**
  * @brief routines for debugging threads (disable mov-to-cr3 exiting)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
@@ -56,9 +56,9 @@ DebuggerEventDisableMovToCr3ExitingOnAllProcessors()
 }
 
 /**
- * @brief routines to generally handle breakpoint hit for detour 
- * 
- * @return PVOID 
+ * @brief routines to generally handle breakpoint hit for detour
+ *
+ * @return PVOID
  */
 PVOID
 DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFrom)
@@ -77,7 +77,7 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     //
 
     //
-    //LogInfo("Hidden Hooked function Called with : rcx = 0x%llx , rdx = 0x%llx , r8 = 0x%llx ,  r9 = 0x%llx",
+    // LogInfo("Hidden Hooked function Called with : rcx = 0x%llx , rdx = 0x%llx , r8 = 0x%llx ,  r9 = 0x%llx",
     //        Regs->rcx,
     //        Regs->rdx,
     //        Regs->r8,
@@ -117,17 +117,17 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
     // If we reach here, means that we didn't find the return address
     // that's an error, generally we can't do anything but as the user
     // might already cleaned the hook and the structures are removed
-    // so we just return the original caller address and continue the 
-    // guest normally  
+    // so we just return the original caller address and continue the
+    // guest normally
     //
     return CalledFrom;
 }
 
 /**
- * @brief Event for address, we don't use address range here, 
+ * @brief Event for address, we don't use address range here,
  * address ranges should be check in event section
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 BOOLEAN
 DebuggerEventEnableMonitorReadAndWriteForAddress(UINT64 Address, UINT32 ProcessId, BOOLEAN EnableForRead, BOOLEAN EnableForWrite)

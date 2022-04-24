@@ -17,7 +17,7 @@
 
 /**
  * @brief exe name of test process
- * 
+ *
  */
 #define TEST_PROCESS_NAME "hyperdbg-test.exe"
 

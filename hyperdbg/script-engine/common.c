@@ -333,11 +333,11 @@ Top(TOKEN_LIST TokenList)
 }
 
 /**
-* @brief cheks whether input char belongs to hexadecimal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief cheks whether input char belongs to hexadecimal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsHex(char c)
 {
@@ -348,11 +348,11 @@ IsHex(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to decimal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief cheks whether input char belongs to decimal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsDecimal(char c)
 {
@@ -363,11 +363,11 @@ IsDecimal(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to alphabet set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief cheks whether input char belongs to alphabet set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsLetter(char c)
 {
@@ -380,11 +380,11 @@ IsLetter(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to binary digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief cheks whether input char belongs to binary digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsBinary(char c)
 {
@@ -397,11 +397,11 @@ IsBinary(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to octal digit-set or not
-*
-* @param char
-* @return bool
-*/
+ * @brief cheks whether input char belongs to octal digit-set or not
+ *
+ * @param char
+ * @return bool
+ */
 char
 IsOctal(char c)
 {
@@ -582,10 +582,10 @@ IsType8Func(TOKEN Operator)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 char
 IsNoneTerminal(TOKEN Token)
 {
@@ -596,10 +596,10 @@ IsNoneTerminal(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 char
 IsSemanticRule(TOKEN Token)
 {
@@ -610,10 +610,10 @@ IsSemanticRule(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 int
 GetNonTerminalId(TOKEN Token)
 {
@@ -626,10 +626,10 @@ GetNonTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 int
 GetTerminalId(TOKEN Token)
 {
@@ -707,10 +707,10 @@ GetTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 int
 LalrGetNonTerminalId(TOKEN Token)
 {
@@ -723,10 +723,10 @@ LalrGetNonTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 int
 LalrGetTerminalId(TOKEN Token)
 {
@@ -804,10 +804,10 @@ LalrGetTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 char
 IsEqual(const TOKEN Token1, const TOKEN Token2)
 {

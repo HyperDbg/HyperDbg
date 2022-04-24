@@ -5,15 +5,15 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Check whether VMX Feature is supported or not
- * 
+ *
  * @return BOOLEAN Returns true if vmx is supported or false if it's not supported
  */
 BOOLEAN
@@ -69,7 +69,7 @@ VmxCheckVmxSupport()
 
 /**
  * @brief Initialize Vmx operation
- * 
+ *
  * @return BOOLEAN Returns true if vmx initialized successfully
  */
 BOOLEAN
@@ -100,7 +100,7 @@ VmxInitialize()
         //
 
         //
-        //Allocating VMM Stack
+        // Allocating VMM Stack
         //
         if (!VmxAllocateVmmStack(ProcessorID))
         {
@@ -164,7 +164,7 @@ VmxInitialize()
 
 /**
  * @brief Initialize essential VMX Operation tasks
- * 
+ *
  * @return BOOLEAN Returns true if vmx is successfully initialized
  */
 BOOLEAN
@@ -258,7 +258,7 @@ VmxPerformVirtualizationOnAllCores()
 
 /**
  * @brief Allocates Vmx regions for all logical cores (Vmxon region and Vmcs region)
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -296,9 +296,9 @@ VmxPerformVirtualizationOnSpecificCore()
 
 /**
  * @brief Fix values for cr0 and cr4 bits
- * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change 
+ * @details The Cr4 And Cr0 Bits During VMX Operation Preventing Them From Any Change
  * (https://revers.engineering/day-2-entering-vmx-operation/)
- * 
+ *
  * @return VOID
  */
 VOID
@@ -332,7 +332,7 @@ VmxFixCr4AndCr0Bits()
 /**
  * @brief It can deterministically check whether the caller is on vmx-root mode
  * or not
- * 
+ *
  * @return BOOLEAN Returns true if current operation mode is vmx-root and false
  * if current operation mode is vmx non-root
  */
@@ -360,7 +360,7 @@ VmxCheckIsOnVmxRoot()
 
 /**
  * @brief Initialize VMX Operation
- * 
+ *
  * @param GuestStack Guest stack for the this core (VMCS_GUEST_RSP)
  * @return BOOLEAN This function won't return true as when Vmlaunch is executed the
    rest of the function never executes but returning FALSE is an indication of error
@@ -431,7 +431,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
 /**
  * @brief Broadcast to terminate VMX on all logical cores
- * 
+ *
  * @return BOOLEAN Returns true if vmxoff successfully executed in vmcall or otherwise
  * returns false
  */
@@ -473,8 +473,8 @@ VmxTerminate()
 
 /**
  * @brief Implementation of VMPTRST instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmptrst()
@@ -488,8 +488,8 @@ VmxVmptrst()
 
 /**
  * @brief Clearing Vmcs status using vmclear instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param CurrentGuestState
  * @return BOOLEAN If vmclear execution was successful it returns true
  * otherwise and if there was error with vmclear then it returns false
  */
@@ -519,8 +519,8 @@ VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Implementation of VMPTRLD instruction
- * 
- * @param CurrentGuestState 
+ *
+ * @param CurrentGuestState
  * @return BOOLEAN If vmptrld was unsuccessful then it returns false otherwise
  * it returns false
  */
@@ -540,10 +540,10 @@ VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 
 /**
  * @brief Create and Configure a Vmcs Layout
- * 
- * @param CurrentGuestState 
- * @param GuestStack 
- * @return BOOLEAN 
+ *
+ * @param CurrentGuestState
+ * @param GuestStack
+ * @return BOOLEAN
  */
 BOOLEAN
 VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
@@ -701,12 +701,12 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     __vmx_vmwrite(VIRTUAL_PROCESSOR_ID, VPID_TAG);
 
     //
-    //setup guest rsp
+    // setup guest rsp
     //
     __vmx_vmwrite(VMCS_GUEST_RSP, (UINT64)GuestStack);
 
     //
-    //setup guest rip
+    // setup guest rip
     //
     __vmx_vmwrite(VMCS_GUEST_RIP, (UINT64)AsmVmxRestoreState);
 
@@ -724,8 +724,8 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
 /**
  * @brief Resume vm using VMRESUME instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmresume()
@@ -750,8 +750,8 @@ VmxVmresume()
 
 /**
  * @brief Prepare and execute Vmxoff instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxVmxoff()
@@ -830,7 +830,7 @@ VmxVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the stack pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -841,7 +841,7 @@ VmxReturnStackPointerForVmxoff()
 
 /**
  * @brief Get the RIP of guest (VMCS_GUEST_RIP) in the case of return from VMXOFF
- * 
+ *
  * @return UINT64 Returns the instruction pointer, to change in the case of Vmxoff
  */
 UINT64
@@ -852,8 +852,8 @@ VmxReturnInstructionPointerForVmxoff()
 
 /**
  * @brief Terminate Vmx on all logical cores
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 VmxPerformTermination()

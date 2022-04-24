@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel debugger functions for processes
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
@@ -16,9 +16,9 @@
  * @brief handle process changes
  * @param ProcessorIndex Index of processor
  * @param GuestState Guest's gp registers
- * 
- * 
- * @return VOID 
+ *
+ *
+ * @return VOID
  */
 BOOLEAN
 ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
@@ -48,8 +48,8 @@ ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
  * @param ProcessId
  * @param EProcess
  * @param IsSwitchByClockIntrrupt
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrrupt)
@@ -124,13 +124,13 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
@@ -163,13 +163,13 @@ ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core based on mov-to-cr3 vm-exits
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
@@ -204,14 +204,14 @@ ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @param CheckByClockInterrupts 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @param CheckByClockInterrupts
+ * @return VOID
  */
 VOID
 ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
@@ -237,8 +237,8 @@ ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
  * @param Eprocess target nt!_EPROCESS
  * @param ActiveProcessHead nt!PsActiveProcessHead
  * @param ActiveProcessLinksOffset nt!_EPROCESS.ActiveProcessLinks
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
@@ -309,8 +309,8 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
 /**
  * @brief shows the processes list
  * @param PorcessListSymbolInfo
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
@@ -405,8 +405,8 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
 /**
  * @brief change the current process
  * @param PidRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)

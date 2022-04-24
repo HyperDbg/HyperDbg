@@ -5,17 +5,17 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Handle vm-exits of VMCALLs
- * 
+ *
  * @param GuestRegs Guest Registers
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
@@ -79,12 +79,12 @@ VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
 
 /**
  * @brief Main Vmcall Handler
- * 
+ *
  * @param VmcallNumber Request Number
- * @param OptionalParam1 
- * @param OptionalParam2 
- * @param OptionalParam3 
- * @return NTSTATUS 
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @return NTSTATUS
  */
 NTSTATUS
 VmxVmcallHandler(_In_ UINT32         CurrentCoreIndex,
@@ -439,11 +439,11 @@ VmxVmcallHandler(_In_ UINT32         CurrentCoreIndex,
 
 /**
  * @brief Test Vmcall (VMCALL_TEST)
- * 
- * @param Param1 
- * @param Param2 
- * @param Param3 
- * @return NTSTATUS 
+ *
+ * @param Param1
+ * @param Param2
+ * @param Param3
+ * @return NTSTATUS
  */
 NTSTATUS
 VmcallTest(_In_ UINT64 Param1,

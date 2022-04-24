@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for kernel debugger functions for threads
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -21,8 +21,8 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
 
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                                     BOOLEAN Enable,
-                                                     BOOLEAN CheckByClockInterrupts);
+                                         BOOLEAN Enable,
+                                         BOOLEAN CheckByClockInterrupts);
 
 BOOLEAN
 ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState);

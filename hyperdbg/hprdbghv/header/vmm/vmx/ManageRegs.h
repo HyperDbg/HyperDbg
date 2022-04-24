@@ -1,13 +1,13 @@
 /**
  * @file ManageRegs.h
  * @author Alee Amini (alee@hyperdbg.org)
- * @brief Headers relating to Management Registers (set and get regs value) 
+ * @brief Headers relating to Management Registers (set and get regs value)
  * @details
  * @version 0.1
  * @date 2021-03-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 

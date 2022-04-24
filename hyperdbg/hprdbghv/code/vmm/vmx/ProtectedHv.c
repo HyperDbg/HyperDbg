@@ -2,29 +2,29 @@
  * @file ProtectedHv.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief File for protected hypervisor resources
- * @details Protected Hypervisor Routines are those resource that 
+ * @details Protected Hypervisor Routines are those resource that
  * are used in different parts of the debugger or hypervisor,
  * these resources need extra checks to avoid integrity problems
- * 
+ *
  * @version 0.1
  * @date 2021-10-04
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
- * @brief Add extra mask to this resource and write it 
- * @details As exception bitmap is a protected resource, this 
- * routine makes sure that modifying exception bitmap won't 
+ * @brief Add extra mask to this resource and write it
+ * @details As exception bitmap is a protected resource, this
+ * routine makes sure that modifying exception bitmap won't
  * break the debugger's integrity
- * 
+ *
  * @param CurrentMask The mask that debugger wants to write
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for exceptions
- * 
- * @return VOID  
+ *
+ * @return VOID
  */
 UINT32
 ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
@@ -109,11 +109,11 @@ ProtectedHvChangeExceptionBitmapWithIntegrityCheck(UINT32 CurrentMask, PROTECTED
 }
 
 /**
- * @brief Set exception bitmap in VMCS 
+ * @brief Set exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
 ProtectedHvSetExceptionBitmap(UINT32 IdtIndex)
@@ -141,11 +141,11 @@ ProtectedHvSetExceptionBitmap(UINT32 IdtIndex)
 }
 
 /**
- * @brief Unset exception bitmap in VMCS 
+ * @brief Unset exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
 ProtectedHvUnsetExceptionBitmap(UINT32 IdtIndex)
@@ -173,11 +173,11 @@ ProtectedHvUnsetExceptionBitmap(UINT32 IdtIndex)
 }
 
 /**
- * @brief Reset exception bitmap in VMCS because of clearing 
+ * @brief Reset exception bitmap in VMCS because of clearing
  * !exception commands
  * @details Should be called in vmx-root
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ProtectedHvResetExceptionBitmapToClearEvents()
@@ -191,11 +191,11 @@ ProtectedHvResetExceptionBitmapToClearEvents()
 }
 
 /**
- * @brief Reset exception bitmap in VMCS because of clearing 
+ * @brief Reset exception bitmap in VMCS because of clearing
  * !exception commands
  * @details Should be called in vmx-root
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands()
@@ -220,12 +220,12 @@ ProtectedHvRemoveUndefinedInstructionForDisablingSyscallSysretCommands()
 
 /**
  * @brief Set the External Interrupt Exiting
- * 
+ *
  * @param Set Set or unset the External Interrupt Exiting
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for interrupts
 
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
@@ -311,9 +311,9 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
 
 /**
  * @brief Set the External Interrupt Exiting
- * 
+ *
  * @param Set Set or unset the External Interrupt Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetExternalInterruptExiting(BOOLEAN Set)
@@ -323,8 +323,8 @@ ProtectedHvSetExternalInterruptExiting(BOOLEAN Set)
 
 /**
  * @brief Clear events of !interrupt
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ProtectedHvExternalInterruptExitingForDisablingInterruptCommands()
@@ -333,14 +333,14 @@ ProtectedHvExternalInterruptExitingForDisablingInterruptCommands()
 }
 
 /**
- * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp) 
+ * @brief Set vm-exit for tsc instructions (rdtsc/rdtscp)
  * @details Should be called in vmx-root
- * 
+ *
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for tsc
 
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
@@ -410,14 +410,14 @@ ProtectedHvSetTscVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOv
 }
 
 /**
- * @brief Set vm-exit for mov to debug registers 
+ * @brief Set vm-exit for mov to debug registers
  * @details Should be called in vmx-root
- * 
+ *
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for dr
 
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
@@ -490,12 +490,12 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
 /**
  * @brief Set vm-exit for mov to cr3 register
  * @details Should be called in vmx-root
- * 
+ *
  * @param Set Set or unset the vm-exits
  * @param PassOver Adds some pass over to the checks
  * thus we won't check for dr
 
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver)
@@ -555,9 +555,9 @@ ProtectedHvSetMovToCr3Vmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS P
 
 /**
  * @brief Set the RDTSC/P Exiting
- * 
+ *
  * @param Set Set or unset the RDTSC/P Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetRdtscExiting(BOOLEAN Set)
@@ -567,8 +567,8 @@ ProtectedHvSetRdtscExiting(BOOLEAN Set)
 
 /**
  * @brief Clear events of !tsc
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ProtectedHvDisableRdtscExitingForDisablingTscCommands()
@@ -578,9 +578,9 @@ ProtectedHvDisableRdtscExitingForDisablingTscCommands()
 
 /**
  * @brief Set MOV to HW Debug Regs Exiting
- * 
+ *
  * @param Set Set or unset the MOV to HW Debug Regs Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set)
@@ -590,8 +590,8 @@ ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set)
 
 /**
  * @brief Clear events of !dr
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
@@ -601,9 +601,9 @@ ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
 
 /**
  * @brief Set MOV to CR3 Exiting
- * 
+ *
  * @param Set Set or unset the MOV to CR3 Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set)

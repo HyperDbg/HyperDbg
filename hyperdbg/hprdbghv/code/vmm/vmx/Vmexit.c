@@ -1,19 +1,19 @@
 /**
  * @file Vmexit.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions for VM-Exit handler for different exit reasons 
+ * @brief The functions for VM-Exit handler for different exit reasons
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons
- * 
+ *
  * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler (HOST_RIP)
  * @return BOOLEAN Return True if VMXOFF executed (not in vmx anymore),
  *  or return false if we are still in vmx (so we should use vm resume)

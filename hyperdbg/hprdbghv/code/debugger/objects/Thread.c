@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel debugger functions for threads
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
@@ -16,8 +16,8 @@
  * @brief handle thread changes
  * @param CurrentCore
  * @param GuestState
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
@@ -50,8 +50,8 @@ ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
  * @param ThreadId
  * @param EThread
  * @param CheckByClockInterrupt
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
@@ -111,8 +111,8 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 /**
  * @brief shows the threads list
  * @param ThreadListSymbolInfo
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
@@ -225,8 +225,8 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
 /**
  * @brief change the current thread
  * @param TidRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
@@ -311,13 +311,13 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core based on putting a HW breakpoint on the gs:[188]
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
@@ -443,13 +443,13 @@ ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
@@ -482,14 +482,14 @@ ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @param CheckByClockInterrupts 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @param CheckByClockInterrupts
+ * @return VOID
  */
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,

@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2021-12-31
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
@@ -15,10 +15,10 @@
  * @brief Broadcast NMI in vmx-root mode
  * @details caller to this function should take actions to the current core
  * the NMI won't be triggered for the current core
- * 
+ *
  * @param CurrentCoreIndex
  * @param VmxBroadcastAction
- * @return VOID 
+ * @return VOID
  */
 VOID
 VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastAction)
@@ -54,12 +54,12 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
 
 /**
  * @brief Handle broadcast NMIs for halting cores in vmx-root mode
- * 
+ *
  * @param CurrentCoreIndex
  * @param GuestRegs
  * @param IsOnVmxNmiHandler
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
@@ -110,12 +110,12 @@ VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, 
 
 /**
  * @brief Handle broadcast NMIs in vmx-root mode
- * 
+ *
  * @param CurrentCoreIndex
  * @param GuestRegisters
  * @param IsOnVmxNmiHandler
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 VmxBroadcastNmiHandler(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)

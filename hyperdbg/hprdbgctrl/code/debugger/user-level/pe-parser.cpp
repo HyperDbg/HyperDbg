@@ -16,7 +16,7 @@
  * @param Ptr
  * @param Size
  * @param SecAddress
- * 
+ *
  * @return VOID
  */
 VOID
@@ -68,7 +68,7 @@ PeHexDump(CHAR * Ptr, int Size, int SecAddress)
  * @param AddressOfFile
  * @param SectionToShow
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -476,7 +476,7 @@ Finished:
  * @brief Detect whether PE is a 32-bit PE or 64-bit PE
  * @param AddressOfFile
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN

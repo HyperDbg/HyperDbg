@@ -41,10 +41,10 @@ __declspec(dllimport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCo
 
 /**
  * @brief CLI main function
- * 
- * @param argc 
- * @param argv 
- * @return int 
+ *
+ * @param argc
+ * @param argv
+ * @return int
  */
 int
 main(int argc, char * argv[])

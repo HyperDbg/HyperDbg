@@ -33,7 +33,7 @@ extern UINT64 * g_ScriptTempVariables;
  *
  * @param FunctionName
  * @param WasFound
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -48,7 +48,7 @@ ScriptEngineConvertNameToAddressWrapper(const char * FunctionOrVariableName, PBO
  * @param BaseAddress
  * @param FileName
  * @param Guid
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -61,7 +61,7 @@ ScriptEngineLoadFileSymbolWrapper(UINT64 BaseAddress, const char * PdbFileName)
  * @brief ScriptEngineSetTextMessageCallback wrapper
  *
  * @param Handler
- * 
+ *
  * @return VOID
  */
 VOID
@@ -72,7 +72,7 @@ ScriptEngineSetTextMessageCallbackWrapper(PVOID Handler)
 
 /**
  * @brief ScriptEngineUnloadAllSymbols wrapper
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -84,7 +84,7 @@ ScriptEngineUnloadAllSymbolsWrapper()
 /**
  * @brief ScriptEngineUnloadModuleSymbol wrapper
  * @param ModuleName
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -97,7 +97,7 @@ ScriptEngineUnloadModuleSymbolWrapper(char * ModuleName)
  * @brief ScriptEngineSearchSymbolForMask wrapper
  *
  * @param SearchMask
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -112,7 +112,7 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
  * @param TypeName
  * @param FieldName
  * @param FieldOffset
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -127,7 +127,7 @@ ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * Fi
  *
  * @param TypeName
  * @param TypeSize
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -140,7 +140,7 @@ ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize)
  * @brief ScriptEngineCreateSymbolTableForDisassembler wrapper
  *
  * @param CallbackFunction
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -154,7 +154,7 @@ ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction)
  *
  * @param LocalFilePath
  * @param ResultPath
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -172,7 +172,7 @@ ScriptEngineConvertFileToPdbPathWrapper(const char * LocalFilePath, char * Resul
  * @param DownloadIfAvailable
  * @param SymbolPath
  * @param IsSilentLoad
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -193,7 +193,7 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
  * @param IsStruct
  * @param BufferAddress
  * @param AdditionalParameters
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -225,7 +225,7 @@ ScriptEngineSymbolAbortLoadingWrapper()
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -246,7 +246,7 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetailsWrapper(const char * LocalFi
  *
  * @param Expr
  * @param ShowErrorMessageIfAny
- * 
+ *
  * @return PVOID
  */
 PVOID
@@ -280,7 +280,7 @@ ScriptEngineParseWrapper(char * Expr, BOOLEAN ShowErrorMessageIfAny)
  * @brief PrintSymbolBuffer wrapper
  * @details Print symbol buffer wrapper
  * @param SymbolBuffer
- * 
+ *
  * @return PVOID
  */
 VOID
@@ -293,7 +293,7 @@ PrintSymbolBufferWrapper(PVOID SymbolBuffer)
  * @brief test function
  * @param GuestRegs
  * @param Expr
- * 
+ *
  * @return VOID
  */
 VOID
@@ -341,7 +341,7 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
     //
     // Print symbol buffer
     //
-    //PrintSymbolBuffer(CodeBuffer);
+    // PrintSymbolBuffer(CodeBuffer);
 
     ACTION_BUFFER ActionBuffer = {0};
     SYMBOL        ErrorSymbol  = {0};
@@ -400,10 +400,10 @@ ScriptEngineEvalWrapper(PGUEST_REGS GuestRegs,
 /**
  * @brief massive tests for script engine statements
  * @param Expr The expression to test
- * @param ExpectationValue What value this statements expects (not 
+ * @param ExpectationValue What value this statements expects (not
  * used if ExceptError is TRUE)
  * @param ExceptError True if the statement expects an error
- * 
+ *
  * @return BOOLEAN whether the test was successful or not
  */
 BOOLEAN
@@ -513,7 +513,7 @@ AllocateStructForCasting()
 /**
  * @brief test parser
  * @param Expr
- * 
+ *
  * @return VOID
  */
 VOID
@@ -566,7 +566,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
  * @details for example, if the user u ExAllocatePoolWithTag+0x10 this will evaluate the expr
  * @param Expr
  * @param HasError
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -587,9 +587,9 @@ ScriptEngineEvalUInt64StyleExpressionWrapper(const string & Expr, PBOOLEAN HasEr
 }
 
 /**
- * @brief wrapper for getting head 
+ * @brief wrapper for getting head
  * @param SymbolBuffer
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -599,9 +599,9 @@ ScriptEngineWrapperGetHead(PVOID SymbolBuffer)
 }
 
 /**
- * @brief wrapper for getting size 
+ * @brief wrapper for getting size
  * @param SymbolBuffer
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -613,9 +613,9 @@ ScriptEngineWrapperGetSize(PVOID SymbolBuffer)
 }
 
 /**
- * @brief wrapper for getting pointer 
+ * @brief wrapper for getting pointer
  * @param SymbolBuffer
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -625,9 +625,9 @@ ScriptEngineWrapperGetPointer(PVOID SymbolBuffer)
 }
 
 /**
- * @brief wrapper for removing symbol buffer 
+ * @brief wrapper for removing symbol buffer
  * @param SymbolBuffer
- * 
+ *
  * @return UINT32
  */
 VOID

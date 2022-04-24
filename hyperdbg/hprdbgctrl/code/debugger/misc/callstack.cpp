@@ -20,10 +20,10 @@ extern BOOLEAN g_AddressConversion;
  * @brief Walkthrough the stack
  * @details This code is borrowed from here :
  * https://github.com/electronicarts/EAThread/blob/master/source/x86/eathread_callstack_x86.cpp
- * 
- * @param ReturnAddress  
- * @param IndexOfCallFromReturnAddress  
- * 
+ *
+ * @param ReturnAddress
+ * @param IndexOfCallFromReturnAddress
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -200,12 +200,12 @@ CallstackReturnAddressToCallingAddress(UCHAR * ReturnAddress, PUINT32 IndexOfCal
 
 /**
  * @brief Show stack frames
- * 
- * @param CallstackFrames  
- * @param FrameCount  
- * @param DisplayMethod  
- * @param Is32Bit  
- * 
+ *
+ * @param CallstackFrames
+ * @param FrameCount
+ * @param DisplayMethod
+ * @param Is32Bit
+ *
  * @return VOID
  */
 VOID

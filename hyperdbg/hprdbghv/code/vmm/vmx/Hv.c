@@ -5,17 +5,17 @@
  * @details vmx related routines
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Adjust controls for VMCS based on processor capability
- * 
- * @param Ctl 
- * @param Msr 
+ *
+ * @param Ctl
+ * @param Msr
  * @return ULONG Returns the Cpu Based and Secondary Processor Based Controls
  *  and other controls based on hardware support
  */
@@ -32,11 +32,11 @@ HvAdjustControls(ULONG Ctl, ULONG Msr)
 
 /**
  * @brief Set guest's selector registers
- * 
- * @param GdtBase 
- * @param SegmentRegister 
- * @param Selector 
- * @return BOOLEAN 
+ *
+ * @param GdtBase
+ * @param SegmentRegister
+ * @param Selector
+ * @return BOOLEAN
  */
 BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
@@ -59,9 +59,9 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 
 /**
  * @brief Handle Cpuid Vmexits
- * 
+ *
  * @param RegistersState Guest's gp registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvHandleCpuid(PGUEST_REGS RegistersState)
@@ -157,10 +157,10 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
 
 /**
  * @brief Handles Guest Access to control registers
- * 
+ *
  * @param GuestState Guest's gp registers
  * @param ProcessorIndex Index of processor
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
@@ -186,7 +186,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
     // We handled it in vm-exit handler, commented
     //
 
-    /*    
+    /*
     if (CrExitQualification->Fields.Register == 4)
     {
         __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
@@ -281,11 +281,11 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
 
 /**
  * @brief Fill the guest's selector data
- * 
- * @param GdtBase 
- * @param SegmentRegister 
- * @param Selector 
- * @return VOID 
+ *
+ * @param GdtBase
+ * @param SegmentRegister
+ * @param Selector
+ * @return VOID
  */
 VOID
 HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
@@ -307,8 +307,8 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 
 /**
  * @brief Add the current instruction length to guest rip to resume to next instruction
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 HvResumeToNextInstruction()
@@ -327,9 +327,9 @@ HvResumeToNextInstruction()
 
 /**
  * @brief Set the monitor trap flag
- * 
+ *
  * @param Set Set or unset the MTFs
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetMonitorTrapFlag(BOOLEAN Set)
@@ -358,9 +358,9 @@ HvSetMonitorTrapFlag(BOOLEAN Set)
 
 /**
  * @brief Set LOAD DEBUG CONTROLS on Vm-entry controls
- * 
- * @param Set Set or unset 
- * @return VOID 
+ *
+ * @param Set Set or unset
+ * @return VOID
  */
 VOID
 HvSetLoadDebugControls(BOOLEAN Set)
@@ -389,9 +389,9 @@ HvSetLoadDebugControls(BOOLEAN Set)
 
 /**
  * @brief Set SAVE DEBUG CONTROLS on Vm-exit controls
- * 
- * @param Set Set or unset 
- * @return VOID 
+ *
+ * @param Set Set or unset
+ * @return VOID
  */
 VOID
 HvSetSaveDebugControls(BOOLEAN Set)
@@ -420,8 +420,8 @@ HvSetSaveDebugControls(BOOLEAN Set)
 
 /**
  * @brief Reset GDTR/IDTR and other old when you do vmxoff as the patchguard will detect them left modified
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 HvRestoreRegisters()
@@ -463,11 +463,11 @@ HvRestoreRegisters()
 }
 
 /**
- * @brief Set vm-exit for rdpmc instructions 
+ * @brief Set vm-exit for rdpmc instructions
  * @details Should be called in vmx-root
- * 
+ *
  * @param Set Set or unset the vm-exits
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetPmcVmexit(BOOLEAN Set)
@@ -495,11 +495,11 @@ HvSetPmcVmexit(BOOLEAN Set)
 }
 
 /**
- * @brief Set vm-exit for mov-to-cr3 
+ * @brief Set vm-exit for mov-to-cr3
  * @details Should be called in vmx-root
- * 
+ *
  * @param Set Set or unset the vm-exits
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetMovToCr3Vmexit(BOOLEAN Set)
@@ -508,12 +508,12 @@ HvSetMovToCr3Vmexit(BOOLEAN Set)
 }
 
 /**
- * @brief Write on exception bitmap in VMCS 
+ * @brief Write on exception bitmap in VMCS
  * DO NOT CALL IT DIRECTLY, instead use HvSetExceptionBitmap
  * @details Should be called in vmx-root
- * 
- * @param BitmapMask The content to write on exception bitmap 
- * @return VOID 
+ *
+ * @param BitmapMask The content to write on exception bitmap
+ * @return VOID
  */
 VOID
 HvWriteExceptionBitmap(UINT32 BitmapMask)
@@ -525,10 +525,10 @@ HvWriteExceptionBitmap(UINT32 BitmapMask)
 }
 
 /**
- * @brief Read exception bitmap in VMCS 
+ * @brief Read exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @return UINT32 
+ *
+ * @return UINT32
  */
 UINT32
 HvReadExceptionBitmap()
@@ -545,9 +545,9 @@ HvReadExceptionBitmap()
 
 /**
  * @brief Set Interrupt-window exiting
- * 
+ *
  * @param Set Set or unset the Interrupt-window exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetInterruptWindowExiting(BOOLEAN Set)
@@ -579,9 +579,9 @@ HvSetInterruptWindowExiting(BOOLEAN Set)
 
 /**
  * @brief Set NMI-window exiting
- * 
+ *
  * @param Set Set or unset the NMI-window exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetNmiWindowExiting(BOOLEAN Set)
@@ -613,10 +613,10 @@ HvSetNmiWindowExiting(BOOLEAN Set)
 
 /**
  * @brief Handle Mov to Debug Registers Exitings
- * 
+ *
  * @param ProcessorIndex Index of processor
  * @param Regs Registers of guest
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
@@ -820,9 +820,9 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
 
 /**
  * @brief Set the NMI Exiting
- * 
+ *
  * @param Set Set or unset the NMI Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetNmiExiting(BOOLEAN Set)
@@ -856,9 +856,9 @@ HvSetNmiExiting(BOOLEAN Set)
 
 /**
  * @brief Set the VMX preemption timer
- * 
+ *
  * @param Set Set or unset the VMX preemption timer
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
@@ -886,11 +886,11 @@ HvSetVmxPreemptionTimerExiting(BOOLEAN Set)
 }
 
 /**
- * @brief Set exception bitmap in VMCS 
+ * @brief Set exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
 HvSetExceptionBitmap(UINT32 IdtIndex)
@@ -902,11 +902,11 @@ HvSetExceptionBitmap(UINT32 IdtIndex)
 }
 
 /**
- * @brief Unset exception bitmap in VMCS 
+ * @brief Unset exception bitmap in VMCS
  * @details Should be called in vmx-root
- * 
- * @param IdtIndex Interrupt Descriptor Table index of exception 
- * @return VOID 
+ *
+ * @param IdtIndex Interrupt Descriptor Table index of exception
+ * @return VOID
  */
 VOID
 HvUnsetExceptionBitmap(UINT32 IdtIndex)
@@ -919,9 +919,9 @@ HvUnsetExceptionBitmap(UINT32 IdtIndex)
 
 /**
  * @brief Set the External Interrupt Exiting
- * 
+ *
  * @param Set Set or unset the External Interrupt Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetExternalInterruptExiting(BOOLEAN Set)
@@ -934,9 +934,9 @@ HvSetExternalInterruptExiting(BOOLEAN Set)
 
 /**
  * @brief Set the RDTSC/P Exiting
- * 
+ *
  * @param Set Set or unset the RDTSC/P Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetRdtscExiting(BOOLEAN Set)
@@ -946,9 +946,9 @@ HvSetRdtscExiting(BOOLEAN Set)
 
 /**
  * @brief Set or unset the Mov to Debug Registers Exiting
- * 
+ *
  * @param Set Set or unset the Mov to Debug Registers Exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 HvSetMovDebugRegsExiting(BOOLEAN Set)

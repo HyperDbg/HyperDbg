@@ -12,12 +12,12 @@
 #include "pch.h"
 
 /**
-* @brief reads a token from the input string
-*
-* @param string 
-* @param refrence to last read character 
-* @return Token
-*/
+ * @brief reads a token from the input string
+ *
+ * @param string
+ * @param refrence to last read character
+ * @return Token
+ */
 
 TOKEN
 GetToken(char * c, char * str)
@@ -535,7 +535,6 @@ GetToken(char * c, char * str)
                 if (*c != '`')
                     Append(Token, *c);
 
-               
                 *c = sgetc(str);
                 if (IsHex(*c) || *c == '`')
                 {
@@ -710,11 +709,11 @@ GetToken(char * c, char * str)
     return Token;
 }
 /**
-* @brief reads a token and returns if it is not white space or comment
-*
-* @param string 
-* @param refrence to last read character
-*/
+ * @brief reads a token and returns if it is not white space or comment
+ *
+ * @param string
+ * @param refrence to last read character
+ */
 TOKEN
 Scan(char * str, char * c)
 {
@@ -755,11 +754,11 @@ Scan(char * str, char * c)
 }
 
 /**
-* @brief returns last character of string 
-* 
-* @pram string 
-* @return last character 
-*/
+ * @brief returns last character of string
+ *
+ * @pram string
+ * @return last character
+ */
 char
 sgetc(char * str)
 {

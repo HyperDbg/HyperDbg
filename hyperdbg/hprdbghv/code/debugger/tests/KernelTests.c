@@ -3,23 +3,23 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel-side test functions
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-04-06
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Configures tags and calls target functions
- * 
+ *
  * @details This function should not be called simultaneously
  * and only functions with at most 4 parameters should be called
  * the target function should be fast call
  * Note : Target test function should check r14 for Tag1 and r15 for Tag2
- * 
+ *
  * @param Tag1 the first tag
  * @param Tag2 the second tag
  * @param TargetFunction function that needs to be called
@@ -27,8 +27,8 @@
  * @param Param2 parameter to the target function
  * @param Param3 parameter to the target function
  * @param Param4 parameter to the target function
- * 
- * @return UINT64 Target function return result 
+ *
+ * @return UINT64 Target function return result
  */
 UINT64
 TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
@@ -73,9 +73,9 @@ TestKernelConfigureTagsAndCallTargetFunction(UINT64 Tag1,
 
 /**
  * @brief Perform the kernel-side tests
- * 
+ *
  * @param KernelTestRequest user-mode buffer to fill kernel test information
- * @return VOID 
+ * @return VOID
  */
 VOID
 TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
@@ -110,9 +110,9 @@ TestKernelPerformTests(PDEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest)
 
 /**
  * @brief Collect the kernel-side debugging informations
- * 
+ *
  * @param InfoRequest user-mode buffer to fill kernel information
- * @return UINT32 Filled entries 
+ * @return UINT32 Filled entries
  */
 UINT32
 TestKernelGetInformation(PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION InfoRequest)

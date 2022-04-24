@@ -105,7 +105,7 @@ IsEmptyString(char * Text);
 // * @brief this structure is copied from Process Hacker source code (ntldr.h)
 // *
 // */
-//typedef struct _RTL_PROCESS_MODULE_INFORMATION
+// typedef struct _RTL_PROCESS_MODULE_INFORMATION
 //{
 //    HANDLE Section;
 //    PVOID  MappedBase;
@@ -123,7 +123,7 @@ IsEmptyString(char * Text);
 // * @brief this structure is copied from Process Hacker source code (ntldr.h)
 // *
 // */
-//typedef struct _RTL_PROCESS_MODULES
+// typedef struct _RTL_PROCESS_MODULES
 //{
 //    ULONG                          NumberOfModules;
 //    RTL_PROCESS_MODULE_INFORMATION Modules[1];

@@ -2,18 +2,18 @@
  * @file IoHandler.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief The I/O Handler for vm-exit
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-06-06
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief VM-Exit handler for I/O Instructions (in/out)
- * 
+ *
  * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler
  * @param IoQualification The I/O Qualification that indicates the instruction
  * @param Flags Guest's RFLAGs
@@ -203,7 +203,7 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION I
 
 /**
  * @brief VM-Exit handler for I/O Instructions (in/out) and show the disassembly code
- * 
+ *
  * @param GuestRip Guest's IP
  * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler
  * @param IoQualification The I/O Qualification that indicates the instruction
@@ -253,7 +253,7 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT
 
 /**
  * @brief Set bits in I/O Bitmap
- * 
+ *
  * @param Port Port
  * @param ProcessorID Processor ID
  * @return BOOLEAN Returns true if the I/O Bitmap is succcessfully applied or false if not applied
@@ -278,10 +278,10 @@ IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
 }
 
 /**
- * @brief Change I/O Bitmap 
+ * @brief Change I/O Bitmap
  * @details should be called in vmx-root mode
- * @param IoPort Port 
- * @return VOID 
+ * @param IoPort Port
+ * @return VOID
  */
 VOID
 IoHandlePerformIoBitmapChange(UINT64 Port)
@@ -306,9 +306,9 @@ IoHandlePerformIoBitmapChange(UINT64 Port)
 }
 
 /**
- * @brief Reset I/O Bitmap 
+ * @brief Reset I/O Bitmap
  * @details should be called in vmx-root mode
- * @return VOID 
+ * @return VOID
  */
 VOID
 IoHandlePerformIoBitmapReset()

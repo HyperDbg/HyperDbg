@@ -3,7 +3,7 @@
  * @author Alee Amini (alee@hyperdbg.org)
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief common utils headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-06-10
  *

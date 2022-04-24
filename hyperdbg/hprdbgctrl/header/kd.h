@@ -48,7 +48,7 @@ public:
     HKeyHolder() :
         m_Key(nullptr) { }
 
-    HKeyHolder(const HKeyHolder &) = delete;
+    HKeyHolder(const HKeyHolder &)             = delete;
     HKeyHolder & operator=(const HKeyHolder &) = delete;
 
     ~HKeyHolder()

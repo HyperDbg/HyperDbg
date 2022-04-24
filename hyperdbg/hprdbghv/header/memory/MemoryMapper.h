@@ -2,15 +2,15 @@
  * @file MemoryMapper.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This file shows the header functions to map memory to reserved system ranges
- * 
+ *
  * also some of the functions derived from hvpp
  * - https://github.com/wbenny/hvpp
- * 
+ *
  * @version 0.1
  * @date 2020-05-3
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -29,7 +29,7 @@
 
 /**
  * @brief Different levels of paging
- * 
+ *
  */
 typedef enum _PAGING_LEVEL
 {
@@ -41,7 +41,7 @@ typedef enum _PAGING_LEVEL
 
 /**
  * @brief Memory wrapper for reading safe from the memory
- * 
+ *
  */
 typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ
 {
@@ -51,7 +51,7 @@ typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_READ
 
 /**
  * @brief Memory wrapper for writing safe into the memory
- * 
+ *
  */
 typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE
 {
@@ -67,7 +67,7 @@ typedef enum _MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE
 
 /**
  * @brief Memory mapper PTE and reserved virtual address
- * 
+ *
  */
 typedef struct _MEMORY_MAPPER_ADDRESSES
 {
@@ -77,7 +77,7 @@ typedef struct _MEMORY_MAPPER_ADDRESSES
 
 /**
  * @brief Page Entries
- * 
+ *
  */
 typedef struct _PAGE_ENTRY
 {
@@ -119,7 +119,7 @@ typedef struct _PAGE_ENTRY
 
 /**
  * @brief CR3 Structure
- * 
+ *
  */
 typedef struct _CR3_TYPE
 {

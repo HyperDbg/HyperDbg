@@ -14,7 +14,7 @@
 
 /**
  * @brief get the median of a vector
- * 
+ *
  * @param Cases all the elements
  * @return double median of elements
  */
@@ -43,7 +43,7 @@ Median(vector<double> Cases)
 
 /**
  * @brief get the average of a vector
- * 
+ *
  * @tparam T type of vector
  * @param vec all the elements
  * @return T the average of elements
@@ -68,7 +68,7 @@ Average(const vector<T> & vec)
 
 /**
  * @brief get the standard deviation of elements
- * 
+ *
  * @tparam T type of vector
  * @param v all the elements
  * @return T the standard deviation of elements
@@ -89,7 +89,7 @@ CalculateStandardDeviation(const std::vector<T> & v)
 
 /**
  * @brief get the Median Absolute Deviation (MAD) Test
- * 
+ *
  * @param Data all the elements
  * @return double result of MAD test
  */
@@ -112,9 +112,9 @@ MedianAbsoluteDeviationTest(vector<double> Data)
 
 /**
  * @brief random generator based on calculations
- * 
- * @param mu 
- * @param sigma 
+ *
+ * @param mu
+ * @param sigma
  * @return double random number in the range of gaussian curve
  */
 double
@@ -148,11 +148,11 @@ Randn(double mu, double sigma)
 
 /**
  * @brief Calculate and generate random gaussian number
- * 
- * @param Data 
- * @param AverageOfData 
- * @param StandardDeviationOfData 
- * @param MedianOfData 
+ *
+ * @param Data
+ * @param AverageOfData
+ * @param StandardDeviationOfData
+ * @param MedianOfData
  */
 VOID
 GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * StandardDeviationOfData, UINT64 * MedianOfData)
@@ -215,10 +215,10 @@ GuassianGenerateRandom(vector<double> Data, UINT64 * AverageOfData, UINT64 * Sta
 }
 
 /**
- * @brief A simple test for the data based on 
+ * @brief A simple test for the data based on
  * pre-defined numbers in a file
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 TestGaussianFromFile()

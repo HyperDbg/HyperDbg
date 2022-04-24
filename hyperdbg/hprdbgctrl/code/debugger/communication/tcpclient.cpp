@@ -13,11 +13,11 @@
 
 /**
  * @brief communication for client, connecting to the server
- * 
- * @param Ip 
- * @param Port 
- * @param ConnectSocketArg 
- * @return int 
+ *
+ * @param Ip
+ * @param Port
+ * @param ConnectSocketArg
+ * @return int
  */
 int
 CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketArg)
@@ -101,11 +101,11 @@ CommunicationClientConnectToServer(PCSTR Ip, PCSTR Port, SOCKET * ConnectSocketA
 
 /**
  * @brief Send message a client
- * 
- * @param ConnectSocket 
- * @param sendbuf 
- * @param buflen 
- * @return int 
+ *
+ * @param ConnectSocket
+ * @param sendbuf
+ * @param buflen
+ * @return int
  */
 int
 CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int buflen)
@@ -129,9 +129,9 @@ CommunicationClientSendMessage(SOCKET ConnectSocket, const char * sendbuf, int b
 
 /**
  * @brief shutdown the connection as a client
- * 
- * @param ConnectSocket 
- * @return int 
+ *
+ * @param ConnectSocket
+ * @return int
  */
 int
 CommunicationClientShutdownConnection(SOCKET ConnectSocket)
@@ -162,12 +162,12 @@ CommunicationClientShutdownConnection(SOCKET ConnectSocket)
 
 /**
  * @brief Receive message as a client
- * 
- * @param ConnectSocket 
- * @param RecvBuf 
- * @param MaxBuffLen 
- * @param BuffLenRecvd 
- * @return int 
+ *
+ * @param ConnectSocket
+ * @param RecvBuf
+ * @param MaxBuffLen
+ * @param BuffLenRecvd
+ * @return int
  */
 int
 CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 MaxBuffLen, PUINT32 BuffLenRecvd)
@@ -208,9 +208,9 @@ CommunicationClientReceiveMessage(SOCKET ConnectSocket, CHAR * RecvBuf, UINT32 M
 
 /**
  * @brief cleanup the connection as client
- * 
- * @param ConnectSocket 
- * @return int 
+ *
+ * @param ConnectSocket
+ * @return int
  */
 int
 CommunicationClientCleanup(SOCKET ConnectSocket)

@@ -2,12 +2,12 @@
  * @file BreakpointCommands.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Commands for setting breakpoints
- * 
+ *
  * @version 0.1
  * @date 2021-03-12
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 

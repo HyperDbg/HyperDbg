@@ -5,15 +5,15 @@
  * @details
  * @version 0.1
  * @date 2020-04-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Power function in order to computer address for MSR bitmaps
- * 
+ *
  * @param Base Base for power function
  * @param Exp Exponent for power function
  * @return int Returns the result of power function
@@ -44,7 +44,7 @@ MathPower(int Base, int Exp)
 /**
  * @brief Broadcast a function to all logical cores
  * @details This function is deprecated as we want to supporrt more than 32 processors
- * 
+ *
  * @param ProcessorNumber The logical core number to execute routine on it
  * @param Routine The fucntion that should be executed on the target core
  * @return BOOLEAN Returns true if it was successfull
@@ -69,10 +69,10 @@ BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 
 /**
  * @brief Check whether the bit is set or not
- * 
- * @param nth 
- * @param addr 
- * @return int 
+ *
+ * @param nth
+ * @param addr
+ * @return int
  */
 int
 TestBit(int nth, unsigned long * addr)
@@ -82,9 +82,9 @@ TestBit(int nth, unsigned long * addr)
 
 /**
  * @brief unset the bit
- * 
- * @param nth 
- * @param addr 
+ *
+ * @param nth
+ * @param addr
  */
 void
 ClearBit(int nth, unsigned long * addr)
@@ -94,9 +94,9 @@ ClearBit(int nth, unsigned long * addr)
 
 /**
  * @brief set the bit
- * 
- * @param nth 
- * @param addr 
+ *
+ * @param nth
+ * @param addr
  */
 void
 SetBit(int nth, unsigned long * addr)
@@ -106,7 +106,7 @@ SetBit(int nth, unsigned long * addr)
 
 /**
  * @brief Converts Virtual Address to Physical Address
- * 
+ *
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
@@ -118,11 +118,11 @@ VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 
 /**
  * @brief Converts pid to kernel cr3
- * 
- * @details this function should NOT be called from vmx-root 
+ *
+ * @details this function should NOT be called from vmx-root
  *
  * @param ProcessId ProcessId to switch
- * @return CR3_TYPE The cr3 of the target process 
+ * @return CR3_TYPE The cr3 of the target process
  */
 CR3_TYPE
 GetCr3FromProcessId(UINT32 ProcessId)
@@ -152,7 +152,7 @@ GetCr3FromProcessId(UINT32 ProcessId)
 
 /**
  * @brief Switch to another process's cr3
- * 
+ *
  * @details this function should NOT be called from vmx-root mode
  *
  * @param ProcessId ProcessId to switch
@@ -290,10 +290,10 @@ GetSegmentDescriptor(PVMX_SEGMENT_SELECTOR SegmentSelector, _In_ UINT16 Selector
 
 /**
  * @brief Switch to previous process's cr3
- * 
- * @param PreviousProcess Cr3 of previous process which 
+ *
+ * @param PreviousProcess Cr3 of previous process which
  * is returned by SwitchOnAnotherProcessMemoryLayout
- * @return VOID 
+ * @return VOID
  */
 VOID
 RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
@@ -307,7 +307,7 @@ RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 /**
  * @brief Converts Physical Address to Virtual Address based
  * on a specific process id
- *   
+ *
  * @details this function should NOT be called from vmx-root mode
  *
  * @param PhysicalAddress The target physical address
@@ -354,7 +354,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
 /**
  * @brief Converts Physical Address to Virtual Address based
  * on a specific process's kernel cr3
- *   
+ *
  * @details this function should NOT be called from vmx-root mode
  *
  * @param PhysicalAddress The target physical address
@@ -401,7 +401,7 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
 /**
  * @brief Converts Physical Address to Virtual Address based
  * on current process's kernel cr3
- *   
+ *
  * @details this function should NOT be called from vmx-root mode
  *
  * @param PhysicalAddress The target physical address
@@ -426,7 +426,7 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
 
 /**
  * @brief Get cr3 of the target running process
- *   
+ *
  * @return CR3_TYPE Returns the cr3 of running process
  */
 CR3_TYPE
@@ -449,7 +449,7 @@ GetRunningCr3OnTargetProcess()
  * on a specific process id's kernel cr3
  *
  * @details this function should NOT be called from vmx-root mode
- * 
+ *
  * @param VirtualAddress The target virtual address
  * @param ProcessId The target's process id
  * @return UINT64 Returns the physical address
@@ -492,7 +492,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
 /**
  * @brief Converts Virtual Address to Physical Address based
  * on a specific process's kernel cr3
- * 
+ *
  * @param VirtualAddress The target virtual address
  * @param TargetCr3 The target's process cr3
  * @return UINT64 Returns the physical address
@@ -535,7 +535,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
 /**
  * @brief Converts Virtual Address to Physical Address based
  * on the current process's kernel cr3
- * 
+ *
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
@@ -584,7 +584,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
 
 /**
  * @brief Converts Physical Address to Virtual Address
- * 
+ *
  * @param PhysicalAddress The target physical address
  * @return UINT64 Returns the virtual address
  */
@@ -599,7 +599,7 @@ PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 
 /**
  * @brief Find cr3 of system process
- * 
+ *
  * @return UINT64 Returns cr3 of System process (pid=4)
  */
 UINT64
@@ -613,8 +613,8 @@ FindSystemDirectoryTableBase()
 }
 
 /**
- * @brief Get process name by eprocess 
- * 
+ * @brief Get process name by eprocess
+ *
  * @param Eprocess Process eprocess
  * @return PCHAR Returns a pointer to the process name
  */
@@ -634,7 +634,7 @@ GetProcessNameFromEprocess(PEPROCESS Eprocess)
 
 /**
  * @brief Detects whether the string starts with another string
- * 
+ *
  * @param const char * pre
  * @param const char * str
  * @return BOOLEAN Returns true if it starts with and false if not strats with
@@ -649,11 +649,11 @@ StartsWith(const char * pre, const char * str)
 
 /**
  * @brief Checks whether the process with ProcId exists or not
- * 
+ *
  * @details this function should NOT be called from vmx-root mode
  *
  * @param UINT32 ProcId
- * @return BOOLEAN Returns true if the process 
+ * @return BOOLEAN Returns true if the process
  * exists and false if it the process doesn't exist
  */
 BOOLEAN
@@ -678,9 +678,9 @@ IsProcessExist(UINT32 ProcId)
 }
 
 /**
- * @brief This function checks whether the address is valid or not using 
+ * @brief This function checks whether the address is valid or not using
  * Intel TSX
- * 
+ *
  * @param Address Address to check
  *
  * @param UINT32 ProcId
@@ -719,7 +719,7 @@ CheckIfAddressIsValidUsingTsx(CHAR * Address)
 
 /**
  * @brief Get cpuid results
- * 
+ *
  * @param UINT32 Func
  * @param UINT32 SubFunc
  * @param int * CpuInfo
@@ -768,7 +768,7 @@ CheckCpuSupportRtm()
 
 /**
  * @brief Get virtual address width for x86 processors
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -788,11 +788,11 @@ Getx86VirtualAddressWidth()
  * @brief Checks if the address is canonical based on x86 processor's
  * virtual address width or not
  * @param VAddr virtual address to check
- * @param IsKernelAddress Filled to show whether the address is a 
+ * @param IsKernelAddress Filled to show whether the address is a
  * kernel address or user-address
- * @brief IsKernelAddress wouldn't check for page attributes, it 
+ * @brief IsKernelAddress wouldn't check for page attributes, it
  * just checks the address convention in Windows
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -846,7 +846,7 @@ CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
  * @brief Check the safety to access the memory
  * @param TargetAddress
  * @param Size
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -951,8 +951,8 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
 /**
  * @brief implementation of vmx-root mode compatible strlen
  * @param S
- * 
- * @return UINT32 If 0x0 indicates an error, otherwise length of the 
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
  * string
  */
 UINT32
@@ -1041,8 +1041,8 @@ VmxrootCompatibleStrlen(const CHAR * S)
 /**
  * @brief implementation of vmx-root mode compatible wcslen
  * @param S
- * 
- * @return UINT32 If 0x0 indicates an error, otherwise length of the 
+ *
+ * @return UINT32 If 0x0 indicates an error, otherwise length of the
  * string
  */
 UINT32
@@ -1132,7 +1132,7 @@ VmxrootCompatibleWcslen(const wchar_t * S)
 
 /**
  * @brief Allocates a buffer and tests for the MSRs that cause #GP
- * 
+ *
  * @return UINT64 Allocated buffer for MSR Bitmap
  */
 UINT64 *
@@ -1168,8 +1168,8 @@ AllocateInvalidMsrBimap()
  * @brief Get handle from Process Id
  * @param Handle
  * @param ProcessId
- * 
- * @return NTSTATUS 
+ *
+ * @return NTSTATUS
  */
 NTSTATUS
 GetHandleFromProcess(PHANDLE Handle, UINT32 ProcessId)
@@ -1194,8 +1194,8 @@ GetHandleFromProcess(PHANDLE Handle, UINT32 ProcessId)
  * @param DesiredAccess
  * @param ProcessId
  * @param AccessMode
- * 
- * @return NTSTATUS 
+ *
+ * @return NTSTATUS
  */
 NTSTATUS
 UndocumentedNtOpenProcess(
@@ -1252,8 +1252,8 @@ UndocumentedNtOpenProcess(
  * @brief Kill a user-mode process with different methods
  * @param ProcessId
  * @param KillingMethod
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)

@@ -44,7 +44,7 @@ CommandLmHelp()
  * @brief show modules for specified user mode process
  * @param ProcessId
  * @param SearchModule
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -225,9 +225,9 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
 }
 
 /**
- * @brief show modules for kernel mode 
+ * @brief show modules for kernel mode
  * @param SearchModule
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN

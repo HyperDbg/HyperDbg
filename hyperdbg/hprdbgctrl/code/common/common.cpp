@@ -225,10 +225,10 @@ HexToBytes(const string & hex)
 /**
  * @brief check and convert string to a 64 bit unsigned integer and also
  *  check for special notations like 0x etc.
- * 
+ *
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
- * 
+ *
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
@@ -490,7 +490,7 @@ RemoveSpaces(std::string str)
 
 /**
  * @brief check if a file exist or not (ASCII)
- * 
+ *
  * @param FileName path of file
  * @return BOOLEAN shows whether the file exist or not
  */
@@ -503,7 +503,7 @@ IsFileExistA(const char * FileName)
 
 /**
  * @brief check if a file exist or not (wide-char)
- * 
+ *
  * @param FileName path of file
  * @return BOOLEAN shows whether the file exist or not
  */
@@ -515,7 +515,7 @@ IsFileExistW(const wchar_t * FileName)
 }
 
 /**
- * @brief Is empty character 
+ * @brief Is empty character
  *
  * @param Text
  */
@@ -725,9 +725,9 @@ FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
 /**
  * @brief Convert vector<string> to char*
  * @details use it like :
- *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);  
+ *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);
  *  from: https://stackoverflow.com/questions/7048888/stdvectorstdstring-to-char-array
- * 
+ *
  * @param Input
  * @param ToSearch
  * @param Pos

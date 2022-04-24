@@ -2,7 +2,7 @@
  * @file pch.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief pre-compiled headers for symbol parser
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-05-29
  *
@@ -20,7 +20,6 @@
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>
 
-
 //
 // IA32-doc has structures for the entire intel SDM.
 //
@@ -32,7 +31,7 @@
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
-#endif //USE_LIB_IA32
+#endif // USE_LIB_IA32
 
 #include "Definition.h"
 #include "..\symbol-parser\header\common-utils.h"

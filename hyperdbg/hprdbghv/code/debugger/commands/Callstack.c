@@ -2,23 +2,23 @@
  * @file Callstack.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Kernel routines for callstack
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-03-05
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief Walkthrough the stack
- * 
- * @param AddressToSaveFrames  
- * @param StackBaseAddress  
- * @param Size  
- * @param Is32Bit  
- * 
+ *
+ * @param AddressToSaveFrames
+ * @param StackBaseAddress
+ * @param Size
+ * @param Is32Bit
+ *
  * @return BOOLEAN
  */
 BOOLEAN

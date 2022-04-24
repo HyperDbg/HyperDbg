@@ -13,7 +13,7 @@
 
 /**
  * @brief Get current ip from the debugger frame
- * 
+ *
  * @return UINT64 returns the rip of the current debuggee state frame
  */
 UINT64
@@ -43,7 +43,7 @@ ScriptEngineWrapperGetInstructionPointer()
 
 /**
  * @brief Get the address of reserved buffer
- * 
+ *
  * @param Action Corresponding action
  * @return UINT64 returns the requested buffer address from user
  */

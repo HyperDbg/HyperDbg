@@ -1412,8 +1412,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * like sending over network, save to file, and send over a namedpipe
  *
  * @param SplittedCommand the initialized command that are splitted by space
- * @param SplittedCommandCaseSensitive the initialized command that are splitted 
- * by space case sensitive 
+ * @param SplittedCommandCaseSensitive the initialized command that are splitted
+ * by space case sensitive
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -2054,7 +2054,7 @@ GetNewDebuggerEventTag()
  * @brief Interpret general event fields
  *
  * @param SplittedCommand the commands that was splitted by space
- * @param SplittedCommandCaseSensitive the commands that was splitted by space 
+ * @param SplittedCommandCaseSensitive the commands that was splitted by space
  * case sensitive
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled

@@ -202,7 +202,7 @@ ReadIrpBasedBuffer()
                     //
                     // Error occured for second time, and we show the error message
                     //
-                    //ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                    // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
                     //
                     // if we reach here, the packet is probably failed, it might

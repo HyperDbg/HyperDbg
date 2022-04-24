@@ -2,12 +2,12 @@
  * @file Kd.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Header for routines related to kernel mode debugging
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-12-20
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -17,13 +17,13 @@
 
 /**
  * @brief Vmx-root lock for sending response of debugger
- * 
+ *
  */
 volatile LONG DebuggerResponseLock;
 
 /**
  * @brief Vmx-root lock for handling breaks to debugger
- * 
+ *
  */
 volatile LONG DebuggerHandleBreakpointLock;
 
@@ -65,7 +65,7 @@ typedef struct _DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT
 } DEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT, *PDEBUGGEE_REQUEST_TO_IGNORE_BREAKS_UNTIL_AN_EVENT;
 
 /**
- * @brief store the details of a hardware debug register to ignore any 
+ * @brief store the details of a hardware debug register to ignore any
  * trigger for other threads
  *
  */

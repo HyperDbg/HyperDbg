@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file script-engine.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @author Sina Karvandi (sina@hyperdbg.org)
@@ -17,9 +17,9 @@
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
-*
-*
-*/
+ *
+ *
+ */
 UINT64
 ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
@@ -30,9 +30,9 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 }
 
 /**
-*
-*
-*/
+ *
+ *
+ */
 UINT32
 ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
@@ -43,9 +43,9 @@ ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 }
 
 /**
-*
-*
-*/
+ *
+ *
+ */
 VOID
 ScriptEngineSetTextMessageCallback(PVOID Handler)
 {
@@ -160,9 +160,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 }
 
 /**
-*
-*
-*/
+ *
+ *
+ */
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
 {
@@ -1536,9 +1536,9 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 }
 
 /**
-*
-*
-*/
+ *
+ *
+ */
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
@@ -1736,10 +1736,10 @@ ScriptEngineBooleanExpresssionParse(
     return;
 }
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 PSYMBOL
 NewSymbol(void)
 {
@@ -1769,10 +1769,10 @@ GetStringSymbolSize(PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 void
 RemoveSymbol(PSYMBOL Symbol)
 {
@@ -1782,10 +1782,10 @@ RemoveSymbol(PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 void
 PrintSymbol(PSYMBOL Symbol)
 {
@@ -1860,10 +1860,10 @@ ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 PSYMBOL_BUFFER
 NewSymbolBuffer(void)
 {
@@ -1877,10 +1877,10 @@ NewSymbolBuffer(void)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
@@ -1890,10 +1890,10 @@ RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 {
@@ -1994,10 +1994,10 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 void
 PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 {

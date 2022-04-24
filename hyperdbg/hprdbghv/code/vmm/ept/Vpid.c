@@ -5,17 +5,17 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "..\hprdbghv\pch.h"
 
 /**
  * @brief INVVPID Instruction
- * 
- * @param Type 
- * @param Descriptor 
+ *
+ * @param Type
+ * @param Descriptor
  * @return VOID
  */
 VOID
@@ -38,9 +38,9 @@ VpidInvvpid(_In_ INVVPID_TYPE Type, _In_ INVVPID_DESCRIPTOR * Descriptor)
 
 /**
  * @brief INVVPID instruction to invalidate a special address
- * 
- * @param Vpid 
- * @param LinearAddress 
+ *
+ * @param Vpid
+ * @param LinearAddress
  * @return VOID
  */
 VOID
@@ -52,8 +52,8 @@ VpidInvvpidIndividualAddress(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress)
 
 /**
  * @brief INVVPID Single Context
- * 
- * @param Vpid 
+ *
+ * @param Vpid
  * @return VOID
  */
 VOID
@@ -65,7 +65,7 @@ VpidInvvpidSingleContext(_In_ UINT16 Vpid)
 
 /**
  * @brief INVVPID All Contexts
- * 
+ *
  * @return VOID
  */
 VOID
@@ -76,8 +76,8 @@ VpidInvvpidAllContext()
 
 /**
  * @brief INVVPID Single Context Retaining Globals
- * 
- * @param Vpid 
+ *
+ * @param Vpid
  * @return VOID
  */
 VOID

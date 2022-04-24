@@ -74,8 +74,8 @@ SymCastingQueryForFiledsAndTypes(_In_ const char * StructName,
                                  _Out_ PBOOLEAN    IsStructNamePointerOrNot,
                                  _Out_ PBOOLEAN    IsFiledOfStructNamePointerOrNot,
                                  _Out_ char **     NewStructOrTypeName,
-                                 _Out_ UINT32 * OffsetOfFieldFromTop,
-                                 _Out_ UINT32 * SizeOfField)
+                                 _Out_ UINT32 *    OffsetOfFieldFromTop,
+                                 _Out_ UINT32 *    SizeOfField)
 {
     BOOLEAN IsPointer                 = FALSE;
     BOOLEAN IsTheStructItselfAPointer = FALSE;
@@ -315,7 +315,7 @@ main()
 
 
         Local var @ 0x95fa18df58 Type AllocateStructForCasting::__l2::_STUPID_STRUCT2*
-        0x00000260`d065ee30 
+        0x00000260`d065ee30
 
            +0x000 Sina32           : 0x32
            +0x008 Sina64           : 0x64

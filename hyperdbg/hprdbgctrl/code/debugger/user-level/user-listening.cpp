@@ -22,7 +22,7 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
  * @brief Handle pause packets from user debugger
  *
  * @param PausePacket
- * 
+ *
  * @return VOID
  */
 VOID
