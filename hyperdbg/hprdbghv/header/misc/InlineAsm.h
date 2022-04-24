@@ -47,6 +47,17 @@ extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber, unsigned lo
  */
 extern void inline AsmHypervVmcall(unsigned long long GuestRegisters);
 
+/**
+ * @brief Request Vmcall
+ * 
+ * @param VmcallNumber 
+ * @param OptionalParam1 
+ * @param OptionalParam2 
+ * @param OptionalParam3 
+ * @return NTSTATUS 
+ */
+extern NTSTATUS inline AsmHypervVmcallCommon(unsigned long long VmcallNumber, unsigned long long OptionalParam1, unsigned long long OptionalParam2, long long OptionalParam3);
+
 //
 // ====================  Vmx Context State Operations ====================
 // File : AsmVmxContextState.asm

@@ -1,6 +1,7 @@
 PUBLIC AsmEnableVmxOperation
 PUBLIC AsmVmxVmcall
 PUBLIC AsmHypervVmcall
+PUBLIC AsmHypervVmcallCommon
 
 .code _text
 
@@ -80,7 +81,7 @@ AsmHypervVmcall PROC
     push rcx
     mov rcx, qword ptr [rcx+08h]
 
-    vmcall                          ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
+    vmcall
 
     pop rcx
 
@@ -124,6 +125,15 @@ AsmHypervVmcall PROC
     ret
 
 AsmHypervVmcall ENDP
+
+;------------------------------------------------------------------------
+
+AsmHypervVmcallCommon PROC
+
+    vmcall                          ; __fastcall Vmcall(rcx = HypercallInputValue, rdx = InputParamGPA, r8 = OutputParamGPA)
+    ret
+
+AsmHypervVmcallCommon ENDP
 
 ;------------------------------------------------------------------------
 

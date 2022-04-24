@@ -86,6 +86,36 @@ VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
         // Restore the guest's RSP
         //
         GuestRegs->rsp = GuestRsp;
+
+        ////////////////////////////////////////////////////////////////////////////////
+        HYPERCALL_INPUT_VALUE InvalidationHypercall = {0};
+        InvalidationHypercall.Fields.CallCode       = HvFlushVirtualAddressSpace;
+        //InvalidationHypercall.Fields.IsNested       = TRUE;
+
+        typedef UINT16 HV_STATUS, *PHV_STATUS;
+
+#define HV_STATUS_SUCCESS ((HV_STATUS)0x0000)
+
+#define HV_FLUSH_ALL_PROCESSORS             (0x00000001)
+#define HV_FLUSH_ALL_VIRTUAL_ADDRESS_SPACES (0x00000002)
+#define HV_FLUSH_NON_GLOBAL_MAPPINGS_ONLY   (0x00000004)
+#define HV_FLUSH_USE_EXTENDED_RANGE_FORMAT  (0x00000008)
+
+        HV_STATUS Status = AsmHypervVmcallCommon(InvalidationHypercall.Flags,
+                                                 NULL,
+                                                 HV_FLUSH_ALL_PROCESSORS | HV_FLUSH_ALL_VIRTUAL_ADDRESS_SPACES,
+                                                 NULL);
+
+        if (Status == HV_STATUS_SUCCESS)
+        {
+            LogInfo("success");
+        }
+        else
+        {
+            LogInfo("not success : %llx", Status);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
     }
     return STATUS_SUCCESS;
 }
