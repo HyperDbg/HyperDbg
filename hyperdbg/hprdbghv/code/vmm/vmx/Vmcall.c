@@ -101,14 +101,28 @@ VmxHandleVmcallVmExit(_In_ UINT32         CoreIndex,
 #define HV_FLUSH_NON_GLOBAL_MAPPINGS_ONLY   (0x00000004)
 #define HV_FLUSH_USE_EXTENDED_RANGE_FORMAT  (0x00000008)
 
+        typedef UINT64 HV_ADDRESS_SPACE_ID, *PHV_ADDRESS_SPACE_ID;
+        typedef UINT64 HV_FLUSH_FLAGS, *PHV_FLUSH_FLAGS;
+
+        typedef struct _HV_INPUT_FLUSH_VIRTUAL_ADDRESS_SPACE_HEADER
+        {
+            HV_ADDRESS_SPACE_ID AddressSpace;
+            HV_FLUSH_FLAGS      Flags;
+            UINT64              ProcessorMask;
+        } HV_INPUT_FLUSH_VIRTUAL_ADDRESS_SPACE_HEADER,
+            *PHV_INPUT_FLUSH_VIRTUAL_ADDRESS_SPACE_HEADER;
+
+        HV_INPUT_FLUSH_VIRTUAL_ADDRESS_SPACE_HEADER Param = {0};
+        Param.Flags                                       = HV_FLUSH_ALL_PROCESSORS | HV_FLUSH_ALL_VIRTUAL_ADDRESS_SPACES;
+
         HV_STATUS Status = AsmHypervVmcallCommon(InvalidationHypercall.Flags,
+                                                 VirtualAddressToPhysicalAddress(&Param),
                                                  NULL,
-                                                 HV_FLUSH_ALL_PROCESSORS | HV_FLUSH_ALL_VIRTUAL_ADDRESS_SPACES,
                                                  NULL);
 
         if (Status == HV_STATUS_SUCCESS)
         {
-            LogInfo("success");
+            //LogInfo("success");
         }
         else
         {
