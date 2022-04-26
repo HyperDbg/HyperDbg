@@ -86,7 +86,6 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
     //
     // Check if it's our routines that request the VMCALL, or it relates to the Hyper-V
     //
-
     if (IsHyperdbgVmcall)
     {
         GuestRegs->rax = VmxVmcallHandler(CoreIndex,

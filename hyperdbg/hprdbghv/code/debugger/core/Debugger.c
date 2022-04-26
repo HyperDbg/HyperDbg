@@ -1306,8 +1306,9 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
     UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE *          CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
 
-    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    if (CurrentVmState->IsOnVmxRootMode)
     {
         //
         // The guest is already in vmx-root mode

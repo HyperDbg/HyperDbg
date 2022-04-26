@@ -172,6 +172,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
     UINT64 *                        RegPtr;
     UINT64                          NewCr3;
     CR3_TYPE                        NewCr3Reg;
+    VIRTUAL_MACHINE_STATE *         CurrentVmState = &g_GuestState[ProcessorIndex];
 
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
@@ -226,7 +227,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            if (g_GuestState[ProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+            if (CurrentVmState->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
                 ProcessHandleProcessChange(ProcessorIndex, GuestState);
             }
@@ -627,7 +628,8 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs = Regs;
+    UINT64 *                      GpRegs         = Regs;
+    VIRTUAL_MACHINE_STATE *       CurrentVmState = &g_GuestState[ProcessorIndex];
     //
     // The implementation is derived from Hvpp
     //
@@ -664,7 +666,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 
@@ -738,7 +740,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 
@@ -758,7 +760,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 

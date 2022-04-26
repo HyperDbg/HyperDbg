@@ -23,8 +23,9 @@
 BOOLEAN
 BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 GuestRip, PGUEST_REGS GuestRegs)
 {
-    PLIST_ENTRY TempList           = 0;
-    BOOLEAN     IsHandledByEptHook = FALSE;
+    PLIST_ENTRY             TempList           = 0;
+    BOOLEAN                 IsHandledByEptHook = FALSE;
+    VIRTUAL_MACHINE_STATE * CurrentVmState     = &g_GuestState[CurrentProcessorIndex];
 
     //
     // ***** Check breakpoint for !epthook *****
@@ -64,7 +65,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 
                     //
                     // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                     //
-                    g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = HookedEntry;
+                    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
 
                     //
                     // We have to set Monitor trap flag and give it the HookedEntry to work with
@@ -101,7 +102,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 
                     // Indicate that we should enable external interruts and configure external interrupt
                     // window exiting somewhere at MTF
                     //
-                    g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
 
                     //
                     // Indicate that we handled the ept violation
@@ -146,6 +147,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
     ULONG                            LengthOfExitInstr     = 0;
     BYTE                             InstrByte             = NULL;
     *AvoidUnsetMtf                                         = FALSE;
+    VIRTUAL_MACHINE_STATE * CurrentVmState                 = &g_GuestState[CurrentProcessorIndex];
 
     //
     // ***** Check breakpoint for 'bp' command *****
@@ -188,7 +190,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             //
             // Now, halt the debuggee
             //
-            ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+            ContextAndTag.Context = CurrentVmState->LastVmexitRip;
 
             //
             // In breakpoints tag is breakpoint id, not event tag
@@ -201,7 +203,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             //
             // Hint the debuggee about the length
             //
-            g_GuestState[CurrentProcessorIndex].DebuggingState.InstructionLengthHint = CurrentBreakpointDesc->InstructionLength;
+            CurrentVmState->DebuggingState.InstructionLengthHint = CurrentBreakpointDesc->InstructionLength;
 
             //
             // Check constraints
@@ -224,7 +226,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
             //
             // Reset hint to instruction length
             //
-            g_GuestState[CurrentProcessorIndex].DebuggingState.InstructionLengthHint = 0;
+            CurrentVmState->DebuggingState.InstructionLengthHint = 0;
 
             //
             // Check if we should re-apply the breakpoint after this instruction
@@ -235,7 +237,7 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                 //
                 // We should re-apply the breakpoint on next mtf
                 //
-                g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState = CurrentBreakpointDesc;
+                CurrentVmState->DebuggingState.SoftwareBreakpointState = CurrentBreakpointDesc;
 
                 //
                 // Fire and MTF
@@ -263,14 +265,14 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
                     //
                     // An indicator to restore RFLAGS if to enabled state
                     //
-                    g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = TRUE;
+                    CurrentVmState->DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = TRUE;
                 }
             }
 
             //
             // Do not increment rip
             //
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+            CurrentVmState->IncrementRip = FALSE;
 
             //
             // No need to iterate anymore
@@ -297,6 +299,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     BOOLEAN                          IsHandledByEptHook = FALSE;
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag      = {0};
     BOOLEAN                          AvoidUnsetMtf; // not used here
+    VIRTUAL_MACHINE_STATE *          CurrentVmState = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Reading guest's RIP
@@ -306,7 +309,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Don't increment rip by default
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
 
     //
     // Check if it relates to !epthook or not
@@ -341,7 +344,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
                 //
                 // It's a random breakpoint byte
                 //
-                ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+                ContextAndTag.Context = CurrentVmState->LastVmexitRip;
                 KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                       GuestRegs,
                                                       DEBUGGEE_PAUSING_REASON_DEBUGGEE_SOFTWARE_BREAKPOINT_HIT,
@@ -350,7 +353,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
                 //
                 // Increment rip
                 //
-                g_GuestState[CurrentProcessorIndex].IncrementRip = TRUE;
+                CurrentVmState->IncrementRip = TRUE;
             }
         }
         else
@@ -358,7 +361,7 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Don't increment rip
             //
-            g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+            CurrentVmState->IncrementRip = FALSE;
 
             //
             // Kernel debugger (debugger-mode) is not attached, re-inject the breakpoint

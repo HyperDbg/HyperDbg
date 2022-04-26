@@ -395,7 +395,7 @@ VmxVirtualizeCurrentSystem(PVOID GuestStack)
 
     LogDebugInfo("Setting up VMCS for current logical core");
 
-    VmxSetupVmcs(&g_GuestState[ProcessorID], GuestStack);
+    VmxSetupVmcs(CurrentVmState, GuestStack);
 
     LogDebugInfo("Executing VMLAUNCH on logical core %d", ProcessorID);
 

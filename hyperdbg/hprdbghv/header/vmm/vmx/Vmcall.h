@@ -294,8 +294,6 @@ static NTSTATUS
 VmxHypervVmcallHandler(_Inout_ PGUEST_REGS GuestRegs);
 
 
-#define IS_HYPERDBG_VMCALL(GeustRegs) (GuestRegs->r10 == 0x48564653 && GuestRegs->r11 == 0x564d43414c4c && GuestRegs->r12 == 0x4e4f485950455256)
-
 /**
  * @brief Handle vm-exits of VMCALLs
  * 

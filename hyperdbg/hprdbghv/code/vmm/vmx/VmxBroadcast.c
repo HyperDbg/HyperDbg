@@ -122,6 +122,8 @@ VmxBroadcastNmi(UINT32 CurrentCoreIndex, NMI_BROADCAST_ACTION_TYPE VmxBroadcastA
 VOID
 VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, BOOLEAN IsOnVmxNmiHandler)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCoreIndex];
+
     //
     // We use it as a global flag (for both vmx-root and vmx non-root), because
     // generally it doesn't have any use case in vmx-root (IsOnVmxNmiHandler == FALSE)
@@ -130,7 +132,7 @@ VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, 
     // handled and the core is not locked properly, just waits to get the handle
     // of the "DebuggerHandleBreakpointLock", so we check this flag there
     //
-    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingToBeLocked = TRUE;
+   CurrentVmState->DebuggingState.WaitingToBeLocked = TRUE;
 
     if (IsOnVmxNmiHandler)
     {
@@ -138,7 +140,7 @@ VmxBroadcastHandleKdDebugBreaks(UINT32 CurrentCoreIndex, PGUEST_REGS GuestRegs, 
         // Indicate that it's called from NMI handle, and it relates to
         // halting the debuggee
         //
-        g_GuestState[CurrentCoreIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
+       CurrentVmState->DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee = TRUE;
 
         //
         // If the core was in the middle of spinning on the spinlock

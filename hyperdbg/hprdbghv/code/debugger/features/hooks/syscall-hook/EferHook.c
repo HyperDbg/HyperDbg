@@ -231,6 +231,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     UINT64   OriginalCr3;
     UINT64   Rip;
     BOOLEAN  Result;
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Reading guest's RIP
@@ -296,7 +297,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             //
             // The page is not present, we have to inject a #PF
             //
-            g_GuestState[CoreIndex].IncrementRip = FALSE;
+            CurrentVmState->IncrementRip = FALSE;
 
             //
             // For testing purpose
@@ -350,7 +351,7 @@ EmulateSYSRET:
     DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, Rip);
 
     Result                               = SyscallHookEmulateSYSRET(Regs);
-    g_GuestState[CoreIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
     return Result;
 
     //
@@ -373,6 +374,6 @@ EmulateSYSCALL:
 
     Result = SyscallHookEmulateSYSCALL(Regs);
 
-    g_GuestState[CoreIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
     return Result;
 }

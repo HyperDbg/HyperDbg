@@ -250,6 +250,8 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
 BOOLEAN
 MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+
     if (!ReadDetection && !WriteDetection)
     {
         //
@@ -262,22 +264,22 @@ MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEA
     {
         if (ReadDetection)
         {
-            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+            SetBit(Msr, CurrentVmState->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
+            SetBit(Msr, CurrentVmState->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
+            SetBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 1024);
         }
         if (WriteDetection)
         {
-            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
+            SetBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 3072);
         }
     }
     else
@@ -299,6 +301,8 @@ MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEA
 BOOLEAN
 MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+
     if (!ReadDetection && !WriteDetection)
     {
         //
@@ -311,22 +315,22 @@ MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOL
     {
         if (ReadDetection)
         {
-            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+            ClearBit(Msr, CurrentVmState->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
+            ClearBit(Msr, CurrentVmState->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
+            ClearBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 1024);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
+            ClearBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 3072);
         }
     }
     else
@@ -345,16 +349,17 @@ MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOL
 VOID
 MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
+    ClearBit(0x102, CurrentVmState->MsrBitmapVirtualAddress + 1024);
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
-    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
+    ClearBit(0xe7, CurrentVmState->MsrBitmapVirtualAddress);
+    ClearBit(0xe8, CurrentVmState->MsrBitmapVirtualAddress);
 }
 
 /**
@@ -366,22 +371,24 @@ MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
 VOID
 MsrHandleFilterMsrWriteBitmap(UINT32 CoreIndex)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
+
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 3072);
+    ClearBit(0x102, CurrentVmState->MsrBitmapVirtualAddress + 3072);
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
-    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe7, CurrentVmState->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe8, CurrentVmState->MsrBitmapVirtualAddress + 2048);
 
     //
     // Ignore IA32_SPEC_CTRL (0x00000048), and IA32_PRED_CMD (0x00000049)
     //
-    ClearBit(0x48, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
-    ClearBit(0x49, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x48, CurrentVmState->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x49, CurrentVmState->MsrBitmapVirtualAddress + 2048);
 }
 
 /**
@@ -394,13 +401,14 @@ VOID
 MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0xff, 2048);
+        memset(CurrentVmState->MsrBitmapVirtualAddress, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -425,11 +433,12 @@ VOID
 MsrHandlePerformMsrBitmapReadReset()
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0x0, 2048);
+    memset(CurrentVmState->MsrBitmapVirtualAddress, 0x0, 2048);
 }
 /**
  * @brief Change MSR Bitmap for write
@@ -441,13 +450,14 @@ VOID
 MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0xff, 2048);
+        memset((UINT64)CurrentVmState->MsrBitmapVirtualAddress + 2048, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -472,9 +482,10 @@ VOID
 MsrHandlePerformMsrBitmapWriteReset()
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0x0, 2048);
+    memset((UINT64)CurrentVmState->MsrBitmapVirtualAddress + 2048, 0x0, 2048);
 }
