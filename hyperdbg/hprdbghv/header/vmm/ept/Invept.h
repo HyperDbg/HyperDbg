@@ -15,25 +15,15 @@
 //                   Structures		   			//
 //////////////////////////////////////////////////
 
-/**
- * @brief INVEPT Instruction Descriptor
- * 
- */
-typedef struct _INVEPT_DESC
-{
-    UINT64 EptPointer;
-    UINT64 Reserved;
-} INVEPT_DESC, *PINVEPT_DESC;
-
 //////////////////////////////////////////////////
 //                 Functions	    			//
 //////////////////////////////////////////////////
 
 UCHAR
-Invept(UINT32 Type, INVEPT_DESC * Descriptor);
+EptInvept(_In_ UINT32 Type, _In_ INVEPT_DESCRIPTOR * Descriptor);
 
 UCHAR
-InveptAllContexts();
+EptInveptAllContexts();
 
 UCHAR
-InveptSingleContext(UINT64 EptPonter);
+EptInveptSingleContext(_In_ UINT64 EptPonter);

@@ -19,12 +19,16 @@
 VOID
 CommandInterruptHelp()
 {
-    ShowMessages("!interrupt : Monitors the external interrupt (IDT >= 32).\n\n");
+    ShowMessages("!interrupt : monitors the external interrupt (IDT >= 32).\n\n");
+
     ShowMessages("syntax : \t[IdtIndex (hex)] [pid ProcessId (hex)] "
                  "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
-    ShowMessages("\nNote : The index should be greater than 0x20 (32) and less "
+
+    ShowMessages("\nnote : The index should be greater than 0x20 (32) and less "
                  "than 0xFF (255) - starting from zero.\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !interrupt 0x2f\n");
     ShowMessages("\t\te.g : !interrupt 0x2f pid 400\n");
     ShowMessages("\t\te.g : !interrupt 0x2f core 2 pid 400\n");

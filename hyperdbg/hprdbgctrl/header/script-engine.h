@@ -33,7 +33,10 @@ UINT32
 ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask);
 
 BOOLEAN
-ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
+ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+
+BOOLEAN
+ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize);
 
 BOOLEAN
 ScriptEngineCreateSymbolTableForDisassemblerWrapper(void * CallbackFunction);
@@ -52,6 +55,14 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   BOOLEAN               DownloadIfAvailable,
                                   const char *          SymbolPath,
                                   BOOLEAN               IsSilentLoad);
+
+BOOLEAN
+ScriptEngineShowDataBasedOnSymbolTypesWrapper(
+    const char * TypeName,
+    UINT64       Address,
+    BOOLEAN      IsStruct,
+    PVOID        BufferAddress,
+    const char * AdditionalParameters);
 
 VOID
 ScriptEngineSymbolAbortLoadingWrapper();

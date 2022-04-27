@@ -13,6 +13,19 @@
  */
 #pragma once
 
+//
+// IA32-doc has structures for the entire intel SDM.
+//
+
+#define USE_LIB_IA32
+#if defined(USE_LIB_IA32)
+#    pragma warning(push, 0)
+//#    pragma warning(disable : 4201) // suppress nameless struct/union warning
+#    include <ia32-doc/out/ia32.h>
+#    pragma warning(pop)
+typedef RFLAGS * PRFLAGS;
+#endif //USE_LIB_IA32
+
 //////////////////////////////////////////////////
 //			 Version Information                //
 //////////////////////////////////////////////////
@@ -201,6 +214,12 @@ const unsigned char BuildVersion[] =
 #define DefaultSpeedOfReadingKernelMessages 30
 
 //////////////////////////////////////////////////
+//			    	    Pdbex                   //
+//////////////////////////////////////////////////
+
+#define PDBEX_DEFAULT_CONFIGURATION "-j- -k- -e n -i"
+
+//////////////////////////////////////////////////
 //				Message Tracing                 //
 //////////////////////////////////////////////////
 
@@ -222,7 +241,7 @@ const unsigned char BuildVersion[] =
  * @warning we redefine it on ScriptEngineEval.h change it on
  * that file too
  */
-#define PacketChunkSize 3000
+#define PacketChunkSize 4096 // PAGE_SIZE
 
 /**
  * @brief size of user-mode buffer
@@ -463,6 +482,9 @@ const unsigned char BuildVersion[] =
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SYMBOL_RELOAD                       0x12
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_TEST_QUERY                          0x13
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_CALLSTACK_RESULT                    0x14
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT                 0x15
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT              0x16
+#define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT                          0x17
 
 /**
  * @brief Maximum number of event handles in user-debugger
@@ -642,22 +664,22 @@ typedef struct GUEST_REGS
     // DO NOT FUCKING TOUCH THIS STRUCTURE WITHOUT COORDINATION WITH SINA
     //
 
-    ULONG64 rax; // 0x00
-    ULONG64 rcx; // 0x08
-    ULONG64 rdx; // 0x10
-    ULONG64 rbx; // 0x18
-    ULONG64 rsp; // 0x20
-    ULONG64 rbp; // 0x28
-    ULONG64 rsi; // 0x30
-    ULONG64 rdi; // 0x38
-    ULONG64 r8;  // 0x40
-    ULONG64 r9;  // 0x48
-    ULONG64 r10; // 0x50
-    ULONG64 r11; // 0x58
-    ULONG64 r12; // 0x60
-    ULONG64 r13; // 0x68
-    ULONG64 r14; // 0x70
-    ULONG64 r15; // 0x78
+    UINT64 rax; // 0x00
+    UINT64 rcx; // 0x08
+    UINT64 rdx; // 0x10
+    UINT64 rbx; // 0x18
+    UINT64 rsp; // 0x20
+    UINT64 rbp; // 0x28
+    UINT64 rsi; // 0x30
+    UINT64 rdi; // 0x38
+    UINT64 r8;  // 0x40
+    UINT64 r9;  // 0x48
+    UINT64 r10; // 0x50
+    UINT64 r11; // 0x58
+    UINT64 r12; // 0x60
+    UINT64 r13; // 0x68
+    UINT64 r14; // 0x70
+    UINT64 r15; // 0x78
 
     //
     // DO NOT FUCKING TOUCH THIS STRUCTURE WITHOUT COORDINATION WITH SINA
@@ -672,12 +694,12 @@ typedef struct GUEST_REGS
  */
 typedef struct GUEST_EXTRA_REGISTERS
 {
-    USHORT CS;
-    USHORT DS;
-    USHORT FS;
-    USHORT GS;
-    USHORT ES;
-    USHORT SS;
+    UINT16 CS;
+    UINT16 DS;
+    UINT16 FS;
+    UINT16 GS;
+    UINT16 ES;
+    UINT16 SS;
     UINT64 RFLAGS;
     UINT64 RIP;
 } GUEST_EXTRA_REGISTERS, *PGUEST_EXTRA_REGISTERS;
@@ -686,35 +708,35 @@ typedef struct GUEST_EXTRA_REGISTERS
  * @brief RFLAGS in structure format
  *
  */
-typedef union _RFLAGS
-{
-    struct
-    {
-        UINT64 CarryFlag : 1;
-        UINT64 ReadAs1 : 1;
-        UINT64 ParityFlag : 1;
-        UINT64 Reserved1 : 1;
-        UINT64 AuxiliaryCarryFlag : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 ZeroFlag : 1;
-        UINT64 SignFlag : 1;
-        UINT64 TrapFlag : 1;
-        UINT64 InterruptEnableFlag : 1;
-        UINT64 DirectionFlag : 1;
-        UINT64 OverflowFlag : 1;
-        UINT64 IoPrivilegeLevel : 2;
-        UINT64 NestedTaskFlag : 1;
-        UINT64 Reserved3 : 1;
-        UINT64 ResumeFlag : 1;
-        UINT64 Virtual8086ModeFlag : 1;
-        UINT64 AlignmentCheckFlag : 1;
-        UINT64 VirtualInterruptFlag : 1;
-        UINT64 VirtualInterruptPendingFlag : 1;
-        UINT64 IdentificationFlag : 1;
-    };
-
-    UINT64 Value;
-} RFLAGS, *PRFLAGS;
+//typedef union _RFLAGS
+//{
+//    struct
+//    {
+//        UINT64 CarryFlag : 1;
+//        UINT64 ReadAs1 : 1;
+//        UINT64 ParityFlag : 1;
+//        UINT64 Reserved1 : 1;
+//        UINT64 AuxiliaryCarryFlag : 1;
+//        UINT64 Reserved2 : 1;
+//        UINT64 ZeroFlag : 1;
+//        UINT64 SignFlag : 1;
+//        UINT64 TrapFlag : 1;
+//        UINT64 InterruptEnableFlag : 1;
+//        UINT64 DirectionFlag : 1;
+//        UINT64 OverflowFlag : 1;
+//        UINT64 IoPrivilegeLevel : 2;
+//        UINT64 NestedTaskFlag : 1;
+//        UINT64 Reserved3 : 1;
+//        UINT64 ResumeFlag : 1;
+//        UINT64 Virtual8086ModeFlag : 1;
+//        UINT64 AlignmentCheckFlag : 1;
+//        UINT64 VirtualInterruptFlag : 1;
+//        UINT64 VirtualInterruptPendingFlag : 1;
+//        UINT64 IdentificationFlag : 1;
+//    } Fields;
+//
+//    UINT64 Value;
+//} RFLAGS, *PRFLAGS;
 
 /**
  * @brief enum to show type of all HyperDbg events
@@ -967,6 +989,7 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_MODE_CHANGE_THREAD,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_RUN_SCRIPT,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_USER_INPUT_BUFFER,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SEARCH_QUERY,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_ADD_ACTION_TO_EVENT,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_AND_MODIFY_EVENT,
@@ -976,6 +999,8 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_BP,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_RELOAD,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PA2VA_AND_VA2PA,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_QUERY_PTE,
 
     //
     // Debuggee to debugger
@@ -1002,6 +1027,9 @@ typedef enum _DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_LIST_OR_MODIFY_BREAKPOINTS,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_UPDATE_SYMBOL_INFO,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SYMBOL_FINISHED,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
+    DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,
 
 } DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION;
 
@@ -1113,6 +1141,7 @@ typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
 typedef struct _DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS
 {
     UINT64 VirtualAddress;
+    UINT32 ProcessId;
 
     UINT64 Pml4eVirtualAddress;
     UINT64 Pml4eValue;
@@ -1150,6 +1179,28 @@ typedef struct _DEBUGGER_VA2PA_AND_PA2VA_COMMANDS
     UINT32  KernelStatus;
 
 } DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, *PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_DT_COMMAND_OPTIONS \
+    sizeof(DEBUGGER_DT_COMMAND_OPTIONS)
+
+/**
+ * @brief requests options for dt and struct command
+ *
+ */
+typedef struct _DEBUGGER_DT_COMMAND_OPTIONS
+{
+    const char * TypeName;
+    UINT64       SizeOfTypeName;
+    UINT64       Address;
+    BOOLEAN      IsStruct;
+    PVOID        BufferAddress;
+    UINT32       TargetPid;
+    const char * AdditionalParameters;
+
+} DEBUGGER_DT_COMMAND_OPTIONS, *PDEBUGGER_DT_COMMAND_OPTIONS;
 
 /* ==============================================================================================
  */
@@ -1218,6 +1269,7 @@ typedef enum _DEBUGGER_READ_MEMORY_TYPE
  */
 typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
 {
+    DEBUGGER_SHOW_COMMAND_DT = 1,
     DEBUGGER_SHOW_COMMAND_DISASSEMBLE64,
     DEBUGGER_SHOW_COMMAND_DISASSEMBLE32,
     DEBUGGER_SHOW_COMMAND_DB,
@@ -1232,14 +1284,15 @@ typedef enum _DEBUGGER_SHOW_MEMORY_STYLE
  */
 typedef struct _DEBUGGER_READ_MEMORY
 {
-    UINT32                     Pid; // Read from cr3 of what process
-    UINT64                     Address;
-    UINT32                     Size;
-    DEBUGGER_READ_MEMORY_TYPE  MemoryType;
-    DEBUGGER_READ_READING_TYPE ReadingType;
-    DEBUGGER_SHOW_MEMORY_STYLE Style;        // not used in local debugging
-    UINT32                     ReturnLength; // not used in local debugging
-    UINT32                     KernelStatus; // not used in local debugging
+    UINT32                       Pid; // Read from cr3 of what process
+    UINT64                       Address;
+    UINT32                       Size;
+    DEBUGGER_READ_MEMORY_TYPE    MemoryType;
+    DEBUGGER_READ_READING_TYPE   ReadingType;
+    PDEBUGGER_DT_COMMAND_OPTIONS DtDetails;
+    DEBUGGER_SHOW_MEMORY_STYLE   Style;        // not used in local debugging
+    UINT32                       ReturnLength; // not used in local debugging
+    UINT32                       KernelStatus; // not used in local debugging
 
 } DEBUGGER_READ_MEMORY, *PDEBUGGER_READ_MEMORY;
 
@@ -1463,7 +1516,8 @@ typedef struct _DEBUGGER_EDIT_MEMORY
 typedef enum _DEBUGGER_SEARCH_MEMORY_TYPE
 {
     SEARCH_PHYSICAL_MEMORY,
-    SEARCH_VIRTUAL_MEMORY
+    SEARCH_VIRTUAL_MEMORY,
+    SEARCH_PHYSICAL_FROM_VIRTUAL_MEMORY,
 
 } DEBUGGER_SEARCH_MEMORY_TYPE;
 
@@ -1857,7 +1911,7 @@ typedef struct _DEBUGGEE_KD_PAUSED_PACKET
     UINT64                  EventTag;
     RFLAGS                  Rflags;
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    USHORT                  ReadInstructionLen;
+    UINT16                  ReadInstructionLen;
 
 } DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
 
@@ -1876,7 +1930,7 @@ typedef struct _DEBUGGEE_UD_PAUSED_PACKET
     UINT64                  EventTag;
     RFLAGS                  Rflags;
     BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    USHORT                  ReadInstructionLen;
+    UINT16                  ReadInstructionLen;
     GUEST_REGS              GuestRegs;
 
 } DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
@@ -2202,6 +2256,17 @@ typedef struct _DEBUGGEE_SCRIPT_PACKET
     //
 
 } DEBUGGEE_SCRIPT_PACKET, *PDEBUGGEE_SCRIPT_PACKET;
+
+/**
+ * @brief The structure of result of search packet in HyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_RESULT_OF_SEARCH_PACKET
+{
+    UINT32 CountOfResults;
+    UINT32 Result;
+
+} DEBUGGEE_RESULT_OF_SEARCH_PACKET, *PDEBUGGEE_RESULT_OF_SEARCH_PACKET;
 
 /**
  * @brief for reading all regisers in r command.

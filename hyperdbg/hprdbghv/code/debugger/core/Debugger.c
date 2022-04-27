@@ -60,27 +60,14 @@ DebuggerSetLastError(UINT32 LastError)
 BOOLEAN
 DebuggerInitialize()
 {
-    UINT32 ProcessorCount;
-
-    ProcessorCount = KeQueryActiveProcessorCount(0);
+    ULONG                       ProcessorCount       = KeQueryActiveProcessorCount(0);
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     //
     // Allocate buffer for saving events
     //
-    if (!g_Events)
-    {
-        g_Events = ExAllocatePoolWithTag(NonPagedPool, sizeof(DEBUGGER_CORE_EVENTS), POOLTAG);
-    }
-
-    if (!g_Events)
-    {
+    if (GlobalEventsAllocateZeroedMemory() == FALSE)
         return FALSE;
-    }
-
-    //
-    // Zero the buffer
-    //
-    RtlZeroBytes(g_Events, sizeof(DEBUGGER_CORE_EVENTS));
 
     //
     // Initialize lists relating to the debugger events store
@@ -155,13 +142,15 @@ DebuggerInitialize()
     //
     for (size_t i = 0; i < ProcessorCount; i++)
     {
-        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable)
+        CurrentDebuggerState = &g_GuestState[i].DebuggingState;
+
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
-            g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable =
+            CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable =
                 ExAllocatePoolWithTag(NonPagedPool, MAX_VAR_COUNT * sizeof(UINT64), POOLTAG);
         }
 
-        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable)
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable)
         {
             //
             // Out of resource, initialization of script engine's local varialbe holders failed
@@ -169,13 +158,13 @@ DebuggerInitialize()
             return FALSE;
         }
 
-        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable)
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
         {
-            g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable =
+            CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable =
                 ExAllocatePoolWithTag(NonPagedPool, MAX_TEMP_COUNT * sizeof(UINT64), POOLTAG);
         }
 
-        if (!g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable)
+        if (!CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable)
         {
             //
             // Out of resource, initialization of script engine's local varialbe holders failed
@@ -186,9 +175,33 @@ DebuggerInitialize()
         //
         // Zero the local and temp variables memory
         //
-        RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
-        RtlZeroMemory(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
+        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, MAX_VAR_COUNT * sizeof(UINT64));
+        RtlZeroMemory(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, MAX_TEMP_COUNT * sizeof(UINT64));
     }
+
+    //
+    // *** Initialize NMI broadcasting mechanism ***
+    //
+
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    BroadcastEnableNmiExitingAllCores();
+
+    //
+    // Indicate that NMI broadcasting is initialized
+    //
+    g_NmiBroadcastingInitialized = TRUE;
 
     //
     // Initialize attaching mechanism,
@@ -247,6 +260,26 @@ DebuggerUninitialize()
     // Uninitialize user debugger
     //
     UdUninitializeUserDebugger();
+
+    //
+    // *** Uninitialize NMI broadcasting mechanism ***
+    //
+    g_NmiBroadcastingInitialized = FALSE;
+
+    //
+    // De-register NMI handler
+    //
+    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    BroadcastDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
 }
 
 /**
@@ -1100,6 +1133,7 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
             DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
             break;
         default:
+
             //
             // Invalid action type
             //
@@ -1272,8 +1306,9 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
     UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE *          CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
 
-    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    if (CurrentVmState->IsOnVmxRootMode)
     {
         //
         // The guest is already in vmx-root mode

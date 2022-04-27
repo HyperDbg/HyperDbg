@@ -22,10 +22,10 @@ VOID
 MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs);
 
 BOOLEAN
-MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 BOOLEAN
-MsrHandleUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
+MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection);
 
 VOID
 MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask);

@@ -23,10 +23,12 @@
 VOID
 CommandSympathHelp()
 {
-    ShowMessages(".sympath : show and set the symbol server and path.\n\n");
+    ShowMessages(".sympath : shows and sets the symbol server and path.\n\n");
 
     ShowMessages("syntax : \t.sympath\n");
     ShowMessages("syntax : \t.sympath [SymServer (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .sympath\n");
     ShowMessages("\t\te.g : .sympath SRV*c:\\Symbols*https://msdl.microsoft.com/download/symbols \n");
 }

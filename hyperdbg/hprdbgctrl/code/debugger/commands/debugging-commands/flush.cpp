@@ -24,8 +24,9 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandFlushHelp()
 {
-    ShowMessages("flush : Removes all the buffer and messages from kernel-mode "
+    ShowMessages("flush : removes all the buffer and messages from kernel-mode "
                  "buffers.\n\n");
+
     ShowMessages("syntax : \tflush \n");
 }
 

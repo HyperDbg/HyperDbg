@@ -29,17 +29,21 @@ VOID
 CommandDebugHelp()
 {
     ShowMessages(
-        ".debug : debug target machine or make this machine a debuggee.\n\n");
+        ".debug : debugs a target machine or makes this machine a debuggee.\n\n");
+
     ShowMessages(
         "syntax : \t.debug [remote] [serial|namedpipe] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages(
         "syntax : \t.debug [prepare] [serial] [Baudrate (decimal)] [Address (string)]\n");
     ShowMessages("syntax : \t.debug [close]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .debug remote serial 115200 com3\n");
     ShowMessages("\t\te.g : .debug remote namedpipe \\\\.\\pipe\\HyperDbgPipe\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com1\n");
     ShowMessages("\t\te.g : .debug prepare serial 115200 com2\n");
     ShowMessages("\t\te.g : .debug close\n");
+
     ShowMessages(
         "\nvalid baud rates (decimal) : 110, 300, 600, 1200, 2400, 4800, 9600, "
         "14400, 19200, 38400, 56000, 57600, 115200, 128000, 256000\n");

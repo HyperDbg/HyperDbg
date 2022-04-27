@@ -21,18 +21,18 @@
  * @return VOID 
  */
 VOID
-EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode)
+EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode)
 {
-    INTERRUPT_INFO Inject = {0};
-    Inject.Valid          = TRUE;
-    Inject.InterruptType  = InterruptionType;
-    Inject.Vector         = Vector;
-    Inject.DeliverCode    = DeliverErrorCode;
-    __vmx_vmwrite(VM_ENTRY_INTR_INFO, Inject.Flags);
+    INTERRUPT_INFO Inject       = {0};
+    Inject.Fields.Valid         = TRUE;
+    Inject.Fields.InterruptType = InterruptionType;
+    Inject.Fields.Vector        = Vector;
+    Inject.Fields.DeliverCode   = DeliverErrorCode;
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, Inject.Flags);
 
     if (DeliverErrorCode)
     {
-        __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
     }
 }
 
@@ -46,8 +46,8 @@ EventInjectBreakpoint()
 {
     EventInjectInterruption(INTERRUPT_TYPE_SOFTWARE_EXCEPTION, EXCEPTION_VECTOR_BREAKPOINT, FALSE, 0);
     UINT32 ExitInstrLength;
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstrLength);
-    __vmx_vmwrite(VM_ENTRY_INSTRUCTION_LEN, ExitInstrLength);
+    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 
 /**
@@ -60,8 +60,8 @@ EventInjectGeneralProtection()
 {
     EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_GENERAL_PROTECTION_FAULT, TRUE, 0);
     UINT32 ExitInstrLength;
-    __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstrLength);
-    __vmx_vmwrite(VM_ENTRY_INSTRUCTION_LEN, ExitInstrLength);
+    __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstrLength);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INSTRUCTION_LENGTH, ExitInstrLength);
 }
 
 /**
@@ -119,5 +119,5 @@ EventInjectPageFault(UINT64 PageFaultAddress)
     //
     // Error code is from PAGE_FAULT_ERROR_CODE structure
     //
-    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.All);
+    EventInjectInterruption(INTERRUPT_TYPE_HARDWARE_EXCEPTION, EXCEPTION_VECTOR_PAGE_FAULT, TRUE, ErrorCode.Flags);
 }

@@ -37,6 +37,8 @@ CommandIHelp()
     ShowMessages("syntax : \ti [Count (hex)]\n");
     ShowMessages("syntax : \tir\n");
     ShowMessages("syntax : \tir [Count (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : i\n");
     ShowMessages("\t\te.g : ir\n");
     ShowMessages("\t\te.g : ir 1f\n");

@@ -26,14 +26,17 @@ extern BOOLEAN g_ExecutingScript;
 VOID
 CommandScriptHelp()
 {
-    ShowMessages(".script : run a HyperDbg script.\n\n");
+    ShowMessages(".script : runs a HyperDbg script.\n\n");
+
     ShowMessages("syntax : \.script [FilePath (string)] [Args (string)]\n");
-    ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg\n");
-    ShowMessages("\t\te.g : .script C:\\scripts\\script.dbg 95 85 @rsp\n");
-    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\"\n");
-    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax\n");
-    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" @rax @rcx+55 $pid\n");
-    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.dbg\" 12 55 @rip\n");
+
+    ShowMessages("\n");
+    ShowMessages("\t\te.g : .script C:\\scripts\\script.ds\n");
+    ShowMessages("\t\te.g : .script C:\\scripts\\script.ds 95 85 @rsp\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.ds\"\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.ds\" @rax\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.ds\" @rax @rcx+55 $pid\n");
+    ShowMessages("\t\te.g : .script \"C:\\scripts\\hello world.ds\" 12 55 @rip\n");
 }
 
 /**

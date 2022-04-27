@@ -379,3 +379,10 @@ MigrationBackup/
 !/hyperdbg/libraries/kdserial/x64/*
 !/hyperdbg/libraries/kdserial/arm/*
 !/hyperdbg/libraries/kdserial/arm64/*
+
+
+# Code review tools
+
+compile_commands.json
+StructLayoutSettings.json
+*.metaproj

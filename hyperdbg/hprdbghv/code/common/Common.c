@@ -49,6 +49,7 @@ MathPower(int Base, int Exp)
  * @param Routine The fucntion that should be executed on the target core
  * @return BOOLEAN Returns true if it was successfull
  */
+_Use_decl_annotations_
 BOOLEAN
 BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine)
 {
@@ -110,8 +111,9 @@ SetBit(int nth, unsigned long * addr)
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
-VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress)
 {
     return MmGetPhysicalAddress(VirtualAddress).QuadPart;
 }
@@ -124,6 +126,7 @@ VirtualAddressToPhysicalAddress(PVOID VirtualAddress)
  * @param ProcessId ProcessId to switch
  * @return CR3_TYPE The cr3 of the target process 
  */
+_Use_decl_annotations_
 CR3_TYPE
 GetCr3FromProcessId(UINT32 ProcessId)
 {
@@ -159,6 +162,7 @@ GetCr3FromProcessId(UINT32 ProcessId)
  * @return CR3_TYPE The cr3 of current process which can be
  * used by RestoreToPreviousProcess function
  */
+_Use_decl_annotations_
 CR3_TYPE
 SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
 {
@@ -197,17 +201,46 @@ SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId)
 }
 
 /**
- * @brief Switch to another process's cr3
+ * @brief Switch to guest's running process's cr3
  * 
- * @param TargetCr3 cr3 to switch
+ * @details this function can be called from vmx-root mode
+ *
  * @return CR3_TYPE The cr3 of current process which can be
  * used by RestoreToPreviousProcess function
  */
 CR3_TYPE
+SwitchOnMemoryLayoutOfTargetProcess()
+{
+    CR3_TYPE GuestCr3;
+    CR3_TYPE CurrentProcessCr3 = {0};
+
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+
+    //
+    // Read the current cr3
+    //
+    CurrentProcessCr3.Flags = __readcr3();
+
+    //
+    // Change to a new cr3 (of target process)
+    //
+    __writecr3(GuestCr3.Flags);
+
+    return CurrentProcessCr3;
+}
+
+/**
+ * @brief Switch to another process's cr3
+ *
+ * @param TargetCr3 cr3 to switch
+ * @return CR3_TYPE The cr3 of current process which can be
+ * used by RestoreToPreviousProcess function
+ */
+_Use_decl_annotations_
+CR3_TYPE
 SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
 {
-    PEPROCESS TargetEprocess;
-    CR3_TYPE  CurrentProcessCr3 = {0};
+    CR3_TYPE CurrentProcessCr3 = {0};
 
     //
     // Read the current cr3
@@ -224,52 +257,66 @@ SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3)
 
 /**
  * @brief Get Segment Descriptor
- * 
- * @param SegmentSelector 
- * @param Selector 
- * @param GdtBase 
- * @return BOOLEAN 
+ *
+ * @param SegmentSelector
+ * @param Selector
+ * @param GdtBase
+ * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase)
+GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR SegmentSelector)
 {
-    PSEGMENT_DESCRIPTOR SegDesc;
+    SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
+    SEGMENT_DESCRIPTOR_32 * Descriptor32;
+    SEGMENT_SELECTOR        SegSelector = {.Flags = Selector};
 
     if (!SegmentSelector)
         return FALSE;
 
-    if (Selector & 0x4)
+#define SELECTOR_TABLE_LDT 0x1
+#define SELECTOR_TABLE_GDT 0x0
+
+    //
+    // Ignore LDT
+    //
+    if ((Selector == 0x0) || (SegSelector.Table != SELECTOR_TABLE_GDT))
     {
         return FALSE;
     }
 
-    SegDesc = (PSEGMENT_DESCRIPTOR)((PUCHAR)GdtBase + (Selector & ~0x7));
+    DescriptorTable32 = (SEGMENT_DESCRIPTOR_32 *)(GdtBase);
+    Descriptor32      = &DescriptorTable32[SegSelector.Index];
 
-    SegmentSelector->SEL               = Selector;
-    SegmentSelector->BASE              = SegDesc->BASE0 | SegDesc->BASE1 << 16 | SegDesc->BASE2 << 24;
-    SegmentSelector->LIMIT             = SegDesc->LIMIT0 | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
-    SegmentSelector->ATTRIBUTES.UCHARs = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
+    SegmentSelector->Selector = Selector;
+    SegmentSelector->Limit    = __segmentlimit(Selector);
+    SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
 
-    if (!(SegDesc->ATTR0 & 0x10))
+    SegmentSelector->Attributes.Flags = (AsmGetAccessRights(Selector) >> 8);
+
+    if (SegSelector.Table == 0 && SegSelector.Index == 0)
     {
-        //
-        // LA_ACCESSED
-        //
-        ULONG64 tmp;
+        SegmentSelector->Attributes.Unusable = TRUE;
+    }
 
+    if ((Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_TSS_BUSY) ||
+        (Descriptor32->Type == SEGMENT_DESCRIPTOR_TYPE_CALL_GATE))
+    {
         //
         // this is a TSS or callgate etc, save the base high part
         //
-        tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
-        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+
+        UINT64 SegmentLimitHigh;
+        SegmentLimitHigh      = (*(UINT64 *)((PUCHAR)Descriptor32 + 8));
+        SegmentSelector->Base = (SegmentSelector->Base & 0xffffffff) | (SegmentLimitHigh << 32);
     }
 
-    if (SegmentSelector->ATTRIBUTES.Fields.G)
+    if (SegmentSelector->Attributes.Granularity)
     {
         //
         // 4096-bit granularity is enabled for this segment, scale the limit
         //
-        SegmentSelector->LIMIT = (SegmentSelector->LIMIT << 12) + 0xfff;
+        SegmentSelector->Limit = (SegmentSelector->Limit << 12) + 0xfff;
     }
 
     return TRUE;
@@ -282,6 +329,7 @@ GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR 
  * is returned by SwitchOnAnotherProcessMemoryLayout
  * @return VOID 
  */
+_Use_decl_annotations_
 VOID
 RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
 {
@@ -301,6 +349,7 @@ RestoreToPreviousProcess(CR3_TYPE PreviousProcess)
  * @param ProcessId The target's process id
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId)
 {
@@ -348,6 +397,7 @@ PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 Process
  * @param TargetCr3 The target's process cr3
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
 {
@@ -394,8 +444,26 @@ PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3)
  * @param PhysicalAddress The target physical address
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
+{
+    CR3_TYPE GuestCr3;
+
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
+
+    UINT64 Temp = (UINT64)PhysicalAddress;
+
+    return PhysicalAddressToVirtualAddressByCr3(PhysicalAddress, GuestCr3);
+}
+
+/**
+ * @brief Get cr3 of the target running process
+ *   
+ * @return CR3_TYPE Returns the cr3 of running process
+ */
+CR3_TYPE
+GetRunningCr3OnTargetProcess()
 {
     CR3_TYPE GuestCr3;
 
@@ -406,9 +474,7 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
     NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
     GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
 
-    UINT64 Temp = (UINT64)PhysicalAddress;
-
-    return PhysicalAddressToVirtualAddressByCr3(PhysicalAddress, GuestCr3);
+    return GuestCr3;
 }
 
 /**
@@ -421,6 +487,7 @@ PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress)
  * @param ProcessId The target's process id
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId)
 {
@@ -464,6 +531,7 @@ VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessI
  * @param TargetCr3 The target's process cr3
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3)
 {
@@ -506,6 +574,7 @@ VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE Targe
  * @param VirtualAddress The target virtual address
  * @return UINT64 Returns the physical address
  */
+_Use_decl_annotations_
 UINT64
 VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
 {
@@ -513,12 +582,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
     CR3_TYPE GuestCr3;
     UINT64   PhysicalAddress;
 
-    //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
-    //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Switch to new process's memory layout
@@ -555,6 +619,7 @@ VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress)
  * @param PhysicalAddress The target physical address
  * @return UINT64 Returns the virtual address
  */
+_Use_decl_annotations_
 UINT64
 PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress)
 {
@@ -838,8 +903,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -936,8 +1000,7 @@ VmxrootCompatibleStrlen(const CHAR * S)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -1026,8 +1089,7 @@ VmxrootCompatibleWcslen(const wchar_t * S)
     //
     // Find the current process cr3
     //
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     //
     // Move to new cr3
@@ -1138,8 +1200,9 @@ AllocateInvalidMsrBimap()
  * 
  * @return NTSTATUS 
  */
+_Use_decl_annotations_
 NTSTATUS
-GetHandleFromProcess(PHANDLE Handle, UINT32 ProcessId)
+GetHandleFromProcess(UINT32 ProcessId, PHANDLE Handle)
 {
     NTSTATUS Status;
     Status = STATUS_SUCCESS;
@@ -1222,6 +1285,7 @@ UndocumentedNtOpenProcess(
  * 
  * @return BOOLEAN 
  */
+_Use_decl_annotations_
 BOOLEAN
 KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 {
@@ -1231,7 +1295,6 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
 
     if (ProcessId == NULL)
     {
-        Status = STATUS_UNSUCCESSFUL;
         return FALSE;
     }
 
@@ -1239,7 +1302,7 @@ KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod)
     {
     case PROCESS_KILL_METHOD_1:
 
-        Status = GetHandleFromProcess(&ProcessHandle, ProcessId);
+        Status = GetHandleFromProcess(ProcessId, &ProcessHandle);
 
         if (!NT_SUCCESS(Status) || ProcessHandle == NULL)
         {

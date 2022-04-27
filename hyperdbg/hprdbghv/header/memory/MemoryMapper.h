@@ -31,13 +31,13 @@
  * @brief Different levels of paging
  * 
  */
-typedef enum _PML
+typedef enum _PAGING_LEVEL
 {
-    PT = 0, // Page Table
-    PD,     // Page Directory
-    PDPT,   // Page Directory Pointer Table
-    PML4    // Page Map Level 4
-} PML;
+    PagingLevelPageTable = 0,
+    PagingLevelPageDirectory,
+    PagingLevelPageDirectoryPointerTable,
+    PagingLevelPageMapLevel4
+} PAGING_LEVEL;
 
 /**
  * @brief Memory wrapper for reading safe from the memory
@@ -76,190 +76,6 @@ typedef struct _MEMORY_MAPPER_ADDRESSES
 } MEMORY_MAPPER_ADDRESSES, *PMEMORY_MAPPER_ADDRESSES;
 
 /**
- * @brief Page Table Entry Structure
- * 
- */
-typedef struct _PAGE_TABLE_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Dirty : 1;
-            UINT64 Pat : 1;
-            UINT64 Global : 1;
-            UINT64 Ignored1 : 3;
-            UINT64 PageFrameNumber : 36;
-            UINT64 Reserved1 : 4;
-            UINT64 Ignored2 : 7;
-            UINT64 ProtectionKey : 4;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} PAGE_TABLE_ENTRY, *PPAGE_TABLE_ENTRY;
-
-/**
- * @brief Page Directory Entry Structure
- * 
- */
-typedef struct _PAGE_DIRECTORY_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 LargePage : 1;
-            UINT64 Ignored1 : 4;
-            UINT64 PageFrameNumber : 36;
-            UINT64 Reserved2 : 4;
-            UINT64 Ignored2 : 11;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} PAGE_DIRECTORY_ENTRY, *PPAGE_DIRECTORY_ENTRY;
-
-/**
- * @brief Large Page Directory Entry Structure
- * 
- */
-typedef struct _LARGE_PAGE_DIRECTORY_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Dirty : 1;
-            UINT64 LargePage : 1;
-            UINT64 Global : 1;
-            UINT64 Ignored1 : 3;
-            UINT64 Pat : 1;
-            UINT64 Reserved1 : 17;
-            UINT64 PageFrameNumber : 18;
-            UINT64 Reserved2 : 4;
-            UINT64 Ignored2 : 7;
-            UINT64 ProtectionKey : 4;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} LARGE_PAGE_DIRECTORY_ENTRY, *PLARGE_PAGE_DIRECTORY_ENTRY;
-
-/**
- * @brief Page Directory Pointer Table Entry Structure
- * 
- */
-typedef struct _PAGE_DIRECTORY_POINTER_TABLE_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 LargeLpage : 1;
-            UINT64 Ignored1 : 4;
-            UINT64 PageFrameNumber : 36;
-            UINT64 Reserved2 : 4;
-            UINT64 Ignored2 : 11;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} PAGE_DIRECTORY_POINTER_TABLE_ENTRY, *PPAGE_DIRECTORY_POINTER_TABLE_ENTRY;
-
-/**
- * @brief Large Page Directory Pointer Table Entry Structure
- * 
- */
-typedef struct _LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Dirty : 1;
-            UINT64 LargePage : 1;
-            UINT64 Global : 1;
-            UINT64 Ignored1 : 3;
-            UINT64 Pat : 1;
-            UINT64 Reserved1 : 17;
-            UINT64 PageFrameNumber : 18;
-            UINT64 Reserved2 : 4;
-            UINT64 Ignored2 : 7;
-            UINT64 ProtectionKey : 4;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY, *PLARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY;
-
-/**
- * @brief Page Map Level 4 Entry Structure
- * 
- */
-typedef struct _PAGE_MAP_LEVEL_4_ENTRY
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 Present : 1;
-            UINT64 Write : 1;
-            UINT64 Supervisor : 1;
-            UINT64 PageLevelWriteThrough : 1;
-            UINT64 PageLevelCacheDisable : 1;
-            UINT64 Accessed : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 MustBeZero : 1;
-            UINT64 Ignored1 : 4;
-            UINT64 PageFrameNumber : 36;
-            UINT64 Reserved2 : 4;
-            UINT64 Ignored2 : 11;
-            UINT64 ExecuteDisable : 1;
-        };
-    };
-} PAGE_MAP_LEVEL_4_ENTRY, *PPAGE_MAP_LEVEL_4_ENTRY;
-
-/**
  * @brief Page Entries
  * 
  */
@@ -269,12 +85,12 @@ typedef struct _PAGE_ENTRY
     {
         UINT64 Flags;
 
-        PAGE_MAP_LEVEL_4_ENTRY                   Pml4;
-        LARGE_PAGE_DIRECTORY_POINTER_TABLE_ENTRY PdptLarge; // 1GB
-        PAGE_DIRECTORY_POINTER_TABLE_ENTRY       Pdpt;
-        LARGE_PAGE_DIRECTORY_ENTRY               PdLarge; // 2MB
-        PAGE_DIRECTORY_ENTRY                     Pd;
-        PAGE_TABLE_ENTRY                         Pt;
+        PML4E_64     Pml4;
+        PDPTE_1GB_64 PdptLarge; // 1GB
+        PDPTE_64     Pdpt;
+        PDE_2MB_64   PdLarge; // 2MB
+        PDE_64       Pd;
+        PTE_64       Pt;
 
         //
         // Common fields.
@@ -297,7 +113,7 @@ typedef struct _PAGE_ENTRY
             UINT64 Ignored2 : 7;
             UINT64 ProtectionKey : 4;
             UINT64 ExecuteDisable : 1;
-        };
+        } Fields;
     };
 } PAGE_ENTRY, *PPAGE_ENTRY;
 
@@ -318,7 +134,7 @@ typedef struct _CR3_TYPE
             UINT64 Reserved1 : 12;
             UINT64 Reserved_2 : 3;
             UINT64 PcidInvalidate : 1;
-        };
+        } Fields;
     };
 } CR3_TYPE, *PCR3_TYPE;
 
@@ -326,35 +142,133 @@ typedef struct _CR3_TYPE
 //					Functions					//
 //////////////////////////////////////////////////
 
-BOOLEAN
-MemoryMapperReadMemorySafe(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+static UINT64
+MemoryMapperGetIndex(_In_ PAGING_LEVEL Level,
+                     _In_ UINT64       Va);
+
+static UINT32
+MemoryMapperGetOffset(_In_ PAGING_LEVEL Level,
+                      _In_ UINT64       Va);
+
+static BOOLEAN
+MemoryMapperCheckIfPageIsNxBitSetByCr3(_In_ PVOID    Va,
+                                       _In_ CR3_TYPE TargetCr3);
+
+static PVOID
+MemoryMapperMapReservedPageRange(_In_ SIZE_T Size);
+
+static VOID
+MemoryMapperUnmapReservedPageRange(_In_ PVOID VirtualAddress);
+
+static PVOID
+MemoryMapperGetPte(_In_ PVOID VirtualAddress);
+
+static PVOID
+MemoryMapperGetPteByCr3(_In_ PVOID    VirtualAddress,
+                        _In_ CR3_TYPE TargetCr3);
+
+static PVOID
+MemoryMapperMapPageAndGetPte(_Out_ PUINT64 PteAddress);
+
+static BOOLEAN
+MemoryMapperReadMemorySafeByPte(_In_ PHYSICAL_ADDRESS PaAddressToRead,
+                                _Inout_ PVOID         BufferToSaveMemory,
+                                _In_ SIZE_T           SizeToRead,
+                                _In_ UINT64           PteVaAddress,
+                                _In_ UINT64           MappingVa,
+                                _In_ BOOLEAN          InvalidateVpids);
+
+static BOOLEAN
+MemoryMapperWriteMemorySafeByPte(_In_ PVOID            SourceVA,
+                                 _In_ PHYSICAL_ADDRESS PaAddressToWrite,
+                                 _In_ SIZE_T           SizeToWrite,
+                                 _Inout_ UINT64        PteVaAddress,
+                                 _Inout_ UINT64        MappingVa,
+                                 _In_ BOOLEAN          InvalidateVpids);
+
+static UINT64
+MemoryMapperReadMemorySafeByPhysicalAddressWrapperAddressMaker(
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead);
+
+static BOOLEAN
+MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
+    _In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfRead,
+    _In_ UINT64                                 AddressToRead,
+    _Inout_ UINT64                              BufferToSaveMemory,
+    _In_ SIZE_T                                 SizeToRead);
+
+static UINT64
+MemoryMapperWriteMemorySafeWrapperAddressMaker(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                               _In_ UINT64                                 DestinationAddr,
+                                               _In_opt_ PCR3_TYPE                          TargetProcessCr3,
+                                               _In_opt_ UINT32                             TargetProcessId);
+
+static BOOLEAN
+MemoryMapperWriteMemorySafeWrapper(_In_ MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOfWrite,
+                                   _Inout_ UINT64                              DestinationAddr,
+                                   _In_ UINT64                                 Source,
+                                   _In_ SIZE_T                                 SizeToWrite,
+                                   _In_opt_ PCR3_TYPE                          TargetProcessCr3,
+                                   _In_opt_ UINT32                             TargetProcessId);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
 
 BOOLEAN
-MemoryMapperReadMemorySafeByPhysicalAddress(UINT64 PaAddressToRead, UINT64 BufferToSaveMemory, SIZE_T SizeToRead);
+MemoryMapperReadMemorySafe(_In_ UINT64   VaAddressToRead,
+                           _Inout_ PVOID BufferToSaveMemory,
+                           _In_ SIZE_T   SizeToRead);
 
 BOOLEAN
-MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead, PVOID BufferToSaveMemory, SIZE_T SizeToRead);
+MemoryMapperReadMemorySafeByPhysicalAddress(_In_ UINT64    PaAddressToRead,
+                                            _Inout_ UINT64 BufferToSaveMemory,
+                                            _In_ SIZE_T    SizeToRead);
 
 BOOLEAN
-MemoryMapperWriteMemorySafeOnTargetProcess(UINT64 Destination, PVOID Source, SIZE_T Size);
+MemoryMapperReadMemorySafeOnTargetProcess(_In_ UINT64   VaAddressToRead,
+                                          _Inout_ PVOID BufferToSaveMemory,
+                                          _In_ SIZE_T   SizeToRead);
 
 BOOLEAN
-MemoryMapperWriteMemorySafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, CR3_TYPE TargetProcessCr3);
+MemoryMapperWriteMemorySafeOnTargetProcess(_Inout_ UINT64 Destination,
+                                           _In_ PVOID     Source,
+                                           _In_ SIZE_T    Size);
+
+BOOLEAN
+MemoryMapperWriteMemorySafe(_Inout_ UINT64 Destination,
+                            _In_ PVOID     Source,
+                            _In_ SIZE_T    SizeToWrite,
+                            _In_ CR3_TYPE  TargetProcessCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVa(PVOID Va, PML Level);
+MemoryMapperGetPteVa(_In_ PVOID        Va,
+                     _In_ PAGING_LEVEL Level);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaByCr3(_In_ PVOID        Va,
+                          _In_ PAGING_LEVEL Level,
+                          _In_ CR3_TYPE     TargetCr3);
 
 PPAGE_ENTRY
-MemoryMapperGetPteVaWithoutSwitchingByCr3(PVOID Va, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperGetPteVaWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                          _In_ PAGING_LEVEL Level,
+                                          _In_ CR3_TYPE     TargetCr3);
 
 BOOLEAN
-MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(PVOID Va, BOOLEAN Set, PML Level, CR3_TYPE TargetCr3);
+MemoryMapperSetSupervisorBitWithoutSwitchingByCr3(_In_ PVOID        Va,
+                                                  _In_ BOOLEAN      Set,
+                                                  _In_ PAGING_LEVEL Level,
+                                                  _In_ CR3_TYPE     TargetCr3);
 
 BOOLEAN
-MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3);
+MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
+                                      _In_ CR3_TYPE TargetCr3);
 
 VOID
 MemoryMapperInitialize();
@@ -363,21 +277,28 @@ VOID
 MemoryMapperUninitialize();
 
 VOID
-MemoryMapperMapPhysicalAddressToPte(PHYSICAL_ADDRESS PhysicalAddress,
-                                    PVOID            TargetProcessVirtualAddress,
-                                    CR3_TYPE         TargetProcessKernelCr3);
+MemoryMapperMapPhysicalAddressToPte(_In_ PHYSICAL_ADDRESS PhysicalAddress,
+                                    _In_ PVOID            TargetProcessVirtualAddress,
+                                    _In_ CR3_TYPE         TargetProcessKernelCr3);
 
 UINT64
-MemoryMapperReserveUsermodeAddressInTargetProcess(UINT32 ProcessId, BOOLEAN Allocate);
+MemoryMapperReserveUsermodeAddressInTargetProcess(_In_ UINT32  ProcessId,
+                                                  _In_ BOOLEAN Allocate);
 
 BOOLEAN
-MemoryMapperFreeMemoryInTargetProcess(UINT32 ProcessId, PVOID BaseAddress);
+MemoryMapperFreeMemoryInTargetProcess(_In_ UINT32   ProcessId,
+                                      _Inout_ PVOID BaseAddress);
 
 BOOLEAN
-MemoryMapperWriteMemoryUnsafe(UINT64 Destination, PVOID Source, SIZE_T SizeToWrite, UINT32 TargetProcessId);
+MemoryMapperWriteMemoryUnsafe(_Inout_ UINT64 Destination,
+                              _In_ PVOID     Source,
+                              _In_ SIZE_T    SizeToWrite,
+                              _In_ UINT32    TargetProcessId);
 
 BOOLEAN
-MemoryMapperWriteMemorySafeByPhysicalAddress(UINT64 DestinationPa, UINT64 Source, SIZE_T SizeToWrite);
+MemoryMapperWriteMemorySafeByPhysicalAddress(_Inout_ UINT64 DestinationPa,
+                                             _In_ UINT64    Source,
+                                             _In_ SIZE_T    SizeToWrite);
 
 BOOLEAN
-MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(PVOID Va);
+MemoryMapperCheckIfPageIsNxBitSetOnTargetProcess(_In_ PVOID Va);

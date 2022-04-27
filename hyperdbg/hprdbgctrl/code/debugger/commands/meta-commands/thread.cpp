@@ -24,11 +24,12 @@ extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 VOID
 CommandThreadHelp()
 {
-    ShowMessages(".thread, .thread2 : show and change the threads. "
-                 "This command needs public symbols for ntoskrnl.exe if "
+    ShowMessages(".thread, .thread2 : shows and changes the threads. "
+                 "This command needs public symbols for 'ntoskrnl.exe' if "
                  "you want to see the threads list. Please visit the "
                  "documentation to know about the difference between '.thread' "
                  "and '.thread2'.\n\n");
+
     ShowMessages("syntax : \t.thread\n");
     ShowMessages("syntax : \t.thread [list] [process Eprocess (hex)]\n");
     ShowMessages("syntax : \t.thread [tid ThreadId (hex)]\n");
@@ -36,7 +37,7 @@ CommandThreadHelp()
     ShowMessages("syntax : \t.thread2 [tid ThreadId (hex)]\n");
     ShowMessages("syntax : \t.thread2 [thread Ethread (hex)]\n");
 
-
+    ShowMessages("\n");
     ShowMessages("\t\te.g : .thread\n");
     ShowMessages("\t\te.g : .thread tid 48a4\n");
     ShowMessages("\t\te.g : .thread2 tid 48a4\n");
@@ -51,7 +52,7 @@ CommandThreadListThreads(UINT64 Eprocess)
     UINT32                              ThreadListHeadOffset       = 0; // nt!_EPROCESS.ThreadListHead
     UINT32                              ThreadListEntryOffset      = 0; // nt!_ETHREAD.ThreadListEntry
     UINT32                              CidOffset                  = 0; // nt!_ETHREAD.Cid
-    DWORD32                             OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
+    UINT32                              OffsetOfActiveProcessLinks = 0; // nt!_EPROCESS.ActiveProcessLinks
     UINT64                              AddressOfActiveProcessHead = 0; // nt!PsActiveProcessHead
     DEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListNeededItems      = {0};
 

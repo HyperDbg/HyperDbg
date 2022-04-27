@@ -30,6 +30,7 @@ CommandSearchMemoryHelp()
     ShowMessages("sb  Byte and ASCII characters\n");
     ShowMessages("sd  Double-word values (4 bytes)\n");
     ShowMessages("sq  Quad-word values (8 bytes). \n");
+
     ShowMessages(
         "\n If you want to search in physical (address) memory then add '!' "
         "at the start of the command\n");
@@ -38,6 +39,7 @@ CommandSearchMemoryHelp()
     ShowMessages("syntax : \tsd [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \tsq [StartAddress (hex)] [l Length (hex)] [BytePattern (hex)] [pid ProcessId (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb nt!ExAllocatePoolWithTag+5 90 85 95 l ffff \n");
     ShowMessages("\t\te.g : sb @rcx+5 90 85 95 l ffff \n");
@@ -50,6 +52,82 @@ CommandSearchMemoryHelp()
 }
 
 /**
+ * @brief Send the request of search to the kernel
+ *
+ * @param BufferToSendAsIoctl
+ * @param BufferToSendAsIoctlSize
+ * @return VOID
+ */
+VOID
+CommandSearchSendRequest(UINT64 * BufferToSendAsIoctl, UINT32 BufferToSendAsIoctlSize)
+{
+    BOOL    Status;
+    UINT64  CurrentValue;
+    PUINT64 ResultsBuffer = NULL;
+
+    //
+    // Allocate a buffer to store the results
+    //
+    ResultsBuffer = (PUINT64)malloc(MaximumSearchResults * sizeof(UINT64));
+
+    //
+    // Also it's better to Zero the memory; however it's not necessary
+    // as we zero the buffer in the search routines
+    //
+    ZeroMemory(ResultsBuffer, MaximumSearchResults * sizeof(UINT64));
+
+    //
+    // Fire the IOCTL
+    //
+    Status =
+        DeviceIoControl(g_DeviceHandle,               // Handle to device
+                        IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control code
+                        BufferToSendAsIoctl,          // Input Buffer to driver.
+                        BufferToSendAsIoctlSize,      // Input buffer length
+                        ResultsBuffer,                // Output Buffer from driver.
+                        MaximumSearchResults *
+                            sizeof(UINT64), // Length of output buffer in bytes.
+                        NULL,               // Bytes placed in buffer.
+                        NULL                // synchronous call
+        );
+
+    if (!Status)
+    {
+        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+
+        free(ResultsBuffer);
+        return;
+    }
+
+    //
+    // Show the results (if any)
+    //
+    for (size_t i = 0; i < MaximumSearchResults; i++)
+    {
+        CurrentValue = ResultsBuffer[i];
+
+        if (CurrentValue == NULL)
+        {
+            //
+            // We ended up the buffer, nothing else to show,
+            // just check whether we found anything or not
+            //
+            if (i == 0)
+            {
+                ShowMessages("not found\n");
+            }
+            break;
+        }
+        ShowMessages("%llx\n", CurrentValue);
+    }
+
+    //
+    // Free buffer
+    //
+    free(ResultsBuffer);
+}
+
+/**
  * @brief !s* s* commands handler
  *
  * @param SplittedCommand
@@ -59,7 +137,6 @@ CommandSearchMemoryHelp()
 VOID
 CommandSearchMemory(vector<string> SplittedCommand, string Command)
 {
-    BOOL                   Status;
     BOOL                   SetAddress          = FALSE;
     BOOL                   SetValue            = FALSE;
     BOOL                   SetProcId           = FALSE;
@@ -67,15 +144,13 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     BOOL                   SetLength           = FALSE;
     BOOL                   NextIsLength        = FALSE;
     DEBUGGER_SEARCH_MEMORY SearchMemoryRequest = {0};
-    PUINT64                ResultsBuffer;
-    UINT64                 CurrentValue;
     UINT64                 Address;
     UINT64                 Value         = 0;
     UINT64                 Length        = 0;
     UINT32                 ProcId        = 0;
     UINT32                 CountOfValues = 0;
     UINT32                 FinalSize     = 0;
-    UINT64 *               FinalBuffer;
+    UINT64 *               FinalBuffer   = NULL;
     vector<UINT64>         ValuesToEdit;
     vector<string>         SplittedCommandCaseSensitive {Split(Command, ' ')};
     UINT32                 IndexInCommandCaseSensitive = 0;
@@ -305,7 +380,7 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     //
     if (g_IsSerialConnectedToRemoteDebuggee && ProcId != 0)
     {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
+        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
         return;
     }
 
@@ -356,13 +431,6 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
-
     //
     // Now it's time to put everything together in one structure
     //
@@ -377,6 +445,16 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     // Set the length
     //
     SearchMemoryRequest.Length = Length;
+
+    if (!g_IsSerialConnectedToRemoteDebuggee)
+    {
+        if (!g_DeviceHandle)
+        {
+            ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
+                         "use 'load' command?\n");
+            return;
+        }
+    }
 
     //
     // Allocate structure + buffer
@@ -405,63 +483,25 @@ CommandSearchMemory(vector<string> SplittedCommand, string Command)
     std::copy(ValuesToEdit.begin(), ValuesToEdit.end(), (UINT64 *)((UINT64)FinalBuffer + SIZEOF_DEBUGGER_SEARCH_MEMORY));
 
     //
-    // Allocate a buffer to store the results
+    // Check if it's a connection in debugger mode
     //
-    ResultsBuffer = (PUINT64)malloc(MaximumSearchResults * sizeof(UINT64));
-
-    //
-    // Also it's better to Zero the memory; however it's not necessary
-    // as we zero the buffer in the search routines
-    //
-    ZeroMemory(ResultsBuffer, MaximumSearchResults * sizeof(UINT64));
-
-    //
-    // Fire the IOCTL
-    //
-    Status =
-        DeviceIoControl(g_DeviceHandle,               // Handle to device
-                        IOCTL_DEBUGGER_SEARCH_MEMORY, // IO Control code
-                        FinalBuffer,                  // Input Buffer to driver.
-                        FinalSize,                    // Input buffer length
-                        ResultsBuffer,                // Output Buffer from driver.
-                        MaximumSearchResults *
-                            sizeof(UINT64), // Length of output buffer in bytes.
-                        NULL,               // Bytes placed in buffer.
-                        NULL                // synchronous call
-        );
-
-    if (!Status)
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        free(FinalBuffer);
-        return;
+        //
+        // The buffer should be sent to the debugger
+        //
+        KdSendSearchRequestPacketToDebuggee(FinalBuffer, FinalSize);
     }
-
-    //
-    // Show the results (if any)
-    //
-    for (size_t i = 0; i < MaximumSearchResults; i++)
+    else
     {
-        CurrentValue = ResultsBuffer[i];
-
-        if (CurrentValue == NULL)
-        {
-            //
-            // We ended up the buffer, nothing else to show,
-            // just check whether we found anything or not
-            //
-            if (i == 0)
-            {
-                ShowMessages("not found\n");
-            }
-            break;
-        }
-        ShowMessages("%llx\n", CurrentValue);
+        //
+        // it's a local connection, send the buffer directly
+        //
+        CommandSearchSendRequest(FinalBuffer, FinalSize);
     }
 
     //
     // Free the buffers
     //
     free(FinalBuffer);
-    free(ResultsBuffer);
 }

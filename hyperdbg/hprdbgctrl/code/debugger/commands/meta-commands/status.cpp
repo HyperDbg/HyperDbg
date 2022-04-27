@@ -30,10 +30,11 @@ extern string  g_ServerIp;
 VOID
 CommandStatusHelp()
 {
-    ShowMessages(".status | status : get the status of current debugger in local "
+    ShowMessages(".status | status : gets the status of current debugger in local "
                  "system (if you connected to a remote system then '.status' "
                  "shows the state of current debugger, while 'status' shows the "
                  "state of remote debuggee).\n\n");
+
     ShowMessages("syntax : \t.status\n");
     ShowMessages("syntax : \tstatus\n");
 }

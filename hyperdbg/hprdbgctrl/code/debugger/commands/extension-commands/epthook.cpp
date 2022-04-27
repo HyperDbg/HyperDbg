@@ -19,13 +19,15 @@
 VOID
 CommandEptHookHelp()
 {
-    ShowMessages("!epthook : Puts a hidden-hook EPT (hidden breakpoints) .\n\n");
+    ShowMessages("!epthook : puts a hidden-hook EPT (hidden breakpoints).\n\n");
+
     ShowMessages(
         "syntax : \t!epthook [Address (hex)] [pid ProcessId (hex)] [core CoreId (hex)] "
         "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
         "[script { Script (string) }] [condition { Condition (hex) }] "
         "[code { Code (hex) }] \n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag\n");
     ShowMessages("\t\te.g : !epthook nt!ExAllocatePoolWithTag+5\n");
     ShowMessages("\t\te.g : !epthook fffff801deadb000\n");

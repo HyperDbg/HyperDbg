@@ -33,8 +33,11 @@ VOID
 CommandMeasureHelp()
 {
     ShowMessages(
-        "!measure : Measures the arguments needs for !hide command.\n\n");
+        "!measure : measures the arguments needs for the '!hide' command.\n\n");
+
     ShowMessages("syntax : \t!measure [default]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !measure\n");
     ShowMessages("\t\te.g : !measure default\n");
 }

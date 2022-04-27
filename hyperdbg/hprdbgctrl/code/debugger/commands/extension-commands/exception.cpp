@@ -19,14 +19,17 @@
 VOID
 CommandExceptionHelp()
 {
-    ShowMessages("!exception : Monitors the first 32 entry of IDT (starting from "
+    ShowMessages("!exception : monitors the first 32 entry of IDT (starting from "
                  "zero).\n\n");
+
     ShowMessages(
         "syntax : \t!exception [IdtIndex (hex)] [pid ProcessId (hex)] "
         "[core CoreId (hex)] [imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
         "[script { Script (string) }] [condition { Condition (hex) }] [code { Code (hex) }]\n");
-    ShowMessages("\nNote that monitoring page-faults (entry 0xe) is implemented "
-                 "differently.\n");
+
+    ShowMessages("\nnote: monitoring page-faults (entry 0xe) is implemented differently.\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !exception\n");
     ShowMessages("\t\te.g : !exception 0xe\n");
     ShowMessages("\t\te.g : !exception pid 400\n");

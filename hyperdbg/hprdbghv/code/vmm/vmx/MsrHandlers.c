@@ -54,26 +54,29 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
     if ((TargetMsr <= 0x00001FFF) || ((0xC0000000 <= TargetMsr) && (TargetMsr <= 0xC0001FFF)) ||
         (TargetMsr >= RESERVED_MSR_RANGE_LOW && (TargetMsr <= RESERVED_MSR_RANGE_HI)))
     {
+        //
+        // Apply the RDMS
+        //
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmread(GUEST_SYSENTER_CS, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_CS, &Msr);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmread(GUEST_SYSENTER_ESP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_ESP, &Msr);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmread(GUEST_SYSENTER_EIP, &Msr);
+            __vmx_vmread(VMCS_GUEST_SYSENTER_EIP, &Msr);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmread(GUEST_GS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_GS_BASE, &Msr);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmread(GUEST_FS_BASE, &Msr);
+            __vmx_vmread(VMCS_GUEST_FS_BASE, &Msr);
             break;
 
         default:
@@ -93,17 +96,17 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Msr is valid
             //
-            Msr.Content = __readmsr(TargetMsr);
+            Msr.Flags = __readmsr(TargetMsr);
 
             //
             // Check if it's EFER MSR then we show a false SCE state
             //
             if (GuestRegs->rcx == IA32_EFER)
             {
-                EFER_MSR MsrEFER;
-                MsrEFER.Flags         = Msr.Content;
+                IA32_EFER_REGISTER MsrEFER;
+                MsrEFER.Flags         = Msr.Flags;
                 MsrEFER.SyscallEnable = TRUE;
-                Msr.Content           = MsrEFER.Flags;
+                Msr.Flags             = MsrEFER.Flags;
             }
 
             break;
@@ -112,8 +115,8 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
         GuestRegs->rax = NULL;
         GuestRegs->rdx = NULL;
 
-        GuestRegs->rax = Msr.Low;
-        GuestRegs->rdx = Msr.High;
+        GuestRegs->rax = Msr.Fields.Low;
+        GuestRegs->rdx = Msr.Fields.High;
     }
     else
     {
@@ -152,8 +155,8 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
     //
     TargetMsr = GuestRegs->rcx & 0xffffffff;
 
-    Msr.Low  = (ULONG)GuestRegs->rax;
-    Msr.High = (ULONG)GuestRegs->rdx;
+    Msr.Fields.Low  = (ULONG)GuestRegs->rax;
+    Msr.Fields.High = (ULONG)GuestRegs->rdx;
 
     //
     // Check for sanity of MSR if they're valid or they're for reserved range for WRMSR and RDMSR
@@ -173,12 +176,12 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         case IA32_DS_AREA:
         case IA32_FS_BASE:
         case IA32_GS_BASE:
-        case IA32_KERNEL_GSBASE:
+        case IA32_KERNEL_GS_BASE:
         case IA32_LSTAR:
         case IA32_SYSENTER_EIP:
         case IA32_SYSENTER_ESP:
 
-            if (!CheckCanonicalVirtualAddress(Msr.Content, &UnusedIsKernel))
+            if (!CheckCanonicalVirtualAddress(Msr.Flags, &UnusedIsKernel))
             {
                 //
                 // Address is not canonical, inject #GP
@@ -197,23 +200,23 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
         switch (TargetMsr)
         {
         case IA32_SYSENTER_CS:
-            __vmx_vmwrite(GUEST_SYSENTER_CS, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_CS, Msr.Flags);
             break;
 
         case IA32_SYSENTER_ESP:
-            __vmx_vmwrite(GUEST_SYSENTER_ESP, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_ESP, Msr.Flags);
             break;
 
         case IA32_SYSENTER_EIP:
-            __vmx_vmwrite(GUEST_SYSENTER_EIP, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_SYSENTER_EIP, Msr.Flags);
             break;
 
         case IA32_GS_BASE:
-            __vmx_vmwrite(GUEST_GS_BASE, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_GS_BASE, Msr.Flags);
             break;
 
         case IA32_FS_BASE:
-            __vmx_vmwrite(GUEST_FS_BASE, Msr.Content);
+            __vmx_vmwrite(VMCS_GUEST_FS_BASE, Msr.Flags);
             break;
 
         default:
@@ -221,7 +224,7 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
             //
             // Perform the WRMSR
             //
-            __writemsr(GuestRegs->rcx, Msr.Content);
+            __writemsr(GuestRegs->rcx, Msr.Flags);
             break;
         }
     }
@@ -245,8 +248,10 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+
     if (!ReadDetection && !WriteDetection)
     {
         //
@@ -259,22 +264,22 @@ MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLE
     {
         if (ReadDetection)
         {
-            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+            SetBit(Msr, CurrentVmState->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            SetBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
+            SetBit(Msr, CurrentVmState->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
+            SetBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 1024);
         }
         if (WriteDetection)
         {
-            SetBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
+            SetBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 3072);
         }
     }
     else
@@ -294,8 +299,10 @@ MsrHandleSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLE
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
 BOOLEAN
-MsrHandleUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+
     if (!ReadDetection && !WriteDetection)
     {
         //
@@ -308,22 +315,22 @@ MsrHandleUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOO
     {
         if (ReadDetection)
         {
-            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress);
+            ClearBit(Msr, CurrentVmState->MsrBitmapVirtualAddress);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 2048);
+            ClearBit(Msr, CurrentVmState->MsrBitmapVirtualAddress + 2048);
         }
     }
     else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
         if (ReadDetection)
         {
-            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 1024);
+            ClearBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 1024);
         }
         if (WriteDetection)
         {
-            ClearBit(Msr - 0xC0000000, g_GuestState[ProcessorID].MsrBitmapVirtualAddress + 3072);
+            ClearBit(Msr - 0xC0000000, CurrentVmState->MsrBitmapVirtualAddress + 3072);
         }
     }
     else
@@ -342,16 +349,17 @@ MsrHandleUnSetMsrBitmap(ULONG64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOO
 VOID
 MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 1024);
+    ClearBit(0x102, CurrentVmState->MsrBitmapVirtualAddress + 1024);
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
-    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress);
+    ClearBit(0xe7, CurrentVmState->MsrBitmapVirtualAddress);
+    ClearBit(0xe8, CurrentVmState->MsrBitmapVirtualAddress);
 }
 
 /**
@@ -363,22 +371,24 @@ MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
 VOID
 MsrHandleFilterMsrWriteBitmap(UINT32 CoreIndex)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
+
     //
     // Ignore IA32_KERNEL_GSBASE (0xC0000102)
     //
-    ClearBit(0x102, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 3072);
+    ClearBit(0x102, CurrentVmState->MsrBitmapVirtualAddress + 3072);
 
     //
     // Ignore IA32_MPERF (0x000000e7), and IA32_APERF (0x000000e8)
     //
-    ClearBit(0xe7, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
-    ClearBit(0xe8, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe7, CurrentVmState->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0xe8, CurrentVmState->MsrBitmapVirtualAddress + 2048);
 
     //
     // Ignore IA32_SPEC_CTRL (0x00000048), and IA32_PRED_CMD (0x00000049)
     //
-    ClearBit(0x48, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
-    ClearBit(0x49, g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x48, CurrentVmState->MsrBitmapVirtualAddress + 2048);
+    ClearBit(0x49, CurrentVmState->MsrBitmapVirtualAddress + 2048);
 }
 
 /**
@@ -391,13 +401,14 @@ VOID
 MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0xff, 2048);
+        memset(CurrentVmState->MsrBitmapVirtualAddress, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -422,11 +433,12 @@ VOID
 MsrHandlePerformMsrBitmapReadReset()
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(g_GuestState[CoreIndex].MsrBitmapVirtualAddress, 0x0, 2048);
+    memset(CurrentVmState->MsrBitmapVirtualAddress, 0x0, 2048);
 }
 /**
  * @brief Change MSR Bitmap for write
@@ -438,13 +450,14 @@ VOID
 MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0xff, 2048);
+        memset((UINT64)CurrentVmState->MsrBitmapVirtualAddress + 2048, 0xff, 2048);
 
         //
         // Filter MSR Bitmap for special MSRs
@@ -469,9 +482,10 @@ VOID
 MsrHandlePerformMsrBitmapWriteReset()
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Means all the bitmaps should be put to 0
     //
-    memset((UINT64)g_GuestState[CoreIndex].MsrBitmapVirtualAddress + 2048, 0x0, 2048);
+    memset((UINT64)CurrentVmState->MsrBitmapVirtualAddress + 2048, 0x0, 2048);
 }

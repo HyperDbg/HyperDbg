@@ -116,10 +116,24 @@ ScriptEngineSearchSymbolForMaskWrapper(const char * SearchMask)
  * @return BOOLEAN
  */
 BOOLEAN
-ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset)
+ScriptEngineGetFieldOffsetWrapper(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 
 {
     return ScriptEngineGetFieldOffset(TypeName, FieldName, FieldOffset);
+}
+
+/**
+ * @brief ScriptEngineGetDataTypeSize wrapper
+ *
+ * @param TypeName
+ * @param TypeSize
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineGetDataTypeSizeWrapper(CHAR * TypeName, UINT64 * TypeSize)
+{
+    return ScriptEngineGetDataTypeSize(TypeName, TypeSize);
 }
 
 /**
@@ -169,6 +183,28 @@ ScriptEngineSymbolInitLoadWrapper(PMODULE_SYMBOL_DETAIL BufferToStoreDetails,
                                   BOOLEAN               IsSilentLoad)
 {
     return ScriptEngineSymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
+}
+
+/**
+ * @brief ScriptEngineShowDataBasedOnSymbolTypes wrapper
+ *
+ * @param TypeName
+ * @param Address
+ * @param IsStruct
+ * @param BufferAddress
+ * @param AdditionalParameters
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+ScriptEngineShowDataBasedOnSymbolTypesWrapper(
+    const char * TypeName,
+    UINT64       Address,
+    BOOLEAN      IsStruct,
+    PVOID        BufferAddress,
+    const char * AdditionalParameters)
+{
+    return ScriptEngineShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
 
 /**
@@ -403,8 +439,8 @@ AllocateStructForCasting()
 {
     typedef struct _UNICODE_STRING
     {
-        USHORT Length;        // +0x000
-        USHORT MaximumLength; // +0x002
+        UINT16 Length;        // +0x000
+        UINT16 MaximumLength; // +0x002
         PWSTR  Buffer;        // +0x004
     } UNICODE_STRING, *PUNICODE_STRING;
 
@@ -518,8 +554,8 @@ ScriptEngineWrapperTestParser(const string & Expr)
     GuestRegs.r11 = 0xc;
     GuestRegs.r12 = 0xd;
     GuestRegs.r13 = 0xe;
-    GuestRegs.r14 = (ULONG64)testw;
-    GuestRegs.r15 = (ULONG64)test;
+    GuestRegs.r14 = (UINT64)testw;
+    GuestRegs.r15 = (UINT64)test;
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
     free(TestStruct);

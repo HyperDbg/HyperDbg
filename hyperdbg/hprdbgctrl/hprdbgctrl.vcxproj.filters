@@ -400,9 +400,6 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
-    <ClCompile Include="code\debugger\commands\debugging-commands\dt.cpp">
-      <Filter>code\debugger\commands\debugging-commands</Filter>
-    </ClCompile>
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp">
       <Filter>code\debugger\user-level</Filter>
     </ClCompile>
@@ -438,6 +435,9 @@
     </ClCompile>
     <ClCompile Include="code\debugger\misc\callstack.cpp">
       <Filter>code\debugger\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp">
+      <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -26,12 +26,11 @@ DriverEntry(
     PDRIVER_OBJECT  DriverObject,
     PUNICODE_STRING RegistryPath)
 {
-    NTSTATUS       Ntstatus       = STATUS_SUCCESS;
-    UINT64         Index          = 0;
-    UINT32         ProcessorCount = 0;
-    PDEVICE_OBJECT DeviceObject   = NULL;
-    UNICODE_STRING DriverName     = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
-    UNICODE_STRING DosDeviceName  = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
+    NTSTATUS       Ntstatus      = STATUS_SUCCESS;
+    UINT64         Index         = 0;
+    PDEVICE_OBJECT DeviceObject  = NULL;
+    UNICODE_STRING DriverName    = RTL_CONSTANT_STRING(L"\\Device\\HyperdbgHypervisorDevice");
+    UNICODE_STRING DosDeviceName = RTL_CONSTANT_STRING(L"\\DosDevices\\HyperdbgHypervisorDevice");
 
     UNREFERENCED_PARAMETER(RegistryPath);
     UNREFERENCED_PARAMETER(DriverObject);
@@ -62,28 +61,9 @@ DriverEntry(
     // we want to use its state (vmx-root or vmx non-root) in logs
     //
 
-    ProcessorCount = KeQueryActiveProcessorCount(0);
-
-    //
-    // Allocate global variable to hold Guest(s) state
-    //
-
-    g_GuestState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount, POOLTAG);
-    if (!g_GuestState)
-    {
-        //
-        // we use DbgPrint as the vmx-root or non-root is not initialized
-        //
-
-        DbgPrint("err, insufficient memory\n");
-        DbgBreakPoint();
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
-    //
-    // Zero the memory
-    //
-    RtlZeroMemory(g_GuestState, sizeof(VIRTUAL_MACHINE_STATE) * ProcessorCount);
+    Ntstatus = GlobalGuestStateAllocateZeroedMemory();
+    if (!NT_SUCCESS(Ntstatus))
+        return Ntstatus;
 
     LogDebugInfo("Hyperdbg is loaded :)");
 
@@ -129,8 +109,9 @@ DriverEntry(
 VOID
 DrvUnload(PDRIVER_OBJECT DriverObject)
 {
-    UNICODE_STRING DosDeviceName;
-    UINT32         ProcessorCount;
+    UNICODE_STRING              DosDeviceName;
+    ULONG                       ProcessorCount;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = NULL;
 
     ProcessorCount = KeQueryActiveProcessorCount(0);
 
@@ -152,7 +133,7 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free g_Events
     //
-    ExFreePoolWithTag(g_Events, POOLTAG);
+    GlobalEventsFreeMemory();
 
     //
     // Free g_ScriptGlobalVariables
@@ -165,23 +146,25 @@ DrvUnload(PDRIVER_OBJECT DriverObject)
     //
     // Free core specific local and temp variables
     //
-    for (size_t i = 0; i < ProcessorCount; i++)
+    for (SIZE_T i = 0; i < ProcessorCount; i++)
     {
-        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable != NULL)
+        CurrentDebuggerState = &g_GuestState[i].DebuggingState;
+
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable != NULL)
         {
-            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificLocalVariable, POOLTAG);
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificLocalVariable, POOLTAG);
         }
 
-        if (g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable != NULL)
+        if (CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable != NULL)
         {
-            ExFreePoolWithTag(g_GuestState[i].DebuggingState.ScriptEngineCoreSpecificTempVariable, POOLTAG);
+            ExFreePoolWithTag(CurrentDebuggerState->ScriptEngineCoreSpecificTempVariable, POOLTAG);
         }
     }
 
     //
     // Free g_GuestState
     //
-    ExFreePoolWithTag(g_GuestState, POOLTAG);
+    GlobalGuestStateFreeMemory();
 
     //
     // Stop the tracing
@@ -278,7 +261,6 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         //
         // Initialize the debugger
         //
-
         if (DebuggerInitialize())
         {
             LogDebugInfo("Hyperdbg's debugger loaded successfully");

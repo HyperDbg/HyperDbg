@@ -169,22 +169,22 @@ typedef struct _SCRIPT_ENGINE_VARIABLES_LIST
 
 typedef struct _GUEST_REGS
 {
-    ULONG64 rax; // 0x00
-    ULONG64 rcx; // 0x08
-    ULONG64 rdx; // 0x10
-    ULONG64 rbx; // 0x18
-    ULONG64 rsp; // 0x20
-    ULONG64 rbp; // 0x28
-    ULONG64 rsi; // 0x30
-    ULONG64 rdi; // 0x38
-    ULONG64 r8;  // 0x40
-    ULONG64 r9;  // 0x48
-    ULONG64 r10; // 0x50
-    ULONG64 r11; // 0x58
-    ULONG64 r12; // 0x60
-    ULONG64 r13; // 0x68
-    ULONG64 r14; // 0x70
-    ULONG64 r15; // 0x78
+    UINT64 rax; // 0x00
+    UINT64 rcx; // 0x08
+    UINT64 rdx; // 0x10
+    UINT64 rbx; // 0x18
+    UINT64 rsp; // 0x20
+    UINT64 rbp; // 0x28
+    UINT64 rsi; // 0x30
+    UINT64 rdi; // 0x38
+    UINT64 r8;  // 0x40
+    UINT64 r9;  // 0x48
+    UINT64 r10; // 0x50
+    UINT64 r11; // 0x58
+    UINT64 r12; // 0x60
+    UINT64 r13; // 0x68
+    UINT64 r14; // 0x70
+    UINT64 r15; // 0x78
 } GUEST_REGS, *PGUEST_REGS;
 #endif
 
@@ -215,7 +215,9 @@ __declspec(dllimport) UINT32
 __declspec(dllimport) UINT32
     ScriptEngineSearchSymbolForMask(const char * SearchMask);
 __declspec(dllimport) BOOLEAN
-    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, DWORD32 * FieldOffset);
+    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
+__declspec(dllimport) BOOLEAN
+    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
 __declspec(dllimport) BOOLEAN
     ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
 __declspec(dllimport) BOOLEAN
@@ -224,6 +226,8 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
 __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
+__declspec(dllimport) BOOLEAN
+    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
 __declspec(dllimport) VOID
     ScriptEngineSymbolAbortLoading();
 }
@@ -2141,7 +2145,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestDs().SEL;
+        return GetGuestDs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2153,7 +2157,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestEs().SEL;
+        return GetGuestEs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2165,7 +2169,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestFs().SEL;
+        return GetGuestFs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2177,7 +2181,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestGs().SEL;
+        return GetGuestGs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2189,7 +2193,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestCs().SEL;
+        return GetGuestCs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -2201,7 +2205,7 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
-        return GetGuestSs().SEL;
+        return GetGuestSs().Selector;
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3177,7 +3181,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestDsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestDsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3192,7 +3196,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestEsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestEsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3207,7 +3211,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestFsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestFsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3222,7 +3226,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestGsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestGsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3237,7 +3241,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestCsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestCsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -3252,7 +3256,7 @@ SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
         Value = Value & LOWER_16_BITS;
-        SetGuestSsSel((PSEGMENT_SELECTOR)&Value);
+        SetGuestSsSel((PVMX_SEGMENT_SELECTOR)&Value);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 
         break;
@@ -4002,9 +4006,12 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_INTERLOCKED_COMPARE_EXCHANGE:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 

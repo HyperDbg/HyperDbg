@@ -19,14 +19,14 @@
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationReInjectInterruptOrException(VMEXIT_INTERRUPT_INFO InterruptExit)
+IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
     ULONG ErrorCode = 0;
 
     //
     // Re-inject it
     //
-    __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
 
     //
     // re-write error code (if any)
@@ -36,12 +36,12 @@ IdtEmulationReInjectInterruptOrException(VMEXIT_INTERRUPT_INFO InterruptExit)
         //
         // Read the error code
         //
-        __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
 
         //
         // Write the error code
         //
-        __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
     }
 }
 
@@ -56,23 +56,24 @@ IdtEmulationReInjectInterruptOrException(VMEXIT_INTERRUPT_INFO InterruptExit)
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
-                             VMEXIT_INTERRUPT_INFO InterruptExit,
-                             UINT64                Address,
-                             ULONG                 ErrorCode)
+IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorIndex,
+                             _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                             _In_ UINT64                       Address,
+                             _In_ ULONG                        ErrorCode)
 {
     //
     // #PF is treated differently, we have to deal with cr2 too.
     //
-    PAGE_FAULT_ERROR_CODE PageFaultCode = {0};
+    PAGE_FAULT_ERROR_CODE   PageFaultCode     = {0};
+    VIRTUAL_MACHINE_STATE * CurrentGuestState = &g_GuestState[CurrentProcessorIndex];
 
-    __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &PageFaultCode);
+    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &PageFaultCode);
 
     if (Address == NULL)
     {
         UINT64 PageFaultAddress = 0;
 
-        __vmx_vmread(EXIT_QUALIFICATION, &PageFaultAddress);
+        __vmx_vmread(VMCS_EXIT_QUALIFICATION, &PageFaultAddress);
 
         //
         // Cr2 is used as the page-fault address
@@ -92,15 +93,15 @@ IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
     //
 
     //
-    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.All);
+    // LogInfo("#PF Fault = %016llx, Page Fault Code = 0x%x", PageFaultAddress, PageFaultCode.Flags);
     //
 
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentGuestState->IncrementRip = FALSE;
 
     //
     // Re-inject the interrupt/exception
     //
-    __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
 
     //
     // re-write error code (if any)
@@ -110,7 +111,7 @@ IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
         //
         // Write the error code
         //
-        __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
     }
 }
 
@@ -123,9 +124,13 @@ IdtEmulationHandlePageFaults(UINT32                CurrentProcessorIndex,
  * @return VOID 
  */
 VOID
-IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
+IdtEmulationHandleExceptionAndNmi(_In_ UINT32                          CurrentProcessorIndex,
+                                  _Inout_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                  _Inout_ PGUEST_REGS                  GuestRegs)
 {
-    ULONG ErrorCode = 0;
+    ULONG                       ErrorCode            = 0;
+    VIRTUAL_MACHINE_STATE *     CurrentGuestState    = &g_GuestState[CurrentProcessorIndex];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
 
     //
     // This type of vm-exit, can be either because of an !exception event,
@@ -140,16 +145,9 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
         // a instrument step-in ('i' command) routine
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi &&
-            !g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+        if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
+            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE))
         {
-            g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingForNmi = FALSE;
-
-            //
-            // Handle NMI broadcast
-            //
-            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE);
-
             return;
         }
     }
@@ -157,7 +155,7 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
     //
     // Also, avoid exception when we're running instrumentation step-in
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
     {
         //
         // We ignore it because an MTF should handle it as it's an instrumentation step-in
@@ -191,7 +189,7 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
     //
     // So, we'll ignore the injection of Exception in this case
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
     {
         return;
     }
@@ -201,8 +199,8 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
     //	1: Guest software caused an exception and the bit in the exception bitmap associated with exception's vector was set to 1
     //	2: An NMI was delivered to the logical processor and the "NMI exiting" VM-execution control was 1.
     //
-    // VM_EXIT_INTR_INFO shows the exit infromation about event that occurred and causes this exit
-    // Don't forget to read VM_EXIT_INTR_ERROR_CODE in the case of re-injectiong event
+    // VMCS_VMEXIT_INTERRUPTION_INFORMATION shows the exit infromation about event that occurred and causes this exit
+    // Don't forget to read VMCS_VMEXIT_INTERRUPTION_ERROR_CODE in the case of re-injectiong event
     //
 
     switch (InterruptExit.Vector)
@@ -236,7 +234,7 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         // Read the error code
         //
-        __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
 
         //
         // Handle page-faults
@@ -267,7 +265,7 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
         //
         // Check whether it is because of thread change detection or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
             //
             // This way of handling has a problem, if the user set to change
@@ -319,9 +317,9 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
 
     case EXCEPTION_VECTOR_NMI:
 
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue ||
-            g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf ||
-            g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+        if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+            CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf ||
+            CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
         {
             //
             // Ignore the nmi
@@ -358,11 +356,11 @@ IdtEmulationHandleExceptionAndNmi(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO InterruptExit, UINT32 CurrentProcessorIndex)
+IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                                     _In_ UINT32                       CurrentProcessorIndex)
 {
-    BOOLEAN FoundAPlaceForFutureInjection;
-
-    FoundAPlaceForFutureInjection = FALSE;
+    BOOLEAN                 FoundAPlaceForFutureInjection = FALSE;
+    VIRTUAL_MACHINE_STATE * CurrentGuestState             = &g_GuestState[CurrentProcessorIndex];
 
     //
     // We can't inject interrupt because the guest's state is not interruptible
@@ -373,13 +371,13 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO Inter
         //
         // Find an empty space
         //
-        if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] == NULL)
+        if (CurrentGuestState->PendingExternalInterrupts[i] == NULL)
         {
             //
             // Save it for future re-injection (interrupt-window exiting)
             //
-            g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = InterruptExit.Flags;
-            FoundAPlaceForFutureInjection                                    = TRUE;
+            CurrentGuestState->PendingExternalInterrupts[i] = InterruptExit.Flags;
+            FoundAPlaceForFutureInjection                   = TRUE;
             break;
         }
     }
@@ -397,21 +395,27 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(VMEXIT_INTERRUPT_INFO Inter
  * @return BOOLEAN 
  */
 BOOLEAN
-IdtEmulationCheckProcessOrThreadChange(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
+IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       CurrentProcessorIndex,
+                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                       _Inout_ PGUEST_REGS               GuestRegs)
 {
+    VIRTUAL_MACHINE_STATE *     CurrentGuestState    = &g_GuestState[CurrentProcessorIndex];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
+
     //
     // Check whether intercepting this process or thread is active or not,
     // Windows fires a clk interrupt on core 0 and fires IPI on other cores
     // to change a thread
     //
-    if ((g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange || g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
+    if ((CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange ||
+         CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForProcessChange) &&
         ((CurrentProcessorIndex == 0 && InterruptExit.Vector == CLOCK_INTERRUPT) ||
          (CurrentProcessorIndex != 0 && InterruptExit.Vector == IPI_INTERRUPT)))
     {
         //
         // We only handle interrupts that are related to the clock-timer interrupt
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
+        if (CurrentDebuggerState->ThreadOrProcessTracingDetails.InterceptClockInterruptsForThreadChange)
         {
             return ThreadHandleThreadChange(CurrentProcessorIndex, GuestRegs);
         }
@@ -437,17 +441,21 @@ IdtEmulationCheckProcessOrThreadChange(UINT32 CurrentProcessorIndex, VMEXIT_INTE
  * @return VOID 
  */
 VOID
-IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRUPT_INFO InterruptExit, PGUEST_REGS GuestRegs)
+IdtEmulationHandleExternalInterrupt(_In_ UINT32                          CurrentProcessorIndex,
+                                    _Inout_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                    _Inout_ PGUEST_REGS                  GuestRegs)
 {
-    BOOLEAN                Interruptible         = TRUE;
-    INTERRUPTIBILITY_STATE InterruptibilityState = {0};
-    RFLAGS                 GuestRflags           = {0};
-    ULONG                  ErrorCode             = 0;
+    BOOLEAN                     Interruptible         = TRUE;
+    VMX_INTERRUPTIBILITY_STATE  InterruptibilityState = {0};
+    RFLAGS                      GuestRflags           = {0};
+    ULONG                       ErrorCode             = 0;
+    VIRTUAL_MACHINE_STATE *     CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &g_GuestState[CurrentProcessorIndex].DebuggingState;
 
     //
     // Check for immediate vm-exit mechanism
     //
-    if (g_GuestState[CurrentProcessorIndex].WaitForImmediateVmexit &&
+    if (CurrentGuestState->WaitForImmediateVmexit &&
         InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
     {
         //
@@ -458,7 +466,7 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
         //
         // Not increase the RIP
         //
-        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+        CurrentGuestState->IncrementRip = FALSE;
 
         //
         // Hanlde immediate vm-exit mechanism
@@ -484,14 +492,14 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
     // PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT in vmx
     // pin-based controls (PIN_BASED_VM_EXEC_CONTROL) and also
     // we should enable VM_EXIT_ACK_INTR_ON_EXIT on vmx vm-exit
-    // controls (VM_EXIT_CONTROLS), also this function might not
+    // controls (VMCS_CTRL_VMEXIT_CONTROLS), also this function might not
     // always be successful if the guest is not in the interruptible
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
 
-    if ((g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinue ||
-         g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf))
+    if ((CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+         CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf))
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
@@ -509,12 +517,12 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
         //
         // avoid incrementing rip
         //
-        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+        CurrentGuestState->IncrementRip = FALSE;
     }
     else if (InterruptExit.Valid && InterruptExit.InterruptionType == INTERRUPT_TYPE_EXTERNAL_INTERRUPT)
     {
-        __vmx_vmread(GUEST_RFLAGS, &GuestRflags);
-        __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityState);
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &GuestRflags);
+        __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityState);
 
         //
         // External interrupts cannot be injected into the
@@ -547,7 +555,7 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
         //
         // avoid incrementing rip
         //
-        g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+        CurrentGuestState->IncrementRip = FALSE;
     }
     else
     {
@@ -577,7 +585,7 @@ IdtEmulationHandleExternalInterrupt(UINT32 CurrentProcessorIndex, VMEXIT_INTERRU
  * @return VOID 
  */
 VOID
-IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
+IdtEmulationHandleNmiWindowExiting(_In_ UINT32 CurrentProcessorIndex, _Inout_ PGUEST_REGS GuestRegs)
 {
     LogError("Why NMI-window exiting happens?");
 }
@@ -589,10 +597,11 @@ IdtEmulationHandleNmiWindowExiting(UINT32 CurrentProcessorIndex, PGUEST_REGS Gue
  * @return VOID 
  */
 VOID
-IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex)
+IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
 {
-    VMEXIT_INTERRUPT_INFO InterruptExit = {0};
-    ULONG                 ErrorCode     = 0;
+    VMEXIT_INTERRUPT_INFORMATION InterruptExit     = {0};
+    ULONG                        ErrorCode         = 0;
+    VIRTUAL_MACHINE_STATE *      CurrentGuestState = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Find the pending interrupt to inject
@@ -603,17 +612,17 @@ IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex)
         //
         // Find an empty space
         //
-        if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] != NULL)
+        if (CurrentGuestState->PendingExternalInterrupts[i] != NULL)
         {
             //
             // Save it for re-injection (interrupt-window exiting)
             //
-            InterruptExit.Flags = g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i];
+            InterruptExit.Flags = CurrentGuestState->PendingExternalInterrupts[i];
 
             //
             // Free the entry
             //
-            g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[i] = NULL;
+            CurrentGuestState->PendingExternalInterrupts[i] = NULL;
             break;
         }
     }
@@ -630,7 +639,7 @@ IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex)
         //
         // Re-inject the interrupt/exception
         //
-        __vmx_vmwrite(VM_ENTRY_INTR_INFO, InterruptExit.Flags);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
 
         //
         // re-write error code (if any)
@@ -640,17 +649,17 @@ IdtEmulationHandleInterruptWindowExiting(UINT32 CurrentProcessorIndex)
             //
             // Read the error code
             //
-            __vmx_vmread(VM_EXIT_INTR_ERROR_CODE, &ErrorCode);
+            __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_ERROR_CODE, &ErrorCode);
 
             //
             // Write the error code
             //
-            __vmx_vmwrite(VM_ENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
+            __vmx_vmwrite(VMCS_CTRL_VMENTRY_EXCEPTION_ERROR_CODE, ErrorCode);
         }
     }
 
     //
     // avoid incrementing rip
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentGuestState->IncrementRip = FALSE;
 }

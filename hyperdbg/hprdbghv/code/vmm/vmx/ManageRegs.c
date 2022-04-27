@@ -19,9 +19,9 @@
  * @return VOID 
  */
 VOID
-SetGuestCsSel(PSEGMENT_SELECTOR Cs)
+SetGuestCsSel(PVMX_SEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
 }
 
 /**
@@ -32,12 +32,12 @@ SetGuestCsSel(PSEGMENT_SELECTOR Cs)
  */
 
 VOID
-SetGuestCs(PSEGMENT_SELECTOR Cs)
+SetGuestCs(PVMX_SEGMENT_SELECTOR Cs)
 {
-    __vmx_vmwrite(GUEST_CS_BASE, Cs->BASE);
-    __vmx_vmwrite(GUEST_CS_LIMIT, Cs->LIMIT);
-    __vmx_vmwrite(GUEST_CS_AR_BYTES, Cs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_CS_SELECTOR, Cs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_CS_BASE, Cs->Base);
+    __vmx_vmwrite(VMCS_GUEST_CS_LIMIT, Cs->Limit);
+    __vmx_vmwrite(VMCS_GUEST_CS_ACCESS_RIGHTS, Cs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
 }
 
 /**
@@ -45,15 +45,15 @@ SetGuestCs(PSEGMENT_SELECTOR Cs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestCs()
 {
-    SEGMENT_SELECTOR Cs;
+    VMX_SEGMENT_SELECTOR Cs;
 
-    __vmx_vmread(GUEST_CS_BASE, &Cs.BASE);
-    __vmx_vmread(GUEST_CS_LIMIT, &Cs.LIMIT);
-    __vmx_vmread(GUEST_CS_AR_BYTES, &Cs.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_CS_SELECTOR, &Cs.SEL);
+    __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.Base);
+    __vmx_vmread(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
+    __vmx_vmread(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
 
     return Cs;
 }
@@ -65,9 +65,9 @@ GetGuestCs()
  * @return VOID 
  */
 VOID
-SetGuestSsSel(PSEGMENT_SELECTOR Ss)
+SetGuestSsSel(PVMX_SEGMENT_SELECTOR Ss)
 {
-    __vmx_vmwrite(GUEST_SS_SELECTOR, Ss->SEL);
+    __vmx_vmwrite(VMCS_GUEST_SS_SELECTOR, Ss->Selector);
 }
 
 /**
@@ -77,12 +77,12 @@ SetGuestSsSel(PSEGMENT_SELECTOR Ss)
  * @return VOID 
  */
 VOID
-SetGuestSs(PSEGMENT_SELECTOR Ss)
+SetGuestSs(PVMX_SEGMENT_SELECTOR Ss)
 {
-    __vmx_vmwrite(GUEST_SS_BASE, Ss->BASE);
-    __vmx_vmwrite(GUEST_SS_LIMIT, Ss->LIMIT);
-    __vmx_vmwrite(GUEST_SS_AR_BYTES, Ss->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_SS_SELECTOR, Ss->SEL);
+    __vmx_vmwrite(VMCS_GUEST_SS_BASE, Ss->Base);
+    __vmx_vmwrite(VMCS_GUEST_SS_LIMIT, Ss->Limit);
+    __vmx_vmwrite(VMCS_GUEST_SS_ACCESS_RIGHTS, Ss->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_SS_SELECTOR, Ss->Selector);
 }
 
 /**
@@ -90,15 +90,15 @@ SetGuestSs(PSEGMENT_SELECTOR Ss)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestSs()
 {
-    SEGMENT_SELECTOR Ss;
+    VMX_SEGMENT_SELECTOR Ss;
 
-    __vmx_vmread(GUEST_SS_BASE, &Ss.BASE);
-    __vmx_vmread(GUEST_SS_LIMIT, &Ss.LIMIT);
-    __vmx_vmread(GUEST_SS_AR_BYTES, &Ss.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_SS_SELECTOR, &Ss.SEL);
+    __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.Base);
+    __vmx_vmread(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
+    __vmx_vmread(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
 
     return Ss;
 }
@@ -110,9 +110,9 @@ GetGuestSs()
  * @return VOID 
  */
 VOID
-SetGuestDsSel(PSEGMENT_SELECTOR Ds)
+SetGuestDsSel(PVMX_SEGMENT_SELECTOR Ds)
 {
-    __vmx_vmwrite(GUEST_DS_SELECTOR, Ds->SEL);
+    __vmx_vmwrite(VMCS_GUEST_DS_SELECTOR, Ds->Selector);
 }
 
 /**
@@ -122,12 +122,12 @@ SetGuestDsSel(PSEGMENT_SELECTOR Ds)
  * @return VOID 
  */
 VOID
-SetGuestDs(PSEGMENT_SELECTOR Ds)
+SetGuestDs(PVMX_SEGMENT_SELECTOR Ds)
 {
-    __vmx_vmwrite(GUEST_DS_BASE, Ds->BASE);
-    __vmx_vmwrite(GUEST_DS_LIMIT, Ds->LIMIT);
-    __vmx_vmwrite(GUEST_DS_AR_BYTES, Ds->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_DS_SELECTOR, Ds->SEL);
+    __vmx_vmwrite(VMCS_GUEST_DS_BASE, Ds->Base);
+    __vmx_vmwrite(VMCS_GUEST_DS_LIMIT, Ds->Limit);
+    __vmx_vmwrite(VMCS_GUEST_DS_ACCESS_RIGHTS, Ds->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_DS_SELECTOR, Ds->Selector);
 }
 
 /**
@@ -135,15 +135,15 @@ SetGuestDs(PSEGMENT_SELECTOR Ds)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestDs()
 {
-    SEGMENT_SELECTOR Ds;
+    VMX_SEGMENT_SELECTOR Ds;
 
-    __vmx_vmread(GUEST_DS_BASE, &Ds.BASE);
-    __vmx_vmread(GUEST_DS_LIMIT, &Ds.LIMIT);
-    __vmx_vmread(GUEST_DS_AR_BYTES, &Ds.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_DS_SELECTOR, &Ds.SEL);
+    __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.Base);
+    __vmx_vmread(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
+    __vmx_vmread(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
 
     return Ds;
 }
@@ -155,9 +155,9 @@ GetGuestDs()
  * @return VOID 
  */
 VOID
-SetGuestFsSel(PSEGMENT_SELECTOR Fs)
+SetGuestFsSel(PVMX_SEGMENT_SELECTOR Fs)
 {
-    __vmx_vmwrite(GUEST_FS_SELECTOR, Fs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_FS_SELECTOR, Fs->Selector);
 }
 
 /**
@@ -167,12 +167,12 @@ SetGuestFsSel(PSEGMENT_SELECTOR Fs)
  * @return VOID 
  */
 VOID
-SetGuestFs(PSEGMENT_SELECTOR Fs)
+SetGuestFs(PVMX_SEGMENT_SELECTOR Fs)
 {
-    __vmx_vmwrite(GUEST_FS_BASE, Fs->BASE);
-    __vmx_vmwrite(GUEST_FS_LIMIT, Fs->LIMIT);
-    __vmx_vmwrite(GUEST_FS_AR_BYTES, Fs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_FS_SELECTOR, Fs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_FS_BASE, Fs->Base);
+    __vmx_vmwrite(VMCS_GUEST_FS_LIMIT, Fs->Limit);
+    __vmx_vmwrite(VMCS_GUEST_FS_ACCESS_RIGHTS, Fs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_FS_SELECTOR, Fs->Selector);
 }
 
 /**
@@ -180,15 +180,15 @@ SetGuestFs(PSEGMENT_SELECTOR Fs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestFs()
 {
-    SEGMENT_SELECTOR Fs;
+    VMX_SEGMENT_SELECTOR Fs;
 
-    __vmx_vmread(GUEST_FS_BASE, &Fs.BASE);
-    __vmx_vmread(GUEST_FS_LIMIT, &Fs.LIMIT);
-    __vmx_vmread(GUEST_FS_AR_BYTES, &Fs.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_FS_SELECTOR, &Fs.SEL);
+    __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.Base);
+    __vmx_vmread(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
+    __vmx_vmread(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
 
     return Fs;
 }
@@ -200,9 +200,9 @@ GetGuestFs()
  * @return VOID 
  */
 VOID
-SetGuestGsSel(PSEGMENT_SELECTOR Gs)
+SetGuestGsSel(PVMX_SEGMENT_SELECTOR Gs)
 {
-    __vmx_vmwrite(GUEST_GS_SELECTOR, Gs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_GS_SELECTOR, Gs->Selector);
 }
 
 /**
@@ -212,12 +212,12 @@ SetGuestGsSel(PSEGMENT_SELECTOR Gs)
  * @return VOID 
  */
 VOID
-SetGuestGs(PSEGMENT_SELECTOR Gs)
+SetGuestGs(PVMX_SEGMENT_SELECTOR Gs)
 {
-    __vmx_vmwrite(GUEST_GS_BASE, Gs->BASE);
-    __vmx_vmwrite(GUEST_GS_LIMIT, Gs->LIMIT);
-    __vmx_vmwrite(GUEST_GS_AR_BYTES, Gs->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_GS_SELECTOR, Gs->SEL);
+    __vmx_vmwrite(VMCS_GUEST_GS_BASE, Gs->Base);
+    __vmx_vmwrite(VMCS_GUEST_GS_LIMIT, Gs->Limit);
+    __vmx_vmwrite(VMCS_GUEST_GS_ACCESS_RIGHTS, Gs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_GS_SELECTOR, Gs->Selector);
 }
 
 /**
@@ -225,15 +225,15 @@ SetGuestGs(PSEGMENT_SELECTOR Gs)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestGs()
 {
-    SEGMENT_SELECTOR Gs;
+    VMX_SEGMENT_SELECTOR Gs;
 
-    __vmx_vmread(GUEST_GS_BASE, &Gs.BASE);
-    __vmx_vmread(GUEST_GS_LIMIT, &Gs.LIMIT);
-    __vmx_vmread(GUEST_GS_AR_BYTES, &Gs.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_GS_SELECTOR, &Gs.SEL);
+    __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.Base);
+    __vmx_vmread(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
+    __vmx_vmread(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
 
     return Gs;
 }
@@ -245,9 +245,9 @@ GetGuestGs()
  * @return VOID 
  */
 VOID
-SetGuestEsSel(PSEGMENT_SELECTOR Es)
+SetGuestEsSel(PVMX_SEGMENT_SELECTOR Es)
 {
-    __vmx_vmwrite(GUEST_ES_SELECTOR, Es->SEL);
+    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR, Es->Selector);
 }
 
 /**
@@ -257,12 +257,12 @@ SetGuestEsSel(PSEGMENT_SELECTOR Es)
  * @return VOID 
  */
 VOID
-SetGuestEs(PSEGMENT_SELECTOR Es)
+SetGuestEs(PVMX_SEGMENT_SELECTOR Es)
 {
-    __vmx_vmwrite(GUEST_ES_BASE, Es->BASE);
-    __vmx_vmwrite(GUEST_ES_LIMIT, Es->LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES, Es->ATTRIBUTES.UCHARs);
-    __vmx_vmwrite(GUEST_ES_SELECTOR, Es->SEL);
+    __vmx_vmwrite(VMCS_GUEST_ES_BASE, Es->Base);
+    __vmx_vmwrite(VMCS_GUEST_ES_LIMIT, Es->Limit);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS, Es->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR, Es->Selector);
 }
 
 /**
@@ -270,15 +270,15 @@ SetGuestEs(PSEGMENT_SELECTOR Es)
  * 
  * @return SEGMENT_SELECTOR 
  */
-SEGMENT_SELECTOR
+VMX_SEGMENT_SELECTOR
 GetGuestEs()
 {
-    SEGMENT_SELECTOR Es;
+    VMX_SEGMENT_SELECTOR Es;
 
-    __vmx_vmread(GUEST_ES_BASE, &Es.BASE);
-    __vmx_vmread(GUEST_ES_LIMIT, &Es.LIMIT);
-    __vmx_vmread(GUEST_ES_AR_BYTES, &Es.ATTRIBUTES.UCHARs);
-    __vmx_vmread(GUEST_ES_SELECTOR, &Es.SEL);
+    __vmx_vmread(VMCS_GUEST_ES_BASE, &Es.Base);
+    __vmx_vmread(VMCS_GUEST_ES_LIMIT, &Es.Limit);
+    __vmx_vmread(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_ES_SELECTOR, &Es.Selector);
 
     return Es;
 }
@@ -292,7 +292,7 @@ GetGuestEs()
 VOID
 SetGuestIdtr(UINT64 Idtr)
 {
-    __vmx_vmwrite(GUEST_IDTR_BASE, Idtr);
+    __vmx_vmwrite(VMCS_GUEST_IDTR_BASE, Idtr);
 }
 
 /**
@@ -305,7 +305,7 @@ GetGuestIdtr()
 {
     UINT64 Idtr;
 
-    __vmx_vmread(GUEST_IDTR_BASE, &Idtr);
+    __vmx_vmread(VMCS_GUEST_IDTR_BASE, &Idtr);
 
     return Idtr;
 }
@@ -319,7 +319,7 @@ GetGuestIdtr()
 VOID
 SetGuestLdtr(UINT64 Ldtr)
 {
-    __vmx_vmwrite(GUEST_LDTR_BASE, Ldtr);
+    __vmx_vmwrite(VMCS_GUEST_LDTR_BASE, Ldtr);
 }
 
 /**
@@ -332,7 +332,7 @@ GetGuestLdtr()
 {
     UINT64 Ldtr;
 
-    __vmx_vmread(GUEST_LDTR_BASE, &Ldtr);
+    __vmx_vmread(VMCS_GUEST_LDTR_BASE, &Ldtr);
 
     return Ldtr;
 }
@@ -346,7 +346,7 @@ GetGuestLdtr()
 VOID
 SetGuestGdtr(UINT64 Gdtr)
 {
-    __vmx_vmwrite(GUEST_GDTR_BASE, Gdtr);
+    __vmx_vmwrite(VMCS_GUEST_GDTR_BASE, Gdtr);
 }
 
 /**
@@ -359,7 +359,7 @@ GetGuestGdtr()
 {
     UINT64 Gdtr;
 
-    __vmx_vmread(GUEST_GDTR_BASE, &Gdtr);
+    __vmx_vmread(VMCS_GUEST_GDTR_BASE, &Gdtr);
 
     return Gdtr;
 }
@@ -371,7 +371,7 @@ GetGuestGdtr()
 VOID
 SetGuestTr(UINT64 Tr)
 {
-    __vmx_vmwrite(GUEST_TR_BASE, Tr);
+    __vmx_vmwrite(VMCS_GUEST_TR_BASE, Tr);
 }
 
 /**
@@ -384,7 +384,7 @@ GetGuestTr()
 {
     UINT64 Tr;
 
-    __vmx_vmread(GUEST_TR_BASE, &Tr);
+    __vmx_vmread(VMCS_GUEST_TR_BASE, &Tr);
 
     return Tr;
 }
@@ -397,7 +397,7 @@ GetGuestTr()
 VOID
 SetGuestRFlags(UINT64 RFlags)
 {
-    __vmx_vmwrite(GUEST_RFLAGS, RFlags);
+    __vmx_vmwrite(VMCS_GUEST_RFLAGS, RFlags);
 }
 
 /**
@@ -409,7 +409,7 @@ UINT64
 GetGuestRFlags()
 {
     UINT64 RFlags;
-    __vmx_vmread(GUEST_RFLAGS, &RFlags);
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &RFlags);
     return RFlags;
 }
 
@@ -422,7 +422,7 @@ GetGuestRFlags()
 VOID
 SetGuestRIP(UINT64 RIP)
 {
-    __vmx_vmwrite(GUEST_RIP, RIP);
+    __vmx_vmwrite(VMCS_GUEST_RIP, RIP);
 }
 
 /**
@@ -434,7 +434,7 @@ SetGuestRIP(UINT64 RIP)
 VOID
 SetGuestRSP(UINT64 RSP)
 {
-    __vmx_vmwrite(GUEST_RSP, RSP);
+    __vmx_vmwrite(VMCS_GUEST_RSP, RSP);
 }
 
 /**
@@ -447,7 +447,7 @@ GetGuestRIP()
 {
     UINT64 RIP;
 
-    __vmx_vmread(GUEST_RIP, &RIP);
+    __vmx_vmread(VMCS_GUEST_RIP, &RIP);
     return RIP;
 }
 
@@ -461,7 +461,7 @@ GetGuestCr0()
 {
     UINT64 Cr0;
 
-    __vmx_vmread(GUEST_CR0, &Cr0);
+    __vmx_vmread(VMCS_GUEST_CR0, &Cr0);
     return Cr0;
 }
 
@@ -489,7 +489,7 @@ GetGuestCr3()
 {
     UINT64 Cr3;
 
-    __vmx_vmread(GUEST_CR3, &Cr3);
+    __vmx_vmread(VMCS_GUEST_CR3, &Cr3);
     return Cr3;
 }
 
@@ -503,7 +503,7 @@ GetGuestCr4()
 {
     UINT64 Cr4;
 
-    __vmx_vmread(GUEST_CR4, &Cr4);
+    __vmx_vmread(VMCS_GUEST_CR4, &Cr4);
     return Cr4;
 }
 
@@ -530,7 +530,7 @@ GetGuestCr8()
 VOID
 SetGuestCr0(UINT64 Cr0)
 {
-    __vmx_vmwrite(GUEST_CR0, Cr0);
+    __vmx_vmwrite(VMCS_GUEST_CR0, Cr0);
 }
 
 /**
@@ -554,7 +554,7 @@ SetGuestCr2(UINT64 Cr2)
 VOID
 SetGuestCr3(UINT64 Cr3)
 {
-    __vmx_vmwrite(GUEST_CR3, Cr3);
+    __vmx_vmwrite(VMCS_GUEST_CR3, Cr3);
 }
 
 /**
@@ -566,7 +566,7 @@ SetGuestCr3(UINT64 Cr3)
 VOID
 SetGuestCr4(UINT64 Cr4)
 {
-    __vmx_vmwrite(GUEST_CR4, Cr4);
+    __vmx_vmwrite(VMCS_GUEST_CR4, Cr4);
 }
 
 /**

@@ -42,13 +42,10 @@ extern NTSTATUS inline AsmVmxVmcall(unsigned long long VmcallNumber, unsigned lo
 /**
  * @brief Hyper-v vmcall handler
  * 
- * @param HypercallInputValue 
- * @param InputParamGPA 
- * @param OutputParamGPA 
- * @param Optional4 
- * @return UINT64 
+ * @param GuestRegisters 
+ * @return void 
  */
-extern UINT64 inline AsmHypervVmcall(unsigned long long HypercallInputValue, unsigned long long InputParamGPA, unsigned long long OutputParamGPA, unsigned long long Optional4);
+extern void inline AsmHypervVmcall(unsigned long long GuestRegisters);
 
 //
 // ====================  Vmx Context State Operations ====================
@@ -215,6 +212,8 @@ extern unsigned long long inline AsmGetIdtBase();
 extern unsigned short
 AsmGetIdtLimit();
 
+extern UINT32
+AsmGetAccessRights(unsigned short Selector);
 //
 // ====================  Common Functions ====================
 // File : AsmCommon.asm

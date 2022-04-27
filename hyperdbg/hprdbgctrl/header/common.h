@@ -88,6 +88,9 @@ FindCaseInsensitive(std::string Input, std::string ToSearch, size_t Pos);
 size_t
 FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos);
 
+char *
+ConvertStringVectorToCharPointerArray(const std::string & s);
+
 std::vector<std::string>
 ListDirectory(const std::string & Directory, const std::string & Extension);
 
@@ -109,10 +112,10 @@ IsEmptyString(char * Text);
 //    PVOID  ImageBase;
 //    ULONG  ImageSize;
 //    ULONG  Flags;
-//    USHORT LoadOrderIndex;
-//    USHORT InitOrderIndex;
-//    USHORT LoadCount;
-//    USHORT OffsetToFileName;
+//    UINT16 LoadOrderIndex;
+//    UINT16 InitOrderIndex;
+//    UINT16 LoadCount;
+//    UINT16 OffsetToFileName;
 //    UCHAR  FullPathName[256];
 //} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
 //

@@ -117,9 +117,6 @@ VOID
 KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs);
 
 BOOLEAN
-KdNmiCallback(PVOID Context, BOOLEAN Handled);
-
-BOOLEAN
 KdResponsePacketToDebugger(
     DEBUGGER_REMOTE_PACKET_TYPE             PacketType,
     DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION Response,

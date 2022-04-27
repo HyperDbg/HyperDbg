@@ -34,6 +34,8 @@ CommandKHelp()
     ShowMessages("syntax : \tk [base StackAddress (hex)] [l Length (hex)]\n");
     ShowMessages("syntax : \tkd [base StackAddress (hex)] [l Length (hex)]\n");
     ShowMessages("syntax : \tkq [base StackAddress (hex)] [l Length (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : k\n");
     ShowMessages("\t\te.g : k l 100\n");
     ShowMessages("\t\te.g : kd base 0x77356f010\n");

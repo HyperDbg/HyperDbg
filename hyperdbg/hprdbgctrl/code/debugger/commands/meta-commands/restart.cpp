@@ -26,8 +26,9 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandRestartHelp()
 {
-    ShowMessages(".restart : restart the previously started process "
+    ShowMessages(".restart : restarts the previously started process "
                  "(using '.start' command).\n\n");
+
     ShowMessages(
         "syntax : \t.restart \n");
 }

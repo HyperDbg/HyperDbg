@@ -785,6 +785,64 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
 }
 
 /**
+ * @brief Sends a PTE or '!pte' command packet to the debuggee
+ * @param PtePacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
+{
+    //
+    // Send 'bp' as a breakpoint packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_QUERY_PTE,
+            (CHAR *)PtePacket,
+            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of PTE packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends VA2PA and PA2VA packest, or '!va2pa' and '!pa2va' commands packet to the debuggee
+ * @param Va2paAndPa2vaPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndPa2vaPacket)
+{
+    //
+    // Send '!va2pa' or '!pa2va' as a query packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PA2VA_AND_VA2PA,
+            (CHAR *)Va2paAndPa2vaPacket,
+            sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of VA2PA or PA2VA packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a breakpoint set or 'bp' command packet to the debuggee
  * @param BpPacket
  *
@@ -963,6 +1021,36 @@ KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBre
     }
 
     free(UserInputPacket);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends seach query request packet to the debuggee
+ * @param SearchRequestBuffer
+ * @param SearchRequestBufferSize
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchRequestBufferSize)
+{
+    //
+    // Send search request packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SEARCH_QUERY,
+            (CHAR *)SearchRequestBuffer,
+            SearchRequestBufferSize))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of search request received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
 
     return TRUE;
 }
@@ -1305,7 +1393,7 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
             //
             // Error
             //
-            // ShowMessages("err, on sending serial packets (0x%x)", LastErrorCode);
+            // ShowMessages("err, on sending serial packets (%x)", LastErrorCode);
             return FALSE;
         }
 

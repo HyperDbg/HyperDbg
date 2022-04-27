@@ -54,6 +54,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_MODIFY_EVENTS                     EventModifyAndQueryPacket;
     PDEBUGGEE_SYMBOL_UPDATE_RESULT              SymbolReloadFinishedPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ChangeProcessPacket;
+    PDEBUGGEE_RESULT_OF_SEARCH_PACKET           SearchResultsPacket;
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  ChangeThreadPacket;
     PDEBUGGER_FLUSH_LOGGING_BUFFERS             FlushPacket;
     PDEBUGGER_CALLSTACK_REQUEST                 CallstackPacket;
@@ -63,6 +64,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
     PGUEST_REGS                                 Regs;
     PGUEST_EXTRA_REGISTERS                      ExtraRegs;
@@ -446,6 +449,31 @@ StartAgain:
 
             break;
 
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY:
+
+            SearchResultsPacket =
+                (DEBUGGEE_RESULT_OF_SEARCH_PACKET *)(((CHAR *)TheActualPacket) +
+                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (SearchResultsPacket->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (SearchResultsPacket->CountOfResults == 0)
+                {
+                    ShowMessages("not found\n");
+                }
+            }
+            else
+            {
+                ShowErrorMessage(SearchResultsPacket->Result);
+            }
+
+            //
+            // Signal the event relating to receiving result of search query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SEARCH_QUERY_RESULT);
+
+            break;
+
         case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_CHANGING_THREAD:
 
             ChangeThreadPacket =
@@ -746,7 +774,7 @@ StartAgain:
                                                           sizeof(GUEST_REGS));
 
                     RFLAGS Rflags = {0};
-                    Rflags.Value  = ExtraRegs->RFLAGS;
+                    Rflags.Flags  = ExtraRegs->RFLAGS;
 
                     ShowMessages(
                         "RAX=%016llx RBX=%016llx RCX=%016llx\n"
@@ -826,56 +854,82 @@ StartAgain:
                                                  sizeof(DEBUGGER_REMOTE_PACKET) +
                                                  sizeof(DEBUGGER_READ_MEMORY));
 
-                if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DISASSEMBLE64)
+                switch (ReadMemoryPacket->Style)
                 {
+                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE64:
+
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler64(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-                }
-                else if (ReadMemoryPacket->Style ==
-                         DEBUGGER_SHOW_COMMAND_DISASSEMBLE32)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DISASSEMBLE32:
+
                     //
                     // Show diassembles
                     //
                     HyperDbgDisassembler32(MemoryBuffer, ReadMemoryPacket->Address, ReadMemoryPacket->ReturnLength, 0, FALSE, NULL);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DB)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DB:
+
                     ShowMemoryCommandDB(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DC)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DC:
+
                     ShowMemoryCommandDC(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DD)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DD:
+
                     ShowMemoryCommandDD(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
-                }
-                else if (ReadMemoryPacket->Style == DEBUGGER_SHOW_COMMAND_DQ)
-                {
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DQ:
+
                     ShowMemoryCommandDQ(
                         MemoryBuffer,
                         ReadMemoryPacket->Size,
                         ReadMemoryPacket->Address,
                         ReadMemoryPacket->MemoryType,
                         ReadMemoryPacket->ReturnLength);
+
+                    break;
+
+                case DEBUGGER_SHOW_COMMAND_DT:
+
+                    //
+                    // Show the 'dt' command view
+                    //
+                    ScriptEngineShowDataBasedOnSymbolTypesWrapper(ReadMemoryPacket->DtDetails->TypeName,
+                                                                  ReadMemoryPacket->Address,
+                                                                  FALSE,
+                                                                  MemoryBuffer,
+                                                                  ReadMemoryPacket->DtDetails->AdditionalParameters);
+
+                    break;
                 }
             }
             else
@@ -935,6 +989,58 @@ StartAgain:
             // Signal the event relating to receiving result of putting breakpoints
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE:
+
+            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) +
+                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // Show the Page Tables result
+                //
+                CommandPteShowResults(PtePacket->VirtualAddress, PtePacket);
+            }
+            else
+            {
+                ShowErrorMessage(PtePacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of PTE query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA:
+
+            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) +
+                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (Va2paPa2vaPacket->IsVirtual2Physical)
+                {
+                    ShowMessages("%llx\n", Va2paPa2vaPacket->PhysicalAddress);
+                }
+                else
+                {
+                    ShowMessages("%llx\n", Va2paPa2vaPacket->VirtualAddress);
+                }
+            }
+            else
+            {
+                ShowErrorMessage(Va2paPa2vaPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of VA2PA or PA2VA queries
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 
             break;
 

@@ -241,9 +241,9 @@ ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
  * @return BOOLEAN 
  */
 BOOLEAN
-ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
+ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
 {
-    ULONG64    Process;
+    UINT64     Process;
     LIST_ENTRY ActiveProcessLinks;
 
     //
@@ -269,7 +269,7 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG 
         //
         // Find the top of EPROCESS from nt!_EPROCESS.ActiveProcessLinks
         //
-        Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+        Process = (UINT64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
 
         do
         {
@@ -291,9 +291,9 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG 
             //
             // Find the next process from the list of this process
             //
-            Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+            Process = (UINT64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
 
-        } while ((ULONG64)ActiveProcessLinks.Flink != ActiveProcessHead);
+        } while ((UINT64)ActiveProcessLinks.Flink != ActiveProcessHead);
     }
     else
     {
@@ -315,8 +315,8 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, ULONG64 ActiveProcessHead, ULONG 
 BOOLEAN
 ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
 {
-    ULONG64    Process;
-    ULONG64    UniquePid;
+    UINT64     Process;
+    UINT64     UniquePid;
     LIST_ENTRY ActiveProcessLinks;
     UCHAR      ImageFileName[15] = {0};
     CR3_TYPE   ProcessCr3        = {0};
@@ -324,10 +324,10 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
     //
     // Set the details derived from the symbols
     //
-    ULONG64 ActiveProcessHead        = PorcessListSymbolInfo->PsActiveProcessHead;      // nt!PsActiveProcessHead
-    ULONG   ImageFileNameOffset      = PorcessListSymbolInfo->ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
-    ULONG   UniquePidOffset          = PorcessListSymbolInfo->UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
-    ULONG   ActiveProcessLinksOffset = PorcessListSymbolInfo->ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+    UINT64 ActiveProcessHead        = PorcessListSymbolInfo->PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG  ImageFileNameOffset      = PorcessListSymbolInfo->ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
+    ULONG  UniquePidOffset          = PorcessListSymbolInfo->UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
+    ULONG  ActiveProcessLinksOffset = PorcessListSymbolInfo->ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
 
     //
     // Dirty validation of parameters
@@ -354,7 +354,7 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
         //
         // Find the top of EPROCESS from nt!_EPROCESS.ActiveProcessLinks
         //
-        Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+        Process = (UINT64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
 
         do
         {
@@ -387,9 +387,9 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
             //
             // Find the next process from the list of this process
             //
-            Process = (ULONG64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
+            Process = (UINT64)ActiveProcessLinks.Flink - ActiveProcessLinksOffset;
 
-        } while ((ULONG64)ActiveProcessLinks.Flink != ActiveProcessHead);
+        } while ((UINT64)ActiveProcessLinks.Flink != ActiveProcessHead);
     }
     else
     {

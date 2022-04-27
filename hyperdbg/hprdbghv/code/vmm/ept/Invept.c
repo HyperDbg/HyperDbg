@@ -19,11 +19,11 @@
  * @return UCHAR 
  */
 UCHAR
-Invept(UINT32 Type, INVEPT_DESC * Descriptor)
+EptInvept(_In_ UINT32 Type, _In_ INVEPT_DESCRIPTOR * Descriptor)
 {
     if (!Descriptor)
     {
-        INVEPT_DESC ZeroDescriptor = {0};
+        INVEPT_DESCRIPTOR ZeroDescriptor = {0};
         Descriptor                 = &ZeroDescriptor;
     }
 
@@ -37,21 +37,21 @@ Invept(UINT32 Type, INVEPT_DESC * Descriptor)
  * @return UCHAR 
  */
 UCHAR
-InveptSingleContext(UINT64 EptPointer)
+EptInveptSingleContext(_In_ UINT64 EptPointer)
 {
-    INVEPT_DESC Descriptor = {0};
+    INVEPT_DESCRIPTOR Descriptor = {0};
     Descriptor.EptPointer  = EptPointer;
     Descriptor.Reserved    = 0;
-    return Invept(INVEPT_SINGLE_CONTEXT, &Descriptor);
+    return EptInvept(InveptSingleContext, &Descriptor);
 }
 
 /**
- * @brief Invalidates all contexts in ept cache table
+ * @brief Invalidates all contexts in EPT cache table
  * 
  * @return UCHAR 
  */
 UCHAR
-InveptAllContexts()
+EptInveptAllContexts()
 {
-    return Invept(INVEPT_ALL_CONTEXTS, NULL);
+    return EptInvept(InveptAllContext, NULL);
 }

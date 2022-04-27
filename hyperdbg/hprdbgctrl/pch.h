@@ -22,6 +22,19 @@
 #define WIN32_LEAN_AND_MEAN
 
 //
+// IA32-doc has structures for the entire intel SDM.
+//
+
+#define USE_LIB_IA32
+#if defined(USE_LIB_IA32)
+#    pragma warning(push, 0)
+//#    pragma warning(disable : 4201) // suppress nameless struct/union warning
+#    include <ia32-doc/out/ia32.h>
+#    pragma warning(pop)
+typedef RFLAGS * PRFLAGS;
+#endif //USE_LIB_IA32
+
+//
 // Native API header files for the Process Hacker project.
 //
 #define USE__NATIVE_PHNT_HEADERS

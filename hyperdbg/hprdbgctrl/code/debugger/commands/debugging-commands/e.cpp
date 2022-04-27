@@ -25,10 +25,11 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandEditMemoryHelp()
 {
-    ShowMessages("eb !eb ed !ed eq !eq : edit the memory at specific address \n");
+    ShowMessages("eb !eb ed !ed eq !eq : edits the memory at specific address \n");
     ShowMessages("eb  Byte and ASCII characters\n");
     ShowMessages("ed  Double-word values (4 bytes)\n");
     ShowMessages("eq  Quad-word values (8 bytes). \n");
+
     ShowMessages("\n If you want to edit physical (address) memory then add '!' "
                  "at the start of the command\n");
 
@@ -36,6 +37,7 @@ CommandEditMemoryHelp()
     ShowMessages("syntax : \ted [Address (hex)] [Contents (hex)] [pid ProcessId (hex)]\n");
     ShowMessages("syntax : \teq [Address (hex)] [Contents (hex)] [pid ProcessId (hex)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : eb fffff8077356f010 90 \n");
     ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask ff ff ff ff \n");
     ShowMessages("\t\te.g : eb nt!Kd_DEFAULT_Mask+10+@rcx ff ff ff ff \n");

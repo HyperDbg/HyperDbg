@@ -29,7 +29,10 @@ CommandUnloadHelp()
 {
     ShowMessages(
         "unload : unloads the kernel modules and uninstalls the drivers.\n\n");
+
     ShowMessages("syntax : \tunload [remove] [ModuleName (string)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : unload vmm\n");
     ShowMessages("\t\te.g : unload remove vmm\n");
 }

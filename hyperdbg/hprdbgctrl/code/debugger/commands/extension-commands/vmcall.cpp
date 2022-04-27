@@ -19,12 +19,14 @@
 VOID
 CommandVmcallHelp()
 {
-    ShowMessages("!vmcall : Monitors execution of VMCALL instruction.\n\n");
+    ShowMessages("!vmcall : monitors execution of VMCALL instruction.\n\n");
+
     ShowMessages("syntax : \t!vmcall [pid ProcessId (hex)] [core CoreId (hex)] "
                  "[imm IsImmediate (yesno)] [buffer PreAllocatedBuffer (hex)] "
                  "[script { Script (string) }] [condition { Condition (hex) }] "
                  "[code { Code (hex) }]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : !vmcall\n");
     ShowMessages("\t\te.g : !vmcall pid 400\n");
     ShowMessages("\t\te.g : !vmcall core 2 pid 400\n");

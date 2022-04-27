@@ -19,8 +19,11 @@
 VOID
 CommandWrmsrHelp()
 {
-    ShowMessages("wrmsr : Writes on a model-specific register (MSR).\n\n");
+    ShowMessages("wrmsr : writes on a model-specific register (MSR).\n\n");
+
     ShowMessages("syntax : \twrmsr [Msr (hex)] [Value (hex)] [core CoreNumber (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : wrmsr c0000082 fffff8077356f010\n");
     ShowMessages("\t\te.g : wrmsr c0000082 @rcx\n");
     ShowMessages("\t\te.g : wrmsr c0000082 @rcx+@rdx+12\n");
@@ -160,7 +163,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code (0x%x), either msr index or core id is invalid\n",
+        ShowMessages("ioctl failed with code (%x), either msr index or core id is invalid\n",
                      GetLastError());
         return;
     }

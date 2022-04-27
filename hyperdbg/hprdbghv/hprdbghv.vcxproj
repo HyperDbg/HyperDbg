@@ -65,7 +65,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -90,7 +90,7 @@
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -137,6 +137,7 @@
     <ClCompile Include="code\devices\Apic.c" />
     <ClCompile Include="code\driver\Driver.c" />
     <ClCompile Include="code\driver\Ioctl.c" />
+    <ClCompile Include="code\globals\GlobalVariableManagement.c" />
     <ClCompile Include="code\memory\MemoryManager.c" />
     <ClCompile Include="code\memory\MemoryMapper.c" />
     <ClCompile Include="code\memory\PoolManager.c" />
@@ -200,9 +201,10 @@
     <ClInclude Include="header\debugger\user-level\Ud.h" />
     <ClInclude Include="header\debugger\user-level\UserAccess.h" />
     <ClInclude Include="header\devices\Apic.h" />
+    <ClInclude Include="header\globals\GlobalVariableManagement.h" />
+    <ClInclude Include="header\globals\GlobalVariables.h" />
     <ClInclude Include="header\memory\MemoryMapper.h" />
     <ClInclude Include="header\memory\PoolManager.h" />
-    <ClInclude Include="header\misc\GlobalVariables.h" />
     <ClInclude Include="header\misc\InlineAsm.h" />
     <ClInclude Include="header\platform\CrossApi.h" />
     <ClInclude Include="header\platform\Environment.h" />

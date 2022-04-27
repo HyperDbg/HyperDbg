@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 #define RESERVED_MSR_RANGE_LOW 0x40000000
-#define RESERVED_MSR_RANGE_HI  0x400000F0
+#define RESERVED_MSR_RANGE_HI  0x4000109F
 
 //////////////////////////////////////////////////
 //					Enums						//
@@ -107,7 +107,7 @@ typedef union _INTERRUPT_INFO
         UINT32 DeliverCode : 1; /* 0=Do not deliver, 1=Deliver */
         UINT32 Reserved : 19;
         UINT32 Valid : 1; /* 0=Not valid, 1=Valid. Must be checked first */
-    };
+    } Fields;
     UINT32 Flags;
 } INTERRUPT_INFO, *PINTERRUPT_INFO;
 
@@ -130,7 +130,7 @@ VOID
 EventInjectBreakpoint();
 
 VOID
-EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, ULONG32 ErrorCode);
+EventInjectInterruption(INTERRUPT_TYPE InterruptionType, EXCEPTION_VECTORS Vector, BOOLEAN DeliverErrorCode, UINT32 ErrorCode);
 
 VOID
 EventInjectGeneralProtection();

@@ -27,7 +27,8 @@ extern ACTIVE_DEBUGGING_PROCESS g_ActiveProcessDebuggingState;
 VOID
 CommandGHelp()
 {
-    ShowMessages("g : continue debuggee or processing kernel messages.\n\n");
+    ShowMessages("g : continues debuggee or continues processing kernel messages.\n\n");
+
     ShowMessages("syntax : \tg \n");
 }
 

@@ -42,6 +42,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kdserial", "kdserial\kdserial.vcxproj", "{2D988267-CC53-41E3-936A-48CEF9049DF5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "symbol-parser", "symbol-parser\symbol-parser.vcxproj", "{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06FB1AF7-647C-4BA4-860A-4533763440F9} = {06FB1AF7-647C-4BA4-860A-4533763440F9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pdbex", "dependencies\pdbex\Source\pdbex.vcxproj", "{06FB1AF7-647C-4BA4-860A-4533763440F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,6 +82,10 @@ Global
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.Debug|x64.Build.0 = Debug|x64
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.Release|x64.ActiveCfg = Release|x64
 		{9CA3E213-C43F-4C1D-A6ED-C6FC568D691B}.Release|x64.Build.0 = Release|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.Debug|x64.ActiveCfg = Debug|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.Debug|x64.Build.0 = Debug|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.Release|x64.ActiveCfg = Release|x64
+		{06FB1AF7-647C-4BA4-860A-4533763440F9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

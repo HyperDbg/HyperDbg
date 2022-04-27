@@ -25,9 +25,11 @@ VOID
 CommandTestHelp()
 {
     ShowMessages(
-        "test : Test essential features of HyperDbg in current machine.\n");
+        "test : tests essential features of HyperDbg in current machine.\n");
+
     ShowMessages("syntax : \ttest [Task (string)]\n");
 
+    ShowMessages("\n");
     ShowMessages("\t\te.g : test\n");
     ShowMessages("\t\te.g : test query\n");
 }

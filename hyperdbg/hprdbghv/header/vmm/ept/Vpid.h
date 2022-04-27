@@ -15,34 +15,9 @@
 //					Enums						//
 //////////////////////////////////////////////////
 
-/**
- * @brief INVVPID Enum
- * 
- */
-typedef enum _INVVPID_ENUM
-{
-    INVVPID_INDIVIDUAL_ADDRESS               = 0x00000000,
-    INVVPID_SINGLE_CONTEXT                   = 0x00000001,
-    INVVPID_ALL_CONTEXT                      = 0x00000002,
-    INVVPID_SINGLE_CONTEXT_RETAINING_GLOBALS = 0x00000003
-} INVVPID_ENUM,
-    *PINVVPID_ENUM;
-
 //////////////////////////////////////////////////
 //					Structures					//
 //////////////////////////////////////////////////
-
-/**
- * @brief INVVPID Descriptors
- * 
- */
-typedef struct _INVVPID_DESCRIPTOR
-{
-    UINT64 VPID : 16;
-    UINT64 RESERVED : 48;
-    UINT64 LINEAR_ADDRESS;
-
-} INVVPID_DESCRIPTOR, *PINVVPID_DESCRIPTOR;
 
 //////////////////////////////////////////////////
 //					Definitions					//
@@ -59,16 +34,16 @@ typedef struct _INVVPID_DESCRIPTOR
 //////////////////////////////////////////////////
 
 VOID
-Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor);
+VpidInvvpid(_In_ INVVPID_TYPE Type, _In_opt_ INVVPID_DESCRIPTOR * Descriptor);
 
 VOID
-InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress);
+VpidInvvpidIndividualAddress(_In_ UINT16 Vpid, _In_ UINT64 LinearAddress);
 
 VOID
-InvvpidSingleContext(UINT16 Vpid);
+VpidInvvpidSingleContext(UINT16 Vpid);
 
 VOID
-InvvpidAllContexts();
+VpidInvvpidAllContext();
 
 VOID
-InvvpidSingleContextRetainingGlobals(UINT16 Vpid);
+VpidInvvpidSingleContextRetainingGlobals(UINT16 Vpid);

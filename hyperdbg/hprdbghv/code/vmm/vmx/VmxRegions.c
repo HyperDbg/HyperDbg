@@ -18,16 +18,17 @@
  * @return BOOLEAN Returns true if allocation was successfull and vmxon executed without error
  * otherwise returns false
  */
+_Use_decl_annotations_
 BOOLEAN
-VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
-    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
-    SIZE_T             VmxonSize;
-    UINT8              VmxonStatus;
-    UINT8 *            VmxonRegion;
-    UINT64             VmxonRegionPhysicalAddr;
-    UINT64             AlignedVmxonRegion;
-    UINT64             AlignedVmxonRegionPhysicalAddr;
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+    SIZE_T                  VmxonSize;
+    UINT8                   VmxonStatus;
+    UINT8 *                 VmxonRegion;
+    UINT64                  VmxonRegionPhysicalAddr;
+    UINT64                  AlignedVmxonRegion;
+    UINT64                  AlignedVmxonRegionPhysicalAddr;
 
 #ifdef ENV_WINDOWS
     //
@@ -62,13 +63,13 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
-    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
+    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
     //Changing Revision Identifier
     //
-    *(UINT64 *)AlignedVmxonRegion = VmxBasicMsr.Fields.RevisionIdentifier;
+    *(UINT64 *)AlignedVmxonRegion = VmxBasicMsr.VmcsRevisionId;
 
     //
     // Execute Vmxon instruction
@@ -97,15 +98,16 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
  * @return BOOLEAN Returns true if allocation was successfull and vmptrld executed without error
  * otherwise returns false
  */
+_Use_decl_annotations_
 BOOLEAN
-VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
-    IA32_VMX_BASIC_MSR VmxBasicMsr = {0};
-    SIZE_T             VmcsSize;
-    UINT8 *            VmcsRegion;
-    UINT64             VmcsPhysicalAddr;
-    UINT64             AlignedVmcsRegion;
-    UINT64             AlignedVmcsRegionPhysicalAddr;
+    IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
+    SIZE_T                  VmcsSize;
+    UINT8 *                 VmcsRegion;
+    UINT64                  VmcsPhysicalAddr;
+    UINT64                  AlignedVmcsRegion;
+    UINT64                  AlignedVmcsRegionPhysicalAddr;
 
 #ifdef ENV_WINDOWS
     //
@@ -119,7 +121,7 @@ VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     // Allocating a 4-KByte Contigous Memory region
     //
     VmcsSize   = 2 * VMCS_SIZE;
-    VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE); 
+    VmcsRegion = CrsAllocateContiguousZeroedMemory(VmcsSize + ALIGNMENT_PAGE_SIZE);
     if (VmcsRegion == NULL)
     {
         LogError("Err, couldn't allocate Buffer for VMCS region");
@@ -137,13 +139,13 @@ VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.All = __readmsr(IA32_VMX_BASIC);
-    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.Fields.RevisionIdentifier);
+    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
+    LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
     //Changing Revision Identifier
     //
-    *(UINT64 *)AlignedVmcsRegion = VmxBasicMsr.Fields.RevisionIdentifier;
+    *(UINT64 *)AlignedVmcsRegion = VmxBasicMsr.VmcsRevisionId;
 
     CurrentGuestState->VmcsRegionPhysicalAddress = AlignedVmcsRegionPhysicalAddr;
     //

@@ -129,8 +129,8 @@ typedef struct _LDR_DATA_TABLE_ENTRY32
     UNICODE_STRING32 FullDllName;
     UNICODE_STRING32 BaseDllName;
     ULONG            Flags;
-    USHORT           LoadCount;
-    USHORT           TlsIndex;
+    UINT16           LoadCount;
+    UINT16           TlsIndex;
     LIST_ENTRY32     HashLinks;
     ULONG            TimeDateStamp;
 } LDR_DATA_TABLE_ENTRY32, *PLDR_DATA_TABLE_ENTRY32;
@@ -150,8 +150,8 @@ typedef struct _LDR_DATA_TABLE_ENTRY
     UNICODE_STRING FullDllName;
     UNICODE_STRING BaseDllName;
     ULONG          Flags; // LDR_*
-    USHORT         LoadCount;
-    USHORT         TlsIndex;
+    UINT16         LoadCount;
+    UINT16         TlsIndex;
     LIST_ENTRY     HashLinks;
     PVOID          SectionPointer;
     ULONG          CheckSum;

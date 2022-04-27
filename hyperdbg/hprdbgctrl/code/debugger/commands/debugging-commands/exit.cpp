@@ -25,7 +25,8 @@ VOID
 CommandExitHelp()
 {
     ShowMessages(
-        "exit : unload and uninstalls the drivers and closes the debugger.\n\n");
+        "exit : unloads and uninstalls the drivers and closes the debugger.\n\n");
+
     ShowMessages("syntax : \texit\n");
 }
 

@@ -18,16 +18,23 @@
  * @param Descriptor 
  * @return VOID
  */
+_Use_decl_annotations_
 VOID
-Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor)
+VpidInvvpid(INVVPID_TYPE Type, INVVPID_DESCRIPTOR * Descriptor)
 {
+    INVVPID_DESCRIPTOR * TargetDescriptor = NULL;
+    INVVPID_DESCRIPTOR   ZeroDescriptor   = {0};
+
     if (!Descriptor)
     {
-        static INVVPID_DESCRIPTOR ZeroDescriptor = {0};
-        Descriptor                               = &ZeroDescriptor;
+        TargetDescriptor = &ZeroDescriptor;
+    }
+    else
+    {
+        TargetDescriptor = Descriptor;
     }
 
-    AsmInvvpid(Type, Descriptor);
+    AsmInvvpid(Type, TargetDescriptor);
 }
 
 /**
@@ -37,11 +44,12 @@ Invvpid(INVVPID_ENUM Type, INVVPID_DESCRIPTOR * Descriptor)
  * @param LinearAddress 
  * @return VOID
  */
+_Use_decl_annotations_
 VOID
-InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress)
+VpidInvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress)
 {
-    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, LinearAddress};
-    Invvpid(INVVPID_INDIVIDUAL_ADDRESS, &Descriptor);
+    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, LinearAddress};
+    VpidInvvpid(InvvpidIndividualAddress, &Descriptor);
 }
 
 /**
@@ -51,10 +59,10 @@ InvvpidIndividualAddress(UINT16 Vpid, UINT64 LinearAddress)
  * @return VOID
  */
 VOID
-InvvpidSingleContext(UINT16 Vpid)
+VpidInvvpidSingleContext(UINT16 Vpid)
 {
-    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0};
-    Invvpid(INVVPID_SINGLE_CONTEXT, &Descriptor);
+    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, 0};
+    VpidInvvpid(InvvpidSingleContext, &Descriptor);
 }
 
 /**
@@ -63,9 +71,9 @@ InvvpidSingleContext(UINT16 Vpid)
  * @return VOID
  */
 VOID
-InvvpidAllContexts()
+VpidInvvpidAllContext()
 {
-    Invvpid(INVVPID_ALL_CONTEXT, NULL);
+    VpidInvvpid(InvvpidAllContext, NULL);
 }
 
 /**
@@ -75,8 +83,8 @@ InvvpidAllContexts()
  * @return VOID
  */
 VOID
-InvvpidSingleContextRetainingGlobals(UINT16 Vpid)
+VpidInvvpidSingleContextRetainingGlobals(UINT16 Vpid)
 {
-    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0};
-    Invvpid(INVVPID_SINGLE_CONTEXT_RETAINING_GLOBALS, &Descriptor);
+    INVVPID_DESCRIPTOR Descriptor = {Vpid, 0, 0, 0};
+    VpidInvvpid(InvvpidSingleContextRetainingGlobals, &Descriptor);
 }

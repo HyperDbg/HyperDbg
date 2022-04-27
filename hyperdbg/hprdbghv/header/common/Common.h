@@ -59,6 +59,12 @@ SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaxWait);
 void
 SpinlockUnlock(volatile LONG * Lock);
 
+void
+SpinlockInterlockedCompareExchange(
+    LONG volatile * Destination,
+    LONG            Exchange,
+    LONG            Comperand);
+
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////
@@ -253,54 +259,20 @@ SpinlockUnlock(volatile LONG * Lock);
 //					 Structures					//
 //////////////////////////////////////////////////
 
-/**
- * @brief Segment attributes
- * 
- */
-typedef union _SEGMENT_ATTRIBUTES
-{
-    USHORT UCHARs;
-    struct
-    {
-        USHORT TYPE : 4; /* 0;  Bit 40-43 */
-        USHORT S : 1;    /* 4;  Bit 44 */
-        USHORT DPL : 2;  /* 5;  Bit 45-46 */
-        USHORT P : 1;    /* 7;  Bit 47 */
-
-        USHORT AVL : 1; /* 8;  Bit 52 */
-        USHORT L : 1;   /* 9;  Bit 53 */
-        USHORT DB : 1;  /* 10; Bit 54 */
-        USHORT G : 1;   /* 11; Bit 55 */
-        USHORT GAP : 4;
-
-    } Fields;
-} SEGMENT_ATTRIBUTES, *PSEGMENT_ATTRIBUTES;
-
-/**
- * @brief Segment Descriptor
- * 
- */
-typedef struct _SEGMENT_DESCRIPTOR
-{
-    USHORT LIMIT0;
-    USHORT BASE0;
-    UCHAR  BASE1;
-    UCHAR  ATTR0;
-    UCHAR  LIMIT1ATTR1;
-    UCHAR  BASE2;
-} SEGMENT_DESCRIPTOR, *PSEGMENT_DESCRIPTOR;
+typedef SEGMENT_DESCRIPTOR_32 * PSEGMENT_DESCRIPTOR;
 
 /**
  * @brief Segment selector
  * 
  */
-typedef struct _SEGMENT_SELECTOR
+
+typedef struct _VMX_SEGMENT_SELECTOR
 {
-    USHORT             SEL;
-    SEGMENT_ATTRIBUTES ATTRIBUTES;
-    ULONG32            LIMIT;
-    ULONG64            BASE;
-} SEGMENT_SELECTOR, *PSEGMENT_SELECTOR;
+    UINT16                    Selector;
+    VMX_SEGMENT_ACCESS_RIGHTS Attributes;
+    UINT32                    Limit;
+    UINT64                    Base;
+} VMX_SEGMENT_SELECTOR, *PVMX_SEGMENT_SELECTOR;
 
 /**
  * @brief CPUID Registers
@@ -332,91 +304,27 @@ typedef struct _NT_KPROCESS
  */
 typedef union _PAGE_FAULT_ERROR_CODE
 {
-    ULONG32 All;
+    UINT32 Flags;
     struct
     {
-        ULONG32 Present : 1;  // 0 = NotPresent
-        ULONG32 Write : 1;    // 0 = Read
-        ULONG32 User : 1;     // 0 = CPL==0
-        ULONG32 Reserved : 1; //
-        ULONG32 Fetch : 1;    //
+        UINT32 Present : 1;  // 0 = NotPresent
+        UINT32 Write : 1;    // 0 = Read
+        UINT32 User : 1;     // 0 = CPL==0
+        UINT32 Reserved : 1; //
+        UINT32 Fetch : 1;    //
     } Fields;
 } PAGE_FAULT_ERROR_CODE, *PPAGE_FAULT_ERROR_CODE;
 
-/**
- * @brief Control Register 4 Structure
- * 
- */
-typedef struct _CONTROL_REGISTER_4
-{
-    union
-    {
-        UINT64 Flags;
-
-        struct
-        {
-            UINT64 VirtualModeExtensions : 1;
-            UINT64 ProtectedModeVirtualInterrupts : 1;
-            UINT64 TimestampDisable : 1;
-            UINT64 DebuggingExtensions : 1;
-            UINT64 PageSizeExtensions : 1;
-            UINT64 PhysicalAddressExtension : 1;
-            UINT64 MachineCheckEnable : 1;
-            UINT64 PageGlobalEnable : 1;
-            UINT64 PerformanceMonitoringCounterEnable : 1;
-            UINT64 OsFxsaveFxrstorSupport : 1;
-            UINT64 OsXmmExceptionSupport : 1;
-            UINT64 UsermodeInstructionPrevention : 1;
-            UINT64 Reserved1 : 1;
-            UINT64 VmxEnable : 1;
-            UINT64 SmxEnable : 1;
-            UINT64 Reserved2 : 1;
-            UINT64 FsGsBaseEnable : 1;
-            UINT64 PcidEnable : 1;
-            UINT64 OsXsave : 1;
-            UINT64 Reserved3 : 1;
-            UINT64 SmepEnable : 1;
-            UINT64 SmapEnable : 1;
-            UINT64 ProtectionKeyEnable : 1;
-        };
-    };
-} CONTROL_REGISTER_4, *PCONTROL_REGISTER_4;
-
-typedef union _CONTROL_REGISTER_0
+typedef union _CR_FIXED
 {
     UINT64 Flags;
 
-    struct
-    {
-        UINT64 ProtectionEnable : 1;
-        UINT64 MonitorCoprocessor : 1;
-        UINT64 EmulateFpu : 1;
-        UINT64 TaskSwitched : 1;
-        UINT64 ExtensionType : 1;
-        UINT64 NumericError : 1;
-        UINT64 Reserved1 : 10;
-        UINT64 WriteProtect : 1;
-        UINT64 Reserved2 : 1;
-        UINT64 AlignmentMask : 1;
-        UINT64 Reserved3 : 10;
-        UINT64 NotWriteThrough : 1;
-        UINT64 CacheDisable : 1;
-        UINT64 PagingEnable : 1;
-        UINT64 Reserved4 : 32;
-    };
-
-} CONTROL_REGISTER_0, *PCONTROL_REGISTER_0;
-
-typedef union _CR_FIXED
-{
     struct
     {
         unsigned long Low;
         long          High;
 
-    } Value;
-
-    UINT64 Flags;
+    } Fields;
 
 } CR_FIXED, *PCR_FIXED;
 
@@ -607,6 +515,17 @@ MmUnmapViewOfSection(PEPROCESS Process, PVOID BaseAddress); // Used to unmap pro
 //			 Function Definitions				//
 //////////////////////////////////////////////////
 
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+static NTSTATUS
+GetHandleFromProcess(_In_ UINT32 ProcessId, _Out_ PHANDLE Handle);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
+
 int
 TestBit(int nth, unsigned long * addr);
 
@@ -617,34 +536,39 @@ void
 SetBit(int nth, unsigned long * addr);
 
 CR3_TYPE
-GetCr3FromProcessId(UINT32 ProcessId);
+GetCr3FromProcessId(_In_ UINT32 ProcessId);
 
 BOOLEAN
-BroadcastToProcessors(ULONG ProcessorNumber, RunOnLogicalCoreFunc Routine);
+BroadcastToProcessors(_In_ ULONG ProcessorNumber, _In_ RunOnLogicalCoreFunc Routine);
 
 UINT64
-PhysicalAddressToVirtualAddress(UINT64 PhysicalAddress);
+PhysicalAddressToVirtualAddress(_In_ UINT64 PhysicalAddress);
 
 UINT64
-VirtualAddressToPhysicalAddress(PVOID VirtualAddress);
+VirtualAddressToPhysicalAddress(_In_ PVOID VirtualAddress);
 
 UINT64
-VirtualAddressToPhysicalAddressByProcessId(PVOID VirtualAddress, UINT32 ProcessId);
+VirtualAddressToPhysicalAddressByProcessId(_In_ PVOID  VirtualAddress,
+                                           _In_ UINT32 ProcessId);
 
 UINT64
-VirtualAddressToPhysicalAddressByProcessCr3(PVOID VirtualAddress, CR3_TYPE TargetCr3);
+VirtualAddressToPhysicalAddressByProcessCr3(_In_ PVOID    VirtualAddress,
+                                            _In_ CR3_TYPE TargetCr3);
 
 UINT64
-VirtualAddressToPhysicalAddressOnTargetProcess(PVOID VirtualAddress);
+VirtualAddressToPhysicalAddressOnTargetProcess(_In_ PVOID VirtualAddress);
 
 UINT64
-PhysicalAddressToVirtualAddressByProcessId(PVOID PhysicalAddress, UINT32 ProcessId);
+PhysicalAddressToVirtualAddressByProcessId(_In_ PVOID PhysicalAddress, _In_ UINT32 ProcessId);
 
 UINT64
-PhysicalAddressToVirtualAddressByCr3(PVOID PhysicalAddress, CR3_TYPE TargetCr3);
+PhysicalAddressToVirtualAddressByCr3(_In_ PVOID PhysicalAddress, _In_ CR3_TYPE TargetCr3);
 
 UINT64
-PhysicalAddressToVirtualAddressOnTargetProcess(PVOID PhysicalAddress);
+PhysicalAddressToVirtualAddressOnTargetProcess(_In_ PVOID PhysicalAddress);
+
+CR3_TYPE
+GetRunningCr3OnTargetProcess();
 
 int
 MathPower(int Base, int Exp);
@@ -653,13 +577,16 @@ UINT64
 FindSystemDirectoryTableBase();
 
 CR3_TYPE
-SwitchOnAnotherProcessMemoryLayout(UINT32 ProcessId);
+SwitchOnAnotherProcessMemoryLayout(_In_ UINT32 ProcessId);
 
 CR3_TYPE
-SwitchOnAnotherProcessMemoryLayoutByCr3(CR3_TYPE TargetCr3);
+SwitchOnMemoryLayoutOfTargetProcess();
+
+CR3_TYPE
+SwitchOnAnotherProcessMemoryLayoutByCr3(_In_ CR3_TYPE TargetCr3);
 
 VOID
-RestoreToPreviousProcess(CR3_TYPE PreviousProcess);
+RestoreToPreviousProcess(_In_ CR3_TYPE PreviousProcess);
 
 PCHAR
 GetProcessNameFromEprocess(PEPROCESS eprocess);
@@ -751,32 +678,33 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook);
  * 
  */
 BOOLEAN
-SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex);
+SyscallHookHandleUD(_Inout_ PGUEST_REGS Regs, _In_ UINT32 CoreIndex);
 
 /**
  * @brief SYSRET instruction emulation routine
  * 
  */
 BOOLEAN
-SyscallHookEmulateSYSRET(PGUEST_REGS Regs);
+SyscallHookEmulateSYSRET(_In_ PGUEST_REGS Regs);
 
 /**
  * @brief SYSCALL instruction emulation routine
  * 
  */
 BOOLEAN
-SyscallHookEmulateSYSCALL(PGUEST_REGS Regs);
+SyscallHookEmulateSYSCALL(_Out_ PGUEST_REGS Regs);
 
 /**
  * @brief Get Segment Descriptor
  * 
  */
+_Success_(return )
 BOOLEAN
-GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector, USHORT Selector, PUCHAR GdtBase);
+GetSegmentDescriptor(_In_ PUCHAR GdtBase, _In_ UINT16 Selector, _Out_ PVMX_SEGMENT_SELECTOR SegmentSelector);
 
 /**
  * @brief Kill a process using different methods
  * 
  */
 BOOLEAN
-KillProcess(UINT32 ProcessId, PROCESS_KILL_METHODS KillingMethod);
+KillProcess(_In_ UINT32 ProcessId, _In_ PROCESS_KILL_METHODS KillingMethod);

@@ -26,33 +26,18 @@ KdInitializeKernelDebugger()
     CoreCount = KeQueryActiveProcessorCount(0);
 
     //
-    // Initialize APIC
-    //
-    ApicInitialize();
-
-    //
     // Allocate DPC routine
     //
-    for (size_t i = 0; i < CoreCount; i++)
-    {
-        g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
-
-        if (g_GuestState[i].KdDpcObject == NULL)
-        {
-            LogError("Err, allocating dpc holder for debuggee");
-            return;
-        }
-    }
-
+    // for (size_t i = 0; i < CoreCount; i++)
+    // {
+    //     g_GuestState[i].KdDpcObject = ExAllocatePoolWithTag(NonPagedPool, sizeof(KDPC), POOLTAG);
     //
-    // Register NMI handler for vmx-root
-    //
-    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&KdNmiCallback, NULL);
-
-    //
-    // Broadcast on all core to cause exit for NMIs
-    //
-    BroadcastEnableNmiExitingAllCores();
+    //     if (g_GuestState[i].KdDpcObject == NULL)
+    //     {
+    //         LogError("Err, allocating dpc holder for debuggee");
+    //         return;
+    //     }
+    // }
 
     //
     // Enable vm-exit on Hardware debug exceptions and breakpoints
@@ -110,33 +95,10 @@ KdUninitializeKernelDebugger()
         BreakpointRemoveAllBreakpoints();
 
         //
-        // De-register NMI handler
-        //
-        KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
-
-        //
-        // Broadcast on all core to cause not to exit for NMIs
-        //
-        BroadcastDisableNmiExitingAllCores();
-
-        //
         // Disable vm-exit on Hardware debug exceptions and breakpoints
         // so, not intercept #DBs and #BP by changing exception bitmap (one core)
         //
         BroadcastDisableDbAndBpExitingAllCores();
-
-        //
-        // Free DPC holder
-        //
-        for (size_t i = 0; i < CoreCount; i++)
-        {
-            ExFreePoolWithTag(g_GuestState[i].KdDpcObject, POOLTAG);
-        }
-
-        //
-        // Uinitialize APIC related function
-        //
-        ApicUninitialize();
     }
 }
 
@@ -177,61 +139,6 @@ KdFireDpc(PVOID Routine, PVOID Paramter)
     KeInitializeDpc(g_GuestState[CurrentCore].KdDpcObject, Routine, Paramter);
 
     KeInsertQueueDpc(g_GuestState[CurrentCore].KdDpcObject, NULL, NULL);
-}
-
-/**
- * @brief Handles NMIs in kernel-mode
- *
- * @param Context
- * @param Handled
- * @return BOOLEAN
- */
-BOOLEAN
-KdNmiCallback(PVOID Context, BOOLEAN Handled)
-{
-    ULONG CurrentCoreIndex;
-
-    CurrentCoreIndex = KeGetCurrentProcessorNumber();
-
-    //
-    // This mechanism tries to solve the problem of receiving NMIs
-    // when we're already in vmx-root mode, e.g., when we want to
-    // inject NMIs to other cores and those cores are already operating
-    // in vmx-root mode; however, this is not the approach to solve the
-    // problem. In order to solve this problem, we should create our own
-    // host IDT in vmx-root mode (Note that we should set HOST_IDTR_BASE
-    // and there is no need to LIMIT as it's fixed at 0xffff for VMX
-    // operations).
-    // Because we want to use the debugging mechanism of the Windows
-    // we use the same IDT with the guest (guest and host IDT is the
-    // same), but in the future versions we solve this problem by our
-    // own ISR NMI handler in vmx-root mode
-    //
-
-    //
-    // We should check whether the NMI is in vmx-root mode or not
-    // if it's not in vmx-root mode then it's not related to us
-    //
-    if (g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi == FALSE)
-    {
-        return Handled;
-    }
-
-    //
-    // If we're here then it related to us
-    // We set a flag to indicate that this core should be halted
-    //
-    g_GuestState[CurrentCoreIndex].DebuggingState.WaitingForNmi = FALSE;
-
-    //
-    // Handle NMI Broadcast
-    //
-    VmxBroadcastNmiHandler(CurrentCoreIndex, NULL, TRUE);
-
-    //
-    // Also, return true to show that it's handled
-    //
-    return TRUE;
 }
 
 /**
@@ -428,11 +335,11 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentProcessorIndex, PG
         //
         if (g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue)
         {
-            __vmx_vmread(GUEST_RFLAGS, &Rflags);
+            __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
             Rflags.TrapFlag = FALSE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CurrentProcessorIndex].DebuggingState.DisableTrapFlagOnContinue = FALSE;
         }
@@ -995,11 +902,6 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentProcessorIndex, PGUEST_REG
     //
 
     //
-    // Early disable of MTF, we reached here
-    //
-    HvSetMonitorTrapFlag(FALSE);
-
-    //
     // Handle halt of the current core as an NMI
     //
     KdHandleNmi(CurrentProcessorIndex, GuestRegs);
@@ -1036,10 +938,11 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
         }
 
         //
-        // check the condition of passing the execution to NMIs
+        // check if the core needs to be locked
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
-        { //
+        if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked)
+        {
+            //
             // We should ignore one MTF as we touched MTF and it's not usable anymore
             //
             g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = TRUE;
@@ -1047,7 +950,20 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentProcessorIndex, volatile LONG * 
             //
             // Handle break of the core
             //
-            KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+            if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+            {
+                //
+                // Handle it like an NMI is received from VMX root
+                //
+                KdHandleHaltsWhenNmiReceivedFromVmxRoot(CurrentProcessorIndex, GuestRegs);
+            }
+            else
+            {
+                //
+                // Handle halt of the current core as an NMI
+                //
+                KdHandleNmi(CurrentProcessorIndex, GuestRegs);
+            }
         }
 
         //
@@ -1107,6 +1023,7 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentP
     //
     // Lock current core
     //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
@@ -1189,6 +1106,7 @@ KdHandleNmi(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Lock current core
     //
+    g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked = FALSE;
     SpinlockLock(&g_GuestState[CurrentProcessorIndex].DebuggingState.Lock);
 
     //
@@ -1220,7 +1138,7 @@ KdGuaranteedStepInstruction(ULONG CoreId)
     // Read cs to have a trace of the execution mode of running application
     // in the debuggee
     //
-    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
     g_GuestState[CoreId].DebuggingState.InstrumentationStepInTrace.CsSel = CsSel;
 
     //
@@ -1338,13 +1256,13 @@ KdRegularStepInInstruction(UINT32 CoreId)
     //
     if (!g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue)
     {
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
 
         if (Rflags.TrapFlag == FALSE)
         {
             Rflags.TrapFlag = TRUE;
 
-            __vmx_vmwrite(GUEST_RFLAGS, Rflags.Value);
+            __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
             g_GuestState[CoreId].DebuggingState.DisableTrapFlagOnContinue = TRUE;
         }
@@ -1364,7 +1282,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
     // in pending debug exceptions being set, but that's not
     // correct for the guest debugging case
     //
-    __vmx_vmread(GUEST_INTERRUPTIBILITY_INFO, &InterruptibilityOld);
+    __vmx_vmread(VMCS_GUEST_INTERRUPTIBILITY_STATE, &InterruptibilityOld);
 
     Interruptibility = InterruptibilityOld;
 
@@ -1372,7 +1290,7 @@ KdRegularStepInInstruction(UINT32 CoreId)
 
     if ((Interruptibility != InterruptibilityOld))
     {
-        __vmx_vmwrite(GUEST_INTERRUPTIBILITY_INFO, Interruptibility);
+        __vmx_vmwrite(VMCS_GUEST_INTERRUPTIBILITY_STATE, Interruptibility);
     }
 }
 
@@ -1468,6 +1386,29 @@ KdQuerySystemState()
     ULONG CoreCount;
 
     CoreCount = KeQueryActiveProcessorCount(0);
+
+    //
+    // Query core debugging Lock info
+    //
+    Log("================================================ Debugging Lock Info ================================================\n");
+
+    for (size_t i = 0; i < CoreCount; i++)
+    {
+        if (g_GuestState[i].DebuggingState.Lock)
+        {
+            LogInfo("Core : %d is locked", i);
+        }
+        else
+        {
+            LogInfo("Core : %d isn't locked", i);
+        }
+    }
+
+    //
+    // Query if the core is halted (or NMI is received) when the debuggee
+    // was in the vmx-root mode
+    //
+    Log("\n================================================ NMI Receiver State =======+=========================================\n");
 
     for (size_t i = 0; i < CoreCount; i++)
     {
@@ -1632,15 +1573,19 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET          ChangeThreadPacket;
     PDEBUGGEE_SCRIPT_PACKET                             ScriptPacket;
     PDEBUGGEE_USER_INPUT_PACKET                         UserInputPacket;
+    PDEBUGGER_SEARCH_MEMORY                             SearchQueryPacket;
     PDEBUGGEE_BP_PACKET                                 BpPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS           PtePacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS                  Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET                  BpListOrModifyPacket;
     PDEBUGGEE_SYMBOL_REQUEST_PACKET                     SymReloadPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
-    UINT32                                              SizeToSend       = 0;
-    BOOLEAN                                             UnlockTheNewCore = FALSE;
-    size_t                                              ReturnSize       = 0;
+    UINT32                                              SizeToSend         = 0;
+    BOOLEAN                                             UnlockTheNewCore   = FALSE;
+    size_t                                              ReturnSize         = 0;
+    DEBUGGEE_RESULT_OF_SEARCH_PACKET                    SearchPacketResult = {0};
 
     while (TRUE)
     {
@@ -2139,6 +2084,46 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 break;
 
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SEARCH_QUERY:
+
+                SearchQueryPacket = (DEBUGGER_SEARCH_MEMORY *)(((CHAR *)TheActualPacket) +
+                                                               sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perfom the search in debuggee debuggee
+                // Call the search wrapper
+                //
+
+                if (SearchAddressWrapper(NULL,
+                                         SearchQueryPacket,
+                                         SearchQueryPacket->Address,
+                                         SearchQueryPacket->Address + SearchQueryPacket->Length,
+                                         TRUE,
+                                         &SearchPacketResult.CountOfResults))
+                {
+                    //
+                    // The search was successful
+                    //
+                    SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                }
+                else
+                {
+                    //
+                    // There was an error, probably the address was not valid
+                    //
+                    SearchPacketResult.Result = DEBUGGER_ERROR_INVALID_ADDRESS;
+                }
+
+                //
+                // Send the result of 's*' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RELOAD_SEARCH_QUERY,
+                                           &SearchPacketResult,
+                                           sizeof(DEBUGGEE_RESULT_OF_SEARCH_PACKET));
+
+                break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_REGISTER_EVENT:
 
                 EventRegPacket = (DEBUGGER_GENERAL_EVENT_DETAIL *)(((CHAR *)TheActualPacket) +
@@ -2229,6 +2214,47 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 
                 break;
 
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_QUERY_PTE:
+
+                PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) +
+                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Get the page table details (it's in vmx-root)
+                //
+                ExtensionCommandPte(PtePacket, TRUE);
+
+                //
+                // Send the result of '!pte' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE,
+                                           PtePacket,
+                                           sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS));
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PA2VA_AND_VA2PA:
+
+                Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) +
+                                                                         sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the virtual to physical or physical to virtual address
+                // conversion (it's on vmx-root mode)
+                //
+                ExtensionCommandVa2paAndPa2va(Va2paPa2vaPacket, TRUE);
+
+                //
+                // Send the result of '!va2pa' or '!pa2va' back to the debuggee
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA,
+                                           Va2paPa2vaPacket,
+                                           sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS));
+
+                break;
+
             case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_LIST_OR_MODIFY_BREAKPOINTS:
 
                 BpListOrModifyPacket = (DEBUGGEE_BP_LIST_OR_MODIFY_PACKET *)(((CHAR *)TheActualPacket) +
@@ -2309,7 +2335,7 @@ KdIsGuestOnUsermode32Bit()
     //
     // Read guest's cs selector
     //
-    __vmx_vmread(GUEST_CS_SELECTOR, &CsSel);
+    __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
     if (CsSel == KGDT64_R0_CODE)
     {
@@ -2400,8 +2426,8 @@ StartAgain:
         //
         // Set rflags for finding the results of conditional jumps
         //
-        __vmx_vmread(GUEST_RFLAGS, &Rflags);
-        PausePacket.Rflags.Value = Rflags.Value;
+        __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        PausePacket.Rflags.Flags = Rflags.Flags;
 
         //
         // Set the event tag (if it's an event)
@@ -2424,7 +2450,7 @@ StartAgain:
             // Reading instruction length proved to provide wrong results,
             // so we won't use it anymore
             //
-            // __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
+            // __vmx_vmread(VMCS_VMEXIT_INSTRUCTION_LENGTH, &ExitInstructionLength);
             //
 
             //
@@ -2497,6 +2523,7 @@ StartAgain:
         // Lock and unlock the lock so all core can get the lock
         // and continue their normal execution
         //
+        g_GuestState[CurrentCore].DebuggingState.WaitingToBeLocked = FALSE;
         SpinlockLock(&g_GuestState[CurrentCore].DebuggingState.Lock);
 
         //

@@ -115,11 +115,12 @@ DebuggerEventEptHook2GeneralDetourEventHandler(PGUEST_REGS Regs, PVOID CalledFro
 
     //
     // If we reach here, means that we didn't find the return address
-    // that's an error, we can't do anything else now :(
+    // that's an error, generally we can't do anything but as the user
+    // might already cleaned the hook and the structures are removed
+    // so we just return the original caller address and continue the 
+    // guest normally  
     //
-
-    LogError("Err, couldn't find anything to return");
-    return NULL;
+    return CalledFrom;
 }
 
 /**

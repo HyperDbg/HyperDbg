@@ -152,6 +152,12 @@ BOOLEAN
 KdSendBpPacketToDebuggee(PDEBUGGEE_BP_PACKET BpPacket);
 
 BOOLEAN
+KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndPa2vaPacket);
+
+BOOLEAN
+KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket);
+
+BOOLEAN
 KdSendListOrModifyPacketToDebuggee(
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyPacket);
 
@@ -160,6 +166,9 @@ KdSendScriptPacketToDebuggee(UINT64 BufferAddress, UINT32 BufferLength, UINT32 P
 
 BOOLEAN
 KdSendUserInputPacketToDebuggee(const char * Sendbuf, int Len, BOOLEAN IgnoreBreakingAgain);
+
+BOOLEAN
+KdSendSearchRequestPacketToDebuggee(UINT64 * SearchRequestBuffer, UINT32 SearchRequestBufferSize);
 
 BOOLEAN
 KdSendStepPacketToDebuggee(DEBUGGER_REMOTE_STEPPING_REQUEST StepRequestType);

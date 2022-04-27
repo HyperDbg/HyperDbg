@@ -19,8 +19,11 @@
 VOID
 CommandRdmsrHelp()
 {
-    ShowMessages("rdmsr : Reads a model-specific register (MSR).\n\n");
+    ShowMessages("rdmsr : reads a model-specific register (MSR).\n\n");
+
     ShowMessages("syntax : \trdmsr [Msr (hex)] [core CoreNumber (hex)]\n");
+
+    ShowMessages("\n");
     ShowMessages("\t\te.g : rdmsr c0000082\n");
     ShowMessages("\t\te.g : rdmsr c0000082 core 2\n");
 }
@@ -139,7 +142,7 @@ CommandRdmsr(vector<string> SplittedCommand, string Command)
 
     if (!Status)
     {
-        ShowMessages("ioctl failed with code (0x%x), either msr index or core id is invalid\n",
+        ShowMessages("ioctl failed with code (%x), either msr index or core id is invalid\n",
                      GetLastError());
         free(OutputBuffer);
         return;
