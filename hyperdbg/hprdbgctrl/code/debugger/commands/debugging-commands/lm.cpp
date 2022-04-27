@@ -64,12 +64,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, user-mode modules "
-                     "are only shown if the driver is loaded\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Set the module details to get the details

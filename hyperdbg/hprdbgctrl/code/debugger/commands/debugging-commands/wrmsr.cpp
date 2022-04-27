@@ -138,12 +138,7 @@ CommandWrmsr(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     MsrWriteRequest.ActionType = DEBUGGER_MSR_WRITE;
     MsrWriteRequest.Msr        = Msr;

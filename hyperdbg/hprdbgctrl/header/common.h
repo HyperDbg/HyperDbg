@@ -13,6 +13,44 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//			    	 Definitions                //
+//////////////////////////////////////////////////
+
+#define AssertReturn return;
+
+#define AssertReturnFalse return FALSE;
+
+#define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded.Did you use 'load' command ?\n"
+
+#define AssertReturnStmt(expr, stmt, rc) \
+    do                                   \
+    {                                    \
+        if (expr)                        \
+        {                                \
+            /* likely */                 \
+        }                                \
+        else                             \
+        {                                \
+            stmt;                        \
+            rc;                          \
+        }                                \
+    } while (0)
+
+#define AssertShowMessageReturnStmt(expr, message, rc) \
+    do                                                 \
+    {                                                  \
+        if (expr)                                      \
+        {                                              \
+            /* likely */                               \
+        }                                              \
+        else                                           \
+        {                                              \
+            ShowMessages(message);                     \
+            rc;                                        \
+        }                                              \
+    } while (0)
+
+//////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 

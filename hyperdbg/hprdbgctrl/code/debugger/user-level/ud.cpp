@@ -361,12 +361,7 @@ UdAttachToProcess(UINT32        TargetPid,
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Check whether it's starting a new process or not
@@ -559,12 +554,7 @@ UdKillProcess(UINT32 TargetPid)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna kill a process
@@ -640,12 +630,7 @@ UdDetachProcess(UINT32 TargetPid, UINT64 ProcessDetailToken)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the continue command to the target process as we
@@ -724,12 +709,7 @@ UdPauseProcess(UINT64 ProcessDebuggingToken)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna pause a process
@@ -807,12 +787,7 @@ UdSendCommand(UINT64                          ProcessDetailToken,
     ULONG                      ReturnedLength;
     DEBUGGER_UD_COMMAND_PACKET CommandPacket;
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Zero the packet
@@ -929,12 +904,7 @@ UdSetActiveDebuggingThreadByPidOrTid(UINT32 TargetPidOrTid, BOOLEAN IsTid)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // We wanna switch to a process or thread
@@ -1019,12 +989,7 @@ UdShowListActiveDebuggingProcessesAndThreads()
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Check if user debugger is active or not

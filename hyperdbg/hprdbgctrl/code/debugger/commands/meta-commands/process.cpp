@@ -46,6 +46,39 @@ CommandProcessHelp()
 }
 
 /**
+ * @brief Get details about processes
+ * @param ActionType
+ * @param NewPid
+ * @param NewProcess
+ * @param SetChangeByClockInterrupt
+ * @param SymDetailsForProcessList
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
+                                   UINT32                                   NewPid,
+                                   UINT64                                   NewProcess,
+                                   BOOLEAN                                  SetChangeByClockInterrupt,
+                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList)
+{
+    //
+    // Only support get the current process and list of processes as it's called in the VMI mode
+    //
+    if (ActionType != DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS &&
+        ActionType != DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST)
+    {
+        ShowMessages("err, you're only allowed to get the current process and "
+                     "list of processes in the VMI mode");
+        return FALSE;
+    }
+
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
+
+    return TRUE;
+}
+
+/**
  * @brief .process command handler
  *
  * @param SplittedCommand
@@ -80,8 +113,13 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         if (!g_IsSerialConnectedToRemoteDebuggee)
         {
             //
-            // To be implemented
+            // Get the process details in VMI mode
             //
+            CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
+                                               NULL,
+                                               NULL,
+                                               FALSE,
+                                               NULL);
         }
         else
         {
@@ -129,8 +167,13 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                 if (!g_IsSerialConnectedToRemoteDebuggee)
                 {
                     //
-                    // To be implemented
+                    // Get list of processes in VMI mode
                     //
+                    CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
+                                                       NULL,
+                                                       NULL,
+                                                       FALSE,
+                                                       &ProcessListNeededItems);
                 }
                 else
                 {
