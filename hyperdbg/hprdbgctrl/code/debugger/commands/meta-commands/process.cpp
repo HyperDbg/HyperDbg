@@ -72,27 +72,28 @@ CommandProcess(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    //
-    // Check if it's connected to a remote debuggee or not
-    //
-    if (!g_IsSerialConnectedToRemoteDebuggee)
-    {
-        ShowMessages("err, you're not connected to any debuggee in Debugger Mode, "
-                     "you can use the '.attach', or the '.detach' commands if you're "
-                     "operating in VMI Mode\n");
-        return;
-    }
-
     if (SplittedCommand.size() == 1)
     {
         //
-        // Send the packet to get current process
+        // Check if it's connected to a remote debuggee or not
         //
-        KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
-                                            NULL,
-                                            NULL,
-                                            FALSE,
-                                            NULL);
+        if (!g_IsSerialConnectedToRemoteDebuggee)
+        {
+            //
+            // To be implemented
+            //
+        }
+        else
+        {
+            //
+            // Send the packet to get current process
+            //
+            KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
+                                                NULL,
+                                                NULL,
+                                                FALSE,
+                                                NULL);
+        }
     }
     else if (SplittedCommand.size() == 2)
     {
@@ -125,14 +126,23 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                 ProcessListNeededItems.ImageFileNameOffset      = OffsetOfImageFileName;
                 ProcessListNeededItems.UniquePidOffset          = OffsetOfUniqueProcessId;
 
-                //
-                // Send the packet to show list of process
-                //
-                KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
-                                                    NULL,
-                                                    NULL,
-                                                    FALSE,
-                                                    &ProcessListNeededItems);
+                if (!g_IsSerialConnectedToRemoteDebuggee)
+                {
+                    //
+                    // To be implemented
+                    //
+                }
+                else
+                {
+                    //
+                    // Send the packet to show list of process
+                    //
+                    KdSendSwitchProcessPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
+                                                        NULL,
+                                                        NULL,
+                                                        FALSE,
+                                                        &ProcessListNeededItems);
+                }
             }
             else
             {
@@ -153,6 +163,17 @@ CommandProcess(vector<string> SplittedCommand, string Command)
     }
     else if (SplittedCommand.size() == 3)
     {
+        //
+        // Check if it's connected to a remote debuggee or not
+        //
+        if (!g_IsSerialConnectedToRemoteDebuggee)
+        {
+            ShowMessages("err, you're not connected to any debuggee in Debugger Mode, "
+                         "you can use the '.attach', or the '.detach' commands if you're "
+                         "operating in VMI Mode\n");
+            return;
+        }
+
         if (!SplittedCommand.at(1).compare("pid"))
         {
             if (!ConvertStringToUInt32(SplittedCommand.at(2), &TargetProcessId))
