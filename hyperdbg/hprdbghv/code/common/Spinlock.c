@@ -77,6 +77,45 @@ SpinlockLock(volatile LONG * Lock)
 }
 
 /**
+ * @brief Interlocked spinlock that tries to change the value 
+ * and makes sure that it changed the target value
+ * 
+ * @param Destination A pointer to the destination value
+ * @param Exchange The exchange value
+ * @param Comperand The value to compare to Destination
+ */
+void
+SpinlockInterlockedCompareExchange(
+    LONG volatile * Destination,
+    LONG            Exchange,
+    LONG            Comperand)
+{
+    unsigned wait = 1;
+
+    while (InterlockedCompareExchange(Destination, Exchange, Comperand) != Comperand)
+    {
+        for (unsigned i = 0; i < wait; ++i)
+        {
+            _mm_pause();
+        }
+
+        //
+        // Don't call "pause" too many times. If the wait becomes too big,
+        // clamp it to the MaxWait.
+        //
+
+        if (wait * 2 > MaxWait)
+        {
+            wait = MaxWait;
+        }
+        else
+        {
+            wait = wait * 2;
+        }
+    }
+}
+
+/**
  * @brief Tries to get the lock and won't return until successfully get the lock
  * 
  * @param LONG Lock variable

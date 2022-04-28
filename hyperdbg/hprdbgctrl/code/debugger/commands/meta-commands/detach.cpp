@@ -45,12 +45,7 @@ DetachFromProcess()
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // Check if we attached to a process or not

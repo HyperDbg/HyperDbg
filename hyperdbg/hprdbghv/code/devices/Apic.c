@@ -70,6 +70,7 @@ ApicInitialize()
     ApicBaseMSR = __readmsr(0x1B);
     if (!(ApicBaseMSR & (1 << 11)))
         return FALSE;
+
     if (ApicBaseMSR & (1 << 10))
     {
         g_IsX2Apic = TRUE;
@@ -79,8 +80,10 @@ ApicInitialize()
     {
         PaApicBase.QuadPart = ApicBaseMSR & 0xFFFFFF000;
         g_ApicBase          = MmMapIoSpace(PaApicBase, 0x1000, MmNonCached);
+
         if (!g_ApicBase)
             return FALSE;
+
         g_IsX2Apic = FALSE;
     }
     return TRUE;

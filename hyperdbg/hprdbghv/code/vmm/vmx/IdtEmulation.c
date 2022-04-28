@@ -145,16 +145,9 @@ IdtEmulationHandleExceptionAndNmi(_In_ UINT32                          CurrentPr
         // Check if we're waiting for an NMI on this core and if the guest is NOT in
         // a instrument step-in ('i' command) routine
         //
-        if (CurrentDebuggerState->WaitingForNmi &&
-            !CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+        if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
+            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE))
         {
-            CurrentDebuggerState->WaitingForNmi = FALSE;
-
-            //
-            // Handle NMI broadcast
-            //
-            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE);
-
             return;
         }
     }

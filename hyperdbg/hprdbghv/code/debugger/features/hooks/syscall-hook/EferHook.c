@@ -109,6 +109,7 @@ SyscallHookConfigureEFER(BOOLEAN EnableEFERSyscallHook)
  * @param Regs Guest registers
  * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
 {
@@ -175,6 +176,7 @@ SyscallHookEmulateSYSCALL(PGUEST_REGS Regs)
  * @param Regs Guest registers
  * @return BOOLEAN
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
 {
@@ -221,6 +223,7 @@ SyscallHookEmulateSYSRET(PGUEST_REGS Regs)
  * @param CoreIndex Logical core index
  * @return BOOLEAN Shows whther the caller should inject #UD on the guest or not
  */
+_Use_decl_annotations_
 BOOLEAN
 SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {
@@ -228,6 +231,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     UINT64   OriginalCr3;
     UINT64   Rip;
     BOOLEAN  Result;
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
     // Reading guest's RIP
@@ -260,12 +264,9 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
     else
     {
         //
-        // Due to KVA Shadowing, we need to switch to a different directory table base
-        // if the PCID indicates this is a user mode directory table base.
+        // Get the guest's running process's cr3
         //
-
-        NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-        GuestCr3.Flags               = CurrentProcess->DirectoryTableBase;
+        GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
         //
         // No, longer needs to be checked because we're sticking to system process
@@ -296,7 +297,7 @@ SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
             //
             // The page is not present, we have to inject a #PF
             //
-            g_GuestState[CoreIndex].IncrementRip = FALSE;
+            CurrentVmState->IncrementRip = FALSE;
 
             //
             // For testing purpose
@@ -350,7 +351,7 @@ EmulateSYSRET:
     DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, Rip);
 
     Result                               = SyscallHookEmulateSYSRET(Regs);
-    g_GuestState[CoreIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
     return Result;
 
     //
@@ -373,6 +374,6 @@ EmulateSYSCALL:
 
     Result = SyscallHookEmulateSYSCALL(Regs);
 
-    g_GuestState[CoreIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
     return Result;
 }

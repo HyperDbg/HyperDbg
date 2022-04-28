@@ -215,12 +215,7 @@ CommandTestInVmiMode()
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION
     KernelSideTestInformationRequestArray;
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
     //
     // *** Read kernel-side debugging information ***

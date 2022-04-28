@@ -102,8 +102,6 @@
 #define VM_ENTRY_LOAD_IA32_PAT              0x00004000
 #define VM_ENTRY_LOAD_IA32_EFER             0x00008000
 
-
-
 /**
  * @brief CPUID RCX(s) - Based on Hyper-V
  * 
@@ -383,11 +381,13 @@ VmxTerminate();
 VOID
 VmxPerformTermination();
 
+_Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmxonRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
+_Success_(return != FALSE)
 BOOLEAN
-VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxAllocateVmcsRegion(_Out_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
 BOOLEAN
 VmxAllocateVmmStack(_In_ INT ProcessorID);
@@ -420,10 +420,10 @@ VOID
 VmxFixCr4AndCr0Bits();
 
 BOOLEAN
-VmxLoadVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxLoadVmcs(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
 BOOLEAN
-VmxClearVmcsState(VIRTUAL_MACHINE_STATE * CurrentGuestState);
+VmxClearVmcsState(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState);
 
 BOOLEAN
 VmxCheckIsOnVmxRoot();
@@ -432,7 +432,7 @@ BOOLEAN
 VmxVirtualizeCurrentSystem(PVOID GuestStack);
 
 BOOLEAN
-VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack);
+VmxSetupVmcs(_In_ VIRTUAL_MACHINE_STATE * CurrentGuestState, _In_ PVOID GuestStack);
 
 UINT64
 VmxReturnStackPointerForVmxoff();

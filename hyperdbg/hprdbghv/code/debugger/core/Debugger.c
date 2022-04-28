@@ -180,6 +180,30 @@ DebuggerInitialize()
     }
 
     //
+    // *** Initialize NMI broadcasting mechanism ***
+    //
+
+    //
+    // Initialize APIC
+    //
+    ApicInitialize();
+
+    //
+    // Register NMI handler for vmx-root
+    //
+    g_NmiHandlerForKeDeregisterNmiCallback = KeRegisterNmiCallback(&VmxBroadcastHandleNmiCallback, NULL);
+
+    //
+    // Broadcast on all core to cause exit for NMIs
+    //
+    BroadcastEnableNmiExitingAllCores();
+
+    //
+    // Indicate that NMI broadcasting is initialized
+    //
+    g_NmiBroadcastingInitialized = TRUE;
+
+    //
     // Initialize attaching mechanism,
     // we'll use the functionalities of the attaching in reading modules
     // of user mode applications (other than attaching mechanism itself)
@@ -236,6 +260,26 @@ DebuggerUninitialize()
     // Uninitialize user debugger
     //
     UdUninitializeUserDebugger();
+
+    //
+    // *** Uninitialize NMI broadcasting mechanism ***
+    //
+    g_NmiBroadcastingInitialized = FALSE;
+
+    //
+    // De-register NMI handler
+    //
+    KeDeregisterNmiCallback(g_NmiHandlerForKeDeregisterNmiCallback);
+
+    //
+    // Broadcast on all core to cause not to exit for NMIs
+    //
+    BroadcastDisableNmiExitingAllCores();
+
+    //
+    // Uinitialize APIC related function
+    //
+    ApicUninitialize();
 }
 
 /**
@@ -1089,6 +1133,7 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
             DebuggerPerformRunTheCustomCode(Event->Tag, CurrentAction, Regs, Context);
             break;
         default:
+
             //
             // Invalid action type
             //
@@ -1261,8 +1306,9 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag         = {0};
     UINT32                           CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE *          CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
 
-    if (g_GuestState[CurrentProcessorIndex].IsOnVmxRootMode)
+    if (CurrentVmState->IsOnVmxRootMode)
     {
         //
         // The guest is already in vmx-root mode

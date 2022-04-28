@@ -214,20 +214,17 @@ IoHandleIoVmExits(PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION I
 VOID
 IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification, RFLAGS Flags)
 {
-    UINT64 GuestCr3;
-    UINT64 OriginalCr3;
-    size_t InstructionLength;
+    CR3_TYPE GuestCr3;
+    UINT64   OriginalCr3;
+    size_t   InstructionLength;
 
     //
-    // Due to KVA Shadowing, we need to switch to a different directory table base
-    // if the PCID indicates this is a user mode directory table base.
+    // Find the current process's running cr3
     //
-
-    NT_KPROCESS * CurrentProcess = (NT_KPROCESS *)(PsGetCurrentProcess());
-    GuestCr3                     = CurrentProcess->DirectoryTableBase;
+    GuestCr3.Flags = GetRunningCr3OnTargetProcess().Flags;
 
     OriginalCr3 = __readcr3();
-    __writecr3(GuestCr3);
+    __writecr3(GuestCr3.Flags);
 
     //
     // Read the memory
@@ -261,13 +258,15 @@ IoHandleIoVmExitsAndDisassemble(UINT64 GuestRip, PGUEST_REGS GuestRegs, VMX_EXIT
 BOOLEAN
 IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
 {
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorID];
+
     if (Port <= 0x7FFF)
     {
-        SetBit(Port, g_GuestState[ProcessorID].IoBitmapVirtualAddressA);
+        SetBit(Port, CurrentVmState->IoBitmapVirtualAddressA);
     }
     else if ((0x8000 <= Port) && (Port <= 0xFFFF))
     {
-        SetBit(Port - 0x8000, g_GuestState[ProcessorID].IoBitmapVirtualAddressB);
+        SetBit(Port - 0x8000, CurrentVmState->IoBitmapVirtualAddressB);
     }
     else
     {
@@ -287,14 +286,15 @@ VOID
 IoHandlePerformIoBitmapChange(UINT64 Port)
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
     {
         //
         // Means all the bitmaps should be put to 1
         //
-        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
-        memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
+        memset(CurrentVmState->IoBitmapVirtualAddressA, 0xFF, PAGE_SIZE);
+        memset(CurrentVmState->IoBitmapVirtualAddressB, 0xFF, PAGE_SIZE);
     }
     else
     {
@@ -314,10 +314,10 @@ VOID
 IoHandlePerformIoBitmapReset()
 {
     UINT32 CoreIndex = KeGetCurrentProcessorNumber();
-
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
     //
     // Means all the bitmaps should be put to 0
     //
-    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
-    memset(g_GuestState[CoreIndex].IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
+    memset(CurrentVmState->IoBitmapVirtualAddressA, 0x0, PAGE_SIZE);
+    memset(CurrentVmState->IoBitmapVirtualAddressB, 0x0, PAGE_SIZE);
 }

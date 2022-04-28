@@ -26,22 +26,24 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     UINT16                           CsSel;
     BOOLEAN                          IsMtfHandled = FALSE;
 
+    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
     //
     // Redo the instruction
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
 
     //
     // Explicitly say that we want to unset MTFs
     //
-    g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
+    CurrentVmState->IgnoreMtfUnset = FALSE;
 
     //
     // Check if we need to re-apply a breakpoint or not
     // We check it separately because the guest might step
     // instructions on an MTF so we want to check for the step too
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState != NULL)
+    if (CurrentDebuggingState->SoftwareBreakpointState != NULL)
     {
         BYTE BreakpointByte = 0xcc;
 
@@ -54,14 +56,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         // Restore previous breakpoint byte
         //
         MemoryMapperWriteMemorySafeByPhysicalAddress(
-            g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->PhysAddress,
+            CurrentDebuggingState->SoftwareBreakpointState->PhysAddress,
             &BreakpointByte,
             sizeof(BYTE));
 
         //
         // Check if we should re-enabled IF bit of RFLAGS or not
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf)
+        if (CurrentDebuggingState->SoftwareBreakpointState->SetRflagsIFBitOnMtf)
         {
             RFLAGS Rflags = {0};
 
@@ -69,16 +71,16 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             Rflags.InterruptEnableFlag = TRUE;
             __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags.Flags);
 
-            g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
+            CurrentDebuggingState->SoftwareBreakpointState->SetRflagsIFBitOnMtf = FALSE;
         }
 
-        g_GuestState[CurrentProcessorIndex].DebuggingState.SoftwareBreakpointState = NULL;
+        CurrentDebuggingState->SoftwareBreakpointState = NULL;
     }
 
     //
     // *** Regular Monitor Trap Flag functionalities ***
     //
-    if (g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint)
+    if (CurrentVmState->MtfEptHookRestorePoint)
     {
         //
         // MTF is handled
@@ -96,18 +98,18 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Restore the previous state
         //
-        EptHandleMonitorTrapFlag(g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint);
+        EptHandleMonitorTrapFlag(CurrentVmState->MtfEptHookRestorePoint);
 
         //
         // Set it to NULL
         //
-        g_GuestState[CurrentProcessorIndex].MtfEptHookRestorePoint = NULL;
+        CurrentVmState->MtfEptHookRestorePoint = NULL;
 
         //
         // Check if we should enable interrupts in this core or not,
         // we have another same check in SWITCHING CORES too
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf)
+        if (CurrentDebuggingState->EnableExternalInterruptsOnContinueMtf)
         {
             //
             // Enable normal interrupts
@@ -117,7 +119,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Check if there is at least an interrupt that needs to be delivered
             //
-            if (g_GuestState[CurrentProcessorIndex].PendingExternalInterrupts[0] != NULL)
+            if (CurrentVmState->PendingExternalInterrupts[0] != NULL)
             {
                 //
                 // Enable Interrupt-window exiting.
@@ -125,14 +127,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
                 HvSetInterruptWindowExiting(TRUE);
             }
 
-            g_GuestState[CurrentProcessorIndex].DebuggingState.EnableExternalInterruptsOnContinueMtf = FALSE;
+            CurrentDebuggingState->EnableExternalInterruptsOnContinueMtf = FALSE;
         }
     }
 
     //
     // Check for insturmentation step-in
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    if (CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
     {
         //
         // MTF is handled
@@ -146,20 +148,20 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
-        KdCheckGuestOperatingModeChanges(g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel,
+        KdCheckGuestOperatingModeChanges(CurrentDebuggingState->InstrumentationStepInTrace.CsSel,
                                          CsSel);
 
         //
         //  Unset the MTF flag and previous cs selector
         //
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = FALSE;
-        g_GuestState[CurrentProcessorIndex].DebuggingState.InstrumentationStepInTrace.CsSel                           = 0;
+        CurrentDebuggingState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf = FALSE;
+        CurrentDebuggingState->InstrumentationStepInTrace.CsSel                           = 0;
 
         //
         // Check and handle if there is a software defined breakpoint
         //
         if (!BreakpointCheckAndHandleDebuggerDefinedBreakpoints(CurrentProcessorIndex,
-                                                                g_GuestState[CurrentProcessorIndex].LastVmexitRip,
+                                                                CurrentVmState->LastVmexitRip,
                                                                 DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
                                                                 GuestRegs,
                                                                 &AvoidUnsetMtf))
@@ -167,7 +169,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Handle the step
             //
-            ContextAndTag.Context = g_GuestState[CurrentProcessorIndex].LastVmexitRip;
+            ContextAndTag.Context = CurrentVmState->LastVmexitRip;
             KdHandleBreakpointAndDebugBreakpoints(CurrentProcessorIndex,
                                                   GuestRegs,
                                                   DEBUGGEE_PAUSING_REASON_DEBUGGEE_STEPPED,
@@ -178,7 +180,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
             //
             // Not unset again (it needs to restore the breakpoint byte)
             //
-            g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = AvoidUnsetMtf;
+            CurrentVmState->IgnoreMtfUnset = AvoidUnsetMtf;
         }
     }
 
@@ -194,7 +196,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     // from MTF is doing its tasks and when we reached here, the check for halting
     // the debuggee in MTF is performed
     //
-    else if (g_GuestState[CurrentProcessorIndex].DebuggingState.WaitingToBeLocked)
+    else if (CurrentDebuggingState->WaitingToBeLocked)
     {
         //
         // MTF is handled
@@ -204,7 +206,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Handle break of the core
         //
-        if (g_GuestState[CurrentProcessorIndex].DebuggingState.NmiCalledInVmxRootRelatedToHaltDebuggee)
+        if (CurrentDebuggingState->NmiCalledInVmxRootRelatedToHaltDebuggee)
         {
             //
             // Handle it like an NMI is received from VMX root
@@ -223,14 +225,14 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Check for ignored MTFs
     //
-    if (g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf)
+    if (CurrentDebuggingState->IgnoreOneMtf)
     {
         //
         // MTF is handled
         //
         IsMtfHandled = TRUE;
 
-        g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreOneMtf = FALSE;
+        CurrentDebuggingState->IgnoreOneMtf = FALSE;
     }
 
     //
@@ -244,7 +246,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
     //
     // Final check to unset MTF
     //
-    if (!g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset)
+    if (!CurrentVmState->IgnoreMtfUnset)
     {
         //
         // We don't need MTF anymore if it set to disable MTF
@@ -256,6 +258,6 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         //
         // Set it to false to avoid future errors
         //
-        g_GuestState[CurrentProcessorIndex].IgnoreMtfUnset = FALSE;
+        CurrentVmState->IgnoreMtfUnset = FALSE;
     }
 }

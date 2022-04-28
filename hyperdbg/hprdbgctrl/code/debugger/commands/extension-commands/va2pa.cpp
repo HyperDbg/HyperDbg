@@ -82,7 +82,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
             //
             // Couldn't resolve or unkonwn parameter
             //
-            ShowMessages("err, couldn't resolve error at '%s'\n\n",
+            ShowMessages("err, couldn't resolve error at '%s'\n",
                          SplittedCommandCaseSensitive.at(1).c_str());
             return;
         }
@@ -96,7 +96,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         {
             if (!ConvertStringToUInt32(SplittedCommand.at(2), &Pid))
             {
-                ShowMessages("incorrect address, please enter a valid process id\n\n");
+                ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
 
@@ -105,7 +105,7 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
                 //
                 // Couldn't resolve or unkonwn parameter
                 //
-                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(3).c_str());
                 return;
             }
@@ -117,14 +117,14 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
                 //
                 // Couldn't resolve or unkonwn parameter
                 //
-                ShowMessages("err, couldn't resolve error at '%s'\n\n",
+                ShowMessages("err, couldn't resolve error at '%s'\n",
                              SplittedCommandCaseSensitive.at(1).c_str());
                 return;
             }
 
             if (!ConvertStringToUInt32(SplittedCommand.at(3), &Pid))
             {
-                ShowMessages("incorrect address, please enter a valid process id\n\n");
+                ShowMessages("incorrect address, please enter a valid process id\n");
                 return;
             }
         }
@@ -136,68 +136,75 @@ CommandVa2pa(vector<string> SplittedCommand, string Command)
         }
     }
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return;
-    }
-
-    //
-    // Check to prevent using process id in !va2pa command
-    //
-    if (g_IsSerialConnectedToRemoteDebuggee && Pid != 0)
-    {
-        ShowMessages("err, you cannot specify 'pid' in the debugger mode\n\n");
-        return;
-    }
-
-    if (Pid == 0)
-    {
-        Pid = GetCurrentProcessId();
-    }
-
     //
     // Prepare the buffer
     // We use same buffer for input and output
     //
     AddressDetails.VirtualAddress     = TargetVa;
-    AddressDetails.ProcessId          = Pid;
+    AddressDetails.ProcessId          = Pid; // null in debugger mode
     AddressDetails.IsVirtual2Physical = TRUE;
 
-    //
-    // Send IOCTL
-    //
-    Status = DeviceIoControl(
-        g_DeviceHandle,                           // Handle to device
-        IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control code
-        &AddressDetails,                          // Input Buffer to driver.
-        SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Input buffer length
-        &AddressDetails,                          // Output Buffer from driver.
-        SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Length of output
-                                                  // buffer in bytes.
-        &ReturnedLength,                          // Bytes placed in buffer.
-        NULL                                      // synchronous call
-    );
-
-    if (!Status)
-    {
-        ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
-        return;
-    }
-
-    if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //
-        // Show the results
+        // Check to prevent using process id in !va2pa command
         //
-        ShowMessages("%llx\n", AddressDetails.PhysicalAddress);
+        if (Pid != 0)
+        {
+            ShowMessages("err, you cannot specify 'pid' in the debugger mode\n");
+            return;
+        }
+
+        //
+        // Send the request over serial kernel debugger
+        //
+
+        KdSendVa2paAndPa2vaPacketToDebuggee(&AddressDetails);
     }
     else
     {
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
+
+        if (Pid == 0)
+        {
+            Pid                      = GetCurrentProcessId();
+            AddressDetails.ProcessId = Pid;
+        }
+
         //
-        // An err occurred, no results
+        // Send IOCTL
         //
-        ShowErrorMessage(AddressDetails.KernelStatus);
+        Status = DeviceIoControl(
+            g_DeviceHandle,                           // Handle to device
+            IOCTL_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS,  // IO Control code
+            &AddressDetails,                          // Input Buffer to driver.
+            SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Input buffer length
+            &AddressDetails,                          // Output Buffer from driver.
+            SIZEOF_DEBUGGER_VA2PA_AND_PA2VA_COMMANDS, // Length of output
+                                                      // buffer in bytes.
+            &ReturnedLength,                          // Bytes placed in buffer.
+            NULL                                      // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return;
+        }
+
+        if (AddressDetails.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            //
+            // Show the results
+            //
+            ShowMessages("%llx\n", AddressDetails.PhysicalAddress);
+        }
+        else
+        {
+            //
+            // An err occurred, no results
+            //
+            ShowErrorMessage(AddressDetails.KernelStatus);
+        }
     }
 }

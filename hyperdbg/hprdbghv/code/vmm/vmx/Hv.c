@@ -42,7 +42,7 @@ BOOLEAN
 HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
-    GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {
@@ -112,6 +112,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             //
             CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
         }
+        /*
         else if (RegistersState->rax == CPUID_HV_VENDOR_AND_MAX_FUNCTIONS)
         {
             //
@@ -134,6 +135,7 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
             CpuInfo[0] = '0#vH'; // Hv#0
             CpuInfo[1] = CpuInfo[2] = CpuInfo[3] = 0;
         }
+        */
     }
 
     //
@@ -170,6 +172,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
     UINT64 *                        RegPtr;
     UINT64                          NewCr3;
     CR3_TYPE                        NewCr3Reg;
+    VIRTUAL_MACHINE_STATE *         CurrentVmState = &g_GuestState[ProcessorIndex];
 
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
@@ -224,7 +227,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             //
             // Call kernel debugger handler for mov to cr3 in kernel debugger
             //
-            if (g_GuestState[ProcessorIndex].DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
+            if (CurrentVmState->DebuggingState.ThreadOrProcessTracingDetails.IsWatingForMovCr3VmExits)
             {
                 ProcessHandleProcessChange(ProcessorIndex, GuestState);
             }
@@ -292,7 +295,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 {
     VMX_SEGMENT_SELECTOR SegmentSelector = {0};
 
-    GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
+    GetSegmentDescriptor(GdtBase, Selector, &SegmentSelector);
 
     if (Selector == 0x0)
     {
@@ -625,7 +628,8 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     CR4                           Cr4;
     DR7                           Dr7;
     VMX_SEGMENT_SELECTOR          Cs;
-    UINT64 *                      GpRegs = Regs;
+    UINT64 *                      GpRegs         = Regs;
+    VIRTUAL_MACHINE_STATE *       CurrentVmState = &g_GuestState[ProcessorIndex];
     //
     // The implementation is derived from Hvpp
     //
@@ -662,7 +666,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 
@@ -736,7 +740,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 
@@ -756,7 +760,7 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
         //
         // Redo the instruction
         //
-        g_GuestState[ProcessorIndex].IncrementRip = FALSE;
+        CurrentVmState->IncrementRip = FALSE;
         return;
     }
 

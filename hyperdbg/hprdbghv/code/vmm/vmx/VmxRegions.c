@@ -18,8 +18,9 @@
  * @return BOOLEAN Returns true if allocation was successfull and vmxon executed without error
  * otherwise returns false
  */
+_Use_decl_annotations_
 BOOLEAN
-VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
     IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
     SIZE_T                  VmxonSize;
@@ -97,8 +98,9 @@ VmxAllocateVmxonRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
  * @return BOOLEAN Returns true if allocation was successfull and vmptrld executed without error
  * otherwise returns false
  */
+_Use_decl_annotations_
 BOOLEAN
-VmxAllocateVmcsRegion(_Inout_ VIRTUAL_MACHINE_STATE * CurrentGuestState)
+VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
 {
     IA32_VMX_BASIC_REGISTER VmxBasicMsr = {0};
     SIZE_T                  VmcsSize;

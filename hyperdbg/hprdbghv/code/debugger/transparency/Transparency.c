@@ -509,15 +509,16 @@ TransparentUnhideDebugger()
 BOOLEAN
 TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitReason)
 {
-    int         Aux                = 0;
-    UINT64      GuestCsSel         = 0;
-    PLIST_ENTRY TempList           = 0;
-    PCHAR       CurrentProcessName = 0;
-    PCHAR       CurrentProcessId;
-    UINT64      CurrrentTime;
-    HANDLE      CurrentThreadId;
-    BOOLEAN     Result                      = TRUE;
-    BOOLEAN     IsProcessOnTransparencyList = FALSE;
+    int                     Aux                = 0;
+    UINT64                  GuestCsSel         = 0;
+    PLIST_ENTRY             TempList           = 0;
+    PCHAR                   CurrentProcessName = 0;
+    PCHAR                   CurrentProcessId;
+    UINT64                  CurrrentTime;
+    HANDLE                  CurrentThreadId;
+    BOOLEAN                 Result                      = TRUE;
+    BOOLEAN                 IsProcessOnTransparencyList = FALSE;
+    VIRTUAL_MACHINE_STATE * CurrentVmState              = &g_GuestState[ProcessorIndex];
 
     //
     // Save the current time
@@ -527,7 +528,7 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
     //
     // Save time of vm-exit on each logical processor separately
     //
-    g_GuestState[ProcessorIndex].TransparencyState.PreviousTimeStampCounter = CurrrentTime;
+    CurrentVmState->TransparencyState.PreviousTimeStampCounter = CurrrentTime;
 
     //
     // Find the current process id and name
@@ -592,14 +593,14 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
     //
     // Check whether we are in new thread or in previous thread
     //
-    if (g_GuestState[ProcessorIndex].TransparencyState.ThreadId != CurrentThreadId)
+    if (CurrentVmState->TransparencyState.ThreadId != CurrentThreadId)
     {
         //
         // It's a new thread Id reset everything
         //
-        g_GuestState[ProcessorIndex].TransparencyState.ThreadId                        = CurrentThreadId;
-        g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc = NULL;
-        g_GuestState[ProcessorIndex].TransparencyState.CpuidAfterRdtscDetected         = FALSE;
+        CurrentVmState->TransparencyState.ThreadId                        = CurrentThreadId;
+        CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc = NULL;
+        CurrentVmState->TransparencyState.CpuidAfterRdtscDetected         = FALSE;
     }
 
     //
@@ -608,15 +609,15 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
 
     if (ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSC || ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP)
     {
-        if (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc == NULL)
+        if (CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc == NULL)
         {
             //
             // It's a timing and the previous time for the thread is null
             // so we need to save the time (maybe) for future use
             //
-            g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc = CurrrentTime;
+            CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc = CurrrentTime;
         }
-        else if (g_GuestState[ProcessorIndex].TransparencyState.CpuidAfterRdtscDetected == TRUE)
+        else if (CurrentVmState->TransparencyState.CpuidAfterRdtscDetected == TRUE)
         {
             //
             // Someone tries to know about the hypervisor
@@ -625,13 +626,13 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
 
             // LogInfo("Possible RDTSC+CPUID+RDTSC");
         }
-        else if (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc != NULL &&
-                 g_GuestState[ProcessorIndex].TransparencyState.CpuidAfterRdtscDetected == FALSE)
+        else if (CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL &&
+                 CurrentVmState->TransparencyState.CpuidAfterRdtscDetected == FALSE)
         {
             //
             // It's a new rdtscp, let's save the new value
             //
-            g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc +=
+            CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc +=
                 TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
                                  g_TransparentModeMeasurements->CpuidStandardDeviation);
             ;
@@ -641,10 +642,10 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
         // Adjust the rdtsc based on RevealedTimeStampCounterByRdtsc
         //
         GuestRegs->rax = 0x00000000ffffffff &
-                         g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc;
+                         CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc;
 
         GuestRegs->rdx = 0x00000000ffffffff &
-                         (g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
+                         (CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc >> 32);
 
         //
         // Check if we need to adjust rcx as a result of rdtscp
@@ -659,18 +660,18 @@ TransparentModeStart(PGUEST_REGS GuestRegs, ULONG ProcessorIndex, UINT32 ExitRea
         Result = FALSE;
     }
     else if (ExitReason == VMX_EXIT_REASON_EXECUTE_CPUID &&
-             g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc != NULL)
+             CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc != NULL)
     {
         //
         // The guy executed one or more CPUIDs after an rdtscp so we
         //  need to add new cpuid value to previous timer and also
         //  we need to store it somewhere to remeber this behavior
         //
-        g_GuestState[ProcessorIndex].TransparencyState.RevealedTimeStampCounterByRdtsc +=
+        CurrentVmState->TransparencyState.RevealedTimeStampCounterByRdtsc +=
             TransparentRandn(g_TransparentModeMeasurements->CpuidAverage,
                              g_TransparentModeMeasurements->CpuidStandardDeviation);
 
-        g_GuestState[ProcessorIndex].TransparencyState.CpuidAfterRdtscDetected = TRUE;
+        CurrentVmState->TransparencyState.CpuidAfterRdtscDetected = TRUE;
     }
 
     return Result;

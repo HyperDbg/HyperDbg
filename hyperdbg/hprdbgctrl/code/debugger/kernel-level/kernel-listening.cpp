@@ -64,6 +64,8 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
+    PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
     PGUEST_REGS                                 Regs;
     PGUEST_EXTRA_REGISTERS                      ExtraRegs;
@@ -987,6 +989,58 @@ StartAgain:
             // Signal the event relating to receiving result of putting breakpoints
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_PTE:
+
+            PtePacket = (DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS *)(((CHAR *)TheActualPacket) +
+                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (PtePacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                //
+                // Show the Page Tables result
+                //
+                CommandPteShowResults(PtePacket->VirtualAddress, PtePacket);
+            }
+            else
+            {
+                ShowErrorMessage(PtePacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of PTE query
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_VA2PA_AND_PA2VA:
+
+            Va2paPa2vaPacket = (DEBUGGER_VA2PA_AND_PA2VA_COMMANDS *)(((CHAR *)TheActualPacket) +
+                                                                     sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (Va2paPa2vaPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                if (Va2paPa2vaPacket->IsVirtual2Physical)
+                {
+                    ShowMessages("%llx\n", Va2paPa2vaPacket->PhysicalAddress);
+                }
+                else
+                {
+                    ShowMessages("%llx\n", Va2paPa2vaPacket->VirtualAddress);
+                }
+            }
+            else
+            {
+                ShowErrorMessage(Va2paPa2vaPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of VA2PA or PA2VA queries
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
 
             break;
 

@@ -16,20 +16,20 @@
  * @brief routines for !va2pa and !pa2va commands
  * 
  * @param AddressDetails 
+ * @param OperateOnVmxRoot 
  * @return VOID 
  */
 VOID
-ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
+ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails, BOOLEAN OperateOnVmxRoot)
 {
-    if (AddressDetails->ProcessId == PsGetCurrentProcessId())
+    if (OperateOnVmxRoot)
     {
         //
-        // It's on current process address space (we process the request
-        // based on system process layout (pid = 4))
+        // *** !va2pa and !pa2va in Debugger Mode
         //
         if (AddressDetails->IsVirtual2Physical)
         {
-            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressOnTargetProcess(AddressDetails->VirtualAddress);
 
             //
             // Check if address is valid or invalid
@@ -51,7 +51,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
         }
         else
         {
-            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddress(AddressDetails->PhysicalAddress);
+            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressOnTargetProcess(AddressDetails->PhysicalAddress);
 
             //
             // We don't know a way for checking physical address validity
@@ -62,51 +62,96 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
     else
     {
         //
-        // It's on another process address space
+        // *** regular !va2pa and !pa2va in VMI Mode
         //
 
-        //
-        // Check if pid is valid
-        //
-        if (!IsProcessExist(AddressDetails->ProcessId))
+        if (AddressDetails->ProcessId == PsGetCurrentProcessId())
         {
             //
-            // Process id is invalid
+            // It's on current process address space (we process the request
+            // based on system process layout (pid = 4))
             //
-            AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
-            return;
-        }
-
-        if (AddressDetails->IsVirtual2Physical)
-        {
-            AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
-
-            //
-            // Check if address is valid or invalid
-            //
-            if (AddressDetails->PhysicalAddress == NULL)
+            if (AddressDetails->IsVirtual2Physical)
             {
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddress(AddressDetails->VirtualAddress);
+
                 //
-                // Invalid address
+                // Check if address is valid or invalid
                 //
-                AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+                if (AddressDetails->PhysicalAddress == NULL)
+                {
+                    //
+                    // Invalid address
+                    //
+                    AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+                }
+                else
+                {
+                    //
+                    // Operation was successful
+                    //
+                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                }
             }
             else
             {
+                AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddress(AddressDetails->PhysicalAddress);
+
                 //
-                // Operation was successful
+                // We don't know a way for checking physical address validity
                 //
                 AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
             }
         }
         else
         {
-            AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressByProcessId(AddressDetails->PhysicalAddress, AddressDetails->ProcessId);
+            //
+            // It's on another process address space
+            //
 
             //
-            // We don't know a way for checking physical address validity
+            // Check if pid is valid
             //
-            AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            if (!IsProcessExist(AddressDetails->ProcessId))
+            {
+                //
+                // Process id is invalid
+                //
+                AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+                return;
+            }
+
+            if (AddressDetails->IsVirtual2Physical)
+            {
+                AddressDetails->PhysicalAddress = VirtualAddressToPhysicalAddressByProcessId(AddressDetails->VirtualAddress, AddressDetails->ProcessId);
+
+                //
+                // Check if address is valid or invalid
+                //
+                if (AddressDetails->PhysicalAddress == NULL)
+                {
+                    //
+                    // Invalid address
+                    //
+                    AddressDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+                }
+                else
+                {
+                    //
+                    // Operation was successful
+                    //
+                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                }
+            }
+            else
+            {
+                AddressDetails->VirtualAddress = PhysicalAddressToVirtualAddressByProcessId(AddressDetails->PhysicalAddress, AddressDetails->ProcessId);
+
+                //
+                // We don't know a way for checking physical address validity
+                //
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            }
         }
     }
 }
@@ -115,21 +160,72 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails)
  * @brief routines for !pte command
  * 
  * @param PteDetails 
+ * @param IsOperatingInVmxRoot 
  * @return BOOLEAN 
  */
 BOOLEAN
-ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
+ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEAN IsOperatingInVmxRoot)
 {
+    BOOLEAN  Result     = FALSE;
+    CR3_TYPE RestoreCr3 = {0};
+
     //
-    // Check if address is valid
+    // Check for validations
     //
-    if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
+    if (IsOperatingInVmxRoot)
     {
+        if (!VirtualAddressToPhysicalAddressOnTargetProcess(PteDetails->VirtualAddress))
+        {
+            //
+            // Address is not valid (doesn't have Physical Address)
+            //
+            PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+            return FALSE;
+        }
+
         //
-        // Address is not valid (doesn't have Physical Address)
+        // Switch on running process's cr3
         //
-        PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
-        return FALSE;
+        RestoreCr3.Flags = SwitchOnMemoryLayoutOfTargetProcess().Flags;
+    }
+    else
+    {
+        if (PteDetails->ProcessId != PsGetCurrentProcessId())
+        {
+            //
+            // It's on another process address space
+            //
+
+            //
+            // Check if pid is valid
+            //
+            if (!IsProcessExist(PteDetails->ProcessId))
+            {
+                //
+                // Process id is invalid
+                //
+                PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
+                return FALSE;
+            }
+
+            //
+            // Switch to new process's memory layout
+            //
+            RestoreCr3.Flags = SwitchOnAnotherProcessMemoryLayout(PteDetails->ProcessId).Flags;
+        }
+
+        //
+        // Check if address is valid
+        //
+        if (!VirtualAddressToPhysicalAddress(PteDetails->VirtualAddress))
+        {
+            //
+            // Address is not valid (doesn't have Physical Address)
+            //
+            PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_ADDRESS;
+            Result                   = FALSE;
+            goto RestoreTheState;
+        }
     }
 
     //
@@ -173,7 +269,19 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails)
     }
 
     PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
-    return TRUE;
+    Result                   = TRUE;
+
+RestoreTheState:
+
+    //
+    // Check to restore the current cr3 if it's changed
+    //
+    if (RestoreCr3.Flags != NULL)
+    {
+        RestoreToPreviousProcess(RestoreCr3);
+    }
+
+    return Result;
 }
 
 /**

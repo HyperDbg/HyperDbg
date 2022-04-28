@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////
 
 #define RESERVED_MSR_RANGE_LOW 0x40000000
-#define RESERVED_MSR_RANGE_HI  0x400000F0
+#define RESERVED_MSR_RANGE_HI  0x4000109F
 
 //////////////////////////////////////////////////
 //					Enums						//

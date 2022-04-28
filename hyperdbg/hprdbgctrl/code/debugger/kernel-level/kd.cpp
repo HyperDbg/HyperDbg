@@ -785,6 +785,64 @@ KdSendSwitchThreadPacketToDebuggee(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE Actio
 }
 
 /**
+ * @brief Sends a PTE or '!pte' command packet to the debuggee
+ * @param PtePacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendPtePacketToDebuggee(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PtePacket)
+{
+    //
+    // Send 'bp' as a breakpoint packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SYMBOL_QUERY_PTE,
+            (CHAR *)PtePacket,
+            sizeof(DEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of PTE packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT);
+
+    return TRUE;
+}
+
+/**
+ * @brief Sends VA2PA and PA2VA packest, or '!va2pa' and '!pa2va' commands packet to the debuggee
+ * @param Va2paAndPa2vaPacket
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendVa2paAndPa2vaPacketToDebuggee(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS Va2paAndPa2vaPacket)
+{
+    //
+    // Send '!va2pa' or '!pa2va' as a query packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_QUERY_PA2VA_AND_VA2PA,
+            (CHAR *)Va2paAndPa2vaPacket,
+            sizeof(DEBUGGER_VA2PA_AND_PA2VA_COMMANDS)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of VA2PA or PA2VA packet is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a breakpoint set or 'bp' command packet to the debuggee
  * @param BpPacket
  *
@@ -2363,12 +2421,7 @@ KdRegisterEventInDebuggee(PDEBUGGER_GENERAL_EVENT_DETAIL EventRegBuffer,
     ULONG                                ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send IOCTL
@@ -2422,12 +2475,7 @@ KdAddActionToEventInDebuggee(PDEBUGGER_GENERAL_ACTION ActionAddingBuffer,
     ULONG                                ReturnedLength;
     DEBUGGER_EVENT_AND_ACTION_REG_BUFFER ReturnedBuffer = {0};
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     Status =
         DeviceIoControl(g_DeviceHandle,                               // Handle to device
@@ -2483,12 +2531,7 @@ KdSendModifyEventInDebuggee(PDEBUGGER_MODIFY_EVENTS ModifyEvent)
     //
     // Check if debugger is loaded or not
     //
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("handle of the driver not found, probably the driver is not loaded. Did you "
-                     "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // Send the request to the kernel
