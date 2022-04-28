@@ -205,7 +205,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
                 // Process id is invalid
                 //
                 PteDetails->KernelStatus = DEBUGGER_ERROR_INVALID_PROCESS_ID;
-                return;
+                return FALSE;
             }
 
             //
