@@ -1624,7 +1624,7 @@ typedef struct _DEBUGGER_PAUSE_PACKET_RECEIVED
     sizeof(DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS)
 
 /**
- * @brief different sizes on searching memory
+ * @brief different actions of switchings
  *
  */
 typedef enum _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS_ACTION_TYPE
@@ -1657,6 +1657,48 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
 
 } DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS,
     *PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS;
+
+/* ==============================================================================================
+ */
+#define SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS \
+    sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)
+
+/**
+ * @brief different sizes on searching memory
+ *
+ */
+typedef enum _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES
+{
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT,
+
+} DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES;
+
+/**
+ * @brief request for query count of active processes and threads
+ *
+ */
+typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
+{
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES QueryType;
+    UINT32                                           Count;
+    UINT64                                           Result;
+
+} DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
+    *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
+
+/* ==============================================================================================
+ */
+
+#define SIZEOF_DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS \
+    sizeof(DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS)
+
+typedef struct _DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS
+{
+    UINT64 EProcessOrEThread;
+    UINT32 ProcessIdOrThreadId;
+
+} DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS, *PDEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS;
 
 /* ==============================================================================================
  */
@@ -2794,7 +2836,7 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x80d, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 /**
- * @brief ioctl, flush the kernel buffers
+ * @brief ioctl, attach or detach user-mode processes
  *
  */
 #define IOCTL_DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS \
@@ -2884,3 +2926,17 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_GET_USER_MODE_MODULE_DETAILS \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81a, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, query count of active threads or processes
+ *
+ */
+#define IOCTL_QUERY_COUNT_OF_ACTIVE_PROCESSES_OR_THREADS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81b, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, to get list threads/processes
+ *
+ */
+#define IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81c, METHOD_BUFFERED, FILE_ANY_ACCESS)
