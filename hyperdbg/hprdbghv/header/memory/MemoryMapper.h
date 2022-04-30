@@ -270,6 +270,9 @@ BOOLEAN
 MemoryMapperCheckIfPageIsPresentByCr3(_In_ PVOID    Va,
                                       _In_ CR3_TYPE TargetCr3);
 
+BOOLEAN
+MemoryMapperCheckIfPageIsPresent(PVOID Va);
+
 VOID
 MemoryMapperInitialize();
 

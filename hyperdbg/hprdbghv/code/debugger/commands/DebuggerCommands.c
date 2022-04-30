@@ -1075,6 +1075,96 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
 
     return STATUS_SUCCESS;
 }
+BOOLEAN IsValid = TRUE;
+BOOLEAN IsTsx   = FALSE;
+VOID
+DebuggerTest()
+{
+    KIRQL Irql = KeRaiseIrqlToDpcLevel();
+
+    if (!IsTsx)
+    {
+        if (IsValid)
+        {
+            IsValid = FALSE;
+            for (size_t i = 0; i < 1000; i++)
+            {
+                UINT64 Test1 = __rdtsc();
+                MemoryMapperCheckIfPageIsPresent(ExAllocatePool);
+                UINT64 Test2 = __rdtsc();
+
+                UINT64 Diff = Test2 - Test1;
+
+                LogInfo("page-check valid page access : %d", Diff);
+            }
+        }
+        else
+        {
+            IsTsx   = TRUE;
+            IsValid = TRUE;
+            for (size_t i = 0; i < 1000; i++)
+            {
+                UINT64 Test1 = __rdtsc();
+                MemoryMapperCheckIfPageIsPresent(NULL);
+                UINT64 Test2 = __rdtsc();
+
+                UINT64 Diff = Test2 - Test1;
+
+                LogInfo("page-check invalid page access : %d", Diff);
+            }
+        }
+    }
+    else
+    {
+        if (IsValid)
+        {
+            IsValid = FALSE;
+            for (size_t i = 0; i < 1000; i++)
+            {
+                UINT64 Test1 = __rdtsc();
+                CheckIfAddressIsValidUsingTsx(ExAllocatePool);
+                UINT64 Test2 = __rdtsc();
+
+                UINT64 Diff = Test2 - Test1;
+
+                LogInfo("tsx valid page access : %d", Diff);
+            }
+        }
+        else
+        {
+            for (size_t i = 0; i < 1000; i++)
+            {
+                UINT64 Test1 = __rdtsc();
+                CheckIfAddressIsValidUsingTsx(NULL);
+                UINT64 Test2 = __rdtsc();
+
+                UINT64 Diff = Test2 - Test1;
+
+                LogInfo("tsx invalid page access : %d", Diff);
+            }
+        }
+    }
+
+    KeLowerIrql(Irql);
+
+    return;
+
+    if (g_RtmSupport)
+    {
+        if (!CheckIfAddressIsValidUsingTsx(NULL))
+        {
+            //
+            // Access failed and Result = FALSE
+            //
+
+            return FALSE;
+        }
+        else
+        {
+            return TRUE;
+        }
+    }
+}
 
 /**
  * @brief Perform the flush requests to vmx-root and vmx non-root buffers
@@ -1092,6 +1182,7 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
     DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
 
+    DebuggerTest();
     return STATUS_SUCCESS;
 }
 

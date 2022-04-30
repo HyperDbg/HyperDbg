@@ -250,6 +250,36 @@ MemoryMapperCheckIfPageIsPresentByCr3(PVOID Va, CR3_TYPE TargetCr3)
     }
 }
 
+
+/**
+ * @brief This function checks if the page is mapped or not
+ * @details this function checks for PRESENT Bit of the page table
+ * 
+ * @param Va Virtual Address
+ * @param TargetCr3 kernel cr3 of target process
+ * @return PPAGE_ENTRY virtual address of PTE based on cr3
+ */
+_Use_decl_annotations_
+BOOLEAN
+MemoryMapperCheckIfPageIsPresent(PVOID Va)
+{
+    PPAGE_ENTRY PageEntry;
+
+    //
+    // Find the page table entry
+    //
+    PageEntry = MemoryMapperGetPteVa(Va, PagingLevelPageTable);
+
+    if (PageEntry != NULL && PageEntry->Fields.Present)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
 /**
  * @brief This function checks if the page has NX bit or not
  * 
