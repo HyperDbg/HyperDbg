@@ -975,9 +975,12 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
 
         //
-        // There is no way to perfom this check! We can ask kernel for it but it
-        // let's not implement it for now
+        // There is no way to perfom this check! The below implementation doesn't satisfy
+        // our needs for address checks, but we're not trying to ask kernel about it as
+        // HyperDbg's script engine is not designed to be runned these functions in user-mode
+        // so we left it unimplemented to avoid crashes in the main program
         //
+        return FALSE;
 
         //
         // Check if memory is safe and present
