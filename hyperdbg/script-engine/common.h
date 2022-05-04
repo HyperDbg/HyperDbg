@@ -11,7 +11,7 @@
 /**
 * @brief maximum length of string in the token
 */
-#    define TOKEN_VALUE_MAX_LEN 8
+#    define TOKEN_VALUE_MAX_LEN 256
 
 /**
 * @brief init size of token list
