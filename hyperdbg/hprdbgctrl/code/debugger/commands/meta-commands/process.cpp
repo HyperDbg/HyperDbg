@@ -95,6 +95,13 @@ CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
     QueryCountOfActiveThreadsOrProcessesRequest.QueryAction = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT;
 
     //
+    // Copy items needed for getting the details of processes or threads
+    //
+    RtlCopyMemory(&QueryCountOfActiveThreadsOrProcessesRequest.ProcessListNeededDetails,
+                  SymDetailsForProcessList,
+                  sizeof(DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS));
+
+    //
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
@@ -130,6 +137,11 @@ CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
             //
             // *** We should send another IOCTL and get the list of processes or threads ***
             //
+
+            //
+            // Add some spaces for new processes or threads as new objects might be available
+            //
+            QueryCountOfActiveThreadsOrProcessesRequest.Count = QueryCountOfActiveThreadsOrProcessesRequest.Count + 5;
 
             //
             // Allocate the storage for the pull details of threads and processes
