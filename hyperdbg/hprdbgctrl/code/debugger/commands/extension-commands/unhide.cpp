@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
 
 /**
  * @brief help of !unhide command

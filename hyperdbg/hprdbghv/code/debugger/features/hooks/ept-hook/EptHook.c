@@ -11,7 +11,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Hook function that HooksExAllocatePoolWithTag

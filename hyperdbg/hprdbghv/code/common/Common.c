@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Power function in order to computer address for MSR bitmaps

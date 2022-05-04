@@ -11,7 +11,7 @@
  */
 #undef UNICODE
 #define WIN32_LEAN_AND_MEAN
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
 
 //
 // Disable it because we want to use inet_ntoa

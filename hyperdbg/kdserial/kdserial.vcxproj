@@ -75,13 +75,18 @@
     <TargetName>kdserial</TargetName>
     <EmbedManifest>false</EmbedManifest>
     <GenerateManifest>false</GenerateManifest>
-    <OutDir>$(SolutionDir)\build\debug\</OutDir>
+    <OutDir>$(SolutionDir)Build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>kdserial</TargetName>
     <EmbedManifest>false</EmbedManifest>
     <GenerateManifest>false</GenerateManifest>
-    <OutDir>$(SolutionDir)\build\release\</OutDir>
+    <OutDir>$(SolutionDir)Build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

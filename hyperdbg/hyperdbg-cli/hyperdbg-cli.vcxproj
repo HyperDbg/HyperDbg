@@ -48,11 +48,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)\build\debug\</OutDir>
+    <OutDir>$(SolutionDir)Build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\build\release\</OutDir>
+    <OutDir>$(SolutionDir)Build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Build\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -71,7 +73,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)\build\debug\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
@@ -95,7 +97,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(SolutionDir)\build\release\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)Build\bin\$(Configuration)\HPRDBGCTRL.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>

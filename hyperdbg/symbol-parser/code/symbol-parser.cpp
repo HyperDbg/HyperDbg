@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\symbol-parser\pch.h"
+#include "pch.h"
 
 //
 // Global Variables
