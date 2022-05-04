@@ -90,6 +90,11 @@ CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
     QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT;
 
     //
+    // The action is counting the process or thread
+    //
+    QueryCountOfActiveThreadsOrProcessesRequest.QueryAction = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT;
+
+    //
     // Send the request to the kernel
     //
     Status = DeviceIoControl(
@@ -135,6 +140,9 @@ CommandProcessShowProcessesDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
             ThreadsOrProcessDetails = (DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS *)malloc(SizeOfBufferForThreadsAndProcessDetails);
 
             RtlZeroMemory(ThreadsOrProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
+
+            ShowMessages("count of active processes : %llx\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
+            return TRUE;
 
             //
             // Send the request to the kernel

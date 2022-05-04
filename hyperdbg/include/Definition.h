@@ -1664,15 +1664,41 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
     sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)
 
 /**
- * @brief different sizes on searching memory
+ * @brief different type of process or thread queries
  *
  */
 typedef enum _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES
 {
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT,
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT = 1,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT  = 2,
 
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES;
+
+/**
+ * @brief different actions on showing or querying list of process or threads
+ *
+ */
+typedef enum _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS
+{
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY     = 1,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT        = 2,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS = 3,
+
+} DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS;
+
+/**
+ * @brief The structure of needed information to get the details
+ * of the process from nt!_EPROCESS and location of needed variables
+ *
+ */
+typedef struct _DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS
+{
+    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG  ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
+    ULONG  UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
+    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+
+} DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS, *PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS;
 
 /**
  * @brief request for query count of active processes and threads
@@ -1680,9 +1706,11 @@ typedef enum _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES
  */
 typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 {
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES QueryType;
-    UINT32                                           Count;
-    UINT64                                           Result;
+    DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS               ProcessListNeededDetails;
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES   QueryType;
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction;
+    UINT32                                             Count;
+    UINT64                                             Result;
 
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
     *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
@@ -2059,20 +2087,6 @@ typedef enum _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE
     DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PERFORM_SWITCH,
 
 } DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE;
-
-/**
- * @brief The structure of needed information to get the details
- * of the process from nt!_EPROCESS and location of needed variables
- *
- */
-typedef struct _DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS
-{
-    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
-    ULONG  ImageFileNameOffset;      // nt!_EPROCESS.ImageFileName
-    ULONG  UniquePidOffset;          // nt!_EPROCESS.UniqueProcessId
-    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
-
-} DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS, *PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS;
 
 /**
  * @brief The structure of changing process and show process
@@ -2726,6 +2740,12 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * 
  */
 #define DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK 0xc0000038
+
+/**
+ * @brief error, unable to query count of processes or threads
+ *
+ */
+#define DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS 0xc0000039
 
 //
 // WHEN YOU ADD ANYTHING TO THIS LIST OF ERRORS, THEN

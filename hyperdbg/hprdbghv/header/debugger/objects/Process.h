@@ -16,6 +16,11 @@
 //				   Functions					//
 //////////////////////////////////////////////////
 
+VOID
+ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
+                                          BOOLEAN Enable,
+                                          BOOLEAN CheckByClockInterrupts);
+
 BOOLEAN
 ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState);
 
@@ -25,7 +30,5 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest);
 BOOLEAN
 ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset);
 
-VOID
-ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                          BOOLEAN Enable,
-                                          BOOLEAN CheckByClockInterrupts);
+BOOLEAN
+ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest);
