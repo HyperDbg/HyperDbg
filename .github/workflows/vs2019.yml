@@ -29,7 +29,7 @@ env:
 
   RELEASE_ZIP_FILE_NAME: hyperdbg
 
-  BUILD_DIR: ./hyperdbg/build/
+  BUILD_BIN_DIR: ./hyperdbg/build/bin
 
 jobs:
   win-amd64-build:
@@ -63,7 +63,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: BuildFiles_${{matrix.BUILD_CONFIGURATION}}
-        path: ${{ env.BUILD_DIR }}
+        path: ${{ env.BUILD_BIN_DIR }}
 
   deploy-release:
     name: Deploy release
@@ -76,19 +76,30 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: BuildFiles_Release
-          path: ${{ env.BUILD_DIR }}
+          path: ${{ env.BUILD_BIN_DIR }}
                 
       - name: Archive Release
         uses: thedoctor0/zip-release@master
         with:
-          path: ${{ env.BUILD_DIR }}release/
+          path: ${{ env.BUILD_BIN_DIR }}release/
           type: 'zip'
           filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
+          recursive_exclusions: '*.pdb *.exp *.lib'
+
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
+        with:
+          path: ${{ env.BUILD_BIN_DIR }}Release/
+          type: 'zip'
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_full.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
+          files: |
+            ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
+            ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_full.zip
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

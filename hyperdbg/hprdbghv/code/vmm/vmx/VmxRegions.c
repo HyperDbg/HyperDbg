@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Allocates Vmxon region and set the Revision ID based on IA32_VMX_BASIC_MSR

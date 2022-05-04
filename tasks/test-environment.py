@@ -30,8 +30,8 @@ def main():
     #
     # copy to build directories
     #
-    to_dir2 = "..\\hyperdbg\\build\\debug"
-    to_dir3 = "..\\hyperdbg\\build\\release"
+    to_dir2 = "..\\hyperdbg\\build\\bin\\debug"
+    to_dir3 = "..\\hyperdbg\\build\\bin\\release"
     
     if os.path.exists(to_dir2) :
         to_dir2 = to_dir2 + "\\script-test-cases"

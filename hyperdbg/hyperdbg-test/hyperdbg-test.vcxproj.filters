@@ -32,6 +32,9 @@
     <ClCompile Include="code\tests\tools.cpp">
       <Filter>code\tests</Filter>
     </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

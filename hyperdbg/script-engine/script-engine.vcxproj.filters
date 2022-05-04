@@ -46,5 +46,8 @@
     <ClCompile Include="parse-table.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="pch.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
