@@ -75,7 +75,7 @@ jobs:
       - name: Download build files from "build" job
         uses: actions/download-artifact@v2
         with:
-          name: BuildFiles_Release
+          name: build_files_release
           path: ${{ env.BUILD_BIN_DIR }}
                 
       - name: Archive release
@@ -91,7 +91,7 @@ jobs:
         with:
           path: ${{ env.BUILD_BIN_DIR }}release/
           type: 'zip'
-          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_artifacts.zip
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}-artifacts.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -99,7 +99,7 @@ jobs:
         with:
           files: |
             ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
-            ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_full.zip
+            ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}-artifacts.zip
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
