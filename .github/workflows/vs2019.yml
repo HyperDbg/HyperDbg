@@ -30,7 +30,7 @@ env:
 
   RELEASE_ZIP_FILE_NAME: hyperdbg
 
-  BUILD_BIN_DIR: ./hyperdbg/build/bin
+  BUILD_BIN_DIR: ./hyperdbg/build/bin/
 
 jobs:
   win-amd64-build:
