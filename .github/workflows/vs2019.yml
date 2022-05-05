@@ -62,7 +62,7 @@ jobs:
     - name: Upload build directory 
       uses: actions/upload-artifact@v2
       with:
-        name: BuildFiles_${{matrix.BUILD_CONFIGURATION}}
+        name: build_files_release_${{matrix.BUILD_CONFIGURATION}}
         path: ${{ env.BUILD_BIN_DIR }}
 
   deploy-release:
