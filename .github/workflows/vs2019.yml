@@ -36,7 +36,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        BUILD_CONFIGURATION: [Release, Debug]
+        BUILD_CONFIGURATION: [release, debug]
         PLATFORM: [x64]
 
     steps:
@@ -78,20 +78,20 @@ jobs:
           name: BuildFiles_Release
           path: ${{ env.BUILD_BIN_DIR }}
                 
-      - name: Archive Release
+      - name: Archive release
         uses: thedoctor0/zip-release@master
         with:
           path: ${{ env.BUILD_BIN_DIR }}release/
           type: 'zip'
           filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}.zip
-          recursive_exclusions: '*.pdb *.exp *.lib'
+          recursive_exclusions: '*.pdb *.exp *.lib *.iobj *.ipdb '
 
-      - name: Archive Release
+      - name: Archive release
         uses: thedoctor0/zip-release@master
         with:
-          path: ${{ env.BUILD_BIN_DIR }}Release/
+          path: ${{ env.BUILD_BIN_DIR }}release/
           type: 'zip'
-          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_full.zip
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}_${{ github.ref_name }}_artifacts.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
