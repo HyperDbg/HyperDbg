@@ -129,6 +129,7 @@ LogUnInitialize()
  * @return BOOLEAN Returns true if the buffer succssfully set to be 
  * send to user mode and false if there was an error
  */
+_Use_decl_annotations_
 BOOLEAN
 LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority)
 {

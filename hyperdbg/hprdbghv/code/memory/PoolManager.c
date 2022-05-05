@@ -205,31 +205,18 @@ PoolManagerFreePool(UINT64 AddressToFree)
 UINT64
 PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPool, UINT32 Size)
 {
-    PLIST_ENTRY ListTemp = 0;
-    UINT64      Address  = 0;
-    ListTemp             = &g_ListOfAllocatedPoolsHead;
+    UINT64 Address = 0;
 
-
-    SpinlockLock(&LockForReadingPool);
-
-    while (&g_ListOfAllocatedPoolsHead != ListTemp->Flink)
-    {
-        ListTemp = ListTemp->Flink;
-
-        //
-        // Get the head of the record
-        //
-        PPOOL_TABLE PoolTable = (PPOOL_TABLE)CONTAINING_RECORD(ListTemp, POOL_TABLE, PoolsList);
-
-        if (PoolTable->Intention == Intention && PoolTable->IsBusy == FALSE)
-        {
-            PoolTable->IsBusy = TRUE;
-            Address           = PoolTable->Address;
-            break;
-        }
-    }
-
-    SpinlockUnlock(&LockForReadingPool);
+    ScopedSpinlock(
+        LockForReadingPool,
+        LIST_FOR_EACH_LINK(g_ListOfAllocatedPoolsHead, POOL_TABLE, PoolsList, PoolTable) {
+            if (PoolTable->Intention == Intention && PoolTable->IsBusy == FALSE)
+            {
+                PoolTable->IsBusy = TRUE;
+                Address           = PoolTable->Address;
+                break;
+            }
+        });
 
     //
     // Check if we need additional pools e.g another pool or the pool
