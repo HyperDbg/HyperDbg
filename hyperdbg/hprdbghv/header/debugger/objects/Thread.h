@@ -21,8 +21,11 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest);
 
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
-                                                     BOOLEAN Enable,
-                                                     BOOLEAN CheckByClockInterrupts);
+                                         BOOLEAN Enable,
+                                         BOOLEAN CheckByClockInterrupts);
 
 BOOLEAN
 ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState);
+
+BOOLEAN
+ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest);

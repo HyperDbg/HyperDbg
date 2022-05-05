@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
 
 using namespace std;
 
@@ -30,7 +30,9 @@ extern BOOLEAN g_IsDebuggeeRunning;
 extern BOOLEAN g_BreakPrintingOutput;
 extern BOOLEAN g_IsInterpreterOnString;
 extern BOOLEAN g_IsInterpreterPreviousCharacterABackSlash;
+extern BOOLEAN g_RtmSupport;
 
+extern UINT32 g_VirtualAddressWidth;
 extern UINT32 g_InterpreterCountOfOpenCurlyBrackets;
 extern ULONG  g_CurrentRemoteCore;
 
@@ -541,6 +543,20 @@ InitializeDebugger()
         // prefer to continue
         //
     }
+
+    //
+    // *** Check for feature indicators ***
+    //
+
+    //
+    // Get x86 processor width for virtual address
+    //
+    g_VirtualAddressWidth = Getx86VirtualAddressWidth();
+
+    //
+    // Check if processor supports TSX (RTM)
+    //
+    g_RtmSupport = CheckCpuSupportRtm();
 }
 
 /**

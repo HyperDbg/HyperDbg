@@ -9,7 +9,13 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
+
+//
+// Global Variables
+//
+extern BOOLEAN g_RtmSupport;
+extern UINT32  g_VirtualAddressWidth;
 
 /**
  * @brief add ` between 64 bit values and convert them to string
@@ -739,4 +745,269 @@ ConvertStringVectorToCharPointerArray(const std::string & s)
     char * pc = new char[s.size() + 1];
     std::strcpy(pc, s.c_str());
     return pc;
+}
+
+/**
+ * @brief Get cpuid results
+ * 
+ * @param UINT32 Func
+ * @param UINT32 SubFunc
+ * @param int * CpuInfo
+ * @return VOID
+ */
+VOID
+GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
+{
+    __cpuidex(CpuInfo, Func, SubFunc);
+}
+
+/**
+ * @brief Get virtual address width for x86 processors
+ * 
+ * @return UINT32
+ */
+UINT32
+Getx86VirtualAddressWidth()
+{
+    int Regs[4];
+
+    GetCpuid(CPUID_ADDR_WIDTH, 0, Regs);
+
+    //
+    // Extracting bit 15:8 from eax register
+    //
+    return ((Regs[0] >> 8) & 0x0ff);
+}
+
+/**
+ * @brief Check whether the processor supports RTM or not
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckCpuSupportRtm()
+{
+    int     Regs1[4];
+    int     Regs2[4];
+    BOOLEAN Result;
+
+    //
+    // TSX is controlled via MSR_IA32_TSX_CTRL.  However, support for this
+    // MSR is enumerated by ARCH_CAP_TSX_MSR bit in MSR_IA32_ARCH_CAPABILITIES.
+    //
+    // TSX control (aka MSR_IA32_TSX_CTRL) is only available after a
+    // microcode update on CPUs that have their MSR_IA32_ARCH_CAPABILITIES
+    // bit MDS_NO=1. CPUs with MDS_NO=0 are not planned to get
+    // MSR_IA32_TSX_CTRL support even after a microcode update. Thus,
+    // tsx= cmdline requests will do nothing on CPUs without
+    // MSR_IA32_TSX_CTRL support.
+    //
+
+    GetCpuid(0, 0, Regs1);
+    GetCpuid(7, 0, Regs2);
+
+    //
+    // Check RTM and MPX extensions in order to filter out TSX on Haswell CPUs
+    //
+    Result = Regs1[0] >= 0x7 && (Regs2[1] & 0x4800) == 0x4800;
+
+    return Result;
+}
+
+/**
+ * @brief Checks if the address is canonical based on x86 processor's
+ * virtual address width or not
+ * @param VAddr virtual address to check
+ * @param IsKernelAddress Filled to show whether the address is a 
+ * kernel address or user-address
+ * @brief IsKernelAddress wouldn't check for page attributes, it 
+ * just checks the address convention in Windows
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
+{
+    UINT64 Addr = (UINT64)VAddr;
+    UINT64 MaxVirtualAddrLowHalf, MinVirtualAddressHighHalf;
+
+    //
+    // Get processor's address width for VA
+    //
+    UINT32 AddrWidth = g_VirtualAddressWidth;
+
+    //
+    // get max address in lower-half canonical addr space
+    // e.g. if width is 48, then 0x00007FFF_FFFFFFFF
+    //
+    MaxVirtualAddrLowHalf = ((UINT64)1ull << (AddrWidth - 1)) - 1;
+
+    //
+    // get min address in higher-half canonical addr space
+    // e.g., if width is 48, then 0xFFFF8000_00000000
+    //
+    MinVirtualAddressHighHalf = ~MaxVirtualAddrLowHalf;
+
+    //
+    // Check to see if the address in a canonical address
+    //
+    if ((Addr > MaxVirtualAddrLowHalf) && (Addr < MinVirtualAddressHighHalf))
+    {
+        *IsKernelAddress = FALSE;
+        return FALSE;
+    }
+
+    //
+    // Set whether it's a kernel address or not
+    //
+    if (MinVirtualAddressHighHalf < Addr)
+    {
+        *IsKernelAddress = TRUE;
+    }
+    else
+    {
+        *IsKernelAddress = FALSE;
+    }
+
+    return TRUE;
+}
+
+/**
+ * @brief This function checks whether the address is valid or not using 
+ * Intel TSX
+ * 
+ * @param Address Address to check
+ *
+ * @param UINT32 ProcId
+ * @return BOOLEAN Returns true if the address is valid; otherwise, false
+ */
+BOOLEAN
+CheckIfAddressIsValidUsingTsx(UINT64 Address)
+{
+    UINT32  Status = 0;
+    BOOLEAN Result = FALSE;
+    CHAR    TempContent;
+
+    if ((Status = _xbegin()) == _XBEGIN_STARTED)
+    {
+        //
+        // Try to read the memory
+        //
+        TempContent = *(CHAR *)Address;
+        _xend();
+
+        //
+        // No error, address is valid
+        //
+        Result = TRUE;
+    }
+    else
+    {
+        //
+        // Address is not valid, it aborts the tsx rtm
+        //
+        Result = FALSE;
+    }
+
+    return Result;
+}
+
+/**
+ * @brief Check the safety to access the memory
+ * @param TargetAddress
+ * @param Size
+ * 
+ * @return BOOLEAN
+ */
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
+{
+    BOOLEAN IsKernelAddress;
+    BOOLEAN Result = FALSE;
+
+    //
+    // First, we check if the address is canonical based
+    // on Intel processor's virtual address width
+    //
+    if (!CheckCanonicalVirtualAddress(TargetAddress, &IsKernelAddress))
+    {
+        //
+        // No need for further check, address is invalid
+        //
+        return FALSE;
+    }
+
+    //
+    // We cannot check a kernel-mode address here in user-mode
+    //
+    if (IsKernelAddress)
+    {
+        return FALSE;
+    }
+
+    //
+    // We'll check address with TSX if it supports TSX RTM
+    //
+    if (g_RtmSupport)
+    {
+        //
+        // *** The guest supports Intel TSX ***
+        //
+        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+
+        for (size_t i = 0; i <= PageCount; i++)
+        {
+            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+            if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+            {
+                //
+                // Address is not valid
+                //
+                return FALSE;
+            }
+        }
+    }
+    else
+    {
+        //
+        // *** processor doesn't support RTM ***
+        //
+
+        //
+        // There is no way to perfom this check! The below implementation doesn't satisfy
+        // our needs for address checks, but we're not trying to ask kernel about it as
+        // HyperDbg's script engine is not designed to be runned these functions in user-mode
+        // so we left it unimplemented to avoid crashes in the main program
+        //
+        return FALSE;
+
+        //
+        // Check if memory is safe and present
+        //
+        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+
+        for (size_t i = 0; i <= PageCount; i++)
+        {
+            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+
+            try
+            {
+                UINT64 ReadingTest = *((UINT64 *)CheckAddr);
+            }
+            catch (...)
+            {
+                //
+                // Address is not valid
+                //
+                return FALSE;
+            }
+        }
+    }
+
+    //
+    // If we've reached here, the address was valid
+    //
+    return TRUE;
 }

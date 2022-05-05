@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Check if the breakpoint vm-exit relates to !epthook command or not

@@ -11,7 +11,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 #include "Driver.tmh"
 
 /**
@@ -245,7 +245,7 @@ DrvCreate(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     // Check if processor supports TSX (RTM)
     //
     g_RtmSupport = CheckCpuSupportRtm();
-
+    
     //
     // Get x86 processor width for virtual address
     //

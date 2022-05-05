@@ -42,9 +42,6 @@ ScriptEngineWrapperGetInstructionPointer();
 UINT64
 ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
 
-BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
-
 UINT32
 VmxrootCompatibleStrlen(const CHAR * S);
 
@@ -56,7 +53,20 @@ MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead,
                                           PVOID  BufferToSaveMemory,
                                           SIZE_T SizeToRead);
 
+//
+// Both user-mode and kernel-mode should implement this function
+//
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+
+#endif // SCRIPT_ENGINE_USER_MODE
 
 typedef unsigned long long QWORD;
 typedef unsigned __int64   UINT64, *PUINT64;
@@ -531,38 +541,27 @@ ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
 // Check whether the address is valid or
 //
 BOOLEAN
-ScriptEngineCheckAddressValidity(PUINT64 Address, UINT32 Length)
+ScriptEngineCheckAddressValidity(UINT64 Address, UINT32 Length)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    //
-    // Actually, there is no way to check this validity as it causes cpu
-    // errors, so the only solution is using SEH which is stupid idea,
-    // sure we don't want to create SEH frame each time we need to check
-    // a function address, so I don't know what to do, let's return TRUE
-    // for now
-    //
-    return TRUE;
+    if (CheckMemoryAccessSafety(Address, Length))
+    {
+        return TRUE;
+    }
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    if (VirtualAddressToPhysicalAddress(Address) == 0)
+    if (CheckMemoryAccessSafety(Address, Length))
     {
-        return FALSE;
+        return TRUE;
     }
-    else
-    {
-        if (VirtualAddressToPhysicalAddress(Address + Length) == 0)
-        {
-            return FALSE;
-        }
-        else
-        {
-            return TRUE;
-        }
-    }
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
+
+    return FALSE;
 }
 
 //
@@ -3876,6 +3875,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
     *ErrorOperator = *Operator;
 
     *Indx = *Indx + 1;
+
     if (Operator->Type != SYMBOL_SEMANTIC_RULE_TYPE)
     {
 #ifdef SCRIPT_ENGINE_USER_MODE
@@ -3887,21 +3887,26 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
     switch (Operator->Value)
     {
     case FUNC_ED:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionEd(SrcVal1, SrcVal0, &HasError);
@@ -3911,21 +3916,26 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_EB:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionEb(SrcVal1, SrcVal0, &HasError);
@@ -3935,21 +3945,25 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_EQ:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionEq(SrcVal1, SrcVal0, &HasError);
@@ -3959,18 +3973,23 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_INTERLOCKED_EXCHANGE:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -3982,21 +4001,26 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_INTERLOCKED_EXCHANGE_ADD:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionInterlockedExchangeAdd((volatile long long *)SrcVal1, SrcVal0, &HasError);
@@ -4022,8 +4046,9 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Src2  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal2 =
@@ -4040,14 +4065,18 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
@@ -4058,6 +4087,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_PAUSE:
+
         ScriptEngineFunctionPause(ActionDetail->Tag,
                                   ActionDetail->ImmediatelySendTheResults,
                                   GuestRegs,
@@ -4065,32 +4095,40 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_OR:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 | SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_INC:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4103,9 +4141,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_DEC:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4118,14 +4158,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_XOR:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
@@ -4136,14 +4179,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 ^ SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_AND:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4159,14 +4205,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 & SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_ASR:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4182,43 +4231,52 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 >> SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_ASL:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 << SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_ADD:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4227,20 +4285,26 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 + SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_SUB:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4249,19 +4313,24 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 - SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_MUL:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4270,26 +4339,32 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 * SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_DIV:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         if (SrcVal0 == 0)
         {
             HasError = TRUE;
@@ -4301,42 +4376,52 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_MOD:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
         Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         if (SrcVal0 == 0)
         {
             HasError = TRUE;
             return HasError;
         }
+
         DesVal = SrcVal1 % SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_GT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4345,20 +4430,24 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 > SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_LT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4367,20 +4456,24 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 < SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_EGT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4389,28 +4482,34 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 >= SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_ELT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 <= SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
@@ -4420,12 +4519,15 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4434,20 +4536,26 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 == SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_NEQ:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Src1 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
@@ -4456,19 +4564,23 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal1 != SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_POI:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineKeywordPoi((PUINT64)GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE),
@@ -4478,9 +4590,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_DB:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4493,10 +4607,13 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_DD:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4506,18 +4623,24 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         DesVal = ScriptEngineKeywordDd((PUINT64)GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE),
                                        &HasError);
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_DW:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineKeywordDw((PUINT64)GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE),
@@ -4525,15 +4648,19 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_DQ:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineKeywordDq((PUINT64)GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE),
@@ -4543,24 +4670,30 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_NOT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ~SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_REF:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         //
@@ -4573,14 +4706,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_PHYSICAL_TO_VIRTUAL:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4595,9 +4731,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_VIRTUAL_TO_PHYSICAL:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4612,9 +4750,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_CHECK_ADDRESS:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4622,39 +4762,21 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
 
-#ifdef SCRIPT_ENGINE_USER_MODE
-
-        DesVal = 1; // TRUE by default in user-mode
-
-#endif // SCRIPT_ENGINE_USER_MODE
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-        if (CheckMemoryAccessSafety(SrcVal0, sizeof(BYTE)))
-        {
+        if (ScriptEngineCheckAddressValidity(SrcVal0, sizeof(BYTE)))
             DesVal = 1; // TRUE
-        }
         else
-        {
             DesVal = 0; // FALSE
-        }
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-
-        DesVal = 1; // TRUE by default in user-mode
-
-#endif // SCRIPT_ENGINE_USER_MODE
 
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_STRLEN:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4663,14 +4785,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionStrlen((const char *)SrcVal0);
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_WCSLEN:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4679,30 +4804,37 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionWcslen((const wchar_t *)SrcVal0);
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_INTERLOCKED_INCREMENT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionInterlockedIncrement((volatile long long *)SrcVal0, &HasError);
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_INTERLOCKED_DECREMENT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4711,14 +4843,18 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineFunctionInterlockedDecrement((volatile long long *)SrcVal0, &HasError);
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_NEG:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4727,14 +4863,17 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = -(INT64)SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_HI:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4749,14 +4888,18 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_LOW:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
-        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+        Des = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
 
         DesVal = ScriptEngineKeywordLow((PUINT64)GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE),
@@ -4764,10 +4907,13 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
+
     case FUNC_MOV:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4776,14 +4922,18 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         *Indx = *Indx + 1;
 
         DesVal = SrcVal0;
+
         SetValue(GuestRegs, VariablesList, Des, DesVal);
 
         return HasError;
 
     case FUNC_PRINT:
-        Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
         *Indx = *Indx + 1;
+
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
 
@@ -4840,6 +4990,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_DISABLE_EVENT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -4850,18 +5001,22 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             ActionDetail->Tag,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
+
         return HasError;
 
     case FUNC_ENABLE_EVENT:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
         SrcVal0 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
         ScriptEngineFunctionEnableEvent(
             ActionDetail->Tag,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
+
         return HasError;
 
     case FUNC_FORMATS:
@@ -4879,9 +5034,10 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             ActionDetail->Tag,
             ActionDetail->ImmediatelySendTheResults,
             SrcVal0);
+
         return HasError;
 
-    case (FUNC_JZ):
+    case FUNC_JZ:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -4892,17 +5048,16 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
+
         SrcVal1 =
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
         if (SrcVal1 == 0)
-        {
             *Indx = SrcVal0;
-        }
 
         return HasError;
 
-    case (FUNC_JNZ):
+    case FUNC_JNZ:
 
         Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -4919,13 +5074,12 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
             GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
 
         if (SrcVal1 != 0)
-        {
             *Indx = SrcVal0;
-        }
 
         return HasError;
 
-    case (FUNC_JMP):
+    case FUNC_JMP:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;
@@ -4937,6 +5091,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
         return HasError;
 
     case FUNC_PRINTF:
+
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
         *Indx = *Indx + 1;

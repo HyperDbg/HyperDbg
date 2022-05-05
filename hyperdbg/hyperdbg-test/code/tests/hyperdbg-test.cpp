@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\hyperdbg-test\pch.h"
+#include "pch.h"
 
 using namespace std;
 

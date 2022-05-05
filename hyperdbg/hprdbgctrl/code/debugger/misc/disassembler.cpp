@@ -29,7 +29,7 @@ all
 
 #define NDEBUG
 
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
 
 #include "Zycore/Format.h"
 #include "Zycore/LibC.h"

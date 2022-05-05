@@ -12,6 +12,22 @@
 #pragma once
 
 //////////////////////////////////////////////////
+//	            Feature Indicators              //
+//////////////////////////////////////////////////
+
+/**
+ * @brief check for RTM support
+ * 
+ */
+BOOLEAN g_RtmSupport = FALSE;
+
+/**
+ * @brief Virtual address width for x86 processors
+ * 
+ */
+UINT32 g_VirtualAddressWidth = 0;
+
+//////////////////////////////////////////////////
 //	         Interpreter Variables              //
 //////////////////////////////////////////////////
 

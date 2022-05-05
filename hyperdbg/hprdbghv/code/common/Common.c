@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Power function in order to computer address for MSR bitmaps
@@ -887,6 +887,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     CR3_TYPE GuestCr3;
     UINT64   OriginalCr3;
     BOOLEAN  IsKernelAddress;
+    BOOLEAN  Result = FALSE;
 
     //
     // First, we check if the address is canonical based
@@ -897,7 +898,8 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // No need for further check, address is invalid
         //
-        return FALSE;
+        Result = FALSE;
+        goto Return;
     }
 
     //
@@ -918,65 +920,71 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     // result is not true, so we check each pages' page-table for user-mode
     // codes in both user-mode and kernel-mode
     //
-    if (g_RtmSupport && IsKernelAddress)
+    // if (g_RtmSupport && IsKernelAddress)
+    // {
+    //     //
+    //     // The guest supports Intel TSX
+    //     //
+    //     UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+    //     UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+    //
+    //     for (size_t i = 0; i <= PageCount; i++)
+    //     {
+    //         UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+    //         if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+    //         {
+    //             //
+    //             // Address is not valid
+    //             //
+    //             Result = FALSE;
+    //
+    //             goto RestoreCr3;
+    //         }
+    //     }
+    // }
+
+    //
+    // We've realized that using TSX for address checking is not faster
+    // than the legacy memory checking (traversing the page-tables),
+    // based on our resultsm it's ~50 TSC clock cycles for a valid address
+    // and ~180 TSC clock cycles for an invalid address slower to use TSX
+    // for memory checking, that's why it is deprecated now
+    //
+
+    //
+    // Check if memory is safe and present
+    //
+    UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
+    UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+
+    for (size_t i = 0; i <= PageCount; i++)
     {
-        //
-        // The guest supports Intel TSX
-        //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
-
-        for (size_t i = 0; i <= PageCount; i++)
+        UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+        if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
         {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
-            if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
-            {
-                //
-                // Move back to original cr3
-                //
-                __writecr3(OriginalCr3);
+            //
+            // Address is not valid
+            //
+            Result = FALSE;
 
-                //
-                // Access failed and Result = FALSE
-                //
-
-                return FALSE;
-            }
+            goto RestoreCr3;
         }
     }
-    else
-    {
-        //
-        // The guest not supports Intel TSX
-        //
 
-        //
-        // Check if memory is safe and present
-        //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+    //
+    // If we've reached here, the address was valid
+    //
+    Result = TRUE;
 
-        for (size_t i = 0; i <= PageCount; i++)
-        {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
-            if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
-            {
-                //
-                // Move back to original cr3
-                //
-                __writecr3(OriginalCr3);
-
-                return FALSE;
-            }
-        }
-    }
+RestoreCr3:
 
     //
     // Move back to original cr3
     //
     __writecr3(OriginalCr3);
 
-    return TRUE;
+Return:
+    return Result;
 }
 
 /**

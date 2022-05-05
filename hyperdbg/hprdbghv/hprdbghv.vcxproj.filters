@@ -320,6 +320,9 @@
     <ClCompile Include="code\globals\GlobalVariableManagement.c">
       <Filter>code\globals</Filter>
     </ClCompile>
+    <ClCompile Include="pch.c">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

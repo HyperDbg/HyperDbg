@@ -20,6 +20,9 @@
     <ClCompile Include="code\casting.cpp">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>code</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

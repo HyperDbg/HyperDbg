@@ -9,7 +9,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#include "..\hprdbgctrl\pch.h"
+#include "pch.h"
 
 //
 // Global Variables
@@ -350,6 +350,11 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK:
         ShowMessages("err, unable to get the callstack (%x)\n",
+                     Error);
+        break;
+
+    case DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS:
+        ShowMessages("err, unable to query count of processes or threads (%x)\n",
                      Error);
         break;
 

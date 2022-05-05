@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3. The re-used codes from Gbps/gbhv are under CC 4.0 AL terms.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief Check whether EPT features are present or not

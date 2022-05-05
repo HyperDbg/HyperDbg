@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief handle process changes
@@ -309,17 +309,22 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
 /**
  * @brief shows the processes list
  * @param PorcessListSymbolInfo
+ * @param QueryAction
+ * @param CountOfProcesses
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
+ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSymbolInfo,
+                DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction,
+                UINT32 *                                           CountOfProcesses)
 {
     UINT64     Process;
     UINT64     UniquePid;
     LIST_ENTRY ActiveProcessLinks;
     UCHAR      ImageFileName[15] = {0};
     CR3_TYPE   ProcessCr3        = {0};
+    UINT32     EnumerationCount  = 0;
 
     //
     // Set the details derived from the symbols
@@ -382,7 +387,32 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
             //
             // Show the list of process
             //
-            Log("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n", Process, UniquePid, ProcessCr3.Flags, ImageFileName);
+            switch (QueryAction)
+            {
+            case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY:
+
+                Log("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
+                    Process,
+                    UniquePid,
+                    ProcessCr3.Flags,
+                    ImageFileName);
+
+            case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT:
+
+                EnumerationCount++;
+
+                break;
+
+            case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS:
+
+                break;
+
+            default:
+
+                LogError("Err, invalid action specified for process enumeration");
+
+                break;
+            }
 
             //
             // Find the next process from the list of this process
@@ -399,11 +429,21 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS PorcessListSymbolInfo)
         return FALSE;
     }
 
+    //
+    // In case of query count of processes, we'll set this parameter
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT)
+    {
+        *CountOfProcesses = EnumerationCount;
+    }
+
     return TRUE;
 }
 
 /**
  * @brief change the current process
+ * @detail ONLY TO BE USED IN KD STUFFS
+ * 
  * @param PidRequest
  * 
  * @return BOOLEAN 
@@ -452,7 +492,9 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Show the process list
         //
-        if (!ProcessShowList(&PidRequest->ProcessListSymDetails))
+        if (!ProcessShowList(&PidRequest->ProcessListSymDetails,
+                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
+                             NULL))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
             break;
@@ -486,4 +528,33 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
     {
         return FALSE;
     }
+}
+
+/**
+ * @brief Query process details
+ * 
+ * @param DebuggerUsermodeProcessOrThreadQueryRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest)
+{
+    BOOLEAN Result = FALSE;
+
+    //
+    // Getting the count results
+    //
+    Result = ProcessShowList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
+                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
+
+    if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
+    {
+        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
+    }
+
+    DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS;
+    return FALSE;
 }

@@ -25,6 +25,14 @@ Using TLB-splitting, and having features such as measuring code coverage and mon
 
 Although it has novel features, HyperDbg tries to be as stealth as possible. It doesn’t use any debugging APIs to debug Windows or any application, so classic anti-debugging methods won’t detect it. Also, it resists the exploitation of time delta methods (e.g., RDTSC/RDTSCP) to detect the presence of hypervisors, therefore making it much harder for applications, packers, protectors, malware, anti-cheat engines, etc. to discover the debugger.
 
+## Build & Installation
+
+You can download latest compiled binary files from **[releases](https://github.com/HyperDbg/HyperDbg/releases)**; otherwise, if you want to build HyperDbg, you should clone HyperDbg with the `--recursive` flag.
+```
+git clone --recursive https://github.com/HyperDbg/HyperDbg.git
+```
+Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
+
 ## Unique Features
 ### First Release (v0.1.0.0)
 * Advanced Hypervisor-based Kernel Mode Debugger [<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/debug" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/local-debugging" target="_blank">link</a>]
@@ -60,13 +68,6 @@ Although it has novel features, HyperDbg tries to be as stealth as possible. It 
 
 ### Second Release (v0.2.0.0)
 (not released yet !)
-
-## Build & Installation
-If you want to build HyperDbg, you should clone HyperDbg with `--recursive` flag.
-```
-git clone --recursive https://github.com/HyperDbg/HyperDbg.git
-```
-Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
 
 ## How does it work?
 

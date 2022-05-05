@@ -10,7 +10,7 @@
  * @copyright This project is released under the GNU Public License v3.
  * 
  */
-#include "..\hprdbghv\pch.h"
+#include "pch.h"
 
 /**
  * @brief handle thread changes
@@ -111,13 +111,18 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
 /**
  * @brief shows the threads list
  * @param ThreadListSymbolInfo
+ * @param QueryAction
+ * @param CountOfThreads
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
-ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
+ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymbolInfo,
+               DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction,
+               UINT32 *                                           CountOfThreads)
 {
-    UINT64     Thread = NULL;
+    UINT32     EnumerationCount = 0;
+    UINT64     Thread           = NULL;
     UINT64     ThreadListHead;
     LIST_ENTRY ThreadLinks = {0};
     CLIENT_ID  ThreadCid   = {0};
@@ -177,12 +182,15 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
         return FALSE;
     }
 
-    //
-    // Show the message of show the process
-    //
-    Log("PROCESS\t%llx\tIMAGE\t%s\n",
-        ThreadListSymbolInfo->Process,
-        GetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY)
+    {
+        //
+        // Show the message of show the process
+        //
+        Log("PROCESS\t%llx\tIMAGE\t%s\n",
+            ThreadListSymbolInfo->Process,
+            GetProcessNameFromEprocess(ThreadListSymbolInfo->Process));
+    }
 
     //
     // Show thread list, we read everything from the view of system process
@@ -203,10 +211,30 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
                                    &ThreadCid,
                                    sizeof(ThreadCid));
 
-        //
-        // Show the list of process
-        //
-        Log("\tTHREAD\t%llx (%llx.%llx)\n", Thread, ThreadCid.UniqueProcess, ThreadCid.UniqueThread);
+        switch (QueryAction)
+        {
+        case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY:
+
+            //
+            // Show the list of process
+            //
+            Log("\tTHREAD\t%llx (%llx.%llx)\n", Thread, ThreadCid.UniqueProcess, ThreadCid.UniqueThread);
+
+            break;
+
+        case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT:
+
+            EnumerationCount++;
+
+            break;
+
+        case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS:
+
+            break;
+
+        default:
+            break;
+        }
 
         MemoryMapperReadMemorySafe(Thread + ThreadListEntryOffset,
                                    &ThreadLinks,
@@ -218,6 +246,14 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS ThreadListSymbolInfo)
         Thread = (UINT64)ThreadLinks.Flink - ThreadListEntryOffset;
 
     } while ((UINT64)ThreadLinks.Flink != ThreadListHead);
+
+    //
+    // In case of query count of Threads, we'll set this parameter
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT)
+    {
+        *CountOfThreads = EnumerationCount;
+    }
 
     return TRUE;
 }
@@ -274,7 +310,9 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Show the threads list
         //
-        if (!ThreadShowList(&TidRequest->ThreadListSymDetails))
+        if (!ThreadShowList(&TidRequest->ThreadListSymDetails,
+                            DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
+                            NULL))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
             break;
@@ -507,4 +545,33 @@ ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
     {
         ThreadDetectChangeByInterceptingClockInterrupts(CurrentProcessorIndex, Enable);
     }
+}
+
+/**
+ * @brief Query thread details
+ * 
+ * @param DebuggerUsermodeProcessOrThreadQueryRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest)
+{
+    BOOLEAN Result = FALSE;
+
+    //
+    // Getting the count results
+    //
+    Result = ThreadShowList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                            DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
+                            &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
+
+    if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
+    {
+        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        return TRUE;
+    }
+
+    DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS;
+    return FALSE;
 }

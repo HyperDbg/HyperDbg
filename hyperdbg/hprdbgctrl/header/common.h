@@ -50,6 +50,24 @@
         }                                              \
     } while (0)
 
+/**
+ * @brief Size of each page (4096 bytes)
+ * 
+ */
+#define PAGE_SIZE 0x1000
+
+/**
+ * @brief Aligning a page
+ * 
+ */
+#define PAGE_ALIGN(Va) ((PVOID)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
+
+/**
+ * @brief Cpuid to get virtual address width
+ * 
+ */
+#define CPUID_ADDR_WIDTH 0x80000008
+
 //////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
@@ -134,6 +152,15 @@ ListDirectory(const std::string & Directory, const std::string & Extension);
 
 BOOLEAN
 IsEmptyString(char * Text);
+
+VOID
+GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo);
+
+BOOLEAN
+CheckCpuSupportRtm();
+
+UINT32
+Getx86VirtualAddressWidth();
 
 //////////////////////////////////////////////////
 //            	    Structures                  //
