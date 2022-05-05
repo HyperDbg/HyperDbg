@@ -41,6 +41,7 @@
 #include "Configuration.h"
 #include "platform/CrossApi.h"
 #include "platform/Environment.h"
+#include "platform/MetaMacros.h"
 
 #include "..\hprdbghv\header\vmm\vmx\VmxBroadcast.h"
 #include "..\hprdbghv\header\common\Dpc.h"

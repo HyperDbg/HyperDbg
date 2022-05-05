@@ -481,6 +481,9 @@
     <ClInclude Include="header\globals\GlobalVariables.h">
       <Filter>header\globals</Filter>
     </ClInclude>
+    <ClInclude Include="header\platform\MetaMacros.h">
+      <Filter>header\platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">
@@ -507,5 +510,8 @@
     <MASM Include="code\assembly\AsmVmxOperation.asm">
       <Filter>code\assembly</Filter>
     </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

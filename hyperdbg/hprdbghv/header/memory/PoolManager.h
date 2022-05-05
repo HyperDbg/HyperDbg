@@ -30,7 +30,7 @@
  * @brief Inum of intentions for buffers (buffer tag)
  * 
  */
-typedef enum
+typedef enum _POOL_ALLOCATION_INTENTION
 {
     TRACKING_HOOKED_PAGES,
     EXEC_TRAMPOLINE,
@@ -116,6 +116,22 @@ LIST_ENTRY g_ListOfAllocatedPoolsHead;
 //////////////////////////////////////////////////
 //                   Functions		  			//
 //////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+/// @brief Allocate global requesting variable
+/// @param NumberOfBytes
+/// @return
+static BOOLEAN
+PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes);
+
+static VOID PlmgrFreeRequestNewAllocation(VOID);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
 
 /**
  * @brief Initializes the Pool Manager and pre-allocate some pools

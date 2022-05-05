@@ -13,6 +13,36 @@
  */
 #include "pch.h"
 
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+BOOLEAN
+PlmgrAllocateRequestNewAllocation(SIZE_T NumberOfBytes)
+{
+    //
+    // Allocate global requesting variable
+    //
+    g_RequestNewAllocation = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+    if (!g_RequestNewAllocation)
+    {
+        return FALSE;
+    }
+
+    RtlZeroMemory(g_RequestNewAllocation, NumberOfBytes);
+
+    return TRUE;
+}
+
+VOID PlmgrFreeRequestNewAllocation(VOID)
+{
+    ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
+}
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
+
 /**
  * @brief Initializes the pool manager
  * 
@@ -24,14 +54,12 @@ PoolManagerInitialize()
     //
     // Allocate global requesting variable
     //
-    g_RequestNewAllocation = ExAllocatePoolWithTag(NonPagedPool, MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION), POOLTAG);
-
-    if (!g_RequestNewAllocation)
+    SIZE_T BufferSize = MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION);
+    if (!PlmgrAllocateRequestNewAllocation(BufferSize))
     {
         LogError("Err, insufficient memory");
         return FALSE;
     }
-    RtlZeroMemory(g_RequestNewAllocation, MaximumRequestsQueueDepth * sizeof(REQUEST_NEW_ALLOCATION));
 
     //
     // Initialize list head
@@ -116,7 +144,7 @@ PoolManagerUninitialize()
         ExFreePoolWithTag(PoolTable, POOLTAG);
     }
 
-    ExFreePoolWithTag(g_RequestNewAllocation, POOLTAG);
+    PlmgrFreeRequestNewAllocation();
 }
 
 /**
@@ -180,6 +208,7 @@ PoolManagerRequestPool(POOL_ALLOCATION_INTENTION Intention, BOOLEAN RequestNewPo
     PLIST_ENTRY ListTemp = 0;
     UINT64      Address  = 0;
     ListTemp             = &g_ListOfAllocatedPoolsHead;
+
 
     SpinlockLock(&LockForReadingPool);
 
@@ -300,18 +329,22 @@ PoolManagerCheckAndPerformAllocationAndDeallocation()
     //
     if (g_IsNewRequestForAllocationReceived)
     {
-        for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)
+        for (SIZE_T i = 0; i < MaximumRequestsQueueDepth; i++)
         {
-            if (g_RequestNewAllocation[i].Size != 0)
+            REQUEST_NEW_ALLOCATION * CurrentItem = &g_RequestNewAllocation[i];
+
+            if (CurrentItem->Size != 0)
             {
-                Result = PoolManagerAllocateAndAddToPoolTable(g_RequestNewAllocation[i].Size, g_RequestNewAllocation[i].Count, g_RequestNewAllocation[i].Intention);
+                Result = PoolManagerAllocateAndAddToPoolTable(CurrentItem->Size,
+                                                              CurrentItem->Count,
+                                                              CurrentItem->Intention);
 
                 //
                 // Free the data for future use
                 //
-                g_RequestNewAllocation[i].Count     = 0;
-                g_RequestNewAllocation[i].Intention = 0;
-                g_RequestNewAllocation[i].Size      = 0;
+                CurrentItem->Count     = 0;
+                CurrentItem->Intention = 0;
+                CurrentItem->Size      = 0;
             }
         }
     }
@@ -393,13 +426,15 @@ PoolManagerRequestAllocation(SIZE_T Size, UINT32 Count, POOL_ALLOCATION_INTENTIO
 
     SpinlockLock(&LockForRequestAllocation);
 
-    for (size_t i = 0; i < MaximumRequestsQueueDepth; i++)
+    for (SIZE_T i = 0; i < MaximumRequestsQueueDepth; i++)
     {
-        if (g_RequestNewAllocation[i].Size == 0)
+        REQUEST_NEW_ALLOCATION * CurrentItem = &g_RequestNewAllocation[i];
+
+        if (CurrentItem->Size == 0)
         {
-            g_RequestNewAllocation[i].Count     = Count;
-            g_RequestNewAllocation[i].Intention = Intention;
-            g_RequestNewAllocation[i].Size      = Size;
+            CurrentItem->Count     = Count;
+            CurrentItem->Intention = Intention;
+            CurrentItem->Size      = Size;
 
             FoundAPlace = TRUE;
 

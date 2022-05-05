@@ -230,7 +230,11 @@
     <ClInclude Include="header\vmm\vmx\Vmx.h" />
     <ClInclude Include="header\vmm\vmx\VmxBroadcast.h" />
     <ClInclude Include="header\vmm\vmx\VmxMechanisms.h" />
+    <ClInclude Include="header\platform\MetaMacros.h" />
     <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
