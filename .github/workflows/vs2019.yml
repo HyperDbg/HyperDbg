@@ -84,23 +84,13 @@ jobs:
         with:
           path: ${{ env.BUILD_BIN_DIR }}release/
           type: 'zip'
-          filename: ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}-build.zip
-          exclusions: '*.pdb *.exp *.lib *.iobj *.ipdb'
-
-      - name: Archive release
-        uses: thedoctor0/zip-release@master
-        with:
-          path: ${{ env.BUILD_BIN_DIR }}release/
-          type: 'zip'
-          filename: ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}-full.zip
+          filename: ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}.zip
 
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}-build.zip
-            ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}-full.zip
-
+            ${{env.RELEASE_ZIP_FILE_NAME}}-${{ github.ref_name }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
