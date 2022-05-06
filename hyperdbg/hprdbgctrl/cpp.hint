@@ -1,2 +1,0 @@
-#define HPRDBGCTRL_API __declspec(dllexport)
-#define HPRDBGCTRL_API __declspec(dllimport)

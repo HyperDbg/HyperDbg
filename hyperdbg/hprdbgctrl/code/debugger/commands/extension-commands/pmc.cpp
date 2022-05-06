@@ -85,7 +85,7 @@ CommandPmc(vector<string> SplittedCommand, string Command)
     }
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration 
     //
     if (!SendEventToKernel(Event, EventLength))
     {

@@ -123,7 +123,7 @@ CommandIoout(vector<string> SplittedCommand, string Command)
     Event->OptionalParam1 = SpecialTarget;
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration
     //
     if (!SendEventToKernel(Event, EventLength))
     {

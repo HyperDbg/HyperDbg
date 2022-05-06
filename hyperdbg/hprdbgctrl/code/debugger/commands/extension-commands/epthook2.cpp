@@ -140,7 +140,7 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
     Event->OptionalParam1 = OptionalParam1;
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration
     //
     if (!SendEventToKernel(Event, EventLength))
     {

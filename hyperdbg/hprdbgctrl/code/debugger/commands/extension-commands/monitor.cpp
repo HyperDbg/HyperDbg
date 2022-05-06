@@ -198,7 +198,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     Event->OptionalParam2 = OptionalParam2;
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration 
     //
     if (!SendEventToKernel(Event, EventLength))
     {

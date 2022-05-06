@@ -129,6 +129,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/kd.h"
 #include "header/pe-parser.h"
 #include "header/ud.h"
+#include "header/objects.h"
 
 #pragma comment(lib, "ntdll.lib")
 
