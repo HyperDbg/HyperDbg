@@ -401,7 +401,7 @@ GetToken(char * c, char * str)
             if (WasFound)
             {
                 free(Token->Value);
-                char * str = malloc(20);
+                char str[20] = {0};
                 sprintf(str, "%llx", Address);
                 Token->Value = str;
                 Token->Type  = HEX;
@@ -574,7 +574,7 @@ GetToken(char * c, char * str)
                     if (WasFound)
                     {
                         free(Token->Value);
-                        char * str = malloc(20);
+                        char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token->Value = str;
                         Token->Type  = HEX;
@@ -619,7 +619,7 @@ GetToken(char * c, char * str)
                     if (WasFound)
                     {
                         free(Token->Value);
-                        char * str = malloc(20);
+                        char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token->Value = str;
                         Token->Type  = HEX;
@@ -674,7 +674,7 @@ GetToken(char * c, char * str)
                 if (WasFound)
                 {
                     free(Token->Value);
-                    char * str = malloc(20);
+                    char str[20] = {0};
                     sprintf(str, "%llx", Address);
                     Token->Value = str;
                     Token->Type  = HEX;

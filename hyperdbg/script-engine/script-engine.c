@@ -770,6 +770,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
         }
         else if (!strcmp(Operator->Value, "@JZ"))
         {
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
             PushSymbol(CodeBuffer, OperatorSymbol);
 
             PSYMBOL JumpAddressSymbol = NewSymbol();
@@ -788,7 +789,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
 
 
 
-            char * str = malloc(20);
+            char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
@@ -803,7 +804,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             UINT64  CurrentPointer           = CodeBuffer->Pointer;
             PTOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
             UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
-            PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
+            PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress - 2);
             JumpAddressSymbol->Value         = CurrentPointer + 2;
             RemoveToken(JumpSemanticAddressToken);
 
@@ -828,20 +829,21 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             //
             // push current pointer to stack
             //
-            char str[20];
+            char str[20] = {0};
             sprintf(str, "%llu", CurrentPointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
         else if (!strcmp(Operator->Value, "@END_OF_IF"))
         {
+            UINT64  CurrentPointer           = CodeBuffer->Pointer;
             PTOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
             PSYMBOL JumpAddressSymbol;
             while (strcmp(JumpSemanticAddressToken->Value, "@START_OF_IF"))
             {
                 UINT64 JumpSemanticAddress = DecimalToInt(JumpSemanticAddressToken->Value);
                 JumpAddressSymbol          = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
-                JumpAddressSymbol->Value   = CodeBuffer->Pointer;
+                JumpAddressSymbol->Value   = CurrentPointer;
 
                 RemoveToken(JumpSemanticAddressToken);
                 JumpSemanticAddressToken = Pop(MatchedStack);
@@ -856,13 +858,14 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             PTOKEN OperatorCopy = CopyToken(Operator);
             Push(MatchedStack, OperatorCopy);
 
-            char str[20];
+            char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
             PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_WHILE_COMMANDS"))
         {
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
             PTOKEN JzToken        = NewToken(SEMANTIC_RULE, "@JZ");
 
             RemoveSymbol(OperatorSymbol);
@@ -880,7 +883,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
 
 
             char   str[20];
-            sprintf(str, "%llu", CodeBuffer->Pointer + 1);
+            sprintf(str, "%llu", CurrentPointer + 1);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
             Push(MatchedStack, StartOfWhileToken);
@@ -927,7 +930,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             // Set jumps addresses
             //
 
-            PUINT64 CurrentPointer = CodeBuffer->Pointer;
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
 
             do
             {
@@ -999,7 +1002,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             // Set jumps addresses
             //
 
-            PUINT64 CurrentPointer = CodeBuffer->Pointer;
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
 
             do
             {
@@ -1031,7 +1034,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             //
             // Push current pointer into matched stack
             //
-            char str[20];
+            char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
@@ -1101,7 +1104,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             //
             // Push current pointer into matched stack
             //
-            char str[20];
+            char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
             PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
@@ -1144,16 +1147,17 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             //
             // Set jmp address
             //
+            UINT64 CurrentPointer  = CodeBuffer->Pointer;
             JumpAddressToken       = Pop(MatchedStack);
             JumpAddress            = DecimalToInt(JumpAddressToken->Value);
 
             JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 1);
-            JumpAddressSymbol->Value = CodeBuffer->Pointer;
+            JumpAddressSymbol->Value = CurrentPointer;
 
             //
             // Push address of jz address to stack
             //
-            char str[20];
+            char str[20] = {0};
             sprintf(str, "%llu", JumpAddress - 4);
             PTOKEN JzAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, JzAddressToken);
@@ -1207,7 +1211,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             // Set jumps addresses
             //
 
-            PUINT64 CurrentPointer = CodeBuffer->Pointer;
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
 
             do
             {
@@ -1389,10 +1393,10 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
     printf("------------------------------------------\n\n");
 #endif
 
-  if (Op0)
+    if (Op0)
         RemoveToken(Op0);
 
-  if (Op1)
+    if (Op1)
         RemoveToken(Op1);
 
     if (Op2)
@@ -1541,7 +1545,7 @@ ScriptEngineBooleanExpresssionParse(
             StateId = Action;
             Push(Stack, CurrentIn);
 
-            char buffer[20];
+            char buffer[20] = {0};
             sprintf(buffer, "%d", StateId);
             State = NewToken(STATE_ID, buffer);
             Push(Stack, State);
@@ -1609,7 +1613,7 @@ ScriptEngineBooleanExpresssionParse(
 
             PTOKEN LhsCopy = CopyToken(Lhs);
 
-            char buffer[20];
+            char buffer[20] = {0};
             sprintf(buffer, "%d", Goto);
             State = NewToken(STATE_ID, buffer);
             Push(Stack, LhsCopy);
