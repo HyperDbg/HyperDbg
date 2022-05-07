@@ -67,7 +67,7 @@ typedef struct _TOKEN_LIST
     PTOKEN *      Head;
     unsigned int Pointer;
     unsigned int Size;
-} * TOKEN_LIST;
+} TOKEN_LIST, * PTOKEN_LIST;
 
 ////////////////////////////////////////////////////
 // PTOKEN related functions						  //
@@ -102,23 +102,23 @@ CleanTempList(void);
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //
 ////////////////////////////////////////////////////
-TOKEN_LIST
+PTOKEN_LIST
 NewTokenList(void);
 
 void
-RemoveTokenList(TOKEN_LIST TokenList);
+RemoveTokenList(PTOKEN_LIST TokenList);
 
 void
-PrintTokenList(TOKEN_LIST TokenList);
+PrintTokenList(PTOKEN_LIST TokenList);
 
-TOKEN_LIST
-Push(TOKEN_LIST TokenList, PTOKEN Token);
-
-PTOKEN
-Pop(TOKEN_LIST TokenList);
+PTOKEN_LIST
+Push(PTOKEN_LIST TokenList, PTOKEN Token);
 
 PTOKEN
-Top(TOKEN_LIST TokenList);
+Pop(PTOKEN_LIST TokenList);
+
+PTOKEN
+Top(PTOKEN_LIST TokenList);
 
 char
 IsNoneTerminal(PTOKEN Token);

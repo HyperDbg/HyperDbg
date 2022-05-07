@@ -6,7 +6,7 @@
 /**
 * @brief lookup table for storing Ids
 */
-TOKEN_LIST IdTable;
+PTOKEN_LIST IdTable;
 
 /**
 * @brief number of read characters from input

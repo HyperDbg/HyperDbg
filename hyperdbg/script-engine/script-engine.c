@@ -166,9 +166,9 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
 {
-    TOKEN_LIST Stack = NewTokenList();
+    PTOKEN_LIST Stack = NewTokenList();
 
-    TOKEN_LIST     MatchedStack = NewTokenList();
+    PTOKEN_LIST     MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
@@ -388,7 +388,7 @@ ScriptEngineParse(char * str)
 }
 
 void
-CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
+CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static BOOL IgnoreLvalue = FALSE;
     PTOKEN       Op0          = NULL;
@@ -1238,7 +1238,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             // Pop Objects from stack while reaching @START_OF_*
             //
 
-            TOKEN_LIST TempStack = NewTokenList();
+            PTOKEN_LIST TempStack = NewTokenList();
             PTOKEN      TempToken;
             do
             {
@@ -1314,7 +1314,7 @@ CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSC
             //
             // Pop Objects from stack while reaching @INC_DEC
             //
-            TOKEN_LIST TempStack = NewTokenList();
+            PTOKEN_LIST TempStack = NewTokenList();
             PTOKEN      TempToken;
             do
             {
@@ -1467,13 +1467,13 @@ void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     PTOKEN                    FirstToken,
-    TOKEN_LIST                MatchedStack,
+    PTOKEN_LIST                MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
     PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
-    TOKEN_LIST Stack = NewTokenList();
+    PTOKEN_LIST Stack = NewTokenList();
 
     PTOKEN State = NewToken(STATE_ID, "0");
     Push(Stack, State);

@@ -110,7 +110,7 @@ void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     PTOKEN                     FirstToken,
-    TOKEN_LIST                MatchedStack,
+    PTOKEN_LIST                MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
@@ -120,7 +120,7 @@ UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn);
 
 void
-CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);
+CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 unsigned long long int
 RegisterToInt(char * str);

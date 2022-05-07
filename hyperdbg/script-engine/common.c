@@ -221,15 +221,15 @@ CopyToken(PTOKEN Token)
  *
  * @return TOKEN_LIST
  */
-TOKEN_LIST
+PTOKEN_LIST
 NewTokenList(void)
 {
-    TOKEN_LIST TokenList;
+    PTOKEN_LIST TokenList;
 
     //
     // Allocation of memory for TOKEN_LIST structure
     //
-    TokenList = (TOKEN_LIST)malloc(sizeof(*TokenList));
+    TokenList = (PTOKEN_LIST)malloc(sizeof(*TokenList));
 
     //
     // Initialize fields of TOKEN_LIST
@@ -251,7 +251,7 @@ NewTokenList(void)
  * @param TokenList
  */
 void
-RemoveTokenList(TOKEN_LIST TokenList)
+RemoveTokenList(PTOKEN_LIST TokenList)
 {
     PTOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
@@ -271,7 +271,7 @@ RemoveTokenList(TOKEN_LIST TokenList)
  * @param TokenList
  */
 void
-PrintTokenList(TOKEN_LIST TokenList)
+PrintTokenList(PTOKEN_LIST TokenList)
 {
     PTOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
@@ -288,8 +288,8 @@ PrintTokenList(TOKEN_LIST TokenList)
  * @param TokenList
  * @return TokenList
  */
-TOKEN_LIST
-Push(TOKEN_LIST TokenList, PTOKEN Token)
+PTOKEN_LIST
+Push(PTOKEN_LIST TokenList, PTOKEN Token)
 {
     //
     // Calculate address to write new token
@@ -344,7 +344,7 @@ Push(TOKEN_LIST TokenList, PTOKEN Token)
  @ @return Token
  */
 PTOKEN
-Pop(TOKEN_LIST TokenList)
+Pop(PTOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent token
@@ -365,7 +365,7 @@ Pop(TOKEN_LIST TokenList)
  * @return Token
  */
 PTOKEN
-Top(TOKEN_LIST TokenList)
+Top(PTOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent pushed token
