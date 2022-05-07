@@ -11,7 +11,7 @@
 /**
 * @brief maximum length of string in the token
 */
-#    define TOKEN_VALUE_MAX_LEN 256
+#    define TOKEN_VALUE_MAX_LEN 8
 
 /**
 * @brief init size of token list
@@ -50,49 +50,51 @@ typedef enum TOKEN_TYPE
 /**
 * @brief read tokens from input stored in this structure
 */
-struct _TOKEN
+typedef struct _TOKEN
 {
     TOKEN_TYPE   Type;
     char *       Value;
-    unsigned int len;
-    unsigned int max_len;
-};
+    unsigned int Len;
+    unsigned int MaxLen;
+} TOKEN, * PTOKEN;
 
-/**
-* @brief Pointer to _TOKEN structure
-*/
-typedef struct _TOKEN * TOKEN;
 
 /**
 * @brief this structure is a dynamic containter of TOKENS
 */
 typedef struct _TOKEN_LIST
 {
-    TOKEN *      Head;
+    PTOKEN *      Head;
     unsigned int Pointer;
     unsigned int Size;
 } * TOKEN_LIST;
 
 ////////////////////////////////////////////////////
-// TOKEN related functions						  //
+// PTOKEN related functions						  //
 ////////////////////////////////////////////////////
-TOKEN
-NewToken(void);
+PTOKEN
+NewUnknownToken(void);
+
+PTOKEN
+NewToken(TOKEN_TYPE Type, char * Value);
 
 void
-RemoveToken(TOKEN Token);
+RemoveToken(PTOKEN Token);
 
 void
-PrintToken(TOKEN Token);
+PrintToken(PTOKEN Token);
 
 void
-Append(TOKEN Token, char c);
+Append(PTOKEN Token, char c);
 
-TOKEN
+PTOKEN
+CopyToken(PTOKEN Token);
+
+PTOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE);
 
 void
-FreeTemp(TOKEN Temp);
+FreeTemp(PTOKEN Temp);
 
 void
 CleanTempList(void);
@@ -110,31 +112,31 @@ void
 PrintTokenList(TOKEN_LIST TokenList);
 
 TOKEN_LIST
-Push(TOKEN_LIST TokenList, TOKEN Token);
+Push(TOKEN_LIST TokenList, PTOKEN Token);
 
-TOKEN
+PTOKEN
 Pop(TOKEN_LIST TokenList);
 
-TOKEN
+PTOKEN
 Top(TOKEN_LIST TokenList);
 
 char
-IsNoneTerminal(TOKEN Token);
+IsNoneTerminal(PTOKEN Token);
 
 char
-IsSemanticRule(TOKEN Token);
+IsSemanticRule(PTOKEN Token);
 
 char
-IsEqual(const TOKEN Token1, const TOKEN Token2);
+IsEqual(const PTOKEN Token1, const PTOKEN Token2);
 
 int
-GetNonTerminalId(TOKEN Token);
+GetNonTerminalId(PTOKEN Token);
 
 int
-LalrGetNonTerminalId(TOKEN Token);
+LalrGetNonTerminalId(PTOKEN Token);
 
 int
-LalrGetTerminalId(TOKEN Token);
+LalrGetTerminalId(PTOKEN Token);
 
 ////////////////////////////////////////////////////
 //					Util Functions				  //
@@ -176,30 +178,30 @@ BinaryToInt(char * str);
 //	       Semantic Rule Related Functions		  //
 ////////////////////////////////////////////////////
 char
-IsType1Func(TOKEN Operator);
+IsType1Func(PTOKEN Operator);
 
 char
-IsType2Func(TOKEN Operator);
+IsType2Func(PTOKEN Operator);
 
 char
-IsType4Func(TOKEN Operator);
+IsType4Func(PTOKEN Operator);
 
 char
-IsType5Func(TOKEN Operator);
+IsType5Func(PTOKEN Operator);
 
 char
-IsType6Func(TOKEN Operator);
+IsType6Func(PTOKEN Operator);
 
 char
-IsType7Func(TOKEN Operator);
+IsType7Func(PTOKEN Operator);
 
 char
-IsType8Func(TOKEN Operator);
+IsType8Func(PTOKEN Operator);
 
 char
-IsTwoOperandOperator(TOKEN Operator);
+IsTwoOperandOperator(PTOKEN Operator);
 
 char
-IsOneOperandOperator(TOKEN Operator);
+IsOneOperandOperator(PTOKEN Operator);
 
 #endif // !COMMON_H

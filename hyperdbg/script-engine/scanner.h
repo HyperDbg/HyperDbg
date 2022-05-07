@@ -24,17 +24,17 @@ unsigned int CurrentLine;
 unsigned int CurrentLineIdx;
 
 /*
-* @brief curren token start postion
+* @brief curren PTOKEN start postion
 */
 unsigned int CurrentTokenIdx;
 
 ////////////////////////////////////////////////////
 // Interfacing functions						  //
 ////////////////////////////////////////////////////
-TOKEN
+PTOKEN
 GetToken(char * c, char * str);
 
-TOKEN
+PTOKEN
 Scan(char * str, char * c);
 
 char

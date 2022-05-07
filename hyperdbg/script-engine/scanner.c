@@ -19,10 +19,10 @@
 * @return Token
 */
 
-TOKEN
+PTOKEN
 GetToken(char * c, char * str)
 {
-    TOKEN Token = NewToken();
+    PTOKEN Token = NewUnknownToken();
 
     switch (*c)
     {
@@ -715,10 +715,10 @@ GetToken(char * c, char * str)
 * @param string 
 * @param refrence to last read character
 */
-TOKEN
+PTOKEN
 Scan(char * str, char * c)
 {
-    TOKEN Token;
+    PTOKEN Token;
 
     while (1)
     {
