@@ -67,7 +67,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
