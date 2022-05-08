@@ -12,7 +12,7 @@
  */
 #include "pch.h"
 
-#define _SCRIPT_ENGINE_LALR_DBG_EN
+//#define _SCRIPT_ENGINE_LALR_DBG_EN
 //#define _SCRIPT_ENGINE_LL1_DBG_EN
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
@@ -1997,7 +1997,8 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     // add pointer
     //
     char Space = ' ';
-    for (int i = 0; i < (CurrentTokenIdx - CurrentLineIdx); i++)
+    int  n     = (CurrentTokenIdx - CurrentLineIdx);
+    for (int i = 0; i < n; i++)
     {
         strncat(Message, &Space, 1);
     }
