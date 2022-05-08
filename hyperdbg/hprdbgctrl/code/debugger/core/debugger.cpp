@@ -1726,13 +1726,7 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
         // It's either a debuggee or a local debugging instance
         //
 
-        if (!g_DeviceHandle)
-        {
-            ShowMessages(
-                "handle not found, probably the driver is not loaded. Did you "
-                "use 'load' command?\n");
-            return FALSE;
-        }
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTL
@@ -1764,13 +1758,6 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     if (ReturnedBuffer.IsSuccessful && ReturnedBuffer.Error == 0)
     {
         //
-        // The returned buffer shows that this event was
-        // successful and now we can add it to the list of
-        // events
-        //
-        InsertHeadList(&g_EventTrace, &(Event->CommandsEventList));
-
-        //
         // Check for auto-unpause mode
         //
         if (!g_IsSerialConnectedToRemoteDebuggee &&
@@ -1801,19 +1788,13 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
     else
     {
         //
-        // It was not successful, we have to free the buffers for command
-        // string and buffer for the event itself
-        //
-        free(Event->CommandStringBuffer);
-        free(Event);
-
-        //
         // Show the error
         //
         if (ReturnedBuffer.Error != 0)
         {
             ShowErrorMessage(ReturnedBuffer.Error);
         }
+
         return FALSE;
     }
 
@@ -1823,18 +1804,25 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 /**
  * @brief Register the action to the event
  *
- * @param Action the action buffer structure
- * @param ActionsBufferLength length of action buffer
+ * @param Event the event instance buffer 
+ * @param ActionBreakToDebugger the action of breaking into the debugger
+ * @param ActionBreakToDebuggerLength the action of breaking into the debugger (length)
+ * @param ActionCustomCode the action of custom code 
+ * @param ActionCustomCodeLength the action of custom code (length)
+ * @param ActionScript the action of script buffer 
+ * @param ActionScriptLength the action of script buffer (length)
+ * 
  * @return BOOLEAN BOOLEAN if the request was successful then true
  * if the request was not successful then false
  */
 BOOLEAN
-RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
-                      UINT32                   ActionBreakToDebuggerLength,
-                      PDEBUGGER_GENERAL_ACTION ActionCustomCode,
-                      UINT32                   ActionCustomCodeLength,
-                      PDEBUGGER_GENERAL_ACTION ActionScript,
-                      UINT32                   ActionScriptLength)
+RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                      PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
+                      UINT32                         ActionBreakToDebuggerLength,
+                      PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
+                      UINT32                         ActionCustomCodeLength,
+                      PDEBUGGER_GENERAL_ACTION       ActionScript,
+                      UINT32                         ActionScriptLength)
 {
     BOOL                                  Status;
     ULONG                                 ReturnedLength;
@@ -1863,12 +1851,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
             // Move the buffer to local buffer
             //
             memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
-
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionBreakToDebugger);
         }
 
         //
@@ -1887,12 +1869,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
             // Move the buffer to local buffer
             //
             memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
-
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionCustomCode);
         }
 
         //
@@ -1911,12 +1887,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
             // Move the buffer to local buffer
             //
             memcpy(&ReturnedBuffer, TempAddingResult, sizeof(DEBUGGER_EVENT_AND_ACTION_REG_BUFFER));
-
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionScript);
         }
     }
     else
@@ -1925,13 +1895,7 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
         // It's either a local debugger to in vmi-mode remote conntection
         //
 
-        if (!g_DeviceHandle)
-        {
-            ShowMessages(
-                "handle not found, probably the driver is not loaded. Did you "
-                "use 'load' command?\n");
-            return FALSE;
-        }
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
         //
         // Send IOCTLs
@@ -1957,12 +1921,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
                 &ReturnedLength,                              // Bytes placed in buffer.
                 NULL                                          // synchronous call
             );
-
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionBreakToDebugger);
 
             if (!Status)
             {
@@ -1992,12 +1950,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
                 NULL                                          // synchronous call
             );
 
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionCustomCode);
-
             if (!Status)
             {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
@@ -2026,12 +1978,6 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
                 NULL                                          // synchronous call
             );
 
-            //
-            // The action buffer is allocated once using malloc and
-            // is not used anymore, we have to free it
-            //
-            free(ActionScript);
-
             if (!Status)
             {
                 ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
@@ -2039,6 +1985,20 @@ RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
             }
         }
     }
+
+    //
+    // As we're not needing any of action buffer, we'll free all of the
+    // here in the case of a successful registeration of action, however
+    // event detail is needed for the 'event' command's list
+    //
+    FreeEventsAndActionsMemory(NULL, ActionBreakToDebugger, ActionCustomCode, ActionScript);
+
+    //
+    // Now, we'll register the command as returned buffer shows that
+    // this event was successful and now we can add it to the list of
+    // events
+    //
+    InsertHeadList(&g_EventTrace, &(Event->CommandsEventList));
 
     return TRUE;
 }
@@ -2053,6 +2013,42 @@ UINT64
 GetNewDebuggerEventTag()
 {
     return g_EventTag++;
+}
+
+/**
+ * @brief Deallocate buffers relating to events and actions
+ * @param 
+ *
+ * @return VOID
+ */
+VOID
+FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                           PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
+                           PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
+                           PDEBUGGER_GENERAL_ACTION       ActionScript)
+{
+    if (Event != NULL)
+    {
+        if (Event->CommandStringBuffer != NULL)
+        {
+            free(Event->CommandStringBuffer);
+        }
+
+        free(Event);
+    }
+
+    if (ActionBreakToDebugger != NULL)
+    {
+        free(ActionBreakToDebugger);
+    }
+    if (ActionCustomCode != NULL)
+    {
+        free(ActionCustomCode);
+    }
+    if (ActionScript != NULL)
+    {
+        free(ActionScript);
+    }
 }
 
 /**

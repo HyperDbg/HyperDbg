@@ -81,6 +81,8 @@ CommandTsc(vector<string> SplittedCommand, string Command)
     {
         ShowMessages("incorrect use of '!tsc'\n");
         CommandTscHelp();
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -94,28 +96,16 @@ CommandTsc(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
-        free(Event->CommandStringBuffer);
-        free(Event);
 
-        if (ActionBreakToDebugger != NULL)
-        {
-            free(ActionBreakToDebugger);
-        }
-        if (ActionCustomCode != NULL)
-        {
-            free(ActionCustomCode);
-        }
-        if (ActionScript != NULL)
-        {
-            free(ActionScript);
-        }
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger,
+    if (!RegisterActionToEvent(Event,
+                               ActionBreakToDebugger,
                                ActionBreakToDebuggerLength,
                                ActionCustomCode,
                                ActionCustomCodeLength,
@@ -125,6 +115,8 @@ CommandTsc(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 }

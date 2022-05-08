@@ -111,6 +111,8 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEptHook2Help();
+
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                 return;
             }
             else
@@ -125,12 +127,16 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandEptHook2Help();
+
+            FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
             return;
         }
     }
     if (OptionalParam1 == 0)
     {
         ShowMessages("please choose an address to put the hook on it\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -149,28 +155,16 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
-        free(Event->CommandStringBuffer);
-        free(Event);
 
-        if (ActionBreakToDebugger != NULL)
-        {
-            free(ActionBreakToDebugger);
-        }
-        if (ActionCustomCode != NULL)
-        {
-            free(ActionCustomCode);
-        }
-        if (ActionScript != NULL)
-        {
-            free(ActionScript);
-        }
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger,
+    if (!RegisterActionToEvent(Event,
+                               ActionBreakToDebugger,
                                ActionBreakToDebuggerLength,
                                ActionCustomCode,
                                ActionCustomCodeLength,
@@ -180,6 +174,8 @@ CommandEptHook2(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 }

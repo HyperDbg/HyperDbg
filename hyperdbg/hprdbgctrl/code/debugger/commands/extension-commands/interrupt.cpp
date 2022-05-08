@@ -100,6 +100,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandInterruptHelp();
+
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                 return;
             }
             else
@@ -116,6 +118,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
                     ShowMessages("the entry should be between 0x20 to 0xFF or the "
                                  "entries between 32 to 255\n\n");
                     CommandInterruptHelp();
+
+                    FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                     return;
                 }
                 GetEntry = TRUE;
@@ -128,6 +132,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandInterruptHelp();
+
+            FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
             return;
         }
     }
@@ -143,6 +149,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
                      "doesn't support to trigger events on all interrupts because "
                      "it's not reasonable and make the system unresponsive\n");
         CommandInterruptHelp();
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -161,28 +169,16 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
-        free(Event->CommandStringBuffer);
-        free(Event);
 
-        if (ActionBreakToDebugger != NULL)
-        {
-            free(ActionBreakToDebugger);
-        }
-        if (ActionCustomCode != NULL)
-        {
-            free(ActionCustomCode);
-        }
-        if (ActionScript != NULL)
-        {
-            free(ActionScript);
-        }
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger,
+    if (!RegisterActionToEvent(Event,
+                               ActionBreakToDebugger,
                                ActionBreakToDebuggerLength,
                                ActionCustomCode,
                                ActionCustomCodeLength,
@@ -192,6 +188,8 @@ CommandInterrupt(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 }

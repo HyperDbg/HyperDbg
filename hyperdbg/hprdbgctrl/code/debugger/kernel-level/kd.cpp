@@ -1983,10 +1983,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         if (!g_DeviceHandle)
         {
             CloseHandle(Comm);
-            ShowMessages(
-                "handle not found, probably the driver is not loaded. Did you "
-                "use 'load' command?\n");
-            return FALSE;
+            AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
         }
 
         //
