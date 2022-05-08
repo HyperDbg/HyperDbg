@@ -2090,7 +2090,8 @@ InterpretGeneralEventAndActionsFields(
     PUINT32                             ActionBufferLengthScript,
     PDEBUGGER_EVENT_PARSING_ERROR_CAUSE ReasonForErrorInParsing)
 {
-    PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent;
+    BOOLEAN                        Result                         = FALSE;
+    PDEBUGGER_GENERAL_EVENT_DETAIL TempEvent                      = NULL;
     PDEBUGGER_GENERAL_ACTION       TempActionBreak                = NULL;
     PDEBUGGER_GENERAL_ACTION       TempActionScript               = NULL;
     PDEBUGGER_GENERAL_ACTION       TempActionCustomCode           = NULL;
@@ -2454,14 +2455,9 @@ InterpretGeneralEventAndActionsFields(
     //
     if (TempEvent == NULL)
     {
-        //
-        // The heap is not available
-        //
-        free(BufferOfCommandString);
-
         ShowMessages("err, allocation error\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ALLOCATION_ERROR;
-        return FALSE;
+        goto ReturnWithError;
     }
 
     //
@@ -2657,25 +2653,9 @@ InterpretGeneralEventAndActionsFields(
         {
             if (!ConvertStringToUInt32(Section, &RequestBuffer))
             {
-                free(BufferOfCommandString);
-                free(TempEvent);
-
-                if (TempActionBreak != NULL)
-                {
-                    free(TempActionBreak);
-                }
-                if (TempActionScript != NULL)
-                {
-                    free(TempActionScript);
-                }
-                if (TempActionCustomCode != NULL)
-                {
-                    free(TempActionCustomCode);
-                }
-
                 ShowMessages("err, buffer size is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-                return FALSE;
+                goto ReturnWithError;
             }
             else
             {
@@ -2720,25 +2700,10 @@ InterpretGeneralEventAndActionsFields(
                 //
                 // err, not token recognized error
                 //
-                free(BufferOfCommandString);
-                free(TempEvent);
-
-                if (TempActionBreak != NULL)
-                {
-                    free(TempActionBreak);
-                }
-                if (TempActionScript != NULL)
-                {
-                    free(TempActionScript);
-                }
-                if (TempActionCustomCode != NULL)
-                {
-                    free(TempActionCustomCode);
-                }
 
                 ShowMessages("err, immediate messaging token is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-                return FALSE;
+                goto ReturnWithError;
             }
 
             IsNextCommandImmediateMessaging = FALSE;
@@ -2759,25 +2724,10 @@ InterpretGeneralEventAndActionsFields(
             }
             else if (!ConvertStringToUInt32(Section, &ProcessId))
             {
-                free(BufferOfCommandString);
-                free(TempEvent);
-
-                if (TempActionBreak != NULL)
-                {
-                    free(TempActionBreak);
-                }
-                if (TempActionScript != NULL)
-                {
-                    free(TempActionScript);
-                }
-                if (TempActionCustomCode != NULL)
-                {
-                    free(TempActionCustomCode);
-                }
-
                 ShowMessages("err, pid is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-                return FALSE;
+
+                goto ReturnWithError;
             }
             else
             {
@@ -2801,25 +2751,9 @@ InterpretGeneralEventAndActionsFields(
         {
             if (!ConvertStringToUInt32(Section, &CoreId))
             {
-                free(BufferOfCommandString);
-                free(TempEvent);
-
-                if (TempActionBreak != NULL)
-                {
-                    free(TempActionBreak);
-                }
-                if (TempActionScript != NULL)
-                {
-                    free(TempActionScript);
-                }
-                if (TempActionCustomCode != NULL)
-                {
-                    free(TempActionCustomCode);
-                }
-
                 ShowMessages("err, core id is invalid\n");
                 *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-                return FALSE;
+                goto ReturnWithError;
             }
             else
             {
@@ -2894,71 +2828,26 @@ InterpretGeneralEventAndActionsFields(
     //
     if (IsNextCommandCoreId)
     {
-        free(BufferOfCommandString);
-        free(TempEvent);
-
-        if (TempActionBreak != NULL)
-        {
-            free(TempActionBreak);
-        }
-        if (TempActionScript != NULL)
-        {
-            free(TempActionScript);
-        }
-        if (TempActionCustomCode != NULL)
-        {
-            free(TempActionCustomCode);
-        }
-
         ShowMessages("err, please specify a value for 'core'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-        return FALSE;
+
+        goto ReturnWithError;
     }
 
     if (IsNextCommandPid)
     {
-        free(BufferOfCommandString);
-        free(TempEvent);
-
-        if (TempActionBreak != NULL)
-        {
-            free(TempActionBreak);
-        }
-        if (TempActionScript != NULL)
-        {
-            free(TempActionScript);
-        }
-        if (TempActionCustomCode != NULL)
-        {
-            free(TempActionCustomCode);
-        }
-
         ShowMessages("err, please specify a value for 'pid'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-        return FALSE;
+
+        goto ReturnWithError;
     }
 
     if (IsNextCommandBufferSize)
     {
-        free(BufferOfCommandString);
-        free(TempEvent);
-
-        if (TempActionBreak != NULL)
-        {
-            free(TempActionBreak);
-        }
-        if (TempActionScript != NULL)
-        {
-            free(TempActionScript);
-        }
-        if (TempActionCustomCode != NULL)
-        {
-            free(TempActionCustomCode);
-        }
-
         ShowMessages("err, please specify a value for 'buffer'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
-        return FALSE;
+
+        goto ReturnWithError;
     }
 
     //
@@ -2966,29 +2855,14 @@ InterpretGeneralEventAndActionsFields(
     //
     if (!g_IsSerialConnectedToRemoteDebuggee && TempActionBreak != NULL)
     {
-        free(BufferOfCommandString);
-        free(TempEvent);
-
-        if (TempActionBreak != NULL)
-        {
-            free(TempActionBreak);
-        }
-        if (TempActionScript != NULL)
-        {
-            free(TempActionScript);
-        }
-        if (TempActionCustomCode != NULL)
-        {
-            free(TempActionCustomCode);
-        }
-
         ShowMessages(
             "err, it's not possible to break to the debugger in VMI Mode. "
             "You should operate in Debugger Mode to break and get the "
             "full control of the system. Still, you can use 'script' and run "
             "'custom code' in your local debugging (VMI Mode)\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE;
-        return FALSE;
+
+        goto ReturnWithError;
     }
 
     //
@@ -2997,26 +2871,11 @@ InterpretGeneralEventAndActionsFields(
     //
     if (!ImmediateMessagePassing && HasOutputPath)
     {
-        free(BufferOfCommandString);
-        free(TempEvent);
-
-        if (TempActionBreak != NULL)
-        {
-            free(TempActionBreak);
-        }
-        if (TempActionScript != NULL)
-        {
-            free(TempActionScript);
-        }
-        if (TempActionCustomCode != NULL)
-        {
-            free(TempActionCustomCode);
-        }
-
         ShowMessages("err, non-immediate message passing is not supported in "
                      "'output-forwarding mode'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE;
-        return FALSE;
+
+        goto ReturnWithError;
     }
 
     //
@@ -3116,4 +2975,31 @@ InterpretGeneralEventAndActionsFields(
     //
     *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SUCCESSFUL_NO_ERROR;
     return TRUE;
+
+ReturnWithError:
+
+    if (BufferOfCommandString)
+    {
+        free(BufferOfCommandString);
+    }
+
+    if (TempEvent)
+    {
+        free(TempEvent);
+    }
+
+    if (TempActionBreak != NULL)
+    {
+        free(TempActionBreak);
+    }
+    if (TempActionScript != NULL)
+    {
+        free(TempActionScript);
+    }
+    if (TempActionCustomCode != NULL)
+    {
+        free(TempActionCustomCode);
+    }
+
+    return FALSE;
 }

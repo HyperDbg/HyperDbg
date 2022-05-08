@@ -122,7 +122,7 @@ CommandMsrwrite(vector<string> SplittedCommand, string Command)
     Event->OptionalParam1 = SpecialTarget;
 
     //
-    // Send the ioctl to the kernel for event registration 
+    // Send the ioctl to the kernel for event registration
     //
     if (!SendEventToKernel(Event, EventLength))
     {
@@ -131,6 +131,9 @@ CommandMsrwrite(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
+        free(Event->CommandStringBuffer);
+        free(Event);
+
         if (ActionBreakToDebugger != NULL)
         {
             free(ActionBreakToDebugger);
