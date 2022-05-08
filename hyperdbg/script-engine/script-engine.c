@@ -12,7 +12,7 @@
  */
 #include "pch.h"
 
-//#define _SCRIPT_ENGINE_LALR_DBG_EN
+#define _SCRIPT_ENGINE_LALR_DBG_EN
 //#define _SCRIPT_ENGINE_LL1_DBG_EN
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
@@ -1480,9 +1480,10 @@ ScriptEngineBooleanExpresssionParse(
 
 #ifdef _SCRIPT_ENGINE_LALR_DBG_EN
     printf("Boolean Expression: ");
-    for (int i = 0; i < BooleanExpressionSize; i++)
+    printf("%s", FirstToken->Value);
+    for (int i = InputIdx - 1; i < BooleanExpressionSize; i++)
     {
-        printf("%c", str[InputIdx + i]);
+        printf("%c", str[i]);
     }
     printf("\n\n");
 #endif

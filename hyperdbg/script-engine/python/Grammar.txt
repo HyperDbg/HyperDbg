@@ -11,7 +11,7 @@
 
 
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen interlocked_increment interlocked_decrement ref physical_to_virtual virtual_to_physical
+.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # OneOpFunc2 input is a number.
 .OneOpFunc2->print formats disable_event enable_event test_statement spinlock_lock spinlock_unlock
@@ -164,7 +164,7 @@ E12->- E12 @NEG E13
 E12->+ E12 E13
 E12->~ E12 @NOT E13
 E12->* E12 @POI E13
-E12->& E12 @REF E13 
+E12->& E12 @REFERENCE E13 
 
 
 E13->eps

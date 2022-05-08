@@ -4689,7 +4689,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
-    case FUNC_REF:
+    case FUNC_REFERENCE:
 
         Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
