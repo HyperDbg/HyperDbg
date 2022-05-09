@@ -889,7 +889,7 @@ class LL1Parser:
             return None
         
         X = p +1
-        while self.IsSemanticRule(Rhs[X]):
+        while self.IsSemanticRule(Rhs[X]) and X + 1 < len(Rhs):
             X+=1
         return Rhs[X]
         
