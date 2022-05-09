@@ -8,7 +8,7 @@
 .ThreeOpFunc1->interlocked_compare_exchange
 
 
-.OperatorsOneOperand->inc dec reference dereference
+.OperatorsOneOperand->inc dec reference poi
 
 S->BE
 
@@ -41,52 +41,44 @@ CMP->EXP != EXP @NEQ
 CMP->EXP 
 
 EXP->E1 E0'
-E0'->| E1 E0' @OR
+E0'->| E1 @OR E0' 
 E0'->eps
 
 
 E1->E2 E1'
-E1'->^ E2 E1' @XOR 
+E1'->^ E2 @XOR E1' 
 E1'->eps
 
 E2->E3 E2'
-E2'->& E3 E2' @AND 
+E2'->& E3 @AND E2' 
 E2'->eps  
 
 E3->E4 E3'
-E3'->>> E4 E3' @ASR
+E3'->>> E4 @ASR E3'
+E3'-><< E4 @ASL E3'
 E3'->eps
 
+
+
 E4->E5 E4'
-E4'-><< E5 E4' @ASL 
+E4'->+ E5 @ADD E4'
+E4'->- E5 @SUB E4'
 E4'->eps
 
-E5->E6 E5'
-E5'->+ E6 E5' @ADD
-E5'->eps
-
-E6->E7 E6'
-E6'->- E7 E6' @SUB
-E6'->eps
-
-E7->E8 E7'
-E7'->* E8 E7' @MUL 
-E7'->eps
-
-E8->E9 E8'
-E8'->/ E9 E8' @DIV
-E8'->eps 
-
-
-E9->E10 E9' 
-E9'->% E10 E9' @MOD
-E9'->eps 
-
+E5->E10 E5'
+E5'->/ E12 @DIV E5'
+E5'->% E12 @MOD E5'
+E5'->* E12 @MUL E5'
+E5'->eps 
 
 
 
 E10->E12
-
+E10->- E12 @NEG
+E10->+ E12 E13
+E10->~ E12 @NOT 
+E10->* E12 @POI
+E10->& E12 @REFERENCE
 
 
 E12->.OneOpFunc1 ( EXP ) @.OneOpFunc1
@@ -111,10 +103,4 @@ E12->_binary @PUSH
 
 E12->_pseudo_register @PUSH
 
-E12->- E12 @NEG E13
-E12->+ E12 E13
-E12->~ E12 @NOT E13 
-E12->* E12 @POI E13
-E12->& E12 @REFERENCE E13 
 
-E13->eps
