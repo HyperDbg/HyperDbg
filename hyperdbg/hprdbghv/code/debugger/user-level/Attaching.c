@@ -70,8 +70,7 @@ AttachingInitialize()
 
         RtlInitUnicodeString(&RoutineName, L"ZwQueryInformationProcess");
 
-        g_ZwQueryInformationProcess =
-            (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
+        g_ZwQueryInformationProcess = (ZwQueryInformationProcess)MmGetSystemRoutineAddress(&RoutineName);
 
         if (g_ZwQueryInformationProcess == NULL)
         {
@@ -164,16 +163,8 @@ AttachingCreateProcessDebuggingDetails(UINT32    ProcessId,
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByToken(UINT64 Token)
 {
-    PLIST_ENTRY TempList = 0;
-
-    TempList = &g_ProcessDebuggingDetailsListHead;
-
-    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    LIST_FOR_EACH_LINK(g_ProcessDebuggingDetailsListHead, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList, ProcessDebuggingDetails)
     {
-        TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
-
         //
         // Check if we found the target thread and if it's enabled
         //
@@ -195,16 +186,8 @@ AttachingFindProcessDebuggingDetailsByToken(UINT64 Token)
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
 {
-    PLIST_ENTRY TempList = 0;
-
-    TempList = &g_ProcessDebuggingDetailsListHead;
-
-    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    LIST_FOR_EACH_LINK(g_ProcessDebuggingDetailsListHead, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList, ProcessDebuggingDetails)
     {
-        TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
-
         //
         // Check if we found the target thread and if it's enabled
         //
@@ -226,16 +209,8 @@ AttachingFindProcessDebuggingDetailsByProcessId(UINT32 ProcessId)
 PUSERMODE_DEBUGGING_PROCESS_DETAILS
 AttachingFindProcessDebuggingDetailsInStartingPhase()
 {
-    PLIST_ENTRY TempList = 0;
-
-    TempList = &g_ProcessDebuggingDetailsListHead;
-
-    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    LIST_FOR_EACH_LINK(g_ProcessDebuggingDetailsListHead, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList, ProcessDebuggingDetails)
     {
-        TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
-
         if (ProcessDebuggingDetails->IsOnTheStartingPhase)
         {
             return ProcessDebuggingDetails;
@@ -253,16 +228,8 @@ AttachingFindProcessDebuggingDetailsInStartingPhase()
 VOID
 AttachingRemoveAndFreeAllProcessDebuggingDetails()
 {
-    PLIST_ENTRY TempList = 0;
-
-    TempList = &g_ProcessDebuggingDetailsListHead;
-
-    while (&g_ProcessDebuggingDetailsListHead != TempList->Flink)
+    LIST_FOR_EACH_LINK(g_ProcessDebuggingDetailsListHead, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList, ProcessDebuggingDetails)
     {
-        TempList = TempList->Flink;
-        PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetails =
-            CONTAINING_RECORD(TempList, USERMODE_DEBUGGING_PROCESS_DETAILS, AttachedProcessList);
-
         //
         // Free the thread holding structure(s)
         //
@@ -428,8 +395,7 @@ AttachingHandleEntrypointDebugBreak(UINT32 CurrentProcessorIndex, PGUEST_REGS Gu
     //
     g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
 
-    ProcessDebuggingDetail =
-        AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
+    ProcessDebuggingDetail = AttachingFindProcessDebuggingDetailsByProcessId(PsGetCurrentProcessId());
     //
     // Check to only break on the target process id and thread id and when
     // the entrypoint is not called, if the thread debugging detail is found
@@ -639,11 +605,11 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentPro
                                          ULONG                        ErrorCode)
 {
     PUSERMODE_DEBUGGING_PROCESS_DETAILS ProcessDebuggingDetail;
-
+    VIRTUAL_MACHINE_STATE *             CurrentVmState = &g_GuestState[CurrentProcessorIndex];
     //
     // Check if thread is in user-mode
     //
-    if (g_GuestState[CurrentProcessorIndex].LastVmexitRip & 0xf000000000000000)
+    if (CurrentVmState->LastVmexitRip & 0xf000000000000000)
     {
         //
         // We won't intercept threads in kernel-mode
@@ -683,7 +649,7 @@ AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentPro
     //
     // related to user debugger
     //
-    g_GuestState[CurrentProcessorIndex].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
 
     return TRUE;
 }
@@ -943,12 +909,11 @@ AttachingPerformAttachToProcess(PDEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS Attach
         //
         // Apply monitor memory range to the PEB address
         //
-        ResultOfApplyingEvent =
-            DebuggerEventEnableMonitorReadAndWriteForAddress(
-                PebAddressToMonitor,
-                AttachRequest->ProcessId,
-                TRUE,
-                TRUE);
+        ResultOfApplyingEvent = DebuggerEventEnableMonitorReadAndWriteForAddress(
+            PebAddressToMonitor,
+            AttachRequest->ProcessId,
+            TRUE,
+            TRUE);
 
         if (!ResultOfApplyingEvent)
         {
