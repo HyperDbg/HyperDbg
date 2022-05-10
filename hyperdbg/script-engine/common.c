@@ -27,7 +27,6 @@ NewUnknownToken()
     return Token;
 }
 
-
 PTOKEN
 NewToken(TOKEN_TYPE Type, char * Value)
 {
@@ -61,9 +60,6 @@ RemoveToken(PTOKEN Token)
     free(Token);
     return;
 }
-
-
-
 
 /**
  * @brief prints token
@@ -456,6 +452,12 @@ IsOctal(char c)
         return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Error 
+ * @return PTOKEN 
+ */
 PTOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
@@ -481,6 +483,12 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     Temp->Type = TEMP;
     return Temp;
 }
+
+/**
+ * @brief 
+ * 
+ * @param Temp 
+ */
 void
 FreeTemp(PTOKEN Temp)
 {
@@ -491,6 +499,10 @@ FreeTemp(PTOKEN Temp)
     }
 }
 
+/**
+ * @brief 
+ * 
+ */
 void
 CleanTempList(void)
 {
@@ -514,6 +526,12 @@ IsType1Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType2Func(PTOKEN Operator)
 {
@@ -528,6 +546,12 @@ IsType2Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsTwoOperandOperator(PTOKEN Operator)
 {
@@ -542,6 +566,12 @@ IsTwoOperandOperator(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsOneOperandOperator(PTOKEN Operator)
 {
@@ -556,6 +586,12 @@ IsOneOperandOperator(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType4Func(PTOKEN Operator)
 {
@@ -570,6 +606,12 @@ IsType4Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType5Func(PTOKEN Operator)
 {
@@ -584,6 +626,12 @@ IsType5Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType6Func(PTOKEN Operator)
 {
@@ -598,6 +646,12 @@ IsType6Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType7Func(PTOKEN Operator)
 {
@@ -612,6 +666,12 @@ IsType7Func(PTOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType8Func(PTOKEN Operator)
 {
@@ -627,10 +687,11 @@ IsType8Func(PTOKEN Operator)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return char 
+ */
 char
 IsNoneTerminal(PTOKEN Token)
 {
@@ -641,10 +702,11 @@ IsNoneTerminal(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return char 
+ */
 char
 IsSemanticRule(PTOKEN Token)
 {
@@ -655,10 +717,11 @@ IsSemanticRule(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief Get the Non Terminal Id object
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 GetNonTerminalId(PTOKEN Token)
 {
@@ -671,10 +734,11 @@ GetNonTerminalId(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief Get the Terminal Id object
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 GetTerminalId(PTOKEN Token)
 {
@@ -752,10 +816,11 @@ GetTerminalId(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 LalrGetNonTerminalId(PTOKEN Token)
 {
@@ -768,10 +833,11 @@ LalrGetNonTerminalId(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 LalrGetTerminalId(PTOKEN Token)
 {
@@ -849,10 +915,12 @@ LalrGetTerminalId(PTOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token1 
+ * @param Token2 
+ * @return char 
+ */
 char
 IsEqual(const PTOKEN Token1, const PTOKEN Token2)
 {
@@ -891,12 +959,24 @@ IsEqual(const PTOKEN Token1, const PTOKEN Token2)
     return 0;
 }
 
+/**
+ * @brief Set the Type object
+ * 
+ * @param Val 
+ * @param Type 
+ */
 void
 SetType(unsigned long long * Val, unsigned char Type)
 {
     *Val = (unsigned long long int)Type;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 DecimalToInt(char * str)
 {
@@ -912,6 +992,12 @@ DecimalToInt(char * str)
     return Acc;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 DecimalToSignedInt(char * str)
 {
@@ -940,6 +1026,12 @@ DecimalToSignedInt(char * str)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 HexToInt(char * str)
 {
@@ -966,6 +1058,13 @@ HexToInt(char * str)
 
     return Acc;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 OctalToInt(char * str)
 {
@@ -981,6 +1080,13 @@ OctalToInt(char * str)
     }
     return Acc;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 BinaryToInt(char * str)
 {

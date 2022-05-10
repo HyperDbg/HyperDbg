@@ -17,9 +17,12 @@
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
-*
-*
-*/
+ * @brief Convert name to address
+ * 
+ * @param FunctionOrVariableName 
+ * @param WasFound 
+ * @return UINT64 
+ */
 UINT64
 ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 {
@@ -30,9 +33,12 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 }
 
 /**
-*
-*
-*/
+ * @brief Load symbol files
+ * 
+ * @param BaseAddress 
+ * @param PdbFileName 
+ * @return UINT32 
+ */
 UINT32
 ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 {
@@ -43,15 +49,22 @@ ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 }
 
 /**
-*
-*
-*/
+ * @brief Set the message handler as an alternative to printf
+ * 
+ * @param Handler 
+ * @return VOID 
+ */
 VOID
 ScriptEngineSetTextMessageCallback(PVOID Handler)
 {
     SymSetTextMessageCallback(Handler);
 }
 
+/**
+ * @brief Unload all the previously loaded symbols
+ * 
+ * @return UINT32 
+ */
 UINT32
 ScriptEngineUnloadAllSymbols()
 {
@@ -61,6 +74,12 @@ ScriptEngineUnloadAllSymbols()
     return SymUnloadAllSymbols();
 }
 
+/**
+ * @brief Unload a special pdb
+ * 
+ * @param ModuleName 
+ * @return UINT32 
+ */
 UINT32
 ScriptEngineUnloadModuleSymbol(char * ModuleName)
 {
@@ -70,6 +89,12 @@ ScriptEngineUnloadModuleSymbol(char * ModuleName)
     return SymUnloadModuleSymbol(ModuleName);
 }
 
+/**
+ * @brief Search for a special mask
+ * 
+ * @param SearchMask 
+ * @return UINT32 
+ */
 UINT32
 ScriptEngineSearchSymbolForMask(const char * SearchMask)
 {
@@ -79,6 +104,14 @@ ScriptEngineSearchSymbolForMask(const char * SearchMask)
     return SymSearchSymbolForMask(SearchMask);
 }
 
+/**
+ * @brief Get offset of a field from the structure
+ * 
+ * @param TypeName 
+ * @param FieldName 
+ * @param FieldOffset 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 {
@@ -88,6 +121,13 @@ ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffs
     return SymGetFieldOffset(TypeName, FieldName, FieldOffset);
 }
 
+/**
+ * @brief Get size of a data type (structure)
+ * 
+ * @param TypeName 
+ * @param TypeSize 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
 {
@@ -97,6 +137,12 @@ ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     return SymGetDataTypeSize(TypeName, TypeSize);
 }
 
+/**
+ * @brief Create symbol table for disassembler
+ * 
+ * @param CallbackFunction 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
 {
@@ -106,6 +152,13 @@ ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction)
     return SymCreateSymbolTableForDisassembler(CallbackFunction);
 }
 
+/**
+ * @brief Convert local file to pdb path
+ * 
+ * @param LocalFilePath 
+ * @param ResultPath 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
 {
@@ -115,6 +168,16 @@ ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
     return SymConvertFileToPdbPath(LocalFilePath, ResultPath);
 }
 
+/**
+ * @brief Initial load of the symbols
+ * 
+ * @param BufferToStoreDetails 
+ * @param StoredLength 
+ * @param DownloadIfAvailable 
+ * @param SymbolPath 
+ * @param IsSilentLoad 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
                            UINT32       StoredLength,
@@ -128,6 +191,16 @@ ScriptEngineSymbolInitLoad(PVOID        BufferToStoreDetails,
     return SymbolInitLoad(BufferToStoreDetails, StoredLength, DownloadIfAvailable, SymbolPath, IsSilentLoad);
 }
 
+/**
+ * @brief Show data based on symbol types
+ * 
+ * @param TypeName 
+ * @param Address 
+ * @param IsStruct 
+ * @param BufferAddress 
+ * @param AdditionalParameters 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
                                        UINT64       Address,
@@ -141,6 +214,11 @@ ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName,
     return SymShowDataBasedOnSymbolTypes(TypeName, Address, IsStruct, BufferAddress, AdditionalParameters);
 }
 
+/**
+ * @brief Cancel loading
+ * 
+ * @return VOID 
+ */
 VOID
 ScriptEngineSymbolAbortLoading()
 {
@@ -150,6 +228,14 @@ ScriptEngineSymbolAbortLoading()
     return SymbolAbortLoading();
 }
 
+/**
+ * @brief Convert file to pdb attributes for symbols
+ * 
+ * @param LocalFilePath 
+ * @param PdbFilePath 
+ * @param GuidAndAgeDetails 
+ * @return BOOLEAN 
+ */
 BOOLEAN
 ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails)
 {
@@ -160,9 +246,11 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 }
 
 /**
-*
-*
-*/
+ * @brief 
+ * 
+ * @param str 
+ * @return PSYMBOL_BUFFER 
+ */
 PSYMBOL_BUFFER
 ScriptEngineParse(char * str)
 {
@@ -387,6 +475,14 @@ ScriptEngineParse(char * str)
     return CodeBuffer;
 }
 
+/**
+ * @brief 
+ * 
+ * @param MatchedStack 
+ * @param CodeBuffer 
+ * @param Operator 
+ * @param Error 
+ */
 void
 CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
@@ -1419,6 +1515,14 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
     return;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @param WaitForWaitStatementBooleanExpression 
+ * @param CurrentIn 
+ * @return UINT64 
+ */
 UINT64
 BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn)
 {
@@ -1460,9 +1564,16 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 }
 
 /**
-*
-*
-*/
+ * @brief 
+ * 
+ * @param BooleanExpressionSize 
+ * @param FirstToken 
+ * @param MatchedStack 
+ * @param CodeBuffer 
+ * @param str 
+ * @param c 
+ * @param Error 
+ */
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
@@ -1633,11 +1744,12 @@ ScriptEngineBooleanExpresssionParse(
 
     return;
 }
+
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @return PSYMBOL 
+ */
 PSYMBOL
 NewSymbol(void)
 {
@@ -1648,6 +1760,12 @@ NewSymbol(void)
     return Symbol;
 }
 
+/**
+ * @brief 
+ * 
+ * @param value 
+ * @return PSYMBOL 
+ */
 PSYMBOL
 NewStringSymbol(char * value)
 {
@@ -1659,6 +1777,12 @@ NewStringSymbol(char * value)
     return Symbol;
 }
 
+/**
+ * @brief
+ * 
+ * @param Symbol 
+ * @return unsigned int 
+ */
 unsigned int
 GetStringSymbolSize(PSYMBOL Symbol)
 {
@@ -1667,10 +1791,10 @@ GetStringSymbolSize(PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Symbol 
+ */
 void
 RemoveSymbol(PSYMBOL Symbol)
 {
@@ -1680,10 +1804,10 @@ RemoveSymbol(PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Symbol 
+ */
 void
 PrintSymbol(PSYMBOL Symbol)
 {
@@ -1697,6 +1821,13 @@ PrintSymbol(PSYMBOL Symbol)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @param Error 
+ * @return PSYMBOL 
+ */
 PSYMBOL
 ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
@@ -1758,10 +1889,10 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @return PSYMBOL_BUFFER 
+ */
 PSYMBOL_BUFFER
 NewSymbolBuffer(void)
 {
@@ -1775,10 +1906,10 @@ NewSymbolBuffer(void)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param SymbolBuffer 
+ */
 void
 RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 {
@@ -1788,10 +1919,12 @@ RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param SymbolBuffer 
+ * @param Symbol 
+ * @return PSYMBOL_BUFFER 
+ */
 PSYMBOL_BUFFER
 PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 {
@@ -1892,10 +2025,10 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param SymbolBuffer 
+ */
 void
 PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 {
@@ -1918,6 +2051,12 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 RegisterToInt(char * str)
 {
@@ -1930,6 +2069,13 @@ RegisterToInt(char * str)
     }
     return INVALID;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 PseudoRegToInt(char * str)
 {
@@ -1942,6 +2088,13 @@ PseudoRegToInt(char * str)
     }
     return INVALID;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 SemanticRuleToInt(char * str)
 {
@@ -1954,6 +2107,14 @@ SemanticRuleToInt(char * str)
     }
     return INVALID;
 }
+
+/**
+ * @brief 
+ * 
+ * @param Error 
+ * @param str 
+ * @return char* 
+ */
 char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 {
@@ -2040,6 +2201,12 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 GetGlobalIdentifierVal(PTOKEN Token)
 {
@@ -2055,6 +2222,12 @@ GetGlobalIdentifierVal(PTOKEN Token)
     return -1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 GetLocalIdentifierVal(PTOKEN Token)
 {
@@ -2070,6 +2243,12 @@ GetLocalIdentifierVal(PTOKEN Token)
     return -1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 NewGlobalIdentifier(PTOKEN Token)
 {
@@ -2078,6 +2257,12 @@ NewGlobalIdentifier(PTOKEN Token)
     return IdTable->Pointer - 1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
 NewLocalIdentifier(PTOKEN Token)
 {
@@ -2086,6 +2271,12 @@ NewLocalIdentifier(PTOKEN Token)
     return IdTable->Pointer - 1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param RuleId 
+ * @return int 
+ */
 int
 LalrGetRhsSize(int RuleId)
 {
@@ -2101,6 +2292,12 @@ LalrGetRhsSize(int RuleId)
     return Counter;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Token 
+ * @return BOOL 
+ */
 BOOL
 LalrIsOperandType(PTOKEN Token)
 {

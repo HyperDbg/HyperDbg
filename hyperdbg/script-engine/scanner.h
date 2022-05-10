@@ -29,8 +29,9 @@ unsigned int CurrentLineIdx;
 unsigned int CurrentTokenIdx;
 
 ////////////////////////////////////////////////////
-// Interfacing functions						  //
+//            Interfacing functions	         	  //
 ////////////////////////////////////////////////////
+
 PTOKEN
 GetToken(char * c, char * str);
 
