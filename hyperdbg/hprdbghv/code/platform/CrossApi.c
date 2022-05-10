@@ -29,3 +29,13 @@ CrsAllocateContiguousZeroedMemory(_In_ SIZE_T NumberOfBytes)
 
     return Result;
 }
+
+PVOID
+CrsAllocateNonPagedPool(SIZE_T NumberOfBytes)
+{
+    PVOID Result = ExAllocatePoolWithTag(NonPagedPool, NumberOfBytes, POOLTAG);
+    if (Result != NULL)
+        RtlSecureZeroMemory(Result, NumberOfBytes);
+
+    return Result;
+}

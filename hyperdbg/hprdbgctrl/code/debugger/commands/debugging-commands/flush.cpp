@@ -54,13 +54,7 @@ CommandFlushRequestFlush()
         //
         // It's a vmi-mode
         //
-        if (!g_DeviceHandle)
-        {
-            ShowMessages(
-                "handle not found, probably the driver is not loaded. Did you "
-                "use 'load' command?\n");
-            return;
-        }
+        AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturn);
 
         //
         // By the way, we don't need to send an input buffer

@@ -60,6 +60,9 @@
     <Filter Include="code\debugger\kernel-level">
       <UniqueIdentifier>{2f700221-e2a8-4d14-bc0a-2541768d7a57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\objects">
+      <UniqueIdentifier>{e42b58d1-94e6-4c41-bf1c-7a4103005ced}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -120,6 +123,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\ud.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="header\objects.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
@@ -439,15 +445,13 @@
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp">
       <Filter>code\debugger\commands\debugging-commands</Filter>
     </ClCompile>
+    <ClCompile Include="code\objects\objects.cpp">
+      <Filter>code\objects</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">
       <Filter>code\assembly</Filter>
     </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint">
-      <Filter>header</Filter>
-    </None>
   </ItemGroup>
 </Project>

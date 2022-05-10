@@ -54,17 +54,24 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
                             PUINT64          BufferAddress,
                             PUINT32          BufferLength);
 
+VOID
+FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                           PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
+                           PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
+                           PDEBUGGER_GENERAL_ACTION       ActionScript);
+
 BOOLEAN
 SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
                   UINT32                         EventBufferLength);
 
 BOOLEAN
-RegisterActionToEvent(PDEBUGGER_GENERAL_ACTION ActionBreakToDebugger,
-                      UINT32                   ActionBreakToDebuggerLength,
-                      PDEBUGGER_GENERAL_ACTION ActionCustomCode,
-                      UINT32                   ActionCustomCodeLength,
-                      PDEBUGGER_GENERAL_ACTION ActionScript,
-                      UINT32                   ActionScriptLength);
+RegisterActionToEvent(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
+                      PDEBUGGER_GENERAL_ACTION       ActionBreakToDebugger,
+                      UINT32                         ActionBreakToDebuggerLength,
+                      PDEBUGGER_GENERAL_ACTION       ActionCustomCode,
+                      UINT32                         ActionCustomCodeLength,
+                      PDEBUGGER_GENERAL_ACTION       ActionScript,
+                      UINT32                         ActionScriptLength);
 
 BOOLEAN
 InterpretGeneralEventAndActionsFields(

@@ -108,44 +108,44 @@ volatile LONG VmxRootLoggingLockForNonImmBuffers;
 A core buffer is like this , it's divided into MaximumPacketsCapacity chucks,
 each chunk has PacketChunkSize + sizeof(BUFFER_HEADER) size
 
-			 _________________________
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
-			|						  |
-			|						  |
-			|						  |
-			|						  |
-			|			.			  |
-			|			.			  |
-			|			.			  |
-			|						  |
-			|						  |
-			|						  |
-			|						  |
-			|_________________________|
-			|      BUFFER_HEADER      |
-			|_________________________|
-			|						  |
-			|           BODY		  |
-			|         (Buffer)		  |
-			| size = PacketChunkSize  |
-			|						  |
-			|_________________________|
-
+             _________________________
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |                         |
+            |           BODY          |
+            |         (Buffer)        |
+            | size = PacketChunkSize  |
+            |                         |
+            |_________________________|
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |                         |
+            |           BODY          |
+            |         (Buffer)        |
+            | size = PacketChunkSize  |
+            |                         |
+            |_________________________|
+            |                         |
+            |                         |
+            |                         |
+            |                         |
+            |                         |
+            |           .             |
+            |           .             |
+            |           .             |
+            |                         |
+            |                         |
+            |                         |
+            |_________________________|
+            |      BUFFER_HEADER      |
+            |_________________________|
+            |                         |
+            |           BODY          |
+            |         (Buffer)        |
+            | size = PacketChunkSize  |
+            |                         |
+            |_________________________|
+            
 */
 
 //////////////////////////////////////////////////
@@ -159,7 +159,10 @@ VOID
 LogUnInitialize();
 
 BOOLEAN
-LogSendBuffer(UINT32 OperationCode, PVOID Buffer, UINT32 BufferLength, BOOLEAN Priority);
+LogSendBuffer(_In_ UINT32                          OperationCode,
+              _In_reads_bytes_(BufferLength) PVOID Buffer,
+              _In_ UINT32                          BufferLength,
+              _In_ BOOLEAN                         Priority);
 
 UINT32
 LogMarkAllAsRead(BOOLEAN IsVmxRoot);

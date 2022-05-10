@@ -11,7 +11,7 @@
 
 
 # OneOpFunc1 input is a number and returns a number.
-.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen interlocked_increment interlocked_decrement ref physical_to_virtual virtual_to_physical
+.OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # OneOpFunc2 input is a number.
 .OneOpFunc2->print formats disable_event enable_event test_statement spinlock_lock spinlock_unlock
@@ -38,14 +38,17 @@ STATEMENT->IF_STATEMENT
 STATEMENT->WHILE_STATEMENT
 STATEMENT->DO_WHILE_STATEMENT
 STATEMENT->FOR_STATEMENT
-STATEMENT->ASSIGN_STATEMENT ;
+STATEMENT->ASSIGNMENT_STATEMENT ;
 STATEMENT->CALL_FUNC_STATEMENT ;
 STATEMENT->break @BREAK ;
 STATEMENT->continue @CONTINUE ;
 
 
 
-ASSIGN_STATEMENT->L_VALUE = EXPRESSION @MOV NULL
+ASSIGNMENT_STATEMENT->L_VALUE ASSIGNMENT_STATEMENT'
+ASSIGNMENT_STATEMENT'->++ @INC
+ASSIGNMENT_STATEMENT'->-- @DEC
+ASSIGNMENT_STATEMENT'->= EXPRESSION @MOV
 CALL_FUNC_STATEMENT->.OneOpFunc2 ( EXPRESSION @.OneOpFunc2 )
 CALL_FUNC_STATEMENT->.VarArgFunc1 ( STRING @VARGSTART VA @.VarArgFunc1 )
 CALL_FUNC_STATEMENT->.ZeroOpFunc1 ( @.ZeroOpFunc1 )
@@ -78,11 +81,10 @@ SIMPLE_ASSIGNMENT'->eps
 
 
 INC_DEC->L_VALUE INC_DEC'
-INC_DEC'->++ @INC INC'
-INC_DEC'->-- @DEC DEC'
+INC_DEC'->++ @INC
+INC_DEC'->-- @DEC
 INC_DEC'->= EXPRESSION @MOV SIMPLE_ASSIGNMENT'
-INC'->eps 
-DEC'->eps
+
 INC_DEC'->eps
 
 BOOLEAN_EXPRESSION->eps
@@ -103,37 +105,23 @@ E2'->eps
 
 E3->E4 E3'
 E3'->>> E4 @ASR E3'
+E3'-><< E4 @ASL E3'
 E3'->eps
 
+
+
 E4->E5 E4'
-E4'-><< E5 @ASL E4' 
+E4'->+ E5 @ADD E4'
+E4'->- E5 @SUB E4'
 E4'->eps
 
-E5->E6 E5'
-E5'->+ E6 @ADD E5'
-E5'->eps
-
-E6->E7 E6'
-E6'->- E7 @SUB E6' 
-E6'->eps
-
-E7->E8 E7'
-E7'->* E8 @MUL E7' 
-E7'->eps
-
-E8->E9 E8'
-E8'->/ E9 @DIV E8'
-E8'->eps 
+E5->E12 E5'
+E5'->/ E12 @DIV E5'
+E5'->% E12 @MOD E5'
+E5'->* E12 @MUL E5'
+E5'->eps 
 
 
-E9->E10 E9' 
-E9'->% E10 @MOD E9'
-E9'->eps 
-
-
-
-
-E10->E12
 
 
 
@@ -160,20 +148,20 @@ E12->@PUSH _binary
 
 E12->@PUSH _pseudo_register
 
-E12->- E12 @NEG E13
-E12->+ E12 E13
-E12->~ E12 @NOT E13
-E12->* E12 @POI E13
-E12->& E12 @REF E13 
+E12->- E12 @NEG
+E12->+ E12
+E12->~ E12 @NOT
+E12->* E12 @POI
+E12->& E12 @REFERENCE
 
 
-E13->eps
+
 
 
 STRING->@PUSH _string
 L_VALUE->@PUSH _global_id 
 L_VALUE->@PUSH _local_id 
 L_VALUE->@PUSH _register
-NULL->eps
+
 
 

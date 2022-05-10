@@ -5,15 +5,15 @@
  *
  * @return Token
  */
-TOKEN
-NewToken()
+PTOKEN
+NewUnknownToken()
 {
-    TOKEN Token;
+    PTOKEN Token;
 
     //
-    // Allocates memory for token and its value
+    // Allocate memory for token and its value
     //
-    Token        = (TOKEN)malloc(sizeof(*Token));
+    Token        = (PTOKEN)malloc(sizeof(TOKEN));
     Token->Value = (char *)calloc(TOKEN_VALUE_MAX_LEN + 1, sizeof(char));
 
     //
@@ -21,8 +21,29 @@ NewToken()
     //
     strcpy(Token->Value, "");
     Token->Type    = UNKNOWN;
-    Token->len     = 0;
-    Token->max_len = TOKEN_VALUE_MAX_LEN;
+    Token->Len     = 0;
+    Token->MaxLen = TOKEN_VALUE_MAX_LEN;
+
+    return Token;
+}
+
+PTOKEN
+NewToken(TOKEN_TYPE Type, char * Value)
+{
+    //
+    // Allocate memory for token]
+    //
+    PTOKEN Token        = (PTOKEN)malloc(sizeof(TOKEN));
+    
+    //
+    // Init fields
+    //
+    unsigned int Len = strlen(Value);
+    Token->Type   = Type;
+    Token->Len       = Len;
+    Token->MaxLen    = Len;
+    Token->Value     = (char *)calloc(Token->MaxLen + 1, sizeof(char));
+    strcpy(Token->Value, Value);
 
     return Token;
 }
@@ -33,7 +54,7 @@ NewToken()
  * @param Token
  */
 void
-RemoveToken(TOKEN Token)
+RemoveToken(PTOKEN Token)
 {
     free(Token->Value);
     free(Token);
@@ -47,7 +68,7 @@ RemoveToken(TOKEN Token)
  * @param Token
  */
 void
-PrintToken(TOKEN Token)
+PrintToken(PTOKEN Token)
 {
     //
     // Prints vlaue of the Token
@@ -143,23 +164,23 @@ PrintToken(TOKEN Token)
  * @param char
  */
 void
-Append(TOKEN Token, char c)
+Append(PTOKEN Token, char c)
 {
     //
     // Check overflow of the string
     //
-    if (Token->len >= Token->max_len - 1)
+    if (Token->Len >= Token->MaxLen - 1)
     {
         //
         // Double the length of the allocated space for the string
         //
-        Token->max_len *= 2;
-        char * NewValue = (char *)calloc(Token->max_len + 1, sizeof(char));
+        Token->MaxLen *= 2;
+        char * NewValue = (char *)calloc(Token->MaxLen + 1, sizeof(char));
 
         //
         // Free Old buffer and update the pointer
         //
-        strncpy(NewValue, Token->Value, Token->len);
+        strncpy(NewValue, Token->Value, Token->Len);
         free(Token->Value);
         Token->Value = NewValue;
     }
@@ -168,7 +189,27 @@ Append(TOKEN Token, char c)
     // Append the new charcter to the string
     //
     strncat(Token->Value, &c, 1);
-    Token->len++;
+    Token->Len++;
+}
+
+/**
+ * @brief copies a PTOKEN
+ *
+ * @return PTOKEN
+ */
+PTOKEN
+CopyToken(PTOKEN Token)
+{
+  
+    PTOKEN TokenCopy = (PTOKEN)malloc(sizeof(TOKEN));
+    TokenCopy->Type  = Token->Type;
+    TokenCopy->MaxLen = Token->MaxLen;
+    TokenCopy->Len    = Token->Len;
+    TokenCopy->Value  = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
+    strcpy(TokenCopy->Value, Token->Value);
+    
+    
+    return TokenCopy;
 }
 
 /**
@@ -176,15 +217,15 @@ Append(TOKEN Token, char c)
  *
  * @return TOKEN_LIST
  */
-TOKEN_LIST
+PTOKEN_LIST
 NewTokenList(void)
 {
-    TOKEN_LIST TokenList;
+    PTOKEN_LIST TokenList;
 
     //
     // Allocation of memory for TOKEN_LIST structure
     //
-    TokenList = (TOKEN_LIST)malloc(sizeof(*TokenList));
+    TokenList = (PTOKEN_LIST)malloc(sizeof(*TokenList));
 
     //
     // Initialize fields of TOKEN_LIST
@@ -195,7 +236,7 @@ NewTokenList(void)
     //
     // Allocation of memory for TOKEN_LIST buffer
     //
-    TokenList->Head = (TOKEN *)malloc(TokenList->Size * sizeof(TOKEN));
+    TokenList->Head = (PTOKEN *)malloc(TokenList->Size * sizeof(PTOKEN));
 
     return TokenList;
 }
@@ -206,9 +247,9 @@ NewTokenList(void)
  * @param TokenList
  */
 void
-RemoveTokenList(TOKEN_LIST TokenList)
+RemoveTokenList(PTOKEN_LIST TokenList)
 {
-    TOKEN Token;
+    PTOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
@@ -226,9 +267,9 @@ RemoveTokenList(TOKEN_LIST TokenList)
  * @param TokenList
  */
 void
-PrintTokenList(TOKEN_LIST TokenList)
+PrintTokenList(PTOKEN_LIST TokenList)
 {
-    TOKEN Token;
+    PTOKEN Token;
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
@@ -243,15 +284,15 @@ PrintTokenList(TOKEN_LIST TokenList)
  * @param TokenList
  * @return TokenList
  */
-TOKEN_LIST
-Push(TOKEN_LIST TokenList, TOKEN Token)
+PTOKEN_LIST
+Push(PTOKEN_LIST TokenList, PTOKEN Token)
 {
     //
     // Calculate address to write new token
     //
     uintptr_t Head      = (uintptr_t)TokenList->Head;
     uintptr_t Pointer   = (uintptr_t)TokenList->Pointer;
-    TOKEN *   WriteAddr = (TOKEN *)(Head + Pointer * sizeof(TOKEN));
+    PTOKEN *   WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     //
     // Write Token to appropriate address in TokenList
@@ -271,12 +312,12 @@ Push(TOKEN_LIST TokenList, TOKEN Token)
         //
         // Allocate a new buffer for string list with doubled length
         //
-        TOKEN * NewHead = (TOKEN *)malloc(2 * TokenList->Size * sizeof(TOKEN));
+        PTOKEN * NewHead = (PTOKEN *)malloc(2 * TokenList->Size * sizeof(PTOKEN));
 
         //
         // Copy old buffer to new buffer
         //
-        memcpy(NewHead, TokenList->Head, TokenList->Size * sizeof(TOKEN));
+        memcpy(NewHead, TokenList->Head, TokenList->Size * sizeof(PTOKEN));
 
         //
         // Free old buffer
@@ -298,8 +339,8 @@ Push(TOKEN_LIST TokenList, TOKEN Token)
  * @param TokenList
  @ @return Token
  */
-TOKEN
-Pop(TOKEN_LIST TokenList)
+PTOKEN
+Pop(PTOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent token
@@ -308,7 +349,7 @@ Pop(TOKEN_LIST TokenList)
         TokenList->Pointer--;
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer;
-    TOKEN *   ReadAddr = (TOKEN *)(Head + Pointer * sizeof(TOKEN));
+    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
@@ -319,15 +360,15 @@ Pop(TOKEN_LIST TokenList)
  * @param TokenList
  * @return Token
  */
-TOKEN
-Top(TOKEN_LIST TokenList)
+PTOKEN
+Top(PTOKEN_LIST TokenList)
 {
     //
     // Calculate address to read most recent pushed token
     //
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer - 1;
-    TOKEN *   ReadAddr = (TOKEN *)(Head + Pointer * sizeof(TOKEN));
+    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
@@ -411,7 +452,13 @@ IsOctal(char c)
         return 0;
 }
 
-TOKEN
+/**
+ * @brief 
+ * 
+ * @param Error 
+ * @return PTOKEN 
+ */
+PTOKEN
 NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
     static unsigned int TempID = 0;
@@ -429,15 +476,21 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
     {
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
-    TOKEN Temp = NewToken();
+    PTOKEN Temp = NewUnknownToken();
     char  TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
     return Temp;
 }
+
+/**
+ * @brief 
+ * 
+ * @param Temp 
+ */
 void
-FreeTemp(TOKEN Temp)
+FreeTemp(PTOKEN Temp)
 {
     int id = DecimalToInt(Temp->Value);
     if (Temp->Type == TEMP)
@@ -446,6 +499,10 @@ FreeTemp(TOKEN Temp)
     }
 }
 
+/**
+ * @brief 
+ * 
+ */
 void
 CleanTempList(void)
 {
@@ -456,7 +513,7 @@ CleanTempList(void)
 }
 
 char
-IsType1Func(TOKEN Operator)
+IsType1Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
@@ -469,8 +526,14 @@ IsType1Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType2Func(TOKEN Operator)
+IsType2Func(PTOKEN Operator)
 {
     unsigned int n = ONEOPFUNC2_LENGTH;
     for (int i = 0; i < n; i++)
@@ -483,8 +546,14 @@ IsType2Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsTwoOperandOperator(TOKEN Operator)
+IsTwoOperandOperator(PTOKEN Operator)
 {
     unsigned int n = OPERATORS_TWO_OPERAND_LIST_LENGTH;
     for (int i = 0; i < n; i++)
@@ -497,8 +566,14 @@ IsTwoOperandOperator(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsOneOperandOperator(TOKEN Operator)
+IsOneOperandOperator(PTOKEN Operator)
 {
     unsigned int n = OPERATORS_ONE_OPERAND_LIST_LENGTH;
     for (int i = 0; i < n; i++)
@@ -511,8 +586,14 @@ IsOneOperandOperator(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType4Func(TOKEN Operator)
+IsType4Func(PTOKEN Operator)
 {
     unsigned int n = VARARGFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
@@ -525,8 +606,14 @@ IsType4Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType5Func(TOKEN Operator)
+IsType5Func(PTOKEN Operator)
 {
     unsigned int n = ZEROOPFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
@@ -539,8 +626,14 @@ IsType5Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType6Func(TOKEN Operator)
+IsType6Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
@@ -553,8 +646,14 @@ IsType6Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType7Func(TOKEN Operator)
+IsType7Func(PTOKEN Operator)
 {
     unsigned int n = TWOOPFUNC2_LENGTH;
     for (int i = 0; i < n; i++)
@@ -567,8 +666,14 @@ IsType7Func(TOKEN Operator)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
-IsType8Func(TOKEN Operator)
+IsType8Func(PTOKEN Operator)
 {
     unsigned int n = THREEOPFUNC1_LENGTH;
     for (int i = 0; i < n; i++)
@@ -582,12 +687,13 @@ IsType8Func(TOKEN Operator)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return char 
+ */
 char
-IsNoneTerminal(TOKEN Token)
+IsNoneTerminal(PTOKEN Token)
 {
     if (Token->Value[0] >= 'A' && Token->Value[0] <= 'Z')
         return 1;
@@ -596,12 +702,13 @@ IsNoneTerminal(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return char 
+ */
 char
-IsSemanticRule(TOKEN Token)
+IsSemanticRule(PTOKEN Token)
 {
     if (Token->Value[0] == '@')
         return 1;
@@ -610,12 +717,13 @@ IsSemanticRule(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief Get the Non Terminal Id object
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
-GetNonTerminalId(TOKEN Token)
+GetNonTerminalId(PTOKEN Token)
 {
     for (int i = 0; i < NONETERMINAL_COUNT; i++)
     {
@@ -626,12 +734,13 @@ GetNonTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief Get the Terminal Id object
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
-GetTerminalId(TOKEN Token)
+GetTerminalId(PTOKEN Token)
 {
     for (int i = 0; i < TERMINAL_COUNT; i++)
     {
@@ -707,12 +816,13 @@ GetTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
-LalrGetNonTerminalId(TOKEN Token)
+LalrGetNonTerminalId(PTOKEN Token)
 {
     for (int i = 0; i < LALR_NONTERMINAL_COUNT; i++)
     {
@@ -723,12 +833,13 @@ LalrGetNonTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token 
+ * @return int 
+ */
 int
-LalrGetTerminalId(TOKEN Token)
+LalrGetTerminalId(PTOKEN Token)
 {
     for (int i = 0; i < LALR_TERMINAL_COUNT; i++)
     {
@@ -804,12 +915,14 @@ LalrGetTerminalId(TOKEN Token)
 }
 
 /**
-*
-*
-*
-*/
+ * @brief 
+ * 
+ * @param Token1 
+ * @param Token2 
+ * @return char 
+ */
 char
-IsEqual(const TOKEN Token1, const TOKEN Token2)
+IsEqual(const PTOKEN Token1, const PTOKEN Token2)
 {
     if (Token1->Type == Token2->Type)
     {
@@ -846,12 +959,24 @@ IsEqual(const TOKEN Token1, const TOKEN Token2)
     return 0;
 }
 
+/**
+ * @brief Set the Type object
+ * 
+ * @param Val 
+ * @param Type 
+ */
 void
 SetType(unsigned long long * Val, unsigned char Type)
 {
     *Val = (unsigned long long int)Type;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 DecimalToInt(char * str)
 {
@@ -867,6 +992,12 @@ DecimalToInt(char * str)
     return Acc;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 DecimalToSignedInt(char * str)
 {
@@ -895,6 +1026,12 @@ DecimalToSignedInt(char * str)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 HexToInt(char * str)
 {
@@ -921,6 +1058,13 @@ HexToInt(char * str)
 
     return Acc;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 OctalToInt(char * str)
 {
@@ -936,6 +1080,13 @@ OctalToInt(char * str)
     }
     return Acc;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return unsigned long long int 
+ */
 unsigned long long int
 BinaryToInt(char * str)
 {

@@ -393,6 +393,7 @@ main()
     UINT32  OffsetOfFieldFromTop = NULL;
     UINT32  SizeOfField          = NULL;
     CHAR *  NewStructOrTypeName  = (CHAR *)malloc(100);
+
     if (SymCastingQueryForFiledsAndTypes(
             "STUPID_STRUCT2",
             "UnicodeStr",
@@ -409,4 +410,6 @@ main()
         printf("offset of field from top : %x\n", OffsetOfFieldFromTop);
         printf("size of field : %x\n", SizeOfField);
     }
+
+    free(NewStructOrTypeName);
 }

@@ -65,6 +65,11 @@ SpinlockInterlockedCompareExchange(
     LONG            Exchange,
     LONG            Comperand);
 
+#define ScopedSpinlock(LockObject, CodeToRun)   \
+    MetaScopedExpr(SpinlockLock(&LockObject),   \
+                   SpinlockUnlock(&LockObject), \
+                   CodeToRun)
+
 //////////////////////////////////////////////////
 //					Constants					//
 //////////////////////////////////////////////////

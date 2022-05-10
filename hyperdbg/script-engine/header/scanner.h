@@ -6,7 +6,7 @@
 /**
 * @brief lookup table for storing Ids
 */
-TOKEN_LIST IdTable;
+PTOKEN_LIST IdTable;
 
 /**
 * @brief number of read characters from input
@@ -24,17 +24,18 @@ unsigned int CurrentLine;
 unsigned int CurrentLineIdx;
 
 /*
-* @brief curren token start postion
+* @brief curren PTOKEN start postion
 */
 unsigned int CurrentTokenIdx;
 
 ////////////////////////////////////////////////////
-// Interfacing functions						  //
+//            Interfacing functions	         	  //
 ////////////////////////////////////////////////////
-TOKEN
+
+PTOKEN
 GetToken(char * c, char * str);
 
-TOKEN
+PTOKEN
 Scan(char * str, char * c);
 
 char

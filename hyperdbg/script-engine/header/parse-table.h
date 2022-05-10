@@ -1,9 +1,9 @@
 #pragma once
 #ifndef PARSE_TABLE_H
 #define PARSE_TABLE_H
-#define RULES_COUNT 142
+#define RULES_COUNT 132
 #define TERMINAL_COUNT 71
-#define NONETERMINAL_COUNT 46
+#define NONETERMINAL_COUNT 34
 #define START_VARIABLE "S"
 #define MAX_RHS_LEN 15
 #define KEYWORD_LIST_LENGTH 56
@@ -40,11 +40,11 @@ extern const SYMBOL_MAP RegisterMapList[];
 extern const SYMBOL_MAP PseudoRegisterMapList[];
 
 
-#define LALR_RULES_COUNT 86
-#define LALR_TERMINAL_COUNT 54
-#define LALR_NONTERMINAL_COUNT 31
+#define LALR_RULES_COUNT 71
+#define LALR_TERMINAL_COUNT 52
+#define LALR_NONTERMINAL_COUNT 19
 #define LALR_MAX_RHS_LEN 9
-#define LALR_STATE_COUNT 212
+#define LALR_STATE_COUNT 179
 extern const struct _TOKEN LalrLhs[RULES_COUNT];
 extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];

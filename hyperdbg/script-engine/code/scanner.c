@@ -12,17 +12,16 @@
 #include "pch.h"
 
 /**
-* @brief reads a token from the input string
-*
-* @param string 
-* @param refrence to last read character 
-* @return Token
-*/
-
-TOKEN
+ * @brief reads a token from the input string
+ * 
+ * @param c 
+ * @param str 
+ * @return PTOKEN 
+ */
+PTOKEN
 GetToken(char * c, char * str)
 {
-    TOKEN Token = NewToken();
+    PTOKEN Token = NewUnknownToken();
 
     switch (*c)
     {
@@ -401,7 +400,7 @@ GetToken(char * c, char * str)
             if (WasFound)
             {
                 free(Token->Value);
-                char * str = malloc(20);
+                char str[20] = {0};
                 sprintf(str, "%llx", Address);
                 Token->Value = str;
                 Token->Type  = HEX;
@@ -574,7 +573,7 @@ GetToken(char * c, char * str)
                     if (WasFound)
                     {
                         free(Token->Value);
-                        char * str = malloc(20);
+                        char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token->Value = str;
                         Token->Type  = HEX;
@@ -619,7 +618,7 @@ GetToken(char * c, char * str)
                     if (WasFound)
                     {
                         free(Token->Value);
-                        char * str = malloc(20);
+                        char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token->Value = str;
                         Token->Type  = HEX;
@@ -674,7 +673,7 @@ GetToken(char * c, char * str)
                 if (WasFound)
                 {
                     free(Token->Value);
-                    char * str = malloc(20);
+                    char str[20] = {0};
                     sprintf(str, "%llx", Address);
                     Token->Value = str;
                     Token->Type  = HEX;
@@ -709,16 +708,18 @@ GetToken(char * c, char * str)
     }
     return Token;
 }
+
 /**
-* @brief reads a token and returns if it is not white space or comment
-*
-* @param string 
-* @param refrence to last read character
-*/
-TOKEN
+ * @brief 
+ * 
+ * @param str 
+ * @param c 
+ * @return PTOKEN 
+ */
+PTOKEN
 Scan(char * str, char * c)
 {
-    TOKEN Token;
+    PTOKEN Token;
 
     while (1)
     {
@@ -757,7 +758,7 @@ Scan(char * str, char * c)
 /**
 * @brief returns last character of string 
 * 
-* @pram string 
+* @param str 
 * @return last character 
 */
 char
@@ -776,6 +777,12 @@ sgetc(char * str)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return char 
+ */
 char
 IsKeyword(char * str)
 {
@@ -799,6 +806,12 @@ IsKeyword(char * str)
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return char 
+ */
 char
 IsRegister(char * str)
 {
@@ -806,6 +819,13 @@ IsRegister(char * str)
         return 0;
     return 1;
 }
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @return char 
+ */
 char
 IsId(char * str)
 {

@@ -67,7 +67,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -90,7 +90,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -105,9 +105,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="cpp.hint" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="header\commands.h" />
     <ClInclude Include="header\common.h" />
     <ClInclude Include="header\communication.h" />
@@ -121,6 +118,7 @@
     <ClInclude Include="header\kd.h" />
     <ClInclude Include="header\list.h" />
     <ClInclude Include="header\namedpipe.h" />
+    <ClInclude Include="header\objects.h" />
     <ClInclude Include="header\pe-parser.h" />
     <ClInclude Include="header\script-engine.h" />
     <ClInclude Include="header\symbol.h" />
@@ -151,6 +149,7 @@
     <ClCompile Include="code\debugger\user-level\pe-parser.cpp" />
     <ClCompile Include="code\debugger\user-level\ud.cpp" />
     <ClCompile Include="code\debugger\user-level\user-listening.cpp" />
+    <ClCompile Include="code\objects\objects.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release|x64'">Create</PrecompiledHeader>

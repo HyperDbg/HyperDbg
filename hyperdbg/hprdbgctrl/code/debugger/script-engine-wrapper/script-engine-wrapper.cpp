@@ -25,6 +25,20 @@ extern UINT64 * g_ScriptLocalVariables;
 extern UINT64 * g_ScriptTempVariables;
 
 //
+// Temporary structures used only for testing
+//
+typedef struct _ALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING
+{
+    CHAR * Buff1;
+    CHAR * Buff2;
+    CHAR * Buff3;
+    CHAR * Buff4;
+    CHAR * Buff5;
+    CHAR * Buff6;
+
+} ALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING, *PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING;
+
+//
 // *********************** Pdb parse wrapper ***********************
 //
 
@@ -434,8 +448,14 @@ ScriptAutomaticStatementsTestWrapper(const string & Expr, UINT64 ExpectationValu
     return FALSE;
 }
 
+/**
+ * @brief allocate memory and build structure for casting
+ * @param AllocationsForCastings Memory details for future deallocations
+ * 
+ * @return PVOID 
+ */
 PVOID
-AllocateStructForCasting()
+AllocateStructForCasting(PALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING AllocationsForCastings)
 {
     typedef struct _UNICODE_STRING
     {
@@ -468,7 +488,9 @@ AllocateStructForCasting()
     WCHAR           MyString1[40]   = L"Hi come from stupid struct 1!";
     UINT32          SizeOfMyString1 = wcslen(MyString1) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr1     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
-    WCHAR *         Buff1           = (WCHAR *)malloc(SizeOfMyString1);
+    AllocationsForCastings->Buff1   = (CHAR *)UnicodeStr1;
+    WCHAR * Buff1                   = (WCHAR *)malloc(SizeOfMyString1);
+    AllocationsForCastings->Buff2   = (CHAR *)Buff1;
     RtlZeroMemory(Buff1, SizeOfMyString1);
     UnicodeStr1->Buffer = Buff1;
     UnicodeStr1->Length = UnicodeStr1->MaximumLength = SizeOfMyString1;
@@ -480,7 +502,9 @@ AllocateStructForCasting()
     WCHAR           MyString2[40]   = L"Goodbye I'm at stupid struct 2!";
     UINT32          SizeOfMyString2 = wcslen(MyString2) * sizeof(WCHAR) + 2;
     PUNICODE_STRING UnicodeStr2     = (PUNICODE_STRING)malloc(sizeof(UNICODE_STRING));
-    WCHAR *         Buff2           = (WCHAR *)malloc(SizeOfMyString2);
+    AllocationsForCastings->Buff3   = (CHAR *)UnicodeStr2;
+    WCHAR * Buff2                   = (WCHAR *)malloc(SizeOfMyString2);
+    AllocationsForCastings->Buff4   = (CHAR *)Buff2;
     RtlZeroMemory(Buff2, SizeOfMyString2);
     UnicodeStr2->Buffer = Buff2;
     UnicodeStr2->Length = UnicodeStr2->MaximumLength = SizeOfMyString2;
@@ -490,6 +514,7 @@ AllocateStructForCasting()
     // Allocate STUPID_STRUCT1
     //
     PSTUPID_STRUCT1 StupidStruct1 = (PSTUPID_STRUCT1)malloc(sizeof(STUPID_STRUCT1));
+    AllocationsForCastings->Buff5 = (CHAR *)StupidStruct1;
     StupidStruct1->Flag32         = 0x3232;
     StupidStruct1->Flag64         = 0x6464;
     StupidStruct1->Context        = (PVOID)0x85;
@@ -499,6 +524,7 @@ AllocateStructForCasting()
     // Allocate STUPID_STRUCT2
     //
     PSTUPID_STRUCT2 StupidStruct2 = (PSTUPID_STRUCT2)malloc(sizeof(STUPID_STRUCT2));
+    AllocationsForCastings->Buff6 = (CHAR *)StupidStruct2;
 
     StupidStruct2->Sina32        = 0x32;
     StupidStruct2->Sina64        = 0x64;
@@ -519,6 +545,8 @@ AllocateStructForCasting()
 VOID
 ScriptEngineWrapperTestParser(const string & Expr)
 {
+    ALLOCATED_MEMORY_FOR_SCRIPT_ENGINE_CASTING AllocationsForCastings = {0};
+
     typedef struct _TEST_STRUCT
     {
         UINT64 Var1;
@@ -541,7 +569,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
 
     GuestRegs.rax = 0x1;
-    GuestRegs.rcx = (UINT64)AllocateStructForCasting(); // TestStruct
+    GuestRegs.rcx = (UINT64)AllocateStructForCasting(&AllocationsForCastings); // TestStruct
     GuestRegs.rdx = 0x3;
     GuestRegs.rbx = 0x4;
     GuestRegs.rsp = 0x5;
@@ -558,7 +586,14 @@ ScriptEngineWrapperTestParser(const string & Expr)
     GuestRegs.r15 = (UINT64)test;
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
+
     free(TestStruct);
+    free(AllocationsForCastings.Buff1);
+    free(AllocationsForCastings.Buff2);
+    free(AllocationsForCastings.Buff3);
+    free(AllocationsForCastings.Buff4);
+    free(AllocationsForCastings.Buff5);
+    free(AllocationsForCastings.Buff6);
 }
 
 /**

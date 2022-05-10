@@ -46,13 +46,7 @@ CommandTestPerformKernelTestsIoctl()
     ULONG                         ReturnedLength;
     DEBUGGER_PERFORM_KERNEL_TESTS KernelTestRequest = {0};
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages(
-            "handle not found, probably the driver is not loaded. Did you "
-            "use 'load' command?\n");
-        return FALSE;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnFalse);
 
     //
     // By the way, we don't need to send an input buffer

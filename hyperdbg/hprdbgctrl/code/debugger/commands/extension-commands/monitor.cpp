@@ -136,6 +136,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                     ShowMessages("err, couldn't resolve error at '%s'\n\n",
                                  SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                     CommandMonitorHelp();
+
+                    FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                     return;
                 }
                 SetFrom = TRUE;
@@ -153,6 +155,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                                  SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
 
                     CommandMonitorHelp();
+
+                    FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                     return;
                 }
                 SetTo = TRUE;
@@ -164,6 +168,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
                 //
                 ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
                 CommandMonitorHelp();
+
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                 return;
             }
         }
@@ -179,6 +185,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         //
         ShowMessages("please choose the 'from' value first, then choose the 'to' "
                      "value\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -188,6 +196,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     if (!SetMode)
     {
         ShowMessages("please specify the attribute(s) that you want to monitor (r, w, rw)\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -198,7 +208,7 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
     Event->OptionalParam2 = OptionalParam2;
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration
     //
     if (!SendEventToKernel(Event, EventLength))
     {
@@ -207,25 +217,16 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
-        if (ActionBreakToDebugger != NULL)
-        {
-            free(ActionBreakToDebugger);
-        }
-        if (ActionCustomCode != NULL)
-        {
-            free(ActionCustomCode);
-        }
-        if (ActionScript != NULL)
-        {
-            free(ActionScript);
-        }
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger,
+    if (!RegisterActionToEvent(Event,
+                               ActionBreakToDebugger,
                                ActionBreakToDebuggerLength,
                                ActionCustomCode,
                                ActionCustomCodeLength,
@@ -235,6 +236,8 @@ CommandMonitor(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 }

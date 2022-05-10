@@ -14,39 +14,39 @@
     <ClInclude Include="pch.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="common.h">
+    <ClInclude Include="header\common.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="scanner.h">
+    <ClInclude Include="header\globals.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="globals.h">
+    <ClInclude Include="header\parse-table.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="script-engine.h">
+    <ClInclude Include="header\scanner.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="parse-table.h">
+    <ClInclude Include="header\script-engine.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="scanner.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="common.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="globals.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="script-engine.c">
-      <Filter>code</Filter>
-    </ClCompile>
-    <ClCompile Include="parse-table.c">
-      <Filter>code</Filter>
-    </ClCompile>
     <ClCompile Include="pch.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\common.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\globals.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\parse-table.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\scanner.c">
+      <Filter>code</Filter>
+    </ClCompile>
+    <ClCompile Include="code\script-engine.c">
       <Filter>code</Filter>
     </ClCompile>
   </ItemGroup>

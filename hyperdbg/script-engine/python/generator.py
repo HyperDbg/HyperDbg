@@ -3,8 +3,8 @@ from lalr1_parser import *
 
 class Generator():
     def __init__(self): 
-        self.SourceFile = open("..\\parse-table.c", "w")
-        self.HeaderFile = open("..\\parse-table.h", "w")   
+        self.SourceFile = open("..\\code\\parse-table.c", "w")
+        self.HeaderFile = open("..\\header\\parse-table.h", "w")   
         self.CommonHeaderFile = open("..\\..\\include\\ScriptEngineCommonDefinitions.h", "w")
         self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)

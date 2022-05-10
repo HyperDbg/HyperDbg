@@ -112,6 +112,8 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
                 ShowMessages("err, couldn't resolve error at '%s'\n\n",
                              SplittedCommandCaseSensitive.at(IndexInCommandCaseSensitive - 1).c_str());
                 CommandEptHookHelp();
+
+                FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
                 return;
             }
             else
@@ -126,13 +128,16 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
             //
             ShowMessages("unknown parameter '%s'\n\n", Section.c_str());
             CommandEptHookHelp();
+
+            FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
             return;
         }
     }
     if (OptionalParam1 == 0)
     {
-        ShowMessages(
-            "Please choose an address to put the hidden breakpoint on it\n");
+        ShowMessages("Please choose an address to put the hidden breakpoint on it\n");
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
@@ -142,7 +147,7 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
     Event->OptionalParam1 = OptionalParam1;
 
     //
-    // Send the ioctl to the kernel for event registeration
+    // Send the ioctl to the kernel for event registration
     //
     if (!SendEventToKernel(Event, EventLength))
     {
@@ -151,25 +156,16 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
         // we have to free the Action before exit, it is because, we
         // already freed the Event and string buffers
         //
-        if (ActionBreakToDebugger != NULL)
-        {
-            free(ActionBreakToDebugger);
-        }
-        if (ActionCustomCode != NULL)
-        {
-            free(ActionCustomCode);
-        }
-        if (ActionScript != NULL)
-        {
-            free(ActionScript);
-        }
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 
     //
     // Add the event to the kernel
     //
-    if (!RegisterActionToEvent(ActionBreakToDebugger,
+    if (!RegisterActionToEvent(Event,
+                               ActionBreakToDebugger,
                                ActionBreakToDebuggerLength,
                                ActionCustomCode,
                                ActionCustomCodeLength,
@@ -179,6 +175,8 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
+
+        FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }
 }

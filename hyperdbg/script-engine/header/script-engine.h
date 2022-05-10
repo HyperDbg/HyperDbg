@@ -102,25 +102,25 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol);
 __declspec(dllexport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
 
 PSYMBOL
-ToSymbol(TOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error);
+ToSymbol(PTOKEN PTOKEN, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
-    TOKEN                     FirstToken,
-    TOKEN_LIST                MatchedStack,
+    PTOKEN                     FirstToken,
+    PTOKEN_LIST                MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
     PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 UINT64
-BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, TOKEN CurrentIn);
+BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpression, PTOKEN CurrentIn);
 
 void
-CodeGen(TOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, TOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);
+CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error);
 
 unsigned long long int
 RegisterToInt(char * str);
@@ -135,21 +135,21 @@ char *
 HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str);
 
 int
-GetGlobalIdentifierVal(TOKEN Token);
+GetGlobalIdentifierVal(PTOKEN PTOKEN);
 
 int
-GetLocalIdentifierVal(TOKEN Token);
+GetLocalIdentifierVal(PTOKEN PTOKEN);
 
 int
-NewGlobalIdentifier(TOKEN Token);
+NewGlobalIdentifier(PTOKEN PTOKEN);
 
 int
-NewLocalIdentifier(TOKEN Token);
+NewLocalIdentifier(PTOKEN PTOKEN);
 
 int
 LalrGetRhsSize(int RuleId);
 
 BOOL
-LalrIsOperandType(TOKEN Token);
+LalrIsOperandType(PTOKEN PTOKEN);
 
 #endif

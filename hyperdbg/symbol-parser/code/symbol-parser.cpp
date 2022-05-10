@@ -746,6 +746,7 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     BOOL                          Ret        = FALSE;
     UINT32                        Index      = 0;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
+    BOOLEAN                       Result     = FALSE;
 
     //
     // Find module info
@@ -783,7 +784,8 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     // wide-char
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
-    WCHAR *      TypeNameW    = new wchar_t[TypeNameSize];
+    WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+    RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 
     //
@@ -791,10 +793,16 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
     // wide-char
     //
     const size_t FieldNameSize = strlen(FieldName) + 1;
-    WCHAR *      FieldNameW    = new wchar_t[FieldNameSize];
+    WCHAR *      FieldNameW    = (WCHAR *)malloc(sizeof(wchar_t) * FieldNameSize);
+    RtlZeroMemory(FieldNameW, sizeof(wchar_t) * FieldNameSize);
     mbstowcs(FieldNameW, FieldName, FieldNameSize);
 
-    return SymGetFieldOffsetFromModule(SymbolInfo->ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+    Result = SymGetFieldOffsetFromModule(SymbolInfo->ModuleBase, TypeNameW, FieldNameW, FieldOffset);
+
+    free(TypeNameW);
+    free(FieldNameW);
+
+    return Result;
 }
 
 /**
@@ -812,6 +820,7 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     BOOL                          Ret        = FALSE;
     UINT32                        Index      = 0;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo = NULL;
+    BOOLEAN                       Result     = FALSE;
 
     //
     // Find module info
@@ -849,10 +858,15 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
     // wide-char
     //
     const size_t TypeNameSize = strlen(TypeName) + 1;
-    WCHAR *      TypeNameW    = new wchar_t[TypeNameSize];
+    WCHAR *      TypeNameW    = (WCHAR *)malloc(sizeof(wchar_t) * TypeNameSize);
+    RtlZeroMemory(TypeNameW, sizeof(wchar_t) * TypeNameSize);
     mbstowcs(TypeNameW, TypeName, TypeNameSize);
 
-    return SymGetDataTypeSizeFromModule(SymbolInfo->ModuleBase, TypeNameW, TypeSize);
+    Result = SymGetDataTypeSizeFromModule(SymbolInfo->ModuleBase, TypeNameW, TypeSize);
+
+    free(TypeNameW);
+
+    return Result;
 }
 
 /**

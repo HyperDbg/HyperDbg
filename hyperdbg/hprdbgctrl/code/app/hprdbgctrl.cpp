@@ -671,12 +671,7 @@ HyperdbgUnload()
 {
     BOOL Status;
 
-    if (!g_DeviceHandle)
-    {
-        ShowMessages("err, handle not found, probably the driver is not "
-                     "initialized\n");
-        return 1;
-    }
+    AssertShowMessageReturnStmt(g_DeviceHandle, ASSERT_MESSAGE_DRIVER_NOT_LOADED, AssertReturnOne);
 
     ShowMessages("start terminating...\n");
 
