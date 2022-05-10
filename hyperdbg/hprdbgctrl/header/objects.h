@@ -16,8 +16,8 @@
 //////////////////////////////////////////
 
 BOOLEAN
-ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
-                                   UINT32                                   NewPid,
-                                   UINT64                                   NewProcess,
-                                   BOOLEAN                                  SetChangeByClockInterrupt,
-                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList);
+ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProcess,
+                                   BOOLEAN                               IsOnlyTheCurrentDetails,
+                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
+                                   UINT64                                Eprocess,
+                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList);

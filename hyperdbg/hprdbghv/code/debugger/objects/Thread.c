@@ -562,7 +562,7 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
     //
     // Getting the count results
     //
-    Result = ThreadShowList(DebuggerUsermodeProcessOrThreadQueryRequest,
+    Result = ThreadShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ThreadListNeededDetails,
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
 

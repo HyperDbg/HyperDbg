@@ -82,10 +82,10 @@ CommandProcess(vector<string> SplittedCommand, string Command)
             //
             // Get the process details in VMI mode
             //
-            ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS,
+            ObjectShowProcessesOrThreadDetails(TRUE,
+                                               TRUE,
                                                NULL,
                                                NULL,
-                                               FALSE,
                                                NULL);
         }
         else
@@ -136,11 +136,11 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                     //
                     // Get list of processes in VMI mode
                     //
-                    ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST,
-                                                       NULL,
-                                                       NULL,
+                    ObjectShowProcessesOrThreadDetails(TRUE,
                                                        FALSE,
-                                                       &ProcessListNeededItems);
+                                                       &ProcessListNeededItems,
+                                                       NULL,
+                                                       NULL);
                 }
                 else
                 {
