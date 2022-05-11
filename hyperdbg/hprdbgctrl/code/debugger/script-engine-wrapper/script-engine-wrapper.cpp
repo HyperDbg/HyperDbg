@@ -567,12 +567,14 @@ ScriptEngineWrapperTestParser(const string & Expr)
     wchar_t testw[] =
         L"A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 "
         L"9 a b c d e f g h i j k l m n o p q r s t u v w x y z";
+    char * RspReg = (char *)malloc(0x100);
+    memcpy(RspReg, testw, 0x100);
 
     GuestRegs.rax = 0x1;
     GuestRegs.rcx = (UINT64)AllocateStructForCasting(&AllocationsForCastings); // TestStruct
     GuestRegs.rdx = 0x3;
     GuestRegs.rbx = 0x4;
-    GuestRegs.rsp = 0x5;
+    GuestRegs.rsp = (UINT64)RspReg + 0x50;
     GuestRegs.rbp = 0x6;
     GuestRegs.rsi = 0x7;
     GuestRegs.rdi = 0x8;
@@ -587,6 +589,7 @@ ScriptEngineWrapperTestParser(const string & Expr)
 
     ScriptEngineEvalWrapper(&GuestRegs, Expr);
 
+    free(RspReg);
     free(TestStruct);
     free(AllocationsForCastings.Buff1);
     free(AllocationsForCastings.Buff2);

@@ -16,6 +16,23 @@
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
+/*
+
+   ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                ChangeThreadPacket->ThreadId,
+                ChangeThreadPacket->ProcessId,
+                SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
+                SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
+                &ChangeThreadPacket->ProcessName);
+
+
+   ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                ChangeProcessPacket->ProcessId,
+                SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
+                &ChangeProcessPacket->ProcessName);
+
+*/
+
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
@@ -32,6 +49,26 @@ ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProce
                                    PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
                                    UINT64                                Eprocess,
                                    PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
+{
+    return TRUE;
+}
+
+/**
+ * @brief Get details about processes or threads
+ * @param IsProcess
+ * @param IsOnlyTheCurrentDetails
+ * @param SymDetailsForProcessList
+ * @param Eprocess
+ * @param SymDetailsForThreadList
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
+                                BOOLEAN                               IsOnlyTheCurrentDetails,
+                                PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
+                                UINT64                                Eprocess,
+                                PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
 {
     BOOLEAN                                      Status;
     ULONG                                        ReturnedLength;

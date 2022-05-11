@@ -83,11 +83,11 @@ CommandThreadListThreads(UINT64 Eprocess)
             //
             // Get the thread details in VMI mode
             //
-            ObjectShowProcessesOrThreadDetails(FALSE,
-                                               FALSE,
-                                               NULL,
-                                               NULL,
-                                               &ThreadListNeededItems);
+            ObjectShowProcessesOrThreadList(FALSE,
+                                            FALSE,
+                                            NULL,
+                                            NULL,
+                                            &ThreadListNeededItems);
         }
         else
         {
@@ -138,11 +138,11 @@ CommandThread(vector<string> SplittedCommand, string Command)
         //
         if (!g_IsSerialConnectedToRemoteDebuggee)
         {
-            ObjectShowProcessesOrThreadDetails(FALSE,
-                                               TRUE,
-                                               NULL,
-                                               NULL,
-                                               NULL);
+            ObjectShowProcessesOrThreadList(FALSE,
+                                            TRUE,
+                                            NULL,
+                                            NULL,
+                                            NULL);
         }
         else
         {
