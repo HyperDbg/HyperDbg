@@ -13,25 +13,34 @@
 S->BE
 
 
-BE->B3
+BE->B1
 
 
 
 
 B1->B2 B1'
-B1'->| B2 B1' @OR
+B1'->|| B2 B1' @OR
 B1'->eps
 
 B2->B3 B2'
-B2'->^ B3 B2' @XOR
+B2'->&& B3 B2' @AND
 B2'->eps
 
 
 B3->B4 B3'
-B3'->& B4 B3' @AND
+B3'->| B4 B3' @OR
 B3'->eps
 
-B4->CMP
+
+B4->B5 B4'
+B4'->^ B5 B4' @XOR
+B4'->eps
+
+B5->B6 B5'
+B5'->& B6 B5' @AND
+B5'->eps
+
+B6->CMP
 
 CMP->EXP > CMP @GT
 CMP->EXP < CMP @LT

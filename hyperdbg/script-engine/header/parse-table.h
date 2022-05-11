@@ -40,11 +40,11 @@ extern const SYMBOL_MAP RegisterMapList[];
 extern const SYMBOL_MAP PseudoRegisterMapList[];
 
 
-#define LALR_RULES_COUNT 71
-#define LALR_TERMINAL_COUNT 52
-#define LALR_NONTERMINAL_COUNT 19
+#define LALR_RULES_COUNT 77
+#define LALR_TERMINAL_COUNT 54
+#define LALR_NONTERMINAL_COUNT 23
 #define LALR_MAX_RHS_LEN 9
-#define LALR_STATE_COUNT 179
+#define LALR_STATE_COUNT 199
 extern const struct _TOKEN LalrLhs[RULES_COUNT];
 extern const struct _TOKEN LalrRhs[RULES_COUNT][MAX_RHS_LEN];
 extern const unsigned int LalrRhsSize[RULES_COUNT];
