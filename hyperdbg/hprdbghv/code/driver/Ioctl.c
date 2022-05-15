@@ -1281,6 +1281,60 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
             break;
 
+        case IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS) ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerUsermodeProcessOrThreadQueryRequest = (PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Getting the list of processes or threads
+            //
+            if (DebuggerUsermodeProcessOrThreadQueryRequest->QueryType ==
+                DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_LIST)
+            {
+                ProcessQueryList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                                 DebuggerUsermodeProcessOrThreadQueryRequest,
+                                 OutBuffLength);
+            }
+            else if (DebuggerUsermodeProcessOrThreadQueryRequest->QueryType ==
+                     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST)
+            {
+                ThreadQueryCount(DebuggerUsermodeProcessOrThreadQueryRequest);
+            }
+
+            Irp->IoStatus.Information = OutBuffLength;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
         default:
             LogError("Err, unknown IOCTL");
             Status = STATUS_NOT_IMPLEMENTED;

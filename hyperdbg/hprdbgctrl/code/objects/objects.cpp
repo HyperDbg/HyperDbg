@@ -70,11 +70,11 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                                 UINT64                                Eprocess,
                                 PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
 {
-    BOOLEAN                                      Status;
-    ULONG                                        ReturnedLength;
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS   QueryCountOfActiveThreadsOrProcessesRequest = {0};
-    UINT32                                       SizeOfBufferForThreadsAndProcessDetails     = NULL;
-    DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS * ThreadsOrProcessDetails                     = NULL;
+    BOOLEAN                                    Status;
+    ULONG                                      ReturnedLength;
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS QueryCountOfActiveThreadsOrProcessesRequest = {0};
+    UINT32                                     SizeOfBufferForThreadsAndProcessDetails     = NULL;
+    PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY       ProcessEntries;
 
     //
     // Check if driver is loaded
@@ -168,29 +168,45 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
             //
             // Allocate the storage for the pull details of threads and processes
             //
-            SizeOfBufferForThreadsAndProcessDetails =
-                QueryCountOfActiveThreadsOrProcessesRequest.Count * SIZEOF_DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS;
+            if (IsProcess)
+            {
+                SizeOfBufferForThreadsAndProcessDetails =
+                    QueryCountOfActiveThreadsOrProcessesRequest.Count * sizeof(DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY);
+            }
+            else
+            {
+                //
+                // To be filled !
+                //
+            }
 
-            ThreadsOrProcessDetails = (DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS *)malloc(SizeOfBufferForThreadsAndProcessDetails);
+            ProcessEntries = (DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY *)malloc(SizeOfBufferForThreadsAndProcessDetails);
 
-            RtlZeroMemory(ThreadsOrProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
+            RtlZeroMemory(ProcessEntries, SizeOfBufferForThreadsAndProcessDetails);
 
-            ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
-            return TRUE;
+            // ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
+
+            if (IsProcess)
+            {
+                QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_LIST;
+            }
+            else
+            {
+                QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST;
+            }
 
             //
             // Send the request to the kernel
             //
             Status = DeviceIoControl(
-                g_DeviceHandle,                          // Handle to device
-                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES, // IO Control
-                                                         // code
-                NULL,                                    // Input Buffer to driver.
-                0,                                       // Input buffer length.
-                ThreadsOrProcessDetails,                 // Output Buffer from driver.
-                SizeOfBufferForThreadsAndProcessDetails, // Length of output buffer in bytes.
-                &ReturnedLength,                         // Bytes placed in buffer.
-                NULL                                     // synchronous call
+                g_DeviceHandle,                                    // Handle to device
+                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES,           // IO Control code
+                &QueryCountOfActiveThreadsOrProcessesRequest,      // Input Buffer to driver.
+                SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, // Input buffer length
+                ProcessEntries,                                    // Output Buffer from driver.
+                SizeOfBufferForThreadsAndProcessDetails,           // Length of output buffer in bytes.
+                &ReturnedLength,                                   // Bytes placed in buffer.
+                NULL                                               // synchronous call
             );
 
             if (!Status)
@@ -207,6 +223,14 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                 //
                 // Details of process should be shown
                 //
+                if (ProcessEntries[i].Eprocess != NULL)
+                {
+                    ShowMessages("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
+                                 ProcessEntries[i].Eprocess,
+                                 ProcessEntries[i].Pid,
+                                 ProcessEntries[i].Cr3,
+                                 ProcessEntries[i].ImageFileName);
+                }
             }
         }
 
