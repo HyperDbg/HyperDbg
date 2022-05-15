@@ -1721,7 +1721,7 @@ typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 } DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;
 
 /**
- * @brief The structure showing list of process (details of each
+ * @brief The structure showing list of processes (details of each
  * entry)
  *
  */
@@ -1733,6 +1733,21 @@ typedef struct _DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY
     UCHAR  ImageFileName[15 + 1];
 
 } DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY, *PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY;
+
+/**
+ * @brief The structure showing list of threads (details of each
+ * entry)
+ *
+ */
+typedef struct _DEBUGGEE_THREAD_LIST_DETAILS_ENTRY
+{
+    UINT64 Eprocess;
+    UINT64 Ethread;
+    UINT64 Pid;
+    UINT64 Tid;
+    UCHAR  ImageFileName[15 + 1];
+
+} DEBUGGEE_THREAD_LIST_DETAILS_ENTRY, *PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY;
 
 /**
  * @brief request for query count of active processes and threads

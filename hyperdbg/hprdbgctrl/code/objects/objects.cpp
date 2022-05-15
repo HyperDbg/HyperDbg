@@ -74,7 +74,9 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
     ULONG                                      ReturnedLength;
     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS QueryCountOfActiveThreadsOrProcessesRequest = {0};
     UINT32                                     SizeOfBufferForThreadsAndProcessDetails     = NULL;
-    PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY       ProcessEntries;
+    PVOID                                      Entries                                     = NULL;
+    PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY       ProcessEntries                              = NULL;
+    PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY        ThreadEntries                               = NULL;
 
     //
     // Check if driver is loaded
@@ -175,14 +177,13 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
             }
             else
             {
-                //
-                // To be filled !
-                //
+                SizeOfBufferForThreadsAndProcessDetails =
+                    QueryCountOfActiveThreadsOrProcessesRequest.Count * sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY);
             }
 
-            ProcessEntries = (DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY *)malloc(SizeOfBufferForThreadsAndProcessDetails);
+            Entries = (PVOID)malloc(SizeOfBufferForThreadsAndProcessDetails);
 
-            RtlZeroMemory(ProcessEntries, SizeOfBufferForThreadsAndProcessDetails);
+            RtlZeroMemory(Entries, SizeOfBufferForThreadsAndProcessDetails);
 
             // ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
 
@@ -203,7 +204,7 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                 IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES,           // IO Control code
                 &QueryCountOfActiveThreadsOrProcessesRequest,      // Input Buffer to driver.
                 SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, // Input buffer length
-                ProcessEntries,                                    // Output Buffer from driver.
+                Entries,                                           // Output Buffer from driver.
                 SizeOfBufferForThreadsAndProcessDetails,           // Length of output buffer in bytes.
                 &ReturnedLength,                                   // Bytes placed in buffer.
                 NULL                                               // synchronous call
@@ -215,21 +216,47 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                 return FALSE;
             }
 
+            if (IsProcess)
+            {
+                ProcessEntries = (PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY)Entries;
+            }
+            else
+            {
+                ThreadEntries = (PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY)Entries;
+
+                ShowMessages("PROCESS\t%llx\tIMAGE\t%s\n",
+                             ThreadEntries->Eprocess,
+                             ThreadEntries->ImageFileName);
+            }
+
             //
             // Show list of active processes and threads
             //
             for (size_t i = 0; i < QueryCountOfActiveThreadsOrProcessesRequest.Count; i++)
             {
                 //
-                // Details of process should be shown
+                // Details of process/thread should be shown
                 //
-                if (ProcessEntries[i].Eprocess != NULL)
+                if (IsProcess)
                 {
-                    ShowMessages("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
-                                 ProcessEntries[i].Eprocess,
-                                 ProcessEntries[i].Pid,
-                                 ProcessEntries[i].Cr3,
-                                 ProcessEntries[i].ImageFileName);
+                    if (ProcessEntries[i].Eprocess != NULL)
+                    {
+                        ShowMessages("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
+                                     ProcessEntries[i].Eprocess,
+                                     ProcessEntries[i].Pid,
+                                     ProcessEntries[i].Cr3,
+                                     ProcessEntries[i].ImageFileName);
+                    }
+                }
+                else
+                {
+                    if (ThreadEntries[i].Ethread != NULL)
+                    {
+                        ShowMessages("\tTHREAD\t%llx (%llx.%llx)\n",
+                                     ThreadEntries[i].Ethread,
+                                     ThreadEntries[i].Pid,
+                                     ThreadEntries[i].Tid);
+                    }
                 }
             }
         }

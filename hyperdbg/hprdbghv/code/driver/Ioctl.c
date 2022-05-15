@@ -1322,7 +1322,9 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             else if (DebuggerUsermodeProcessOrThreadQueryRequest->QueryType ==
                      DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST)
             {
-                ThreadQueryCount(DebuggerUsermodeProcessOrThreadQueryRequest);
+                ThreadQueryList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                                DebuggerUsermodeProcessOrThreadQueryRequest,
+                                OutBuffLength);
             }
 
             Irp->IoStatus.Information = OutBuffLength;

@@ -113,19 +113,48 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
  * @param ThreadListSymbolInfo
  * @param QueryAction
  * @param CountOfThreads
+ * @param ListSaveBuffer
+ * @param ListSaveBuffSize
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
 ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymbolInfo,
                DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction,
-               UINT32 *                                           CountOfThreads)
+               UINT32 *                                           CountOfThreads,
+               PVOID                                              ListSaveBuffer,
+               UINT64                                             ListSaveBuffSize)
 {
-    UINT32     EnumerationCount = 0;
-    UINT64     Thread           = NULL;
-    UINT64     ThreadListHead;
-    LIST_ENTRY ThreadLinks = {0};
-    CLIENT_ID  ThreadCid   = {0};
+    UINT64                              ThreadListHead;
+    UINT32                              EnumerationCount   = 0;
+    UINT64                              Thread             = NULL;
+    LIST_ENTRY                          ThreadLinks        = {0};
+    CLIENT_ID                           ThreadCid          = {0};
+    UINT32                              MaximumBufferCount = 0;
+    PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY SavingEntries      = ListSaveBuffer;
+
+    //
+    // validate parameters
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT &&
+        CountOfThreads == NULL)
+    {
+        return FALSE;
+    }
+
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS &&
+        (ListSaveBuffer == NULL || ListSaveBuffSize == 0))
+    {
+        return FALSE;
+    }
+
+    //
+    // compute size to avoid overflow
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS)
+    {
+        MaximumBufferCount = ListSaveBuffSize / sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY);
+    }
 
     UINT32 ThreadListHeadOffset       = ThreadListSymbolInfo->ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
     UINT32 ThreadListEntryOffset      = ThreadListSymbolInfo->ThreadListEntryOffset;    // nt!_ETHREAD.ThreadListEntry
@@ -230,6 +259,31 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
 
         case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS:
 
+            EnumerationCount++;
+
+            //
+            // Check to avoid overflow
+            //
+            if (EnumerationCount == MaximumBufferCount - 1)
+            {
+                //
+                // buffer is full
+                //
+                goto ReturnEnd;
+            }
+
+            //
+            // Save the details
+            //
+            SavingEntries[EnumerationCount - 1].Eprocess = ThreadListSymbolInfo->Process;
+            SavingEntries[EnumerationCount - 1].Pid      = ThreadCid.UniqueProcess;
+            SavingEntries[EnumerationCount - 1].Tid      = ThreadCid.UniqueThread;
+            SavingEntries[EnumerationCount - 1].Ethread  = Thread;
+
+            RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName,
+                          GetProcessNameFromEprocess(ThreadListSymbolInfo->Process),
+                          15);
+
             break;
 
         default:
@@ -247,6 +301,7 @@ ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymb
 
     } while ((UINT64)ThreadLinks.Flink != ThreadListHead);
 
+ReturnEnd:
     //
     // In case of query count of Threads, we'll set this parameter
     //
@@ -312,6 +367,8 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         if (!ThreadShowList(&TidRequest->ThreadListSymDetails,
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
+                            NULL,
+                            NULL,
                             NULL))
         {
             TidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_THREAD_INVALID_PARAMETER;
@@ -548,7 +605,7 @@ ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Query thread details
+ * @brief Query thread details (count)
  * 
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
  * 
@@ -564,7 +621,9 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
     //
     Result = ThreadShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ThreadListNeededDetails,
                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
-                            &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
+                            &DebuggerUsermodeProcessOrThreadQueryRequest->Count,
+                            NULL,
+                            NULL);
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
@@ -574,4 +633,32 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 
     DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS;
     return FALSE;
+}
+
+/**
+ * @brief Query thread details (list)
+ * 
+ * @param DebuggerUsermodeProcessOrThreadQueryRequest
+ * @param AddressToSaveDetail
+ * @param BufferSize
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
+                PVOID                                       AddressToSaveDetail,
+                UINT32                                      BufferSize)
+{
+    BOOLEAN Result = FALSE;
+
+    //
+    // Getting the list of threads
+    //
+    Result = ThreadShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ThreadListNeededDetails,
+                            DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS,
+                            NULL,
+                            AddressToSaveDetail,
+                            BufferSize);
+
+    return Result;
 }
