@@ -23,11 +23,15 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 {
     DEBUGGER_TRIGGERED_EVENT_DETAILS ContextAndTag = {0};
     BOOLEAN                          AvoidUnsetMtf;
-    UINT16                           CsSel;
-    BOOLEAN                          IsMtfHandled = FALSE;
-
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64                      CsSel                 = NULL;
+    BOOLEAN                     IsMtfHandled          = FALSE;
     VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
+
     //
     // Redo the instruction
     //

@@ -16,39 +16,65 @@
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
+/*
+
+   ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                ChangeThreadPacket->ThreadId,
+                ChangeThreadPacket->ProcessId,
+                SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
+                SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
+                &ChangeThreadPacket->ProcessName);
+
+
+   ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                ChangeProcessPacket->ProcessId,
+                SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
+                &ChangeProcessPacket->ProcessName);
+
+*/
+
 /**
  * @brief Get details about processes or threads
- * @param ActionType
- * @param NewPid
- * @param NewProcess
- * @param SetChangeByClockInterrupt
+ * @param IsProcess
+ * @param IsOnlyTheCurrentDetails
  * @param SymDetailsForProcessList
+ * @param Eprocess
+ * @param SymDetailsForThreadList
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE ActionType,
-                                   UINT32                                   NewPid,
-                                   UINT64                                   NewProcess,
-                                   BOOLEAN                                  SetChangeByClockInterrupt,
-                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS    SymDetailsForProcessList)
+ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProcess,
+                                   BOOLEAN                               IsOnlyTheCurrentDetails,
+                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
+                                   UINT64                                Eprocess,
+                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
+{
+    return TRUE;
+}
+
+/**
+ * @brief Get details about processes or threads
+ * @param IsProcess
+ * @param IsOnlyTheCurrentDetails
+ * @param SymDetailsForProcessList
+ * @param Eprocess
+ * @param SymDetailsForThreadList
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
+                                BOOLEAN                               IsOnlyTheCurrentDetails,
+                                PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
+                                UINT64                                Eprocess,
+                                PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
 {
     BOOLEAN                                      Status;
     ULONG                                        ReturnedLength;
     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS   QueryCountOfActiveThreadsOrProcessesRequest = {0};
     UINT32                                       SizeOfBufferForThreadsAndProcessDetails     = NULL;
     DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS * ThreadsOrProcessDetails                     = NULL;
-
-    //
-    // Only support get the current process and list of processes as it's called in the VMI mode
-    //
-    if (ActionType != DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_DETAILS &&
-        ActionType != DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_GET_PROCESS_LIST)
-    {
-        ShowMessages("err, you're only allowed to get the current process and "
-                     "list of processes in the VMI mode");
-        return FALSE;
-    }
 
     //
     // Check if driver is loaded
@@ -58,19 +84,44 @@ ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
     //
     // We wanna query the count of active processes or threads
     //
-    QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT;
+    if (IsProcess)
+    {
+        //
+        // It's a process
+        //
+        QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT;
+    }
+    else
+    {
+        //
+        // It's a thread
+        //
+        QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT;
+    }
 
     //
     // The action is counting the process or thread
     //
     QueryCountOfActiveThreadsOrProcessesRequest.QueryAction = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT;
 
-    //
-    // Copy items needed for getting the details of processes or threads
-    //
-    RtlCopyMemory(&QueryCountOfActiveThreadsOrProcessesRequest.ProcessListNeededDetails,
-                  SymDetailsForProcessList,
-                  sizeof(DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS));
+    if (IsProcess)
+    {
+        //
+        // Copy items needed for getting the details of processes
+        //
+        RtlCopyMemory(&QueryCountOfActiveThreadsOrProcessesRequest.ProcessListNeededDetails,
+                      SymDetailsForProcessList,
+                      sizeof(DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS));
+    }
+    else
+    {
+        //
+        // Copy items needed for getting the details of threads
+        //
+        RtlCopyMemory(&QueryCountOfActiveThreadsOrProcessesRequest.ThreadListNeededDetails,
+                      SymDetailsForThreadList,
+                      sizeof(DEBUGGEE_THREAD_LIST_NEEDED_DETAILS));
+    }
 
     //
     // Send the request to the kernel
@@ -124,7 +175,7 @@ ObjectShowProcessesOrThreadDetails(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_TYPE Acti
 
             RtlZeroMemory(ThreadsOrProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
 
-            ShowMessages("count of active processes : %llx\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
+            ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
             return TRUE;
 
             //

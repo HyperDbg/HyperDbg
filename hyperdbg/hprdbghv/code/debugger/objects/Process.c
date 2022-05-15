@@ -545,7 +545,7 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
     //
     // Getting the count results
     //
-    Result = ProcessShowList(DebuggerUsermodeProcessOrThreadQueryRequest,
+    Result = ProcessShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ProcessListNeededDetails,
                              DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
                              &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
 

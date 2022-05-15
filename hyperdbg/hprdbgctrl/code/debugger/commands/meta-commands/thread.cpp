@@ -81,8 +81,13 @@ CommandThreadListThreads(UINT64 Eprocess)
         if (!g_IsSerialConnectedToRemoteDebuggee)
         {
             //
-            // To be implemented
+            // Get the thread details in VMI mode
             //
+            ObjectShowProcessesOrThreadList(FALSE,
+                                            FALSE,
+                                            NULL,
+                                            NULL,
+                                            &ThreadListNeededItems);
         }
         else
         {
@@ -133,9 +138,11 @@ CommandThread(vector<string> SplittedCommand, string Command)
         //
         if (!g_IsSerialConnectedToRemoteDebuggee)
         {
-            //
-            // To be implemented
-            //
+            ObjectShowProcessesOrThreadList(FALSE,
+                                            TRUE,
+                                            NULL,
+                                            NULL,
+                                            NULL);
         }
         else
         {

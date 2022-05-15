@@ -1669,8 +1669,12 @@ typedef struct _DEBUGGER_ATTACH_DETACH_USER_MODE_PROCESS
  */
 typedef enum _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES
 {
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT = 1,
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT  = 2,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_COUNT   = 1,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_COUNT    = 2,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_LIST    = 3,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST     = 4,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_CURRENT_PROCESS = 5,
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_CURRENT_THREAD  = 6,
 
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES;
 
@@ -1701,12 +1705,29 @@ typedef struct _DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS
 } DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS, *PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS;
 
 /**
+ * @brief The structure of needed information to get the details
+ * of the thread from nt!_ETHREAD and location of needed variables
+ *
+ */
+typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
+{
+    UINT32 ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
+    UINT32 ThreadListEntryOffset;    // nt!_ETHREAD.ThreadListEntry
+    UINT32 CidOffset;                // nt!_ETHREAD.Cid
+    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
+    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
+    UINT64 Process;
+
+} DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;
+
+/**
  * @brief request for query count of active processes and threads
  *
  */
 typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 {
     DEBUGGEE_PROCESS_LIST_NEEDED_DETAILS               ProcessListNeededDetails;
+    DEBUGGEE_THREAD_LIST_NEEDED_DETAILS                ThreadListNeededDetails;
     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_TYPES   QueryType;
     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction;
     UINT32                                             Count;
@@ -2117,22 +2138,6 @@ typedef enum _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE
     DEBUGGEE_DETAILS_AND_SWITCH_THREAD_GET_THREAD_LIST,
 
 } DEBUGGEE_DETAILS_AND_SWITCH_THREAD_TYPE;
-
-/**
- * @brief The structure of needed information to get the details
- * of the thread from nt!_ETHREAD and location of needed variables
- *
- */
-typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
-{
-    UINT32 ThreadListHeadOffset;     // nt!_EPROCESS.ThreadListHead
-    UINT32 ThreadListEntryOffset;    // nt!_ETHREAD.ThreadListEntry
-    UINT32 CidOffset;                // nt!_ETHREAD.Cid
-    UINT64 PsActiveProcessHead;      // nt!PsActiveProcessHead
-    ULONG  ActiveProcessLinksOffset; // nt!_EPROCESS.ActiveProcessLinks
-    UINT64 Process;
-
-} DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;
 
 /**
  * @brief The structure of changing thead and show thread

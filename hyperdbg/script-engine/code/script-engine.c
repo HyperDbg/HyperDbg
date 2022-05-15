@@ -1395,6 +1395,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 else if (MatchedStack->Pointer == 0)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
+                    RemoveToken(TempToken);
                     break;
                 }
                 else
