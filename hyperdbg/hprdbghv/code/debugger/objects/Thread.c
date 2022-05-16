@@ -662,3 +662,27 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 
     return Result;
 }
+
+/**
+ * @brief Query thread details
+ * 
+ * @param GetInformationThreadRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest)
+{
+    GetInformationThreadRequest->ProcessId = PsGetCurrentProcessId();
+    GetInformationThreadRequest->Process   = PsGetCurrentProcess();
+    GetInformationThreadRequest->Thread    = PsGetCurrentThread();
+    GetInformationThreadRequest->ThreadId  = PsGetCurrentThreadId();
+
+    RtlCopyMemory(&GetInformationThreadRequest->ProcessName,
+                  GetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  15);
+
+    GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
+}

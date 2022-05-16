@@ -37,3 +37,6 @@ BOOLEAN
 ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
                  PVOID                                       AddressToSaveDetail,
                  UINT32                                      BufferSize);
+
+BOOLEAN
+ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest);

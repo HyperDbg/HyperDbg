@@ -16,47 +16,118 @@
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
-/*
-
-   ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                ChangeThreadPacket->ThreadId,
-                ChangeThreadPacket->ProcessId,
-                SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
-                SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
-                &ChangeThreadPacket->ProcessName);
-
-
-   ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                ChangeProcessPacket->ProcessId,
-                SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
-                &ChangeProcessPacket->ProcessName);
-
-*/
-
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
- * @param IsOnlyTheCurrentDetails
- * @param SymDetailsForProcessList
- * @param Eprocess
- * @param SymDetailsForThreadList
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProcess,
-                                   BOOLEAN                               IsOnlyTheCurrentDetails,
-                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
-                                   UINT64                                Eprocess,
-                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
+ObjectShowProcessesOrThreadDetails(BOOLEAN IsProcess)
 {
-    return TRUE;
+    BOOLEAN                                    Status;
+    ULONG                                      ReturnedLength;
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcess = {0};
+    DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  GetInformationThread  = {0};
+
+    if (IsProcess)
+    {
+        //
+        // *** Show process details ***
+        //
+
+        //
+        // Send the request to the kernel
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                    // Handle to device
+            IOCTL_QUERY_CURRENT_PROCESS,                       // IO Control
+                                                               // code
+            &GetInformationProcess,                            // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, // Input buffer length
+            &GetInformationProcess,                            // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, // Length of output
+                                                               // buffer in bytes.
+            &ReturnedLength,                                   // Bytes placed in buffer.
+            NULL                                               // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return FALSE;
+        }
+
+        //
+        // Query was successful
+        //
+        if (GetInformationProcess.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                         GetInformationProcess.ProcessId,
+                         SeparateTo64BitValue(GetInformationProcess.Process).c_str(),
+                         GetInformationProcess.ProcessName);
+
+            return TRUE;
+        }
+        else
+        {
+            ShowErrorMessage(GetInformationProcess.Result);
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // *** Show threads details ***
+        //
+
+        //
+        // Send the request to the kernel
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                   // Handle to device
+            IOCTL_QUERY_CURRENT_THREAD,                       // IO Control
+                                                              // code
+            &GetInformationThread,                            // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, // Input buffer length
+            &GetInformationThread,                            // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, // Length of output
+                                                              // buffer in bytes.
+            &ReturnedLength,                                  // Bytes placed in buffer.
+            NULL                                              // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return FALSE;
+        }
+
+        //
+        // Query was successful
+        //
+        if (GetInformationThread.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                         GetInformationThread.ThreadId,
+                         GetInformationThread.ProcessId,
+                         SeparateTo64BitValue(GetInformationThread.Thread).c_str(),
+                         SeparateTo64BitValue(GetInformationThread.Process).c_str(),
+                         GetInformationThread.ProcessName);
+            return TRUE;
+        }
+        else
+        {
+            ShowErrorMessage(GetInformationThread.Result);
+            return FALSE;
+        }
+    }
 }
 
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
- * @param IsOnlyTheCurrentDetails
  * @param SymDetailsForProcessList
  * @param Eprocess
  * @param SymDetailsForThreadList
@@ -65,7 +136,6 @@ ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProce
  */
 BOOLEAN
 ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
-                                BOOLEAN                               IsOnlyTheCurrentDetails,
                                 PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
                                 UINT64                                Eprocess,
                                 PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)

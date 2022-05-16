@@ -642,3 +642,24 @@ ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 
     return Result;
 }
+
+/**
+ * @brief Query process details
+ * 
+ * @param GetInformationProcessRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
+{
+    GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
+    GetInformationProcessRequest->Process   = PsGetCurrentProcess();
+    RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
+                  GetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  15);
+
+    GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
+}
