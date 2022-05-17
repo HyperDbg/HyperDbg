@@ -1,7 +1,0 @@
-save commands and results into file : Cdf (2022-05-18 02:01:23)
-
-HyperDbg> logclose
-err, couldn't resolve command at 'logclose'
-
-HyperDbg> .logclose
-log file closed (2022-05-18 02:02:09)
