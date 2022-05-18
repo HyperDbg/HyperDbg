@@ -572,22 +572,32 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (IsType1Func(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
-
-            Temp = NewTemp(Error);
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
-
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (!IgnoreLvalue)
             {
-                break;
-            }
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, TempSymbol);
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
 
-            FreeTemp(Op0);
+                Temp = NewTemp(Error);
+                Push(MatchedStack, Temp);
+                TempSymbol = ToSymbol(Temp, Error);
+
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, TempSymbol);
+
+                FreeTemp(Op0);
+            }
+            else
+            {
+                Op0          = Pop(MatchedStack);
+                IgnoreLvalue = FALSE;
+                FreeTemp(Op0);
+            }
+
         }
         else if (IsType4Func(Operator))
         {
@@ -720,29 +730,32 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (IsType6Func(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
-
-            Op1       = Pop(MatchedStack);
-            Op1Symbol = ToSymbol(Op1, Error);
-
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (!IgnoreLvalue)
             {
-                break;
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
+
+                Op1       = Pop(MatchedStack);
+                Op1Symbol = ToSymbol(Op1, Error);
+
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, Op1Symbol);
+
+                Temp = NewTemp(Error);
+                Push(MatchedStack, Temp);
+                TempSymbol = ToSymbol(Temp, Error);
+                PushSymbol(CodeBuffer, TempSymbol);
             }
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, Op1Symbol);
-
-            Temp = NewTemp(Error);
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
-            PushSymbol(CodeBuffer, TempSymbol);
-
-            if (IgnoreLvalue)
+            else
             {
+                Op0          = Pop(MatchedStack);
+                Op1          = Pop(MatchedStack);
                 IgnoreLvalue = FALSE;
-                FreeTemp(Temp);
             }
 
             //
@@ -750,6 +763,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
+            
         }
         else if (IsType7Func(Operator))
         {
@@ -775,41 +789,49 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (IsType8Func(Operator))
         {
-            PushSymbol(CodeBuffer, OperatorSymbol);
-            Op0       = Pop(MatchedStack);
-            Op0Symbol = ToSymbol(Op0, Error);
-
-            Op1       = Pop(MatchedStack);
-            Op1Symbol = ToSymbol(Op1, Error);
-
-            PTOKEN   Op2       = Pop(MatchedStack);
-            PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
-
-            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            if (!IgnoreLvalue)
             {
-                break;
+                PushSymbol(CodeBuffer, OperatorSymbol);
+                Op0       = Pop(MatchedStack);
+                Op0Symbol = ToSymbol(Op0, Error);
+
+                Op1       = Pop(MatchedStack);
+                Op1Symbol = ToSymbol(Op1, Error);
+
+                PTOKEN  Op2       = Pop(MatchedStack);
+                PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
+
+                if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+                {
+                    break;
+                }
+                PushSymbol(CodeBuffer, Op0Symbol);
+                PushSymbol(CodeBuffer, Op1Symbol);
+                PushSymbol(CodeBuffer, Op2Symbol);
+
+                Temp = NewTemp(Error);
+                Push(MatchedStack, Temp);
+                TempSymbol = ToSymbol(Temp, Error);
+                PushSymbol(CodeBuffer, TempSymbol);
+
+               
+                FreeTemp(Op2);
             }
-            PushSymbol(CodeBuffer, Op0Symbol);
-            PushSymbol(CodeBuffer, Op1Symbol);
-            PushSymbol(CodeBuffer, Op2Symbol);
-
-            Temp = NewTemp(Error);
-            Push(MatchedStack, Temp);
-            TempSymbol = ToSymbol(Temp, Error);
-            PushSymbol(CodeBuffer, TempSymbol);
-
-            if (IgnoreLvalue)
+            else
             {
+                Op0 = Pop(MatchedStack);
+                Op1 = Pop(MatchedStack);
+                PTOKEN Op2 = Pop(MatchedStack);
                 IgnoreLvalue = FALSE;
-                FreeTemp(Temp);
-            }
 
+                FreeTemp(Op2);
+
+            }
             //
             // Free the operand if it is a temp value
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
-            FreeTemp(Op2);
         }
         else if (IsTwoOperandOperator(Operator))
         {
