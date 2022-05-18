@@ -1,8 +1,7 @@
 #include "pch.h"
 
 /**
- * 
- Temp variable map
+ * @brief Temp variable map
  * 
  */
 char TempMap[MAX_TEMP_COUNT] = {0};

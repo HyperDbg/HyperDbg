@@ -213,13 +213,7 @@ CopyToken(PTOKEN Token)
 }
 
 /**
- *
-
-
-
-
-
- allocates a new TOKEN_LIST
+ * allocates a new TOKEN_LIST
  *
  * @return TOKEN_LIST
  */
