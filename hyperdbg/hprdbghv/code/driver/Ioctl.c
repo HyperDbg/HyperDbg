@@ -39,6 +39,8 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PDEBUGGER_UD_COMMAND_PACKET                             DebuggerUdCommandRequest;
     PUSERMODE_LOADED_MODULE_DETAILS                         DebuggerUsermodeModulesRequest;
     PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS             DebuggerUsermodeProcessOrThreadQueryRequest;
+    PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET             GetInformationProcessRequest;
+    PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET              GetInformationThreadRequest;
     PDEBUGGER_PERFORM_KERNEL_TESTS                          DebuggerKernelTestRequest;
     PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL        DebuggerCommandExecutionFinishedRequest;
     PDEBUGGEE_KERNEL_AND_USER_TEST_INFORMATION              DebuggerKernelSideTestInformationRequest;
@@ -1272,6 +1274,148 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
             }
 
             Irp->IoStatus.Information = SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < sizeof(DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS) ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            DebuggerUsermodeProcessOrThreadQueryRequest = (PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Getting the list of processes or threads
+            //
+            if (DebuggerUsermodeProcessOrThreadQueryRequest->QueryType ==
+                DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_LIST)
+            {
+                ProcessQueryList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                                 DebuggerUsermodeProcessOrThreadQueryRequest,
+                                 OutBuffLength);
+            }
+            else if (DebuggerUsermodeProcessOrThreadQueryRequest->QueryType ==
+                     DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST)
+            {
+                ThreadQueryList(DebuggerUsermodeProcessOrThreadQueryRequest,
+                                DebuggerUsermodeProcessOrThreadQueryRequest,
+                                OutBuffLength);
+            }
+
+            Irp->IoStatus.Information = OutBuffLength;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_QUERY_CURRENT_THREAD:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            GetInformationThreadRequest = (PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Get the information
+            //
+            ThreadQueryDetails(GetInformationThreadRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET;
+            Status                    = STATUS_SUCCESS;
+
+            //
+            // Avoid zeroing it
+            //
+            DoNotChangeInformation = TRUE;
+
+            break;
+
+        case IOCTL_QUERY_CURRENT_PROCESS:
+
+            //
+            // First validate the parameters.
+            //
+            if (IrpStack->Parameters.DeviceIoControl.InputBufferLength < SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET ||
+                Irp->AssociatedIrp.SystemBuffer == NULL)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                LogError("Err, invalid parameter to IOCTL dispatcher");
+                break;
+            }
+
+            InBuffLength  = IrpStack->Parameters.DeviceIoControl.InputBufferLength;
+            OutBuffLength = IrpStack->Parameters.DeviceIoControl.OutputBufferLength;
+
+            if (!InBuffLength || !OutBuffLength)
+            {
+                Status = STATUS_INVALID_PARAMETER;
+                break;
+            }
+
+            //
+            // Both usermode and to send to usermode and the comming buffer are
+            // at the same place
+            //
+            GetInformationProcessRequest = (PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET)Irp->AssociatedIrp.SystemBuffer;
+
+            //
+            // Get the information
+            //
+            ProcessQueryDetails(GetInformationProcessRequest);
+
+            Irp->IoStatus.Information = SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;
             Status                    = STATUS_SUCCESS;
 
             //

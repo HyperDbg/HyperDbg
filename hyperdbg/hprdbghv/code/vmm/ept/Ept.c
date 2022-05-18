@@ -80,7 +80,7 @@ EptBuildMtrrMap()
         // For each dynamic register pair
         //
         CurrentPhysBase.Flags = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
-        CurrentPhysMask.Flags = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
+        CurrentPhysMask.Flags = __readmsr(IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
 
         //
         // Is the range enabled?

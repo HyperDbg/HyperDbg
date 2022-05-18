@@ -16,47 +16,118 @@
 //
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 
-/*
-
-   ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                ChangeThreadPacket->ThreadId,
-                ChangeThreadPacket->ProcessId,
-                SeparateTo64BitValue(ChangeThreadPacket->Thread).c_str(),
-                SeparateTo64BitValue(ChangeThreadPacket->Process).c_str(),
-                &ChangeThreadPacket->ProcessName);
-
-
-   ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
-                ChangeProcessPacket->ProcessId,
-                SeparateTo64BitValue(ChangeProcessPacket->Process).c_str(),
-                &ChangeProcessPacket->ProcessName);
-
-*/
-
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
- * @param IsOnlyTheCurrentDetails
- * @param SymDetailsForProcessList
- * @param Eprocess
- * @param SymDetailsForThreadList
  *
  * @return BOOLEAN
  */
 BOOLEAN
-ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProcess,
-                                   BOOLEAN                               IsOnlyTheCurrentDetails,
-                                   PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
-                                   UINT64                                Eprocess,
-                                   PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
+ObjectShowProcessesOrThreadDetails(BOOLEAN IsProcess)
 {
-    return TRUE;
+    BOOLEAN                                    Status;
+    ULONG                                      ReturnedLength;
+    DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcess = {0};
+    DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET  GetInformationThread  = {0};
+
+    if (IsProcess)
+    {
+        //
+        // *** Show process details ***
+        //
+
+        //
+        // Send the request to the kernel
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                    // Handle to device
+            IOCTL_QUERY_CURRENT_PROCESS,                       // IO Control
+                                                               // code
+            &GetInformationProcess,                            // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, // Input buffer length
+            &GetInformationProcess,                            // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, // Length of output
+                                                               // buffer in bytes.
+            &ReturnedLength,                                   // Bytes placed in buffer.
+            NULL                                               // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return FALSE;
+        }
+
+        //
+        // Query was successful
+        //
+        if (GetInformationProcess.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            ShowMessages("process id: %x\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                         GetInformationProcess.ProcessId,
+                         SeparateTo64BitValue(GetInformationProcess.Process).c_str(),
+                         GetInformationProcess.ProcessName);
+
+            return TRUE;
+        }
+        else
+        {
+            ShowErrorMessage(GetInformationProcess.Result);
+            return FALSE;
+        }
+    }
+    else
+    {
+        //
+        // *** Show threads details ***
+        //
+
+        //
+        // Send the request to the kernel
+        //
+        Status = DeviceIoControl(
+            g_DeviceHandle,                                   // Handle to device
+            IOCTL_QUERY_CURRENT_THREAD,                       // IO Control
+                                                              // code
+            &GetInformationThread,                            // Input Buffer to driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, // Input buffer length
+            &GetInformationThread,                            // Output Buffer from driver.
+            SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, // Length of output
+                                                              // buffer in bytes.
+            &ReturnedLength,                                  // Bytes placed in buffer.
+            NULL                                              // synchronous call
+        );
+
+        if (!Status)
+        {
+            ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+            return FALSE;
+        }
+
+        //
+        // Query was successful
+        //
+        if (GetInformationThread.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        {
+            ShowMessages("thread id: %x (pid: %x)\nthread (_ETHREAD): %s\nprocess (_EPROCESS): %s\nprocess name (16-Byte): %s\n",
+                         GetInformationThread.ThreadId,
+                         GetInformationThread.ProcessId,
+                         SeparateTo64BitValue(GetInformationThread.Thread).c_str(),
+                         SeparateTo64BitValue(GetInformationThread.Process).c_str(),
+                         GetInformationThread.ProcessName);
+            return TRUE;
+        }
+        else
+        {
+            ShowErrorMessage(GetInformationThread.Result);
+            return FALSE;
+        }
+    }
 }
 
 /**
  * @brief Get details about processes or threads
  * @param IsProcess
- * @param IsOnlyTheCurrentDetails
  * @param SymDetailsForProcessList
  * @param Eprocess
  * @param SymDetailsForThreadList
@@ -65,16 +136,17 @@ ObjectShowProcessesOrThreadDetails(BOOLEAN                               IsProce
  */
 BOOLEAN
 ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
-                                BOOLEAN                               IsOnlyTheCurrentDetails,
                                 PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS SymDetailsForProcessList,
                                 UINT64                                Eprocess,
                                 PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS  SymDetailsForThreadList)
 {
-    BOOLEAN                                      Status;
-    ULONG                                        ReturnedLength;
-    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS   QueryCountOfActiveThreadsOrProcessesRequest = {0};
-    UINT32                                       SizeOfBufferForThreadsAndProcessDetails     = NULL;
-    DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS * ThreadsOrProcessDetails                     = NULL;
+    BOOLEAN                                    Status;
+    ULONG                                      ReturnedLength;
+    DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS QueryCountOfActiveThreadsOrProcessesRequest = {0};
+    UINT32                                     SizeOfBufferForThreadsAndProcessDetails     = NULL;
+    PVOID                                      Entries                                     = NULL;
+    PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY       ProcessEntries                              = NULL;
+    PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY        ThreadEntries                               = NULL;
 
     //
     // Check if driver is loaded
@@ -168,29 +240,44 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
             //
             // Allocate the storage for the pull details of threads and processes
             //
-            SizeOfBufferForThreadsAndProcessDetails =
-                QueryCountOfActiveThreadsOrProcessesRequest.Count * SIZEOF_DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS;
+            if (IsProcess)
+            {
+                SizeOfBufferForThreadsAndProcessDetails =
+                    QueryCountOfActiveThreadsOrProcessesRequest.Count * sizeof(DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY);
+            }
+            else
+            {
+                SizeOfBufferForThreadsAndProcessDetails =
+                    QueryCountOfActiveThreadsOrProcessesRequest.Count * sizeof(DEBUGGEE_THREAD_LIST_DETAILS_ENTRY);
+            }
 
-            ThreadsOrProcessDetails = (DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS *)malloc(SizeOfBufferForThreadsAndProcessDetails);
+            Entries = (PVOID)malloc(SizeOfBufferForThreadsAndProcessDetails);
 
-            RtlZeroMemory(ThreadsOrProcessDetails, SizeOfBufferForThreadsAndProcessDetails);
+            RtlZeroMemory(Entries, SizeOfBufferForThreadsAndProcessDetails);
 
-            ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
-            return TRUE;
+            // ShowMessages("count of active processes/threads : %lld\n", QueryCountOfActiveThreadsOrProcessesRequest.Count);
+
+            if (IsProcess)
+            {
+                QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_PROCESS_LIST;
+            }
+            else
+            {
+                QueryCountOfActiveThreadsOrProcessesRequest.QueryType = DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_QUERY_THREAD_LIST;
+            }
 
             //
             // Send the request to the kernel
             //
             Status = DeviceIoControl(
-                g_DeviceHandle,                          // Handle to device
-                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES, // IO Control
-                                                         // code
-                NULL,                                    // Input Buffer to driver.
-                0,                                       // Input buffer length.
-                ThreadsOrProcessDetails,                 // Output Buffer from driver.
-                SizeOfBufferForThreadsAndProcessDetails, // Length of output buffer in bytes.
-                &ReturnedLength,                         // Bytes placed in buffer.
-                NULL                                     // synchronous call
+                g_DeviceHandle,                                    // Handle to device
+                IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES,           // IO Control code
+                &QueryCountOfActiveThreadsOrProcessesRequest,      // Input Buffer to driver.
+                SIZEOF_DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS, // Input buffer length
+                Entries,                                           // Output Buffer from driver.
+                SizeOfBufferForThreadsAndProcessDetails,           // Length of output buffer in bytes.
+                &ReturnedLength,                                   // Bytes placed in buffer.
+                NULL                                               // synchronous call
             );
 
             if (!Status)
@@ -199,14 +286,48 @@ ObjectShowProcessesOrThreadList(BOOLEAN                               IsProcess,
                 return FALSE;
             }
 
+            if (IsProcess)
+            {
+                ProcessEntries = (PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY)Entries;
+            }
+            else
+            {
+                ThreadEntries = (PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY)Entries;
+
+                ShowMessages("PROCESS\t%llx\tIMAGE\t%s\n",
+                             ThreadEntries->Eprocess,
+                             ThreadEntries->ImageFileName);
+            }
+
             //
             // Show list of active processes and threads
             //
             for (size_t i = 0; i < QueryCountOfActiveThreadsOrProcessesRequest.Count; i++)
             {
                 //
-                // Details of process should be shown
+                // Details of process/thread should be shown
                 //
+                if (IsProcess)
+                {
+                    if (ProcessEntries[i].Eprocess != NULL)
+                    {
+                        ShowMessages("PROCESS\t%llx\n\tProcess Id: %04x\tDirBase (Kernel Cr3): %016llx\tImage: %s\n\n",
+                                     ProcessEntries[i].Eprocess,
+                                     ProcessEntries[i].Pid,
+                                     ProcessEntries[i].Cr3,
+                                     ProcessEntries[i].ImageFileName);
+                    }
+                }
+                else
+                {
+                    if (ThreadEntries[i].Ethread != NULL)
+                    {
+                        ShowMessages("\tTHREAD\t%llx (%llx.%llx)\n",
+                                     ThreadEntries[i].Ethread,
+                                     ThreadEntries[i].Pid,
+                                     ThreadEntries[i].Tid);
+                    }
+                }
             }
         }
 

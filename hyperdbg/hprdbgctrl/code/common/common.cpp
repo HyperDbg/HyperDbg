@@ -153,34 +153,6 @@ IsNumber(const string & str)
 }
 
 /**
- * @brief Function to split string str using given delimiter
- *
- * @param str
- * @param delim
- * @return vector<string>
- */
-vector<string>
-SplitIp(const string & str, char delim)
-{
-    int            i = 0;
-    vector<string> list;
-    size_t         pos;
-
-    pos = str.find(delim);
-
-    while (pos != string::npos)
-    {
-        list.emplace_back(str.begin() + i, str.begin() + pos - i);
-        i   = ++pos;
-        pos = str.find(delim, pos);
-    }
-
-    list.emplace_back(str.begin() + i, str.end());
-
-    return list;
-}
-
-/**
  * @brief check whether the string is hex or not
  *
  * @param s
@@ -356,7 +328,7 @@ ValidateIP(const string & ip)
     //
     // split the string into tokens
     //
-    vector<string> list = SplitIp(ip, '.');
+    vector<string> list = Split(ip, '.');
 
     //
     // if token size is not equal to four

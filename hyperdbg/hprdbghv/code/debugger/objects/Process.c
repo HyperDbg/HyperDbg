@@ -311,20 +311,49 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
  * @param PorcessListSymbolInfo
  * @param QueryAction
  * @param CountOfProcesses
+ * @param ListSaveBuffer
+ * @param ListSaveBuffSize
  * 
  * @return BOOLEAN 
  */
 BOOLEAN
 ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSymbolInfo,
                 DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTIONS QueryAction,
-                UINT32 *                                           CountOfProcesses)
+                UINT32 *                                           CountOfProcesses,
+                PVOID                                              ListSaveBuffer,
+                UINT64                                             ListSaveBuffSize)
 {
-    UINT64     Process;
-    UINT64     UniquePid;
-    LIST_ENTRY ActiveProcessLinks;
-    UCHAR      ImageFileName[15] = {0};
-    CR3_TYPE   ProcessCr3        = {0};
-    UINT32     EnumerationCount  = 0;
+    UINT64                               Process;
+    UINT64                               UniquePid;
+    LIST_ENTRY                           ActiveProcessLinks;
+    UCHAR                                ImageFileName[15]  = {0};
+    CR3_TYPE                             ProcessCr3         = {0};
+    UINT32                               EnumerationCount   = 0;
+    UINT32                               MaximumBufferCount = 0;
+    PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY SavingEntries      = ListSaveBuffer;
+
+    //
+    // validate parameters
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT &&
+        CountOfProcesses == NULL)
+    {
+        return FALSE;
+    }
+
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS &&
+        (ListSaveBuffer == NULL || ListSaveBuffSize == 0))
+    {
+        return FALSE;
+    }
+
+    //
+    // compute size to avoid overflow
+    //
+    if (QueryAction == DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS)
+    {
+        MaximumBufferCount = ListSaveBuffSize / sizeof(DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY);
+    }
 
     //
     // Set the details derived from the symbols
@@ -405,6 +434,27 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
 
             case DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS:
 
+                EnumerationCount++;
+
+                //
+                // Check to avoid overflow
+                //
+                if (EnumerationCount == MaximumBufferCount - 1)
+                {
+                    //
+                    // buffer is full
+                    //
+                    goto ReturnEnd;
+                }
+
+                //
+                // Save the details
+                //
+                SavingEntries[EnumerationCount - 1].Eprocess = Process;
+                SavingEntries[EnumerationCount - 1].Pid      = UniquePid;
+                SavingEntries[EnumerationCount - 1].Cr3      = ProcessCr3.Flags;
+                RtlCopyMemory(&SavingEntries[EnumerationCount - 1].ImageFileName, ImageFileName, 15);
+
                 break;
 
             default:
@@ -428,6 +478,8 @@ ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSy
         //
         return FALSE;
     }
+
+ReturnEnd:
 
     //
     // In case of query count of processes, we'll set this parameter
@@ -494,6 +546,8 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         if (!ProcessShowList(&PidRequest->ProcessListSymDetails,
                              DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_SHOW_INSTANTLY,
+                             NULL,
+                             NULL,
                              NULL))
         {
             PidRequest->Result = DEBUGGER_ERROR_DETAILS_OR_SWITCH_PROCESS_INVALID_PARAMETER;
@@ -531,7 +585,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
 }
 
 /**
- * @brief Query process details
+ * @brief Query process details (count)
  * 
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
  * 
@@ -547,7 +601,9 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
     //
     Result = ProcessShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ProcessListNeededDetails,
                              DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_COUNT,
-                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count);
+                             &DebuggerUsermodeProcessOrThreadQueryRequest->Count,
+                             NULL,
+                             NULL);
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
@@ -557,4 +613,53 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
 
     DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_ERROR_UNABLE_TO_QUERY_COUNT_OF_PROCESSES_OR_THREADS;
     return FALSE;
+}
+
+/**
+ * @brief Query process details (list)
+ * 
+ * @param DebuggerUsermodeProcessOrThreadQueryRequest
+ * @param AddressToSaveDetail
+ * @param BufferSize
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
+                 PVOID                                       AddressToSaveDetail,
+                 UINT32                                      BufferSize)
+{
+    BOOLEAN Result = FALSE;
+
+    //
+    // Getting the count results
+    //
+    Result = ProcessShowList(&DebuggerUsermodeProcessOrThreadQueryRequest->ProcessListNeededDetails,
+                             DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS_ACTION_QUERY_SAVE_DETAILS,
+                             NULL,
+                             AddressToSaveDetail,
+                             BufferSize);
+
+    return Result;
+}
+
+/**
+ * @brief Query process details
+ * 
+ * @param GetInformationProcessRequest
+ * 
+ * @return BOOLEAN 
+ */
+BOOLEAN
+ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
+{
+    GetInformationProcessRequest->ProcessId = PsGetCurrentProcessId();
+    GetInformationProcessRequest->Process   = PsGetCurrentProcess();
+    RtlCopyMemory(&GetInformationProcessRequest->ProcessName,
+                  GetProcessNameFromEprocess(PsGetCurrentProcess()),
+                  15);
+
+    GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+
+    return TRUE;
 }

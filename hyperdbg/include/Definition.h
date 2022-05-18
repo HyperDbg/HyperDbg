@@ -1721,6 +1721,35 @@ typedef struct _DEBUGGEE_THREAD_LIST_NEEDED_DETAILS
 } DEBUGGEE_THREAD_LIST_NEEDED_DETAILS, *PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS;
 
 /**
+ * @brief The structure showing list of processes (details of each
+ * entry)
+ *
+ */
+typedef struct _DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY
+{
+    UINT64 Eprocess;
+    UINT32 Pid;
+    UINT64 Cr3;
+    UCHAR  ImageFileName[15 + 1];
+
+} DEBUGGEE_PROCESS_LIST_DETAILS_ENTRY, *PDEBUGGEE_PROCESS_LIST_DETAILS_ENTRY;
+
+/**
+ * @brief The structure showing list of threads (details of each
+ * entry)
+ *
+ */
+typedef struct _DEBUGGEE_THREAD_LIST_DETAILS_ENTRY
+{
+    UINT64 Eprocess;
+    UINT64 Ethread;
+    UINT64 Pid;
+    UINT64 Tid;
+    UCHAR  ImageFileName[15 + 1];
+
+} DEBUGGEE_THREAD_LIST_DETAILS_ENTRY, *PDEBUGGEE_THREAD_LIST_DETAILS_ENTRY;
+
+/**
  * @brief request for query count of active processes and threads
  *
  */
@@ -1735,19 +1764,6 @@ typedef struct _DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS
 
 } DEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS,
     *PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS;
-
-/* ==============================================================================================
- */
-
-#define SIZEOF_DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS \
-    sizeof(DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS)
-
-typedef struct _DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS
-{
-    UINT64 EProcessOrEThread;
-    UINT32 ProcessIdOrThreadId;
-
-} DEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS, *PDEBUGGER_ACTIVE_PROCESS_OR_THREADS_DETAILS;
 
 /* ==============================================================================================
  */
@@ -2127,6 +2143,13 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
 } DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET, *PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET;
 
 /**
+ * @brief Debugger size of DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET
+ *
+ */
+#define SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET \
+    sizeof(DEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET)
+
+/**
  * @brief Debugger thread switch and thread details
  *
  */
@@ -2156,6 +2179,13 @@ typedef struct _DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET
     UINT32                                  Result;
 
 } DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET, *PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET;
+
+/**
+ * @brief Debugger size of DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET
+ *
+ */
+#define SIZEOF_DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET \
+    sizeof(DEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET)
 
 /**
  * @brief stepping types
@@ -2965,3 +2995,17 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  */
 #define IOCTL_GET_LIST_OF_THREADS_AND_PROCESSES \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81c, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, query the current process details
+ *
+ */
+#define IOCTL_QUERY_CURRENT_PROCESS \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81d, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+/**
+ * @brief ioctl, query the current thread details
+ *
+ */
+#define IOCTL_QUERY_CURRENT_THREAD \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x81e, METHOD_BUFFERED, FILE_ANY_ACCESS)

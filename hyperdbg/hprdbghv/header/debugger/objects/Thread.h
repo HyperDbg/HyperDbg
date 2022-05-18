@@ -29,3 +29,11 @@ ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState);
 
 BOOLEAN
 ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest);
+
+BOOLEAN
+ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
+                PVOID                                       AddressToSaveDetail,
+                UINT32                                      BufferSize);
+
+BOOLEAN
+ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest);

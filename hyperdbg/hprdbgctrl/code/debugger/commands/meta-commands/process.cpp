@@ -82,11 +82,7 @@ CommandProcess(vector<string> SplittedCommand, string Command)
             //
             // Get the process details in VMI mode
             //
-            ObjectShowProcessesOrThreadList(TRUE,
-                                            TRUE,
-                                            NULL,
-                                            NULL,
-                                            NULL);
+            ObjectShowProcessesOrThreadDetails(TRUE);
         }
         else
         {
@@ -137,7 +133,6 @@ CommandProcess(vector<string> SplittedCommand, string Command)
                     // Get list of processes in VMI mode
                     //
                     ObjectShowProcessesOrThreadList(TRUE,
-                                                    FALSE,
                                                     &ProcessListNeededItems,
                                                     NULL,
                                                     NULL);
