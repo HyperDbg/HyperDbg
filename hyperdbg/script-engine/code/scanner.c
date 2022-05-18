@@ -740,24 +740,37 @@ GetToken(char * c, char * str)
 PTOKEN
 Scan(char * str, char * c)
 {
+    static BOOLEAN ReturnEndOfString;
     PTOKEN Token;
 
+    if (InputIdx == 0)
+    {
+        ReturnEndOfString = FALSE; 
+    }
+
+    if (ReturnEndOfString)
+    {
+        Token = NewToken(END_OF_STACK, "$");
+        return Token;
+    }
+
+    if (str[InputIdx - 1] == '\0')
+    {
+        
+    }
     while (1)
     {
         CurrentTokenIdx = InputIdx - 1;
 
         Token = GetToken(c, str);
 
-        //
-        // check end of string
-        //
-        if ((int)*c == EOF)
+        if ((char)*c == EOF)
         {
-            Token->Type = END_OF_STACK;
-            strcpy(Token->Value, "$");
-            return Token;
+            ReturnEndOfString = TRUE;
         }
-        else if (Token->Type == WHITE_SPACE)
+       
+        
+        if (Token->Type == WHITE_SPACE)
         {
             if (!strcmp(Token->Value, "\n"))
             {

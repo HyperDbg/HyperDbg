@@ -242,11 +242,7 @@ CommandEval(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    //
-    // TODO: end of string must have a whitspace. fix it.
-    //
-    Command.append(" ");
-    // Expr = " x = 4 >> 1; ";
+
 
     if (g_IsSerialConnectedToRemoteDebuggee)
     {

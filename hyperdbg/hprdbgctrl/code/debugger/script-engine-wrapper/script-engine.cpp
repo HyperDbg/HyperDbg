@@ -41,10 +41,7 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     Expr.insert(0, "formats(");
     Expr.append(");");
 
-    //
-    // TODO: end of string must have a whitspace. fix it.
-    //
-    Expr.append(" ");
+
 
     //
     // Run script engine handler
