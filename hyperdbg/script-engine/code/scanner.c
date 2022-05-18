@@ -2,8 +2,7 @@
  * @file scanner.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * 
- Script Engine Scanner
- * @details
+ * @details Script Engine Scanner
  * @version 0.1
  * @date 2020-10-22
  *
@@ -398,7 +397,13 @@ GetToken(char * c, char * str)
 
             BOOLEAN WasFound = FALSE;
             BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-            UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+            UINT64  Address  = 0;
+
+            if (HasBang)
+            {
+                Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+            }
+
             if (WasFound)
             {
                 RemoveToken(Token);
@@ -408,7 +413,6 @@ GetToken(char * c, char * str)
             }
             else
             {
-                
                 if (HasBang)
                 {
                     Token->Type = UNKNOWN;
@@ -535,7 +539,6 @@ GetToken(char * c, char * str)
                 if (*c != '`')
                     Append(Token, *c);
 
-               
                 *c = sgetc(str);
                 if (IsHex(*c) || *c == '`')
                 {
@@ -570,8 +573,14 @@ GetToken(char * c, char * str)
                 else
                 {
                     BOOLEAN WasFound = FALSE;
-                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
-                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                    UINT64  Address  = 0;
+
+                    if (HasBang)
+                    {
+                        Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    }
+
                     if (WasFound)
                     {
                         RemoveToken(Token);
@@ -614,8 +623,14 @@ GetToken(char * c, char * str)
                 else if (IsId(Token->Value))
                 {
                     BOOLEAN WasFound = FALSE;
-                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
-                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                    UINT64  Address  = 0;
+
+                    if (HasBang)
+                    {
+                        Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    }
+
                     if (WasFound)
                     {
                         RemoveToken(Token);
@@ -670,7 +685,13 @@ GetToken(char * c, char * str)
             {
                 BOOLEAN WasFound = FALSE;
                 BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-                UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                UINT64  Address  = 0;
+
+                if (HasBang)
+                {
+                    Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                }
+
                 if (WasFound)
                 {
                     RemoveToken(Token);
@@ -709,7 +730,7 @@ GetToken(char * c, char * str)
 }
 
 /**
- * @brief 
+ * @brief Perform scanning the script engine
  * 
  * @param str 
  * @param c 
@@ -718,24 +739,35 @@ GetToken(char * c, char * str)
 PTOKEN
 Scan(char * str, char * c)
 {
-    PTOKEN Token;
+    static BOOLEAN ReturnEndOfString;
+    PTOKEN         Token;
 
+    if (InputIdx == 0)
+    {
+        ReturnEndOfString = FALSE;
+    }
+
+    if (ReturnEndOfString)
+    {
+        Token = NewToken(END_OF_STACK, "$");
+        return Token;
+    }
+
+    if (str[InputIdx - 1] == '\0')
+    {
+    }
     while (1)
     {
         CurrentTokenIdx = InputIdx - 1;
 
         Token = GetToken(c, str);
 
-        //
-        // check end of string
-        //
-        if ((int)*c == EOF)
+        if ((char)*c == EOF)
         {
-            Token->Type = END_OF_STACK;
-            strcpy(Token->Value, "$");
-            return Token;
+            ReturnEndOfString = TRUE;
         }
-        else if (Token->Type == WHITE_SPACE)
+
+        if (Token->Type == WHITE_SPACE)
         {
             if (!strcmp(Token->Value, "\n"))
             {
@@ -777,7 +809,7 @@ sgetc(char * str)
 }
 
 /**
- * @brief 
+ * @brief Check whether a string is a keyword or not
  * 
  * @param str 
  * @return char 
@@ -806,7 +838,7 @@ IsKeyword(char * str)
 }
 
 /**
- * @brief 
+ * @brief Check if string is register or not
  * 
  * @param str 
  * @return char 
@@ -820,7 +852,7 @@ IsRegister(char * str)
 }
 
 /**
- * @brief 
+ * @brief eck if string is Id or not
  * 
  * @param str 
  * @return char 

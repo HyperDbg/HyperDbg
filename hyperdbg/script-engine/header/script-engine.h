@@ -109,8 +109,8 @@ __declspec(dllexport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
 void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
-    PTOKEN                     FirstToken,
-    PTOKEN_LIST                MatchedStack,
+    PTOKEN                    FirstToken,
+    PTOKEN_LIST               MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,

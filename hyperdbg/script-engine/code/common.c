@@ -1,3 +1,14 @@
+/**
+ * @file common.c
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * 
+ * @details Common routines
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #include "pch.h"
 
 /**
@@ -20,8 +31,8 @@ NewUnknownToken()
     // Init fields
     //
     strcpy(Token->Value, "");
-    Token->Type    = UNKNOWN;
-    Token->Len     = 0;
+    Token->Type   = UNKNOWN;
+    Token->Len    = 0;
     Token->MaxLen = TOKEN_VALUE_MAX_LEN;
 
     return Token;
@@ -33,13 +44,13 @@ NewToken(TOKEN_TYPE Type, char * Value)
     //
     // Allocate memory for token]
     //
-    PTOKEN Token        = (PTOKEN)malloc(sizeof(TOKEN));
-    
+    PTOKEN Token = (PTOKEN)malloc(sizeof(TOKEN));
+
     //
     // Init fields
     //
     unsigned int Len = strlen(Value);
-    Token->Type   = Type;
+    Token->Type      = Type;
     Token->Len       = Len;
     Token->MaxLen    = Len;
     Token->Value     = (char *)calloc(Token->MaxLen + 1, sizeof(char));
@@ -200,26 +211,18 @@ Append(PTOKEN Token, char c)
 PTOKEN
 CopyToken(PTOKEN Token)
 {
-  
-    PTOKEN TokenCopy = (PTOKEN)malloc(sizeof(TOKEN));
-    TokenCopy->Type  = Token->Type;
+    PTOKEN TokenCopy  = (PTOKEN)malloc(sizeof(TOKEN));
+    TokenCopy->Type   = Token->Type;
     TokenCopy->MaxLen = Token->MaxLen;
     TokenCopy->Len    = Token->Len;
     TokenCopy->Value  = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
     strcpy(TokenCopy->Value, Token->Value);
-    
-    
+
     return TokenCopy;
 }
 
 /**
- *
-
-
-
-
-
- allocates a new TOKEN_LIST
+ * allocates a new TOKEN_LIST
  *
  * @return TOKEN_LIST
  */
@@ -298,7 +301,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
     //
     uintptr_t Head      = (uintptr_t)TokenList->Head;
     uintptr_t Pointer   = (uintptr_t)TokenList->Pointer;
-    PTOKEN *   WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     //
     // Write Token to appropriate address in TokenList
@@ -355,7 +358,7 @@ Pop(PTOKEN_LIST TokenList)
         TokenList->Pointer--;
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer;
-    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
@@ -374,7 +377,7 @@ Top(PTOKEN_LIST TokenList)
     //
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer - 1;
-    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
@@ -483,7 +486,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
     PTOKEN Temp = NewUnknownToken();
-    char  TempValue[8];
+    char   TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
