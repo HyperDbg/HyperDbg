@@ -398,7 +398,13 @@ GetToken(char * c, char * str)
 
             BOOLEAN WasFound = FALSE;
             BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-            UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+            UINT64  Address  = 0;
+
+            if (HasBang)
+            {
+                Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+            }
+
             if (WasFound)
             {
                 RemoveToken(Token);
@@ -408,7 +414,6 @@ GetToken(char * c, char * str)
             }
             else
             {
-                
                 if (HasBang)
                 {
                     Token->Type = UNKNOWN;
@@ -535,7 +540,6 @@ GetToken(char * c, char * str)
                 if (*c != '`')
                     Append(Token, *c);
 
-               
                 *c = sgetc(str);
                 if (IsHex(*c) || *c == '`')
                 {
@@ -570,8 +574,14 @@ GetToken(char * c, char * str)
                 else
                 {
                     BOOLEAN WasFound = FALSE;
-                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
-                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                    UINT64  Address  = 0;
+
+                    if (HasBang)
+                    {
+                        Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    }
+
                     if (WasFound)
                     {
                         RemoveToken(Token);
@@ -614,8 +624,14 @@ GetToken(char * c, char * str)
                 else if (IsId(Token->Value))
                 {
                     BOOLEAN WasFound = FALSE;
-                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
-                    UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
+                    UINT64  Address  = 0;
+
+                    if (HasBang)
+                    {
+                        Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                    }
+
                     if (WasFound)
                     {
                         RemoveToken(Token);
@@ -670,7 +686,13 @@ GetToken(char * c, char * str)
             {
                 BOOLEAN WasFound = FALSE;
                 BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
-                UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                UINT64  Address  = 0;
+
+                if (HasBang)
+                {
+                    Address = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
+                }
+
                 if (WasFound)
                 {
                     RemoveToken(Token);
