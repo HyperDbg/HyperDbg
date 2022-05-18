@@ -1,7 +1,8 @@
 /**
  * @file scanner.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
- * @brief Script Engine Scanner
+ * 
+ Script Engine Scanner
  * @details
  * @version 0.1
  * @date 2020-10-22

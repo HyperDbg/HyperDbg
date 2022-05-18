@@ -1,7 +1,7 @@
 #include "pch.h"
 
 /**
- * @brief allocates a new token
+ * @brief Allocates a new token
  *
  * @return Token
  */
@@ -49,7 +49,7 @@ NewToken(TOKEN_TYPE Type, char * Value)
 }
 
 /**
- * @brief removes allocated memory of a token
+ * @brief Removes allocated memory of a token
  *
  * @param Token
  */
@@ -62,7 +62,7 @@ RemoveToken(PTOKEN Token)
 }
 
 /**
- * @brief prints token
+ * @brief Prints token
  * @detail prints value and type of token
  *
  * @param Token
@@ -158,7 +158,7 @@ PrintToken(PTOKEN Token)
 }
 
 /**
- * @brief appends char to the token value
+ * @brief Appends char to the token value
  *
  * @param Token
  * @param char
@@ -193,7 +193,7 @@ Append(PTOKEN Token, char c)
 }
 
 /**
- * @brief copies a PTOKEN
+ * @brief Copies a PTOKEN
  *
  * @return PTOKEN
  */
@@ -213,7 +213,13 @@ CopyToken(PTOKEN Token)
 }
 
 /**
- * @brief allocates a new TOKEN_LIST
+ *
+
+
+
+
+
+ allocates a new TOKEN_LIST
  *
  * @return TOKEN_LIST
  */
@@ -242,7 +248,7 @@ NewTokenList(void)
 }
 
 /**
- * @brief removes allocated memory of a TOKEN_LIST
+ * @brief Removes allocated memory of a TOKEN_LIST
  *
  * @param TokenList
  */
@@ -262,7 +268,7 @@ RemoveTokenList(PTOKEN_LIST TokenList)
 }
 
 /**
- * @brief prints each Token inside a TokenList
+ * @brief Prints each Token inside a TokenList
  *
  * @param TokenList
  */
@@ -278,7 +284,7 @@ PrintTokenList(PTOKEN_LIST TokenList)
 }
 
 /**
- * @brief adds Token to the last empty position of TokenList
+ * @brief Adds Token to the last empty position of TokenList
  *
  * @param Token
  * @param TokenList
@@ -334,7 +340,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
     return TokenList;
 }
 /**
- * @brief removes last Token of a TokenList and returns it
+ * @brief Removes last Token of a TokenList and returns it
  *
  * @param TokenList
  @ @return Token
@@ -355,7 +361,7 @@ Pop(PTOKEN_LIST TokenList)
 }
 
 /**
- * @brief returns last Token of a TokenList
+ * @brief Returns last Token of a TokenList
  *
  * @param TokenList
  * @return Token
@@ -374,7 +380,7 @@ Top(PTOKEN_LIST TokenList)
 }
 
 /**
-* @brief cheks whether input char belongs to hexadecimal digit-set or not
+* @brief Checks whether input char belongs to hexadecimal digit-set or not
 *
 * @param char
 * @return bool
@@ -389,7 +395,7 @@ IsHex(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to decimal digit-set or not
+* @brief Checks whether input char belongs to decimal digit-set or not
 *
 * @param char
 * @return bool
@@ -404,7 +410,7 @@ IsDecimal(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to alphabet set or not
+* @brief Checks whether input char belongs to alphabet set or not
 *
 * @param char
 * @return bool
@@ -421,7 +427,7 @@ IsLetter(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to binary digit-set or not
+* @brief Checks whether input char belongs to binary digit-set or not
 *
 * @param char
 * @return bool
@@ -438,7 +444,7 @@ IsBinary(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to octal digit-set or not
+* @brief Checks whether input char belongs to octal digit-set or not
 *
 * @param char
 * @return bool
@@ -453,7 +459,7 @@ IsOctal(char c)
 }
 
 /**
- * @brief 
+ * @brief Allocates a new temporary variable and returns it
  * 
  * @param Error 
  * @return PTOKEN 
@@ -485,7 +491,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
- * @brief 
+ * @brief Frees the memory allocated by Temp
  * 
  * @param Temp 
  */
@@ -500,7 +506,7 @@ FreeTemp(PTOKEN Temp)
 }
 
 /**
- * @brief 
+ * @brief Resets the temporary variables map
  * 
  */
 void
@@ -512,6 +518,12 @@ CleanTempList(void)
     }
 }
 
+/**
+ * @brief Checks whether this Token type is OneOpFunc1
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType1Func(PTOKEN Operator)
 {
@@ -527,7 +539,7 @@ IsType1Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OneOpFunc2
  * 
  * @param Operator 
  * @return char 
@@ -547,7 +559,7 @@ IsType2Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OperatorsTwoOperandList
  * 
  * @param Operator 
  * @return char 
@@ -567,7 +579,7 @@ IsTwoOperandOperator(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OperatorsOneOperandList
  * 
  * @param Operator 
  * @return char 
@@ -587,7 +599,7 @@ IsOneOperandOperator(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is VarArgFunc1
  * 
  * @param Operator 
  * @return char 
@@ -607,7 +619,7 @@ IsType4Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is ZeroOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -627,7 +639,7 @@ IsType5Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is TwoOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -647,7 +659,7 @@ IsType6Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is TwoOpFunc2
  * 
  * @param Operator 
  * @return char 
@@ -667,7 +679,7 @@ IsType7Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is ThreeOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -687,7 +699,8 @@ IsType8Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token is noneterminal
+ * NoneTerminal token starts with capital letter
  * 
  * @param Token 
  * @return char 
@@ -702,7 +715,8 @@ IsNoneTerminal(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token is semantic rule
+ * SemanticRule token starts with '@'
  * 
  * @param Token 
  * @return char 
@@ -717,7 +731,7 @@ IsSemanticRule(PTOKEN Token)
 }
 
 /**
- * @brief Get the Non Terminal Id object
+ * @brief Gets the Non Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -734,7 +748,7 @@ GetNonTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief Get the Terminal Id object
+ * @brief Gets the Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -816,7 +830,7 @@ GetTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Gets the Non Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -833,7 +847,7 @@ LalrGetNonTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Gets the Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -915,7 +929,7 @@ LalrGetTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Checks wether the value and type of Token1 and Token2 are the same
  * 
  * @param Token1 
  * @param Token2 
@@ -972,7 +986,7 @@ SetType(unsigned long long * Val, unsigned char Type)
 }
 
 /**
- * @brief 
+ * @brief Converts an decimal string to a integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -993,7 +1007,7 @@ DecimalToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an decimal string to a signed integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1027,7 +1041,7 @@ DecimalToSignedInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an hexadecimal string to integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1060,7 +1074,7 @@ HexToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an octal string to integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1082,7 +1096,7 @@ OctalToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts a binary string to integer 
  * 
  * @param str 
  * @return unsigned long long int 

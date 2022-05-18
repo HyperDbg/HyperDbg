@@ -17,7 +17,7 @@
 //#define _SCRIPT_ENGINE_CODEGEN_DBG_EN
 
 /**
- * @brief Convert name to address
+ * @brief Converts name to address
  * 
  * @param FunctionOrVariableName 
  * @param WasFound 
@@ -33,7 +33,9 @@ ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN W
 }
 
 /**
- * @brief Load symbol files
+ * 
+
+ Load symbol files
  * 
  * @param BaseAddress 
  * @param PdbFileName 
@@ -246,7 +248,7 @@ ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath,
 }
 
 /**
- * @brief 
+ * @brief The entry point of script engine
  * 
  * @param str 
  * @return PSYMBOL_BUFFER 
@@ -476,7 +478,7 @@ ScriptEngineParse(char * str)
 }
 
 /**
- * @brief 
+ * @brief Script Engine code generator 
  * 
  * @param MatchedStack 
  * @param CodeBuffer 
@@ -1553,7 +1555,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 }
 
 /**
- * @brief 
+ * @brief Computes the boolean expression length starting from the current input position
  * 
  * @param str 
  * @param WaitForWaitStatementBooleanExpression 
@@ -1601,7 +1603,7 @@ BooleanExpressionExtractEnd(char * str, BOOL * WaitForWaitStatementBooleanExpres
 }
 
 /**
- * @brief 
+ * @brief LALR parser used for parsing boolean expression 
  * 
  * @param BooleanExpressionSize 
  * @param FirstToken 
@@ -1783,7 +1785,7 @@ ScriptEngineBooleanExpresssionParse(
 }
 
 /**
- * @brief 
+ * @brief Allocates a new SYMBOL and returns the reference to it 
  * 
  * @return PSYMBOL 
  */
@@ -1791,14 +1793,14 @@ PSYMBOL
 NewSymbol(void)
 {
     PSYMBOL Symbol;
-    Symbol        = (PSYMBOL)malloc(sizeof(*Symbol));
+    Symbol        = (PSYMBOL)malloc(sizeof(SYMBOL));
     Symbol->Value = 0;
     Symbol->Type  = 0;
     return Symbol;
 }
 
 /**
- * @brief 
+ * @brief Allocates a new SYMBOL with string type and returns the reference to it 
  * 
  * @param value 
  * @return PSYMBOL 
@@ -1815,7 +1817,7 @@ NewStringSymbol(char * value)
 }
 
 /**
- * @brief
+ * @brief Returns the number of SYMBOL objects (16 bytes) allocated by string sybmol 
  * 
  * @param Symbol 
  * @return unsigned int 
@@ -1828,7 +1830,7 @@ GetStringSymbolSize(PSYMBOL Symbol)
 }
 
 /**
- * @brief 
+ * @brief Frees the memory allocate by this Symbol
  * 
  * @param Symbol 
  */
@@ -1841,7 +1843,7 @@ RemoveSymbol(PSYMBOL Symbol)
 }
 
 /**
- * @brief 
+ * @brief Prints symbol
  * 
  * @param Symbol 
  */
@@ -1859,7 +1861,7 @@ PrintSymbol(PSYMBOL Symbol)
 }
 
 /**
- * @brief 
+ * @brief Converts Token to Symbol and returns the reference to it
  * 
  * @param Token 
  * @param Error 
@@ -1928,7 +1930,7 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
- * @brief 
+ * @brief allocates a new Symbol Buffer and returns the reference to it 
  * 
  * @return PSYMBOL_BUFFER 
  */
@@ -1945,7 +1947,7 @@ NewSymbolBuffer(void)
 }
 
 /**
- * @brief 
+ * @brief Frees the memory allocated by SymbolBuffer 
  * 
  * @param SymbolBuffer 
  */
@@ -1958,7 +1960,7 @@ RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer)
 }
 
 /**
- * @brief 
+ * @brief Gets a symbol and push it into the symbol buffer
  * 
  * @param SymbolBuffer 
  * @param Symbol 
@@ -2064,7 +2066,7 @@ PushSymbol(PSYMBOL_BUFFER SymbolBuffer, const PSYMBOL Symbol)
 }
 
 /**
- * @brief 
+ * @brief Prints a symbol buffer
  * 
  * @param SymbolBuffer 
  */
@@ -2091,7 +2093,7 @@ PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer)
 }
 
 /**
- * @brief 
+ * @brief Converts register string to integer
  * 
  * @param str 
  * @return unsigned long long int 
@@ -2110,7 +2112,7 @@ RegisterToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts pseudo register string to integer
  * 
  * @param str 
  * @return unsigned long long int 
@@ -2129,7 +2131,7 @@ PseudoRegToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts a sematinc rule token to integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -2148,7 +2150,7 @@ SemanticRuleToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Prints some information about the error 
  * 
  * @param Error 
  * @param str 
@@ -2241,7 +2243,7 @@ HandleError(PSCRIPT_ENGINE_ERROR_TYPE Error, char * str)
 }
 
 /**
- * @brief 
+ * @brief Returns the integer assigned to global variable 
  * 
  * @param Token 
  * @return int 
@@ -2262,7 +2264,7 @@ GetGlobalIdentifierVal(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Returns the integer assigned to local variable
  * 
  * @param Token 
  * @return int 
@@ -2283,7 +2285,7 @@ GetLocalIdentifierVal(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Allocates a new gloabal variable and returns the integer assigned to it 
  * 
  * @param Token 
  * @return int 
@@ -2297,7 +2299,7 @@ NewGlobalIdentifier(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Allocates a new local variable and returns the integer assigned to it 
  * 
  * @param Token 
  * @return int 
@@ -2311,7 +2313,7 @@ NewLocalIdentifier(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Returns the size of Right Hand Side (RHS) of a rule  
  * 
  * @param RuleId 
  * @return int 
@@ -2332,7 +2334,7 @@ LalrGetRhsSize(int RuleId)
 }
 
 /**
- * @brief 
+ * @brief Returns TRUE if the Token can be the operand of an operator 
  * 
  * @param Token 
  * @return BOOL 

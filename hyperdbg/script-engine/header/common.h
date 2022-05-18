@@ -4,7 +4,8 @@
 #    define COMMON_H
 
 /**
-* @brief initial size of symbol buffer
+* 
+initial size of symbol buffer
 */
 #    define SYMBOL_BUFFER_INIT_SIZE 64
 
