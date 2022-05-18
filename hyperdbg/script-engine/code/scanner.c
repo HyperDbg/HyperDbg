@@ -397,19 +397,19 @@ GetToken(char * c, char * str)
             } while (IsLetter(*c) || IsHex(*c) || (*c == '_') || (*c == '!'));
 
             BOOLEAN WasFound = FALSE;
+            BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
             UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
             if (WasFound)
             {
-                free(Token->Value);
+                RemoveToken(Token);
                 char str[20] = {0};
                 sprintf(str, "%llx", Address);
-                Token->Value = str;
-                Token->Type  = HEX;
+                Token = NewToken(HEX, str);
             }
             else
             {
-                char BangChar[] = "!";
-                if (strstr(Token->Value, BangChar))
+                
+                if (HasBang)
                 {
                     Token->Type = UNKNOWN;
                     return Token;
@@ -570,19 +570,18 @@ GetToken(char * c, char * str)
                 else
                 {
                     BOOLEAN WasFound = FALSE;
+                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
                     UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
                     if (WasFound)
                     {
-                        free(Token->Value);
+                        RemoveToken(Token);
                         char str[20] = {0};
                         sprintf(str, "%llx", Address);
-                        Token->Value = str;
-                        Token->Type  = HEX;
+                        Token = NewToken(HEX, str);
                     }
                     else
                     {
-                        char BangChar[] = "!";
-                        if (strstr(Token->Value, BangChar))
+                        if (HasBang)
                         {
                             Token->Type = UNKNOWN;
                             return Token;
@@ -615,18 +614,18 @@ GetToken(char * c, char * str)
                 else if (IsId(Token->Value))
                 {
                     BOOLEAN WasFound = FALSE;
+                    BOOLEAN HasBang    = strstr(Token->Value, "!") != 0;
                     UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
                     if (WasFound)
                     {
-                        free(Token->Value);
+                        RemoveToken(Token);
                         char str[20] = {0};
                         sprintf(str, "%llx", Address);
-                        Token->Value = str;
-                        Token->Type  = HEX;
+                        Token = NewToken(HEX, str);
                     }
                     else
                     {
-                        if (strstr(Token->Value, "!"))
+                        if (HasBang)
                         {
                             Token->Type = UNKNOWN;
                             return Token;
@@ -670,19 +669,18 @@ GetToken(char * c, char * str)
             else
             {
                 BOOLEAN WasFound = FALSE;
+                BOOLEAN HasBang  = strstr(Token->Value, "!") != 0;
                 UINT64  Address  = ScriptEngineConvertNameToAddress(Token->Value, &WasFound);
                 if (WasFound)
                 {
-                    free(Token->Value);
+                    RemoveToken(Token);
                     char str[20] = {0};
                     sprintf(str, "%llx", Address);
-                    Token->Value = str;
-                    Token->Type  = HEX;
+                    Token = NewToken(HEX, str);
                 }
                 else
                 {
-                    char BangChar[] = "!";
-                    if (strstr(Token->Value, BangChar))
+                    if (HasBang)
                     {
                         Token->Type = UNKNOWN;
                         return Token;
