@@ -1,3 +1,14 @@
+/**
+ * @file scanner.h
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * 
+ * @details Scanner headers
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
 
 #ifndef SCANNER_H

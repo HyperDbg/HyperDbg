@@ -258,7 +258,7 @@ ScriptEngineParse(char * str)
 {
     PTOKEN_LIST Stack = NewTokenList();
 
-    PTOKEN_LIST     MatchedStack = NewTokenList();
+    PTOKEN_LIST    MatchedStack = NewTokenList();
     PSYMBOL_BUFFER CodeBuffer   = NewSymbolBuffer();
 
     SCRIPT_ENGINE_ERROR_TYPE Error        = SCRIPT_ENGINE_ERROR_FREE;
@@ -271,8 +271,7 @@ ScriptEngineParse(char * str)
         FirstCall = 0;
     }
 
-    
-    PTOKEN TopToken  = NewUnknownToken();
+    PTOKEN TopToken = NewUnknownToken();
 
     int  NonTerminalId;
     int  TerminalId;
@@ -291,12 +290,11 @@ ScriptEngineParse(char * str)
     // End of File Token
     //
     PTOKEN EndToken = NewToken(END_OF_STACK, "$");
-   
+
     //
     // Start Token
     //
     PTOKEN StartToken = NewToken(NON_TERMINAL, START_VARIABLE);
-
 
     Push(Stack, EndToken);
     Push(Stack, StartToken);
@@ -488,10 +486,10 @@ ScriptEngineParse(char * str)
 void
 CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PSCRIPT_ENGINE_ERROR_TYPE Error)
 {
-    PTOKEN       Op0          = NULL;
-    PTOKEN       Op1          = NULL;
-    PTOKEN       Op2          = NULL;
-    PTOKEN       Temp         = NULL;
+    PTOKEN Op0  = NULL;
+    PTOKEN Op1  = NULL;
+    PTOKEN Op2  = NULL;
+    PTOKEN Temp = NULL;
 
     PSYMBOL OperatorSymbol = NULL;
     PSYMBOL Op0Symbol      = NULL;
@@ -546,7 +544,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 Op1Symbol = ToSymbol(Op1, Error);
             }
 
-            
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
 
@@ -574,7 +571,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (IsType1Func(Operator))
         {
-            
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
@@ -583,7 +579,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
-               
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, TempSymbol);
 
@@ -592,8 +587,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             {
                 break;
             }
-         
-
         }
         else if (IsType4Func(Operator))
         {
@@ -610,7 +603,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 if (Op1->Type != SEMANTIC_RULE)
                 {
                     Op1Symbol = ToSymbol(Op1, Error);
-                    
+
                     PushSymbol(TempStack, Op1Symbol);
                     FreeTemp(Op1);
 
@@ -709,7 +702,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
                 }
             }
-           
 
             RemoveSymbolBuffer(TempStack);
 
@@ -725,11 +717,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (!strcmp(Operator->Value, "@IGNORE_LVALUE"))
         {
-            Op0          = Pop(MatchedStack);
+            Op0 = Pop(MatchedStack);
         }
         else if (IsType6Func(Operator))
         {
-           
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
@@ -737,7 +728,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-               
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -749,14 +739,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
-         
 
             //
             // Free the operand if it is a temp value
             //
             FreeTemp(Op0);
             FreeTemp(Op1);
-            
         }
         else if (IsType7Func(Operator))
         {
@@ -767,7 +755,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Op1       = Pop(MatchedStack);
             Op1Symbol = ToSymbol(Op1, Error);
 
-            
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -782,7 +769,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         }
         else if (IsType8Func(Operator))
         {
-        
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
@@ -793,21 +779,17 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PTOKEN  Op2       = Pop(MatchedStack);
             PSYMBOL Op2Symbol = ToSymbol(Op2, Error);
 
-                
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, Op2Symbol);
-               
 
             Temp = NewTemp(Error);
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
             PushSymbol(CodeBuffer, TempSymbol);
 
-               
             FreeTemp(Op2);
-            
-         
+
             //
             // Free the operand if it is a temp value
             //
@@ -831,7 +813,6 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             Push(MatchedStack, Temp);
             TempSymbol = ToSymbol(Temp, Error);
 
-           
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, Op1Symbol);
             PushSymbol(CodeBuffer, TempSymbol);
@@ -851,7 +832,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, OperatorSymbol);
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
-          
+
             PushSymbol(CodeBuffer, Op0Symbol);
 
             //
@@ -886,10 +867,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
-           
+
             PushSymbol(CodeBuffer, Op0Symbol);
-
-
 
             char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
@@ -908,7 +887,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             // Set JZ jump address
             //
             UINT64  CurrentPointer           = CodeBuffer->Pointer;
-            PTOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
+            PTOKEN  JumpSemanticAddressToken = Pop(MatchedStack);
             UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
             PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress - 2);
             JumpAddressSymbol->Value         = CurrentPointer + 2;
@@ -943,7 +922,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
         else if (!strcmp(Operator->Value, "@END_OF_IF"))
         {
             UINT64  CurrentPointer           = CodeBuffer->Pointer;
-            PTOKEN   JumpSemanticAddressToken = Pop(MatchedStack);
+            PTOKEN  JumpSemanticAddressToken = Pop(MatchedStack);
             PSYMBOL JumpAddressSymbol;
             while (strcmp(JumpSemanticAddressToken->Value, "@START_OF_IF"))
             {
@@ -966,7 +945,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
-            PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
+            PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_WHILE_COMMANDS"))
@@ -987,14 +966,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             PTOKEN StartOfWhileToken = Pop(MatchedStack);
 
-
-            char   str[20];
+            char str[20];
             sprintf(str, "%llu", CurrentPointer + 1);
             PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
             Push(MatchedStack, StartOfWhileToken);
 
-           
             PushSymbol(CodeBuffer, OperatorSymbol);
             PushSymbol(CodeBuffer, JumpAddressSymbol);
 
@@ -1022,11 +999,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             // Add jmp address to Code buffer
             //
-            PTOKEN   JumpAddressToken  = Pop(MatchedStack);
+            PTOKEN  JumpAddressToken  = Pop(MatchedStack);
             UINT64  JumpAddress       = DecimalToInt(JumpAddressToken->Value);
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
 
-           
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             RemoveSymbol(JumpAddressSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -1063,10 +1039,9 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PTOKEN OperatorCopy = CopyToken(Operator);
             Push(MatchedStack, OperatorCopy);
 
- 
-            char   str[20];
+            char str[20];
             sprintf(str, "%llu", CodeBuffer->Pointer);
-            PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
+            PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
         }
         else if (!strcmp(Operator->Value, "@END_OF_DO_WHILE"))
@@ -1089,7 +1064,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             // Add jmp address to Code buffer
             //
-            PTOKEN  JumpAddressToken = Pop(MatchedStack);
+            PTOKEN JumpAddressToken = Pop(MatchedStack);
             UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
 
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
@@ -1176,7 +1151,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
-          
+
             PushSymbol(CodeBuffer, Op0Symbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
@@ -1214,7 +1189,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             char str[20] = {0};
             sprintf(str, "%llu", CodeBuffer->Pointer);
-            PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
+            PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
             Push(MatchedStack, CurrentAddressToken);
 
             //
@@ -1240,11 +1215,11 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             // Add jmp address to Code buffer
             //
-            PTOKEN  JumpAddressToken = Pop(MatchedStack);
+            PTOKEN JumpAddressToken = Pop(MatchedStack);
             UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
 
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
-         
+
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             RemoveToken(JumpAddressToken);
             RemoveSymbol(JumpAddressSymbol);
@@ -1256,9 +1231,9 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             // Set jmp address
             //
-            UINT64 CurrentPointer  = CodeBuffer->Pointer;
-            JumpAddressToken       = Pop(MatchedStack);
-            JumpAddress            = DecimalToInt(JumpAddressToken->Value);
+            UINT64 CurrentPointer = CodeBuffer->Pointer;
+            JumpAddressToken      = Pop(MatchedStack);
+            JumpAddress           = DecimalToInt(JumpAddressToken->Value);
 
             JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpAddress - 1);
             JumpAddressSymbol->Value = CurrentPointer;
@@ -1300,7 +1275,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             //
             // Add jmp address to Code buffer
             //
-            PTOKEN  JumpAddressToken = Pop(MatchedStack);
+            PTOKEN JumpAddressToken = Pop(MatchedStack);
             UINT64 JumpAddress      = DecimalToInt(JumpAddressToken->Value);
 
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
@@ -1365,11 +1340,11 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     //
                     // Push current pointer into matched stack
                     //
-                    
-                    UINT64 CurrentPointer      = CodeBuffer->Pointer + 1;
+
+                    UINT64 CurrentPointer = CodeBuffer->Pointer + 1;
                     char   str[20];
                     sprintf(str, "%llu", CurrentPointer);
-                    PTOKEN  CurrentAddressToken = NewToken(DECIMAL, str);
+                    PTOKEN CurrentAddressToken = NewToken(DECIMAL, str);
                     Push(MatchedStack, CurrentAddressToken);
 
                     //
@@ -1592,7 +1567,7 @@ void
 ScriptEngineBooleanExpresssionParse(
     UINT64                    BooleanExpressionSize,
     PTOKEN                    FirstToken,
-    PTOKEN_LIST                MatchedStack,
+    PTOKEN_LIST               MatchedStack,
     PSYMBOL_BUFFER            CodeBuffer,
     char *                    str,
     char *                    c,
@@ -1897,7 +1872,7 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         return NewStringSymbol(Token->Value);
 
     default:
-        *Error = SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE;
+        *Error        = SCRIPT_ENGINE_ERROR_UNRESOLVED_VARIABLE;
         Symbol->Type  = INVALID;
         Symbol->Value = INVALID;
         return Symbol;
@@ -2283,7 +2258,7 @@ int
 NewLocalIdentifier(PTOKEN Token)
 {
     PTOKEN CopiedToken = CopyToken(Token);
-    IdTable = Push(IdTable, CopiedToken);
+    IdTable            = Push(IdTable, CopiedToken);
     return IdTable->Pointer - 1;
 }
 

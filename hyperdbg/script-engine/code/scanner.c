@@ -2,8 +2,7 @@
  * @file scanner.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * 
- Script Engine Scanner
- * @details
+ * @details Script Engine Scanner
  * @version 0.1
  * @date 2020-10-22
  *
@@ -741,11 +740,11 @@ PTOKEN
 Scan(char * str, char * c)
 {
     static BOOLEAN ReturnEndOfString;
-    PTOKEN Token;
+    PTOKEN         Token;
 
     if (InputIdx == 0)
     {
-        ReturnEndOfString = FALSE; 
+        ReturnEndOfString = FALSE;
     }
 
     if (ReturnEndOfString)
@@ -756,7 +755,6 @@ Scan(char * str, char * c)
 
     if (str[InputIdx - 1] == '\0')
     {
-        
     }
     while (1)
     {
@@ -768,8 +766,7 @@ Scan(char * str, char * c)
         {
             ReturnEndOfString = TRUE;
         }
-       
-        
+
         if (Token->Type == WHITE_SPACE)
         {
             if (!strcmp(Token->Value, "\n"))
