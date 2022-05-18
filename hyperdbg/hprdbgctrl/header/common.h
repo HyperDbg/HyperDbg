@@ -71,6 +71,19 @@
 #define CPUID_ADDR_WIDTH 0x80000008
 
 //////////////////////////////////////////////////
+//			    	 Spinlocks                  //
+//////////////////////////////////////////////////
+
+void
+SpinlockLock(volatile LONG * Lock);
+
+void
+SpinlockLockWithCustomWait(volatile LONG * Lock, unsigned MaximumWait);
+
+void
+SpinlockUnlock(volatile LONG * Lock);
+
+//////////////////////////////////////////////////
 //			    	 Functions                  //
 //////////////////////////////////////////////////
 
