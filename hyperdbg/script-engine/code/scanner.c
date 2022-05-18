@@ -731,7 +731,7 @@ GetToken(char * c, char * str)
 }
 
 /**
- * @brief 
+ * @brief Perform scanning the script engine
  * 
  * @param str 
  * @param c 
@@ -799,7 +799,7 @@ sgetc(char * str)
 }
 
 /**
- * @brief 
+ * @brief Check whether a string is a keyword or not
  * 
  * @param str 
  * @return char 
@@ -828,7 +828,7 @@ IsKeyword(char * str)
 }
 
 /**
- * @brief 
+ * @brief Check if string is register or not
  * 
  * @param str 
  * @return char 
@@ -842,7 +842,7 @@ IsRegister(char * str)
 }
 
 /**
- * @brief 
+ * @brief eck if string is Id or not
  * 
  * @param str 
  * @return char 
