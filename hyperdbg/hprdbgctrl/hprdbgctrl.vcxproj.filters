@@ -448,6 +448,9 @@
     <ClCompile Include="code\objects\objects.cpp">
       <Filter>code\objects</Filter>
     </ClCompile>
+    <ClCompile Include="code\common\spinlock.cpp">
+      <Filter>code\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">

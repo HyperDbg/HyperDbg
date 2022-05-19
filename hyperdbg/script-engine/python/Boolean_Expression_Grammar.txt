@@ -16,59 +16,46 @@ S->BE
 BE->B1
 
 
+B1->B1 || B2 @OR
+B1->B2
 
 
-B1->B2 B1'
-B1'->|| B2 B1' @OR
-B1'->eps
+B2->B1 && B3 @AND
+B2->B3
 
-B2->B3 B2'
-B2'->&& B3 B2' @AND
-B2'->eps
+B3->B3 | B4 @OR
+B3->B4
 
+B4->B4 ^ B5 @XOR
+B4->B5
 
-B3->B4 B3'
-B3'->| B4 B3' @OR
-B3'->eps
-
-
-B4->B5 B4'
-B4'->^ B5 B4' @XOR
-B4'->eps
-
-B5->B6 B5'
-B5'->& B6 B5' @AND
-B5'->eps
+B5->B5 & B6 @AND
+B5->B6
 
 B6->CMP
 
-CMP->EXP > CMP @GT
-CMP->EXP < CMP @LT
-CMP->EXP >= CMP @EGT
-CMP->EXP <= CMP @ELT
-CMP->EXP == CMP @EQUAL
-CMP->EXP != CMP @NEQ
+CMP->CMP > EXP @GT
+CMP->CMP < EXP @LT
+CMP->CMP >= EXP @EGT
+CMP->CMP <= EXP @ELT
+CMP->CMP == EXP @EQUAL
+CMP->CMP != EXP @NEQ
 CMP->EXP
 
 EXP->E3
 
-E3->E4 E3'
-E3'->>> E4 E3' @ASR
-E3'-><< E4 E3' @ASL
-E3'->eps
+E3->E3 >> E4 @ASR
+E3->E3 << E4 @ASL
+E3->E4
 
+E4->E4 + E5 @ADD
+E4->E4 - E5 @SUB
+E4->E5
 
-
-E4->E5 E4'
-E4'->+ E5 E4' @ADD
-E4'->- E5 E4' @SUB
-E4'->eps
-
-E5->E10 E5'
-E5'->/ E10 E5' @DIV
-E5'->% E10 E5' @MOD
-E5'->* E10 E5' @MUL
-E5'->eps
+E5->E5 / E10 @DIV
+E5->E5 % E10 @MOD
+E5->E5 * E10 @MUL
+E5->E10
 
 E10->E12
 E10->- E12 @NEG
