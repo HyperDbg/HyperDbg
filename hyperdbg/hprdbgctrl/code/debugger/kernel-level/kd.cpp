@@ -1332,9 +1332,9 @@ KdSendPacketToDebuggee(const CHAR * Buffer, UINT32 Length, BOOLEAN SendEndOfBuff
     //
     if (Length + SERIAL_END_OF_BUFFER_CHARS_COUNT > MaxSerialPacketSize)
     {
-        ShowMessages(
-            "err, buffer is above the maximum buffer size that can be sent to "
-            "debuggee\n");
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d)",
+                     Length + SERIAL_END_OF_BUFFER_CHARS_COUNT,
+                     MaxSerialPacketSize);
         return FALSE;
     }
 
@@ -1501,9 +1501,9 @@ KdCommandPacketAndBufferToDebuggee(
     if (sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT >
         MaxSerialPacketSize)
     {
-        ShowMessages(
-            "err, buffer is above the maximum buffer size that can be sent to "
-            "debuggee\n");
+        ShowMessages("err, buffer is above the maximum buffer size that can be sent to debuggee (%d > %d)",
+                     sizeof(DEBUGGER_REMOTE_PACKET) + BufferLength + SERIAL_END_OF_BUFFER_CHARS_COUNT,
+                     MaxSerialPacketSize);
 
         return FALSE;
     }
