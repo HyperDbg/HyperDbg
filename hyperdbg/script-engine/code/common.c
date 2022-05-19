@@ -65,10 +65,11 @@ NewToken(TOKEN_TYPE Type, char * Value)
  * @param Token
  */
 void
-RemoveToken(PTOKEN Token)
+RemoveToken(PTOKEN* Token)
 {
-    free(Token->Value);
-    free(Token);
+    free((*Token)->Value);
+    free(*Token);
+    *Token = NULL;
     return;
 }
 
@@ -262,7 +263,7 @@ RemoveTokenList(PTOKEN_LIST TokenList)
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
-        RemoveToken(Token);
+        RemoveToken(&Token);
     }
     free(TokenList->Head);
     free(TokenList);

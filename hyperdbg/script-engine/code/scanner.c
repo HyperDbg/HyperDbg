@@ -406,7 +406,7 @@ GetToken(char * c, char * str)
 
             if (WasFound)
             {
-                RemoveToken(Token);
+                RemoveToken(&Token);
                 char str[20] = {0};
                 sprintf(str, "%llx", Address);
                 Token = NewToken(HEX, str);
@@ -583,7 +583,7 @@ GetToken(char * c, char * str)
 
                     if (WasFound)
                     {
-                        RemoveToken(Token);
+                        RemoveToken(&Token);
                         char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token = NewToken(HEX, str);
@@ -633,7 +633,7 @@ GetToken(char * c, char * str)
 
                     if (WasFound)
                     {
-                        RemoveToken(Token);
+                        RemoveToken(&Token);
                         char str[20] = {0};
                         sprintf(str, "%llx", Address);
                         Token = NewToken(HEX, str);
@@ -694,7 +694,7 @@ GetToken(char * c, char * str)
 
                 if (WasFound)
                 {
-                    RemoveToken(Token);
+                    RemoveToken(&Token);
                     char str[20] = {0};
                     sprintf(str, "%llx", Address);
                     Token = NewToken(HEX, str);
@@ -742,7 +742,7 @@ Scan(char * str, char * c)
     static BOOLEAN ReturnEndOfString;
     PTOKEN         Token;
 
-    if (InputIdx == 0)
+    if (InputIdx <= 1)
     {
         ReturnEndOfString = FALSE;
     }
@@ -774,12 +774,12 @@ Scan(char * str, char * c)
                 CurrentLine++;
                 CurrentLineIdx = InputIdx;
             }
-            RemoveToken(Token);
+            RemoveToken(&Token);
             continue;
         }
         else if (Token->Type == COMMENT)
         {
-            RemoveToken(Token);
+            RemoveToken(&Token);
             continue;
         }
         return Token;

@@ -310,13 +310,13 @@ ScriptEngineParse(char * str)
 
         RemoveTokenList(Stack);
         RemoveTokenList(MatchedStack);
-        RemoveToken(CurrentIn);
+        RemoveToken(&CurrentIn);
         return CodeBuffer;
     }
 
     do
     {
-        RemoveToken(TopToken);
+        RemoveToken(&TopToken);
         TopToken = Pop(Stack);
 
 #ifdef _SCRIPT_ENGINE_LL1_DBG_EN
@@ -339,7 +339,7 @@ ScriptEngineParse(char * str)
                     break;
                 }
 
-                RemoveToken(CurrentIn);
+                RemoveToken(&CurrentIn);
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
@@ -347,14 +347,14 @@ ScriptEngineParse(char * str)
                     break;
                 }
 
-                RemoveToken(CurrentIn);
+                RemoveToken(&CurrentIn);
                 CurrentIn = Scan(str, &c);
                 if (CurrentIn->Type == UNKNOWN)
                 {
                     Error = SCRIPT_ENGINE_ERROR_UNKOWN_TOKEN;
                     break;
                 }
-                RemoveToken(TopToken);
+                RemoveToken(&TopToken);
                 TopToken = Pop(Stack);
             }
             else
@@ -397,7 +397,7 @@ ScriptEngineParse(char * str)
         {
             if (!strcmp(TopToken->Value, "@PUSH"))
             {
-                RemoveToken(TopToken);
+                RemoveToken(&TopToken);
                 TopToken = Pop(Stack);
 
                 Push(MatchedStack, CurrentIn);
@@ -432,7 +432,7 @@ ScriptEngineParse(char * str)
             }
             else
             {
-                RemoveToken(CurrentIn);
+                RemoveToken(&CurrentIn);
                 CurrentIn = Scan(str, &c);
 
                 if (CurrentIn->Type == UNKNOWN)
@@ -467,10 +467,10 @@ ScriptEngineParse(char * str)
         RemoveTokenList(MatchedStack);
 
     if (CurrentIn)
-        RemoveToken(CurrentIn);
+        RemoveToken(&CurrentIn);
 
     if (TopToken)
-        RemoveToken(TopToken);
+        RemoveToken(&TopToken);
 
     return CodeBuffer;
 }
@@ -597,19 +597,21 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             {
                 if (Op1)
                 {
-                    RemoveToken(Op1);
+                    RemoveToken(&Op1);
                 }
                 Op1 = Pop(MatchedStack);
                 if (Op1->Type != SEMANTIC_RULE)
                 {
                     Op1Symbol = ToSymbol(Op1, Error);
 
-                    PushSymbol(TempStack, Op1Symbol);
                     FreeTemp(Op1);
+                    PushSymbol(TempStack, Op1Symbol);
+                    RemoveSymbol(&Op1Symbol);
 
                     OperandCount++;
                     if (*Error != SCRIPT_ENGINE_ERROR_FREE)
                     {
+                        RemoveSymbolBuffer(TempStack);
                         break;
                     }
                 }
@@ -628,11 +630,12 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, Op0Symbol);
             PushSymbol(CodeBuffer, OperandCountSymbol);
 
+            RemoveSymbol(&OperandCountSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
+                RemoveSymbolBuffer(TempStack);
                 break;
             }
-            RemoveSymbol(OperandCountSymbol);
 
             PSYMBOL FirstArg = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                                          (unsigned long long)(CodeBuffer->Pointer * sizeof(SYMBOL)));
@@ -644,6 +647,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 Symbol = TempStack->Head + i;
                 PushSymbol(CodeBuffer, Symbol);
             }
+            RemoveSymbolBuffer(TempStack);
 
             UINT32 i   = 0;
             char * Str = Format;
@@ -703,7 +707,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 }
             }
 
-            RemoveSymbolBuffer(TempStack);
+            
 
             FreeTemp(Op0);
             if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
@@ -863,7 +867,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
             JumpAddressSymbol->Value  = 0xffffffffffffffff;
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
 
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
@@ -891,7 +895,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             UINT64  JumpSemanticAddress      = DecimalToInt(JumpSemanticAddressToken->Value);
             PSYMBOL JumpAddressSymbol        = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress - 2);
             JumpAddressSymbol->Value         = CurrentPointer + 2;
-            RemoveToken(JumpSemanticAddressToken);
+            RemoveToken(&JumpSemanticAddressToken);
 
             //
             // Add jmp instruction to Code Buffer
@@ -900,7 +904,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JMP;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add -1 decimal code to jump address
@@ -909,7 +913,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpAddressSymbol->Type  = SYMBOL_NUM_TYPE;
             JumpAddressSymbol->Value = 0xffffffffffffffff;
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
 
             //
             // push current pointer to stack
@@ -930,10 +934,10 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 JumpAddressSymbol          = (PSYMBOL)(CodeBuffer->Head + JumpSemanticAddress + 1);
                 JumpAddressSymbol->Value   = CurrentPointer;
 
-                RemoveToken(JumpSemanticAddressToken);
+                RemoveToken(&JumpSemanticAddressToken);
                 JumpSemanticAddressToken = Pop(MatchedStack);
             }
-            RemoveToken(JumpSemanticAddressToken);
+            RemoveToken(&JumpSemanticAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_WHILE"))
         {
@@ -953,9 +957,9 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             UINT64 CurrentPointer = CodeBuffer->Pointer;
             PTOKEN JzToken        = NewToken(SEMANTIC_RULE, "@JZ");
 
-            RemoveSymbol(OperatorSymbol);
+            RemoveSymbol(&OperatorSymbol);
             OperatorSymbol = ToSymbol(JzToken, Error);
-            RemoveToken(JzToken);
+            RemoveToken(&JzToken);
 
             PSYMBOL JumpAddressSymbol = NewSymbol();
             JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
@@ -977,7 +981,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             PushSymbol(CodeBuffer, Op0Symbol);
 
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
 
             FreeTemp(Op0);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
@@ -994,7 +998,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JMP;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add jmp address to Code buffer
@@ -1004,7 +1008,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
 
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -1018,7 +1022,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             do
             {
-                RemoveToken(JumpAddressToken);
+                RemoveToken(&JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_WHILE"))
                 {
@@ -1029,7 +1033,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 JumpAddressSymbol->Value = CurrentPointer;
 
             } while (TRUE);
-            RemoveToken(JumpAddressToken);
+            RemoveToken(&JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_DO_WHILE"))
         {
@@ -1053,7 +1057,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JNZ;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add Op0 to CodeBuffer
@@ -1072,7 +1076,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PushSymbol(CodeBuffer, JumpAddressSymbol);
             PushSymbol(CodeBuffer, Op0Symbol);
 
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
 
             FreeTemp(Op0);
 
@@ -1089,7 +1093,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             do
             {
-                RemoveToken(JumpAddressToken);
+                RemoveToken(&JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_DO_WHILE"))
                 {
@@ -1104,7 +1108,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 JumpAddressSymbol->Value = CurrentPointer;
 
             } while (TRUE);
-            RemoveToken(JumpAddressToken);
+            RemoveToken(&JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@START_OF_FOR"))
         {
@@ -1135,7 +1139,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JnzInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JnzInstruction->Value  = FUNC_JZ;
             PushSymbol(CodeBuffer, JnzInstruction);
-            RemoveSymbol(JnzInstruction);
+            RemoveSymbol(&JnzInstruction);
 
             //
             // Add JZ addresss to Code CodeBuffer
@@ -1144,7 +1148,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JnzAddressSymbol->Type   = SYMBOL_NUM_TYPE;
             JnzAddressSymbol->Value  = 0xffffffffffffffff;
             PushSymbol(CodeBuffer, JnzAddressSymbol);
-            RemoveSymbol(JnzAddressSymbol);
+            RemoveSymbol(&JnzAddressSymbol);
 
             //
             // Add Op0 to CodeBuffer
@@ -1168,7 +1172,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JMP;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add jmp addresss to Code CodeBuffer
@@ -1177,7 +1181,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
             JumpAddressSymbol->Value  = 0xffffffffffffffff;
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveSymbol(&JumpAddressSymbol);
 
             //
             // Pop start_of_for address
@@ -1210,7 +1214,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JMP;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add jmp address to Code buffer
@@ -1221,8 +1225,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
 
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveToken(JumpAddressToken);
-            RemoveSymbol(JumpAddressSymbol);
+            RemoveToken(&JumpAddressToken);
+            RemoveSymbol(&JumpAddressSymbol);
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
                 break;
@@ -1270,7 +1274,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
             JumpInstruction->Value  = FUNC_JMP;
             PushSymbol(CodeBuffer, JumpInstruction);
-            RemoveSymbol(JumpInstruction);
+            RemoveSymbol(&JumpInstruction);
 
             //
             // Add jmp address to Code buffer
@@ -1281,8 +1285,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             PSYMBOL JumpAddressSymbol = ToSymbol(JumpAddressToken, Error);
 
             PushSymbol(CodeBuffer, JumpAddressSymbol);
-            RemoveSymbol(JumpAddressSymbol);
-            RemoveToken(JumpAddressToken);
+            RemoveSymbol(&JumpAddressSymbol);
+            RemoveToken(&JumpAddressToken);
 
             if (*Error != SCRIPT_ENGINE_ERROR_FREE)
             {
@@ -1299,7 +1303,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             do
             {
-                RemoveToken(JumpAddressToken);
+                RemoveToken(&JumpAddressToken);
                 JumpAddressToken = Pop(MatchedStack);
                 if (!strcmp(JumpAddressToken->Value, "@START_OF_FOR"))
                 {
@@ -1314,7 +1318,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 }
 
             } while (TRUE);
-            RemoveToken(JumpAddressToken);
+            RemoveToken(&JumpAddressToken);
         }
         else if (!strcmp(Operator->Value, "@BREAK"))
         {
@@ -1358,7 +1362,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
                     JumpInstruction->Value  = FUNC_JMP;
                     PushSymbol(CodeBuffer, JumpInstruction);
-                    RemoveSymbol(JumpInstruction);
+                    RemoveSymbol(&JumpInstruction);
 
                     //
                     // Add jmp address to Code buffer
@@ -1367,7 +1371,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
                     JumpAddressSymbol->Value  = 0xffffffffffffffff;
                     PushSymbol(CodeBuffer, JumpAddressSymbol);
-                    RemoveSymbol(JumpAddressSymbol);
+                    RemoveSymbol(&JumpAddressSymbol);
 
                     //
                     //
@@ -1383,7 +1387,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                 else if (MatchedStack->Pointer == 0)
                 {
                     *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
-                    RemoveToken(TempToken);
+                    RemoveToken(&TempToken);
                     break;
                 }
                 else
@@ -1419,7 +1423,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     JumpInstruction->Type   = SYMBOL_SEMANTIC_RULE_TYPE;
                     JumpInstruction->Value  = FUNC_JMP;
                     PushSymbol(CodeBuffer, JumpInstruction);
-                    RemoveSymbol(JumpInstruction);
+                    RemoveSymbol(&JumpInstruction);
 
                     //
                     // Add jmp address to Code buffer
@@ -1431,7 +1435,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
                     JumpAddressSymbol->Type   = SYMBOL_NUM_TYPE;
                     JumpAddressSymbol->Value  = DecimalToInt(TempToken->Value);
                     PushSymbol(CodeBuffer, JumpAddressSymbol);
-                    RemoveSymbol(JumpAddressSymbol);
+                    RemoveSymbol(&JumpAddressSymbol);
 
                     //
                     //
@@ -1479,27 +1483,27 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 #endif
 
     if (Op0)
-        RemoveToken(Op0);
+        RemoveToken(&Op0);
 
     if (Op1)
-        RemoveToken(Op1);
+        RemoveToken(&Op1);
 
     if (Op2)
-        RemoveToken(Op2);
+        RemoveToken(&Op2);
 
-    RemoveSymbol(OperatorSymbol);
+    RemoveSymbol(&OperatorSymbol);
 
     if (Op0Symbol)
-        RemoveSymbol(Op0Symbol);
+        RemoveSymbol(&Op0Symbol);
 
     if (Op1Symbol)
-        RemoveSymbol(Op1Symbol);
+        RemoveSymbol(&Op1Symbol);
 
     if (Op2Symbol)
-        RemoveSymbol(Op2Symbol);
+        RemoveSymbol(&Op2Symbol);
 
     if (TempSymbol)
-        RemoveSymbol(TempSymbol);
+        RemoveSymbol(&TempSymbol);
 
     return;
 }
@@ -1660,7 +1664,7 @@ ScriptEngineBooleanExpresssionParse(
                 InputIdx = InputIdxTemp;
                 *c       = Ctemp;
 
-                RemoveToken(CurrentIn);
+                RemoveToken(&CurrentIn);
 
                 CurrentIn = CopyToken(EndToken);
             }
@@ -1684,12 +1688,12 @@ ScriptEngineBooleanExpresssionParse(
                     }
                     else
                     {
-                        RemoveToken(Temp);
+                        RemoveToken(&Temp);
                     }
                 }
                 else
                 {
-                    RemoveToken(Temp);
+                    RemoveToken(&Temp);
                 }
             }
             if (SemanticRule->Type == SEMANTIC_RULE)
@@ -1723,13 +1727,13 @@ ScriptEngineBooleanExpresssionParse(
     }
 
     if (EndToken)
-        RemoveToken(EndToken);
+        RemoveToken(&EndToken);
 
     if (Stack)
         RemoveTokenList(Stack);
 
     if (CurrentIn)
-        RemoveToken(CurrentIn);
+        RemoveToken(&CurrentIn);
 
     return;
 }
@@ -1785,10 +1789,10 @@ GetStringSymbolSize(PSYMBOL Symbol)
  * @param Symbol 
  */
 void
-RemoveSymbol(PSYMBOL Symbol)
+RemoveSymbol(PSYMBOL* Symbol)
 {
-    free(Symbol);
-    Symbol = NULL;
+    free(*Symbol);
+    *Symbol = NULL;
     return;
 }
 
@@ -1868,7 +1872,7 @@ ToSymbol(PTOKEN Token, PSCRIPT_ENGINE_ERROR_TYPE Error)
         return Symbol;
 
     case STRING:
-        RemoveSymbol(Symbol);
+        RemoveSymbol(&Symbol);
         return NewStringSymbol(Token->Value);
 
     default:

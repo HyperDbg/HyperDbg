@@ -87,7 +87,7 @@ unsigned int
 GetStringSymbolSize(PSYMBOL Symbol);
 
 void
-RemoveSymbol(PSYMBOL Symbol);
+RemoveSymbol(PSYMBOL * Symbol);
 
 __declspec(dllexport) void PrintSymbol(PSYMBOL Symbol);
 
