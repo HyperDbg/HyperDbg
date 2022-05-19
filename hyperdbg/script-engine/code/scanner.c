@@ -775,11 +775,21 @@ Scan(char * str, char * c)
                 CurrentLineIdx = InputIdx;
             }
             RemoveToken(&Token);
+            if (ReturnEndOfString)
+            {
+                Token = NewToken(END_OF_STACK, "$");
+                return Token;
+            }
             continue;
         }
         else if (Token->Type == COMMENT)
         {
             RemoveToken(&Token);
+            if (ReturnEndOfString)
+            {
+                Token = NewToken(END_OF_STACK, "$");
+                return Token;
+            }
             continue;
         }
         return Token;

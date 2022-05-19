@@ -618,8 +618,13 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
 
             } while (!(Op1->Type == SEMANTIC_RULE && !strcmp(Op1->Value, "@VARGSTART")));
 
+            if (*Error != SCRIPT_ENGINE_ERROR_FREE)
+            {
+                break;
+            }
             Op0       = Pop(MatchedStack);
             Op0Symbol = ToSymbol(Op0, Error);
+            FreeTemp(Op0);
 
             char * Format = Op0->Value;
 
@@ -699,17 +704,8 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
             }
-            if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
-            {
-                if (i != ArgCount)
-                {
-                    *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
-                }
-            }
-
+           
             
-
-            FreeTemp(Op0);
             if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
             {
                 break;
