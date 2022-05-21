@@ -4,12 +4,12 @@
 [submodule "hyperdbg/dependencies/phnt"]
 	path = hyperdbg/dependencies/phnt
 	url = https://github.com/HyperDbg/phnt.git
-[submodule "hyperdbg/script-engine/modules/script-engine-test"]
-	path = hyperdbg/script-engine/modules/script-engine-test
-	url = https://github.com/HyperDbg/script-engine-test.git
 [submodule "hyperdbg/dependencies/ia32-doc"]
 	path = hyperdbg/dependencies/ia32-doc
 	url = https://github.com/HyperDbg/ia32-doc
 [submodule "hyperdbg/dependencies/pdbex"]
 	path = hyperdbg/dependencies/pdbex
 	url = https://github.com/HyperDbg/pdbex.git
+[submodule "hyperdbg/script-engine/modules/script-engine-test"]
+	path = hyperdbg/script-engine/modules/script-engine-test
+	url = https://github.com/HyperDbg/script-engine-test.git
