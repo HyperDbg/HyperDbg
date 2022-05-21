@@ -726,6 +726,10 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
         // Address should be accessed in more than one page
         //
         UINT64 PageCount = SizeToRead / PAGE_SIZE + 1;
+        if (SizeToRead % PAGE_SIZE == 0)
+        {
+            PageCount -= 1;
+        }
 
         for (size_t i = 0; i < PageCount; i++)
         {
@@ -1042,6 +1046,10 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
         // It need multiple accesses to different pages to access the memory
         //
         UINT64 PageCount = SizeToWrite / PAGE_SIZE + 1;
+        if (SizeToWrite % PAGE_SIZE == 0)
+        {
+            PageCount -= 1;
+        }
 
         for (SIZE_T i = 0; i < PageCount; i++)
         {
