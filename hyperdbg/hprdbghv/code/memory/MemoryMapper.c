@@ -727,7 +727,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
         //
         UINT64 PageCount = SizeToRead / PAGE_SIZE + 1;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        for (size_t i = 0; i < PageCount; i++)
         {
             UINT64 ReadSize = 0;
 
@@ -736,7 +736,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                 ReadSize =
                     (UINT64)PAGE_ALIGN(AddressToRead + PAGE_SIZE) - AddressToRead;
             }
-            else if (i == PageCount)
+            else if (i == PageCount - 1)
             {
                 ReadSize = SizeToRead;
             }
@@ -1043,7 +1043,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
         //
         UINT64 PageCount = SizeToWrite / PAGE_SIZE + 1;
 
-        for (SIZE_T i = 0; i <= PageCount; i++)
+        for (SIZE_T i = 0; i < PageCount; i++)
         {
             UINT64 WriteSize = 0;
 
@@ -1051,7 +1051,7 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
             {
                 WriteSize = (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
             }
-            else if (i == PageCount)
+            else if (i == PageCount - 1)
             {
                 WriteSize = SizeToWrite;
             }
