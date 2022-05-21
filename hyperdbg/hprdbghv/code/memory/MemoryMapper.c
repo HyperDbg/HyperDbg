@@ -731,7 +731,15 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             PageCount -= 1;
         }
 
-        for (size_t i = 0; i < PageCount; i++)
+        SIZE_T SizeToReadSave = SizeToRead;
+        UINT64 TempReadBuffer = (UINT64)ExAllocatePoolWithTag(NonPagedPool, SizeToReadSave + PAGE_SIZE, POOLTAG);
+        if (TempReadBuffer == 0)
+        {
+            return FALSE;
+        }
+        UINT64 TempReadBufferBegin = TempReadBuffer;
+
+        for (size_t i = 0; i <= PageCount; i++)
         {
             UINT64 ReadSize = 0;
 
@@ -740,7 +748,7 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
                 ReadSize =
                     (UINT64)PAGE_ALIGN(AddressToRead + PAGE_SIZE) - AddressToRead;
             }
-            else if (i == PageCount - 1)
+            else if (i == PageCount)
             {
                 ReadSize = SizeToRead;
             }
@@ -764,12 +772,13 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
 
             if (!MemoryMapperReadMemorySafeByPte(
                     PhysicalAddress,
-                    BufferToSaveMemory,
+                    TempReadBuffer,
                     ReadSize,
                     CurrentVmState->MemoryMapper.PteVirtualAddress,
                     CurrentVmState->MemoryMapper.VirualAddress,
                     CurrentVmState->IsOnVmxRootMode))
             {
+                ExFreePoolWithTag(TempReadBufferBegin, POOLTAG);
                 return FALSE;
             }
 
@@ -778,9 +787,11 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
             //
             SizeToRead         = SizeToRead - ReadSize;
             AddressToRead      = AddressToRead + ReadSize;
-            BufferToSaveMemory = BufferToSaveMemory + ReadSize;
+            TempReadBuffer     = TempReadBuffer + ReadSize;
         }
 
+        memcpy((void *)BufferToSaveMemory, (void *)TempReadBufferBegin, SizeToReadSave);
+        ExFreePoolWithTag(TempReadBufferBegin, POOLTAG);
         return TRUE;
     }
     else
