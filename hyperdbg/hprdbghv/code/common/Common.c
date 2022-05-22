@@ -954,13 +954,54 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
     //
     // Check if memory is safe and present
     //
-    UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-    UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
+    UINT64 AddressToCheck =
+        (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
 
-    for (size_t i = 0; i <= PageCount; i++)
+    if (AddressToCheck > PAGE_SIZE)
     {
-        UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
-        if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
+        //
+        // Address should be accessed in more than one page
+        //
+        UINT64 ReadSize = AddressToCheck;
+
+        while (Size != 0)
+        {
+            ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+
+            if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+            {
+                ReadSize = Size;
+            }
+
+            UINT64 CheckAddr = TargetAddress + ReadSize;
+
+            if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
+            {
+                //
+                // Address is not valid
+                //
+                Result = FALSE;
+
+                goto RestoreCr3;
+            }
+
+            /*
+            LogInfo("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
+                    TargetAddress,
+                    TargetAddress + ReadSize,
+                    ReadSize);
+            */
+
+            //
+            // Apply the changes to the next addresses (if any)
+            //
+            Size          = Size - ReadSize;
+            TargetAddress = TargetAddress + ReadSize;
+        }
+    }
+    else
+    {
+        if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
         {
             //
             // Address is not valid

@@ -925,13 +925,53 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // *** The guest supports Intel TSX ***
         //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        UINT64 AddressToCheck =
+            (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
+
+        if (AddressToCheck > PAGE_SIZE)
         {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
-            if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+            //
+            // Address should be accessed in more than one page
+            //
+            UINT64 ReadSize = AddressToCheck;
+
+            while (Size != 0)
+            {
+                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+
+                if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+                {
+                    ReadSize = Size;
+                }
+
+                UINT64 CheckAddr = TargetAddress + ReadSize;
+
+                if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+                {
+                    //
+                    // Address is not valid
+                    //
+                    return FALSE;
+                }
+
+                /*
+                ShowMessages("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
+                             TargetAddress,
+                             TargetAddress + ReadSize,
+                             ReadSize);
+                */
+
+                //
+                // Apply the changes to the next addresses (if any)
+                //
+                Size          = Size - ReadSize;
+                TargetAddress = TargetAddress + ReadSize;
+            }
+        }
+        else
+        {
+            if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
             {
                 //
                 // Address is not valid
@@ -957,16 +997,59 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // Check if memory is safe and present
         //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        UINT64 AddressToCheck =
+            (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
+
+        if (AddressToCheck > PAGE_SIZE)
         {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+            //
+            // Address should be accessed in more than one page
+            //
+            UINT64 ReadSize = AddressToCheck;
 
+            while (Size != 0)
+            {
+                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+
+                if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+                {
+                    ReadSize = Size;
+                }
+
+                UINT64 CheckAddr = TargetAddress + ReadSize;
+
+                try
+                {
+                    UINT64 ReadingTest = *((UINT64 *)CheckAddr);
+                }
+                catch (...)
+                {
+                    //
+                    // Address is not valid
+                    //
+                    return FALSE;
+                }
+
+                /*
+                ShowMessages("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
+                             TargetAddress,
+                             TargetAddress + ReadSize,
+                             ReadSize);
+                */
+
+                //
+                // Apply the changes to the next addresses (if any)
+                //
+                Size          = Size - ReadSize;
+                TargetAddress = TargetAddress + ReadSize;
+            }
+        }
+        else
+        {
             try
             {
-                UINT64 ReadingTest = *((UINT64 *)CheckAddr);
+                UINT64 ReadingTest = *((UINT64 *)TargetAddress);
             }
             catch (...)
             {
