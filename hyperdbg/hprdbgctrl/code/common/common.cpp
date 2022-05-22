@@ -945,9 +945,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
                     ReadSize = Size;
                 }
 
-                UINT64 CheckAddr = TargetAddress + ReadSize;
-
-                if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+                if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
                 {
                     //
                     // Address is not valid
@@ -1017,11 +1015,9 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
                     ReadSize = Size;
                 }
 
-                UINT64 CheckAddr = TargetAddress + ReadSize;
-
                 try
                 {
-                    UINT64 ReadingTest = *((UINT64 *)CheckAddr);
+                    UINT64 ReadingTest = *((UINT64 *)TargetAddress);
                 }
                 catch (...)
                 {

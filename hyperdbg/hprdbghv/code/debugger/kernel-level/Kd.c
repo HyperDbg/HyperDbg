@@ -1832,6 +1832,21 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 FlushPacket = (DEBUGGER_FLUSH_LOGGING_BUFFERS *)(((CHAR *)TheActualPacket) +
                                                                  sizeof(DEBUGGER_REMOTE_PACKET));
 
+                CheckMemoryAccessSafety(0xfffff801639b1f00, 0x5500);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b1f00, 0x1500);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b2000, 0x1001);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b2000, 0x2000);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b1f00, 0x1001);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b1f00, 0x501);
+                LogInfo("========================================");
+                CheckMemoryAccessSafety(0xfffff801639b1f00, 0x50);
+                LogInfo("========================================");
+
                 //
                 // Flush the buffers
                 //

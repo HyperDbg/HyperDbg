@@ -973,9 +973,7 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
                 ReadSize = Size;
             }
 
-            UINT64 CheckAddr = TargetAddress + ReadSize;
-
-            if (!MemoryMapperCheckIfPageIsPresentByCr3(CheckAddr, GuestCr3))
+            if (!MemoryMapperCheckIfPageIsPresentByCr3(TargetAddress, GuestCr3))
             {
                 //
                 // Address is not valid
