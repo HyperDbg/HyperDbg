@@ -725,24 +725,15 @@ MemoryMapperReadMemorySafeByPhysicalAddressWrapper(
         //
         // Address should be accessed in more than one page
         //
-        UINT64 PageCount = SizeToRead / PAGE_SIZE + 1;
+        UINT64 ReadSize = AddressToCheck;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        while (SizeToRead != 0)
         {
-            UINT64 ReadSize = 0;
+            ReadSize = (UINT64)PAGE_ALIGN(AddressToRead + PAGE_SIZE) - AddressToRead;
 
-            if (i == 0)
-            {
-                ReadSize =
-                    (UINT64)PAGE_ALIGN(AddressToRead + PAGE_SIZE) - AddressToRead;
-            }
-            else if (i == PageCount)
+            if (ReadSize == PAGE_SIZE && SizeToRead < PAGE_SIZE)
             {
                 ReadSize = SizeToRead;
-            }
-            else
-            {
-                ReadSize = PAGE_SIZE;
             }
 
             /*
@@ -1041,30 +1032,23 @@ MemoryMapperWriteMemorySafeWrapper(MEMORY_MAPPER_WRAPPER_FOR_MEMORY_WRITE TypeOf
         //
         // It need multiple accesses to different pages to access the memory
         //
-        UINT64 PageCount = SizeToWrite / PAGE_SIZE + 1;
 
-        for (SIZE_T i = 0; i <= PageCount; i++)
+        UINT64 WriteSize = AddressToCheck;
+
+        while (SizeToWrite != 0)
         {
-            UINT64 WriteSize = 0;
+            WriteSize = (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
 
-            if (i == 0)
-            {
-                WriteSize = (UINT64)PAGE_ALIGN(DestinationAddr + PAGE_SIZE) - DestinationAddr;
-            }
-            else if (i == PageCount)
+            if (WriteSize == PAGE_SIZE && SizeToWrite < PAGE_SIZE)
             {
                 WriteSize = SizeToWrite;
-            }
-            else
-            {
-                WriteSize = PAGE_SIZE;
             }
 
             /*
             LogInfo("Addr From : %llx to Addr To : %llx | WriteSize : %llx\n",
-                   DestinationAddr,
-                   DestinationAddr + WriteSize,
-                   WriteSize);
+                    DestinationAddr,
+                    DestinationAddr + WriteSize,
+                    WriteSize);
             */
 
             PhysicalAddress.QuadPart = MemoryMapperWriteMemorySafeWrapperAddressMaker(TypeOfWrite,
