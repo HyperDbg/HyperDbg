@@ -126,22 +126,22 @@ typedef EPTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 typedef struct _VMM_EPT_PAGE_TABLE
 {
     /**
-	 * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
-	 */
+     * @brief 28.2.2 Describes 512 contiguous 512GB memory regions each with 512 1GB regions.
+     */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML4_POINTER PML4[VMM_EPT_PML4E_COUNT];
 
     /**
-	 * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
-	 */
+     * @brief Describes exactly 512 contiguous 1GB memory regions within a our singular 512GB PML4 region.
+     */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML3_POINTER PML3[VMM_EPT_PML3E_COUNT];
 
     /**
-	 * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
-	 * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
-	 * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
-	 */
+     * @brief For each 1GB PML3 entry, create 512 2MB entries to map identity.
+     * NOTE: We are using 2MB pages as the smallest paging size in our map, so we do not manage individiual 4096 byte pages.
+     * Therefore, we do not allocate any PML1 (4096 byte) paging structures.
+     */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML2_ENTRY PML2[VMM_EPT_PML3E_COUNT][VMM_EPT_PML2E_COUNT];
 
@@ -182,9 +182,9 @@ typedef struct _EPT_STATE
 typedef struct _VMM_EPT_DYNAMIC_SPLIT
 {
     /**
-	 * @brief The 4096 byte page table entries that correspond to the split 2MB table entry
-	 * 
-	 */
+     * @brief The 4096 byte page table entries that correspond to the split 2MB table entry
+     * 
+     */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML1_ENTRY PML1[VMM_EPT_PML1E_COUNT];
 
@@ -199,9 +199,9 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
     };
 
     /**
-	 * @brief Linked list entries for each dynamic split
-	 * 
-	 */
+     * @brief Linked list entries for each dynamic split
+     * 
+     */
     LIST_ENTRY DynamicSplitList;
 
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
@@ -216,81 +216,81 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     CHAR FakePageContents[PAGE_SIZE];
 
     /**
-	 * @brief Linked list entires for each page hook.
-	 */
+     * @brief Linked list entires for each page hook.
+     */
     LIST_ENTRY PageHookList;
 
     /**
-	* @brief The virtual address from the caller prespective view (cr3)
-	*/
+    * @brief The virtual address from the caller prespective view (cr3)
+    */
     UINT64 VirtualAddress;
 
     /**
-	* @brief The virtual address of it's enty on g_EptHook2sDetourListHead 
-	* this way we can de-allocate the list whenever the hook is finished
-	*/
+    * @brief The virtual address of it's enty on g_EptHook2sDetourListHead 
+    * this way we can de-allocate the list whenever the hook is finished
+    */
     UINT64 AddressOfEptHook2sDetourListEntry;
 
     /**
-	 * @brief The base address of the page. Used to find this structure in the list of page hooks
-	 * when a hook is hit.
-	 */
+     * @brief The base address of the page. Used to find this structure in the list of page hooks
+     * when a hook is hit.
+     */
     SIZE_T PhysicalBaseAddress;
 
     /**
-	* @brief The base address of the page with fake contents. Used to swap page with fake contents
-	* when a hook is hit.
-	*/
+    * @brief The base address of the page with fake contents. Used to swap page with fake contents
+    * when a hook is hit.
+    */
     SIZE_T PhysicalBaseAddressOfFakePageContents;
 
     /*
-	 * @brief The page entry in the page tables that this page is targetting.
-	 */
+     * @brief The page entry in the page tables that this page is targetting.
+     */
     PEPT_PML1_ENTRY EntryAddress;
 
     /**
-	 * @brief The original page entry. Will be copied back when the hook is removed
-	 * from the page.
-	 */
+     * @brief The original page entry. Will be copied back when the hook is removed
+     * from the page.
+     */
     EPT_PML1_ENTRY OriginalEntry;
 
     /**
-	 * @brief The original page entry. Will be copied back when the hook is remove from the page.
-	 */
+     * @brief The original page entry. Will be copied back when the hook is remove from the page.
+     */
     EPT_PML1_ENTRY ChangedEntry;
 
     /**
-	* @brief The buffer of the trampoline function which is used in the inline hook.
-	*/
+    * @brief The buffer of the trampoline function which is used in the inline hook.
+    */
     PCHAR Trampoline;
 
     /**
-	 * @brief This field shows whether the hook contains a hidden hook for execution or not
-	 */
+     * @brief This field shows whether the hook contains a hidden hook for execution or not
+     */
     BOOLEAN IsExecutionHook;
 
     /**
-	 * @brief If TRUE shows that this is the information about 
-	 * a hidden breakpoint command (not a monitor or hidden detours)
-	 */
+     * @brief If TRUE shows that this is the information about 
+     * a hidden breakpoint command (not a monitor or hidden detours)
+     */
     BOOLEAN IsHiddenBreakpoint;
 
     /**
-	 * @brief Address of hooked pages (multiple breakpoints on a single page)
-	 * this is only used in hidden breakpoints (not hidden detours)
-	 */
+     * @brief Address of hooked pages (multiple breakpoints on a single page)
+     * this is only used in hidden breakpoints (not hidden detours)
+     */
     UINT64 BreakpointAddresses[MaximumHiddenBreakpointsOnPage];
 
     /**
-	 * @brief Character that was previously used in BreakpointAddresses
-	 * this is only used in hidden breakpoints (not hidden detours)
-	 */
+     * @brief Character that was previously used in BreakpointAddresses
+     * this is only used in hidden breakpoints (not hidden detours)
+     */
     CHAR PreviousBytesOnBreakpointAddresses[MaximumHiddenBreakpointsOnPage];
 
     /**
-	 * @brief Count of breakpoints (multiple breakpoints on a single page)
-	 * this is only used in hidden breakpoints (not hidden detours)
-	 */
+     * @brief Count of breakpoints (multiple breakpoints on a single page)
+     * this is only used in hidden breakpoints (not hidden detours)
+     */
     UINT64 CountOfBreakpoints;
 
 } EPT_HOOKED_PAGE_DETAIL, *PEPT_HOOKED_PAGE_DETAIL;
@@ -302,6 +302,28 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+// Private Interfaces
+//
+
+static PEPT_PML2_ENTRY
+EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
+
+static VOID
+EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber);
+
+static PVMM_EPT_PAGE_TABLE
+EptAllocateAndCreateIdentityPageTable();
+
+static BOOLEAN
+EptHandlePageHookExit(_Inout_ PGUEST_REGS                       Regs,
+                      _In_ VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
+                      _In_ UINT64                               GuestPhysicalAddr);
+
+// ----------------------------------------------------------------------------
+// Public Interfaces
+//
 
 /**
  * @brief Check for EPT Features
@@ -329,7 +351,10 @@ EptBuildMtrrMap();
  * @return BOOLEAN 
  */
 BOOLEAN
-EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SIZE_T PhysicalAddress, ULONG CoreIndex);
+EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
+                  PVOID               PreAllocatedBuffer,
+                  SIZE_T              PhysicalAddress,
+                  ULONG               CoreIndex);
 
 /**
  * @brief Initialize EPT Table based on Processor Index
@@ -348,7 +373,9 @@ EptLogicalProcessorInitialize();
  * @return BOOLEAN 
  */
 BOOLEAN
-EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr);
+EptHandleEptViolation(_Inout_ PGUEST_REGS Regs,
+                      _In_ ULONG          ExitQualification,
+                      _In_ UINT64         GuestPhysicalAddr);
 
 /**
  * @brief Get the PML1 Entry of a special address
@@ -388,4 +415,6 @@ EptHandleMisconfiguration(UINT64 GuestAddress);
  * @return VOID 
  */
 VOID
-EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType);
+EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,
+                           _In_ EPT_PML1_ENTRY                  EntryValue,
+                           _In_ _Strict_type_match_ INVEPT_TYPE InvalidationType);
