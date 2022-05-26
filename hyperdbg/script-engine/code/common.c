@@ -1,7 +1,18 @@
+/**
+ * @file common.c
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * 
+ * @details Common routines
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #include "pch.h"
 
 /**
- * @brief allocates a new token
+ * @brief Allocates a new token
  *
  * @return Token
  */
@@ -20,8 +31,8 @@ NewUnknownToken()
     // Init fields
     //
     strcpy(Token->Value, "");
-    Token->Type    = UNKNOWN;
-    Token->Len     = 0;
+    Token->Type   = UNKNOWN;
+    Token->Len    = 0;
     Token->MaxLen = TOKEN_VALUE_MAX_LEN;
 
     return Token;
@@ -33,13 +44,13 @@ NewToken(TOKEN_TYPE Type, char * Value)
     //
     // Allocate memory for token]
     //
-    PTOKEN Token        = (PTOKEN)malloc(sizeof(TOKEN));
-    
+    PTOKEN Token = (PTOKEN)malloc(sizeof(TOKEN));
+
     //
     // Init fields
     //
     unsigned int Len = strlen(Value);
-    Token->Type   = Type;
+    Token->Type      = Type;
     Token->Len       = Len;
     Token->MaxLen    = Len;
     Token->Value     = (char *)calloc(Token->MaxLen + 1, sizeof(char));
@@ -49,20 +60,21 @@ NewToken(TOKEN_TYPE Type, char * Value)
 }
 
 /**
- * @brief removes allocated memory of a token
+ * @brief Removes allocated memory of a token
  *
  * @param Token
  */
 void
-RemoveToken(PTOKEN Token)
+RemoveToken(PTOKEN* Token)
 {
-    free(Token->Value);
-    free(Token);
+    free((*Token)->Value);
+    free(*Token);
+    *Token = NULL;
     return;
 }
 
 /**
- * @brief prints token
+ * @brief Prints token
  * @detail prints value and type of token
  *
  * @param Token
@@ -158,7 +170,7 @@ PrintToken(PTOKEN Token)
 }
 
 /**
- * @brief appends char to the token value
+ * @brief Appends char to the token value
  *
  * @param Token
  * @param char
@@ -193,27 +205,25 @@ Append(PTOKEN Token, char c)
 }
 
 /**
- * @brief copies a PTOKEN
+ * @brief Copies a PTOKEN
  *
  * @return PTOKEN
  */
 PTOKEN
 CopyToken(PTOKEN Token)
 {
-  
-    PTOKEN TokenCopy = (PTOKEN)malloc(sizeof(TOKEN));
-    TokenCopy->Type  = Token->Type;
+    PTOKEN TokenCopy  = (PTOKEN)malloc(sizeof(TOKEN));
+    TokenCopy->Type   = Token->Type;
     TokenCopy->MaxLen = Token->MaxLen;
     TokenCopy->Len    = Token->Len;
     TokenCopy->Value  = (char *)calloc(strlen(Token->Value) + 1, sizeof(char));
     strcpy(TokenCopy->Value, Token->Value);
-    
-    
+
     return TokenCopy;
 }
 
 /**
- * @brief allocates a new TOKEN_LIST
+ * allocates a new TOKEN_LIST
  *
  * @return TOKEN_LIST
  */
@@ -242,7 +252,7 @@ NewTokenList(void)
 }
 
 /**
- * @brief removes allocated memory of a TOKEN_LIST
+ * @brief Removes allocated memory of a TOKEN_LIST
  *
  * @param TokenList
  */
@@ -253,7 +263,7 @@ RemoveTokenList(PTOKEN_LIST TokenList)
     for (uintptr_t i = 0; i < TokenList->Pointer; i++)
     {
         Token = *(TokenList->Head + i);
-        RemoveToken(Token);
+        RemoveToken(&Token);
     }
     free(TokenList->Head);
     free(TokenList);
@@ -262,7 +272,7 @@ RemoveTokenList(PTOKEN_LIST TokenList)
 }
 
 /**
- * @brief prints each Token inside a TokenList
+ * @brief Prints each Token inside a TokenList
  *
  * @param TokenList
  */
@@ -278,7 +288,7 @@ PrintTokenList(PTOKEN_LIST TokenList)
 }
 
 /**
- * @brief adds Token to the last empty position of TokenList
+ * @brief Adds Token to the last empty position of TokenList
  *
  * @param Token
  * @param TokenList
@@ -292,7 +302,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
     //
     uintptr_t Head      = (uintptr_t)TokenList->Head;
     uintptr_t Pointer   = (uintptr_t)TokenList->Pointer;
-    PTOKEN *   WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  WriteAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     //
     // Write Token to appropriate address in TokenList
@@ -334,7 +344,7 @@ Push(PTOKEN_LIST TokenList, PTOKEN Token)
     return TokenList;
 }
 /**
- * @brief removes last Token of a TokenList and returns it
+ * @brief Removes last Token of a TokenList and returns it
  *
  * @param TokenList
  @ @return Token
@@ -349,13 +359,13 @@ Pop(PTOKEN_LIST TokenList)
         TokenList->Pointer--;
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer;
-    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
 
 /**
- * @brief returns last Token of a TokenList
+ * @brief Returns last Token of a TokenList
  *
  * @param TokenList
  * @return Token
@@ -368,13 +378,13 @@ Top(PTOKEN_LIST TokenList)
     //
     uintptr_t Head     = (uintptr_t)TokenList->Head;
     uintptr_t Pointer  = (uintptr_t)TokenList->Pointer - 1;
-    PTOKEN *   ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
+    PTOKEN *  ReadAddr = (PTOKEN *)(Head + Pointer * sizeof(PTOKEN));
 
     return *ReadAddr;
 }
 
 /**
-* @brief cheks whether input char belongs to hexadecimal digit-set or not
+* @brief Checks whether input char belongs to hexadecimal digit-set or not
 *
 * @param char
 * @return bool
@@ -389,7 +399,7 @@ IsHex(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to decimal digit-set or not
+* @brief Checks whether input char belongs to decimal digit-set or not
 *
 * @param char
 * @return bool
@@ -404,7 +414,7 @@ IsDecimal(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to alphabet set or not
+* @brief Checks whether input char belongs to alphabet set or not
 *
 * @param char
 * @return bool
@@ -421,7 +431,7 @@ IsLetter(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to binary digit-set or not
+* @brief Checks whether input char belongs to binary digit-set or not
 *
 * @param char
 * @return bool
@@ -438,7 +448,7 @@ IsBinary(char c)
 }
 
 /**
-* @brief cheks whether input char belongs to octal digit-set or not
+* @brief Checks whether input char belongs to octal digit-set or not
 *
 * @param char
 * @return bool
@@ -453,7 +463,7 @@ IsOctal(char c)
 }
 
 /**
- * @brief 
+ * @brief Allocates a new temporary variable and returns it
  * 
  * @param Error 
  * @return PTOKEN 
@@ -477,7 +487,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
         *Error = SCRIPT_ENGINE_ERROR_TEMP_LIST_FULL;
     }
     PTOKEN Temp = NewUnknownToken();
-    char  TempValue[8];
+    char   TempValue[8];
     sprintf(TempValue, "%d", TempID);
     strcpy(Temp->Value, TempValue);
     Temp->Type = TEMP;
@@ -485,7 +495,7 @@ NewTemp(PSCRIPT_ENGINE_ERROR_TYPE Error)
 }
 
 /**
- * @brief 
+ * @brief Frees the memory allocated by Temp
  * 
  * @param Temp 
  */
@@ -500,7 +510,7 @@ FreeTemp(PTOKEN Temp)
 }
 
 /**
- * @brief 
+ * @brief Resets the temporary variables map
  * 
  */
 void
@@ -512,6 +522,12 @@ CleanTempList(void)
     }
 }
 
+/**
+ * @brief Checks whether this Token type is OneOpFunc1
+ * 
+ * @param Operator 
+ * @return char 
+ */
 char
 IsType1Func(PTOKEN Operator)
 {
@@ -527,7 +543,7 @@ IsType1Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OneOpFunc2
  * 
  * @param Operator 
  * @return char 
@@ -547,7 +563,7 @@ IsType2Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OperatorsTwoOperandList
  * 
  * @param Operator 
  * @return char 
@@ -567,7 +583,7 @@ IsTwoOperandOperator(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is OperatorsOneOperandList
  * 
  * @param Operator 
  * @return char 
@@ -587,7 +603,7 @@ IsOneOperandOperator(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is VarArgFunc1
  * 
  * @param Operator 
  * @return char 
@@ -607,7 +623,7 @@ IsType4Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is ZeroOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -627,7 +643,7 @@ IsType5Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is TwoOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -647,7 +663,7 @@ IsType6Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is TwoOpFunc2
  * 
  * @param Operator 
  * @return char 
@@ -667,7 +683,7 @@ IsType7Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token type is ThreeOpFunc1
  * 
  * @param Operator 
  * @return char 
@@ -687,7 +703,8 @@ IsType8Func(PTOKEN Operator)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token is noneterminal
+ * NoneTerminal token starts with capital letter
  * 
  * @param Token 
  * @return char 
@@ -702,7 +719,8 @@ IsNoneTerminal(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Checks whether this Token is semantic rule
+ * SemanticRule token starts with '@'
  * 
  * @param Token 
  * @return char 
@@ -717,7 +735,7 @@ IsSemanticRule(PTOKEN Token)
 }
 
 /**
- * @brief Get the Non Terminal Id object
+ * @brief Gets the Non Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -734,7 +752,7 @@ GetNonTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief Get the Terminal Id object
+ * @brief Gets the Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -816,7 +834,7 @@ GetTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Gets the Non Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -833,7 +851,7 @@ LalrGetNonTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Gets the Terminal Id object
  * 
  * @param Token 
  * @return int 
@@ -915,7 +933,7 @@ LalrGetTerminalId(PTOKEN Token)
 }
 
 /**
- * @brief 
+ * @brief Checks wether the value and type of Token1 and Token2 are the same
  * 
  * @param Token1 
  * @param Token2 
@@ -972,7 +990,7 @@ SetType(unsigned long long * Val, unsigned char Type)
 }
 
 /**
- * @brief 
+ * @brief Converts an decimal string to a integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -993,7 +1011,7 @@ DecimalToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an decimal string to a signed integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1027,7 +1045,7 @@ DecimalToSignedInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an hexadecimal string to integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1060,7 +1078,7 @@ HexToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts an octal string to integer 
  * 
  * @param str 
  * @return unsigned long long int 
@@ -1082,7 +1100,7 @@ OctalToInt(char * str)
 }
 
 /**
- * @brief 
+ * @brief Converts a binary string to integer 
  * 
  * @param str 
  * @return unsigned long long int 

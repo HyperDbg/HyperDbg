@@ -1,10 +1,22 @@
+/**
+ * @file common.h
+ * @author M.H. Gholamrezaei (mh@hyperdbg.org)
+ * 
+ * @details Common routines header
+ * @version 0.1
+ * @date 2020-10-22
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
 
 #ifndef COMMON_H
 #    define COMMON_H
 
 /**
-* @brief initial size of symbol buffer
+* 
+initial size of symbol buffer
 */
 #    define SYMBOL_BUFFER_INIT_SIZE 64
 
@@ -56,18 +68,17 @@ typedef struct _TOKEN
     char *       Value;
     unsigned int Len;
     unsigned int MaxLen;
-} TOKEN, * PTOKEN;
-
+} TOKEN, *PTOKEN;
 
 /**
 * @brief this structure is a dynamic containter of TOKENS
 */
 typedef struct _TOKEN_LIST
 {
-    PTOKEN *      Head;
+    PTOKEN *     Head;
     unsigned int Pointer;
     unsigned int Size;
-} TOKEN_LIST, * PTOKEN_LIST;
+} TOKEN_LIST, *PTOKEN_LIST;
 
 ////////////////////////////////////////////////////
 // PTOKEN related functions						  //
@@ -79,7 +90,7 @@ PTOKEN
 NewToken(TOKEN_TYPE Type, char * Value);
 
 void
-RemoveToken(PTOKEN Token);
+RemoveToken(PTOKEN* Token);
 
 void
 PrintToken(PTOKEN Token);
@@ -102,6 +113,7 @@ CleanTempList(void);
 ////////////////////////////////////////////////////
 //			TOKEN_LIST related functions		  //
 ////////////////////////////////////////////////////
+
 PTOKEN_LIST
 NewTokenList(void);
 
@@ -141,6 +153,7 @@ LalrGetTerminalId(PTOKEN Token);
 ////////////////////////////////////////////////////
 //					Util Functions				  //
 ////////////////////////////////////////////////////
+
 char
 IsHex(char c);
 
@@ -177,6 +190,7 @@ BinaryToInt(char * str);
 ////////////////////////////////////////////////////
 //	       Semantic Rule Related Functions		  //
 ////////////////////////////////////////////////////
+
 char
 IsType1Func(PTOKEN Operator);
 

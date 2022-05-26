@@ -128,6 +128,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />

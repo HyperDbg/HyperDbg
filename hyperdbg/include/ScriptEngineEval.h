@@ -28,7 +28,7 @@ UINT64 g_CurrentExprEvalResult;
 BOOLEAN g_CurrentExprEvalResultHasError;
 
 #ifndef PacketChunkSize
-#    define PacketChunkSize 3000
+#    define PacketChunkSize 4096
 #endif // !PacketChunkSize
 
 //
@@ -937,10 +937,9 @@ VOID
 ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    //
-    // Nothing on user-mode
-    //
-    return;
+
+    SpinlockLock(Lock);
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -952,6 +951,7 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
     }
 
     SpinlockLock(Lock);
+
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
@@ -960,10 +960,9 @@ VOID
 ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    //
-    // Nothing on user-mode
-    //
-    return;
+
+    SpinlockUnlock(Lock);
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
@@ -984,10 +983,9 @@ VOID
 ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait, BOOL * HasError)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    //
-    // Nothing on user-mode
-    //
-    return;
+
+    SpinlockLockWithCustomWait(Lock, MaxWait);
+
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE

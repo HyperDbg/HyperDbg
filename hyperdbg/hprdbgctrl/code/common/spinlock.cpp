@@ -1,5 +1,5 @@
 /**
- * @file Spinlock.c
+ * @file spinlock.cpp
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief This is the implementation for custom spinlock.
  * 
@@ -18,7 +18,7 @@
  *      - https://github.com/cyfdecyf/spinlock
  * 
  * @version 0.1
- * @date 2020-04-10
+ * @date 2022-05-19
  * 
  * @copyright This project is released under the GNU Public License v3.
  * 
@@ -54,45 +54,6 @@ SpinlockLock(volatile LONG * Lock)
     unsigned wait = 1;
 
     while (!SpinlockTryLock(Lock))
-    {
-        for (unsigned i = 0; i < wait; ++i)
-        {
-            _mm_pause();
-        }
-
-        //
-        // Don't call "pause" too many times. If the wait becomes too big,
-        // clamp it to the MaxWait.
-        //
-
-        if (wait * 2 > MaxWait)
-        {
-            wait = MaxWait;
-        }
-        else
-        {
-            wait = wait * 2;
-        }
-    }
-}
-
-/**
- * @brief Interlocked spinlock that tries to change the value 
- * and makes sure that it changed the target value
- * 
- * @param Destination A pointer to the destination value
- * @param Exchange The exchange value
- * @param Comperand The value to compare to Destination
- */
-void
-SpinlockInterlockedCompareExchange(
-    LONG volatile * Destination,
-    LONG            Exchange,
-    LONG            Comperand)
-{
-    unsigned wait = 1;
-
-    while (InterlockedCompareExchange(Destination, Exchange, Comperand) != Comperand)
     {
         for (unsigned i = 0; i < wait; ++i)
         {

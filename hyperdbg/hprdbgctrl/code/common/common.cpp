@@ -153,34 +153,6 @@ IsNumber(const string & str)
 }
 
 /**
- * @brief Function to split string str using given delimiter
- *
- * @param str
- * @param delim
- * @return vector<string>
- */
-vector<string>
-SplitIp(const string & str, char delim)
-{
-    int            i = 0;
-    vector<string> list;
-    size_t         pos;
-
-    pos = str.find(delim);
-
-    while (pos != string::npos)
-    {
-        list.emplace_back(str.begin() + i, str.begin() + pos - i);
-        i   = ++pos;
-        pos = str.find(delim, pos);
-    }
-
-    list.emplace_back(str.begin() + i, str.end());
-
-    return list;
-}
-
-/**
  * @brief check whether the string is hex or not
  *
  * @param s
@@ -356,7 +328,7 @@ ValidateIP(const string & ip)
     //
     // split the string into tokens
     //
-    vector<string> list = SplitIp(ip, '.');
+    vector<string> list = Split(ip, '.');
 
     //
     // if token size is not equal to four
@@ -953,13 +925,51 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // *** The guest supports Intel TSX ***
         //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        UINT64 AddressToCheck =
+            (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
+
+        if (AddressToCheck > PAGE_SIZE)
         {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
-            if (!CheckIfAddressIsValidUsingTsx(CheckAddr))
+            //
+            // Address should be accessed in more than one page
+            //
+            UINT64 ReadSize = AddressToCheck;
+
+            while (Size != 0)
+            {
+                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+
+                if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+                {
+                    ReadSize = Size;
+                }
+
+                if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
+                {
+                    //
+                    // Address is not valid
+                    //
+                    return FALSE;
+                }
+
+                /*
+                ShowMessages("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
+                             TargetAddress,
+                             TargetAddress + ReadSize,
+                             ReadSize);
+                */
+
+                //
+                // Apply the changes to the next addresses (if any)
+                //
+                Size          = Size - ReadSize;
+                TargetAddress = TargetAddress + ReadSize;
+            }
+        }
+        else
+        {
+            if (!CheckIfAddressIsValidUsingTsx(TargetAddress))
             {
                 //
                 // Address is not valid
@@ -985,16 +995,57 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size)
         //
         // Check if memory is safe and present
         //
-        UINT64 AlignedPage = (UINT64)PAGE_ALIGN(TargetAddress);
-        UINT64 PageCount   = ((TargetAddress - AlignedPage) + Size) / PAGE_SIZE;
 
-        for (size_t i = 0; i <= PageCount; i++)
+        UINT64 AddressToCheck =
+            (CHAR *)TargetAddress + Size - ((CHAR *)PAGE_ALIGN(TargetAddress));
+
+        if (AddressToCheck > PAGE_SIZE)
         {
-            UINT64 CheckAddr = AlignedPage + (PAGE_SIZE * i);
+            //
+            // Address should be accessed in more than one page
+            //
+            UINT64 ReadSize = AddressToCheck;
 
+            while (Size != 0)
+            {
+                ReadSize = (UINT64)PAGE_ALIGN(TargetAddress + PAGE_SIZE) - TargetAddress;
+
+                if (ReadSize == PAGE_SIZE && Size < PAGE_SIZE)
+                {
+                    ReadSize = Size;
+                }
+
+                try
+                {
+                    UINT64 ReadingTest = *((UINT64 *)TargetAddress);
+                }
+                catch (...)
+                {
+                    //
+                    // Address is not valid
+                    //
+                    return FALSE;
+                }
+
+                /*
+                ShowMessages("Addr From : %llx to Addr To : %llx | ReadSize : %llx\n",
+                             TargetAddress,
+                             TargetAddress + ReadSize,
+                             ReadSize);
+                */
+
+                //
+                // Apply the changes to the next addresses (if any)
+                //
+                Size          = Size - ReadSize;
+                TargetAddress = TargetAddress + ReadSize;
+            }
+        }
+        else
+        {
             try
             {
-                UINT64 ReadingTest = *((UINT64 *)CheckAddr);
+                UINT64 ReadingTest = *((UINT64 *)TargetAddress);
             }
             catch (...)
             {

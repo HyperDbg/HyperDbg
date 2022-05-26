@@ -135,7 +135,7 @@ CommandEptHook(vector<string> SplittedCommand, string Command)
     }
     if (OptionalParam1 == 0)
     {
-        ShowMessages("Please choose an address to put the hidden breakpoint on it\n");
+        ShowMessages("please choose an address to put the hidden breakpoint on it\n");
 
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
