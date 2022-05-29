@@ -116,7 +116,6 @@ CommandCpuid(vector<string> SplittedCommand, string Command)
         //
         // There was an error
         //
-
         FreeEventsAndActionsMemory(Event, ActionBreakToDebugger, ActionCustomCode, ActionScript);
         return;
     }

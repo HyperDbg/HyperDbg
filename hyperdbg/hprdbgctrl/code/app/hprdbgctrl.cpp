@@ -756,6 +756,11 @@ HyperdbgUnload()
     //
     g_IsDebuggerModulesLoaded = FALSE;
 
+    //
+    // Check if we found an already built symbol table
+    //
+    SymbolDeleteSymTable();
+
     ShowMessages("you're not on HyperDbg's hypervisor anymore!\n");
 
     return 0;

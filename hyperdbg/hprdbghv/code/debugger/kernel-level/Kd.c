@@ -1159,14 +1159,18 @@ KdGuaranteedStepInstruction(UINT32 CurrentCore)
     VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;
 
-    UINT16 CsSel = 0;
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
 
     //
     // Read cs to have a trace of the execution mode of running application
     // in the debuggee
     //
     __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
-    CurrentDebuggingState->InstrumentationStepInTrace.CsSel = CsSel;
+    CurrentDebuggingState->InstrumentationStepInTrace.CsSel = (UINT16)CsSel;
 
     //
     // Set an indicator of wait for MTF
@@ -2363,7 +2367,11 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 BOOLEAN
 KdIsGuestOnUsermode32Bit()
 {
-    UINT16 CsSel;
+    //
+    // Only 16 bit is needed howerver, vmwrite might write on other bits
+    // and corrupt other variables, that's why we get 64bit
+    //
+    UINT64 CsSel = NULL;
 
     //
     // Read guest's cs selector

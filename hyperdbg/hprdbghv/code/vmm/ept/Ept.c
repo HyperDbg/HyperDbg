@@ -231,7 +231,10 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @return BOOLEAN Returns true if it was successfull or false if there was an error
  */
 BOOLEAN
-EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SIZE_T PhysicalAddress, ULONG CoreIndex)
+EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
+                  PVOID               PreAllocatedBuffer,
+                  SIZE_T              PhysicalAddress,
+                  ULONG               CoreIndex)
 {
     PVMM_EPT_DYNAMIC_SPLIT NewSplit;
     EPT_PML1_ENTRY         EntryTemplate;
@@ -339,9 +342,10 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable, PVOID PreAllocatedBuffer, SI
 VOID
 EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 {
-    SIZE_T AddressOfPage;
-    SIZE_T CurrentMtrrRange;
-    SIZE_T TargetMemoryType;
+    SIZE_T                  AddressOfPage;
+    SIZE_T                  CurrentMtrrRange;
+    SIZE_T                  TargetMemoryType;
+    MTRR_RANGE_DESCRIPTOR * CurrentMemoryRange = NULL;
 
     //
     // Each of the 512 collections of 512 PML2 entries is setup here
@@ -381,21 +385,23 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
     //
     for (CurrentMtrrRange = 0; CurrentMtrrRange < g_EptState->NumberOfEnabledMemoryRanges; CurrentMtrrRange++)
     {
+        CurrentMemoryRange = &g_EptState->MemoryRanges[CurrentMtrrRange];
+
         //
         // If this page's address is below or equal to the max physical address of the range
         //
-        if (AddressOfPage <= g_EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress)
+        if (AddressOfPage <= CurrentMemoryRange->PhysicalEndAddress)
         {
             //
             // And this page's last address is above or equal to the base physical address of the range
             //
-            if ((AddressOfPage + SIZE_2_MB - 1) >= g_EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress)
+            if ((AddressOfPage + SIZE_2_MB - 1) >= CurrentMemoryRange->PhysicalBaseAddress)
             {
                 //
                 // If we're here, this page fell within one of the ranges specified by the variable MTRRs
                 // Therefore, we must mark this page as the same cache type exposed by the MTRR
                 //
-                TargetMemoryType = g_EptState->MemoryRanges[CurrentMtrrRange].MemoryType;
+                TargetMemoryType = CurrentMemoryRange->MemoryType;
 
                 // LogInfo("0x%X> Range=%llX -> %llX | Begin=%llX End=%llX", PageFrameNumber, AddressOfPage, AddressOfPage + SIZE_2_MB - 1, EptState->MemoryRanges[CurrentMtrrRange].PhysicalBaseAddress, EptState->MemoryRanges[CurrentMtrrRange].PhysicalEndAddress);
 
@@ -605,18 +611,19 @@ EptLogicalProcessorInitialize()
  * @param GuestPhysicalAddr The GUEST_PHYSICAL_ADDRESS that caused this EPT violation
  * @return BOOLEAN Returns true if it was successful or false if the violation was not due to a page hook
  */
+_Use_decl_annotations_
 BOOLEAN
-EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification, UINT64 GuestPhysicalAddr)
+EptHandlePageHookExit(PGUEST_REGS                          Regs,
+                      VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
+                      UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN     IsHandled = FALSE;
-    PLIST_ENTRY TempList  = 0;
+    BOOLEAN IsHandled = FALSE;
 
-    TempList = &g_EptState->HookedPagesList;
-    while (&g_EptState->HookedPagesList != TempList->Flink)
+    ULONG                   CurrentCore    = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+
+    LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
-        TempList                            = TempList->Flink;
-        PEPT_HOOKED_PAGE_DETAIL HookedEntry = CONTAINING_RECORD(TempList, EPT_HOOKED_PAGE_DETAIL, PageHookList);
-
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
@@ -639,7 +646,7 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
                 //
                 // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
                 //
-                g_GuestState[KeGetCurrentProcessorNumber()].MtfEptHookRestorePoint = HookedEntry;
+                CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
 
                 //
                 // We have to set Monitor trap flag and give it the HookedEntry to work with
@@ -663,10 +670,10 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
                 HvSetInterruptWindowExiting(FALSE);
 
                 //
-                // Indicate that we should enable external interruts and configure external interrupt
+                // Indicate that we should enable external interrupts and configure external interrupt
                 // window exiting somewhere at MTF
                 //
-                g_GuestState[KeGetCurrentProcessorNumber()].DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
             }
 
             //
@@ -684,7 +691,7 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
     //
     // Redo the instruction
     //
-    g_GuestState[KeGetCurrentProcessorNumber()].IncrementRip = FALSE;
+    CurrentVmState->IncrementRip = FALSE;
 
     return IsHandled;
 }
@@ -700,12 +707,11 @@ EptHandlePageHookExit(PGUEST_REGS Regs, VMX_EXIT_QUALIFICATION_EPT_VIOLATION Vio
  * @return BOOLEAN Return true if the violation was handled by the page hook handler
  * and false if it was not handled
  */
+_Use_decl_annotations_
 BOOLEAN
 EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr)
 {
-    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification;
-
-    ViolationQualification.Flags = ExitQualification;
+    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.Flags = ExitQualification};
 
     if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
     {
@@ -765,6 +771,7 @@ EptHandleMisconfiguration(UINT64 GuestAddress)
  * @param InvalidationType type of invalidation
  * @return VOID 
  */
+_Use_decl_annotations_
 VOID
 EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryValue, INVEPT_TYPE InvalidationType)
 {
