@@ -153,7 +153,7 @@ MtfHandleVmexit(ULONG CurrentProcessorIndex, PGUEST_REGS GuestRegs)
         __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &CsSel);
 
         KdCheckGuestOperatingModeChanges(CurrentDebuggingState->InstrumentationStepInTrace.CsSel,
-                                         CsSel);
+                                         (UINT16)CsSel);
 
         //
         //  Unset the MTF flag and previous cs selector
