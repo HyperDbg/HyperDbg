@@ -122,7 +122,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         }
         else
         {
-            ShowMessages("output forwarding list is empty.\n\n");
+            ShowMessages("output forwarding list is empty\n");
         }
 
         return;
@@ -227,7 +227,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
             if (OutputSourceFound)
             {
                 ShowMessages("err, the name you entered, already exists, please choose "
-                             "another name.\n\n");
+                             "another name\n");
                 return;
             }
         }
@@ -248,7 +248,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         if (SourceHandle == INVALID_HANDLE_VALUE)
         {
             ShowMessages(
-                "err, invalid address or cannot open or find the address.\n\n");
+                "err, invalid address or cannot open or find the address\n");
             return;
         }
 
@@ -260,7 +260,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
         if (EventForwardingObject == NULL)
         {
-            ShowMessages("err, in allocating memory for event forwarding.\n\n");
+            ShowMessages("err, in allocating memory for event forwarding\n");
             return;
         }
 
@@ -320,7 +320,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         if (!g_OutputSourcesInitialized)
         {
-            ShowMessages("err, the name you entered, not found.\n\n");
+            ShowMessages("err, the name you entered, not found\n");
             return;
         }
         //
@@ -353,18 +353,18 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
                 if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_CLOSED)
                 {
-                    ShowMessages("err, the name you entered was already closed.\n\n");
+                    ShowMessages("err, the name you entered was already closed\n");
                     return;
                 }
                 else if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_OPENED)
                 {
-                    ShowMessages("err, the name you entered was already opened.\n\n");
+                    ShowMessages("err, the name you entered was already opened\n");
                     return;
                 }
                 else if (Status !=
                          DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_OPENED)
                 {
-                    ShowMessages("err, unable to open the output source.\n\n");
+                    ShowMessages("err, unable to open the output source\n");
                     return;
                 }
 
@@ -377,7 +377,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
         if (!OutputSourceFound)
         {
-            ShowMessages("err, the name you entered, not found.\n\n");
+            ShowMessages("err, the name you entered, not found\n");
             return;
         }
     }
@@ -388,7 +388,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
         //
         if (!g_OutputSourcesInitialized)
         {
-            ShowMessages("err, the name you entered, not found.\n\n");
+            ShowMessages("err, the name you entered, not found\n");
             return;
         }
 
@@ -422,18 +422,18 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
                 if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_ALREADY_CLOSED)
                 {
-                    ShowMessages("err, the name you entered was already closed.\n\n");
+                    ShowMessages("err, the name you entered was already closed\n");
                     return;
                 }
                 else if (Status == DEBUGGER_OUTPUT_SOURCE_STATUS_UNKNOWN_ERROR)
                 {
-                    ShowMessages("err, unable to close the source.\n\n");
+                    ShowMessages("err, unable to close the source\n");
                     return;
                 }
                 else if (Status !=
                          DEBUGGER_OUTPUT_SOURCE_STATUS_SUCCESSFULLY_CLOSED)
                 {
-                    ShowMessages("err, unable to close the source.\n\n");
+                    ShowMessages("err, unable to close the source\n");
                     return;
                 }
 
@@ -446,7 +446,7 @@ CommandOutput(vector<string> SplittedCommand, string Command)
 
         if (!OutputSourceFound)
         {
-            ShowMessages("err, the name you entered, not found.\n\n");
+            ShowMessages("err, the name you entered, not found\n");
             return;
         }
     }
