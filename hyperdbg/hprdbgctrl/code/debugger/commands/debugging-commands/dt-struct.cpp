@@ -52,9 +52,6 @@ CommandDtHelp()
     ShowMessages("\t\te.g : dt nt!_MY_STRUCT 7ff00040 pid 1420\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS $proc inline all\n");
     ShowMessages("\t\te.g : dt nt!_EPROCESS fffff8077356f010 inline no\n");
-
-
-   
 }
 
 /**

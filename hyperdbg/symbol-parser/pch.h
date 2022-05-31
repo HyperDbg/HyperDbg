@@ -20,7 +20,6 @@
 #define _NO_CVCONST_H // for symbol parsing
 #include <DbgHelp.h>
 
-
 //
 // IA32-doc has structures for the entire intel SDM.
 //

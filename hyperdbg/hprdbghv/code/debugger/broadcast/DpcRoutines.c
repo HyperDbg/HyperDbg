@@ -157,7 +157,7 @@ DpcRoutinePerformVirtualization(KDPC * Dpc, PVOID DeferredContext, PVOID SystemA
 VOID
 DpcRoutinePerformWriteMsr(KDPC * Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
 {
-    ULONG CurrentProcessorIndex = 0;
+    ULONG                       CurrentProcessorIndex = 0;
     ULONG                       CurrentCore           = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentCore];
     PROCESSOR_DEBUGGING_STATE * CurrentDebuggingState = &CurrentVmState->DebuggingState;

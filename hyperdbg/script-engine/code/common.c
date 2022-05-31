@@ -65,7 +65,7 @@ NewToken(TOKEN_TYPE Type, char * Value)
  * @param Token
  */
 void
-RemoveToken(PTOKEN* Token)
+RemoveToken(PTOKEN * Token)
 {
     free((*Token)->Value);
     free(*Token);

@@ -400,7 +400,7 @@ MsrHandleFilterMsrWriteBitmap(UINT32 CoreIndex)
 VOID
 MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
@@ -432,7 +432,7 @@ MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
 VOID
 MsrHandlePerformMsrBitmapReadReset()
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
@@ -449,7 +449,7 @@ MsrHandlePerformMsrBitmapReadReset()
 VOID
 MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (MsrMask == DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS)
@@ -481,7 +481,7 @@ MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
 VOID
 MsrHandlePerformMsrBitmapWriteReset()
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //

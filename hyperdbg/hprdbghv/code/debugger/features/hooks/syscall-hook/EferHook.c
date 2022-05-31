@@ -227,10 +227,10 @@ _Use_decl_annotations_
 BOOLEAN
 SyscallHookHandleUD(PGUEST_REGS Regs, UINT32 CoreIndex)
 {
-    CR3_TYPE GuestCr3;
-    UINT64   OriginalCr3;
-    UINT64   Rip;
-    BOOLEAN  Result;
+    CR3_TYPE                GuestCr3;
+    UINT64                  OriginalCr3;
+    UINT64                  Rip;
+    BOOLEAN                 Result;
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     //
@@ -350,7 +350,7 @@ EmulateSYSRET:
     //
     DebuggerTriggerEvents(SYSCALL_HOOK_EFER_SYSRET, Regs, Rip);
 
-    Result                               = SyscallHookEmulateSYSRET(Regs);
+    Result                       = SyscallHookEmulateSYSRET(Regs);
     CurrentVmState->IncrementRip = FALSE;
     return Result;
 

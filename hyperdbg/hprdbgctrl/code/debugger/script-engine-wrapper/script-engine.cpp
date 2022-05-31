@@ -41,8 +41,6 @@ ScriptEngineEvalSingleExpression(string Expr, PBOOLEAN HasError)
     Expr.insert(0, "formats(");
     Expr.append(");");
 
-
-
     //
     // Run script engine handler
     //

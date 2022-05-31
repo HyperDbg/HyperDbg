@@ -704,8 +704,7 @@ CodeGen(PTOKEN_LIST MatchedStack, PSYMBOL_BUFFER CodeBuffer, PTOKEN Operator, PS
             {
                 *Error = SCRIPT_ENGINE_ERROR_SYNTAX;
             }
-           
-            
+
             if (*Error == SCRIPT_ENGINE_ERROR_SYNTAX)
             {
                 break;
@@ -1785,7 +1784,7 @@ GetStringSymbolSize(PSYMBOL Symbol)
  * @param Symbol 
  */
 void
-RemoveSymbol(PSYMBOL* Symbol)
+RemoveSymbol(PSYMBOL * Symbol)
 {
     free(*Symbol);
     *Symbol = NULL;

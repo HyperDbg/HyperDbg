@@ -90,7 +90,7 @@ PTOKEN
 NewToken(TOKEN_TYPE Type, char * Value);
 
 void
-RemoveToken(PTOKEN* Token);
+RemoveToken(PTOKEN * Token);
 
 void
 PrintToken(PTOKEN Token);

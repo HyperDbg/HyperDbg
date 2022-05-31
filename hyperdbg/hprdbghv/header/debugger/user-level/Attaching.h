@@ -75,11 +75,11 @@ BOOLEAN
 AttachingInitialize();
 
 BOOLEAN
-AttachingCheckPageFaultsWithUserDebugger(UINT32                CurrentProcessorIndex,
-                                         PGUEST_REGS           GuestRegs,
+AttachingCheckPageFaultsWithUserDebugger(UINT32                       CurrentProcessorIndex,
+                                         PGUEST_REGS                  GuestRegs,
                                          VMEXIT_INTERRUPT_INFORMATION InterruptExit,
-                                         UINT64                Address,
-                                         ULONG                 ErrorCode);
+                                         UINT64                       Address,
+                                         ULONG                        ErrorCode);
 
 BOOLEAN
 AttachingConfigureInterceptingThreads(UINT64 ProcessDebuggingToken, BOOLEAN Enable);
