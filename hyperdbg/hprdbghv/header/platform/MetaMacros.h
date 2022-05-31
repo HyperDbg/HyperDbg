@@ -12,7 +12,6 @@
  */
 #pragma once
 
-
 #define MetaScopedExpr(Pre_, Post_, ScopedExpr_) \
     do                                           \
     {                                            \
@@ -21,12 +20,8 @@
         Post_;                                   \
     } while (FALSE);
 
-
-
-
-
 //
-// Linked-List 
+// Linked-List
 //
 
 //
@@ -34,7 +29,6 @@
 // https://github.com/hvmi/hvmi/blob/master/introcore/include/hlist.h
 // https://github.com/hvmi/hvmi/blob/master/introcore/src/introcore.c
 //
-
 
 #define LIST_FOR_EACH(_head, _struct_type, _var)               _LIST_FOR_EACH(_head, _struct_type, Link, _var)
 #define LIST_FOR_NEXT(_start, _head, _type, _var)              _LIST_FOR_NEXT(_start, _head, _type, Link, _var)

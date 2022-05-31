@@ -242,8 +242,6 @@ CommandEval(vector<string> SplittedCommand, string Command)
         return;
     }
 
-
-
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //

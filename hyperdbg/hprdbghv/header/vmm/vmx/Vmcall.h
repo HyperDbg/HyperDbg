@@ -293,7 +293,6 @@
 static NTSTATUS
 VmxHypervVmcallHandler(_Inout_ PGUEST_REGS GuestRegs);
 
-
 /**
  * @brief Handle vm-exits of VMCALLs
  * 

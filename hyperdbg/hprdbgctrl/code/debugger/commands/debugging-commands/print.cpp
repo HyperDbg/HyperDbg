@@ -78,8 +78,6 @@ CommandPrint(vector<string> SplittedCommand, string Command)
     Command.insert(0, "print(");
     Command.append(");");
 
-
-
     if (g_IsSerialConnectedToRemoteDebuggee)
     {
         //

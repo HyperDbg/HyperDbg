@@ -21,14 +21,14 @@ extern HANDLE                g_SerialListeningThreadHandle;
 extern HANDLE                g_SerialRemoteComPortHandle;
 extern HANDLE                g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-               g_DebuggeeResultOfAddingActionsToEvent;
+    g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;

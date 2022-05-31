@@ -285,7 +285,7 @@ IoHandleSetIoBitmap(UINT64 Port, UINT32 ProcessorID)
 VOID
 IoHandlePerformIoBitmapChange(UINT64 Port)
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
 
     if (Port == DEBUGGER_EVENT_ALL_IO_PORTS)
@@ -313,7 +313,7 @@ IoHandlePerformIoBitmapChange(UINT64 Port)
 VOID
 IoHandlePerformIoBitmapReset()
 {
-    UINT32 CoreIndex = KeGetCurrentProcessorNumber();
+    UINT32                  CoreIndex      = KeGetCurrentProcessorNumber();
     VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CoreIndex];
     //
     // Means all the bitmaps should be put to 0
