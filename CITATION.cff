@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "In case you use one of HyperDbg's components for your work, please consider citing our paper."
+authors:
+- family-names: "Karvandi"
+  given-names: "Mohammad Sina"
+- family-names: "Gholamrezaei"
+  given-names: "MohammadHosein"
+- family-names: "Khalaj Monfared"
+  given-names: "Saleh"
+- family-names: "Medi"
+  given-names: "Soroush"
+- family-names: "Abbassi"
+  given-names: "Behrooz"
+- family-names: "Amini"
+  given-names: "Ali"
+- family-names: "Mortazavi"
+  given-names: "Reza"
+- family-names: "Gorgin"
+  given-names: "Saeid"
+- family-names: "Rahmati"
+  given-names: "Dara"
+- family-names: "Schwarz"
+  given-names: "Michael"
+title: "HyperDbg: Reinventing Hardware-Assisted Debugging"
+version: 1.0.0
+doi: 10.20944/preprints202205.0416.v1
+date-released: 2022-05-31
+url: "https://www.preprints.org/manuscript/202205.0416/v1"

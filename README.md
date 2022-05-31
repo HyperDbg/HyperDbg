@@ -33,6 +33,19 @@ git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
 Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
 
+## Publication
+
+In case you use one of HyperDbg's components for your work, please consider citing our paper.
+```
+@article{karvandi2022hyperdbg,
+  title={HyperDbg: Reinventing Hardware-Assisted Debugging},
+  author = {Karvandi, Mohammad Sina and Gholamrezaei, MohammadHosein and Khalaj Monfared , Saleh and Medi , Soroush and Abbassi, Behrooz and Amini, Ali and Mortazavi , Reza and Gorgin , Saeid and Rahmati , Dara and Schwarz, Michael},
+  year={2022},
+  doi = {10.20944/preprints202205.0416.v1},
+  publisher={Preprints}
+}
+```
+
 ## Unique Features
 ### First Release (v0.1.0.0)
 * Advanced Hypervisor-based Kernel Mode Debugger [<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/debug" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/local-debugging" target="_blank">link</a>]
