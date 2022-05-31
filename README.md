@@ -3,6 +3,7 @@
 <a href="https://docs.hyperdbg.org"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg" alt="Documentation"></a>
 <a href="https://doxygen.hyperdbg.org"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg" alt="Doxygen"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/License-GPLv3-blue.svg" alt="License"></a>
+<a href="https://github.com/HyperDbg/HyperDbg#publications"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Published-Papers-red.svg" alt="Published Academic Papers"></a>
 <a href="https://twitter.com/HyperDbg"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-HyperDbg-Twitter-skyblue.svg" alt="Twitter"></a>
 </p>
 
@@ -33,9 +34,11 @@ git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
 Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
 
-## Publication
+## Publications
 
-In case you use one of **HyperDbg**'s components in your work, please consider citing our **[paper](https://www.preprints.org/manuscript/202205.0416/v1)**.
+In case you use one of **HyperDbg**'s components in your work, please consider citing our paper.
+
+**1. [HyperDbg: Reinventing Hardware-Assisted Debugging](https://www.preprints.org/manuscript/202205.0416/v1/download)** ([preprints.org](https://www.preprints.org/manuscript/202205.0416/v1))
 ```
 @article{karvandi2022hyperdbg,
   title={HyperDbg: Reinventing Hardware-Assisted Debugging},
