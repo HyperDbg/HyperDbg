@@ -302,6 +302,9 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
         SegmentSelector.Attributes.Unusable = TRUE;
     }
 
+    SegmentSelector.Attributes.Reserved1 = 0;
+    SegmentSelector.Attributes.Reserved2 = 0;
+
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
     __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.Flags);
