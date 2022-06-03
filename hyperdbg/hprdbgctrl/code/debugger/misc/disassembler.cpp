@@ -222,7 +222,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
             // configuration
             //
             RFLAGS TempRflags = {0};
-            TempRflags.Flags  = rflags->Flags;
+            TempRflags.AsUInt = rflags->AsUInt;
             DEBUGGER_CONDITIONAL_JUMP_STATUS ResultOfCondJmp =
                 HyperDbgIsConditionalJumpTaken(data, length, TempRflags, is_x86_64);
 

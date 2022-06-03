@@ -289,7 +289,7 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     // Read the previous flags
     //
     __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmExitControls);
+    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -306,7 +306,7 @@ ProtectedHvApplySetExternalInterruptExiting(BOOLEAN Set, PROTECTED_HV_RESOURCES_
     // Set the new value
     //
     __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmExitControls);
+    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**

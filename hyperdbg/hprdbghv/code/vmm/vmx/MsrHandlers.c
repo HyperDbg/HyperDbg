@@ -104,9 +104,9 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             if (GuestRegs->rcx == IA32_EFER)
             {
                 IA32_EFER_REGISTER MsrEFER;
-                MsrEFER.Flags         = Msr.Flags;
+                MsrEFER.AsUInt        = Msr.Flags;
                 MsrEFER.SyscallEnable = TRUE;
-                Msr.Flags             = MsrEFER.Flags;
+                Msr.Flags             = MsrEFER.AsUInt;
             }
 
             break;

@@ -13,8 +13,6 @@
  */
 #include "pch.h"
 
-
-
 typedef enum _VMX_EXECUTION_MODE
 {
     VmxExecutionModeRoot,
@@ -30,7 +28,6 @@ GetCurrentVmxExecutionMode()
 
     return CurrentVmState->IsOnVmxRootMode ? VmxExecutionModeRoot : VmxExecutionModeNonRoot;
 }
-
 
 /**
  * @brief Check whether the desired PhysicalAddress is already in the g_EptState->HookedPagesList hooks or not
@@ -290,7 +287,7 @@ EptHookCreateHookPage(_In_ PVOID    TargetAddress,
         //
         // Apply the hook to EPT
         //
-        TargetPage->Flags = ChangedEntry.Flags;
+        TargetPage->AsUInt = ChangedEntry.AsUInt;
     }
     else
     {
@@ -1081,7 +1078,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
         //
         // Apply the hook to EPT
         //
-        TargetPage->Flags = ChangedEntry.Flags;
+        TargetPage->AsUInt = ChangedEntry.AsUInt;
     }
     else
     {

@@ -63,7 +63,7 @@ VmxAllocateVmxonRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //
@@ -139,7 +139,7 @@ VmxAllocateVmcsRegion(VIRTUAL_MACHINE_STATE * CurrentGuestState)
     //
     // get IA32_VMX_BASIC_MSR RevisionId
     //
-    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
     LogDebugInfo("Revision Identifier (IA32_VMX_BASIC - MSR 0x480) : 0x%x", VmxBasicMsr.VmcsRevisionId);
 
     //

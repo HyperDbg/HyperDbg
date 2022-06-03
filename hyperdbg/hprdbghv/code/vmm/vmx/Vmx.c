@@ -38,7 +38,7 @@ VmxCheckVmxSupport()
         return FALSE;
     }
 
-    FeatureControlMsr.Flags = __readmsr(IA32_FEATURE_CONTROL);
+    FeatureControlMsr.AsUInt = __readmsr(IA32_FEATURE_CONTROL);
 
     //
     // Commented because of https://stackoverflow.com/questions/34900224/
@@ -313,21 +313,21 @@ VmxFixCr4AndCr0Bits()
     // Fix Cr0
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED0);
-    Cr0.Flags     = __readcr0();
-    Cr0.Flags |= CrFixed.Fields.Low;
+    Cr0.AsUInt    = __readcr0();
+    Cr0.AsUInt |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR0_FIXED1);
-    Cr0.Flags &= CrFixed.Fields.Low;
-    __writecr0(Cr0.Flags);
+    Cr0.AsUInt &= CrFixed.Fields.Low;
+    __writecr0(Cr0.AsUInt);
 
     //
     // Fix Cr4
     //
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED0);
-    Cr4.Flags     = __readcr4();
-    Cr4.Flags |= CrFixed.Fields.Low;
+    Cr4.AsUInt    = __readcr4();
+    Cr4.AsUInt |= CrFixed.Fields.Low;
     CrFixed.Flags = __readmsr(IA32_VMX_CR4_FIXED1);
-    Cr4.Flags &= CrFixed.Fields.Low;
-    __writecr4(Cr4.Flags);
+    Cr4.AsUInt &= CrFixed.Fields.Low;
+    __writecr4(Cr4.AsUInt);
 }
 
 /**
@@ -560,7 +560,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     // Reading IA32_VMX_BASIC_MSR
     //
-    VmxBasicMsr.Flags = __readmsr(IA32_VMX_BASIC);
+    VmxBasicMsr.AsUInt = __readmsr(IA32_VMX_BASIC);
 
     __vmx_vmwrite(VMCS_HOST_ES_SELECTOR, AsmGetEs() & 0xF8);
     __vmx_vmwrite(VMCS_HOST_CS_SELECTOR, AsmGetCs() & 0xF8);
@@ -626,7 +626,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
 
     __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, HvAdjustControls(0, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_PINBASED_CTLS : IA32_VMX_PINBASED_CTLS));
 
-    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
+    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, HvAdjustControls(VM_EXIT_HOST_ADDR_SPACE_SIZE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_EXIT_CTLS : IA32_VMX_EXIT_CTLS));
 
     __vmx_vmwrite(VMCS_CTRL_VMENTRY_CONTROLS, HvAdjustControls(VM_ENTRY_IA32E_MODE, VmxBasicMsr.VmxControls ? IA32_VMX_TRUE_ENTRY_CTLS : IA32_VMX_ENTRY_CTLS));
 
@@ -691,7 +691,7 @@ VmxSetupVmcs(VIRTUAL_MACHINE_STATE * CurrentGuestState, PVOID GuestStack)
     //
     // Set up EPT
     //
-    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.Flags);
+    __vmx_vmwrite(VMCS_CTRL_EPT_POINTER, g_EptState->EptPointer.AsUInt);
 
     //
     // Set up VPID

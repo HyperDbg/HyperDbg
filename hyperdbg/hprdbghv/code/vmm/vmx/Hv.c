@@ -51,7 +51,7 @@ HvSetGuestSelector(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 
     return TRUE;
@@ -304,7 +304,7 @@ HvFillGuestSelectorData(PVOID GdtBase, ULONG SegmentRegister, UINT16 Selector)
 
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR + SegmentRegister * 2, Selector);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT + SegmentRegister * 2, SegmentSelector.Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS + SegmentRegister * 2, SegmentSelector.Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_ES_BASE + SegmentRegister * 2, SegmentSelector.Base);
 }
 
@@ -404,7 +404,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Read the previous flags
     //
-    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmexitControls);
+    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmexitControls);
 
     if (Set)
     {
@@ -418,7 +418,7 @@ HvSetSaveDebugControls(BOOLEAN Set)
     //
     // Set the new value
     //
-    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmexitControls);
+    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmexitControls);
 }
 
 /**
@@ -725,15 +725,15 @@ HvHandleMovDebugRegister(UINT32 ProcessorIndex, PGUEST_REGS Regs)
     if (Dr7.GeneralDetect)
     {
         DR6 Dr6 = {
-            .Flags                       = __readdr(6),
+            .AsUInt                      = __readdr(6),
             .BreakpointCondition         = 0,
             .DebugRegisterAccessDetected = TRUE};
 
-        __writedr(6, Dr6.Flags);
+        __writedr(6, Dr6.AsUInt);
 
         Dr7.GeneralDetect = FALSE;
 
-        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.Flags);
+        __vmx_vmwrite(VMCS_GUEST_DR7, Dr7.AsUInt);
 
         EventInjectDebugBreakpoint();
 
@@ -838,7 +838,7 @@ HvSetNmiExiting(BOOLEAN Set)
     // Read the previous flags
     //
     __vmx_vmread(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, &PinBasedControls);
-    __vmx_vmread(VMCS_CTRL_VMEXIT_CONTROLS, &VmExitControls);
+    __vmx_vmread(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, &VmExitControls);
 
     if (Set)
     {
@@ -855,7 +855,7 @@ HvSetNmiExiting(BOOLEAN Set)
     // Set the new value
     //
     __vmx_vmwrite(VMCS_CTRL_PIN_BASED_VM_EXECUTION_CONTROLS, PinBasedControls);
-    __vmx_vmwrite(VMCS_CTRL_VMEXIT_CONTROLS, VmExitControls);
+    __vmx_vmwrite(VMCS_CTRL_PRIMARY_VMEXIT_CONTROLS, VmExitControls);
 }
 
 /**

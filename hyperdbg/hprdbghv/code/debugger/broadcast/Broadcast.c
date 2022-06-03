@@ -121,5 +121,5 @@ BroadcastNotifyAllToInvalidateEptAllCores()
     //
     // Broadcast to all cores
     //
-    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, g_EptState->EptPointer.Flags);
+    KeGenericCallDpc(DpcRoutineInvalidateEptOnAllCores, g_EptState->EptPointer.AsUInt);
 }

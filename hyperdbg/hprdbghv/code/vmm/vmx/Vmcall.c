@@ -32,7 +32,7 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
     case HvCallFlushGuestPhysicalAddressSpace:
     case HvCallFlushGuestPhysicalAddressList:
 
-        EptInveptSingleContext(g_EptState->EptPointer.Flags);
+        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
         break;
     }
 
