@@ -23,8 +23,8 @@ EptCheckFeatures()
     IA32_VMX_EPT_VPID_CAP_REGISTER VpidRegister;
     IA32_MTRR_DEF_TYPE_REGISTER    MTRRDefType;
 
-    VpidRegister.Flags = __readmsr(IA32_VMX_EPT_VPID_CAP);
-    MTRRDefType.Flags  = __readmsr(IA32_MTRR_DEF_TYPE);
+    VpidRegister.AsUInt = __readmsr(IA32_VMX_EPT_VPID_CAP);
+    MTRRDefType.AsUInt  = __readmsr(IA32_MTRR_DEF_TYPE);
 
     if (!VpidRegister.PageWalkLength4 || !VpidRegister.MemoryTypeWriteBack || !VpidRegister.Pde2MbPages)
     {
@@ -72,15 +72,15 @@ EptBuildMtrrMap()
     ULONG                           CurrentRegister;
     ULONG                           NumberOfBitsInMask;
 
-    MTRRCap.Flags = __readmsr(IA32_MTRR_CAPABILITIES);
+    MTRRCap.AsUInt = __readmsr(IA32_MTRR_CAPABILITIES);
 
     for (CurrentRegister = 0; CurrentRegister < MTRRCap.VariableRangeCount; CurrentRegister++)
     {
         //
         // For each dynamic register pair
         //
-        CurrentPhysBase.Flags = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
-        CurrentPhysMask.Flags = __readmsr(IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
+        CurrentPhysBase.AsUInt = __readmsr(IA32_MTRR_PHYSBASE0 + (CurrentRegister * 2));
+        CurrentPhysMask.AsUInt = __readmsr(IA32_MTRR_PHYSMASK0 + (CurrentRegister * 2));
 
         //
         // Is the range enabled?
@@ -287,7 +287,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // Make a template for RWX
     //
-    EntryTemplate.Flags         = 0;
+    EntryTemplate.AsUInt        = 0;
     EntryTemplate.ReadAccess    = 1;
     EntryTemplate.WriteAccess   = 1;
     EntryTemplate.ExecuteAccess = 1;
@@ -302,7 +302,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // Copy the template into all the PML1 entries
     //
-    __stosq((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.Flags, VMM_EPT_PML1E_COUNT);
+    __stosq((SIZE_T *)&NewSplit->PML1[0], EntryTemplate.AsUInt, VMM_EPT_PML1E_COUNT);
 
     //
     // Set the page frame numbers for identity mapping
@@ -318,7 +318,7 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
     //
     // Allocate a new pointer which will replace the 2MB entry with a pointer to 512 4096 byte entries
     //
-    NewPointer.Flags           = 0;
+    NewPointer.AsUInt          = 0;
     NewPointer.WriteAccess     = 1;
     NewPointer.ReadAccess      = 1;
     NewPointer.ExecuteAccess   = 1;
@@ -473,7 +473,7 @@ EptAllocateAndCreateIdentityPageTable()
     //
     // Ensure stack memory is cleared
     //
-    RWXTemplate.Flags = 0;
+    RWXTemplate.AsUInt = 0;
 
     //
     // Set up one 'template' RWX PML3 entry and copy it into each of the 512 PML3 entries
@@ -486,7 +486,7 @@ EptAllocateAndCreateIdentityPageTable()
     //
     // Copy the template into each of the 512 PML3 entry slots
     //
-    __stosq((SIZE_T *)&PageTable->PML3[0], RWXTemplate.Flags, VMM_EPT_PML3E_COUNT);
+    __stosq((SIZE_T *)&PageTable->PML3[0], RWXTemplate.AsUInt, VMM_EPT_PML3E_COUNT);
 
     //
     // For each of the 512 PML3 entries
@@ -500,7 +500,7 @@ EptAllocateAndCreateIdentityPageTable()
         PageTable->PML3[EntryIndex].PageFrameNumber = (SIZE_T)VirtualAddressToPhysicalAddress(&PageTable->PML2[EntryIndex][0]) / PAGE_SIZE;
     }
 
-    PML2EntryTemplate.Flags = 0;
+    PML2EntryTemplate.AsUInt = 0;
 
     //
     // All PML2 entries will be RWX and 'present'
@@ -521,7 +521,7 @@ EptAllocateAndCreateIdentityPageTable()
     // this region or not. We will cause a fault in our EPT handler if the guest access a page
     // outside a usable range, despite the EPT frame being present here.
     //
-    __stosq((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.Flags, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
+    __stosq((SIZE_T *)&PageTable->PML2[0], PML2EntryTemplate.AsUInt, VMM_EPT_PML3E_COUNT * VMM_EPT_PML2E_COUNT);
 
     //
     // For each of the 512 collections of 512 2MB PML2 entries
@@ -711,7 +711,7 @@ _Use_decl_annotations_
 BOOLEAN
 EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr)
 {
-    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.Flags = ExitQualification};
+    VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = ExitQualification};
 
     if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
     {
@@ -783,14 +783,14 @@ EptSetPML1AndInvalidateTLB(PEPT_PML1_ENTRY EntryAddress, EPT_PML1_ENTRY EntryVal
     //
     // set the value
     //
-    EntryAddress->Flags = EntryValue.Flags;
+    EntryAddress->AsUInt = EntryValue.AsUInt;
 
     //
     // invalidate the cache
     //
     if (InvalidationType == InveptSingleContext)
     {
-        EptInveptSingleContext(g_EptState->EptPointer.Flags);
+        EptInveptSingleContext(g_EptState->EptPointer.AsUInt);
     }
     else if (InvalidationType == InveptAllContext)
     {

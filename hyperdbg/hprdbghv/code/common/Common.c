@@ -269,7 +269,7 @@ GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR Segm
 {
     SEGMENT_DESCRIPTOR_32 * DescriptorTable32;
     SEGMENT_DESCRIPTOR_32 * Descriptor32;
-    SEGMENT_SELECTOR        SegSelector = {.Flags = Selector};
+    SEGMENT_SELECTOR        SegSelector = {.AsUInt = Selector};
 
     if (!SegmentSelector)
         return FALSE;
@@ -292,7 +292,7 @@ GetSegmentDescriptor(PUCHAR GdtBase, UINT16 Selector, PVMX_SEGMENT_SELECTOR Segm
     SegmentSelector->Limit    = __segmentlimit(Selector);
     SegmentSelector->Base     = (Descriptor32->BaseAddressLow | Descriptor32->BaseAddressMiddle << 16 | Descriptor32->BaseAddressHigh << 24);
 
-    SegmentSelector->Attributes.Flags = (AsmGetAccessRights(Selector) >> 8);
+    SegmentSelector->Attributes.AsUInt = (AsmGetAccessRights(Selector) >> 8);
 
     if (SegSelector.Table == 0 && SegSelector.Index == 0)
     {

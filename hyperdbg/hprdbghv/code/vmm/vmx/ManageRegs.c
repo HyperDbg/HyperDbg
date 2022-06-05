@@ -36,7 +36,7 @@ SetGuestCs(PVMX_SEGMENT_SELECTOR Cs)
 {
     __vmx_vmwrite(VMCS_GUEST_CS_BASE, Cs->Base);
     __vmx_vmwrite(VMCS_GUEST_CS_LIMIT, Cs->Limit);
-    __vmx_vmwrite(VMCS_GUEST_CS_ACCESS_RIGHTS, Cs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_CS_ACCESS_RIGHTS, Cs->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_CS_SELECTOR, Cs->Selector);
 }
 
@@ -52,7 +52,7 @@ GetGuestCs()
 
     __vmx_vmread(VMCS_GUEST_CS_BASE, &Cs.Base);
     __vmx_vmread(VMCS_GUEST_CS_LIMIT, &Cs.Limit);
-    __vmx_vmread(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_CS_ACCESS_RIGHTS, &Cs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_CS_SELECTOR, &Cs.Selector);
 
     return Cs;
@@ -81,7 +81,7 @@ SetGuestSs(PVMX_SEGMENT_SELECTOR Ss)
 {
     __vmx_vmwrite(VMCS_GUEST_SS_BASE, Ss->Base);
     __vmx_vmwrite(VMCS_GUEST_SS_LIMIT, Ss->Limit);
-    __vmx_vmwrite(VMCS_GUEST_SS_ACCESS_RIGHTS, Ss->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_SS_ACCESS_RIGHTS, Ss->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_SS_SELECTOR, Ss->Selector);
 }
 
@@ -97,7 +97,7 @@ GetGuestSs()
 
     __vmx_vmread(VMCS_GUEST_SS_BASE, &Ss.Base);
     __vmx_vmread(VMCS_GUEST_SS_LIMIT, &Ss.Limit);
-    __vmx_vmread(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_SS_ACCESS_RIGHTS, &Ss.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_SS_SELECTOR, &Ss.Selector);
 
     return Ss;
@@ -126,7 +126,7 @@ SetGuestDs(PVMX_SEGMENT_SELECTOR Ds)
 {
     __vmx_vmwrite(VMCS_GUEST_DS_BASE, Ds->Base);
     __vmx_vmwrite(VMCS_GUEST_DS_LIMIT, Ds->Limit);
-    __vmx_vmwrite(VMCS_GUEST_DS_ACCESS_RIGHTS, Ds->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_DS_ACCESS_RIGHTS, Ds->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_DS_SELECTOR, Ds->Selector);
 }
 
@@ -142,7 +142,7 @@ GetGuestDs()
 
     __vmx_vmread(VMCS_GUEST_DS_BASE, &Ds.Base);
     __vmx_vmread(VMCS_GUEST_DS_LIMIT, &Ds.Limit);
-    __vmx_vmread(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_DS_ACCESS_RIGHTS, &Ds.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_DS_SELECTOR, &Ds.Selector);
 
     return Ds;
@@ -171,7 +171,7 @@ SetGuestFs(PVMX_SEGMENT_SELECTOR Fs)
 {
     __vmx_vmwrite(VMCS_GUEST_FS_BASE, Fs->Base);
     __vmx_vmwrite(VMCS_GUEST_FS_LIMIT, Fs->Limit);
-    __vmx_vmwrite(VMCS_GUEST_FS_ACCESS_RIGHTS, Fs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_FS_ACCESS_RIGHTS, Fs->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_FS_SELECTOR, Fs->Selector);
 }
 
@@ -187,7 +187,7 @@ GetGuestFs()
 
     __vmx_vmread(VMCS_GUEST_FS_BASE, &Fs.Base);
     __vmx_vmread(VMCS_GUEST_FS_LIMIT, &Fs.Limit);
-    __vmx_vmread(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_FS_ACCESS_RIGHTS, &Fs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_FS_SELECTOR, &Fs.Selector);
 
     return Fs;
@@ -216,7 +216,7 @@ SetGuestGs(PVMX_SEGMENT_SELECTOR Gs)
 {
     __vmx_vmwrite(VMCS_GUEST_GS_BASE, Gs->Base);
     __vmx_vmwrite(VMCS_GUEST_GS_LIMIT, Gs->Limit);
-    __vmx_vmwrite(VMCS_GUEST_GS_ACCESS_RIGHTS, Gs->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_GS_ACCESS_RIGHTS, Gs->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_GS_SELECTOR, Gs->Selector);
 }
 
@@ -232,7 +232,7 @@ GetGuestGs()
 
     __vmx_vmread(VMCS_GUEST_GS_BASE, &Gs.Base);
     __vmx_vmread(VMCS_GUEST_GS_LIMIT, &Gs.Limit);
-    __vmx_vmread(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_GS_ACCESS_RIGHTS, &Gs.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_GS_SELECTOR, &Gs.Selector);
 
     return Gs;
@@ -261,7 +261,7 @@ SetGuestEs(PVMX_SEGMENT_SELECTOR Es)
 {
     __vmx_vmwrite(VMCS_GUEST_ES_BASE, Es->Base);
     __vmx_vmwrite(VMCS_GUEST_ES_LIMIT, Es->Limit);
-    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS, Es->Attributes.Flags);
+    __vmx_vmwrite(VMCS_GUEST_ES_ACCESS_RIGHTS, Es->Attributes.AsUInt);
     __vmx_vmwrite(VMCS_GUEST_ES_SELECTOR, Es->Selector);
 }
 
@@ -277,7 +277,7 @@ GetGuestEs()
 
     __vmx_vmread(VMCS_GUEST_ES_BASE, &Es.Base);
     __vmx_vmread(VMCS_GUEST_ES_LIMIT, &Es.Limit);
-    __vmx_vmread(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.Flags);
+    __vmx_vmread(VMCS_GUEST_ES_ACCESS_RIGHTS, &Es.Attributes.AsUInt);
     __vmx_vmread(VMCS_GUEST_ES_SELECTOR, &Es.Selector);
 
     return Es;

@@ -1246,6 +1246,25 @@ ScriptEngineFunctionPause(UINT64 Tag, BOOLEAN ImmediateMessagePassing, PGUEST_RE
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+// flush
+VOID
+ScriptEngineFunctionFlush()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to flush buffers in user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Mark all buffers as read
+    //
+    LogMarkAllAsRead(TRUE);
+    LogMarkAllAsRead(FALSE);
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
@@ -4090,6 +4109,11 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
                                   ActionDetail->ImmediatelySendTheResults,
                                   GuestRegs,
                                   ActionDetail->Context);
+        return HasError;
+
+    case FUNC_FLUSH:
+
+        ScriptEngineFunctionFlush();
         return HasError;
 
     case FUNC_OR:

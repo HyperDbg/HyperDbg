@@ -26,7 +26,7 @@ IdtEmulationReInjectInterruptOrException(_In_ VMEXIT_INTERRUPT_INFORMATION Inter
     //
     // Re-inject it
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
 
     //
     // re-write error code (if any)
@@ -101,7 +101,7 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
     //
     // Re-inject the interrupt/exception
     //
-    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
+    __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
 
     //
     // re-write error code (if any)
@@ -376,7 +376,7 @@ IdtEmulationInjectInterruptWhenInterruptWindowIsOpen(_In_ VMEXIT_INTERRUPT_INFOR
             //
             // Save it for future re-injection (interrupt-window exiting)
             //
-            CurrentGuestState->PendingExternalInterrupts[i] = InterruptExit.Flags;
+            CurrentGuestState->PendingExternalInterrupts[i] = InterruptExit.AsUInt;
             FoundAPlaceForFutureInjection                   = TRUE;
             break;
         }
@@ -617,7 +617,7 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
             //
             // Save it for re-injection (interrupt-window exiting)
             //
-            InterruptExit.Flags = CurrentGuestState->PendingExternalInterrupts[i];
+            InterruptExit.AsUInt = CurrentGuestState->PendingExternalInterrupts[i];
 
             //
             // Free the entry
@@ -627,7 +627,7 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
         }
     }
 
-    if (InterruptExit.Flags == 0)
+    if (InterruptExit.AsUInt == 0)
     {
         //
         // Nothing left in pending state, let's disable the interrupt window exiting
@@ -639,7 +639,7 @@ IdtEmulationHandleInterruptWindowExiting(_In_ UINT32 CurrentProcessorIndex)
         //
         // Re-inject the interrupt/exception
         //
-        __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.Flags);
+        __vmx_vmwrite(VMCS_CTRL_VMENTRY_INTERRUPTION_INFORMATION_FIELD, InterruptExit.AsUInt);
 
         //
         // re-write error code (if any)

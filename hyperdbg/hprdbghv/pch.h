@@ -35,6 +35,11 @@
 #define HYPERDBG_KERNEL_MODE
 
 //
+// External headers
+//
+#include "ia32-doc/out/ia32.h"
+
+//
 // HyperDbg Kernel-mode headers
 //
 #include "Definition.h"

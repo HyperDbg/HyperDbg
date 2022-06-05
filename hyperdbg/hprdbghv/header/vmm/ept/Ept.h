@@ -109,11 +109,11 @@ volatile LONG Pml1ModificationAndInvalidationLock;
 //				      typedefs         			 //
 //////////////////////////////////////////////////
 
-typedef EPT_PML4 EPT_PML4_POINTER, *PEPT_PML4_POINTER;
-typedef EPDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
-typedef EPDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
-typedef EPDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
-typedef EPTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
+typedef EPT_PML4E   EPT_PML4_POINTER, *PEPT_PML4_POINTER;
+typedef EPT_PDPTE   EPT_PML3_POINTER, *PEPT_PML3_POINTER;
+typedef EPT_PDE_2MB EPT_PML2_ENTRY, *PEPT_PML2_ENTRY;
+typedef EPT_PDE     EPT_PML2_POINTER, *PEPT_PML2_POINTER;
+typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 
 //////////////////////////////////////////////////
 //			     Structs Cont.                	//

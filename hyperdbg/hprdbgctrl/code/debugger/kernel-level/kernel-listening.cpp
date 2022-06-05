@@ -16,7 +16,7 @@
 // Global Variables
 //
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
@@ -29,7 +29,7 @@ extern BOOLEAN                              g_IsRunningInstruction32Bit;
 extern ULONG                                g_CurrentRemoteCore;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-    g_DebuggeeResultOfAddingActionsToEvent;
+              g_DebuggeeResultOfAddingActionsToEvent;
 extern UINT64 g_ResultOfEvaluatedExpression;
 extern UINT32 g_ErrorStateOfResultOfEvaluatedExpression;
 
@@ -774,7 +774,7 @@ StartAgain:
                                                           sizeof(GUEST_REGS));
 
                     RFLAGS Rflags = {0};
-                    Rflags.Flags  = ExtraRegs->RFLAGS;
+                    Rflags.AsUInt = ExtraRegs->RFLAGS;
 
                     ShowMessages(
                         "RAX=%016llx RBX=%016llx RCX=%016llx\n"

@@ -16,7 +16,7 @@
 # OneOpFunc2 input is a number.
 .OneOpFunc2->print formats disable_event enable_event test_statement spinlock_lock spinlock_unlock
 
-.ZeroOpFunc1->pause
+.ZeroOpFunc1->pause flush
 
 .VarArgFunc1->printf 
 
