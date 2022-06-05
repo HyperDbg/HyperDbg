@@ -12,4 +12,4 @@
 	url = https://github.com/HyperDbg/script-engine-test.git
 [submodule "hyperdbg/dependencies/ia32-doc"]
 	path = hyperdbg/dependencies/ia32-doc
-	url = https://github.com/HyperDbg/ia32-doc
+	url = https://github.com/HyperDbg/ia32-doc.git
