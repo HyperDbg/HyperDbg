@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Unreleased description.
 
 ### Added
-- fush function in script engine [link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush)
+- fush function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
 
 ### Changed
 
@@ -19,7 +19,7 @@ Unreleased description.
 This is the first release of HyperDbg Debugger.
 
 ### Added
-- # (comment in batch scripts)
+- \# (comment in batch scripts)
 - ? (evaluate and execute expressions and scripts in debuggee)
 - ~ (display and change the current operating core)
 - load (load the kernel modules)
