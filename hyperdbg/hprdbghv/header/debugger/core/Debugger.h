@@ -137,6 +137,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     volatile BOOLEAN                           MainDebuggingCore;
     volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
     volatile NMI_BROADCAST_ACTION_TYPE         NmiBroadcastAction;
+    BOOLEAN                                    IgnoreEvent;
     BOOLEAN                                    IgnoreOneMtf;
     BOOLEAN                                    WaitForStepTrap;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;
@@ -154,6 +155,23 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     UINT64 *                                   ScriptEngineCoreSpecificTempVariable;
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
+
+//////////////////////////////////////////////////
+//	    				Enums					//
+//////////////////////////////////////////////////
+
+/**
+ * @brief The status of triggering events 
+ *
+ */
+typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL              = 0,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT = 1,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED    = 2,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE      = 3,
+
+} DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE;
 
 //////////////////////////////////////////////////
 //					Data Type					//
@@ -218,7 +236,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
 BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
-BOOLEAN
+DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context);
 
 PDEBUGGER_EVENT

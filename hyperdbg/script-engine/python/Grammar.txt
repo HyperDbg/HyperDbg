@@ -14,9 +14,9 @@
 .OneOpFunc1->poi db dd dw dq neg hi low not check_address strlen wcslen interlocked_increment interlocked_decrement reference physical_to_virtual virtual_to_physical
 
 # OneOpFunc2 input is a number.
-.OneOpFunc2->print formats disable_event enable_event test_statement spinlock_lock spinlock_unlock
+.OneOpFunc2->print formats event_enable event_disable test_statement spinlock_lock spinlock_unlock
 
-.ZeroOpFunc1->pause flush
+.ZeroOpFunc1->pause flush event_ignore
 
 .VarArgFunc1->printf 
 

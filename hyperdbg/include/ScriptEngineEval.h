@@ -1265,6 +1265,22 @@ ScriptEngineFunctionFlush()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
+// event_ignore
+VOID
+ScriptEngineFunctionEventIgnore()
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    ShowMessages("err, it's not possible to ignore events in user-mode\n");
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    UINT32 CurrentProcessorIndex                                   = KeGetCurrentProcessorNumber();
+    g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreEvent = TRUE;
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
@@ -4114,6 +4130,13 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
     case FUNC_FLUSH:
 
         ScriptEngineFunctionFlush();
+
+        return HasError;
+
+    case FUNC_EVENT_IGNORE:
+
+        ScriptEngineFunctionEventIgnore();
+
         return HasError;
 
     case FUNC_OR:
@@ -5011,7 +5034,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
-    case FUNC_DISABLE_EVENT:
+    case FUNC_EVENT_DISABLE:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));
@@ -5026,7 +5049,7 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
-    case FUNC_ENABLE_EVENT:
+    case FUNC_EVENT_ENABLE:
 
         Src0  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
                          (unsigned long long)(*Indx * sizeof(SYMBOL)));

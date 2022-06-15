@@ -704,16 +704,17 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * @param EventType Type of events
  * @param Regs Guest registers
  * @param Context An optional parameter (different in each event)
- * @return BOOLEAN return FALSE if there was an error in triggering
- * and TRUE if it triggered successfully (even if there was nothing to trigger)
+ * @return DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE returns the staus
+ * of handling events
  */
-BOOLEAN
+DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
-    ULONG                       CurrentProcessorIndex;
-    PLIST_ENTRY                 TempList  = 0;
-    PLIST_ENTRY                 TempList2 = 0;
     DebuggerCheckForCondition * ConditionFunc;
+    PLIST_ENTRY                 TempList              = 0;
+    PLIST_ENTRY                 TempList2             = 0;
+    UINT32                      CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -723,13 +724,8 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         //
         // Debugger is not enabled
         //
-        return FALSE;
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED;
     }
-
-    //
-    // Search for this event in this core (get the core index)
-    //
-    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
     //
     // Find the debugger events list base on the type of the event
@@ -845,10 +841,11 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         break;
     }
     default:
+
         //
         // Event type is not found
         //
-        return FALSE;
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
         break;
     }
 
@@ -1088,12 +1085,33 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
+        // Reset the the event ignorance mechanism
+        //
+        CurrentVmState->DebuggingState.IgnoreEvent = FALSE;
+
+        //
         // perform the actions
         //
         DebuggerPerformActions(CurrentEvent, Regs, Context);
     }
 
-    return TRUE;
+    //
+    // Check if the event should be ignored or not
+    //
+    if (CurrentVmState->DebuggingState.IgnoreEvent)
+    {
+        //
+        // Event should be ignored
+        //
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
+    }
+    else
+    {
+        //
+        // Event shouldn't be ignored
+        //
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL;
+    }
 }
 
 /**
