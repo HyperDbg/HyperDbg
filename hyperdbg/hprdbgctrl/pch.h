@@ -32,7 +32,7 @@
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
-#endif //USE_LIB_IA32
+#endif // USE_LIB_IA32
 
 //
 // Native API header files for the Process Hacker project.
@@ -111,6 +111,8 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "ScriptEngineCommonDefinitions.h"
 #include "Configuration.h"
 #include "Definition.h"
+#include "SDK/HyperDbgHeaders.h"
+#include "SDK/HyperDbgTypes.h"
 #include "header/inipp.h"
 #include "header/commands.h"
 #include "header/common.h"

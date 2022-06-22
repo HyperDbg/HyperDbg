@@ -110,7 +110,7 @@ CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
  * @return VOID
  */
 VOID
-HyperDbgScriptReadFileAndExecuteCommand(vector<string> & PathAndArgs)
+HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs)
 {
     std::string Line;
     BOOLEAN     IsOpened         = FALSE;
@@ -259,7 +259,7 @@ CommandScript(vector<string> SplittedCommand, string Command)
     SplitPathAndArgs(PathAndArgs, Command);
 
     /*
-    
+
     for (auto item : PathAndArgs)
     {
         //

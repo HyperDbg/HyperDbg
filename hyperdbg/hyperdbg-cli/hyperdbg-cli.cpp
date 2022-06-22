@@ -14,37 +14,19 @@
 #include <conio.h>
 #include <iostream>
 #include <vector>
-#include "Definition.h"
-#include "Configuration.h"
-
-#pragma comment(lib, "HPRDBGCTRL.lib")
+#include "SDK/HyperDbgHeaders.h"
+#include "SDK/HyperDbgTypes.h"
 
 using namespace std;
 
-//
-// Header file of HPRDBGCTRL
-// Imports
-//
-extern "C" {
-__declspec(dllimport) int HyperdbgLoadVmm();
-__declspec(dllimport) int HyperdbgUnload();
-__declspec(dllimport) int HyperdbgInstallVmmDriver();
-__declspec(dllimport) int HyperdbgUninstallDriver();
-__declspec(dllimport) int HyperdbgStopDriver();
-__declspec(dllimport) int HyperdbgInterpreter(char * Command);
-__declspec(dllimport) void HyperdbgShowSignature();
-__declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);
-__declspec(dllimport) void HyperDbgScriptReadFileAndExecuteCommand(vector<string> & PathAndArgs);
-__declspec(dllimport) bool HyperdbgContinuePreviousCommand();
-__declspec(dllimport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
-}
+#pragma comment(lib, "HPRDBGCTRL.lib")
 
 /**
  * @brief CLI main function
- * 
- * @param argc 
- * @param argv 
- * @return int 
+ *
+ * @param argc
+ * @param argv
+ * @return int
  */
 int
 main(int argc, char * argv[])

@@ -24,190 +24,15 @@
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
-#endif //USE_LIB_IA32
-
-//////////////////////////////////////////////////
-//			 Version Information                //
-//////////////////////////////////////////////////
-
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 2
-#define VERSION_PATCH 0
-
-//
-// Example of __DATE__ string: "Jul 27 2012"
-//                              01234567890
-
-#define BUILD_YEAR_CH0 (__DATE__[7])
-#define BUILD_YEAR_CH1 (__DATE__[8])
-#define BUILD_YEAR_CH2 (__DATE__[9])
-#define BUILD_YEAR_CH3 (__DATE__[10])
-
-#define BUILD_MONTH_IS_JAN (__DATE__[0] == 'J' && __DATE__[1] == 'a' && __DATE__[2] == 'n')
-#define BUILD_MONTH_IS_FEB (__DATE__[0] == 'F')
-#define BUILD_MONTH_IS_MAR (__DATE__[0] == 'M' && __DATE__[1] == 'a' && __DATE__[2] == 'r')
-#define BUILD_MONTH_IS_APR (__DATE__[0] == 'A' && __DATE__[1] == 'p')
-#define BUILD_MONTH_IS_MAY (__DATE__[0] == 'M' && __DATE__[1] == 'a' && __DATE__[2] == 'y')
-#define BUILD_MONTH_IS_JUN (__DATE__[0] == 'J' && __DATE__[1] == 'u' && __DATE__[2] == 'n')
-#define BUILD_MONTH_IS_JUL (__DATE__[0] == 'J' && __DATE__[1] == 'u' && __DATE__[2] == 'l')
-#define BUILD_MONTH_IS_AUG (__DATE__[0] == 'A' && __DATE__[1] == 'u')
-#define BUILD_MONTH_IS_SEP (__DATE__[0] == 'S')
-#define BUILD_MONTH_IS_OCT (__DATE__[0] == 'O')
-#define BUILD_MONTH_IS_NOV (__DATE__[0] == 'N')
-#define BUILD_MONTH_IS_DEC (__DATE__[0] == 'D')
-
-#define BUILD_MONTH_CH0 \
-    ((BUILD_MONTH_IS_OCT || BUILD_MONTH_IS_NOV || BUILD_MONTH_IS_DEC) ? '1' : '0')
-
-#define BUILD_MONTH_CH1                                         \
-    (                                                           \
-        (BUILD_MONTH_IS_JAN) ? '1' : (BUILD_MONTH_IS_FEB) ? '2' \
-                                 : (BUILD_MONTH_IS_MAR)   ? '3' \
-                                 : (BUILD_MONTH_IS_APR)   ? '4' \
-                                 : (BUILD_MONTH_IS_MAY)   ? '5' \
-                                 : (BUILD_MONTH_IS_JUN)   ? '6' \
-                                 : (BUILD_MONTH_IS_JUL)   ? '7' \
-                                 : (BUILD_MONTH_IS_AUG)   ? '8' \
-                                 : (BUILD_MONTH_IS_SEP)   ? '9' \
-                                 : (BUILD_MONTH_IS_OCT)   ? '0' \
-                                 : (BUILD_MONTH_IS_NOV)   ? '1' \
-                                 : (BUILD_MONTH_IS_DEC)   ? '2' \
-                                                          : /* error default */ '?')
-
-#define BUILD_DAY_CH0 ((__DATE__[4] >= '0') ? (__DATE__[4]) : '0')
-#define BUILD_DAY_CH1 (__DATE__[5])
-
-//
-// Example of __TIME__ string: "21:06:19"
-//                              01234567
-
-#define BUILD_HOUR_CH0 (__TIME__[0])
-#define BUILD_HOUR_CH1 (__TIME__[1])
-
-#define BUILD_MIN_CH0 (__TIME__[3])
-#define BUILD_MIN_CH1 (__TIME__[4])
-
-#define BUILD_SEC_CH0 (__TIME__[6])
-#define BUILD_SEC_CH1 (__TIME__[7])
-
-#if VERSION_MAJOR > 100
-
-#    define VERSION_MAJOR_INIT                    \
-        ((VERSION_MAJOR / 100) + '0'),            \
-            (((VERSION_MAJOR % 100) / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
-
-#elif VERSION_MAJOR > 10
-
-#    define VERSION_MAJOR_INIT        \
-        ((VERSION_MAJOR / 10) + '0'), \
-            ((VERSION_MAJOR % 10) + '0')
-
-#else
-
-#    define VERSION_MAJOR_INIT \
-        (VERSION_MAJOR + '0')
-
-#endif
-
-#if VERSION_MINOR > 100
-
-#    define VERSION_MINOR_INIT                    \
-        ((VERSION_MINOR / 100) + '0'),            \
-            (((VERSION_MINOR % 100) / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
-
-#elif VERSION_MINOR > 10
-
-#    define VERSION_MINOR_INIT        \
-        ((VERSION_MINOR / 10) + '0'), \
-            ((VERSION_MINOR % 10) + '0')
-
-#else
-
-#    define VERSION_MINOR_INIT \
-        (VERSION_MINOR + '0')
-
-#endif
-
-#if VERSION_PATCH > 100
-
-#    define VERSION_PATCH_INIT                    \
-        ((VERSION_PATCH / 100) + '0'),            \
-            (((VERSION_PATCH % 100) / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
-
-#elif VERSION_PATCH > 10
-
-#    define VERSION_PATCH_INIT        \
-        ((VERSION_PATCH / 10) + '0'), \
-            ((VERSION_PATCH % 10) + '0')
-
-#else
-
-#    define VERSION_PATCH_INIT \
-        (VERSION_PATCH + '0')
-
-#endif
-
-#ifndef HYPERDBG_KERNEL_MODE
-
-const unsigned char BuildDateTime[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        '-',
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        '-',
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
-        ' ',
-        BUILD_HOUR_CH0,
-        BUILD_HOUR_CH1,
-        ':',
-        BUILD_MIN_CH0,
-        BUILD_MIN_CH1,
-        ':',
-        BUILD_SEC_CH0,
-        BUILD_SEC_CH1,
-
-        '\0'};
-
-const unsigned char CompleteVersion[] =
-    {
-        'v',
-        VERSION_MAJOR_INIT,
-        '.',
-        VERSION_MINOR_INIT,
-        '.',
-        VERSION_PATCH_INIT,
-        '\0'};
-
-const unsigned char BuildVersion[] =
-    {
-        BUILD_YEAR_CH0,
-        BUILD_YEAR_CH1,
-        BUILD_YEAR_CH2,
-        BUILD_YEAR_CH3,
-        BUILD_MONTH_CH0,
-        BUILD_MONTH_CH1,
-        BUILD_DAY_CH0,
-        BUILD_DAY_CH1,
-
-        '\0'};
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
+#endif // USE_LIB_IA32
 
 //////////////////////////////////////////////////
 //				Delay Speeds                    //
 //////////////////////////////////////////////////
 
 /**
- * @brief The speed delay for showing messages from kernel-mode 
- * to user-mode in  VMI-mode, using a lower value causes the 
+ * @brief The speed delay for showing messages from kernel-mode
+ * to user-mode in  VMI-mode, using a lower value causes the
  * HyperDbg to show messages faster but you should keep in mind,
  *  not to eat all of the CPU
  */
@@ -291,7 +116,7 @@ const unsigned char BuildVersion[] =
 
 /**
  * @brief The seeds that user-mode thread detail token start with it
- * @details This seed should not start with zero (0), otherwise it's 
+ * @details This seed should not start with zero (0), otherwise it's
  * interpreted as error
  */
 #define DebuggerThreadDebuggingTagStartSeed 0x1000000
@@ -493,7 +318,7 @@ const unsigned char BuildVersion[] =
 
 /**
  * @brief An event to show whether the debugger is running
- * or not in user-debugger 
+ * or not in user-debugger
  *
  */
 
@@ -625,17 +450,6 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
  */
 #define MAXIMUM_CALL_INSTR_SIZE 7
 
-//////////////////////////////////////////////////
-//            Callback Definitions              //
-//////////////////////////////////////////////////
-
-/**
- * @brief Callback type that can be used to be used
- * as a custom ShowMessages function
- *
- */
-typedef int (*Callback)(const char * Text);
-
 /**
  * @brief Callback type that should be used to add
  * list of Addresses to ObjectNames
@@ -708,35 +522,35 @@ typedef struct GUEST_EXTRA_REGISTERS
  * @brief RFLAGS in structure format
  *
  */
-//typedef union _RFLAGS
+// typedef union _RFLAGS
 //{
-//    struct
-//    {
-//        UINT64 CarryFlag : 1;
-//        UINT64 ReadAs1 : 1;
-//        UINT64 ParityFlag : 1;
-//        UINT64 Reserved1 : 1;
-//        UINT64 AuxiliaryCarryFlag : 1;
-//        UINT64 Reserved2 : 1;
-//        UINT64 ZeroFlag : 1;
-//        UINT64 SignFlag : 1;
-//        UINT64 TrapFlag : 1;
-//        UINT64 InterruptEnableFlag : 1;
-//        UINT64 DirectionFlag : 1;
-//        UINT64 OverflowFlag : 1;
-//        UINT64 IoPrivilegeLevel : 2;
-//        UINT64 NestedTaskFlag : 1;
-//        UINT64 Reserved3 : 1;
-//        UINT64 ResumeFlag : 1;
-//        UINT64 Virtual8086ModeFlag : 1;
-//        UINT64 AlignmentCheckFlag : 1;
-//        UINT64 VirtualInterruptFlag : 1;
-//        UINT64 VirtualInterruptPendingFlag : 1;
-//        UINT64 IdentificationFlag : 1;
-//    } Fields;
+//     struct
+//     {
+//         UINT64 CarryFlag : 1;
+//         UINT64 ReadAs1 : 1;
+//         UINT64 ParityFlag : 1;
+//         UINT64 Reserved1 : 1;
+//         UINT64 AuxiliaryCarryFlag : 1;
+//         UINT64 Reserved2 : 1;
+//         UINT64 ZeroFlag : 1;
+//         UINT64 SignFlag : 1;
+//         UINT64 TrapFlag : 1;
+//         UINT64 InterruptEnableFlag : 1;
+//         UINT64 DirectionFlag : 1;
+//         UINT64 OverflowFlag : 1;
+//         UINT64 IoPrivilegeLevel : 2;
+//         UINT64 NestedTaskFlag : 1;
+//         UINT64 Reserved3 : 1;
+//         UINT64 ResumeFlag : 1;
+//         UINT64 Virtual8086ModeFlag : 1;
+//         UINT64 AlignmentCheckFlag : 1;
+//         UINT64 VirtualInterruptFlag : 1;
+//         UINT64 VirtualInterruptPendingFlag : 1;
+//         UINT64 IdentificationFlag : 1;
+//     } Fields;
 //
-//    UINT64 Value;
-//} RFLAGS, *PRFLAGS;
+//     UINT64 Value;
+// } RFLAGS, *PRFLAGS;
 
 /**
  * @brief enum to show type of all HyperDbg events
@@ -2051,7 +1865,7 @@ static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
 
 /**
  * @brief User-mode debugging actions
- * 
+ *
  */
 typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
 {
@@ -2064,7 +1878,7 @@ typedef enum _DEBUGGER_UD_COMMAND_ACTION_TYPE
 
 /**
  * @brief Description of user-mode debugging actions
- * 
+ *
  */
 typedef struct _DEBUGGER_UD_COMMAND_ACTION
 {
@@ -2617,7 +2431,7 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
 #define DEBUGGER_ERROR_INVALID_PROCESS_ID 0xc000001e
 
 /**
- * @brief error, for event specific reasons the event is not 
+ * @brief error, for event specific reasons the event is not
  * applied
  *
  */
@@ -2648,7 +2462,7 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
 #define DEBUGGER_ERROR_PRE_ALLOCATED_BUFFER_IS_EMPTY 0xc0000023
 
 /**
- * @brief error, in the EPT handler, it could not split the 2MB pages to 
+ * @brief error, in the EPT handler, it could not split the 2MB pages to
  * 512 entries of 4 KB pages
  *
  */
@@ -2694,85 +2508,85 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
  * @brief error, failed to remove hooks as entrypoint is not reached yet
  * @details The caller of this functionality should keep sending the previous
  * IOCTL until the hook is remove successfully
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS_ENTRYPOINT_NOT_REACHED 0xc000002b
 
 /**
  * @brief error, could not remove the previous hook
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_REMOVE_HOOKS 0xc000002c
 
 /**
  * @brief error, the needed routines for debugging is not initialized
- * 
+ *
  */
 #define DEBUGGER_ERROR_FUNCTIONS_FOR_INITIALIZING_PEB_ADDRESSES_ARE_NOT_INITIALIZED 0xc000002d
 
 /**
  * @brief error, unable to get 32-bit or 64-bit of the target process
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_DETECT_32_BIT_OR_64_BIT_PROCESS 0xc000002e
 
 /**
  * @brief error, unable to kill the target process
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_KILL_THE_PROCESS 0xc000002f
 
 /**
  * @brief error, invalid thread debugging token
- * 
+ *
  */
 #define DEBUGGER_ERROR_INVALID_THREAD_DEBUGGING_TOKEN 0xc0000030
 
 /**
  * @brief error, unable to pause the process's threads
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_PAUSE_THE_PROCESS_THREADS 0xc0000031
 
 /**
  * @brief error, user debugger already attached to this process
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_ATTACH_TO_AN_ALREADY_ATTACHED_PROCESS 0xc0000032
 
 /**
  * @brief error, the user debugger is not attached to the target process
- * 
+ *
  */
 #define DEBUGGER_ERROR_THE_USER_DEBUGGER_NOT_ATTACHED_TO_THE_PROCESS 0xc0000033
 
 /**
  * @brief error, cannot detach from the process as there are paused threads
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_DETACH_AS_THERE_ARE_PAUSED_THREADS 0xc0000034
 
 /**
  * @brief error, cannot switch to new thread as the process id or thread id is not found
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_SWITCH_PROCESS_ID_OR_THREAD_ID_IS_INVALID 0xc0000035
 
 /**
  * @brief error, cannot switch to new thread the process doesn't contain an active thread
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_SWITCH_THERE_IS_NO_THREAD_ON_THE_PROCESS 0xc0000036
 
 /**
  * @brief error, unable to get modules
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_GET_MODULES_OF_THE_PROCESS 0xc0000037
 
 /**
  * @brief error, unable to get the callstack
- * 
+ *
  */
 #define DEBUGGER_ERROR_UNABLE_TO_GET_CALLSTACK 0xc0000038
 
