@@ -271,12 +271,3 @@ Return Value:
 
     return FALSE;
 }
-
-// -------------------------------------------------------------------- Globals
-
-UART_HARDWARE_DRIVER UsifHardwareDriver = {
-    UsifInitializePort,
-    UsifSetBaud,
-    UsifGetByte,
-    UsifPutByte,
-    UsifRxReady};
