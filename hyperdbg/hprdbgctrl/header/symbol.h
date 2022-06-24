@@ -17,7 +17,7 @@
 
 /**
  * @brief Save the local function symbols' description
- * 
+ *
  */
 typedef struct _LOCAL_FUNCTION_DESCRIPTION
 {
@@ -25,6 +25,12 @@ typedef struct _LOCAL_FUNCTION_DESCRIPTION
     UINT32      ObjectSize;
 
 } LOCAL_FUNCTION_DESCRIPTION, *PLOCAL_FUNCTION_DESCRIPTION;
+
+//////////////////////////////////////////////////
+//			    	    Pdbex                   //
+//////////////////////////////////////////////////
+
+#define PDBEX_DEFAULT_CONFIGURATION "-j- -k- -e n -i"
 
 //////////////////////////////////////////////////
 //			 For symbol (pdb) parsing		    //

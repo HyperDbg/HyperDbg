@@ -304,7 +304,7 @@ StartAgain:
                                            MAXIMUM_INSTR_SIZE,
                                            1,
                                            TRUE,
-                                           &PausePacket->Rflags);
+                                           (PRFLAGS)&PausePacket->Rflags);
                 }
                 else
                 {
@@ -316,7 +316,7 @@ StartAgain:
                                            MAXIMUM_INSTR_SIZE,
                                            1,
                                            TRUE,
-                                           &PausePacket->Rflags);
+                                           (PRFLAGS)&PausePacket->Rflags);
                 }
             }
 

@@ -81,57 +81,6 @@ typedef struct GUEST_EXTRA_REGISTERS
 } GUEST_EXTRA_REGISTERS, *PGUEST_EXTRA_REGISTERS;
 
 //////////////////////////////////////////////////
-//              Symbols Details                 //
-//////////////////////////////////////////////////
-
-/**
- * @brief structures for sending and saving details
- * about each module and symbols details
- *
- */
-typedef struct _MODULE_SYMBOL_DETAIL
-{
-    BOOLEAN IsSymbolDetailsFound; // TRUE if the details of symbols found, FALSE if not found
-    BOOLEAN IsLocalSymbolPath;    // TRUE if the ModuleSymbolPath is a real path
-                                  // and FALSE if ModuleSymbolPath is just a module name
-    BOOLEAN IsSymbolPDBAvaliable; // TRUE if the module's pdb is avilable(if exists in the sympath)
-    BOOLEAN IsUserMode;           // TRUE if the module is a user-mode module
-    UINT64  BaseAddress;
-    char    FilePath[MAX_PATH];
-    char    ModuleSymbolPath[MAX_PATH];
-    char    ModuleSymbolGuidAndAge[MAXIMUM_GUID_AND_AGE_SIZE];
-
-} MODULE_SYMBOL_DETAIL, *PMODULE_SYMBOL_DETAIL;
-
-typedef struct _USERMODE_LOADED_MODULE_SYMBOLS
-{
-    UINT64  BaseAddress;
-    UINT64  Entrypoint;
-    wchar_t FilePath[MAX_PATH];
-
-} USERMODE_LOADED_MODULE_SYMBOLS, *PUSERMODE_LOADED_MODULE_SYMBOLS;
-
-typedef struct _USERMODE_LOADED_MODULE_DETAILS
-{
-    UINT32  ProcessId;
-    BOOLEAN OnlyCountModules;
-    UINT32  ModulesCount;
-    UINT32  Result;
-
-    //
-    // Here is a list of USERMODE_LOADED_MODULE_SYMBOLS (appended)
-    //
-
-} USERMODE_LOADED_MODULE_DETAILS, *PUSERMODE_LOADED_MODULE_DETAILS;
-
-/**
- * @brief Callback type that should be used to add
- * list of Addresses to ObjectNames
- *
- */
-typedef VOID (*SymbolMapCallback)(UINT64 Address, char * ModuleName, char * ObjectName, unsigned int ObjectSize);
-
-//////////////////////////////////////////////////
 //               Event Details                  //
 //////////////////////////////////////////////////
 
@@ -1509,3 +1458,47 @@ typedef struct _DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET
 
 } DEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET,
     *PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET;
+
+/**
+ * @brief The structure of pausing packet in kHyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_KD_PAUSED_PACKET
+{
+    UINT64                  Rip;
+    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
+    DEBUGGEE_PAUSING_REASON PausingReason;
+    ULONG                   CurrentCore;
+    UINT64                  EventTag;
+    UINT64                  Rflags;
+    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    UINT16                  ReadInstructionLen;
+
+} DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
+
+/**
+ * @brief The structure of pausing packet in uHyperDbg
+ *
+ */
+typedef struct _DEBUGGEE_UD_PAUSED_PACKET
+{
+    UINT64                  Rip;
+    UINT64                  ProcessDebuggingToken;
+    BOOLEAN                 Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
+    DEBUGGEE_PAUSING_REASON PausingReason;
+    UINT32                  ProcessId;
+    UINT32                  ThreadId;
+    UINT64                  EventTag;
+    UINT64                  Rflags;
+    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
+    UINT16                  ReadInstructionLen;
+    GUEST_REGS              GuestRegs;
+
+} DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
+
+/**
+ * @brief check so the DEBUGGEE_UD_PAUSED_PACKET should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_UD_PAUSED_PACKET");

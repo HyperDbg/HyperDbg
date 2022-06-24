@@ -2469,7 +2469,7 @@ StartAgain:
         // Set rflags for finding the results of conditional jumps
         //
         __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-        PausePacket.Rflags.AsUInt = Rflags.AsUInt;
+        PausePacket.Rflags = Rflags.AsUInt;
 
         //
         // Set the event tag (if it's an event)

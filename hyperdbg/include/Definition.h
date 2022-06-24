@@ -27,24 +27,6 @@ typedef RFLAGS * PRFLAGS;
 #endif // USE_LIB_IA32
 
 //////////////////////////////////////////////////
-//				Delay Speeds                    //
-//////////////////////////////////////////////////
-
-/**
- * @brief The speed delay for showing messages from kernel-mode
- * to user-mode in  VMI-mode, using a lower value causes the
- * HyperDbg to show messages faster but you should keep in mind,
- *  not to eat all of the CPU
- */
-#define DefaultSpeedOfReadingKernelMessages 30
-
-//////////////////////////////////////////////////
-//			    	    Pdbex                   //
-//////////////////////////////////////////////////
-
-#define PDBEX_DEFAULT_CONFIGURATION "-j- -k- -e n -i"
-
-//////////////////////////////////////////////////
 //                Config File                  //
 //////////////////////////////////////////////////
 
@@ -178,47 +160,3 @@ typedef struct _DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
     UINT32  Error; // If IsSuccessful was, FALSE
 
 } DEBUGGER_EVENT_AND_ACTION_REG_BUFFER, *PDEBUGGER_EVENT_AND_ACTION_REG_BUFFER;
-
-/**
- * @brief The structure of pausing packet in kHyperDbg
- *
- */
-typedef struct _DEBUGGEE_KD_PAUSED_PACKET
-{
-    UINT64                  Rip;
-    BOOLEAN                 Is32BitAddress; // if true shows that the address should be interpreted in 32-bit mode
-    DEBUGGEE_PAUSING_REASON PausingReason;
-    ULONG                   CurrentCore;
-    UINT64                  EventTag;
-    RFLAGS                  Rflags;
-    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    UINT16                  ReadInstructionLen;
-
-} DEBUGGEE_KD_PAUSED_PACKET, *PDEBUGGEE_KD_PAUSED_PACKET;
-
-/**
- * @brief The structure of pausing packet in uHyperDbg
- *
- */
-typedef struct _DEBUGGEE_UD_PAUSED_PACKET
-{
-    UINT64                  Rip;
-    UINT64                  ProcessDebuggingToken;
-    BOOLEAN                 Is32Bit; // if true shows that the address should be interpreted in 32-bit mode
-    DEBUGGEE_PAUSING_REASON PausingReason;
-    UINT32                  ProcessId;
-    UINT32                  ThreadId;
-    UINT64                  EventTag;
-    RFLAGS                  Rflags;
-    BYTE                    InstructionBytesOnRip[MAXIMUM_INSTR_SIZE];
-    UINT16                  ReadInstructionLen;
-    GUEST_REGS              GuestRegs;
-
-} DEBUGGEE_UD_PAUSED_PACKET, *PDEBUGGEE_UD_PAUSED_PACKET;
-
-/**
- * @brief check so the DEBUGGEE_UD_PAUSED_PACKET should be smaller than packet size
- *
- */
-static_assert(sizeof(DEBUGGEE_UD_PAUSED_PACKET) < PacketChunkSize,
-              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGEE_UD_PAUSED_PACKET");

@@ -5,18 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.2.0.0] - 2021-xx-xx
-Unreleased description.
+The second 2nd of the HyperDbg Debugger.
 
 ### Added
+- HyperDbg SDK is available!
 - fush function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
 
 ### Changed
+- enable_event function name changed to event_enable
+- disable_event function name changed to event_disable
 
 ### Removed
 
 
 ## [0.1.0.0] - 2021-05-31
-This is the first release of HyperDbg Debugger.
+This is the 1st release of HyperDbg Debugger.
 
 ### Added
 - \# (comment in batch scripts)
