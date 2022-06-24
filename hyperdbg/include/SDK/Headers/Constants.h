@@ -376,3 +376,152 @@ const unsigned char BuildVersion[] =
 #define TCP_END_OF_BUFFER_CHAR_2 0x20
 #define TCP_END_OF_BUFFER_CHAR_3 0x33
 #define TCP_END_OF_BUFFER_CHAR_4 0x44
+
+//////////////////////////////////////////////////
+//                 Name of OS                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum name for OS name buffer
+ *
+ */
+#define MAXIMUM_CHARACTER_FOR_OS_NAME 256
+
+//////////////////////////////////////////////////
+//              Processor Details               //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum instruction size in Intel
+ */
+#define MAXIMUM_INSTR_SIZE 16
+
+/**
+ * @brief maximum size for call instruction in Intel
+ */
+#define MAXIMUM_CALL_INSTR_SIZE 7
+
+//////////////////////////////////////////////////
+//              Symbols Details                 //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum supported modules to load
+ * their symbol informations
+ */
+#define MAXIMUM_SUPPORTED_SYMBOLS 1000
+
+/**
+ * @brief maximum size for GUID and Age of PE
+ * @detail It seems that 33 bytes is enough but let's
+ * have more space because there might be sth that we
+ * missed :)
+ */
+#define MAXIMUM_GUID_AND_AGE_SIZE 60
+
+//////////////////////////////////////////////////
+//            Debuggee Communication            //
+//////////////////////////////////////////////////
+
+#define INDICATOR_OF_HYPERDBG_PACKET \
+    0x4859504552444247 // HYPERDBG = 0x4859504552444247
+
+//////////////////////////////////////////////////
+//               Command Details                //
+//////////////////////////////////////////////////
+
+/**
+ * @brief maximum results that will be returned by !s* s*
+ * command
+ *
+ */
+#define MaximumSearchResults 0x1000
+
+//////////////////////////////////////////////////
+//                  Debugger                    //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Apply event modifications to all tags
+ *
+ */
+#define DEBUGGER_MODIFY_EVENTS_APPLY_TO_ALL_TAG 0xffffffffffffffff
+
+/**
+ * @brief Maximum length for a function (to be used in showing distance
+ * from symbol functions in the 'u' command)
+ *
+ */
+#define DISASSEMBLY_MAXIMUM_DISTANCE_FROM_OBJECT_NAME 0xffff
+
+/**
+ * @brief Read and write MSRs to all cores
+ *
+ */
+#define DEBUGGER_READ_AND_WRITE_ON_MSR_APPLY_ALL_CORES 0xffffffff
+
+/**
+ * @brief Apply the event to all the cores
+ *
+ */
+#define DEBUGGER_DEBUGGEE_IS_RUNNING_NO_CORE 0xffffffff
+
+/**
+ * @brief Apply the event to all the cores
+ *
+ */
+#define DEBUGGER_EVENT_APPLY_TO_ALL_CORES 0xffffffff
+
+/**
+ * @brief Apply the event to all the processes
+ *
+ */
+#define DEBUGGER_EVENT_APPLY_TO_ALL_PROCESSES 0xffffffff
+
+/**
+ * @brief Apply to all Model Specific Registers
+ *
+ */
+#define DEBUGGER_EVENT_MSR_READ_OR_WRITE_ALL_MSRS 0xffffffff
+
+/**
+ * @brief Apply to all first 32 exceptions
+ *
+ */
+#define DEBUGGER_EVENT_EXCEPTIONS_ALL_FIRST_32_ENTRIES 0xffffffff
+
+/**
+ * @brief Apply to all syscalls and sysrets
+ *
+ */
+#define DEBUGGER_EVENT_SYSCALL_ALL_SYSRET_OR_SYSCALLS 0xffffffff
+
+/**
+ * @brief Apply to all I/O ports
+ *
+ */
+#define DEBUGGER_EVENT_ALL_IO_PORTS 0xffffffff
+
+/**
+ * @brief The constant to apply to all cores for bp command
+ *
+ */
+#define DEBUGGEE_BP_APPLY_TO_ALL_CORES 0xffffffff
+
+/**
+ * @brief The constant to apply to all processes for bp command
+ *
+ */
+#define DEBUGGEE_BP_APPLY_TO_ALL_PROCESSES 0xffffffff
+
+/**
+ * @brief The constant to apply to all threads for bp command
+ *
+ */
+#define DEBUGGEE_BP_APPLY_TO_ALL_THREADS 0xffffffff
+
+/**
+ * @brief for reading all regisers in r command.
+ *
+ */
+#define DEBUGGEE_SHOW_ALL_REGISTERS 0xffffffff

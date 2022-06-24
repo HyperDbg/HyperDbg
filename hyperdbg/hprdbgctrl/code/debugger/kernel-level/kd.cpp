@@ -21,14 +21,14 @@ extern HANDLE                g_SerialListeningThreadHandle;
 extern HANDLE                g_SerialRemoteComPortHandle;
 extern HANDLE                g_DebuggeeStopCommandEventHandle;
 extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
-    g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
+                                            g_KernelSyncronizationObjectsHandleTable[DEBUGGER_MAXIMUM_SYNCRONIZATION_KERNEL_DEBUGGER_OBJECTS];
 extern BYTE                                 g_CurrentRunningInstruction[MAXIMUM_INSTR_SIZE];
 extern BOOLEAN                              g_IsConnectedToHyperDbgLocally;
 extern OVERLAPPED                           g_OverlappedIoStructureForReadDebugger;
 extern OVERLAPPED                           g_OverlappedIoStructureForWriteDebugger;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER g_DebuggeeResultOfRegisteringEvent;
 extern DEBUGGER_EVENT_AND_ACTION_REG_BUFFER
-    g_DebuggeeResultOfAddingActionsToEvent;
+               g_DebuggeeResultOfAddingActionsToEvent;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebuggee;
 extern BOOLEAN g_IsSerialConnectedToRemoteDebugger;
 extern BOOLEAN g_IsDebuggerConntectedToNamedPipe;
@@ -302,7 +302,7 @@ KdSendFlushPacketToDebuggee()
  * @param Size
  * @param DisplayMethod
  * @param Is32Bit
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -377,7 +377,7 @@ KdSendCallStackPacketToDebuggee(UINT64                            BaseAddress,
 
 /**
  * @brief Send a test query request to the debuggee
- * 
+ *
  * @param Option
  * @return BOOLEAN
  */
@@ -471,7 +471,7 @@ KdSendReadRegisterPacketToDebuggee(PDEBUGGEE_REGISTER_READ_DESCRIPTION RegDes)
 /**
  * @brief Send a Read memory packet to the debuggee
  * @param ReadMem
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -518,7 +518,7 @@ KdSendReadMemoryPacketToDebuggee(PDEBUGGER_READ_MEMORY ReadMem)
  * @brief Send an Edit memory packet to the debuggee
  * @param EditMem
  * @param Size
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1454,7 +1454,7 @@ KdCommandPacketToDebuggee(
     //
     // Make the packet's structure
     //
-    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKET;
     Packet.TypeOfThePacket = PacketType;
 
     //
@@ -1511,7 +1511,7 @@ KdCommandPacketAndBufferToDebuggee(
     //
     // Make the packet's structure
     //
-    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKET;
     Packet.TypeOfThePacket = PacketType;
 
     //
@@ -2283,12 +2283,12 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
 }
 
 /**
- * @brief Send the packets of reloading symbols to build a new 
+ * @brief Send the packets of reloading symbols to build a new
  * symbol table to the debugger and send the finished packet to
  * the debugger
  * @param PauseDebuggee
  * @param UserProcessId
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -2679,7 +2679,7 @@ KdSendUsermodePrints(CHAR * Input, UINT32 Length)
  * @param SymbolDetailPacket
  * @param CurrentSymbolInfoIndex
  * @param TotalSymbols
- * 
+ *
  * @return VOID
  */
 VOID

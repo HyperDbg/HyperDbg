@@ -168,6 +168,69 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 
 } PROCESSOR_DEBUGGING_STATE, PPROCESSOR_DEBUGGING_STATE;
 
+/**
+ * @brief The structure of actions in HyperDbg
+ *
+ */
+typedef struct _DEBUGGER_EVENT_ACTION
+{
+    UINT64                          Tag;                       // Action tag is same as Event's tag
+    UINT32                          ActionOrderCode;           // The code for this action (it also shows the order)
+    LIST_ENTRY                      ActionsList;               // Holds the link list of next actions
+    DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType;                // What action we wanna perform
+    BOOLEAN                         ImmediatelySendTheResults; // should we send the results immediately
+                                                               // or store them in another structure and
+                                                               // send multiple of them each time
+
+    DEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION
+    ScriptConfiguration; // If it's run script
+
+    DEBUGGER_EVENT_REQUEST_BUFFER
+    RequestedBuffer; // if it's a custom code and needs a buffer then we use
+                     // this structs
+
+    UINT32 CustomCodeBufferSize;    // if null, means it's not custom code type
+    PVOID  CustomCodeBufferAddress; // address of custom code if any
+
+} DEBUGGER_EVENT_ACTION, *PDEBUGGER_EVENT_ACTION;
+
+/* ==============================================================================================
+ */
+
+/**
+ * @brief The structure of events in HyperDbg
+ *
+ */
+typedef struct _DEBUGGER_EVENT
+{
+    UINT64                   Tag;
+    LIST_ENTRY               EventsOfSameTypeList; // Linked-list of events of a same type
+    DEBUGGER_EVENT_TYPE_ENUM EventType;
+    BOOLEAN                  Enabled;
+    UINT32                   CoreId; // determines the core index to apply this event to, if it's
+                                     // 0xffffffff means that we have to apply it to all cores
+
+    UINT32
+    ProcessId; // determines the pid to apply this event to, if it's
+               // 0xffffffff means that we have to apply it to all processes
+
+    LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
+    UINT32     CountOfActions;  // The total count of actions
+
+    UINT64 OptionalParam1; // Optional parameter to be used differently by events
+    UINT64 OptionalParam2; // Optional parameter to be used differently by events
+    UINT64 OptionalParam3; // Optional parameter to be used differently by events
+    UINT64 OptionalParam4; // Optional parameter to be used differently by events
+
+    UINT32 ConditionsBufferSize;   // if null, means uncoditional
+    PVOID  ConditionBufferAddress; // Address of the condition buffer (most of the
+                                   // time at the end of this buffer)
+
+} DEBUGGER_EVENT, *PDEBUGGER_EVENT;
+
+/* ==============================================================================================
+ */
+
 //////////////////////////////////////////////////
 //	    				Enums					//
 //////////////////////////////////////////////////

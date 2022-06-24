@@ -3,20 +3,20 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
  * @brief Routines related to kernel mode debugging
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-12-20
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief initialize kernel debugger
  * @details this function should be called on vmx non-root
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdInitializeKernelDebugger()
@@ -63,10 +63,10 @@ KdInitializeKernelDebugger()
 
 /**
  * @brief uninitialize kernel debugger
- *  
+ *
  * @details this function should be called on vmx non-root
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 KdUninitializeKernelDebugger()
@@ -106,8 +106,8 @@ KdUninitializeKernelDebugger()
  * @param DeferredContext
  * @param SystemArgument1
  * @param SystemArgument2
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID SystemArgument2)
@@ -124,8 +124,8 @@ KdDummyDPC(PKDPC Dpc, PVOID DeferredContext, PVOID SystemArgument1, PVOID System
  * @param Routine
  * @param Paramter
  * @param ProcessorNumber
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdFireDpc(PVOID Routine, PVOID Paramter)
@@ -183,7 +183,7 @@ KdResponsePacketToDebugger(
     //
     // Make the packet's structure
     //
-    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKET;
     Packet.TypeOfThePacket = PacketType;
 
     //
@@ -261,7 +261,7 @@ KdLoggingResponsePacketToDebugger(
     //
     // Make the packet's structure
     //
-    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKER;
+    Packet.Indicator       = INDICATOR_OF_HYPERDBG_PACKET;
     Packet.TypeOfThePacket = DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER;
 
     //
@@ -297,11 +297,11 @@ KdLoggingResponsePacketToDebugger(
 
 /**
  * @brief Handles debug events when kernel-debugger is attached
- * 
+ *
  * @param CurrentCore
  * @param GuestRegs
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
@@ -416,10 +416,10 @@ KdHandleDebugEventsWhenKernelDebuggerIsAttached(UINT32 CurrentCore, PGUEST_REGS 
  * @brief before halting any core, all the tasks will be applied to all
  * cores including the main core
  * @details these tasks will be applied in vmx-root
- * 
+ *
  * @param CurrentCore
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdApplyTasksPreHaltCore(UINT32 CurrentCore)
@@ -469,10 +469,10 @@ KdApplyTasksPreHaltCore(UINT32 CurrentCore)
  * @brief before continue any core, all the tasks will be applied to all
  * cores including the main core
  * @details these tasks will be applied in vmx-root
- * 
+ *
  * @param CurrentCore
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 KdApplyTasksPostContinueCore(UINT32 CurrentCore)
@@ -525,8 +525,8 @@ KdApplyTasksPostContinueCore(UINT32 CurrentCore)
  * @param CurrentCore
  * @param SpeialEventResponse
  * @param PauseBreaksUntilSpecialMessageSent
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 _Use_decl_annotations_
 VOID
@@ -581,7 +581,7 @@ KdContinueDebuggee(UINT32                                  CurrentCore,
 /**
  * @brief continue the debuggee, just the current operating core
  * @param CurrentCore
- * @return VOID 
+ * @return VOID
  */
 VOID
 KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
@@ -605,8 +605,8 @@ KdContinueDebuggeeJustCurrentCore(UINT32 CurrentCore)
  * @brief read registers
  * @param Regs
  * @param ReadRegisterRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -654,8 +654,8 @@ KdReadRegisters(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegist
  * @brief read registers
  * @param Regs
  * @param ReadRegisterRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 _Use_decl_annotations_
 BOOLEAN
@@ -701,10 +701,10 @@ KdReadMemory(PGUEST_REGS Regs, PDEBUGGEE_REGISTER_READ_DESCRIPTION ReadRegisterR
 
 /**
  * @brief change the current operating core to new core
- * 
+ *
  * @param CurrentCore
  * @param NewCore
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
@@ -776,7 +776,7 @@ KdSwitchCore(UINT32 CurrentCore, UINT32 NewCore)
 
 /**
  * @brief Notify user-mode to unload the debuggee and close the connections
- * 
+ *
  * @return VOID
  */
 VOID
@@ -794,7 +794,7 @@ KdCloseConnectionAndUnloadDebuggee()
 /**
  * @brief Notify user-mode to re-send (reload) the symbol packets
  * @param SymPacket
- * 
+ *
  * @return VOID
  */
 _Use_decl_annotations_
@@ -814,7 +814,7 @@ KdReloadSymbolDetailsInDebuggee(PDEBUGGEE_SYMBOL_REQUEST_PACKET SymPacket)
  * @brief Notify user-mode to about new user-input buffer
  * @param Descriptor
  * @param Len
- * 
+ *
  * @return VOID
  */
 
@@ -834,7 +834,7 @@ KdNotifyDebuggeeForUserInput(DEBUGGEE_USER_INPUT_PACKET * Descriptor, UINT32 Len
 /**
  * @brief Notify user-mode to unload the debuggee and close the connections
  * @param Value
- * 
+ *
  * @return VOID
  */
 VOID
@@ -857,7 +857,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
 
 /**
  * @brief Notify debugger that the execution of command finished
- * 
+ *
  * @return VOID
  */
 VOID
@@ -875,10 +875,10 @@ KdSendCommandFinishedSignal(UINT32      CurrentCore,
 
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
- * 
+ *
  * @param UINT32 CurrentCore
  * @param GuestRegs Guest registers
- * 
+ *
  * @return VOID
  */
 _Use_decl_annotations_
@@ -928,11 +928,11 @@ KdHandleHaltsWhenNmiReceivedFromVmxRoot(UINT32 CurrentCore, PGUEST_REGS GuestReg
 
 /**
  * @brief Tries to get the lock and won't return until successfully get the lock
- * 
+ *
  * @param UINT32 CurrentCore
  * @param LONG Lock variable
  * @param GuestRegs Guest registers
- * 
+ *
  * @return VOID
  */
 VOID
@@ -1000,9 +1000,9 @@ KdCustomDebuggerBreakSpinlockLock(UINT32 CurrentCore, volatile LONG * Lock, PGUE
 
 /**
  * @brief Handle #DBs and #BPs for kernel debugger
- * @details This function can be used in vmx-root 
- * 
- * @return VOID 
+ * @details This function can be used in vmx-root
+ *
+ * @return VOID
  */
 _Use_decl_annotations_
 VOID
@@ -1105,9 +1105,9 @@ KdHandleBreakpointAndDebugBreakpoints(UINT32                            CurrentC
  * @brief Handle NMI Vm-exits
  * @param CurrentCore
  * @param GuestRegs
- * 
+ *
  * @details This function should be called in vmx-root mode
- * @return VOID 
+ * @return VOID
  */
 _Use_decl_annotations_
 VOID
@@ -1150,8 +1150,8 @@ KdHandleNmi(UINT32 CurrentCore, PGUEST_REGS GuestRegs)
 
 /**
  * @brief apply a guaranteed step one instruction to the debuggee
- * @param CurrentCore 
- * @return VOID 
+ * @param CurrentCore
+ * @return VOID
  */
 VOID
 KdGuaranteedStepInstruction(UINT32 CurrentCore)
@@ -1202,11 +1202,11 @@ KdGuaranteedStepInstruction(UINT32 CurrentCore)
 /**
  * @brief Check if the execution mode (kernel-mode to user-mode or user-mode
  * to kernel-mode) changed
- * 
- * @param PreviousCsSelector 
+ *
+ * @param PreviousCsSelector
  * @param CurrentCsSelector
  *
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSelector)
@@ -1266,9 +1266,9 @@ KdCheckGuestOperatingModeChanges(UINT16 PreviousCsSelector, UINT16 CurrentCsSele
 
 /**
  * @brief Regualar step-in | step one instruction to the debuggee
- * @param CurrentCore 
- * 
- * @return VOID 
+ * @param CurrentCore
+ *
+ * @return VOID
  */
 VOID
 KdRegularStepInInstruction(UINT32 CurrentCore)
@@ -1329,13 +1329,13 @@ KdRegularStepInInstruction(UINT32 CurrentCore)
 }
 
 /**
- * @brief Regualar step-over | step one instruction to the debuggee if 
+ * @brief Regualar step-over | step one instruction to the debuggee if
  * there is a call then it jumps the call
- * 
- * @param IsNextInstructionACall 
- * @param CurrentCore 
- * 
- * @return VOID 
+ *
+ * @param IsNextInstructionACall
+ * @param CurrentCore
+ *
+ * @return VOID
  */
 VOID
 KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 CurrentCore)
@@ -1384,9 +1384,9 @@ KdRegularStepOver(BOOLEAN IsNextInstructionACall, UINT32 CallLength, UINT32 Curr
 
 /**
  * @brief Send event registration buffer to user-mode to register the event
- * @param EventDetailHeader 
- * 
- * @return VOID 
+ * @param EventDetailHeader
+ *
+ * @return VOID
  */
 VOID
 KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventDetailHeader)
@@ -1399,9 +1399,9 @@ KdPerformRegisterEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Event
 
 /**
  * @brief Send action buffer to user-mode to be added to the event
- * @param ActionDetailHeader 
- * 
- * @return VOID 
+ * @param ActionDetailHeader
+ *
+ * @return VOID
  */
 VOID
 KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET ActionDetailHeader)
@@ -1413,9 +1413,9 @@ KdPerformAddActionToEvent(PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET Ac
 }
 
 /**
- * @brief Query state of the system 
+ * @brief Query state of the system
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 KdQuerySystemState()
@@ -1462,9 +1462,9 @@ KdQuerySystemState()
 
 /**
  * @brief Perform modify and query events
- * @param ModifyAndQueryEvent 
- * 
- * @return VOID 
+ * @param ModifyAndQueryEvent
+ *
+ * @return VOID
  */
 VOID
 KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
@@ -1589,10 +1589,10 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
 /**
  * @brief This function applies commands from the debugger to the debuggee
  * @details when we reach here, we are on the first core
- * @param CurrentCore  
- * @param GuestRegs  
- * 
- * @return VOID 
+ * @param CurrentCore
+ * @param GuestRegs
+ *
+ * @return VOID
  */
 VOID
 KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestRegs)
@@ -1643,7 +1643,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
             continue;
         }
 
-        if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
+        if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
         {
             //
             // Check checksum
@@ -2359,10 +2359,10 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
 }
 
 /**
- * @brief determines if the guest was in 32-bit user-mode or 64-bit (long mode) 
+ * @brief determines if the guest was in 32-bit user-mode or 64-bit (long mode)
  * @details this function should be called from vmx-root
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 KdIsGuestOnUsermode32Bit()
@@ -2411,14 +2411,14 @@ KdIsGuestOnUsermode32Bit()
 }
 
 /**
- * @brief manage system halt on vmx-root mode 
+ * @brief manage system halt on vmx-root mode
  * @details Thuis function should only be called from KdHandleBreakpointAndDebugBreakpoints
- * @param CurrentCore  
- * @param GuestRegs  
- * @param EventDetails  
- * @param MainCore the core that triggered the event  
- * 
- * @return VOID 
+ * @param CurrentCore
+ * @param GuestRegs
+ * @param EventDetails
+ * @param MainCore the core that triggered the event
+ *
+ * @return VOID
  */
 VOID
 KdManageSystemHaltOnVmxRoot(ULONG                             CurrentCore,
@@ -2591,8 +2591,8 @@ StartAgain:
 }
 
 /**
- * @brief routines for broadcast system halt 
- * @return VOID 
+ * @brief routines for broadcast system halt
+ * @return VOID
  */
 VOID
 KdBroadcastHaltOnAllCores()
@@ -2605,9 +2605,9 @@ KdBroadcastHaltOnAllCores()
 
 /**
  * @brief Halt the system
- * @param PausePacket 
- * 
- * @return VOID 
+ * @param PausePacket
+ *
+ * @return VOID
  */
 VOID
 KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)

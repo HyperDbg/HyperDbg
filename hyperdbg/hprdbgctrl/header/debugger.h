@@ -54,6 +54,30 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_VA2PA_AND_PA2VA_RESULT              0x16
 #define DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_PTE_RESULT                          0x17
 
+//////////////////////////////////////////////////
+//               Event Details                  //
+//////////////////////////////////////////////////
+
+/**
+ * @brief Reason for error in parsing commands
+ *
+ */
+typedef enum _DEBUGGER_EVENT_PARSING_ERROR_CAUSE
+{
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SUCCESSFUL_NO_ERROR                          = 0,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_SCRIPT_SYNTAX_ERROR                          = 1,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_NO_INPUT                                     = 2,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_MAXIMUM_INPUT_REACHED                        = 3,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_NAME_NOT_FOUND                        = 4,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_OUTPUT_SOURCE_ALREADY_CLOSED                 = 5,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ALLOCATION_ERROR                             = 6,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR                                 = 7,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_ATTEMPT_TO_BREAK_ON_VMI_MODE                 = 8,
+    DEBUGGER_EVENT_PARSING_ERROR_CAUSE_IMMEDIATE_MESSAGING_IN_EVENT_FORWARDING_MODE = 9,
+
+} DEBUGGER_EVENT_PARSING_ERROR_CAUSE,
+    *PDEBUGGER_EVENT_PARSING_ERROR_CAUSE;
+
 /**
  * @brief Maximum number of event handles in user-debugger
  */
@@ -71,7 +95,7 @@
 #define DEBUGGER_SYNCRONIZATION_OBJECT_USER_DEBUGGER_IS_DEBUGGER_RUNNING 0x30
 
 //////////////////////////////////////////////////
-//            	    Structures                  //
+//            	   Event Details                //
 //////////////////////////////////////////////////
 
 /**
