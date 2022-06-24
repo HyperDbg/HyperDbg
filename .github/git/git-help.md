@@ -21,3 +21,5 @@ To release (deploy) :
 - git tag -a v0.1.0 -m "your descriptive comment"
 - git push origin master v0.1.0
  
+To update submodules: 
+- git submodule update --init --recursive --remote

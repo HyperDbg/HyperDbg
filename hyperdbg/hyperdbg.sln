@@ -50,8 +50,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pdbex", "dependencies\pdbex
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}"
 	ProjectSection(SolutionItems) = preProject
-		include\SDK\HyperDbgHeaders.h = include\SDK\HyperDbgHeaders.h
-		include\SDK\HyperDbgTypes.h = include\SDK\HyperDbgTypes.h
+		include\SDK\HyperDbgSdk.h = include\SDK\HyperDbgSdk.h
+		include\SDK\HyperDbgUserExports.h = include\SDK\HyperDbgUserExports.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Headers\Constants.h = include\SDK\Headers\Constants.h
+		include\SDK\Headers\Datatypes.h = include\SDK\Headers\Datatypes.h
+		include\SDK\Headers\ErrorCodes.h = include\SDK\Headers\ErrorCodes.h
+		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 	EndProjectSection
 EndProject
 Global
@@ -98,6 +106,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7EA9E1E8-4283-4CEF-9629-C5C98CD706C7} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

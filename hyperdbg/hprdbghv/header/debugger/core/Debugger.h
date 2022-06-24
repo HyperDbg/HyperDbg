@@ -2,12 +2,12 @@
  * @file Debugger.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief General debugger headers
- * @details 
+ * @details
  * @version 0.1
  * @date 2020-04-14
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -18,23 +18,35 @@
 /**
  * @brief Showes whether the vmcall handler is
  * allowed to trigger an event or not
- * 
+ *
  */
 BOOLEAN g_TriggerEventForVmcalls;
 
 /**
  * @brief Showes whether the cpuid handler is
  * allowed to trigger an event or not
- * 
+ *
  */
 BOOLEAN g_TriggerEventForCpuids;
 
 //////////////////////////////////////////////////
-//				Memory Manager		    		//
+//              Debugger Internals              //
 //////////////////////////////////////////////////
 
-NTSTATUS
-MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
+/**
+ * @brief debug register for step-over
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_STEP_OVER 0
+
+/**
+ * @brief debug register to monitor thread changes
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_THREAD_MANAGEMENT 1
+
+/**
+ * @brief debug register get entrypoint of user-mode process
+ */
+#define DEBUGGER_DEBUG_REGISTER_FOR_USER_MODE_ENTRY_POINT 1
 
 //////////////////////////////////////////////////
 //					Structures					//
@@ -42,7 +54,7 @@ MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_ME
 
 /**
  * @brief List of all the different events
- * 
+ *
  */
 typedef struct _DEBUGGER_CORE_EVENTS
 {
@@ -76,7 +88,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
 
 /**
  * @brief Use to modify Msrs or read MSR values
- * 
+ *
  */
 typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
 {
@@ -88,7 +100,7 @@ typedef struct _PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE
 /**
  * @brief Use to trace the execution in the case of instrumentation step-in
  * command (i command)
- * 
+ *
  */
 typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 {
@@ -98,9 +110,9 @@ typedef struct _DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE
 } DEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE, *PDEBUGGEE_INSTRUMENTATION_STEP_IN_TRACE;
 
 /**
- * @brief Structure to save the state of adding trace for threads 
+ * @brief Structure to save the state of adding trace for threads
  * and processes
- * 
+ *
  */
 typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
 {
@@ -128,7 +140,7 @@ typedef struct _DEBUGGEE_PROCESS_OR_THREAD_TRACING_DETAILS
  * @brief Saves the debugger state
  * @details Each logical processor contains one of this structure which describes about the
  * state of debuggers, flags, etc.
- * 
+ *
  */
 typedef struct _PROCESSOR_DEBUGGING_STATE
 {
@@ -161,7 +173,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
 //////////////////////////////////////////////////
 
 /**
- * @brief The status of triggering events 
+ * @brief The status of triggering events
  *
  */
 typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
@@ -179,14 +191,14 @@ typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
 
 /**
  * @brief The prototype that Condition codes are called
- * 
+ *
  * @param Regs Guest registers
  * @param Context Optional parameter which is different
- * for each event and shows a unique description about 
+ * for each event and shows a unique description about
  * the event
  * @return UINT64 if return 0 then the event is not allowed
  * to trigger and if any other value then the event is allowed
- * to be triggered 
+ * to be triggered
  * return value should be on RAX
  */
 typedef UINT64
@@ -194,19 +206,26 @@ DebuggerCheckForCondition(PGUEST_REGS Regs, PVOID Context);
 
 /**
  * @brief The prototype that Custom code buffers are called
- * 
+ *
  * @param PreAllocatedBufferAddress The address of a pre-allocated non-paged pool
  * if the user-requested for it
  * @param Regs Guest registers
  * @param Context Optional parameter which is different
- * for each event and shows a unique description about 
+ * for each event and shows a unique description about
  * the event
  * @return PVOID A pointer to a buffer that should be delivered to the user-mode
- * if returns null or an invalid address then nothing will be delivered 
+ * if returns null or an invalid address then nothing will be delivered
  * return address should be on RAX
  */
 typedef PVOID
 DebuggerRunCustomCodeFunc(PVOID PreAllocatedBufferAddress, PGUEST_REGS Regs, PVOID Context);
+
+//////////////////////////////////////////////////
+//				Memory Manager		    		//
+//////////////////////////////////////////////////
+
+NTSTATUS
+MemoryManagerReadProcessMemoryNormal(HANDLE PID, PVOID Address, DEBUGGER_READ_MEMORY_TYPE MemType, PVOID UserBuffer, SIZE_T Size, PSIZE_T ReturnSize);
 
 //////////////////////////////////////////////////
 //					Functions					//

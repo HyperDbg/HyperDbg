@@ -2,14 +2,14 @@
  * @file pch.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
- * @brief Pre-compiled headers 
- * @details 
+ * @brief Pre-compiled headers
+ * @details
  *
  * @version 0.1
  * @date 2020-07-13
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -42,6 +42,7 @@
 //
 // HyperDbg Kernel-mode headers
 //
+#include "SDK/HyperDbgSdk.h"
 #include "Definition.h"
 #include "Configuration.h"
 #include "platform/CrossApi.h"

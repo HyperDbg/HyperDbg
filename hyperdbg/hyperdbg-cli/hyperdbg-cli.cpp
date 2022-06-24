@@ -14,8 +14,9 @@
 #include <conio.h>
 #include <iostream>
 #include <vector>
-#include "SDK/HyperDbgHeaders.h"
-#include "SDK/HyperDbgTypes.h"
+
+#include "SDK/HyperDbgSdk.h"
+#include "SDK/HyperDbgUserExports.h"
 
 using namespace std;
 

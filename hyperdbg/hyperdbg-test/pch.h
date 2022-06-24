@@ -27,6 +27,7 @@
 //
 // Program Defined Headers
 //
+#include "SDK/HyperDbgSdk.h"
 #include "Definition.h"
 #include "..\hyperdbg-test\header\namedpipe.h"
 #include "..\hyperdbg-test\header\routines.h"
