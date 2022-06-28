@@ -119,7 +119,7 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/symbol.h"
 #include "header/debugger.h"
 #include "header/script-engine.h"
-#include "header/exports.h"
+#include "header/import-exports.h"
 #include "header/help.h"
 #include "header/install.h"
 #include "header/list.h"

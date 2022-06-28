@@ -109,7 +109,7 @@
     <ClInclude Include="header\common.h" />
     <ClInclude Include="header\communication.h" />
     <ClInclude Include="header\debugger.h" />
-    <ClInclude Include="header\exports.h" />
+    <ClInclude Include="header\import-exports.h" />
     <ClInclude Include="header\forwarding.h" />
     <ClInclude Include="header\globals.h" />
     <ClInclude Include="header\help.h" />

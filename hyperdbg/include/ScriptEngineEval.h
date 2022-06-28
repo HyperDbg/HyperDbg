@@ -13,6 +13,16 @@
  */
 #pragma once
 
+//
+// Basic data types is used for communication in script engine
+//
+#include "SDK/Headers/Constants.h"
+#include "SDK/Headers/BasicTypes.h"
+
+//
+// Global Variables
+//
+
 /**
  * @brief global variable to save the result of script-engine statement
  * tests
@@ -27,13 +37,10 @@ UINT64 g_CurrentExprEvalResult;
  */
 BOOLEAN g_CurrentExprEvalResultHasError;
 
-#ifndef PacketChunkSize
-#    define PacketChunkSize 4096
-#endif // !PacketChunkSize
-
 //
 // Wrapper headers
 //
+
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
 UINT64
@@ -66,181 +73,6 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 BOOLEAN
 CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
-#endif // SCRIPT_ENGINE_USER_MODE
-
-typedef unsigned long long QWORD;
-typedef unsigned __int64   UINT64, *PUINT64;
-typedef unsigned long      DWORD;
-typedef int                BOOL;
-typedef unsigned char      BYTE;
-typedef unsigned short     WORD;
-typedef int                INT;
-typedef unsigned int       UINT;
-typedef unsigned int *     PUINT;
-typedef unsigned __int64   ULONG64, *PULONG64;
-typedef unsigned __int64   DWORD64, *PDWORD64;
-typedef char               CHAR;
-typedef wchar_t            WCHAR;
-#define VOID void
-
-typedef unsigned char  UCHAR;
-typedef unsigned short USHORT;
-typedef unsigned long  ULONG;
-
-typedef UCHAR     BOOLEAN;  // winnt
-typedef BOOLEAN * PBOOLEAN; // winnt
-
-typedef signed char      INT8, *PINT8;
-typedef signed short     INT16, *PINT16;
-typedef signed int       INT32, *PINT32;
-typedef signed __int64   INT64, *PINT64;
-typedef unsigned char    UINT8, *PUINT8;
-typedef unsigned short   UINT16, *PUINT16;
-typedef unsigned int     UINT32, *PUINT32;
-typedef unsigned __int64 UINT64, *PUINT64;
-
-#define FALSE 0
-#define TRUE  1
-
-#define UPPER_56_BITS                  0xffffffffffffff00
-#define UPPER_48_BITS                  0xffffffffffff0000
-#define UPPER_32_BITS                  0xffffffff00000000
-#define LOWER_32_BITS                  0x00000000ffffffff
-#define LOWER_16_BITS                  0x000000000000ffff
-#define LOWER_8_BITS                   0x00000000000000ff
-#define SECOND_LOWER_8_BITS            0x000000000000ff00
-#define UPPER_48_BITS_AND_LOWER_8_BITS 0xffffffffffff00ff
-
-/**
- * @brief EFLAGS/RFLAGS
- * 
- */
-#define X86_FLAGS_CF                 (1 << 0)
-#define X86_FLAGS_PF                 (1 << 2)
-#define X86_FLAGS_AF                 (1 << 4)
-#define X86_FLAGS_ZF                 (1 << 6)
-#define X86_FLAGS_SF                 (1 << 7)
-#define X86_FLAGS_TF                 (1 << 8)
-#define X86_FLAGS_IF                 (1 << 9)
-#define X86_FLAGS_DF                 (1 << 10)
-#define X86_FLAGS_OF                 (1 << 11)
-#define X86_FLAGS_STATUS_MASK        (0xfff)
-#define X86_FLAGS_IOPL_MASK          (3 << 12)
-#define X86_FLAGS_IOPL_SHIFT         (12)
-#define X86_FLAGS_IOPL_SHIFT_2ND_BIT (13)
-#define X86_FLAGS_NT                 (1 << 14)
-#define X86_FLAGS_RF                 (1 << 16)
-#define X86_FLAGS_VM                 (1 << 17)
-#define X86_FLAGS_AC                 (1 << 18)
-#define X86_FLAGS_VIF                (1 << 19)
-#define X86_FLAGS_VIP                (1 << 20)
-#define X86_FLAGS_ID                 (1 << 21)
-#define X86_FLAGS_RESERVED_ONES      0x2
-#define X86_FLAGS_RESERVED           0xffc0802a
-
-#define X86_FLAGS_RESERVED_BITS 0xffc38028
-#define X86_FLAGS_FIXED         0x00000002
-
-#define LOWORD(l) ((WORD)(l))
-#define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xFFFF))
-#define LOBYTE(w) ((BYTE)(w))
-#define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
-
-#define MAX_TEMP_COUNT 128
-
-// TODO: Extract number of variables from input of ScriptEngine
-// and allocate variableList Dynamically.
-#define MAX_VAR_COUNT 512
-
-#define MAX_FUNCTION_NAME_LENGTH 32
-
-//////////////////////////////////////////////////
-//            	     Structures                 //
-//////////////////////////////////////////////////
-
-/**
- * @brief List of different variables
- */
-typedef struct _SCRIPT_ENGINE_VARIABLES_LIST
-{
-    UINT64 * TempList;
-    UINT64 * GlobalVariablesList;
-    UINT64 * LocalVariablesList;
-
-} SCRIPT_ENGINE_VARIABLES_LIST, *PSCRIPT_ENGINE_VARIABLES_LIST;
-
-/**
- * @brief Integer gp registers (this structure is defined in
- * two places, make sure to change it in two places)
- *
- */
-#ifndef GUEST_REGS_DEFINED
-#    define GUEST_REGS_DEFINED
-
-typedef struct _GUEST_REGS
-{
-    UINT64 rax; // 0x00
-    UINT64 rcx; // 0x08
-    UINT64 rdx; // 0x10
-    UINT64 rbx; // 0x18
-    UINT64 rsp; // 0x20
-    UINT64 rbp; // 0x28
-    UINT64 rsi; // 0x30
-    UINT64 rdi; // 0x38
-    UINT64 r8;  // 0x40
-    UINT64 r9;  // 0x48
-    UINT64 r10; // 0x50
-    UINT64 r11; // 0x58
-    UINT64 r12; // 0x60
-    UINT64 r13; // 0x68
-    UINT64 r14; // 0x70
-    UINT64 r15; // 0x78
-} GUEST_REGS, *PGUEST_REGS;
-#endif
-
-//////////////////////////////////////////////////
-//            	     Imports                    //
-//////////////////////////////////////////////////
-
-#ifdef SCRIPT_ENGINE_USER_MODE
-extern "C" {
-__declspec(dllimport) PSYMBOL_BUFFER ScriptEngineParse(char * str);
-__declspec(dllimport) void PrintSymbolBuffer(const PSYMBOL_BUFFER SymbolBuffer);
-__declspec(dllimport) void PrintSymbol(PSYMBOL Symbol);
-__declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
-
-//
-// pdb parser
-//
-__declspec(dllimport) UINT64
-    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
-__declspec(dllimport) VOID
-    ScriptEngineSetTextMessageCallback(PVOID Handler);
-__declspec(dllimport) UINT32
-    ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
-__declspec(dllimport) UINT32
-    ScriptEngineUnloadAllSymbols();
-__declspec(dllimport) UINT32
-    ScriptEngineUnloadModuleSymbol(char * ModuleName);
-__declspec(dllimport) UINT32
-    ScriptEngineSearchSymbolForMask(const char * SearchMask);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineCreateSymbolTableForDisassembler(void * CallbackFunction);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * PdbFilePath, char * GuidAndAgeDetails);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
-__declspec(dllimport) BOOLEAN
-    ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
-__declspec(dllimport) VOID
-    ScriptEngineSymbolAbortLoading();
-}
 #endif // SCRIPT_ENGINE_USER_MODE
 
 //
@@ -1364,7 +1196,7 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
 {
     UINT32 TempBufferLen      = 0;
     CHAR   TempBuffer[50 + 1] = {
-        0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
+          0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
               // for maximum buffer + 1 end char null but we alloc 50 to be sure
 
     *CurrentProcessedPositionFromStartOfFormat =

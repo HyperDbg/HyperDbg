@@ -12,6 +12,7 @@ The second 2nd of the HyperDbg Debugger.
 - fush function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
 
 ### Changed
+- Compiling HyperDbg by using the latest Windows 11 WDK
 - enable_event function name changed to event_enable
 - disable_event function name changed to event_disable
 

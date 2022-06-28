@@ -61,3 +61,41 @@ typedef struct _USERMODE_LOADED_MODULE_DETAILS
  *
  */
 typedef VOID (*SymbolMapCallback)(UINT64 Address, char * ModuleName, char * ObjectName, unsigned int ObjectSize);
+
+/**
+ * @brief request to add new symbol detail or update a previous
+ * symbol table entry
+ *
+ */
+typedef struct _DEBUGGER_UPDATE_SYMBOL_TABLE
+{
+    UINT32               TotalSymbols;
+    UINT32               CurrentSymbolIndex;
+    MODULE_SYMBOL_DETAIL SymbolDetailPacket;
+
+} DEBUGGER_UPDATE_SYMBOL_TABLE, *PDEBUGGER_UPDATE_SYMBOL_TABLE;
+
+/**
+ * @brief check so the DEBUGGER_UPDATE_SYMBOL_TABLE should be smaller than packet size
+ *
+ */
+static_assert(sizeof(DEBUGGER_UPDATE_SYMBOL_TABLE) < PacketChunkSize,
+              "err (static_assert), size of PacketChunkSize should be bigger than DEBUGGER_UPDATE_SYMBOL_TABLE (MODULE_SYMBOL_DETAIL)");
+
+/*
+==============================================================================================
+ */
+
+/**
+ * @brief request that shows, symbol reload process is finished
+ *
+ */
+typedef struct _DEBUGGEE_SYMBOL_UPDATE_RESULT
+{
+    UINT64 KernelStatus; // Kerenl put the status in this field
+
+} DEBUGGEE_SYMBOL_UPDATE_RESULT, *PDEBUGGEE_SYMBOL_UPDATE_RESULT;
+
+/*
+==============================================================================================
+ */
