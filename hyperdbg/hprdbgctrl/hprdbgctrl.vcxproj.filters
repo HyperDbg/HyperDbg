@@ -451,6 +451,9 @@
     <ClCompile Include="code\common\spinlock.cpp">
       <Filter>code\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\script-eval\ScriptEngineEval.c">
+      <Filter>code\debugger\script-engine-wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\asm-vmx-checks.asm">

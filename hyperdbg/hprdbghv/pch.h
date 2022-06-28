@@ -97,6 +97,7 @@
 #include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
 #include "..\hprdbghv\header\debugger\user-level\ThreadHolder.h"
 #include "ScriptEngineCommonDefinitions.h"
+#include "ScriptEngineHeader.h"
 
 //
 // Global Variables should be the last header to include

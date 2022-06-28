@@ -323,6 +323,9 @@
     <ClCompile Include="pch.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="..\script-eval\ScriptEngineEval.c">
+      <Filter>code\debugger\script-engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

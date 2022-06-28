@@ -54,19 +54,19 @@
 
 /**
  * @brief Size of each page (4096 bytes)
- * 
+ *
  */
 #define PAGE_SIZE 0x1000
 
 /**
  * @brief Aligning a page
- * 
+ *
  */
 #define PAGE_ALIGN(Va) ((PVOID)((ULONG_PTR)(Va) & ~(PAGE_SIZE - 1)))
 
 /**
  * @brief Cpuid to get virtual address width
- * 
+ *
  */
 #define CPUID_ADDR_WIDTH 0x80000008
 
@@ -177,34 +177,5 @@ CheckCpuSupportRtm();
 UINT32
 Getx86VirtualAddressWidth();
 
-//////////////////////////////////////////////////
-//            	    Structures                  //
-//////////////////////////////////////////////////
-
-///**
-// * @brief this structure is copied from Process Hacker source code (ntldr.h)
-// *
-// */
-//typedef struct _RTL_PROCESS_MODULE_INFORMATION
-//{
-//    HANDLE Section;
-//    PVOID  MappedBase;
-//    PVOID  ImageBase;
-//    ULONG  ImageSize;
-//    ULONG  Flags;
-//    UINT16 LoadOrderIndex;
-//    UINT16 InitOrderIndex;
-//    UINT16 LoadCount;
-//    UINT16 OffsetToFileName;
-//    UCHAR  FullPathName[256];
-//} RTL_PROCESS_MODULE_INFORMATION, *PRTL_PROCESS_MODULE_INFORMATION;
-//
-///**
-// * @brief this structure is copied from Process Hacker source code (ntldr.h)
-// *
-// */
-//typedef struct _RTL_PROCESS_MODULES
-//{
-//    ULONG                          NumberOfModules;
-//    RTL_PROCESS_MODULE_INFORMATION Modules[1];
-//} RTL_PROCESS_MODULES, *PRTL_PROCESS_MODULES;
+BOOLEAN
+CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);

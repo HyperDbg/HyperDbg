@@ -133,6 +133,12 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/ud.h"
 #include "header/objects.h"
 
+//
+// Script engine
+//
+#include "ScriptEngineCommonDefinitions.h"
+#include "ScriptEngineHeader.h"
+
 #pragma comment(lib, "ntdll.lib")
 
 //

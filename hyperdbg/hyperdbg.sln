@@ -21,8 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 	ProjectSection(SolutionItems) = preProject
 		include\Configuration.h = include\Configuration.h
 		include\Definition.h = include\Definition.h
-		include\ScriptEngineCommonDefinitions.h = include\ScriptEngineCommonDefinitions.h
-		include\ScriptEngineEval.h = include\ScriptEngineEval.h
 		include\ZycoreExportConfig.h = include\ZycoreExportConfig.h
 		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
@@ -64,6 +62,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D
 		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
 		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
 		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "script-eval", "script-eval", "{2CC2975A-9B33-400D-840F-9A71BB312928}"
+	ProjectSection(SolutionItems) = preProject
+		script-eval\ScriptEngineCommonDefinitions.h = script-eval\ScriptEngineCommonDefinitions.h
+		script-eval\ScriptEngineEval.c = script-eval\ScriptEngineEval.c
+		script-eval\ScriptEngineHeader.h = script-eval\ScriptEngineHeader.h
 	EndProjectSection
 EndProject
 Global

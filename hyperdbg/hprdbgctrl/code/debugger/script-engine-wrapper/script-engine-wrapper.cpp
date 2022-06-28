@@ -13,16 +13,13 @@
 #include "pch.h"
 
 //
-// Include parser
-//
-#include "ScriptEngineEval.h"
-
-//
 // Global Variables
 //
 extern UINT64 * g_ScriptGlobalVariables;
 extern UINT64 * g_ScriptLocalVariables;
 extern UINT64 * g_ScriptTempVariables;
+extern UINT64   g_CurrentExprEvalResult;
+extern BOOLEAN  g_CurrentExprEvalResultHasError;
 
 //
 // Temporary structures used only for testing

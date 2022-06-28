@@ -67,7 +67,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -92,7 +92,7 @@
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -109,6 +109,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\script-eval\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
     <ClCompile Include="code\common\Spinlock.c" />

@@ -17,13 +17,13 @@
 
 /**
  * @brief check for RTM support
- * 
+ *
  */
 BOOLEAN g_RtmSupport = FALSE;
 
 /**
  * @brief Virtual address width for x86 processors
- * 
+ *
  */
 UINT32 g_VirtualAddressWidth = 0;
 
@@ -137,7 +137,7 @@ HANDLE g_IsDriverLoadedSuccessfully = NULL;
 HANDLE g_EndOfMessageReceivedEvent = NULL;
 
 /**
- * @brief variable to keep track if the end of the message received 
+ * @brief variable to keep track if the end of the message received
  * (for showing signature)
  *
  */
@@ -151,7 +151,7 @@ BOOLEAN g_IsEndOfMessageReceived = FALSE;
 BOOLEAN g_SerialConnectionAlreadyClosed = FALSE;
 
 /**
- * @brief Show whether the pause request (CTRL+C or CTRL+BREAK) 
+ * @brief Show whether the pause request (CTRL+C or CTRL+BREAK)
  * should be ignored or not
  *
  */
@@ -564,21 +564,21 @@ UINT32 g_DisassemblerSyntax = 1;
 //////////////////////////////////////////////////
 
 /**
- * @brief The buffer that stores the details of 
+ * @brief The buffer that stores the details of
  * symbol table
  *
  */
 PMODULE_SYMBOL_DETAIL g_SymbolTable = NULL;
 
 /**
- * @brief The buffer that stores size of the  
+ * @brief The buffer that stores size of the
  * details of symbol table
  *
  */
 UINT32 g_SymbolTableSize = NULL;
 
 /**
- * @brief The index to hold the track of 
+ * @brief The index to hold the track of
  * added symbols
  *
  */
@@ -592,7 +592,7 @@ UINT32 g_SymbolTableCurrentIndex = NULL;
 UINT64 g_ResultOfEvaluatedExpression = NULL;
 
 /**
- * @brief Shows the state of the evaluation of expression which 
+ * @brief Shows the state of the evaluation of expression which
  * whether contains error or not
  *
  */
@@ -613,3 +613,21 @@ std::wstring g_StartCommandPath = L"";
  *
  */
 std::wstring g_StartCommandPathAndArguments = L"";
+
+//////////////////////////////////////////////////
+//			 Script engine tests		        //
+//////////////////////////////////////////////////
+
+/**
+ * @brief global variable to save the result of script-engine statement
+ * tests
+ *
+ */
+UINT64 g_CurrentExprEvalResult;
+
+/**
+ * @brief global variable to detect if there was an error in the result
+ *  of script-engine statement tests
+ *
+ */
+BOOLEAN g_CurrentExprEvalResultHasError;

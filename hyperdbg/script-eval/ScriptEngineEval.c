@@ -1,5 +1,5 @@
 /**
- * @file ScriptEngineEval.h
+ * @file ScriptEngineEval.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
@@ -11,31 +11,7 @@
  * @copyright This project is released under the GNU Public License v3.
  *
  */
-#pragma once
-
-//
-// Basic data types is used for communication in script engine
-//
-#include "SDK/Headers/Constants.h"
-#include "SDK/Headers/BasicTypes.h"
-
-//
-// Global Variables
-//
-
-/**
- * @brief global variable to save the result of script-engine statement
- * tests
- *
- */
-UINT64 g_CurrentExprEvalResult;
-
-/**
- * @brief global variable to detect if there was an error in the result
- *  of script-engine statement tests
- *
- */
-BOOLEAN g_CurrentExprEvalResultHasError;
+#include "pch.h"
 
 //
 // Wrapper headers
@@ -70,8 +46,8 @@ CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
 
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
+extern UINT64  g_CurrentExprEvalResult;
+extern BOOLEAN g_CurrentExprEvalResultHasError;
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
@@ -87,6 +63,7 @@ GetValue(PGUEST_REGS                    GuestRegs,
 //
 // *** Pseudo registers ***
 //
+
 // $tid
 UINT64
 ScriptEnginePseudoRegGetTid()
@@ -756,8 +733,12 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
 {
+#ifdef SCRIPT_ENGINE_USER_MODE
+
     g_CurrentExprEvalResult         = Value;
     g_CurrentExprEvalResultHasError = FALSE;
+
+#endif // SCRIPT_ENGINE_USER_MODE
 }
 
 //
@@ -1118,8 +1099,7 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
 
-    g_CurrentExprEvalResult         = Value;
-    g_CurrentExprEvalResultHasError = FALSE;
+    ScriptEngineFunctionTestStatement(Tag, ImmediateMessagePassing, Value);
 
 #endif // SCRIPT_ENGINE_USER_MODE
 
