@@ -36,9 +36,6 @@
     <Filter Include="code\debugger\driver-loader">
       <UniqueIdentifier>{575468fb-d58f-47c5-9e62-7365873159c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="code\debugger\script-engine-wrapper">
-      <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
-    </Filter>
     <Filter Include="code\debugger\tests">
       <UniqueIdentifier>{75cfa57c-a5af-4b8b-ae07-e4b9f9c56f6a}</UniqueIdentifier>
     </Filter>
@@ -62,6 +59,9 @@
     </Filter>
     <Filter Include="code\objects">
       <UniqueIdentifier>{e42b58d1-94e6-4c41-bf1c-7a4103005ced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\debugger\script-engine">
+      <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -368,10 +368,10 @@
       <Filter>code\debugger\driver-loader</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\script-engine-wrapper\script-engine.cpp">
-      <Filter>code\debugger\script-engine-wrapper</Filter>
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\script-engine-wrapper\script-engine-wrapper.cpp">
-      <Filter>code\debugger\script-engine-wrapper</Filter>
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\tests\tests.cpp">
       <Filter>code\debugger\tests</Filter>
@@ -428,7 +428,7 @@
       <Filter>code\debugger\kernel-level</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\script-engine-wrapper\symbol.cpp">
-      <Filter>code\debugger\script-engine-wrapper</Filter>
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
     <ClCompile Include="code\debugger\kernel-level\kernel-listening.cpp">
       <Filter>code\debugger\kernel-level</Filter>
@@ -452,7 +452,7 @@
       <Filter>code\common</Filter>
     </ClCompile>
     <ClCompile Include="..\script-eval\ScriptEngineEval.c">
-      <Filter>code\debugger\script-engine-wrapper</Filter>
+      <Filter>code\debugger\script-engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

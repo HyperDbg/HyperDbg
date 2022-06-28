@@ -13,37 +13,6 @@
  */
 #include "pch.h"
 
-//
-// Wrapper headers
-//
-
-#ifdef SCRIPT_ENGINE_KERNEL_MODE
-
-UINT64
-ScriptEngineWrapperGetInstructionPointer();
-
-UINT64
-ScriptEngineWrapperGetAddressOfReservedBuffer(PDEBUGGER_EVENT_ACTION Action);
-
-UINT32
-VmxrootCompatibleStrlen(const CHAR * S);
-
-UINT32
-VmxrootCompatibleWcslen(const wchar_t * S);
-
-BOOLEAN
-MemoryMapperReadMemorySafeOnTargetProcess(UINT64 VaAddressToRead,
-                                          PVOID  BufferToSaveMemory,
-                                          SIZE_T SizeToRead);
-
-//
-// Both user-mode and kernel-mode should implement this function
-//
-BOOLEAN
-CheckMemoryAccessSafety(UINT64 TargetAddress, UINT32 Size);
-
-#endif // SCRIPT_ENGINE_KERNEL_MODE
-
 #ifdef SCRIPT_ENGINE_USER_MODE
 
 extern UINT64  g_CurrentExprEvalResult;

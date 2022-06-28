@@ -201,6 +201,7 @@
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
     <ClInclude Include="header\debugger\objects\Process.h" />
     <ClInclude Include="header\debugger\objects\Thread.h" />
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
     <ClInclude Include="header\debugger\tests\KernelTests.h" />
     <ClInclude Include="header\debugger\transparency\Transparency.h" />
     <ClInclude Include="header\debugger\user-level\Attaching.h" />

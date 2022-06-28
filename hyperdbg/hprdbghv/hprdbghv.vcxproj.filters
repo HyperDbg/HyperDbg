@@ -156,6 +156,9 @@
     <Filter Include="header\globals">
       <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\debugger\script-engine">
+      <UniqueIdentifier>{5b6684f0-db1b-4920-987c-d5dfd8cdc0c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -486,6 +489,9 @@
     </ClInclude>
     <ClInclude Include="header\platform\MetaMacros.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h">
+      <Filter>header\debugger\script-engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

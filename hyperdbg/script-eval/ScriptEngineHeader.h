@@ -1,8 +1,15 @@
+/**
+ * @file ScriptEngineHeader.h
+ * @author Sina Karvandi (sina@hyperdbg.org)
+ * @brief Headers for exported script engine headers
+ * @details
+ * @version 0.2
+ * @date 2022-06-28
+ *
+ * @copyright This project is released under the GNU Public License v3.
+ *
+ */
 #pragma once
-
-//
-// Global Variables
-//
 
 BOOL
 ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
