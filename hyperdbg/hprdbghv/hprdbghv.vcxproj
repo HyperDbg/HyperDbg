@@ -109,7 +109,11 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\script-eval\ScriptEngineEval.c" />
+    <ClCompile Include="..\script-eval\code\Functions.c" />
+    <ClCompile Include="..\script-eval\code\Keywords.c" />
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
+    <ClCompile Include="..\script-eval\code\Regs.c" />
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
     <ClCompile Include="code\common\Spinlock.c" />

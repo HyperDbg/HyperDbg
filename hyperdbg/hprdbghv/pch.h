@@ -97,8 +97,8 @@
 #include "..\hprdbghv\header\debugger\core\Termination.h"
 #include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
 #include "..\hprdbghv\header\debugger\user-level\ThreadHolder.h"
-#include "ScriptEngineCommonDefinitions.h"
-#include "ScriptEngineHeader.h"
+#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineHeader.h"
 
 //
 // Global Variables should be the last header to include

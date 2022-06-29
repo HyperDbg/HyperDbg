@@ -28,6 +28,6 @@
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"
-#include "ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
 #include "script-engine.h"
 #include "parse-table.h"

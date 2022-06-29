@@ -110,9 +110,15 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 #include "SDK/HyperDbgSdk.h"
 #include "SDK/HyperDbgUserExports.h"
-#include "ScriptEngineCommonDefinitions.h"
 #include "Configuration.h"
 #include "Definition.h"
+
+//
+// Script engine
+//
+#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineHeader.h"
+
 #include "header/inipp.h"
 #include "header/commands.h"
 #include "header/common.h"
@@ -132,12 +138,6 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 #include "header/pe-parser.h"
 #include "header/ud.h"
 #include "header/objects.h"
-
-//
-// Script engine
-//
-#include "ScriptEngineCommonDefinitions.h"
-#include "ScriptEngineHeader.h"
 
 #pragma comment(lib, "ntdll.lib")
 

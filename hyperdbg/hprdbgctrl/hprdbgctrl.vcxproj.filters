@@ -63,6 +63,9 @@
     <Filter Include="code\debugger\script-engine">
       <UniqueIdentifier>{59d00535-ea51-41cc-8ffd-e28b1ec11371}</UniqueIdentifier>
     </Filter>
+    <Filter Include="code\script-eval">
+      <UniqueIdentifier>{9a547a24-cf46-4d53-a723-9fcbd29db4d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -451,8 +454,20 @@
     <ClCompile Include="code\common\spinlock.cpp">
       <Filter>code\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\script-eval\ScriptEngineEval.c">
-      <Filter>code\debugger\script-engine</Filter>
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Keywords.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Functions.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Regs.c">
+      <Filter>code\script-eval</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

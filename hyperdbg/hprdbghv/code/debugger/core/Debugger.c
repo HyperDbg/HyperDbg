@@ -11,7 +11,6 @@
  *
  */
 #include "pch.h"
-#include "ScriptEngineHeader.h"
 
 /**
  * @brief A wrapper for GetRegValue() in script-engine
