@@ -258,21 +258,6 @@ typedef enum _DEBUGGER_REMOTE_PACKET_TYPE
 
 } DEBUGGER_REMOTE_PACKET_TYPE;
 
-#define SIZEOF_REGISTER_EVENT sizeof(REGISTER_NOTIFY_BUFFER)
-
-typedef enum _NOTIFY_TYPE
-{
-    IRP_BASED,
-    EVENT_BASED
-} NOTIFY_TYPE;
-
-typedef struct _REGISTER_NOTIFY_BUFFER
-{
-    NOTIFY_TYPE Type;
-    HANDLE      hEvent;
-
-} REGISTER_NOTIFY_BUFFER, *PREGISTER_NOTIFY_BUFFER;
-
 /**
  * @brief The structure of remote packets in HyperDbg
  *

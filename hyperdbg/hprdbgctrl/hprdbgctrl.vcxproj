@@ -78,6 +78,17 @@
       <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <ClCompile>
@@ -103,6 +114,16 @@
       <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="header\commands.h" />
