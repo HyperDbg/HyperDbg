@@ -16,7 +16,13 @@
 // *** Keywords ***
 //
 
-// poi
+/**
+ * @brief Implementation of poi keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return UINT64 
+ */
 UINT64
 ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
 {
@@ -44,7 +50,13 @@ ScriptEngineKeywordPoi(PUINT64 Address, BOOL * HasError)
     return Result;
 }
 
-// hi
+/**
+ * @brief Implementation of hi keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return WORD 
+ */
 WORD
 ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
 {
@@ -72,7 +84,13 @@ ScriptEngineKeywordHi(PUINT64 Address, BOOL * HasError)
     return HIWORD(Result);
 }
 
-// low
+/**
+ * @brief Implementation of low keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return WORD 
+ */
 WORD
 ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
 {
@@ -100,7 +118,13 @@ ScriptEngineKeywordLow(PUINT64 Address, BOOL * HasError)
     return LOWORD(Result);
 }
 
-// db
+/**
+ * @brief Implementation of db keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return BYTE 
+ */
 BYTE
 ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
 {
@@ -128,7 +152,13 @@ ScriptEngineKeywordDb(PUINT64 Address, BOOL * HasError)
     return Result;
 }
 
-// dd
+/**
+ * @brief Implementation of dd keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return WORD 
+ */
 WORD
 ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
 {
@@ -156,7 +186,13 @@ ScriptEngineKeywordDd(PUINT64 Address, BOOL * HasError)
     return Result;
 }
 
-// dw
+/**
+ * @brief Implementation of dw keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return DWORD 
+ */
 DWORD
 ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
 {
@@ -184,7 +220,13 @@ ScriptEngineKeywordDw(PUINT64 Address, BOOL * HasError)
     return Result;
 }
 
-// dq
+/**
+ * @brief Implementation of dq keyword
+ * 
+ * @param Address 
+ * @param HasError 
+ * @return QWORD 
+ */
 QWORD
 ScriptEngineKeywordDq(PUINT64 Address, BOOL * HasError)
 {

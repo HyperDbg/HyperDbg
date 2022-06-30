@@ -12,6 +12,13 @@
  */
 #include "pch.h"
 
+/**
+ * @brief Get the register value 
+ * 
+ * @param GuestRegs 
+ * @param RegId 
+ * @return UINT64 
+ */
 UINT64
 GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
 {
@@ -943,6 +950,14 @@ GetRegValue(PGUEST_REGS GuestRegs, REGS_ENUM RegId)
     }
 }
 
+/**
+ * @brief Set the register value
+ * 
+ * @param GuestRegs 
+ * @param Symbol 
+ * @param Value 
+ * @return VOID 
+ */
 VOID
 SetRegValue(PGUEST_REGS GuestRegs, PSYMBOL Symbol, UINT64 Value)
 {

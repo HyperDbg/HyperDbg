@@ -2,7 +2,7 @@
  * @file PseudoRegisters.c
  * @author M.H. Gholamrezaei (mh@hyperdbg.org)
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Script engine pseudo-Registers implementations
+ * @brief Script engine pseudo-registers implementations
  * @details
  * @version 0.2
  * @date 2022-06-29
@@ -16,7 +16,11 @@
 // *** Pseudo-registers ***
 //
 
-// $tid
+/**
+ * @brief Implementation of $tid pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetTid()
 {
@@ -29,7 +33,11 @@ ScriptEnginePseudoRegGetTid()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $core
+/**
+ * @brief Implementation of $core pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetCore()
 {
@@ -42,7 +50,11 @@ ScriptEnginePseudoRegGetCore()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $pid
+/**
+ * @brief Implementation of $pid pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetPid()
 {
@@ -55,7 +67,11 @@ ScriptEnginePseudoRegGetPid()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $pname
+/**
+ * @brief Implementation of $pname pseudo-register
+ * 
+ * @return CHAR* 
+ */
 CHAR *
 ScriptEnginePseudoRegGetPname()
 {
@@ -100,7 +116,11 @@ ScriptEnginePseudoRegGetPname()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $proc
+/**
+ * @brief Implementation of $proc pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetProc()
 {
@@ -113,7 +133,11 @@ ScriptEnginePseudoRegGetProc()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $thread
+/**
+ * @brief Implementation of $thread pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetThread()
 {
@@ -126,7 +150,11 @@ ScriptEnginePseudoRegGetThread()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $peb
+/**
+ * @brief Implementation of $peb pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetPeb()
 {
@@ -253,7 +281,11 @@ ScriptEnginePseudoRegGetPeb()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $teb
+/**
+ * @brief Implementation of $teb pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetTeb()
 {
@@ -266,7 +298,11 @@ ScriptEnginePseudoRegGetTeb()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $ip
+/**
+ * @brief Implementation of $ip pseudo-register
+ * 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetIp()
 {
@@ -282,7 +318,12 @@ ScriptEnginePseudoRegGetIp()
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
 
-// $buffer
+/**
+ * @brief Implementation of $buffer pseudo-register
+ * 
+ * @param CorrespondingAction 
+ * @return UINT64 
+ */
 UINT64
 ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
 {
