@@ -676,6 +676,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
     UINT64       Address = NULL;
     UINT64       Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(UINT64) - 1) / sizeof(UINT64)];
     PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
+    string       name   = FunctionOrVariableName;
 
     //
     // Not found by default
@@ -690,21 +691,20 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 
     //
     // Check if it starts with 'nt!' and if starts then
-    // we'll remove it, because 'nt!' is not a real module
-    // name
+    // we'll change it to nt the kernel module 'ntkrnlmp' 
+    // because 'nt!' is not a real module name
     //
     if (strlen(FunctionOrVariableName) >= 4 &&
         tolower(FunctionOrVariableName[0]) == 'n' &&
         tolower(FunctionOrVariableName[1]) == 't' &&
         tolower(FunctionOrVariableName[2]) == '!')
     {
-        //
-        // No need to use nt!
-        //
-        memmove((char *)FunctionOrVariableName, FunctionOrVariableName + 3, strlen(FunctionOrVariableName));
+        FunctionOrVariableName += 3;
+        name = "ntkrnlmp!";
+        name += FunctionOrVariableName;
     }
 
-    if (SymFromName(GetCurrentProcess(), FunctionOrVariableName, Symbol))
+    if (SymFromName(GetCurrentProcess(), name.c_str(), Symbol))
     {
         //
         // SymFromName returned success
