@@ -3,7 +3,7 @@
 <a href="https://docs.hyperdbg.org"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Docs-yellow.svg" alt="Documentation"></a>
 <a href="https://doxygen.hyperdbg.org"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Doxygen-lightgreen.svg" alt="Doxygen"></a>
 <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/License-GPLv3-blue.svg" alt="License"></a>
-<a href="https://github.com/HyperDbg/HyperDbg#publications"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Published-Papers-red.svg" alt="Published Academic Papers"></a>
+<a href="https://research.hyperdbg.org"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-Research-pink.svg" alt="Published Academic Papers"></a>
 <a href="https://twitter.com/HyperDbg"><img src="https://raw.githubusercontent.com/HyperDbg/graphics/master/Badges/Link-HyperDbg-Twitter-skyblue.svg" alt="Twitter"></a>
 </p>
 
