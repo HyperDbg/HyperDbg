@@ -49,6 +49,8 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
+You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo.
+
 ## Unique Features
 ### First Release (v0.1.0.0)
 * Advanced Hypervisor-based Kernel Mode Debugger [<a href="https://docs.hyperdbg.org/using-hyperdbg/kernel-mode-debugging" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/debug" target="_blank">link</a>][<a href="https://docs.hyperdbg.org/getting-started/attach-to-hyperdbg/local-debugging" target="_blank">link</a>]
