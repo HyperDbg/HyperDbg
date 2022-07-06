@@ -32,7 +32,7 @@ You can download the latest compiled binary files from **[releases](https://gith
 ```
 git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
-Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information.
+Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see the **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information, or if you previously used other native debuggers like GDB, LLDB, or Windbg, you could see the [command map](https://hyperdbg.github.io/commands-map).
 
 ## Publications
 
