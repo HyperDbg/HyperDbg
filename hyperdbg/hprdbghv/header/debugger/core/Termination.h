@@ -63,3 +63,6 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event);
 
 VOID
 TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event);
+
+VOID
+TerminateControlRegistersEvent(PDEBUGGER_EVENT Event);

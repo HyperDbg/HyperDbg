@@ -91,6 +91,9 @@ VOID
 CommandExceptionHelp();
 
 VOID
+CommandCrwriteHelp();
+
+VOID
 CommandDrHelp();
 
 VOID

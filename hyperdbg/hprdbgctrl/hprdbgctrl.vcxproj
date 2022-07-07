@@ -158,6 +158,7 @@ copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"</Co
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\crwrite.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\kill.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\restart.cpp" />

@@ -282,6 +282,24 @@
  */
 #define VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS 0x2a
 
+/**
+ * @brief VMCALL to enable mov to CR exiting
+ */
+#define VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING 0x2b
+
+/**
+ * @brief VMCALL to disable mov to CR exiting
+ *
+ */
+#define VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING 0x2c
+
+/**
+ * @brief VMCALL to clear mov 2 cr exiting bit ONLY in the case of disabling
+ * the events for !crwrite command
+ *
+ */
+#define VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS 0x2d
+
 //////////////////////////////////////////////////
 //				    Functions					//
 //////////////////////////////////////////////////

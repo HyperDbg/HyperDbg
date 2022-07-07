@@ -385,6 +385,34 @@ DpcRoutinePerformEnableMovToDebugRegistersExiting(KDPC * Dpc, PVOID DeferredCont
 }
 
 /**
+ * @brief Set the Mov to Control Registers Exitings
+ *
+ * @param Dpc
+ * @param Event
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutinePerformEnableMovToControlRegisterExiting(KDPC * Dpc, PDEBUGGER_EVENT Event, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+    UNREFERENCED_PARAMETER(SystemArgument1);
+    UNREFERENCED_PARAMETER(SystemArgument2);
+
+    //
+    // enable Mov to Control Registers Exitings
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
+
+    //
+    // As this function is designed for a single,
+    // we have to release the synchronization lock here
+    //
+    SpinlockUnlock(&OneCoreLock);
+}
+
+/**
  * @brief Enable external interrupt exiting on a single core
  * 
  * @param Dpc 
@@ -914,6 +942,37 @@ DpcRoutineDisableMov2DrExitingForClearingDrEventsAllCores(KDPC * Dpc, PVOID Defe
 }
 
 /**
+ * @brief Disables mov to control registers exiting
+ * ONLY for clearing !crwrite events
+ *
+ * @param Dpc
+ * @param Event
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores(KDPC * Dpc, PDEBUGGER_EVENT Event, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    //
+    // Disables mov 2 control regs exiting ONLY for clearing events
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS, Event->OptionalParam1, Event->OptionalParam2, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
  * @brief Enables rdpmc exiting in primary cpu-based controls
  * 
  * @param Dpc 
@@ -1088,6 +1147,66 @@ DpcRoutineEnableMovDebigRegisterExitingAllCores(KDPC * Dpc, PVOID DeferredContex
     // Enables mov debug registers exitings in primary cpu-based controls
     //
     AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_DEBUG_REGS_EXITING, 0, 0, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Enables mov control registers exitings
+ *
+ * @param Dpc
+ * @param Event
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineEnableMovControlRegisterExitingAllCores(KDPC * Dpc, PDEBUGGER_EVENT Event, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    //
+    // Enables mov control registers exitings in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
+
+    //
+    // Wait for all DPCs to synchronize at this point
+    //
+    KeSignalCallDpcSynchronize(SystemArgument2);
+
+    //
+    // Mark the DPC as being complete
+    //
+    KeSignalCallDpcDone(SystemArgument1);
+}
+
+/**
+ * @brief Disables mov control registers exitings
+ *
+ * @param Dpc
+ * @param Event
+ * @param SystemArgument1
+ * @param SystemArgument2
+ * @return VOID
+ */
+VOID
+DpcRoutineDisableMovControlRegisterExitingAllCores(KDPC * Dpc, PDEBUGGER_EVENT Event, PVOID SystemArgument1, PVOID SystemArgument2)
+{
+    UNREFERENCED_PARAMETER(Dpc);
+
+    //
+    // Disable mov control registers exitings in primary cpu-based controls
+    //
+    AsmVmxVmcall(VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING, Event->OptionalParam1, Event->OptionalParam2, 0);
 
     //
     // Wait for all DPCs to synchronize at this point

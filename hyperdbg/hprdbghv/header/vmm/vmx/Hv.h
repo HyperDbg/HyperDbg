@@ -121,6 +121,17 @@ VOID
 HvSetPmcVmexit(BOOLEAN Set);
 
 /**
+ * @brief Set vm-exit for mov-to-cr0/4
+ *
+ * @param Set
+ * @param ControlRegister
+ * @param MaskRegister
+ * @return VOID
+ */
+VOID
+HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister);
+
+/**
  * @brief Set vm-exit for mov-to-cr3
  * 
  * @param Set 

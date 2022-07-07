@@ -85,6 +85,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -681,6 +682,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case VMCALL_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case CONTROL_REGISTER_MODIFIED:
+        InsertHeadList(&g_Events->ControlRegisterModifiedEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
 
         //
@@ -822,6 +826,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList  = &g_Events->DebugRegistersAccessedEventsHead;
         TempList2 = TempList;
         break;
+    }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        TempList  = &g_Events->ControlRegisterModifiedEventsHead;
+        TempList2 = TempList;
+        break; 
     }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
@@ -1046,6 +1056,19 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 continue;
             }
 
+            break;
+
+        case CONTROL_REGISTER_MODIFIED:
+            // 
+            // check if CR exit is what we want or not
+            //
+            if (CurrentEvent->OptionalParam1 != Context)
+            {
+                // 
+                // The CR is not what we want
+                //
+                continue;
+            }
             break;
 
         default:
@@ -2474,6 +2497,40 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
+        //
+        // Setting an indicator to CR 
+        // 
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->OptionalParam2 = EventDetails->OptionalParam2;
+        
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, Event);
+        }
+
+        break;
+    }
     case EXCEPTION_OCCURRED:
     {
         //
@@ -2999,6 +3056,14 @@ DebuggerTerminateEvent(UINT64 Tag)
         //
         TerminateCpuidExecutionEvent(Event);
 
+        break;
+    }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        //
+        // Call mov to control register event terminator
+        //
+        TerminateControlRegistersEvent(Event);
         break;
     }
     default:

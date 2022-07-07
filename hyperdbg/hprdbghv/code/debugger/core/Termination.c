@@ -823,6 +823,85 @@ TerminatePmcEvent(PDEBUGGER_EVENT Event)
 }
 
 /**
+ * @brief Termination function for MOV to control registers events
+ *
+ * @param Event Target Event Object
+ * @return VOID
+ */
+VOID
+TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
+{
+    PLIST_ENTRY TempList = 0;
+
+    if (DebuggerEventListCount(&g_Events->ControlRegisterModifiedEventsHead) > 1)
+    {
+        //
+        // There are still other events in the queue (list), we should only remove
+        // this special event (not all events)
+        //
+
+        //
+        // For this purpose, first we disable all the events by
+        // disabling all of them
+        //
+        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+
+        //
+        // Then we iterate through the list of this event to re-apply
+        // the previous events
+        //
+        TempList = &g_Events->ControlRegisterModifiedEventsHead;
+
+        while (&g_Events->ControlRegisterModifiedEventsHead != TempList->Flink)
+        {
+            TempList                     = TempList->Flink;
+            PDEBUGGER_EVENT CurrentEvent = CONTAINING_RECORD(TempList, DEBUGGER_EVENT, EventsOfSameTypeList);
+
+            //
+            // We have to check because we don't want to re-apply
+            // the terminated event
+            //
+            if (CurrentEvent->Tag != Event->Tag)
+            {
+                //
+                // re-apply the event
+                //
+
+                //
+                // Let's see if it is for all cores or just one core
+                //
+                if (CurrentEvent->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+                {
+                    //
+                    // All cores
+                    //
+                    ExtensionCommandEnableMovControlRegisterExitingAllCores(CurrentEvent);
+                }
+                else
+                {
+                    //
+                    // Just one core
+                    //
+                    DpcRoutineRunTaskOnSingleCore(CurrentEvent->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, CurrentEvent);
+                }
+            }
+        }
+    }
+    else
+    {
+        //
+        // Nothing else is in the list, we have to restore everything to default
+        // as the current event is the only event in the list
+        //
+
+        //
+        // Disable it on all cores
+        //
+        ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(Event);
+    }
+}
+
+/**
  * @brief Termination function for MOV to debug registers events
  * 
  * @param Event Target Event Object

@@ -206,6 +206,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
             __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
             __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
+            DebuggerTriggerEvents(CONTROL_REGISTER_MODIFIED, GuestState, VMX_EXIT_QUALIFICATION_REGISTER_CR0);
             break;
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
@@ -244,7 +245,7 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
             __vmx_vmwrite(VMCS_GUEST_CR4, *RegPtr);
             __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
-
+            DebuggerTriggerEvents(CONTROL_REGISTER_MODIFIED, GuestState, VMX_EXIT_QUALIFICATION_REGISTER_CR4);
             break;
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
@@ -498,6 +499,21 @@ HvSetPmcVmexit(BOOLEAN Set)
     // Set the new value
     //
     __vmx_vmwrite(VMCS_CTRL_PROCESSOR_BASED_VM_EXECUTION_CONTROLS, CpuBasedVmExecControls);
+}
+
+/**
+ * @brief Set vm-exit for mov-to-cr0/4
+ * @details Should be called in vmx-root
+ *
+ * @param Set or unset the vm-exits
+ * @param Control Register
+ * @param Mask Register
+ * @return VOID
+ */
+VOID
+HvSetMovControlRegsExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+{
+    ProtectedHvSetMov2CrExiting(Set, ControlRegister, MaskRegister);
 }
 
 /**

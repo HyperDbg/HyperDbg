@@ -701,6 +701,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pmc"] = {&CommandPmc, &CommandPmcHelp, DEBUGGER_COMMAND_PMC_ATTRIBUTES};
 
+    g_CommandsList["!crwrite"] = {&CommandCrwrite, &CommandCrwriteHelp, DEBUGGER_COMMAND_CRWRITE_ATTRIBUTES};
+
     g_CommandsList["!dr"] = {&CommandDr, &CommandDrHelp, DEBUGGER_COMMAND_DR_ATTRIBUTES};
 
     g_CommandsList["!ioin"] = {&CommandIoin, &CommandIoinHelp, DEBUGGER_COMMAND_IOIN_ATTRIBUTES};

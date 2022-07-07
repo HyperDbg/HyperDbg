@@ -46,6 +46,11 @@ typedef enum _PROTECTED_HV_RESOURCES_PASSING_OVERS
     //
     PASSING_OVER_MOV_TO_HW_DEBUG_REGS_EVENTS,
 
+    //
+    // for external mov to control registers exitings
+    //
+    PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS,
+
 } PROTECTED_HV_RESOURCES_PASSING_OVERS;
 //////////////////////////////////////////////////
 //                   Functions                  //
@@ -96,6 +101,18 @@ ProtectedHvSetMovDebugRegsExiting(BOOLEAN Set);
 
 VOID
 ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();
+
+//
+// Mov to Control Regs Exiting Functions
+// 
+VOID
+ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(UINT64 ControlRegister, UINT64 MaskRegister);
+
+//
+// Mov to CR0/4 Exiting Functions
+//
+VOID
+ProtectedHvSetMov2CrExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister);
 
 //
 // Mov to CR3 Exiting Functions
