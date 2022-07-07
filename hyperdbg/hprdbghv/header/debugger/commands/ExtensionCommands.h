@@ -77,3 +77,12 @@ ExtensionCommandIoBitmapChangeAllCores(UINT64 Port);
 
 VOID
 ExtensionCommandIoBitmapResetAllCores();
+
+VOID
+ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event);
+
+VOID
+ExtensionCommandDisableMovToControlRegisterExitingAllCores(PDEBUGGER_EVENT Event);
+
+VOID
+ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT Event);

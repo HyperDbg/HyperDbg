@@ -488,6 +488,97 @@ ProtectedHvSetMovDebugRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVE
 }
 
 /**
+ * @brief Set vm-exit for mov to cr0 / cr4 register
+ * @details Should be called in vmx-root
+ *
+ * @param Set or unset the vm-exits
+ * @param ControlRegister
+ * @param MaskRegister
+ 
+ * @return VOID
+ */
+VOID
+ProtectedHvSetMovToCrVmexit(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+{
+    if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR0)
+    {
+        if (Set)
+        {
+            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, MaskRegister);
+            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, __readcr0());
+        }
+        else
+        {
+            __vmx_vmwrite(VMCS_CTRL_CR0_GUEST_HOST_MASK, 0);
+            __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, 0);     
+        }
+    }
+    else if (ControlRegister == VMX_EXIT_QUALIFICATION_REGISTER_CR4)
+    {
+        if (Set)
+        {
+            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, MaskRegister);
+            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, __readcr0());
+        }
+        else
+        {
+            __vmx_vmwrite(VMCS_CTRL_CR4_GUEST_HOST_MASK, 0);
+            __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, 0);
+        }
+    }
+}
+
+/**
+ * @brief Set vm-exit for mov to control registers
+ * @details Should be called in vmx-root
+ *
+ * @param Set or unset the vm-exits
+ * @param PassOver Adds some pass over to the checks
+ * @param Control Register
+ * @param Mask Register
+
+ * @return VOID
+ */
+VOID
+ProtectedHvSetMovControlRegsVmexit(BOOLEAN Set, PROTECTED_HV_RESOURCES_PASSING_OVERS PassOver, UINT64 ControlRegister, UINT64 MaskRegister)
+{
+    ULONG CpuBasedVmExecControls = 0;
+    ULONG CurrentCoreId          = 0;
+
+    //
+    // The protected checks are only performed if the "Set" is "FALSE",
+    // because if sb wants to set it to "TRUE" then we're no need to
+    // worry about it as it remains enabled
+    //
+    if (Set == FALSE)
+    {
+        //
+        // Check if the integrity check is because of clearing
+        // events or not, if it's for clearing events, the debugger
+        // will automatically set
+        //
+        if (!(PassOver & PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS))
+        {
+            CurrentCoreId = KeGetCurrentProcessorNumber();
+
+            //
+            // we have to check for !dr events and decide whether to
+            // ignore this event or not
+            //
+            if (DebuggerEventListCountByCore(&g_Events->ControlRegisterModifiedEventsHead, CurrentCoreId) != 0)
+            {
+                //
+                // We should ignore this unset, because !dr is enabled for this core
+                //
+
+                return;
+            }
+        }
+    }
+    ProtectedHvSetMovToCrVmexit(Set, ControlRegister, MaskRegister);
+}
+
+/**
  * @brief Set vm-exit for mov to cr3 register
  * @details Should be called in vmx-root
  * 
@@ -600,6 +691,19 @@ ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands()
 }
 
 /**
+ * @brief Clear events of !crwrite
+ *
+ * @param Control Register
+ * @param Mask Register
+ * @return VOID
+ */
+VOID
+ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(UINT64 ControlRegister, UINT64 MaskRegister)
+{
+    ProtectedHvSetMovControlRegsVmexit(FALSE, PASSING_OVER_MOV_TO_CONTROL_REGS_EVENTS, ControlRegister, MaskRegister);
+}
+
+/**
  * @brief Set MOV to CR3 Exiting
  * 
  * @param Set Set or unset the MOV to CR3 Exiting
@@ -609,4 +713,18 @@ VOID
 ProtectedHvSetMov2Cr3Exiting(BOOLEAN Set)
 {
     ProtectedHvSetMovToCr3Vmexit(Set, PASSING_OVER_NONE);
+}
+
+/**
+ * @brief Set MOV to CR0/4 Exiting
+ *
+ * @param Set or unset the MOV to CR0/4 Exiting
+ * @param Control Register
+ * @param Mask Register
+ * @return VOID
+ */
+VOID
+ProtectedHvSetMov2CrExiting(BOOLEAN Set, UINT64 ControlRegister, UINT64 MaskRegister)
+{
+    ProtectedHvSetMovToCrVmexit(Set, ControlRegister, MaskRegister);
 }

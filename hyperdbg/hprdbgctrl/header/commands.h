@@ -280,6 +280,8 @@ typedef std::map<std::string, COMMAND_DETAIL> CommandType;
 
 #define DEBUGGER_COMMAND_PMC_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
+#define DEBUGGER_COMMAND_CRWRITE_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
+
 #define DEBUGGER_COMMAND_DR_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
 
 #define DEBUGGER_COMMAND_IOIN_ATTRIBUTES DEBUGGER_COMMAND_ATTRIBUTE_EVENT
@@ -439,6 +441,9 @@ CommandPmc(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandException(vector<string> SplittedCommand, string Command);
+
+VOID
+CommandCrwrite(vector<string> SplittedCommand, string Command);
 
 VOID
 CommandDr(vector<string> SplittedCommand, string Command);
