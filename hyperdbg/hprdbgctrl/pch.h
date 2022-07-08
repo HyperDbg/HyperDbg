@@ -47,7 +47,9 @@ typedef RFLAGS * PRFLAGS;
 typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #    define PHNT_MODE    PHNT_MODE_USER
-#    define PHNT_VERSION PHNT_WIN7 // Windows 7
+#    define PHNT_VERSION PHNT_WIN11 // Windows 7
+
+#    define PHNT_PATCH_FOR_HYPERDBG TRUE
 
 #    include <phnt/phnt_windows.h>
 #    include <phnt/phnt.h>

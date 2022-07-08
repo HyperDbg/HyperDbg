@@ -10,6 +10,7 @@ The second 2nd of the HyperDbg Debugger.
 ### Added
 - HyperDbg SDK is available!
 - fush function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
+- !crwrite - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/pte))
 
 ### Changed
 - Compiling HyperDbg by using the latest Windows 11 WDK
