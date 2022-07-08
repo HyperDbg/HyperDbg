@@ -10,3 +10,6 @@
 [submodule "hyperdbg/dependencies/pdbex"]
 	path = hyperdbg/dependencies/pdbex
 	url = https://github.com/HyperDbg/pdbex.git
+[submodule "hyperdbg/dependencies/phnt"]
+	path = hyperdbg/dependencies/phnt
+	url = https://github.com/HyperDbg/phnt.git
