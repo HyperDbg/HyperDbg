@@ -56,6 +56,12 @@ ScriptEnginePseudoRegGetIp();
 UINT64
 ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction);
 
+UINT64
+ScriptEnginePseudoRegGetEventTag(PACTION_BUFFER ActionBuffer);
+
+UINT64
+ScriptEnginePseudoRegGetEventId(PACTION_BUFFER ActionBuffer);
+
 //////////////////////////////////////////////////
 //			         Keywords                   //
 //////////////////////////////////////////////////

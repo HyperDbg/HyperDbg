@@ -14,11 +14,11 @@
 #include "..\script-eval\header\ScriptEngineInternalHeader.h"
 
 /**
- * @brief Get the Pseudo reg value 
- * 
- * @param Symbol 
- * @param ActionBuffer 
- * @return UINT64 
+ * @brief Get the Pseudo reg value
+ *
+ * @param Symbol
+ * @param ActionBuffer
+ * @return UINT64
  */
 UINT64
 GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
@@ -55,6 +55,10 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
         }
     case PSEUDO_REGISTER_CONTEXT:
         return ActionBuffer->Context;
+    case PSEUDO_REGISTER_EVENT_TAG:
+        return ScriptEnginePseudoRegGetEventTag(ActionBuffer);
+    case PSEUDO_REGISTER_EVENT_ID:
+        return ScriptEnginePseudoRegGetEventId(ActionBuffer);
     case INVALID:
 #ifdef SCRIPT_ENGINE_USER_MODE
         ShowMessages("error in reading regesiter");
@@ -66,13 +70,13 @@ GetPseudoRegValue(PSYMBOL Symbol, PACTION_BUFFER ActionBuffer)
 
 /**
  * @brief Get the Value (reg, peseudo-reg, etc.)
- * 
- * @param GuestRegs 
- * @param ActionBuffer 
- * @param VariablesList 
- * @param Symbol 
- * @param ReturnReference 
- * @return UINT64 
+ *
+ * @param GuestRegs
+ * @param ActionBuffer
+ * @param VariablesList
+ * @param Symbol
+ * @param ReturnReference
+ * @return UINT64
  */
 UINT64
 GetValue(PGUEST_REGS                   GuestRegs,
@@ -129,12 +133,12 @@ GetValue(PGUEST_REGS                   GuestRegs,
 
 /**
  * @brief Set the value
- * 
- * @param GuestRegs 
- * @param VariablesList 
- * @param Symbol 
- * @param Value 
- * @return VOID 
+ *
+ * @param GuestRegs
+ * @param VariablesList
+ * @param Symbol
+ * @param Value
+ * @return VOID
  */
 VOID
 SetValue(PGUEST_REGS GuestRegs, SCRIPT_ENGINE_VARIABLES_LIST * VariablesList, PSYMBOL Symbol, UINT64 Value)
@@ -158,10 +162,10 @@ SetValue(PGUEST_REGS GuestRegs, SCRIPT_ENGINE_VARIABLES_LIST * VariablesList, PS
 
 /**
  * @brief Get the operator name
- * 
- * @param OperatorSymbol 
- * @param BufferForName 
- * @return VOID 
+ *
+ * @param OperatorSymbol
+ * @param BufferForName
+ * @return VOID
  */
 VOID
 ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName)
@@ -197,14 +201,14 @@ ScriptEngineGetOperatorName(PSYMBOL OperatorSymbol, CHAR * BufferForName)
 
 /**
  * @brief Execute the script buffer
- * 
+ *
  * @param GuestRegs General purpose registers
  * @param ActionDetail Detail of the specific action
  * @param VariablesList List of core specific (and global) variable holders
  * @param CodeBuffer The script buffer to be executed
  * @param Indx Script Buffer index
  * @param ErrorOperator Error in operator
- * @return BOOL 
+ * @return BOOL
  */
 BOOL
 ScriptEngineExecute(PGUEST_REGS                    GuestRegs,

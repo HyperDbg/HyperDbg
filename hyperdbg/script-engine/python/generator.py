@@ -5,7 +5,7 @@ class Generator():
     def __init__(self): 
         self.SourceFile = open("..\\code\\parse-table.c", "w")
         self.HeaderFile = open("..\\header\\parse-table.h", "w")   
-        self.CommonHeaderFile = open("..\\..\\script-eval\\ScriptEngineCommonDefinitions.h", "w")
+        self.CommonHeaderFile = open("..\\..\\script-eval\\header\\ScriptEngineCommonDefinitions.h", "w")
         self.ll1 = LL1Parser(self.SourceFile, self.HeaderFile, self.CommonHeaderFile)
         self.lalr = LALR1Parser(self.SourceFile, self.HeaderFile)
 

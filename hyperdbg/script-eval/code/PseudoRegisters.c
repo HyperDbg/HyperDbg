@@ -18,8 +18,8 @@
 
 /**
  * @brief Implementation of $tid pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetTid()
@@ -35,8 +35,8 @@ ScriptEnginePseudoRegGetTid()
 
 /**
  * @brief Implementation of $core pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetCore()
@@ -52,8 +52,8 @@ ScriptEnginePseudoRegGetCore()
 
 /**
  * @brief Implementation of $pid pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetPid()
@@ -69,8 +69,8 @@ ScriptEnginePseudoRegGetPid()
 
 /**
  * @brief Implementation of $pname pseudo-register
- * 
- * @return CHAR* 
+ *
+ * @return CHAR*
  */
 CHAR *
 ScriptEnginePseudoRegGetPname()
@@ -118,8 +118,8 @@ ScriptEnginePseudoRegGetPname()
 
 /**
  * @brief Implementation of $proc pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetProc()
@@ -135,8 +135,8 @@ ScriptEnginePseudoRegGetProc()
 
 /**
  * @brief Implementation of $thread pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetThread()
@@ -152,8 +152,8 @@ ScriptEnginePseudoRegGetThread()
 
 /**
  * @brief Implementation of $peb pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetPeb()
@@ -283,8 +283,8 @@ ScriptEnginePseudoRegGetPeb()
 
 /**
  * @brief Implementation of $teb pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetTeb()
@@ -300,8 +300,8 @@ ScriptEnginePseudoRegGetTeb()
 
 /**
  * @brief Implementation of $ip pseudo-register
- * 
- * @return UINT64 
+ *
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetIp()
@@ -320,9 +320,9 @@ ScriptEnginePseudoRegGetIp()
 
 /**
  * @brief Implementation of $buffer pseudo-register
- * 
- * @param CorrespondingAction 
- * @return UINT64 
+ *
+ * @param CorrespondingAction
+ * @return UINT64
  */
 UINT64
 ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
@@ -336,5 +336,41 @@ ScriptEnginePseudoRegGetBuffer(UINT64 * CorrespondingAction)
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
     return ScriptEngineWrapperGetAddressOfReservedBuffer(CorrespondingAction);
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of $event_tag pseudo-register
+ * @param ActionBuffer
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEnginePseudoRegGetEventTag(PACTION_BUFFER ActionBuffer)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return ActionBuffer->Tag;
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
+/**
+ * @brief Implementation of $event_id pseudo-register
+ * @param ActionBuffer
+ *
+ * @return UINT64
+ */
+UINT64
+ScriptEnginePseudoRegGetEventId(PACTION_BUFFER ActionBuffer)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+    return NULL;
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+    return (ActionBuffer->Tag - DebuggerEventTagStartSeed);
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }
