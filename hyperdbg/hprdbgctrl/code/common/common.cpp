@@ -180,6 +180,33 @@ IsHexNotation(const string & s)
 }
 
 /**
+ * @brief check whether the string is decimal or not
+ *
+ * @param s
+ * @return BOOLEAN
+ */
+BOOLEAN
+IsDecimalNotation(const string & s)
+{
+    BOOLEAN IsAnyThing = FALSE;
+
+    for (auto & CptrChar : s)
+    {
+        IsAnyThing = TRUE;
+
+        if (!isdigit(CptrChar))
+        {
+            return FALSE;
+        }
+    }
+    if (IsAnyThing)
+    {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+/**
  * @brief converts hex to bytes
  *
  * @param hex
@@ -202,16 +229,18 @@ HexToBytes(const string & hex)
 
 /**
  * @brief check and convert string to a 64 bit unsigned integer and also
- *  check for special notations like 0x etc.
- * 
+ *  check for special notations like 0x, 0n, etc.
+ *
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
- * 
+ *
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
 ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 {
+    BOOLEAN IsDecimal = FALSE; // By default everything is hex
+
     if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
         TextToConvert.rfind("\\x", 0) == 0 ||
         TextToConvert.rfind("\\X", 0) == 0)
@@ -223,6 +252,19 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
     {
         TextToConvert = TextToConvert.erase(0, 1);
     }
+    else if (TextToConvert.rfind("0n", 0) == 0 || TextToConvert.rfind("0N", 0) == 0 ||
+             TextToConvert.rfind("\\n", 0) == 0 ||
+             TextToConvert.rfind("\\N", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+        IsDecimal     = TRUE;
+    }
+    else if (TextToConvert.rfind('n', 0) == 0 ||
+             TextToConvert.rfind('N', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+        IsDecimal     = TRUE;
+    }
 
     //
     // Remove '`' (if any)
@@ -230,26 +272,68 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
     TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
                         TextToConvert.end());
 
-    if (!IsHexNotation(TextToConvert))
+    if (IsDecimal)
     {
-        return FALSE;
+        if (!IsDecimalNotation(TextToConvert))
+        {
+            //
+            // Not decimal
+            //
+            return FALSE;
+        }
+        else
+        {
+            errno                                 = 0;
+            char *                       unparsed = NULL;
+            const char *                 s        = TextToConvert.c_str();
+            const unsigned long long int n        = strtoull(s, &unparsed, 10);
+
+            if (errno || (!n && s == unparsed))
+            {
+                // fflush(stdout);
+                // perror(s);
+                return FALSE;
+            }
+
+            *Result = n;
+            return TRUE;
+        }
     }
-    const char * Text         = TextToConvert.c_str();
-    errno                     = 0;
-    unsigned long long result = strtoull(Text, NULL, 16);
-
-    *Result = result;
-
-    if (errno == EINVAL)
+    else
     {
-        return FALSE;
-    }
-    else if (errno == ERANGE)
-    {
-        return TRUE;
-    }
+        //
+        // It's not decimal
+        //
+        if (!IsHexNotation(TextToConvert))
+        {
+            //
+            // Not decimal and not hex!
+            //
+            return FALSE;
+        }
+        else
+        {
+            //
+            // It's a hex number
+            //
+            const char * Text         = TextToConvert.c_str();
+            errno                     = 0;
+            unsigned long long result = strtoull(Text, NULL, 16);
 
-    return TRUE;
+            *Result = result;
+
+            if (errno == EINVAL)
+            {
+                return FALSE;
+            }
+            else if (errno == ERANGE)
+            {
+                return TRUE;
+            }
+
+            return TRUE;
+        }
+    }
 }
 
 /**
@@ -262,6 +346,8 @@ ConvertStringToUInt64(string TextToConvert, PUINT64 Result)
 BOOLEAN
 ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
 {
+    BOOLEAN IsDecimal = FALSE; // By default everything is hex
+
     if (TextToConvert.rfind("0x", 0) == 0 || TextToConvert.rfind("0X", 0) == 0 ||
         TextToConvert.rfind("\\x", 0) == 0 ||
         TextToConvert.rfind("\\X", 0) == 0)
@@ -273,23 +359,80 @@ ConvertStringToUInt32(string TextToConvert, PUINT32 Result)
     {
         TextToConvert = TextToConvert.erase(0, 1);
     }
+    else if (TextToConvert.rfind("0n", 0) == 0 || TextToConvert.rfind("0N", 0) == 0 ||
+             TextToConvert.rfind("\\n", 0) == 0 ||
+             TextToConvert.rfind("\\N", 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 2);
+        IsDecimal     = TRUE;
+    }
+    else if (TextToConvert.rfind('n', 0) == 0 ||
+             TextToConvert.rfind('N', 0) == 0)
+    {
+        TextToConvert = TextToConvert.erase(0, 1);
+        IsDecimal     = TRUE;
+    }
 
     TextToConvert.erase(remove(TextToConvert.begin(), TextToConvert.end(), '`'),
                         TextToConvert.end());
 
-    UINT32 TempResult;
-    if (!IsHexNotation(TextToConvert))
+    if (IsDecimal)
     {
-        return FALSE;
+        if (!IsDecimalNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+        else
+        {
+            try
+            {
+                int i   = std::stoi(TextToConvert);
+                *Result = i;
+                return TRUE;
+            }
+            catch (std::invalid_argument const & e)
+            {
+                //
+                // Bad input: std::invalid_argument thrown
+                //
+                return FALSE;
+            }
+            catch (std::out_of_range const & e)
+            {
+                //
+                // Integer overflow: std::out_of_range thrown
+                //
+                return FALSE;
+            }
+
+            return FALSE;
+        }
     }
-    TempResult = stoi(TextToConvert, nullptr, 16);
+    else
+    {
+        //
+        // It's not decimal
+        //
+        if (!IsHexNotation(TextToConvert))
+        {
+            return FALSE;
+        }
+        else
+        {
+            //
+            // It's hex numer
+            //
+            UINT32 TempResult;
+            TempResult = stoi(TextToConvert, nullptr, 16);
 
-    //
-    // Apply the results
-    //
-    *Result = TempResult;
+            //
+            // Apply the results
+            //
+            *Result = TempResult;
 
-    return TRUE;
+            return TRUE;
+        }
+    }
 }
 
 /**
@@ -468,7 +611,7 @@ RemoveSpaces(std::string str)
 
 /**
  * @brief check if a file exist or not (ASCII)
- * 
+ *
  * @param FileName path of file
  * @return BOOLEAN shows whether the file exist or not
  */
@@ -481,7 +624,7 @@ IsFileExistA(const char * FileName)
 
 /**
  * @brief check if a file exist or not (wide-char)
- * 
+ *
  * @param FileName path of file
  * @return BOOLEAN shows whether the file exist or not
  */
@@ -493,7 +636,7 @@ IsFileExistW(const wchar_t * FileName)
 }
 
 /**
- * @brief Is empty character 
+ * @brief Is empty character
  *
  * @param Text
  */
@@ -703,9 +846,9 @@ FindCaseInsensitiveW(std::wstring Input, std::wstring ToSearch, size_t Pos)
 /**
  * @brief Convert vector<string> to char*
  * @details use it like :
- *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);  
+ *  std::transform(vs.begin(), vs.end(), std::back_inserter(vc), ConvertStringVectorToCharPointerArray);
  *  from: https://stackoverflow.com/questions/7048888/stdvectorstdstring-to-char-array
- * 
+ *
  * @param Input
  * @param ToSearch
  * @param Pos
@@ -721,7 +864,7 @@ ConvertStringVectorToCharPointerArray(const std::string & s)
 
 /**
  * @brief Get cpuid results
- * 
+ *
  * @param UINT32 Func
  * @param UINT32 SubFunc
  * @param int * CpuInfo
@@ -735,7 +878,7 @@ GetCpuid(UINT32 Func, UINT32 SubFunc, int * CpuInfo)
 
 /**
  * @brief Get virtual address width for x86 processors
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -790,11 +933,11 @@ CheckCpuSupportRtm()
  * @brief Checks if the address is canonical based on x86 processor's
  * virtual address width or not
  * @param VAddr virtual address to check
- * @param IsKernelAddress Filled to show whether the address is a 
+ * @param IsKernelAddress Filled to show whether the address is a
  * kernel address or user-address
- * @brief IsKernelAddress wouldn't check for page attributes, it 
+ * @brief IsKernelAddress wouldn't check for page attributes, it
  * just checks the address convention in Windows
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -845,9 +988,9 @@ CheckCanonicalVirtualAddress(UINT64 VAddr, PBOOLEAN IsKernelAddress)
 }
 
 /**
- * @brief This function checks whether the address is valid or not using 
+ * @brief This function checks whether the address is valid or not using
  * Intel TSX
- * 
+ *
  * @param Address Address to check
  *
  * @param UINT32 ProcId
@@ -888,7 +1031,7 @@ CheckIfAddressIsValidUsingTsx(UINT64 Address)
  * @brief Check the safety to access the memory
  * @param TargetAddress
  * @param Size
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
