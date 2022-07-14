@@ -5,11 +5,19 @@
 // Imports
 //
 extern "C" {
+
+//
+// VMM Module
+//
 __declspec(dllimport) int HyperdbgLoadVmm();
-__declspec(dllimport) int HyperdbgUnload();
+__declspec(dllimport) int HyperdbgUnloadVmm();
 __declspec(dllimport) int HyperdbgInstallVmmDriver();
-__declspec(dllimport) int HyperdbgUninstallDriver();
-__declspec(dllimport) int HyperdbgStopDriver();
+__declspec(dllimport) int HyperdbgUninstallVmmDriver();
+__declspec(dllimport) int HyperdbgStopVmmDriver();
+
+//
+// General imports
+//
 __declspec(dllimport) int HyperdbgInterpreter(char * Command);
 __declspec(dllimport) void HyperdbgShowSignature();
 __declspec(dllimport) void HyperdbgSetTextMessageCallback(Callback handler);

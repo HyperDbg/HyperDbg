@@ -41,10 +41,10 @@ typedef RFLAGS * PRFLAGS;
 //////////////////////////////////////////////////
 
 /**
- * @brief name of HyperDbg driver
+ * @brief name of HyperDbg's VMM driver
  *
  */
-#define DRIVER_NAME "hprdbghv"
+#define VMM_DRIVER_NAME "hprdbghv"
 
 //////////////////////////////////////////////////
 //				   Test Cases                   //

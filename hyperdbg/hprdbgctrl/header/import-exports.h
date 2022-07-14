@@ -19,14 +19,22 @@
 // Exports
 //
 extern "C" {
+
 extern bool inline AsmVmxSupportDetection();
 
-__declspec(dllexport) int HyperdbgInterpreter(char * Command);
+//
+// VMM Module
+//
 __declspec(dllexport) int HyperdbgLoadVmm();
-__declspec(dllexport) int HyperdbgUnload();
+__declspec(dllexport) int HyperdbgUnloadVmm();
 __declspec(dllexport) int HyperdbgInstallVmmDriver();
-__declspec(dllexport) int HyperdbgUninstallDriver();
-__declspec(dllexport) int HyperdbgStopDriver();
+__declspec(dllexport) int HyperdbgUninstallVmmDriver();
+__declspec(dllexport) int HyperdbgStopVmmDriver();
+
+//
+// General exports
+//
+__declspec(dllexport) int HyperdbgInterpreter(char * Command);
 __declspec(dllexport) void HyperdbgShowSignature();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
 __declspec(dllexport) void HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs);

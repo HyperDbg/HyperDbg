@@ -478,7 +478,7 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     // Setup path name to driver file.
     //
     if (FAILED(
-            StringCbCat(DriverLocation, BufferLength, "\\" DRIVER_NAME ".sys")))
+            StringCbCat(DriverLocation, BufferLength, "\\" VMM_DRIVER_NAME ".sys")))
     {
         return FALSE;
     }
@@ -489,7 +489,7 @@ SetupDriverName(_Inout_updates_bytes_all_(BufferLength) PCHAR DriverLocation,
     if ((FileHandle = CreateFile(DriverLocation, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) ==
         INVALID_HANDLE_VALUE)
     {
-        ShowMessages("%s.sys is not loaded.\n", DRIVER_NAME);
+        ShowMessages("%s.sys is not loaded.\n", VMM_DRIVER_NAME);
 
         //
         // Indicate failure.

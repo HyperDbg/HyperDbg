@@ -2354,7 +2354,7 @@ KdCloseConnection()
     {
         if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
         {
-            HyperdbgUnload();
+            HyperdbgUnloadVmm();
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
