@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/HyperDbgCtrlImports.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"
 
 using namespace std;
 

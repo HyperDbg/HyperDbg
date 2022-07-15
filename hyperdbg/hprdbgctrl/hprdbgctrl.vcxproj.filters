@@ -83,7 +83,7 @@
     <ClInclude Include="header\debugger.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="header\import-exports.h">
+    <ClInclude Include="header\exports.h">
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="header\forwarding.h">

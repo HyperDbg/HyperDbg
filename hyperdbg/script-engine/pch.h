@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "SDK/Imports/HyperDbgSymImports.h"
 #include "common.h"
 #include "scanner.h"
 #include "globals.h"

@@ -4,7 +4,9 @@
 // Header file of HPRDBGCTRL
 // Imports
 //
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 //
 // VMM Module
@@ -24,4 +26,7 @@ __declspec(dllimport) void HyperDbgSetTextMessageCallback(Callback handler);
 __declspec(dllimport) void HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs);
 __declspec(dllimport) bool HyperDbgContinuePreviousCommand();
 __declspec(dllimport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
+
+#ifdef __cplusplus
 }
+#endif
