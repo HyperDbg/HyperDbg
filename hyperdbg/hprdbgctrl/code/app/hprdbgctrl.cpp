@@ -477,13 +477,13 @@ ThreadFunc(void * data)
 #endif
 
 /**
- * @brief Install the driver
+ * @brief Install VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgInstallVmmDriver()
+HyperDbgInstallVmmDriver()
 {
     //
     // The driver is not started yet so let us the install driver
@@ -540,7 +540,7 @@ HyperdbgStopDriver(LPCTSTR DriverName)
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgStopVmmDriver()
+HyperDbgStopVmmDriver()
 {
     return HyperdbgStopDriver(VMM_DRIVER_NAME);
 }
@@ -575,7 +575,7 @@ HyperdbgUninstallDriver(LPCTSTR DriverName)
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgUninstallVmmDriver()
+HyperDbgUninstallVmmDriver()
 {
     return HyperdbgUninstallDriver(VMM_DRIVER_NAME);
 }
@@ -587,7 +587,7 @@ HyperdbgUninstallVmmDriver()
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgLoadVmm()
+HyperDbgLoadVmm()
 {
     string CpuID;
     DWORD  ErrorNum;
@@ -691,7 +691,7 @@ HyperdbgLoadVmm()
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgUnloadVmm()
+HyperDbgUnloadVmm()
 {
     BOOL Status;
 

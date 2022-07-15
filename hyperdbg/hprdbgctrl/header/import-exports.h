@@ -25,20 +25,20 @@ extern bool inline AsmVmxSupportDetection();
 //
 // VMM Module
 //
-__declspec(dllexport) int HyperdbgLoadVmm();
-__declspec(dllexport) int HyperdbgUnloadVmm();
-__declspec(dllexport) int HyperdbgInstallVmmDriver();
-__declspec(dllexport) int HyperdbgUninstallVmmDriver();
-__declspec(dllexport) int HyperdbgStopVmmDriver();
+__declspec(dllexport) int HyperDbgLoadVmm();
+__declspec(dllexport) int HyperDbgUnloadVmm();
+__declspec(dllexport) int HyperDbgInstallVmmDriver();
+__declspec(dllexport) int HyperDbgUninstallVmmDriver();
+__declspec(dllexport) int HyperDbgStopVmmDriver();
 
 //
 // General exports
 //
-__declspec(dllexport) int HyperdbgInterpreter(char * Command);
-__declspec(dllexport) void HyperdbgShowSignature();
+__declspec(dllexport) int HyperDbgInterpreter(char * Command);
+__declspec(dllexport) void HyperDbgShowSignature();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
 __declspec(dllexport) void HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs);
-__declspec(dllexport) bool HyperdbgContinuePreviousCommand();
+__declspec(dllexport) bool HyperDbgContinuePreviousCommand();
 __declspec(dllexport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
 }
 
@@ -55,10 +55,12 @@ __declspec(dllimport) void RemoveSymbolBuffer(PSYMBOL_BUFFER SymbolBuffer);
 //
 // pdb parser
 //
-__declspec(dllimport) UINT64
-    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllimport) VOID
     ScriptEngineSetTextMessageCallback(PVOID Handler);
+__declspec(dllimport) VOID
+    ScriptEngineSymbolAbortLoading();
+__declspec(dllimport) UINT64
+    ScriptEngineConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound);
 __declspec(dllimport) UINT32
     ScriptEngineLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName);
 __declspec(dllimport) UINT32
@@ -81,6 +83,4 @@ __declspec(dllimport) BOOLEAN
     ScriptEngineSymbolInitLoad(PVOID BufferToStoreDetails, UINT32 StoredLength, BOOLEAN DownloadIfAvailable, const char * SymbolPath, BOOLEAN IsSilentLoad);
 __declspec(dllimport) BOOLEAN
     ScriptEngineShowDataBasedOnSymbolTypes(const char * TypeName, UINT64 Address, BOOLEAN IsStruct, PVOID BufferAddress, const char * AdditionalParameters);
-__declspec(dllimport) VOID
-    ScriptEngineSymbolAbortLoading();
 }

@@ -82,7 +82,7 @@ RemoteConnectionListen(PCSTR Port)
         //
         // Execute the command
         //
-        int CommandExecutionResult = HyperdbgInterpreter(recvbuf);
+        int CommandExecutionResult = HyperDbgInterpreter(recvbuf);
 
         //
         // Send end of buffer
@@ -226,7 +226,7 @@ RemoteConnectionThreadListeningToDebuggee(LPVOID lpParam)
     //
     // Show the signature
     //
-    HyperdbgShowSignature();
+    HyperDbgShowSignature();
 
     return 0;
 }

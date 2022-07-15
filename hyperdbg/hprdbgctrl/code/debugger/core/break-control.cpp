@@ -133,7 +133,7 @@ BreakController(DWORD CtrlType)
                     //
                     // Show the signature of HyperDbg
                     //
-                    HyperdbgShowSignature();
+                    HyperDbgShowSignature();
 
                     if (g_ActiveProcessDebuggingState.IsActive)
                     {

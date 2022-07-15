@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "SDK/HyperDbgSdk.h"
-#include "SDK/HyperDbgUserExports.h"
+#include "SDK/HyperDbgCtrlImports.h"
 
 using namespace std;
 
@@ -80,7 +80,7 @@ main(int argc, char * argv[])
 
     while (!ExitFromDebugger)
     {
-        HyperdbgShowSignature();
+        HyperDbgShowSignature();
 
         string CurrentCommand = "";
 
@@ -147,7 +147,7 @@ main(int argc, char * argv[])
         }
 
         if (!CurrentCommand.compare("") &&
-            HyperdbgContinuePreviousCommand())
+            HyperDbgContinuePreviousCommand())
         {
             //
             // Retry the previous command
@@ -162,7 +162,7 @@ main(int argc, char * argv[])
             PreviousCommand = CurrentCommand;
         }
 
-        int CommandExecutionResult = HyperdbgInterpreter((char *)CurrentCommand.c_str());
+        int CommandExecutionResult = HyperDbgInterpreter((char *)CurrentCommand.c_str());
 
         //
         // if the debugger encounters an exit state then the return will be 1

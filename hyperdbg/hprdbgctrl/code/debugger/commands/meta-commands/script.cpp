@@ -84,11 +84,11 @@ CommandScriptRunCommand(std::string Input, vector<string> PathAndArgs)
     //
     // Show current running command
     //
-    HyperdbgShowSignature();
+    HyperDbgShowSignature();
 
     ShowMessages("%s\n", LineContent);
 
-    CommandExecutionResult = HyperdbgInterpreter(LineContent);
+    CommandExecutionResult = HyperDbgInterpreter(LineContent);
 
     ShowMessages("\n");
 

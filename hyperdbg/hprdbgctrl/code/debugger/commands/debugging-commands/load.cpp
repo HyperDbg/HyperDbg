@@ -67,7 +67,7 @@ CommandLoadVmmModule()
     //
     // Install vmm driver
     //
-    if (HyperdbgInstallVmmDriver() == 1)
+    if (HyperDbgInstallVmmDriver() == 1)
     {
         return FALSE;
     }
@@ -77,7 +77,7 @@ CommandLoadVmmModule()
     //
     g_IsDriverLoadedSuccessfully = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    if (HyperdbgLoadVmm() == 1)
+    if (HyperDbgLoadVmm() == 1)
     {
         //
         // No need to handle anymore

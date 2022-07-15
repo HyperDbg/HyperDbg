@@ -52,7 +52,7 @@ CommandExit(vector<string> SplittedCommand, string Command)
     //
     if (g_DeviceHandle)
     {
-        HyperdbgUnloadVmm();
+        HyperDbgUnloadVmm();
     }
 
     exit(0);

@@ -35,7 +35,7 @@ CommandTestHelp()
 }
 
 /**
- * @brief Send an IOCTL to the kernel to run the 
+ * @brief Send an IOCTL to the kernel to run the
  *
  * @return BOOLEAN
  */
@@ -178,7 +178,7 @@ WaitForResponse:
         // It's a command as it starts with "cmd:"
         //
         ShowMessages("command is : %s\n", &Buffer[4]);
-        HyperdbgInterpreter(&Buffer[4]);
+        HyperDbgInterpreter(&Buffer[4]);
         goto WaitForResponse;
     }
     else

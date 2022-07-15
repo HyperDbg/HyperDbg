@@ -2131,9 +2131,9 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
         //
         // Test should be removed
         //
-        // HyperdbgInterpreter("!syscall script { print(@rax); }");
-        // HyperdbgInterpreter("!epthook fffff801`639b1030 script { print(@rax);
-        // }"); HyperdbgInterpreter("!msrwrite script { print(@rax); }");
+        // HyperDbgInterpreter("!syscall script { print(@rax); }");
+        // HyperDbgInterpreter("!epthook fffff801`639b1030 script { print(@rax);
+        // }"); HyperDbgInterpreter("!msrwrite script { print(@rax); }");
         //
 
         //
@@ -2354,7 +2354,7 @@ KdCloseConnection()
     {
         if (g_IsConnectedToHyperDbgLocally && g_IsDebuggerModulesLoaded)
         {
-            HyperdbgUnloadVmm();
+            HyperDbgUnloadVmm();
         }
     }
     else if (g_IsSerialConnectedToRemoteDebuggee)
@@ -2579,7 +2579,7 @@ KdHandleUserInputInDebuggee(DEBUGGEE_USER_INPUT_PACKET * Descriptor)
     //
     // Run the command
     //
-    HyperdbgInterpreter(Input);
+    HyperDbgInterpreter(Input);
 
     //
     // Check if it needs to send a signal to indicate that the execution of
