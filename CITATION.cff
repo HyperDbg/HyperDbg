@@ -23,6 +23,6 @@ authors:
   given-names: "Michael"
 title: "HyperDbg: Reinventing Hardware-Assisted Debugging"
 version: 1.0.0
-doi: 10.20944/preprints202205.0416.v1
-date-released: 2022-05-31
-url: "https://www.preprints.org/manuscript/202205.0416/v1"
+doi: 10.48550/arXiv.2207.05676
+date-released: 2022-05-29
+url: "https://arxiv.org/abs/2207.05676"
