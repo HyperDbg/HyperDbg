@@ -42,10 +42,9 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 ```
 @article{karvandi2022hyperdbg,
   title={HyperDbg: Reinventing Hardware-Assisted Debugging},
-  author = {Karvandi, Mohammad Sina and Gholamrezaei, MohammadHosein and Khalaj Monfared , Saleh and Medi , Soroush and Abbassi, Behrooz and Amini, Ali and Mortazavi , Reza and Gorgin , Saeid and Rahmati , Dara and Schwarz, Michael},
-  year={2022},
-  doi = {10.20944/preprints202205.0416.v1},
-  publisher={Preprints}
+  author={Karvandi, Mohammad Sina and Gholamrezaei, MohammadHossein and Monfared, Saleh Khalaj and Medi, Suorush and Abbassi, Behrooz and Amini, Ali and Mortazavi, Reza and Gorgin, Saeid and Rahmati, Dara and Schwarz, Michael},
+  journal={arXiv preprint arXiv:2207.05676},
+  year={2022}
 }
 ```
 
