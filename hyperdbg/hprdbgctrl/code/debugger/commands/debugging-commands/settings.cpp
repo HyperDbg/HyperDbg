@@ -50,6 +50,220 @@ CommandSettingsHelp()
 }
 
 /**
+ * @brief Gets the setting values from config file
+ *
+ * @param OptionName
+ * @param OptionValue
+ * @return BOOLEAN Shows if the settings is available or not
+ */
+BOOLEAN
+CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & OptionValue)
+{
+    inipp::Ini<char> Ini;
+    WCHAR            ConfigPath[MAX_PATH] = {0};
+    std::string      OptionValueFromFile;
+
+    //
+    // Get config file path
+    //
+    GetConfigFilePath(ConfigPath);
+
+    if (!IsFileExistW(ConfigPath))
+    {
+        return FALSE;
+    }
+
+    //
+    // Open the file
+    //
+    ifstream Is(ConfigPath);
+
+    //
+    // Read config file
+    //
+    Ini.parse(Is);
+
+    //
+    // Show config file
+    //
+    // Ini.generate(std::cout);
+
+    inipp::get_value(Ini.sections["DEFAULT"], OptionName, OptionValueFromFile);
+
+    Is.close();
+
+    if (!OptionValueFromFile.empty())
+    {
+        OptionValue = OptionValueFromFile;
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+/**
+ * @brief Sets the setting values from config file
+ *
+ * @param OptionName
+ * @param OptionValue
+ *
+ * @return VOID
+ */
+VOID
+CommandSettingsSetValueFromConfigFile(std::string OptionName, std::string OptionValue)
+{
+    inipp::Ini<char> Ini;
+    WCHAR            ConfigPath[MAX_PATH] = {0};
+
+    //
+    // Get config file path
+    //
+    GetConfigFilePath(ConfigPath);
+
+    ifstream Is(ConfigPath);
+
+    //
+    // Read config file
+    //
+    Ini.parse(Is);
+
+    Is.close();
+
+    //
+    // Save the config
+    //
+    Ini.sections["DEFAULT"][OptionName] = OptionValue.c_str();
+    Ini.interpolate();
+
+    //
+    // Test, show the config
+    //
+    // Ini.generate(std::cout);
+
+    //
+    // Save the config
+    //
+    ofstream Os(ConfigPath);
+
+    Ini.generate(Os);
+
+    Os.close();
+}
+
+/**
+ * @brief Loads default settings values from config file
+ *
+ * @return VOID
+ */
+VOID
+CommandSettingsLoadDefaultValuesFromConfigFile()
+{
+    string OptionValue;
+
+    //
+    // *** Set default configurations ***
+    //
+
+    //
+    // Set the assembly syntax
+    //
+    if (CommandSettingsGetValueFromConfigFile("AsmSyntax", OptionValue))
+    {
+        //
+        // The user tries to set a value as the syntax
+        //
+        if (!OptionValue.compare("intel"))
+        {
+            g_DisassemblerSyntax = 1;
+        }
+        else if (!OptionValue.compare("att") ||
+                 !OptionValue.compare("at&t"))
+        {
+            g_DisassemblerSyntax = 2;
+        }
+        else if (!OptionValue.compare("masm"))
+        {
+            g_DisassemblerSyntax = 3;
+        }
+        else
+        {
+            //
+            // Sth is incorrect
+            //
+            ShowMessages("err, incorrect assembly syntax settings\n");
+        }
+    }
+
+    //
+    // Set the auto unpause
+    //
+    if (CommandSettingsGetValueFromConfigFile("AutoUnpause", OptionValue))
+    {
+        if (!OptionValue.compare("on"))
+        {
+            g_AutoUnpause = TRUE;
+        }
+        else if (!OptionValue.compare("off"))
+        {
+            g_AutoUnpause = FALSE;
+        }
+        else
+        {
+            //
+            // Sth is incorrect
+            //
+            ShowMessages("err, incorrect auto unpause settings\n");
+        }
+    }
+
+    //
+    // Set the auto flush
+    //
+    if (CommandSettingsGetValueFromConfigFile("AutoFlush", OptionValue))
+    {
+        if (!OptionValue.compare("on"))
+        {
+            g_AutoFlush = TRUE;
+        }
+        else if (!OptionValue.compare("off"))
+        {
+            g_AutoFlush = FALSE;
+        }
+        else
+        {
+            //
+            // Sth is incorrect
+            //
+            ShowMessages("err, incorrect auto flush settings\n");
+        }
+    }
+
+    //
+    // Set the address conversion
+    //
+    if (CommandSettingsGetValueFromConfigFile("AddrConv", OptionValue))
+    {
+        if (!OptionValue.compare("on"))
+        {
+            g_AddressConversion = TRUE;
+        }
+        else if (!OptionValue.compare("off"))
+        {
+            g_AddressConversion = FALSE;
+        }
+        else
+        {
+            //
+            // Sth is incorrect
+            //
+            ShowMessages("err, incorrect address conversion settings\n");
+        }
+    }
+}
+
+/**
  * @brief set the address conversion enabled and disabled
  * and query the status of this mode
  *
@@ -81,11 +295,15 @@ CommandSettingsAddressConversion(vector<string> SplittedCommand)
         if (!SplittedCommand.at(2).compare("on"))
         {
             g_AddressConversion = TRUE;
+            CommandSettingsSetValueFromConfigFile("AddrConv", "on");
+
             ShowMessages("set address conversion to enabled\n");
         }
         else if (!SplittedCommand.at(2).compare("off"))
         {
             g_AddressConversion = FALSE;
+            CommandSettingsSetValueFromConfigFile("AddrConv", "off");
+
             ShowMessages("set address conversion to disabled\n");
         }
         else
@@ -141,11 +359,15 @@ CommandSettingsAutoFlush(vector<string> SplittedCommand)
         if (!SplittedCommand.at(2).compare("on"))
         {
             g_AutoFlush = TRUE;
+            CommandSettingsSetValueFromConfigFile("AutoFlush", "on");
+
             ShowMessages("set auto-flush to enabled\n");
         }
         else if (!SplittedCommand.at(2).compare("off"))
         {
             g_AutoFlush = FALSE;
+            CommandSettingsSetValueFromConfigFile("AutoFlush", "off");
+
             ShowMessages("set auto-flush to disabled\n");
         }
         else
@@ -200,11 +422,15 @@ CommandSettingsAutoUpause(vector<string> SplittedCommand)
         if (!SplittedCommand.at(2).compare("on"))
         {
             g_AutoUnpause = TRUE;
+            CommandSettingsSetValueFromConfigFile("AutoUnpause", "on");
+
             ShowMessages("set auto-unpause to enabled\n");
         }
         else if (!SplittedCommand.at(2).compare("off"))
         {
             g_AutoUnpause = FALSE;
+            CommandSettingsSetValueFromConfigFile("AutoUnpause", "off");
+
             ShowMessages("set auto-unpause to disabled\n");
         }
         else
@@ -267,17 +493,23 @@ CommandSettingsSyntax(vector<string> SplittedCommand)
         if (!SplittedCommand.at(2).compare("intel"))
         {
             g_DisassemblerSyntax = 1;
+            CommandSettingsSetValueFromConfigFile("AsmSyntax", "intel");
+
             ShowMessages("set syntax to intel\n");
         }
         else if (!SplittedCommand.at(2).compare("att") ||
                  !SplittedCommand.at(2).compare("at&t"))
         {
             g_DisassemblerSyntax = 2;
+            CommandSettingsSetValueFromConfigFile("AsmSyntax", "att");
+
             ShowMessages("set syntax to at&t\n");
         }
         else if (!SplittedCommand.at(2).compare("masm"))
         {
             g_DisassemblerSyntax = 3;
+            CommandSettingsSetValueFromConfigFile("AsmSyntax", "masm");
+
             ShowMessages("set syntax to masm\n");
         }
         else

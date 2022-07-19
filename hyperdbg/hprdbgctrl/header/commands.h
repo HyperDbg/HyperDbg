@@ -21,6 +21,19 @@ using namespace std;
 extern HANDLE g_DeviceHandle;
 
 //////////////////////////////////////////////////
+//                  Settings                    //
+//////////////////////////////////////////////////
+
+VOID
+CommandSettingsLoadDefaultValuesFromConfigFile();
+
+VOID
+CommandSettingsSetValueFromConfigFile(std::string OptionName, std::string OptionValue);
+
+BOOLEAN
+CommandSettingsGetValueFromConfigFile(std::string OptionName, std::string & OptionValue);
+
+//////////////////////////////////////////////////
 //                  Functions                   //
 //////////////////////////////////////////////////
 

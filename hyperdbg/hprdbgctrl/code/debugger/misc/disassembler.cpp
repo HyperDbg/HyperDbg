@@ -218,7 +218,7 @@ DisassembleBuffer(ZydisDecoder * decoder,
             //
             // Get the result of conditional jump, we re-format the instruction
             // here because the user might have changed the configuration of zydis
-            // using .settings command so it's better to re-format with default
+            // using the "settings" command so it's better to re-format with default
             // configuration
             //
             RFLAGS TempRflags = {0};

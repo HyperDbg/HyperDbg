@@ -109,7 +109,7 @@ You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automat
 - Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
 - Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
 - Petr Benes (<a href="https://twitter.com/PetrBenes">@PetrBenes</a>) for <a href="https://github.com/ia32-doc/ia32-doc">ia32-doc</a>, <a href="https://github.com/wbenny/pdbex">pdbex</a>
-- Process Hacker Team for <a href="https://github.com/processhacker/phnt">phnt</a>  
+- Process Hacker Team (<a href="https://twitter.com/processhacker">@ProcessHacker</a>) for <a href="https://github.com/processhacker/phnt">phnt</a>  
 
 ## Contributing
 Contributing to HyperDbg is super appreciated. We have made a list of potential [tasks](https://github.com/HyperDbg/HyperDbg/blob/master/CONTRIBUTING.md#things-to-work-on) that you might be interested in contributing towards.

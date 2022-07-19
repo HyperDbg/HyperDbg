@@ -27,8 +27,8 @@ using namespace std;
 
 /**
  * @brief Initial load of symbols (for previously download symbols)
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 SymbolInitialReload()
@@ -43,8 +43,8 @@ SymbolInitialReload()
 /**
  * @brief Locally reload the symbol table
  * @param UserProcessId
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 SymbolLocalReload(UINT32 UserProcessId)
@@ -63,8 +63,8 @@ SymbolLocalReload(UINT32 UserProcessId)
  * @brief Initial and send the results of serial for the debugger
  * in the case of debugger mode
  * @param UserProcessId
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId)
@@ -82,7 +82,7 @@ SymbolPrepareDebuggerWithSymbolInfo(UINT32 UserProcessId)
  * @param ModuleName
  * @param ObjectName
  * @param ObjectSize
- * 
+ *
  * @return VOID
  */
 VOID
@@ -132,7 +132,7 @@ SymbolCreateDisassemblerMapCallback(UINT64       Address,
 
 /**
  * @brief Update (or create) symbol map for the disassembler
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -155,7 +155,7 @@ SymbolCreateDisassemblerSymbolMap()
  * @brief shows the functions' name for the disassembler
  * @param Address
  * @param UsedBaseAddress
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -255,9 +255,9 @@ SymbolShowFunctionNameBasedOnAddress(UINT64 Address, PUINT64 UsedBaseAddress)
 
 /**
  * @brief Build and show symbol table details
- * @param BuildLocalSymTable Should this function call to build local symbol 
+ * @param BuildLocalSymTable Should this function call to build local symbol
  * or the symbols are from a remote debuggee in debugger mode
- * 
+ *
  * @return VOID
  */
 VOID
@@ -289,51 +289,22 @@ SymbolBuildAndShowSymbolTable()
  * @brief Load or download symbols
  * @param IsDownload Download from remote server if not available locally
  * @param SilentLoad Load without any message
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 {
-    WCHAR            ConfigPath[MAX_PATH] = {0};
-    inipp::Ini<char> Ini;
-    string           SymbolServer = "";
-    BOOLEAN          Result       = FALSE;
+    string  SymbolServer;
+    BOOLEAN Result = FALSE;
 
     //
     // *** Read symbol path/server from config file ***
     //
 
-    //
-    // Get config file path
-    //
-    GetConfigFilePath(ConfigPath);
-
-    if (!IsFileExistW(ConfigPath))
+    if (!CommandSettingsGetValueFromConfigFile("SymbolServer", SymbolServer))
     {
         ShowMessages("please configure the symbol path (use '.help .sympath' for more information)\n");
-        return FALSE;
-    }
-
-    ifstream Is(ConfigPath);
-
-    //
-    // Read config file
-    //
-    Ini.parse(Is);
-
-    //
-    // Show config file
-    //
-    // Ini.generate(std::cout);
-
-    inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
-
-    Is.close();
-
-    if (SymbolServer.empty())
-    {
-        ShowMessages("err, invalid config for symbol server/path\n");
         return FALSE;
     }
 
@@ -376,10 +347,10 @@ SymbolLoadOrDownloadSymbols(BOOLEAN IsDownload, BOOLEAN SilentLoad)
 /**
  * @brief check and convert string to a 64 bit unsigned interger and also
  *  check for symbol object names and evaluate expressions
- * 
+ *
  * @param TextToConvert the target string
  * @param Result result will be save to the pointer
- * 
+ *
  * @return BOOLEAN shows whether the conversion was successful or not
  */
 BOOLEAN
@@ -452,7 +423,7 @@ SymbolConvertNameOrExprToAddress(const string & TextToConvert, PUINT64 Result)
 
 /**
  * @brief Delete and free structures and variables related to the symbols
- * 
+ *
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
@@ -476,14 +447,14 @@ SymbolDeleteSymTable()
 /**
  * @brief make the initial packet required for symbol server
  * or reload packet
- * 
+ *
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
  * @param UserProcessId Which user mode process to get its modules
  * @param SendOverSerial Shows whether the packet should be sent to the debugger
  * over the serial or not
- * 
+ *
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
@@ -758,7 +729,7 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
             // For logging purpose
             //
 
-            /* 
+            /*
             ShowMessages("%016llx\t%016llx\t%ws\n",
                          Modules[i].BaseAddress,
                          Modules[i].Entrypoint,
@@ -939,10 +910,10 @@ SymbolBuildSymbolTable(PMODULE_SYMBOL_DETAIL * BufferToStoreDetails,
 /**
  * @brief Allocate (build) and update the symbol table whenever a debuggee is attached
  * on the debugger mode
- * 
- * @param SymbolDetail Pointer to a buffer that was received as the single 
+ *
+ * @param SymbolDetail Pointer to a buffer that was received as the single
  * symbol info
- * 
+ *
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
@@ -1006,7 +977,7 @@ SymbolBuildAndUpdateSymbolTable(PMODULE_SYMBOL_DETAIL SymbolDetail)
 /**
  * @brief Update the symbol table from remote debuggee in debugger mode
  * @param ProcessId
- * 
+ *
  * @return BOOLEAN shows whether the operation was successful or not
  */
 BOOLEAN
