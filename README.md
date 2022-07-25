@@ -32,7 +32,7 @@ You can download the latest compiled binary files from **[releases](https://gith
 ```
 git clone --recursive https://github.com/HyperDbg/HyperDbg.git
 ```
-Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see the **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information, or if you previously used other native debuggers like GDB, LLDB, or Windbg, you could see the [command map](https://hyperdbg.github.io/commands-map).
+Please visit **[Build & Install](https://docs.hyperdbg.org/getting-started/build-and-install)** and **[Quick Start](https://docs.hyperdbg.org/getting-started/quick-start)** for a detailed explanation of how to start with **HyperDbg**. You can also see the **[FAQ](https://docs.hyperdbg.org/getting-started/faq)** for more information, or if you previously used other native debuggers like GDB, LLDB, or WinDbg, you could see the [command map](https://hyperdbg.github.io/commands-map).
 
 ## Publications
 
@@ -49,7 +49,7 @@ In case you use one of **HyperDbg**'s components in your work, please consider c
 }
 ```
 
-You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo.
+You can also read [this article](https://research.hyperdbg.org/debugger/kernel-debugger-design.html) as it describes the overall architecture, technical difficulties, design decisions, and internals of HyperDbg Debugger, and [this article](https://research.hyperdbg.org/debugger/transparency.html) about our efforts on vm-exit transparency. More articles, posts, and resources are available at the **[awesome](https://github.com/HyperDbg/awesome)** repo.
 
 ## Unique Features
 ### First Release (v0.1.0.0)
