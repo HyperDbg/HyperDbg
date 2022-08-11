@@ -156,6 +156,12 @@
     <Filter Include="header\globals">
       <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
+    <Filter Include="header\debugger\script-engine">
+      <UniqueIdentifier>{5b6684f0-db1b-4920-987c-d5dfd8cdc0c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="code\script-eval">
+      <UniqueIdentifier>{59005a75-5137-42a4-867a-ccf06fae2f9f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\common\Common.c">
@@ -323,6 +329,21 @@
     <ClCompile Include="pch.c">
       <Filter>code</Filter>
     </ClCompile>
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Keywords.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Functions.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
+    <ClCompile Include="..\script-eval\code\Regs.c">
+      <Filter>code\script-eval</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -483,6 +504,9 @@
     </ClInclude>
     <ClInclude Include="header\platform\MetaMacros.h">
       <Filter>header\platform</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h">
+      <Filter>header\debugger\script-engine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

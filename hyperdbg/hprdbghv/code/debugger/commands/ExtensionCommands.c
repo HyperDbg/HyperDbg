@@ -380,6 +380,20 @@ ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
 }
 
 /**
+ * @brief routines ONLY for disabling !crwrite command
+ * @param Event
+ * @return VOID
+ */
+VOID
+ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER_EVENT Event)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMov2CrExitingForClearingCrEventsAllCores, Event);
+}
+
+/**
  * @brief routines ONLY for disabling !dr command 
  * @return VOID 
  */
@@ -463,6 +477,36 @@ ExtensionCommandResetExceptionBitmapAllCores()
     //
     KeGenericCallDpc(DpcRoutineResetExceptionBitmapOnlyOnClearingExceptionEventsOnAllCores, NULL);
 }
+
+/**
+ * @brief routines for !crwrite
+ * @details causes vm-exit on all accesses to debug registers
+ * @param Event
+ * @return VOID
+ */
+VOID
+ExtensionCommandEnableMovControlRegisterExitingAllCores(PDEBUGGER_EVENT Event)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineEnableMovControlRegisterExitingAllCores, Event);
+}
+
+/**
+ * @brief routines for disabling !crwrite
+ * @param Event
+ * @return VOID
+ */
+VOID
+ExtensionCommandDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT Event)
+{
+    //
+    // Broadcast to all cores
+    //
+    KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, Event);
+}
+
 
 /**
  * @brief routines for !dr 

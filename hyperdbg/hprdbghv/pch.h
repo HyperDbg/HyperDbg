@@ -2,14 +2,14 @@
  * @file pch.h
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
- * @brief Pre-compiled headers 
- * @details 
+ * @brief Pre-compiled headers
+ * @details
  *
  * @version 0.1
  * @date 2020-07-13
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -42,6 +42,7 @@
 //
 // HyperDbg Kernel-mode headers
 //
+#include "SDK/HyperDbgSdk.h"
 #include "Definition.h"
 #include "Configuration.h"
 #include "platform/CrossApi.h"
@@ -57,13 +58,14 @@
 #include "..\hprdbghv\header\debugger\tests\KernelTests.h"
 #include "..\hprdbghv\header\memory\PoolManager.h"
 #include "..\hprdbghv\header\common\Trace.h"
+#include "..\hprdbghv\header\debugger\core\Debugger.h"
 #include "..\hprdbghv\header\debugger\broadcast\DpcRoutines.h"
 #include "..\hprdbghv\header\misc\InlineAsm.h"
 #include "..\hprdbghv\header\vmm\ept\Vpid.h"
 #include "..\hprdbghv\header\vmm\ept\Ept.h"
 #include "..\hprdbghv\header\common\Common.h"
 #include "..\hprdbghv\header\vmm\vmx\Events.h"
-#include "..\hprdbghv\header\debugger\core\Debugger.h"
+#include "..\hprdbghv\header\debugger\script-engine\ScriptEngine.h"
 #include "..\hprdbghv\header\devices\Apic.h"
 #include "..\hprdbghv\header\debugger\kernel-level\Kd.h"
 #include "..\hprdbghv\header\debugger\user-level\Ud.h"
@@ -95,7 +97,8 @@
 #include "..\hprdbghv\header\debugger\core\Termination.h"
 #include "..\hprdbghv\header\debugger\user-level\UserAccess.h"
 #include "..\hprdbghv\header\debugger\user-level\ThreadHolder.h"
-#include "ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineHeader.h"
 
 //
 // Global Variables should be the last header to include

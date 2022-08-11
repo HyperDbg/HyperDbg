@@ -19,17 +19,25 @@
 // Exports
 //
 extern "C" {
+
 extern bool inline AsmVmxSupportDetection();
 
-__declspec(dllexport) int HyperdbgInterpreter(char * Command);
-__declspec(dllexport) int HyperdbgLoadVmm();
-__declspec(dllexport) int HyperdbgUnload();
-__declspec(dllexport) int HyperdbgInstallVmmDriver();
-__declspec(dllexport) int HyperdbgUninstallDriver();
-__declspec(dllexport) int HyperdbgStopDriver();
-__declspec(dllexport) void HyperdbgShowSignature();
+//
+// VMM Module
+//
+__declspec(dllexport) int HyperDbgLoadVmm();
+__declspec(dllexport) int HyperDbgUnloadVmm();
+__declspec(dllexport) int HyperDbgInstallVmmDriver();
+__declspec(dllexport) int HyperDbgUninstallVmmDriver();
+__declspec(dllexport) int HyperDbgStopVmmDriver();
+
+//
+// General exports
+//
+__declspec(dllexport) int HyperDbgInterpreter(char * Command);
+__declspec(dllexport) void HyperDbgShowSignature();
 __declspec(dllexport) void HyperdbgSetTextMessageCallback(Callback handler);
-__declspec(dllexport) void HyperDbgScriptReadFileAndExecuteCommand(vector<string> & PathAndArgs);
-__declspec(dllexport) bool HyperdbgContinuePreviousCommand();
+__declspec(dllexport) void HyperDbgScriptReadFileAndExecuteCommand(std::vector<std::string> & PathAndArgs);
+__declspec(dllexport) bool HyperDbgContinuePreviousCommand();
 __declspec(dllexport) bool HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset);
 }

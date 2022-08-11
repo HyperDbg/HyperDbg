@@ -32,7 +32,7 @@
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
-#endif //USE_LIB_IA32
+#endif // USE_LIB_IA32
 
 //
 // Native API header files for the Process Hacker project.
@@ -47,7 +47,9 @@ typedef RFLAGS * PRFLAGS;
 typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 
 #    define PHNT_MODE    PHNT_MODE_USER
-#    define PHNT_VERSION PHNT_WIN7 // Windows 7
+#    define PHNT_VERSION PHNT_WIN11 // Windows 7
+
+#    define PHNT_PATCH_FOR_HYPERDBG TRUE
 
 #    include <phnt/phnt_windows.h>
 #    include <phnt/phnt.h>
@@ -108,9 +110,25 @@ typedef const wchar_t *LPCWCHAR, *PCWCHAR;
 //
 // HyperDbg defined headers
 //
-#include "ScriptEngineCommonDefinitions.h"
+#include "SDK/HyperDbgSdk.h"
+#include "SDK/Imports/HyperDbgCtrlImports.h"
 #include "Configuration.h"
 #include "Definition.h"
+
+//
+// Script-engine
+//
+#include "..\script-eval\header\ScriptEngineCommonDefinitions.h"
+#include "..\script-eval\header\ScriptEngineHeader.h"
+
+//
+// Imports
+//
+#include "SDK/Imports/HyperDbgScriptImports.h"
+
+//
+// General
+//
 #include "header/inipp.h"
 #include "header/commands.h"
 #include "header/common.h"

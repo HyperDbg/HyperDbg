@@ -22,7 +22,7 @@ extern DEBUGGER_SYNCRONIZATION_EVENTS_STATE
  * @brief Handle pause packets from user debugger
  *
  * @param PausePacket
- * 
+ *
  * @return VOID
  */
 VOID
@@ -86,7 +86,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
                                MAXIMUM_INSTR_SIZE,
                                1,
                                TRUE,
-                               &PausePacket->Rflags);
+                               (PRFLAGS)&PausePacket->Rflags);
     }
     else
     {
@@ -98,7 +98,7 @@ UdHandleUserDebuggerPausing(PDEBUGGEE_UD_PAUSED_PACKET PausePacket)
                                MAXIMUM_INSTR_SIZE,
                                1,
                                TRUE,
-                               &PausePacket->Rflags);
+                               (PRFLAGS)&PausePacket->Rflags);
     }
 
     //

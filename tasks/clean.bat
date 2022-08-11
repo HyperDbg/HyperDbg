@@ -17,7 +17,7 @@ del    *.pch    /s
 
 echo Removing build folders ...
 echo.
-for /d /r . %%d in (__history Debug Release ipch obj) do @if exist "%%d" echo "%%d" && rd /s/q "%%d"
+for /d /r . %%d in (__history Debug Release ipch obj bin) do @if exist "%%d" echo "%%d" && rd /s/q "%%d"
 
 echo Done!
 pause

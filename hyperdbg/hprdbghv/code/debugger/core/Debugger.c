@@ -3,23 +3,18 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger functions
  * @details
- * 
+ *
  * @version 0.1
  * @date 2020-04-13
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
-//
-// Include parser
-//
-#include "ScriptEngineEval.h"
-
 /**
  * @brief A wrapper for GetRegValue() in script-engine
- * 
+ *
  * @return BOOLEAN Value of register
  */
 UINT64
@@ -30,7 +25,7 @@ DebuggerGetRegValueWrapper(PGUEST_REGS GuestRegs, UINT32 /* REGS_ENUM */ RegId)
 
 /**
  * @brief Debugger get the last error
- * 
+ *
  * @return UINT32 Error value
  */
 UINT32
@@ -42,7 +37,7 @@ DebuggerGetLastError()
 /**
  * @brief Debugger set the last error
  * @param LastError The value of last error
- * 
+ *
  * @return VOID
  */
 VOID
@@ -53,8 +48,8 @@ DebuggerSetLastError(UINT32 LastError)
 
 /**
  * @brief Initialize Debugger Structures and Routines
- * 
- * @return BOOLEAN Shows whether the initialization process was successful 
+ *
+ * @return BOOLEAN Shows whether the initialization process was successful
  * or not
  */
 BOOLEAN
@@ -90,6 +85,7 @@ DebuggerInitialize()
     InitializeListHead(&g_Events->DebugRegistersAccessedEventsHead);
     InitializeListHead(&g_Events->ExternalInterruptOccurredEventsHead);
     InitializeListHead(&g_Events->VmcallInstructionExecutionEventsHead);
+    InitializeListHead(&g_Events->ControlRegisterModifiedEventsHead);
 
     //
     // Initialize the list of hidden hooks headers
@@ -218,7 +214,7 @@ DebuggerInitialize()
 
 /**
  * @brief Uninitialize Debugger Structures and Routines
- * 
+ *
  */
 VOID
 DebuggerUninitialize()
@@ -284,15 +280,15 @@ DebuggerUninitialize()
 
 /**
  * @brief Create an Event Object
- * 
+ *
  * @details should NOT be called in vmx-root
- * 
+ *
  * @param Enabled Is the event enabled or disabled
  * @param CoreId The core id that this event is allowed to run
  * @param ProcessId The process id that this event is allowed to run
  * @param EventType The type of event
  * @param Tag User-mode generated unique tag (id) of the event
- * @param OptionalParam1 Optional parameter 1 for event 
+ * @param OptionalParam1 Optional parameter 1 for event
  * @param OptionalParam2 Optional parameter 2 for event
  * @param OptionalParam3 Optional parameter 3 for event
  * @param OptionalParam4 Optional parameter 4 for event
@@ -384,16 +380,16 @@ DebuggerCreateEvent(BOOLEAN                  Enabled,
 
 /**
  * @brief Create an action and add the action to an event
- * 
+ *
  * @details should NOT be called in vmx-root
- * 
+ *
  * @param Event Target event object
  * @param ActionType Type of action
  * @param SendTheResultsImmediately whether the results should be received
  * by the user-mode immediately
  * @param InTheCaseOfCustomCode Custom code structure (if any)
  * @param InTheCaseOfRunScript Run script structure (if any)
- * @return PDEBUGGER_EVENT_ACTION 
+ * @return PDEBUGGER_EVENT_ACTION
  */
 PDEBUGGER_EVENT_ACTION
 DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM ActionType, BOOLEAN SendTheResultsImmediately, PDEBUGGER_EVENT_REQUEST_CUSTOM_CODE InTheCaseOfCustomCode, PDEBUGGER_EVENT_ACTION_RUN_SCRIPT_CONFIGURATION InTheCaseOfRunScript)
@@ -620,7 +616,7 @@ DebuggerAddActionToEvent(PDEBUGGER_EVENT Event, DEBUGGER_EVENT_ACTION_TYPE_ENUM 
 
 /**
  * @brief Register an event to a list of active events
- * 
+ *
  * @param Event Event structure
  * @return BOOLEAN TRUE if it successfully registered and FALSE if not registered
  */
@@ -686,6 +682,9 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
     case VMCALL_INSTRUCTION_EXECUTION:
         InsertHeadList(&g_Events->VmcallInstructionExecutionEventsHead, &(Event->EventsOfSameTypeList));
         break;
+    case CONTROL_REGISTER_MODIFIED:
+        InsertHeadList(&g_Events->ControlRegisterModifiedEventsHead, &(Event->EventsOfSameTypeList));
+        break;
     default:
 
         //
@@ -700,20 +699,21 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Trigger events of a special type to be managed by debugger
- * 
+ *
  * @param EventType Type of events
  * @param Regs Guest registers
  * @param Context An optional parameter (different in each event)
- * @return BOOLEAN return FALSE if there was an error in triggering
- * and TRUE if it triggered successfully (even if there was nothing to trigger)
+ * @return DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE returns the staus
+ * of handling events
  */
-BOOLEAN
+DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
 DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
 {
-    ULONG                       CurrentProcessorIndex;
-    PLIST_ENTRY                 TempList  = 0;
-    PLIST_ENTRY                 TempList2 = 0;
     DebuggerCheckForCondition * ConditionFunc;
+    PLIST_ENTRY                 TempList              = 0;
+    PLIST_ENTRY                 TempList2             = 0;
+    UINT32                      CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE *     CurrentVmState        = &g_GuestState[CurrentProcessorIndex];
 
     //
     // Check if triggering debugging actions are allowed or not
@@ -723,13 +723,8 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         //
         // Debugger is not enabled
         //
-        return FALSE;
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED;
     }
-
-    //
-    // Search for this event in this core (get the core index)
-    //
-    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
 
     //
     // Find the debugger events list base on the type of the event
@@ -832,6 +827,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         TempList2 = TempList;
         break;
     }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        TempList  = &g_Events->ControlRegisterModifiedEventsHead;
+        TempList2 = TempList;
+        break; 
+    }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
         TempList  = &g_Events->ExternalInterruptOccurredEventsHead;
@@ -845,10 +846,11 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         break;
     }
     default:
+
         //
         // Event type is not found
         //
-        return FALSE;
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE;
         break;
     }
 
@@ -1056,6 +1058,19 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
 
             break;
 
+        case CONTROL_REGISTER_MODIFIED:
+            // 
+            // check if CR exit is what we want or not
+            //
+            if (CurrentEvent->OptionalParam1 != Context)
+            {
+                // 
+                // The CR is not what we want
+                //
+                continue;
+            }
+            break;
+
         default:
             break;
         }
@@ -1088,21 +1103,42 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
+        // Reset the the event ignorance mechanism
+        //
+        CurrentVmState->DebuggingState.IgnoreEvent = FALSE;
+
+        //
         // perform the actions
         //
         DebuggerPerformActions(CurrentEvent, Regs, Context);
     }
 
-    return TRUE;
+    //
+    // Check if the event should be ignored or not
+    //
+    if (CurrentVmState->DebuggingState.IgnoreEvent)
+    {
+        //
+        // Event should be ignored
+        //
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT;
+    }
+    else
+    {
+        //
+        // Event shouldn't be ignored
+        //
+        return DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL;
+    }
 }
 
 /**
  * @brief Run a special event's action(s)
- * 
+ *
  * @param Event Event Object
  * @param Regs Guest registers
  * @param Context Optional parameter
- * @return VOID 
+ * @return VOID
  */
 VOID
 DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
@@ -1144,12 +1180,12 @@ DebuggerPerformActions(PDEBUGGER_EVENT Event, PGUEST_REGS Regs, PVOID Context)
 
 /**
  * @brief Managing run script action
- * 
+ *
  * @param Tag Tag of event
  * @param Action Action object
  * @param Regs Guest registers
  * @param Context Optional parameter
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 DebuggerPerformRunScript(UINT64                  Tag,
@@ -1242,12 +1278,12 @@ DebuggerPerformRunScript(UINT64                  Tag,
 
 /**
  * @brief Manage running the custom code action
- * 
+ *
  * @param Tag Tag of event
  * @param Action Action object
  * @param Regs Guest registers
  * @param Context Optional parameter
- * @return VOID 
+ * @return VOID
  */
 VOID
 DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
@@ -1294,12 +1330,12 @@ DebuggerPerformRunTheCustomCode(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUES
 
 /**
  * @brief Manage breaking to the debugger action
- * 
+ *
  * @param Tag Tag of event
  * @param Action Action object
  * @param Regs Guest registers
  * @param Context Optional parameter
- * @return VOID 
+ * @return VOID
  */
 VOID
 DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST_REGS Regs, PVOID Context)
@@ -1334,7 +1370,7 @@ DebuggerPerformBreakToDebugger(UINT64 Tag, PDEBUGGER_EVENT_ACTION Action, PGUEST
 
 /**
  * @brief Find event object by tag
- * 
+ *
  * @param Tag Tag of event
  * @return PDEBUGGER_EVENT Returns null if not found and event object if found
  */
@@ -1375,8 +1411,8 @@ DebuggerGetEventByTag(UINT64 Tag)
 
 /**
  * @brief Enable or disable all events from all the types
- * 
- * @param IsEnable If you want to enable then true and if 
+ *
+ * @param IsEnable If you want to enable then true and if
  * you want to disable then false
  * @return BOOLEAN if at least one event enabled/disabled then
  * it returns true, and otherwise false
@@ -1422,7 +1458,7 @@ DebuggerEnableOrDisableAllEvents(BOOLEAN IsEnable)
 /**
  * @brief Terminate effect and configuration to vmx-root
  * and non-root for all the events
- * 
+ *
  * @return BOOLEAN if at least one event terminated then
  * it returns true, and otherwise false
  */
@@ -1467,11 +1503,11 @@ DebuggerTerminateAllEvents()
 /**
  * @brief Remove all the events from all the lists
  * and also de-allocate their structures and actions
- * 
+ *
  * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should 
+ * it won't terminate their effects, so the events should
  * be terminated first then we can remove them
- * 
+ *
  * @return BOOLEAN if at least one event removed then
  * it returns true, and otherwise false
  */
@@ -1515,7 +1551,7 @@ DebuggerRemoveAllEvents()
 
 /**
  * @brief Count the list of events in a special list
- * 
+ *
  * @param TargetEventList target event list
  * @return UINT32 count of events on the list
  */
@@ -1547,7 +1583,7 @@ DebuggerEventListCount(PLIST_ENTRY TargetEventList)
 /**
  * @brief Count the list of events in a special list that
  * are activate on a target core
- * 
+ *
  * @param TargetEventList target event list
  * @param TargetCore target core
  * @return UINT32 count of events on the list which is activated
@@ -1585,9 +1621,9 @@ DebuggerEventListCountByCore(PLIST_ENTRY TargetEventList, UINT32 TargetCore)
 /**
  * @brief Get the mask related to the !exception command for the
  * target core
- * 
+ *
  * @param CoreIndex The index of core
- * 
+ *
  * @return UINT32 Returns the current mask for the core
  */
 UINT32
@@ -1618,9 +1654,9 @@ DebuggerExceptionEventBitmapMask(UINT32 CoreIndex)
 
 /**
  * @brief Enable an event by tag
- * 
+ *
  * @param Tag Tag of target event
- * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not
  * found
  */
 BOOLEAN
@@ -1652,9 +1688,9 @@ DebuggerEnableEvent(UINT64 Tag)
  * @brief returns whether an event is enabled/disabled by tag
  * @details this function won't check for Tag validity and if
  * not found then returns false
- * 
+ *
  * @param Tag Tag of target event
- * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not
  * found
  */
 BOOLEAN
@@ -1679,9 +1715,9 @@ DebuggerQueryStateEvent(UINT64 Tag)
 
 /**
  * @brief Disable an event by tag
- * 
+ *
  * @param Tag Tag of target event
- * @return BOOLEAN TRUE if event enabled and FALSE if event not 
+ * @return BOOLEAN TRUE if event enabled and FALSE if event not
  * found
  */
 BOOLEAN
@@ -1712,7 +1748,7 @@ DebuggerDisableEvent(UINT64 Tag)
 
 /**
  * @brief Detect whether the tag exists or not
- * 
+ *
  * @param Tag Tag of target event
  * @return BOOLEAN TRUE if event found and FALSE if event not found
  */
@@ -1739,11 +1775,11 @@ DebuggerIsTagValid(UINT64 Tag)
 
 /**
  * @brief Remove the event from event list by its tag
- * 
+ *
  * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should 
+ * it won't terminate their effects, so the events should
  * be terminated first then we can remove them
- * 
+ *
  * @param Tag Target events tag
  * @return BOOLEAN If the event was removed then TRUE and FALSE
  * if not found
@@ -1788,12 +1824,12 @@ DebuggerRemoveEventFromEventList(UINT64 Tag)
 }
 
 /**
- * @brief Remove the actions and de-allocate its buffer 
- * 
+ * @brief Remove the actions and de-allocate its buffer
+ *
  * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should 
- * be terminated first then we can remove them * 
- * 
+ * it won't terminate their effects, so the events should
+ * be terminated first then we can remove them *
+ *
  * @param Event Event Object
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
@@ -1842,11 +1878,11 @@ DebuggerRemoveAllActionsFromEvent(PDEBUGGER_EVENT Event)
 /**
  * @brief Remove the event by its tags and also remove its actions
  * and de-allocate their buffers
- * 
+ *
  * @details should not be called from vmx-root mode, also
- * it won't terminate their effects, so the events should 
+ * it won't terminate their effects, so the events should
  * be terminated first then we can remove them
- * 
+ *
  * @param Tag Target event tag
  * @return BOOLEAN TRUE if it was successful and FALSE if not successful
  */
@@ -1904,7 +1940,7 @@ DebuggerRemoveEvent(UINT64 Tag)
 /**
  * @brief Routine for validating and parsing events
  * that came from user-mode
- * 
+ *
  * @param EventDetails The structure that describes event that came
  * from the user-mode
  * @param BufferLength Length of the buffer
@@ -2461,6 +2497,40 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        //
+        // KEEP IN MIND, WE USED THIS METHOD TO RE-APPLY THE EVENT ON
+        // TERMINATION ROUTINES, IF YOU WANT TO CHANGE IT, YOU SHOULD
+        // CHANGE THE TERMINAT.C RELATED FUNCTION TOO
+        //
+
+        //
+        // Setting an indicator to CR 
+        // 
+        Event->OptionalParam1 = EventDetails->OptionalParam1;
+        Event->OptionalParam2 = EventDetails->OptionalParam2;
+        
+        //
+        // Let's see if it is for all cores or just one core
+        //
+        if (EventDetails->CoreId == DEBUGGER_EVENT_APPLY_TO_ALL_CORES)
+        {
+            //
+            // All cores
+            //
+            ExtensionCommandEnableMovControlRegisterExitingAllCores(Event);
+        }
+        else
+        {
+            //
+            // Just one core
+            //
+            DpcRoutineRunTaskOnSingleCore(EventDetails->CoreId, DpcRoutinePerformEnableMovToControlRegisterExiting, Event);
+        }
+
+        break;
+    }
     case EXCEPTION_OCCURRED:
     {
         //
@@ -2670,9 +2740,9 @@ ClearTheEventAfterCreatingEvent:
 
 /**
  * @brief Routine for validating and parsing actions that are comming from
- * the user-mode 
+ * the user-mode
  * @details should be called in vmx root-mode
- * 
+ *
  * @param Action Structure that describes the action that comes from the
  * user-mode
  * @param BufferLength Length of the buffer that comes from user-mode
@@ -2810,11 +2880,11 @@ DebuggerParseActionFromUsermode(PDEBUGGER_GENERAL_ACTION Action, UINT32 BufferLe
 
 /**
  * @brief Terminate one event's effect by its tag
- * 
+ *
  * @details This function won't remove the event from
  * the lists of event or de-allocated them, this should
  * be called BEFORE the removing function
- * 
+ *
  * @param Tag Target event's tag
  * @return BOOLEAN if it was found and terminated without error
  * then it returns TRUE, otherwise FALSE
@@ -2988,6 +3058,14 @@ DebuggerTerminateEvent(UINT64 Tag)
 
         break;
     }
+    case CONTROL_REGISTER_MODIFIED:
+    {
+        //
+        // Call mov to control register event terminator
+        //
+        TerminateControlRegistersEvent(Event);
+        break;
+    }
     default:
         LogError("Err, unknown event for termination");
         break;
@@ -2997,7 +3075,7 @@ DebuggerTerminateEvent(UINT64 Tag)
 /**
  * @brief Parse and validate requests to enable/disable/clear
  * from the user-mode
- * 
+ *
  * @param DebuggerEventModificationRequest event modification request details
  * @return BOOLEAN returns TRUE if there was no error, and FALSE if there was
  * an error

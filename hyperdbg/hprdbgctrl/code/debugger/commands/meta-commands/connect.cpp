@@ -12,11 +12,6 @@
 #include "pch.h"
 
 //
-// Global Variables Header
-//
-#include "..\hprdbgctrl\header\globals.h"
-
-//
 // Global Variables
 //
 extern BOOLEAN g_IsConnectedToHyperDbgLocally;

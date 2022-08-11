@@ -20,6 +20,13 @@ Abstract:
 
 // -------------------------------------------------------------------- Globals
 
+UART_HARDWARE_DRIVER UsifHardwareDriver = {
+    UsifInitializePort,
+    UsifSetBaud,
+    UsifGetByte,
+    UsifPutByte,
+    UsifRxReady};
+
 //
 // The array order here is the serial subtype as specified
 // in the Microsoft Debug Port Table 2 (DBG2) specification.

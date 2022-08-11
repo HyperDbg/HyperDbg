@@ -202,7 +202,7 @@ ReadIrpBasedBuffer()
                     //
                     // Error occured for second time, and we show the error message
                     //
-                    //ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
+                    // ShowMessages("ioctl failed with code 0x%x\n", GetLastError());
 
                     //
                     // if we reach here, the packet is probably failed, it might
@@ -477,13 +477,13 @@ ThreadFunc(void * data)
 #endif
 
 /**
- * @brief Install the driver
+ * @brief Install VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgInstallVmmDriver()
+HyperDbgInstallVmmDriver()
 {
     //
     // The driver is not started yet so let us the install driver
@@ -495,14 +495,14 @@ HyperdbgInstallVmmDriver()
         return 1;
     }
 
-    if (!ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
+    if (!ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_INSTALL))
     {
         ShowMessages("unable to install driver\n");
 
         //
         // Error - remove driver
         //
-        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
+        ManageDriver(VMM_DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE);
 
         return 1;
     }
@@ -516,14 +516,14 @@ HyperdbgInstallVmmDriver()
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
-HPRDBGCTRL_API int
-HyperdbgStopDriver()
+int
+HyperdbgStopDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded
     //
     if (g_DriverLocation[0] != (TCHAR)0 &&
-        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_STOP))
+        ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_STOP))
     {
         return 0;
     }
@@ -534,19 +534,31 @@ HyperdbgStopDriver()
 }
 
 /**
- * @brief Remove the driver
+ * @brief Stop VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgUninstallDriver()
+HyperDbgStopVmmDriver()
+{
+    return HyperdbgStopDriver(VMM_DRIVER_NAME);
+}
+
+/**
+ * @brief Remove the driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+int
+HyperdbgUninstallDriver(LPCTSTR DriverName)
 {
     //
     // Unload the driver if loaded.  Ignore any errors
     //
     if (g_DriverLocation[0] != (TCHAR)0 &&
-        ManageDriver(DRIVER_NAME, g_DriverLocation, DRIVER_FUNC_REMOVE))
+        ManageDriver(DriverName, g_DriverLocation, DRIVER_FUNC_REMOVE))
     {
         return 0;
     }
@@ -554,6 +566,18 @@ HyperdbgUninstallDriver()
     {
         return 1;
     }
+}
+
+/**
+ * @brief Remove the VMM driver
+ *
+ * @return int return zero if it was successful or non-zero if there
+ * was error
+ */
+HPRDBGCTRL_API int
+HyperDbgUninstallVmmDriver()
+{
+    return HyperdbgUninstallDriver(VMM_DRIVER_NAME);
 }
 
 /**
@@ -563,7 +587,7 @@ HyperdbgUninstallDriver()
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgLoadVmm()
+HyperDbgLoadVmm()
 {
     string CpuID;
     DWORD  ErrorNum;
@@ -661,13 +685,13 @@ HyperdbgLoadVmm()
 }
 
 /**
- * @brief Unload driver
+ * @brief Unload VMM driver
  *
  * @return int return zero if it was successful or non-zero if there
  * was error
  */
 HPRDBGCTRL_API int
-HyperdbgUnload()
+HyperDbgUnloadVmm()
 {
     BOOL Status;
 

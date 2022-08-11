@@ -2,20 +2,20 @@
  * @file Ud.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines related to user mode debugging
- * @details 
+ * @details
  * @version 0.1
  * @date 2022-01-06
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief initialize user debugger
  * @details this function should be called on vmx non-root
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 UdInitializeUserDebugger()
@@ -71,7 +71,7 @@ UdInitializeUserDebugger()
  * @brief uninitialize user debugger
  * @details this function should be called on vmx non-root
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 UdUninitializeUserDebugger()
@@ -93,10 +93,10 @@ UdUninitializeUserDebugger()
 
 /**
  * @brief Restore the thread to the original direction
- * 
+ *
  * @param ThreadDebuggingDetails
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
@@ -109,10 +109,10 @@ UdRestoreToOriginalDirection(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingD
 
 /**
  * @brief Continue the thread
- * 
+ *
  * @param ThreadDebuggingDetails
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
@@ -135,10 +135,10 @@ UdContinueThread(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails)
 
 /**
  * @brief Perform stepping though the instructions in target thread
- * 
+ *
  * @param ThreadDebuggingDetails
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
@@ -192,15 +192,15 @@ UdStepInstructions(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
 
 /**
  * @brief Perform the user-mode commands
- * 
+ *
  * @param ThreadDebuggingDetails
  * @param UserAction
  * @param OptionalParam1
  * @param OptionalParam2
  * @param OptionalParam3
  * @param OptionalParam4
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
@@ -248,7 +248,7 @@ UdPerformCommand(PUSERMODE_DEBUGGING_THREAD_DETAILS ThreadDebuggingDetails,
 /**
  * @brief Check for the user-mode commands
  *
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 UdCheckForCommand()
@@ -321,7 +321,7 @@ UdCheckForCommand()
  * @brief Dispatch the user-mode commands
  *
  * @param ActionRequest
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
@@ -363,7 +363,7 @@ UdDispatchUsermodeCommands(PDEBUGGER_UD_COMMAND_PACKET ActionRequest)
  *
  * @param ThreadDebuggingDetails
  * @param ProcessDebuggingDetails
- * @return VOID 
+ * @return VOID
  */
 VOID
 UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
@@ -387,11 +387,11 @@ UdSpinThreadOnNop(PUSERMODE_DEBUGGING_THREAD_DETAILS  ThreadDebuggingDetails,
 
 /**
  * @brief Handle after we hit the stepping
- * @details This function can be used in vmx-root 
- * 
+ * @details This function can be used in vmx-root
+ *
  * @param CurrentCore
  * @param ThreadDebuggingDetails
- * @return VOID 
+ * @return VOID
  */
 VOID
 UdHandleAfterSteppingReason(UINT32                             CurrentCore,
@@ -416,14 +416,14 @@ UdHandleAfterSteppingReason(UINT32                             CurrentCore,
 
 /**
  * @brief Handle special reasons pre-pausings
- * @details This function can be used in vmx-root 
- * 
+ * @details This function can be used in vmx-root
+ *
  * @param CurrentCore
  * @param ThreadDebuggingDetails
  * @param GuestRegs
  * @param Reason
  * @param EventDetails
- * @return VOID 
+ * @return VOID
  */
 VOID
 UdPrePausingReasons(UINT32                             CurrentCore,
@@ -454,13 +454,13 @@ UdPrePausingReasons(UINT32                             CurrentCore,
 
 /**
  * @brief Handle #DBs and #BPs for kernel debugger
- * @details This function can be used in vmx-root 
- * 
+ * @details This function can be used in vmx-root
+ *
  * @param CurrentCore
  * @param GuestRegs
  * @param Reason
  * @param EventDetails
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            CurrentCore,
@@ -548,7 +548,7 @@ UdCheckAndHandleBreakpointsAndDebugBreaks(UINT32                            Curr
     // Set rflags for finding the results of conditional jumps
     //
     __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-    PausePacket.Rflags.AsUInt = Rflags.AsUInt;
+    PausePacket.Rflags = Rflags.AsUInt;
 
     //
     // Set the event tag (if it's an event)

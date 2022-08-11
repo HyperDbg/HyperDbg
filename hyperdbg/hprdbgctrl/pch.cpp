@@ -12,6 +12,11 @@
 #include "pch.h"
 
 //
+// Global variables
+//
+#include "header/globals.h"
+
+//
 // When you are using pre-compiled headers, this source file is necessary for
 // compilation to succeed.
 //

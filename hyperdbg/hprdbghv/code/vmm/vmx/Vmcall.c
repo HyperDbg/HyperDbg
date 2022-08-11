@@ -316,6 +316,18 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
         VmcallStatus = STATUS_SUCCESS;
         break;
     }
+    case VMCALL_ENABLE_MOV_TO_CONTROL_REGS_EXITING:
+    {
+        HvSetMovControlRegsExiting(TRUE, OptionalParam1, OptionalParam2);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_DISABLE_MOV_TO_CONTROL_REGS_EXITING:
+    {
+        HvSetMovControlRegsExiting(FALSE, OptionalParam1, OptionalParam2);
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
     case VMCALL_ENABLE_MOV_TO_CR3_EXITING:
     {
         HvSetMovToCr3Vmexit(TRUE);
@@ -454,6 +466,12 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
     case VMCALL_DISABLE_MOV_TO_HW_DR_EXITING_ONLY_FOR_DR_EVENTS:
     {
         ProtectedHvDisableMovDebugRegsExitingForDisablingDrCommands();
+        VmcallStatus = STATUS_SUCCESS;
+        break;
+    }
+    case VMCALL_DISABLE_MOV_TO_CR_EXITING_ONLY_FOR_CR_EVENTS:
+    {
+        ProtectedHvDisableMovControlRegsExitingForDisablingCrCommands(OptionalParam1, OptionalParam2);
         VmcallStatus = STATUS_SUCCESS;
         break;
     }

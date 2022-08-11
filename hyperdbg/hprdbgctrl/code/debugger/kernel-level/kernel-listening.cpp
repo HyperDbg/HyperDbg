@@ -129,7 +129,7 @@ StartAgain:
 
     TheActualPacket = (PDEBUGGER_REMOTE_PACKET)BufferToReceive;
 
-    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
+    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
     {
         //
         // Check checksum
@@ -304,7 +304,7 @@ StartAgain:
                                            MAXIMUM_INSTR_SIZE,
                                            1,
                                            TRUE,
-                                           &PausePacket->Rflags);
+                                           (PRFLAGS)&PausePacket->Rflags);
                 }
                 else
                 {
@@ -316,7 +316,7 @@ StartAgain:
                                            MAXIMUM_INSTR_SIZE,
                                            1,
                                            TRUE,
-                                           &PausePacket->Rflags);
+                                           (PRFLAGS)&PausePacket->Rflags);
                 }
             }
 
@@ -1207,7 +1207,7 @@ StartAgain:
     // ShowMessages("\n");
     //
 
-    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKER)
+    if (TheActualPacket->Indicator == INDICATOR_OF_HYPERDBG_PACKET)
     {
         //
         // Check checksum

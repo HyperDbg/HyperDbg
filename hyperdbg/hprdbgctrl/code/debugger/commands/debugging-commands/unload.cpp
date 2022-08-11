@@ -80,7 +80,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
 
         if (g_IsDebuggerModulesLoaded)
         {
-            HyperdbgUnload();
+            HyperDbgUnloadVmm();
         }
         else
         {
@@ -95,7 +95,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
             //
             // Stop the driver
             //
-            if (HyperdbgStopDriver())
+            if (HyperDbgStopVmmDriver())
             {
                 ShowMessages("err, failed to stop driver\n");
                 return;
@@ -104,7 +104,7 @@ CommandUnload(vector<string> SplittedCommand, string Command)
             //
             // Uninstall the driver
             //
-            if (HyperdbgUninstallDriver())
+            if (HyperDbgUninstallVmmDriver())
             {
                 ShowMessages("err, failed to uninstall the driver\n");
                 return;

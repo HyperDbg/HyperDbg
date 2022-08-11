@@ -47,7 +47,7 @@ extern string g_ServerIp;
  * error
  */
 int
-HyperdbgInterpreter(char * Command)
+HyperDbgInterpreter(char * Command)
 {
     BOOLEAN               HelpCommand       = FALSE;
     UINT64                CommandAttributes = NULL;
@@ -264,7 +264,7 @@ HyperdbgInterpreter(char * Command)
 /**
  * @brief Remove batch comments
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 InterpreterRemoveComments(char * CommandText)
@@ -321,10 +321,10 @@ InterpreterRemoveComments(char * CommandText)
 /**
  * @brief Show signature of HyperDbg
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
-HyperdbgShowSignature()
+HyperDbgShowSignature()
 {
     if (g_IsConnectedToRemoteDebuggee)
     {
@@ -362,9 +362,9 @@ HyperdbgShowSignature()
 
 /**
  * @brief check for multi-line commands
- * 
- * @param CurrentCommand 
- * @param Reset 
+ *
+ * @param CurrentCommand
+ * @param Reset
  * @return bool return true if the command needs extra input, otherwise
  * return false
  */
@@ -457,11 +457,11 @@ HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
  * need to be repeated when the user press enter, this function shows
  * whether we should continue the previous command or not
  *
- * @return true means the command should be continued, false means command 
+ * @return true means the command should be continued, false means command
  * should be ignored
  */
 bool
-HyperdbgContinuePreviousCommand()
+HyperDbgContinuePreviousCommand()
 {
     BOOLEAN Result = g_ShouldPreviousCommandBeContinued;
 
@@ -515,7 +515,7 @@ GetCommandAttributes(const string & FirstCommand)
 }
 
 /**
- * @brief Initialize the debugger and adjust commands for the first run 
+ * @brief Initialize the debugger and adjust commands for the first run
  *
  * @return VOID
  */
@@ -557,10 +557,15 @@ InitializeDebugger()
     // Check if processor supports TSX (RTM)
     //
     g_RtmSupport = CheckCpuSupportRtm();
+
+    //
+    // Load default settings
+    //
+    CommandSettingsLoadDefaultValuesFromConfigFile();
 }
 
 /**
- * @brief Initialize commands and attributes 
+ * @brief Initialize commands and attributes
  *
  * @return VOID
  */
@@ -613,8 +618,10 @@ InitializeCommandsDictionary()
     g_CommandsList["event"]  = {&CommandEvents, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
     g_CommandsList["events"] = {&CommandEvents, &CommandEventsHelp, DEBUGGER_COMMAND_EVENTS_ATTRIBUTES};
 
-    g_CommandsList["setting"]  = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
-    g_CommandsList["settings"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["setting"]   = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList["settings"]  = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList[".setting"]  = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
+    g_CommandsList[".settings"] = {&CommandSettings, &CommandSettingsHelp, DEBUGGER_COMMAND_SETTINGS_ATTRIBUTES};
 
     g_CommandsList[".disconnect"] = {&CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
     g_CommandsList["disconnect"]  = {&CommandDisconnect, &CommandDisconnectHelp, DEBUGGER_COMMAND_DISCONNECT_ATTRIBUTES};
@@ -701,6 +708,8 @@ InitializeCommandsDictionary()
 
     g_CommandsList["!pmc"] = {&CommandPmc, &CommandPmcHelp, DEBUGGER_COMMAND_PMC_ATTRIBUTES};
 
+    g_CommandsList["!crwrite"] = {&CommandCrwrite, &CommandCrwriteHelp, DEBUGGER_COMMAND_CRWRITE_ATTRIBUTES};
+
     g_CommandsList["!dr"] = {&CommandDr, &CommandDrHelp, DEBUGGER_COMMAND_DR_ATTRIBUTES};
 
     g_CommandsList["!ioin"] = {&CommandIoin, &CommandIoinHelp, DEBUGGER_COMMAND_IOIN_ATTRIBUTES};
@@ -735,17 +744,17 @@ InitializeCommandsDictionary()
     g_CommandsList["ir"] = {&CommandI, &CommandIHelp, DEBUGGER_COMMAND_I_ATTRIBUTES};
 
     g_CommandsList["db"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["dc"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["dd"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["dq"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["!db"] = {&CommandReadMemoryAndDisassembler,
                              &CommandReadMemoryAndDisassemblerHelp,
                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
@@ -759,17 +768,17 @@ InitializeCommandsDictionary()
                              &CommandReadMemoryAndDisassemblerHelp,
                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["!u"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["u"]   = {&CommandReadMemoryAndDisassembler,
-                           &CommandReadMemoryAndDisassemblerHelp,
-                           DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["!u2"] = {&CommandReadMemoryAndDisassembler,
                              &CommandReadMemoryAndDisassemblerHelp,
                              DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
     g_CommandsList["u2"]  = {&CommandReadMemoryAndDisassembler,
-                            &CommandReadMemoryAndDisassemblerHelp,
-                            DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
+                             &CommandReadMemoryAndDisassemblerHelp,
+                             DEBUGGER_COMMAND_D_AND_U_ATTRIBUTES};
 
     g_CommandsList["eb"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};
     g_CommandsList["ed"]  = {&CommandEditMemory, &CommandEditMemoryHelp, DEBUGGER_COMMAND_E_ATTRIBUTES};

@@ -21,14 +21,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
@@ -67,7 +67,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -78,6 +78,21 @@
       <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\HPRDBGCTRL.dll"
+copy "$(OutDir)pdbex.dll" "$(OutDir)SDK\Libraries\pdbex.dll"
+copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\Libraries\kdserial.dll"
+copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
+copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
     <ClCompile>
@@ -90,7 +105,7 @@
       <PreprocessorDefinitions>ZYCORE_STATIC_DEFINE;ZYDIS_STATIC_DEFINE;WINVER=0x0502;_WIN32_WINNT=0x0502;NTDDI_VERSION=0x05020000;WIN32;_WINDOWS;NDEBUG;_CRT_SECURE_NO_WARNINGS;HPRDBGCTRL_EXPORTS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\dependencies\phnt;$(SolutionDir)\dependencies;$(SolutionDir)\dependencies\zydis\dependencies\zycore\include;$(SolutionDir)\include;$(SolutionDir)\dependencies\zydis\include;$(SolutionDir)\hprdbgctrl;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -103,6 +118,21 @@
       <AdditionalDependencies>$(SolutionDir)libraries\zydis\Zycore.lib;$(SolutionDir)libraries\zydis\Zydis.lib;$(SolutionDir)build\bin\$(Configuration)\script-engine.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>if exist "$(OutDir)SDK\" rd /q /s "$(OutDir)SDK\"
+xcopy /E /I /Y "$(SolutionDir)include\SDK" "$(OutDir)SDK"
+mkdir "$(OutDir)SDK\Libraries"
+copy "$(OutDir)HPRDBGCTRL.lib" "$(OutDir)SDK\Libraries\HPRDBGCTRL.lib"
+copy "$(OutDir)pdbex.lib" "$(OutDir)SDK\Libraries\pdbex.lib"
+copy "$(OutDir)kdserial.lib" "$(OutDir)SDK\Libraries\kdserial.lib"
+copy "$(OutDir)script-engine.lib" "$(OutDir)SDK\Libraries\script-engine.lib"
+copy "$(OutDir)symbol-parser.lib" "$(OutDir)SDK\Libraries\symbol-parser.lib"
+copy "$(OutDir)HPRDBGCTRL.dll" "$(OutDir)SDK\Libraries\HPRDBGCTRL.dll"
+copy "$(OutDir)pdbex.dll" "$(OutDir)SDK\Libraries\pdbex.dll"
+copy "$(OutDir)kdserial.dll" "$(OutDir)SDK\Libraries\kdserial.dll"
+copy "$(OutDir)script-engine.dll" "$(OutDir)SDK\Libraries\script-engine.dll"
+copy "$(OutDir)symbol-parser.dll" "$(OutDir)SDK\Libraries\symbol-parser.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="header\commands.h" />
@@ -128,10 +158,16 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\script-eval\code\Functions.c" />
+    <ClCompile Include="..\script-eval\code\Keywords.c" />
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
+    <ClCompile Include="..\script-eval\code\Regs.c" />
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\spinlock.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\dt-struct.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\k.cpp" />
     <ClCompile Include="code\debugger\commands\debugging-commands\prealloc.cpp" />
+    <ClCompile Include="code\debugger\commands\extension-commands\crwrite.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\kill.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\pe.cpp" />
     <ClCompile Include="code\debugger\commands\meta-commands\restart.cpp" />

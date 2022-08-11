@@ -43,46 +43,21 @@ CommandSympathHelp()
 VOID
 CommandSympath(vector<string> SplittedCommand, string Command)
 {
-    inipp::Ini<char> Ini;
-    inipp::Ini<char> Ini2;
-    WCHAR            ConfigPath[MAX_PATH] = {0};
-    string           Token;
-
-    //
-    // Get config file path
-    //
-    GetConfigFilePath(ConfigPath);
+    string SymbolServer = "";
+    string Token;
 
     if (SplittedCommand.size() == 1)
     {
-        ifstream Is(ConfigPath);
-
         //
         // Show the current symbol path
         //
-
-        //
-        // Read config file
-        //
-        Ini.parse(Is);
-
-        //
-        // Show config file
-        //
-        // Ini.generate(std::cout);
-
-        string SymbolServer = "";
-        inipp::get_value(Ini.sections["DEFAULT"], "SymbolServer", SymbolServer);
-
-        Is.close();
-
-        if (!SymbolServer.empty())
+        if (!CommandSettingsGetValueFromConfigFile("SymbolServer", SymbolServer))
         {
-            ShowMessages("current symbol server is : %s\n", SymbolServer.c_str());
+            ShowMessages("symbol server is not configured, please use '.help .sympath'\n");
         }
         else
         {
-            ShowMessages("symbol server is not configured, please use '.help .sympath'\n");
+            ShowMessages("current symbol server is : %s\n", SymbolServer.c_str());
         }
     }
     else
@@ -128,38 +103,10 @@ CommandSympath(vector<string> SplittedCommand, string Command)
             //
             if (!Token.compare("srv"))
             {
-                ifstream Is(ConfigPath);
-
-                //
-                // Show the current symbol path
-                //
-
-                //
-                // Read config file
-                //
-                Ini.parse(Is);
-
-                Is.close();
-
                 //
                 // Save the config
                 //
-                Ini.sections["DEFAULT"]["SymbolServer"] = Command.c_str();
-                Ini.interpolate();
-
-                //
-                // Test, show the config
-                //
-                // Ini.generate(std::cout);
-
-                //
-                // Save the config
-                //
-                ofstream Os(ConfigPath);
-
-                Ini.generate(Os);
-
-                Os.close();
+                CommandSettingsSetValueFromConfigFile("SymbolServer", Command);
 
                 //
                 // Show the message

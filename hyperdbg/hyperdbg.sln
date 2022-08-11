@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hyperdbg-cli", "hyperdbg-cli\hyperdbg-cli.vcxproj", "{FBCBBBAD-4EAE-469E-827F-F59FE9E7375B}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -21,8 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{1997
 	ProjectSection(SolutionItems) = preProject
 		include\Configuration.h = include\Configuration.h
 		include\Definition.h = include\Definition.h
-		include\ScriptEngineCommonDefinitions.h = include\ScriptEngineCommonDefinitions.h
-		include\ScriptEngineEval.h = include\ScriptEngineEval.h
 		include\ZycoreExportConfig.h = include\ZycoreExportConfig.h
 		include\ZydisExportConfig.h = include\ZydisExportConfig.h
 	EndProjectSection
@@ -47,6 +45,54 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "symbol-parser", "symbol-par
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pdbex", "dependencies\pdbex\Source\pdbex.vcxproj", "{06FB1AF7-647C-4BA4-860A-4533763440F9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SDK", "SDK", "{7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\HyperDbgSdk.h = include\SDK\HyperDbgSdk.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Headers\BasicTypes.h = include\SDK\Headers\BasicTypes.h
+		include\SDK\Headers\Connection.h = include\SDK\Headers\Connection.h
+		include\SDK\Headers\Constants.h = include\SDK\Headers\Constants.h
+		include\SDK\Headers\Datatypes.h = include\SDK\Headers\Datatypes.h
+		include\SDK\Headers\ErrorCodes.h = include\SDK\Headers\ErrorCodes.h
+		include\SDK\Headers\Events.h = include\SDK\Headers\Events.h
+		include\SDK\Headers\Ioctls.h = include\SDK\Headers\Ioctls.h
+		include\SDK\Headers\RequestStructures.h = include\SDK\Headers\RequestStructures.h
+		include\SDK\Headers\Symbols.h = include\SDK\Headers\Symbols.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "script-eval", "script-eval", "{2CC2975A-9B33-400D-840F-9A71BB312928}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "header", "header", "{4C47AB91-DF41-4741-80AF-FD87C32A961E}"
+	ProjectSection(SolutionItems) = preProject
+		script-eval\header\ScriptEngineCommonDefinitions.h = script-eval\header\ScriptEngineCommonDefinitions.h
+		script-eval\header\ScriptEngineHeader.h = script-eval\header\ScriptEngineHeader.h
+		script-eval\header\ScriptEngineInternalHeader.h = script-eval\header\ScriptEngineInternalHeader.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "code", "code", "{952986BC-7B3D-4F50-BC69-4D11FA52D9C5}"
+	ProjectSection(SolutionItems) = preProject
+		script-eval\code\Functions.c = script-eval\code\Functions.c
+		script-eval\code\Keywords.c = script-eval\code\Keywords.c
+		script-eval\code\PseudoRegisters.c = script-eval\code\PseudoRegisters.c
+		script-eval\code\Regs.c = script-eval\code\Regs.c
+		script-eval\code\ScriptEngineEval.c = script-eval\code\ScriptEngineEval.c
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Imports", "Imports", "{B3D9DA75-8FBD-4A2C-826A-B50406396EC4}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Imports\HyperDbgCtrlImports.h = include\SDK\Imports\HyperDbgCtrlImports.h
+		include\SDK\Imports\HyperDbgScriptImports.h = include\SDK\Imports\HyperDbgScriptImports.h
+		include\SDK\Imports\HyperDbgSymImports.h = include\SDK\Imports\HyperDbgSymImports.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B}"
+	ProjectSection(SolutionItems) = preProject
+		include\SDK\Examples\example.py = include\SDK\Examples\example.py
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +135,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7EA9E1E8-4283-4CEF-9629-C5C98CD706C7} = {1997E4B6-FE49-4358-ADF1-CDDB5739508E}
+		{D67D603F-4F99-4C0B-94BE-F4A2C6CC22B5} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
+		{4C47AB91-DF41-4741-80AF-FD87C32A961E} = {2CC2975A-9B33-400D-840F-9A71BB312928}
+		{952986BC-7B3D-4F50-BC69-4D11FA52D9C5} = {2CC2975A-9B33-400D-840F-9A71BB312928}
+		{B3D9DA75-8FBD-4A2C-826A-B50406396EC4} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
+		{38E28A69-09A9-4C7E-B0F1-49E8A3B5AA0B} = {7EA9E1E8-4283-4CEF-9629-C5C98CD706C7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1444BEC7-11CE-4CA6-B77C-5F98AC9BFAEB}

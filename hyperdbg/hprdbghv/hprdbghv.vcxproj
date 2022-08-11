@@ -67,7 +67,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -92,7 +92,7 @@
     </Link>
     <ClCompile>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\include;$(ProjectDir)header;$(ProjectDir)code;$(ProjectDir);$(SolutionDir)dependencies;$(SolutionDir)\script-eval;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WppEnabled>true</WppEnabled>
       <WppTraceFunction>HypervisorTraceLevelMessage(LEVEL,FLAGS,MSG,...)</WppTraceFunction>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -109,6 +109,11 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\script-eval\code\Functions.c" />
+    <ClCompile Include="..\script-eval\code\Keywords.c" />
+    <ClCompile Include="..\script-eval\code\PseudoRegisters.c" />
+    <ClCompile Include="..\script-eval\code\Regs.c" />
+    <ClCompile Include="..\script-eval\code\ScriptEngineEval.c" />
     <ClCompile Include="code\common\Common.c" />
     <ClCompile Include="code\common\Logging.c" />
     <ClCompile Include="code\common\Spinlock.c" />
@@ -200,6 +205,7 @@
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
     <ClInclude Include="header\debugger\objects\Process.h" />
     <ClInclude Include="header\debugger\objects\Thread.h" />
+    <ClInclude Include="header\debugger\script-engine\ScriptEngine.h" />
     <ClInclude Include="header\debugger\tests\KernelTests.h" />
     <ClInclude Include="header\debugger\transparency\Transparency.h" />
     <ClInclude Include="header\debugger\user-level\Attaching.h" />

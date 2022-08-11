@@ -198,7 +198,8 @@ ShowErrorMessage(UINT32 Error)
 
     case DEBUGGER_ERROR_INVALID_PROCESS_ID:
         ShowMessages("err, the process id is invalid, make sure to enter the "
-                     "process id in hex format (%x)\n",
+                     "process id in hex format, or if you want to use it in decimal "
+                     "format, add '0n' prefix to the number (%x)\n",
                      Error);
         break;
 
@@ -1417,8 +1418,8 @@ InterpretConditionsAndCodes(vector<string> * SplittedCommand,
  * like sending over network, save to file, and send over a namedpipe
  *
  * @param SplittedCommand the initialized command that are splitted by space
- * @param SplittedCommandCaseSensitive the initialized command that are splitted 
- * by space case sensitive 
+ * @param SplittedCommandCaseSensitive the initialized command that are splitted
+ * by space case sensitive
  * @param BufferAddress the address that the allocated buffer will be saved on
  * it
  * @param BufferLength the length of the buffer
@@ -1804,14 +1805,14 @@ SendEventToKernel(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
 /**
  * @brief Register the action to the event
  *
- * @param Event the event instance buffer 
+ * @param Event the event instance buffer
  * @param ActionBreakToDebugger the action of breaking into the debugger
  * @param ActionBreakToDebuggerLength the action of breaking into the debugger (length)
- * @param ActionCustomCode the action of custom code 
+ * @param ActionCustomCode the action of custom code
  * @param ActionCustomCodeLength the action of custom code (length)
- * @param ActionScript the action of script buffer 
+ * @param ActionScript the action of script buffer
  * @param ActionScriptLength the action of script buffer (length)
- * 
+ *
  * @return BOOLEAN BOOLEAN if the request was successful then true
  * if the request was not successful then false
  */
@@ -2017,7 +2018,7 @@ GetNewDebuggerEventTag()
 
 /**
  * @brief Deallocate buffers relating to events and actions
- * @param 
+ * @param
  *
  * @return VOID
  */
@@ -2055,7 +2056,7 @@ FreeEventsAndActionsMemory(PDEBUGGER_GENERAL_EVENT_DETAIL Event,
  * @brief Interpret general event fields
  *
  * @param SplittedCommand the commands that was splitted by space
- * @param SplittedCommandCaseSensitive the commands that was splitted by space 
+ * @param SplittedCommandCaseSensitive the commands that was splitted by space
  * case sensitive
  * @param EventType type of event
  * @param EventDetailsToFill a pointer address that will be filled
