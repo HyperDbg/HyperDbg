@@ -20,7 +20,7 @@ The second 2nd of the HyperDbg Debugger.
 ### Removed
 
 
-## [0.1.0.0] - 2021-05-31
+## [0.1.0.0] - 2022-05-31
 This is the 1st release of HyperDbg Debugger.
 
 ### Added
