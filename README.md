@@ -105,6 +105,8 @@ You can write your **[scripts](https://github.com/HyperDbg/scripts)** to automat
 - MH Gholamrezaei (<a href="https://twitter.com/mohoseinam">@mohoseinam</a>)
 - Website by Mohammad Ataei (<a href="https://twitter.com/mammadataei">@mammadataei</a>)
 - Saleh Khalaj Monfared (<a href="https://twitter.com/S4l3hh">@S4l3hh</a>)
+- Michael Schwarz (<a href="https://twitter.com/misc0110">@misc0110</a>)
+- Soroush Meghdadizanjani (<a href="https://twitter.com/meSoroush">@meSoroush</a>)
 - Alee Amini (<a href="https://twitter.com/AleeAmini">@AleeAmini</a>)
 - Behrooz Abbassi (<a href="https://twitter.com/BehroozAbbassi">@BehroozAbbassi</a>)
 - Zyantific Team for <a href="https://zydis.re">Zydis</a> Disassembler
