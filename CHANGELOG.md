@@ -4,24 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0.0] - 2021-xx-xx
-The second 2nd of the HyperDbg Debugger.
+## [0.2.0.0] - 2022-xx-xx
+The second (2nd) of the HyperDbg Debugger.
 
 ### Added
-- HyperDbg SDK is available!
-- fush function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
-- !crwrite - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
+- HyperDbg Software Development Kit (DK) is now available 
+- **flush()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
+- **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
 ### Changed
 - Compiling HyperDbg by using the latest Windows 11 WDK
-- enable_event function name changed to event_enable
-- disable_event function name changed to event_disable
+- **enable_event** function name changed to **event_enable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_enable))
+- **disable_event** function name changed to **event_disable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_disable))
+- New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
 
 ### Removed
-
+- **enable_event** script engine function
+- **disable_event** script engine function
 
 ## [0.1.0.0] - 2022-05-31
-This is the 1st release of HyperDbg Debugger.
+This is the fist (1st) release of HyperDbg Debugger.
 
 ### Added
 - \# (comment in batch scripts)
