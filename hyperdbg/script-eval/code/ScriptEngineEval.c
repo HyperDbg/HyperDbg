@@ -426,6 +426,39 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
+    case FUNC_MEMCPY:
+
+        Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal0 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src0, FALSE);
+
+        Src1  = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        SrcVal1 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src1, FALSE);
+
+        Src2 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                         (unsigned long long)(*Indx * sizeof(SYMBOL)));
+
+        *Indx = *Indx + 1;
+
+        SrcVal2 =
+            GetValue(GuestRegs, ActionDetail, VariablesList, Src2, FALSE);
+
+        Des   = (PSYMBOL)((unsigned long long)CodeBuffer->Head +
+                        (unsigned long long)(*Indx * sizeof(SYMBOL)));
+        *Indx = *Indx + 1;
+
+        ScriptEngineFunctionMemcpy(SrcVal2, SrcVal1, SrcVal0, &HasError);
+
+        return HasError;
+
     case FUNC_SPINLOCK_LOCK_CUSTOM_WAIT:
 
         Src0 = (PSYMBOL)((unsigned long long)CodeBuffer->Head +

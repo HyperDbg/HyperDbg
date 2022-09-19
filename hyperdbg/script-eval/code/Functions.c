@@ -38,11 +38,11 @@ GetValue(PGUEST_REGS                    GuestRegs,
 
 /**
  * @brief Implementation of eq function
- * 
- * @param Address 
- * @param Value 
- * @param HasError 
- * @return BOOLEAN 
+ *
+ * @param Address
+ * @param Value
+ * @param HasError
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
@@ -75,11 +75,11 @@ ScriptEngineFunctionEq(UINT64 Address, QWORD Value, BOOL * HasError)
 
 /**
  * @brief Implementation of ed function
- * 
- * @param Address 
- * @param Value 
- * @param HasError 
- * @return BOOLEAN 
+ *
+ * @param Address
+ * @param Value
+ * @param HasError
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
@@ -112,11 +112,11 @@ ScriptEngineFunctionEd(UINT64 Address, DWORD Value, BOOL * HasError)
 
 /**
  * @brief Implementation of eb function
- * 
- * @param Address 
- * @param Value 
- * @param HasError 
- * @return BOOLEAN 
+ *
+ * @param Address
+ * @param Value
+ * @param HasError
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
@@ -149,10 +149,10 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError)
 
 /**
  * @brief Check whether the address is valid or not
- * 
- * @param Address 
- * @param Length 
- * @return BOOLEAN 
+ *
+ * @param Address
+ * @param Length
+ * @return BOOLEAN
  */
 BOOLEAN
 ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
@@ -178,6 +178,72 @@ ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length)
     return FALSE;
 }
 
+/**
+ * @brief A VMX-compatible equivalent of memcpy function in C
+ *
+ * @param Destionation
+ * @param Source
+ * @param Num
+ * @param HasError
+ * @return VOID
+ */
+VOID
+ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL * HasError)
+{
+#ifdef SCRIPT_ENGINE_USER_MODE
+
+    //
+    // Check the destination address
+    //
+    if (CheckMemoryAccessSafety(Destionation, Num))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Check the source address
+    //
+    if (CheckMemoryAccessSafety(Source, Num))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Address is valid, perform the memcpy in user-mode
+    //
+    memcpy((void *)Destionation, (void *)Source, Num);
+
+#endif // SCRIPT_ENGINE_USER_MODE
+
+#ifdef SCRIPT_ENGINE_KERNEL_MODE
+
+    //
+    // Check the destination address
+    //
+    if (CheckMemoryAccessSafety(Destionation, Num))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Check the source address
+    //
+    if (CheckMemoryAccessSafety(Source, Num))
+    {
+        *HasError = TRUE;
+        return;
+    }
+
+    //
+    // Address is valid, perform the memcpy in kernel-mode
+    //
+
+#endif // SCRIPT_ENGINE_KERNEL_MODE
+}
+
 //
 // Convert virtual address to physical address
 //
@@ -201,9 +267,9 @@ ScriptEngineFunctionVirtualToPhysical(UINT64 Address)
 
 /**
  * @brief Convert physical address to virtual address
- * 
- * @param Address 
- * @return UINT64 
+ *
+ * @param Address
+ * @return UINT64
  */
 UINT64
 ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
@@ -225,11 +291,11 @@ ScriptEngineFunctionPhysicalToVirtual(UINT64 Address)
 
 /**
  * @brief Implementation of print function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Value 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Value
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
@@ -253,11 +319,11 @@ ScriptEngineFunctionPrint(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Va
 
 /**
  * @brief Implementation of test_statement function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Value 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Value
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
@@ -272,10 +338,10 @@ ScriptEngineFunctionTestStatement(UINT64 Tag, BOOLEAN ImmediateMessagePassing, U
 
 /**
  * @brief Implementation of spinlock_lock function
- * 
- * @param Lock 
- * @param HasError 
- * @return VOID 
+ *
+ * @param Lock
+ * @param HasError
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
@@ -301,10 +367,10 @@ ScriptEngineFunctionSpinlockLock(volatile LONG * Lock, BOOL * HasError)
 
 /**
  * @brief Implementation of spinlock_unlock function
- * 
- * @param Lock 
- * @param HasError 
- * @return VOID 
+ *
+ * @param Lock
+ * @param HasError
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
@@ -330,11 +396,11 @@ ScriptEngineFunctionSpinlockUnlock(volatile LONG * Lock, BOOL * HasError)
 
 /**
  * @brief Implementation of spinlock_lock_custom_wait function
- * 
- * @param Lock 
- * @param MaxWait 
- * @param HasError 
- * @return VOID 
+ *
+ * @param Lock
+ * @param MaxWait
+ * @param HasError
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWait, BOOL * HasError)
@@ -360,9 +426,9 @@ ScriptEngineFunctionSpinlockLockCustomWait(volatile long * Lock, unsigned MaxWai
 
 /**
  * @brief Implementation of strlen function
- * 
- * @param Address 
- * @return UINT64 
+ *
+ * @param Address
+ * @return UINT64
  */
 UINT64
 ScriptEngineFunctionStrlen(const char * Address)
@@ -381,9 +447,9 @@ ScriptEngineFunctionStrlen(const char * Address)
 
 /**
  * @brief Implementation of wcslen function
- * 
- * @param Address 
- * @return UINT64 
+ *
+ * @param Address
+ * @return UINT64
  */
 UINT64
 ScriptEngineFunctionWcslen(const wchar_t * Address)
@@ -403,11 +469,11 @@ ScriptEngineFunctionWcslen(const wchar_t * Address)
 
 /**
  * @brief Implementation of interlocked_exchange function
- * 
- * @param Target 
- * @param Value 
- * @param HasError 
- * @return long long 
+ *
+ * @param Target
+ * @param Value
+ * @param HasError
+ * @return long long
  */
 long long
 ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
@@ -433,11 +499,11 @@ ScriptEngineFunctionInterlockedExchange(long long volatile * Target,
 
 /**
  * @brief Implementation of interlocked_exchange_add function
- * 
- * @param Addend 
- * @param Value 
- * @param HasError 
- * @return long long 
+ *
+ * @param Addend
+ * @param Value
+ * @param HasError
+ * @return long long
  */
 long long
 ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
@@ -463,10 +529,10 @@ ScriptEngineFunctionInterlockedExchangeAdd(long long volatile * Addend,
 
 /**
  * @brief Implementation of interlocked_exchange_increment function
- * 
- * @param Addend 
- * @param HasError 
- * @return long long 
+ *
+ * @param Addend
+ * @param HasError
+ * @return long long
  */
 long long
 ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
@@ -491,10 +557,10 @@ ScriptEngineFunctionInterlockedIncrement(long long volatile * Addend,
 
 /**
  * @brief Implementation of interlocked_exchange_decrement function
- * 
- * @param Addend 
- * @param HasError 
- * @return long long 
+ *
+ * @param Addend
+ * @param HasError
+ * @return long long
  */
 long long
 ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
@@ -519,12 +585,12 @@ ScriptEngineFunctionInterlockedDecrement(long long volatile * Addend,
 
 /**
  * @brief Implementation of interlocked_compare_exchange function
- * 
- * @param Destination 
- * @param ExChange 
- * @param Comperand 
- * @param HasError 
- * @return long long 
+ *
+ * @param Destination
+ * @param ExChange
+ * @param Comperand
+ * @param HasError
+ * @return long long
  */
 long long
 ScriptEngineFunctionInterlockedCompareExchange(
@@ -552,11 +618,11 @@ ScriptEngineFunctionInterlockedCompareExchange(
 
 /**
  * @brief Implementation of enable_event function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Value 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Value
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionEnableEvent(UINT64  Tag,
@@ -577,11 +643,11 @@ ScriptEngineFunctionEnableEvent(UINT64  Tag,
 
 /**
  * @brief Implementation of disable_event function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Value 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Value
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionDisableEvent(UINT64  Tag,
@@ -602,12 +668,12 @@ ScriptEngineFunctionDisableEvent(UINT64  Tag,
 
 /**
  * @brief Implementation of pause function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param GuestRegs 
- * @param Context 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param GuestRegs
+ * @param Context
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionPause(UINT64      Tag,
@@ -666,8 +732,8 @@ ScriptEngineFunctionPause(UINT64      Tag,
 
 /**
  * @brief Implementation of flush function
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionFlush()
@@ -689,8 +755,8 @@ ScriptEngineFunctionFlush()
 
 /**
  * @brief Implementation of event_ignore function
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionEventIgnore()
@@ -709,11 +775,11 @@ ScriptEngineFunctionEventIgnore()
 
 /**
  * @brief Implementation of formats function
- * 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Value 
- * @return VOID 
+ *
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Value
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 Value)
@@ -744,10 +810,10 @@ ScriptEngineFunctionFormats(UINT64 Tag, BOOLEAN ImmediateMessagePassing, UINT64 
 
 /**
  * @brief Custom VMX-root compatible strlen
- * 
- * @param StrAddr 
- * @param IsWstring 
- * @return UINT32 
+ *
+ * @param StrAddr
+ * @param IsWstring
+ * @return UINT32
  */
 UINT32
 CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
@@ -778,10 +844,10 @@ CustomStrlen(UINT64 StrAddr, BOOLEAN IsWstring)
 
 /**
  * @brief Check if string is safe to be accessed or not (in vmx-root mode)
- * 
- * @param StrAddr 
- * @param IsWstring 
- * @return BOOLEAN 
+ *
+ * @param StrAddr
+ * @param IsWstring
+ * @return BOOLEAN
  */
 BOOLEAN
 CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring)
@@ -808,21 +874,21 @@ CheckIfStringIsSafe(UINT64 StrAddr, BOOLEAN IsWstring)
 
 /**
  * @brief Apply format specifiers (%d, %x, %llx, etc.)
- * 
- * @param CurrentSpecifier 
- * @param FinalBuffer 
- * @param CurrentProcessedPositionFromStartOfFormat 
- * @param CurrentPositionInFinalBuffer 
- * @param Val 
- * @param SizeOfFinalBuffer 
- * @return VOID 
+ *
+ * @param CurrentSpecifier
+ * @param FinalBuffer
+ * @param CurrentProcessedPositionFromStartOfFormat
+ * @param CurrentPositionInFinalBuffer
+ * @param Val
+ * @param SizeOfFinalBuffer
+ * @return VOID
  */
 VOID
 ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 CurrentProcessedPositionFromStartOfFormat, PUINT32 CurrentPositionInFinalBuffer, UINT64 Val, UINT32 SizeOfFinalBuffer)
 {
     UINT32 TempBufferLen      = 0;
     CHAR   TempBuffer[50 + 1] = {
-          0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
+        0}; // Maximum uint64_t is 18446744073709551615 + 1 thus its 20 character
               // for maximum buffer + 1 end char null but we alloc 50 to be sure
 
     *CurrentProcessedPositionFromStartOfFormat =
@@ -848,11 +914,11 @@ ApplyFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 
 
 /**
  * @brief Convert WCHAR* to CHAR*
- * 
- * @param src 
- * @param dest 
- * @param dest_len 
- * @return size_t 
+ *
+ * @param src
+ * @param dest
+ * @param dest_len
+ * @return size_t
  */
 size_t
 WcharToChar(const wchar_t * src, char * dest, size_t dest_len)
@@ -886,15 +952,15 @@ WcharToChar(const wchar_t * src, char * dest, size_t dest_len)
 
 /**
  * @brief Apply string format specifiers (%s, %ws, etc.)
- * 
- * @param CurrentSpecifier 
- * @param FinalBuffer 
- * @param CurrentProcessedPositionFromStartOfFormat 
- * @param CurrentPositionInFinalBuffer 
- * @param Val 
- * @param IsWstring 
- * @param SizeOfFinalBuffer 
- * @return BOOLEAN 
+ *
+ * @param CurrentSpecifier
+ * @param FinalBuffer
+ * @param CurrentProcessedPositionFromStartOfFormat
+ * @param CurrentPositionInFinalBuffer
+ * @param Val
+ * @param IsWstring
+ * @param SizeOfFinalBuffer
+ * @return BOOLEAN
  */
 BOOLEAN
 ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PUINT32 CurrentProcessedPositionFromStartOfFormat, PUINT32 CurrentPositionInFinalBuffer, UINT64 Val, BOOLEAN IsWstring, UINT32 SizeOfFinalBuffer)
@@ -1045,17 +1111,17 @@ ApplyStringFormatSpecifier(const CHAR * CurrentSpecifier, CHAR * FinalBuffer, PU
 
 /**
  * @brief Implementation of printf function
- * 
- * @param GuestRegs 
- * @param ActionDetail 
- * @param VariablesList 
- * @param Tag 
- * @param ImmediateMessagePassing 
- * @param Format 
- * @param ArgCount 
- * @param FirstArg 
- * @param HasError 
- * @return VOID 
+ *
+ * @param GuestRegs
+ * @param ActionDetail
+ * @param VariablesList
+ * @param Tag
+ * @param ImmediateMessagePassing
+ * @param Format
+ * @param ArgCount
+ * @param FirstArg
+ * @param HasError
+ * @return VOID
  */
 VOID
 ScriptEngineFunctionPrintf(PGUEST_REGS                    GuestRegs,

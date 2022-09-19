@@ -275,6 +275,13 @@ const unsigned char BuildVersion[] =
  */
 #define DebuggerOutputSourceMaximumRemoteSourceForSingleEvent 0x5
 
+/**
+ * @brief The size of each chunk of memory used in the 'memcpy' function
+ * of the script engine for transfering buffers in the VMX-root mode
+ *
+ */
+#define DebuggerScriptEngineMemcpyMovingBufferSize 64
+
 //////////////////////////////////////////////////
 //               Remote Connection              //
 //////////////////////////////////////////////////

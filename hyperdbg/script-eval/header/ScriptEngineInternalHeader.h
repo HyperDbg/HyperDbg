@@ -103,6 +103,9 @@ ScriptEngineFunctionEb(UINT64 Address, BYTE Value, BOOL * HasError);
 BOOLEAN
 ScriptEngineFunctionCheckAddress(UINT64 Address, UINT32 Length);
 
+VOID
+ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL * HasError);
+
 UINT64
 ScriptEngineFunctionVirtualToPhysical(UINT64 Address);
 

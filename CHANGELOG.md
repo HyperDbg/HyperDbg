@@ -17,6 +17,7 @@ The second (2nd) of the HyperDbg Debugger.
 - **enable_event** function name changed to **event_enable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_enable))
 - **disable_event** function name changed to **event_disable** ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/event_disable))
 - New pseudo-registers (**$event_tag**, **$event_id**) in the script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/assumptions-and-evaluations#pseudo-registers))
+- The "**settings**" command now preserves the configurations in the config file
 
 ### Removed
 - **enable_event** script engine function
