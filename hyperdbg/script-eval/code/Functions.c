@@ -198,7 +198,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckMemoryAccessSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -207,7 +207,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (CheckMemoryAccessSafety(Source, Num))
+    if (!CheckMemoryAccessSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
@@ -225,7 +225,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the destination address
     //
-    if (CheckMemoryAccessSafety(Destionation, Num))
+    if (!CheckMemoryAccessSafety(Destionation, Num))
     {
         *HasError = TRUE;
         return;
@@ -234,7 +234,7 @@ ScriptEngineFunctionMemcpy(UINT64 Destionation, UINT64 Source, UINT32 Num, BOOL 
     //
     // Check the source address
     //
-    if (CheckMemoryAccessSafety(Source, Num))
+    if (!CheckMemoryAccessSafety(Source, Num))
     {
         *HasError = TRUE;
         return;
