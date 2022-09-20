@@ -22,7 +22,7 @@
 
 #define AssertReturnOne return 1;
 
-#define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded.Did you use 'load' command ?\n"
+#define ASSERT_MESSAGE_DRIVER_NOT_LOADED "handle of the driver not found, probably the driver is not loaded. Did you use 'load' command ?\n"
 
 #define AssertReturnStmt(expr, stmt, rc) \
     do                                   \

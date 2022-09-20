@@ -371,6 +371,8 @@ HyperDbgShowSignature()
 bool
 HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
 {
+    UINT32 CurrentCommandLen = 0;
+
     if (Reset)
     {
         g_IsInterpreterOnString                    = FALSE;
@@ -378,7 +380,9 @@ HyperDbgCheckMultilineCommand(std::string & CurrentCommand, bool Reset)
         g_InterpreterCountOfOpenCurlyBrackets      = 0;
     }
 
-    for (size_t i = 0; i < CurrentCommand.length(); i++)
+    CurrentCommandLen = CurrentCommand.length();
+
+    for (size_t i = 0; i < CurrentCommandLen; i++)
     {
         switch (CurrentCommand.at(i))
         {

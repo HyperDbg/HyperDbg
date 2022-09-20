@@ -75,10 +75,10 @@ ShowMessages(const char * Fmt, ...)
 }
 
 /**
- * @brief Interpret and find module base, based on module name 
+ * @brief Interpret and find module base, based on module name
  * @param SearchMask
- * 
- * @return PSYMBOL_LOADED_MODULE_DETAILS NULL means error or not found, 
+ *
+ * @return PSYMBOL_LOADED_MODULE_DETAILS NULL means error or not found,
  * otherwise it returns the instance of loaded module based on search mask
  */
 PSYMBOL_LOADED_MODULE_DETAILS
@@ -189,13 +189,13 @@ SymGetModuleBaseFromSearchMask(const char * SearchMask, BOOLEAN SetModuleNameGlo
 }
 
 /**
- * @brief Get the offset of a field from the top of a structure 
+ * @brief Get the offset of a field from the top of a structure
  * @param Base
  * @param TypeName
  * @param FieldName
  * @param FieldOffset
  * @details This function is derived from: https://github.com/0vercl0k/sic/blob/master/src/sic/sym.cc
- * 
+ *
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
@@ -324,7 +324,7 @@ SymGetFieldOffsetFromModule(UINT64 Base, WCHAR * TypeName, WCHAR * FieldName, UI
  * @param Base
  * @param TypeName
  * @param TypeSize
- * 
+ *
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
@@ -372,7 +372,7 @@ SymGetDataTypeSizeFromModule(UINT64 Base, WCHAR * TypeName, UINT64 * TypeSize)
  * @param BaseAddress
  * @param FileName
  * @param Guid
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -509,7 +509,7 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
     if (ModuleDetails->ModuleBase == NULL)
     {
         //
-        //ShowMessages("err, loading symbols failed (%x)\n",
+        // ShowMessages("err, loading symbols failed (%x)\n",
         //       GetLastError());
         //
 
@@ -558,9 +558,9 @@ SymLoadFileSymbol(UINT64 BaseAddress, const char * PdbFileName)
 
 /**
  * @brief Unload one module symbol
- * 
- * @param ModuleName 
- * 
+ *
+ * @param ModuleName
+ *
  * @return UINT32
  */
 UINT32
@@ -618,7 +618,7 @@ SymUnloadModuleSymbol(char * ModuleName)
 
 /**
  * @brief Unload all the symbols
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -666,7 +666,7 @@ SymUnloadAllSymbols()
  *
  * @param FunctionName
  * @param WasFound
- * 
+ *
  * @return UINT64
  */
 UINT64
@@ -676,7 +676,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
     UINT64       Address = NULL;
     UINT64       Buffer[(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR) + sizeof(UINT64) - 1) / sizeof(UINT64)];
     PSYMBOL_INFO Symbol = (PSYMBOL_INFO)Buffer;
-    string       name   = FunctionOrVariableName;
+    string       FinalModuleName;
 
     //
     // Not found by default
@@ -691,8 +691,8 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 
     //
     // Check if it starts with 'nt!' and if starts then
-    // we'll change it to nt the kernel module 'ntkrnlmp' 
-    // because 'nt!' is not a real module name
+    // we'll change it to nt the kernel module real nt module
+    // name because 'nt!' is not a real module name
     //
     if (strlen(FunctionOrVariableName) >= 4 &&
         tolower(FunctionOrVariableName[0]) == 'n' &&
@@ -700,11 +700,12 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         tolower(FunctionOrVariableName[2]) == '!')
     {
         FunctionOrVariableName += 3;
-        name = "ntkrnlmp!";
-        name += FunctionOrVariableName;
+        std::string ModuleName(g_NtModuleName);
+        std::string ObjectName(FunctionOrVariableName);
+        FinalModuleName = ModuleName + "!" + FunctionOrVariableName;
     }
 
-    if (SymFromName(GetCurrentProcess(), name.c_str(), Symbol))
+    if (SymFromName(GetCurrentProcess(), FinalModuleName.c_str(), Symbol))
     {
         //
         // SymFromName returned success
@@ -720,7 +721,7 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
         Found = FALSE;
 
         //
-        //ShowMessages("symbol not found (%x)\n", GetLastError());
+        // ShowMessages("symbol not found (%x)\n", GetLastError());
         //
     }
 
@@ -731,13 +732,13 @@ SymConvertNameToAddress(const char * FunctionOrVariableName, PBOOLEAN WasFound)
 }
 
 /**
- * @brief Search and show symbols 
+ * @brief Search and show symbols
  * @details mainly used by the 'x' command
  *
  * @param TypeName
  * @param FieldName
  * @param FieldOffset
- * 
+ *
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
@@ -806,12 +807,12 @@ SymGetFieldOffset(CHAR * TypeName, CHAR * FieldName, UINT32 * FieldOffset)
 }
 
 /**
- * @brief Get the size of structures from the symbols 
+ * @brief Get the size of structures from the symbols
  *
  * @param TypeName
  * @param FieldName
  * @param FieldOffset
- * 
+ *
  * @return BOOLEAN Whether the module is found successfully or not
  */
 BOOLEAN
@@ -870,10 +871,10 @@ SymGetDataTypeSize(CHAR * TypeName, UINT64 * TypeSize)
 }
 
 /**
- * @brief Gets the offset from the symbol 
+ * @brief Gets the offset from the symbol
  *
  * @param SearchMask
- * 
+ *
  * @return UINT32
  */
 UINT32
@@ -916,11 +917,11 @@ SymSearchSymbolForMask(const char * SearchMask)
 }
 
 /**
- * @brief Create symbol table for disassembler 
+ * @brief Create symbol table for disassembler
  * @details mainly used by disassembler for 'u' command
  *
  * @param CallbackFunction
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -993,7 +994,7 @@ SymSeparateTo64BitValue(UINT64 Value)
  * @param FileName
  * @param BaseAddr
  * @param FileSize
- * 
+ *
  * @return BOOL
  */
 BOOL
@@ -1047,7 +1048,7 @@ SymGetFileParams(const char * FileName, DWORD & FileSize)
  *
  * @param FileName
  * @param FileSize
- * 
+ *
  * @return BOOL
  */
 BOOL
@@ -1105,7 +1106,7 @@ SymGetFileSize(const char * FileName, DWORD & FileSize)
  * @brief Show symbol info
  *
  * @param ModuleBase
- * 
+ *
  * @return VOID
  */
 VOID
@@ -1255,7 +1256,7 @@ SymShowSymbolInfo(UINT64 ModuleBase)
  * @param SymInfo
  * @param SymbolSize
  * @param UserContext
- * 
+ *
  * @return BOOL
  */
 BOOL CALLBACK
@@ -1278,7 +1279,7 @@ SymDisplayMaskSymbolsCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize, PVOID Use
  * @param SymInfo
  * @param SymbolSize
  * @param UserContext
- * 
+ *
  * @return BOOL
  */
 BOOL CALLBACK
@@ -1302,7 +1303,7 @@ SymDeliverDisassemblerSymbolMapCallback(SYMBOL_INFO * SymInfo, ULONG SymbolSize,
  * @brief Show symbols details
  *
  * @param SymInfo
- * 
+ *
  * @return VOID
  */
 VOID
@@ -1347,7 +1348,7 @@ SymShowSymbolDetails(SYMBOL_INFO & SymInfo)
  * @brief Interpret different tags for pdbs
  *
  * @param Tag
- * 
+ *
  * @return const char *
  */
 const char *
@@ -1460,7 +1461,7 @@ SymTagStr(ULONG Tag)
  *
  * @param LocalFilePath
  * @param ResultPath
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1515,7 +1516,7 @@ SymConvertFileToPdbPath(const char * LocalFilePath, char * ResultPath)
  * @param LocalFilePath
  * @param PdbFilePath
  * @param GuidAndAgeDetails
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1566,14 +1567,14 @@ SymConvertFileToPdbFileAndGuidAndAgeDetails(const char * LocalFilePath, char * P
 
 /**
  * @brief check if the pdb files of loaded symbols are available or not
- * 
+ *
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
  * @param DownloadIfAvailable Download the file if its available online
  * @param SymbolPath The path of symbols
  * @param IsSilentLoad
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1587,13 +1588,13 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
     string                SymPath(SymbolPath);
     PMODULE_SYMBOL_DETAIL BufferToStoreDetailsConverted = (PMODULE_SYMBOL_DETAIL)BufferToStoreDetails;
 
-    vector<string> SplitedsymPath = Split(SymPath, '*');
-    if (SplitedsymPath.size() < 2)
+    vector<string> SplitedSymPath = Split(SymPath, '*');
+    if (SplitedSymPath.size() < 2)
         return FALSE;
-    if (SplitedsymPath[1].find(":\\") == string::npos)
+    if (SplitedSymPath[1].find(":\\") == string::npos)
         return FALSE;
 
-    Tmp = SymDir = SplitedsymPath[1];
+    Tmp = SymDir = SplitedSymPath[1];
 
     //
     // Split each module and details
@@ -1717,29 +1718,29 @@ SymbolInitLoad(PVOID        BufferToStoreDetails,
 }
 
 /**
- * @brief download pdb file 
- * 
+ * @brief download pdb file
+ *
  * @param BufferToStoreDetails Pointer to a buffer to store the symbols details
  * this buffer will be allocated by this function and needs to be freed by caller
  * @param StoredLength The length that stored on the BufferToStoreDetails
  * @param SymPath The path of symbols
  * @param IsSilentLoad Download without any message
- * 
+ *
  * return BOOLEAN
  */
 BOOLEAN
 SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::string & SymPath, BOOLEAN IsSilentLoad)
 {
-    vector<string> SplitedsymPath = Split(SymPath, '*');
-    if (SplitedsymPath.size() < 2)
+    vector<string> SplitedSymPath = Split(SymPath, '*');
+    if (SplitedSymPath.size() < 2)
         return FALSE;
-    if (SplitedsymPath[1].find(":\\") == string::npos)
+    if (SplitedSymPath[1].find(":\\") == string::npos)
         return FALSE;
-    if (SplitedsymPath[2].find("http:") == string::npos && SplitedsymPath[2].find("https:") == string::npos)
+    if (SplitedSymPath[2].find("http:") == string::npos && SplitedSymPath[2].find("https:") == string::npos)
         return FALSE;
 
-    string SymDir            = SplitedsymPath[1];
-    string SymDownloadServer = SplitedsymPath[2];
+    string SymDir            = SplitedSymPath[1];
+    string SymDownloadServer = SplitedSymPath[2];
     string DownloadURL       = SymDownloadServer + "/" + SymName + "/" + GUID + "/" + SymName;
     string SymFullDir        = SymDir + "\\" + SymName + "\\" + GUID + "\\";
     if (!CreateDirectoryRecursive(SymFullDir))
@@ -1780,7 +1781,7 @@ SymbolPDBDownload(std::string SymName, const std::string & GUID, const std::stri
 /**
  * @brief In the case of pressing CTRL+C, it sets a flag
  * to abort the execution of 'reload'ing and 'download'ing
- *  
+ *
  * return VOID
  */
 VOID
@@ -1802,7 +1803,7 @@ SymbolAbortLoading()
  * @param IsStruct
  * @param BufferAddress
  * @param AdditionalParameters
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -1812,7 +1813,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
                               PVOID        BufferAddress,
                               const char * AdditionalParameters)
 {
-    vector<string>                SplitedsymPath;
+    vector<string>                SplitedSymPath;
     char **                       ArgvArray     = NULL;
     PSYMBOL_LOADED_MODULE_DETAILS SymbolInfo    = NULL;
     UINT32                        SizeOfArgv    = 0;
@@ -1841,7 +1842,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     // Split the arguments by space
     //
-    SplitedsymPath = Split(AdditionalParametersString, ' ');
+    SplitedSymPath = Split(AdditionalParametersString, ' ');
 
     //
     // Allocate buffer to convert it to the char*
@@ -1850,7 +1851,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //      2. type (structure) name
     //      3. PDB file location
     //
-    SizeOfArgv = SplitedsymPath.size() + 3;
+    SizeOfArgv = SplitedSymPath.size() + 3;
     ArgvArray  = (char **)malloc(SizeOfArgv * sizeof(char *));
 
     if (ArgvArray == NULL)
@@ -1894,7 +1895,7 @@ SymShowDataBasedOnSymbolTypes(const char * TypeName,
     //
     for (size_t i = 3; i < SizeOfArgv; i++)
     {
-        ArgvArray[i] = (char *)SplitedsymPath.at(i - 3).c_str();
+        ArgvArray[i] = (char *)SplitedSymPath.at(i - 3).c_str();
     }
 
     //
