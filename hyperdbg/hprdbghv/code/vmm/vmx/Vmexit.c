@@ -21,19 +21,13 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit         = {0};
-    UINT64                       GuestPhysicalAddr     = 0;
-    UINT64                       GuestRsp              = 0;
-    UINT64                       GuestRip              = 0;
-    ULONG                        ExitReason            = 0;
-    ULONG                        ExitQualification     = 0;
-    ULONG                        Rflags                = 0;
-    ULONG                        EcxReg                = 0;
-    ULONG                        ExitInstructionLength = 0;
-    ULONG                        CurrentProcessorIndex = 0;
-    BOOLEAN                      Result                = FALSE;
-    BOOLEAN                      ShouldEmulateRdtscp   = TRUE;
-    VIRTUAL_MACHINE_STATE *      CurrentGuestState     = NULL;
+    ULONG                   CurrentProcessorIndex = 0;
+    ULONG                   ExitReason            = 0;
+    ULONG                   ExitQualification     = 0;
+    ULONG                   EcxReg                = 0;
+    BOOLEAN                 Result                = FALSE;
+    BOOLEAN                 ShouldEmulateRdtscp   = TRUE;
+    VIRTUAL_MACHINE_STATE * CurrentGuestState     = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
@@ -69,19 +63,16 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Save the current rip
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &GuestRip);
-    CurrentGuestState->LastVmexitRip = GuestRip;
+    __vmx_vmread(VMCS_GUEST_RIP, &CurrentGuestState->LastVmexitRip);
 
     //
     // Set the rsp in general purpose registers structure
     //
-    __vmx_vmread(VMCS_GUEST_RSP, &GuestRsp);
-    GuestRegs->rsp = GuestRsp;
+    __vmx_vmread(VMCS_GUEST_RSP, &GuestRegs->rsp);
 
     //
     // Read the exit qualification
     //
-
     __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
 
     //
@@ -119,8 +110,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // cf=1 indicate vm instructions fail
         //
-        //__vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
-        //__vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags | 0x1);
+        // ULONG Rflags = 0;
+        // __vmx_vmread(VMCS_GUEST_RFLAGS, &Rflags);
+        // __vmx_vmwrite(VMCS_GUEST_RFLAGS, Rflags | 0x1);
 
         //
         // Handle unconditional vm-exits (inject #ud)
@@ -189,42 +181,15 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_IO_INSTRUCTION:
     {
         //
-        // Read the I/O Qualification which indicates the I/O instruction
+        // Dispatch and trigger the I/O instruction events
         //
-        __vmx_vmread(VMCS_EXIT_QUALIFICATION, &IoQualification);
-
-        //
-        // Read Guest's RFLAGS
-        //
-        __vmx_vmread(VMCS_GUEST_RFLAGS, &Flags);
-
-        //
-        // Call the I/O Handler
-        //
-        IoHandleIoVmExits(GuestRegs, IoQualification, Flags);
-
-        //
-        // As the context to event trigger, port address
-        //
-        if (IoQualification.DirectionOfAccess == AccessIn)
-        {
-            DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
-        }
-        else if (IoQualification.DirectionOfAccess == AccessOut)
-        {
-            DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION, GuestRegs, IoQualification.PortNumber);
-        }
+        DispatchEventIO(GuestRegs);
 
         break;
     }
     case VMX_EXIT_REASON_EPT_VIOLATION:
     {
-        //
-        // Reading guest physical address
-        //
-        __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
-
-        if (EptHandleEptViolation(GuestRegs, ExitQualification, GuestPhysicalAddr) == FALSE)
+        if (EptHandleEptViolation(GuestRegs, ExitQualification) == FALSE)
         {
             LogError("Err, there were errors in handling EPT violation");
         }
@@ -233,9 +198,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EPT_MISCONFIGURATION:
     {
-        __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
-
-        EptHandleMisconfiguration(GuestPhysicalAddr);
+        EptHandleMisconfiguration();
 
         break;
     }
@@ -251,28 +214,18 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
     {
         //
-        // read the exit reason
-        //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
-
-        //
         // Handle the emulation
         //
-        IdtEmulationHandleExceptionAndNmi(CurrentProcessorIndex, InterruptExit, GuestRegs);
+        IdtEmulationHandleExceptionAndNmi(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
     case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
     {
         //
-        // read the exit reason (for interrupt)
-        //
-        __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
-
-        //
         // Call External Interrupt Handler
         //
-        IdtEmulationHandleExternalInterrupt(CurrentProcessorIndex, InterruptExit, GuestRegs);
+        IdtEmulationHandleExternalInterrupt(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
@@ -370,8 +323,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle xsetbv (unconditional vm-exit)
         //
-        EcxReg = GuestRegs->rcx & 0xffffffff;
-        VmxHandleXsetbv(EcxReg, GuestRegs->rdx << 32 | GuestRegs->rax);
+        VmxHandleXsetbv(GuestRegs->rcx & 0xffffffff, GuestRegs->rdx << 32 | GuestRegs->rax);
 
         break;
     }
@@ -408,7 +360,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // Check for vmxoff request
     //
     if (CurrentGuestState->VmxoffState.IsVmxoffExecuted)
+    {
         Result = TRUE;
+    }
 
     //
     // Restore the previous time

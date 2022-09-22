@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #pragma once
 
@@ -23,7 +23,7 @@
 
 /**
  * @brief Page attributes for internal use
- * 
+ *
  */
 #define PAGE_ATTRIB_READ  0x2
 #define PAGE_ATTRIB_WRITE 0x4
@@ -31,63 +31,63 @@
 
 /**
  * @brief The number of 512GB PML4 entries in the page table
- * 
+ *
  */
 #define VMM_EPT_PML4E_COUNT 512
 
 /**
  * @brief The number of 1GB PDPT entries in the page table per 512GB PML4 entry
- * 
+ *
  */
 #define VMM_EPT_PML3E_COUNT 512
 
 /**
  * @brief Then number of 2MB Page Directory entries in the page table per 1GB
  *  PML3 entry
- * 
+ *
  */
 #define VMM_EPT_PML2E_COUNT 512
 
 /**
  * @brief Then number of 4096 byte Page Table entries in the page table per 2MB PML2
  * entry when dynamically split
- * 
+ *
  */
 #define VMM_EPT_PML1E_COUNT 512
 
 /**
  * @brief Integer 2MB
- * 
+ *
  */
 #define SIZE_2_MB ((SIZE_T)(512 * PAGE_SIZE))
 
 /**
  * @brief Offset into the 1st paging structure (4096 byte)
- * 
+ *
  */
 #define ADDRMASK_EPT_PML1_OFFSET(_VAR_) (_VAR_ & 0xFFFULL)
 
 /**
  * @brief Index of the 1st paging structure (4096 byte)
- * 
+ *
  */
 #define ADDRMASK_EPT_PML1_INDEX(_VAR_) ((_VAR_ & 0x1FF000ULL) >> 12)
 
 /**
- * @brief Index of the 2nd paging structure (2MB) 
- * 
+ * @brief Index of the 2nd paging structure (2MB)
+ *
  */
 #define ADDRMASK_EPT_PML2_INDEX(_VAR_) ((_VAR_ & 0x3FE00000ULL) >> 21)
 
 /**
  * @brief Index of the 3rd paging structure (1GB)
- * 
+ *
  */
 #define ADDRMASK_EPT_PML3_INDEX(_VAR_) ((_VAR_ & 0x7FC0000000ULL) >> 30)
 
 /**
  * @brief Index of the 4th paging structure (512GB)
- * 
+ *
  */
 #define ADDRMASK_EPT_PML4_INDEX(_VAR_) ((_VAR_ & 0xFF8000000000ULL) >> 39)
 
@@ -97,7 +97,7 @@
 
 /**
  * @brief Vmx-root lock for changing EPT PML1 Entry and Invalidating TLB
- * 
+ *
  */
 volatile LONG Pml1ModificationAndInvalidationLock;
 
@@ -121,7 +121,7 @@ typedef EPT_PTE     EPT_PML1_ENTRY, *PEPT_PML1_ENTRY;
 
 /**
  * @brief Structure for saving EPT Table
- * 
+ *
  */
 typedef struct _VMM_EPT_PAGE_TABLE
 {
@@ -149,7 +149,7 @@ typedef struct _VMM_EPT_PAGE_TABLE
 
 /**
  * @brief MTRR Range Descriptor
- * 
+ *
  */
 typedef struct _MTRR_RANGE_DESCRIPTOR
 {
@@ -160,7 +160,7 @@ typedef struct _MTRR_RANGE_DESCRIPTOR
 
 /**
  * @brief Main structure for saving the state of EPT among the project
- * 
+ *
  */
 #define EPT_MTRR_RANGE_DESCRIPTOR_MAX 0x9
 typedef struct _EPT_STATE
@@ -177,21 +177,21 @@ typedef struct _EPT_STATE
 
 /**
  * @brief Split 2MB granularity to 4 KB granularity
- * 
+ *
  */
 typedef struct _VMM_EPT_DYNAMIC_SPLIT
 {
     /**
      * @brief The 4096 byte page table entries that correspond to the split 2MB table entry
-     * 
+     *
      */
     DECLSPEC_ALIGN(PAGE_SIZE)
     EPT_PML1_ENTRY PML1[VMM_EPT_PML1E_COUNT];
 
     /**
-    * @brief The pointer to the 2MB entry in the page table which this split is servicing.
-    * 
-    */
+     * @brief The pointer to the 2MB entry in the page table which this split is servicing.
+     *
+     */
     union
     {
         PEPT_PML2_ENTRY   Entry;
@@ -200,7 +200,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 
     /**
      * @brief Linked list entries for each dynamic split
-     * 
+     *
      */
     LIST_ENTRY DynamicSplitList;
 
@@ -208,7 +208,7 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 
 /**
  * @brief Structure to save the state of each hooked pages
- * 
+ *
  */
 typedef struct _EPT_HOOKED_PAGE_DETAIL
 {
@@ -221,14 +221,14 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     LIST_ENTRY PageHookList;
 
     /**
-    * @brief The virtual address from the caller prespective view (cr3)
-    */
+     * @brief The virtual address from the caller prespective view (cr3)
+     */
     UINT64 VirtualAddress;
 
     /**
-    * @brief The virtual address of it's enty on g_EptHook2sDetourListHead 
-    * this way we can de-allocate the list whenever the hook is finished
-    */
+     * @brief The virtual address of it's enty on g_EptHook2sDetourListHead
+     * this way we can de-allocate the list whenever the hook is finished
+     */
     UINT64 AddressOfEptHook2sDetourListEntry;
 
     /**
@@ -238,9 +238,9 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     SIZE_T PhysicalBaseAddress;
 
     /**
-    * @brief The base address of the page with fake contents. Used to swap page with fake contents
-    * when a hook is hit.
-    */
+     * @brief The base address of the page with fake contents. Used to swap page with fake contents
+     * when a hook is hit.
+     */
     SIZE_T PhysicalBaseAddressOfFakePageContents;
 
     /*
@@ -260,8 +260,8 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     EPT_PML1_ENTRY ChangedEntry;
 
     /**
-    * @brief The buffer of the trampoline function which is used in the inline hook.
-    */
+     * @brief The buffer of the trampoline function which is used in the inline hook.
+     */
     PCHAR Trampoline;
 
     /**
@@ -270,7 +270,7 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsExecutionHook;
 
     /**
-     * @brief If TRUE shows that this is the information about 
+     * @brief If TRUE shows that this is the information about
      * a hidden breakpoint command (not a monitor or hidden detours)
      */
     BOOLEAN IsHiddenBreakpoint;
@@ -327,28 +327,28 @@ EptHandlePageHookExit(_Inout_ PGUEST_REGS                       Regs,
 
 /**
  * @brief Check for EPT Features
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptCheckFeatures();
 
 /**
  * @brief Build MTRR Map
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptBuildMtrrMap();
 
 /**
  * @brief Convert 2MB pages to 4KB pages
- * 
- * @param EptPageTable 
- * @param PreAllocatedBuffer 
- * @param PhysicalAddress 
- * @param CoreIndex 
- * @return BOOLEAN 
+ *
+ * @param EptPageTable
+ * @param PreAllocatedBuffer
+ * @param PhysicalAddress
+ * @param CoreIndex
+ * @return BOOLEAN
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
@@ -358,61 +358,59 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
 
 /**
  * @brief Initialize EPT Table based on Processor Index
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptLogicalProcessorInitialize();
 
 /**
  * @brief Handle EPT Violation
- * 
- * @param Regs 
- * @param ExitQualification 
- * @param GuestPhysicalAddr 
- * @return BOOLEAN 
+ *
+ * @param Regs
+ * @param ExitQualification
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptHandleEptViolation(_Inout_ PGUEST_REGS Regs,
-                      _In_ ULONG          ExitQualification,
-                      _In_ UINT64         GuestPhysicalAddr);
+                      _In_ ULONG          ExitQualification);
 
 /**
  * @brief Get the PML1 Entry of a special address
- * 
- * @param EptPageTable 
- * @param PhysicalAddress 
- * @return PEPT_PML1_ENTRY 
+ *
+ * @param EptPageTable
+ * @param PhysicalAddress
+ * @return PEPT_PML1_ENTRY
  */
 PEPT_PML1_ENTRY
 EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress);
 
 /**
  * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
- * 
- * @param HookedEntry 
- * @return VOID 
+ *
+ * @param HookedEntry
+ * @return VOID
  */
 VOID
 EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry);
 
 /**
  * @brief Handle Ept Misconfigurations
- * 
- * @param GuestAddress 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
-EptHandleMisconfiguration(UINT64 GuestAddress);
+EptHandleMisconfiguration();
 
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then
  * invalidate the TLB , this function should be called from vmx root-mode
- * 
- * @param EntryAddress 
- * @param EntryValue 
- * @param InvalidationType 
- * @return VOID 
+ *
+ * @param EntryAddress
+ * @param EntryValue
+ * @param InvalidationType
+ * @return VOID
  */
 VOID
 EptSetPML1AndInvalidateTLB(_Out_ PEPT_PML1_ENTRY                EntryAddress,

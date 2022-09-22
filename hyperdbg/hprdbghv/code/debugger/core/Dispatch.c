@@ -300,11 +300,10 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
  * @brief Handling debugger functions related to IO events
  *
  * @param Regs Guest's gp register
- * @param Context Context of triggering the event
  * @return VOID
  */
 VOID
-DispatchEventIO(PGUEST_REGS Regs, PVOID Context)
+DispatchEventIO(PGUEST_REGS Regs)
 {
     VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification     = {0};
     RFLAGS                                Flags               = {0};
@@ -373,5 +372,95 @@ DispatchEventIO(PGUEST_REGS Regs, PVOID Context)
                                   IoQualification.PortNumber,
                                   NULL);
         }
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to RDMSR events
+ *
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventRdmsr(PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Regs->rcx & 0xffffffff,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle vm-exit and perform changes
+        //
+        MsrHandleRdmsrVmexit(Regs);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              Regs->rcx & 0xffffffff,
+                              NULL);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to WRMSR events
+ *
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventWrmsr(PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Regs->rcx & 0xffffffff,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle vm-exit and perform changes
+        //
+        MsrHandleWrmsrVmexit(Regs);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              Regs->rcx & 0xffffffff,
+                              NULL);
     }
 }
