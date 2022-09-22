@@ -234,3 +234,144 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
                               NULL);
     }
 }
+
+/**
+ * @brief Handling debugger functions related to VMCALL events
+ *
+ * @param CoreIndex Current core's index
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // As the context to event trigger, we send NULL
+    // Registers are the best source to know the purpose
+    //
+    if (g_TriggerEventForVmcalls)
+    {
+        //
+        // Triggering the pre-event
+        //
+        EventTriggerResult = DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION,
+                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                   Regs,
+                                                   NULL,
+                                                   &PostEventTriggerReq);
+
+        //
+        // Check whether we need to ignore event emulation or not
+        //
+        if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+        {
+            //
+            // Handle the VMCALL event in the case of triggering event
+            //
+            VmxHandleVmcallVmExit(CoreIndex, Regs);
+        }
+
+        //
+        // Check for the post-event triggering needs
+        //
+        if (PostEventTriggerReq)
+        {
+            DebuggerTriggerEvents(CPUID_INSTRUCTION_EXECUTION,
+                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                  Regs,
+                                  NULL,
+                                  NULL);
+        }
+    }
+    else
+    {
+        //
+        // Otherwise and if there is no event, we should handle the VMCALL
+        // normally
+        //
+        VmxHandleVmcallVmExit(CoreIndex, Regs);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to IO events
+ *
+ * @param Regs Guest's gp register
+ * @param Context Context of triggering the event
+ * @return VOID
+ */
+VOID
+DispatchEventIO(PGUEST_REGS Regs, PVOID Context)
+{
+    VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification     = {0};
+    RFLAGS                                Flags               = {0};
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult  = DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // Read the I/O Qualification which indicates the I/O instruction
+    //
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &IoQualification);
+
+    //
+    // Read Guest's RFLAGS
+    //
+    __vmx_vmread(VMCS_GUEST_RFLAGS, &Flags);
+
+    //
+    // As the context to event trigger, port address
+    //
+    if (IoQualification.DirectionOfAccess == AccessIn)
+    {
+        EventTriggerResult = DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                   Regs,
+                                                   IoQualification.PortNumber,
+                                                   &PostEventTriggerReq);
+    }
+    else if (IoQualification.DirectionOfAccess == AccessOut)
+    {
+        EventTriggerResult = DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+                                                   DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                                   Regs,
+                                                   IoQualification.PortNumber,
+                                                   &PostEventTriggerReq);
+    }
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Call the I/O Handler
+        //
+        IoHandleIoVmExits(Regs, IoQualification, Flags);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        if (IoQualification.DirectionOfAccess == AccessIn)
+        {
+            DebuggerTriggerEvents(IN_INSTRUCTION_EXECUTION,
+                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                  Regs,
+                                  IoQualification.PortNumber,
+                                  NULL);
+        }
+        else if (IoQualification.DirectionOfAccess == AccessOut)
+        {
+            DebuggerTriggerEvents(OUT_INSTRUCTION_EXECUTION,
+                                  DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                                  Regs,
+                                  IoQualification.PortNumber,
+                                  NULL);
+        }
+    }
+}

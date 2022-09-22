@@ -21,21 +21,19 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    VMEXIT_INTERRUPT_INFORMATION          InterruptExit         = {0};
-    VMX_EXIT_QUALIFICATION_IO_INSTRUCTION IoQualification       = {0};
-    RFLAGS                                Flags                 = {0};
-    UINT64                                GuestPhysicalAddr     = 0;
-    UINT64                                GuestRsp              = 0;
-    UINT64                                GuestRip              = 0;
-    ULONG                                 ExitReason            = 0;
-    ULONG                                 ExitQualification     = 0;
-    ULONG                                 Rflags                = 0;
-    ULONG                                 EcxReg                = 0;
-    ULONG                                 ExitInstructionLength = 0;
-    ULONG                                 CurrentProcessorIndex = 0;
-    BOOLEAN                               Result                = FALSE;
-    BOOLEAN                               ShouldEmulateRdtscp   = TRUE;
-    VIRTUAL_MACHINE_STATE *               CurrentGuestState     = NULL;
+    VMEXIT_INTERRUPT_INFORMATION InterruptExit         = {0};
+    UINT64                       GuestPhysicalAddr     = 0;
+    UINT64                       GuestRsp              = 0;
+    UINT64                       GuestRip              = 0;
+    ULONG                        ExitReason            = 0;
+    ULONG                        ExitQualification     = 0;
+    ULONG                        Rflags                = 0;
+    ULONG                        EcxReg                = 0;
+    ULONG                        ExitInstructionLength = 0;
+    ULONG                        CurrentProcessorIndex = 0;
+    BOOLEAN                      Result                = FALSE;
+    BOOLEAN                      ShouldEmulateRdtscp   = TRUE;
+    VIRTUAL_MACHINE_STATE *      CurrentGuestState     = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
@@ -246,7 +244,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exits of VMCALLs
         //
-        VmxHandleVmcallVmExit(CurrentProcessorIndex, GuestRegs);
+        DispatchEventVmcall(CurrentProcessorIndex, GuestRegs);
 
         break;
     }

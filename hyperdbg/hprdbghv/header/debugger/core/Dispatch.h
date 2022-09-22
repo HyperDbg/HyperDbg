@@ -27,3 +27,6 @@ DispatchEventCpuid(PGUEST_REGS Regs);
 
 VOID
 DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp);
+
+VOID
+DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs);

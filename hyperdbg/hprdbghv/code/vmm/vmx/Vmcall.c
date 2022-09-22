@@ -5,9 +5,9 @@
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
@@ -57,28 +57,16 @@ VmxHypervVmcallHandler(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Handle vm-exits of VMCALLs
- * 
+ *
  * @param GuestRegs Guest Registers
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 _Use_decl_annotations_
 NTSTATUS
 VmxHandleVmcallVmExit(UINT32      CoreIndex,
                       PGUEST_REGS GuestRegs)
 {
-    UINT64  GuestRsp         = NULL;
     BOOLEAN IsHyperdbgVmcall = FALSE;
-
-    //
-    // Trigger the event
-    //
-    // As the context to event trigger, we send NULL
-    // Registers are the best source to know the purpose
-    //
-    if (g_TriggerEventForVmcalls)
-    {
-        DebuggerTriggerEvents(VMCALL_INSTRUCTION_EXECUTION, GuestRegs, NULL);
-    }
 
     IsHyperdbgVmcall = (GuestRegs->r10 == 0x48564653 &&
                         GuestRegs->r11 == 0x564d43414c4c &&
@@ -105,12 +93,12 @@ VmxHandleVmcallVmExit(UINT32      CoreIndex,
 
 /**
  * @brief Main Vmcall Handler
- * 
+ *
  * @param VmcallNumber Request Number
- * @param OptionalParam1 
- * @param OptionalParam2 
- * @param OptionalParam3 
- * @return NTSTATUS 
+ * @param OptionalParam1
+ * @param OptionalParam2
+ * @param OptionalParam3
+ * @return NTSTATUS
  */
 _Use_decl_annotations_
 NTSTATUS
@@ -487,11 +475,11 @@ VmxVmcallHandler(UINT32      CurrentCoreIndex,
 
 /**
  * @brief Test Vmcall (VMCALL_TEST)
- * 
- * @param Param1 
- * @param Param2 
- * @param Param3 
- * @return NTSTATUS 
+ *
+ * @param Param1
+ * @param Param2
+ * @param Param3
+ * @return NTSTATUS
  */
 NTSTATUS
 VmcallTest(_In_ UINT64 Param1,
