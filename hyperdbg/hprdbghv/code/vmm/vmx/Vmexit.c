@@ -1,19 +1,19 @@
 /**
  * @file Vmexit.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief The functions for VM-Exit handler for different exit reasons 
+ * @brief The functions for VM-Exit handler for different exit reasons
  * @details
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief VM-Exit handler for different exit reasons
- * 
+ *
  * @param GuestRegs Registers that are automatically saved by AsmVmexitHandler (HOST_RIP)
  * @return BOOLEAN Return True if VMXOFF executed (not in vmx anymore),
  *  or return false if we are still in vmx (so we should use vm resume)
@@ -184,7 +184,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
-        HvHandleCpuid(GuestRegs);
+        DispatchEventCpuid(CurrentProcessorIndex, GuestRegs);
         break;
     }
 
@@ -318,45 +318,17 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         break;
     }
     case VMX_EXIT_REASON_EXECUTE_RDTSC:
-    {
-        //
-        // Check whether we are allowed to change
-        // the registers and emulate rdtsc or not
-        //
-        if (ShouldEmulateRdtscp)
-        {
-            //
-            // handle rdtsc (emulate rdtsc)
-            //
-            CounterEmulateRdtsc(GuestRegs);
-
-            //
-            // As the context to event trigger, we send the false which means
-            // it's an rdtsc (for rdtscp we set Context to true)
-            // Note : Using !tsc command in transparent-mode is not allowed
-            //
-            DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, FALSE);
-        }
-        break;
-    }
     case VMX_EXIT_REASON_EXECUTE_RDTSCP:
+
     {
         //
-        // Check whether we are allowed to change
-        // the registers and emulate rdtscp or not
+        // Check whether we are allowed to change the registers
+        // and emulate rdtsc or not
+        // Note : Using !tsc command in transparent-mode is not allowed
         //
         if (ShouldEmulateRdtscp)
         {
-            //
-            // handle rdtscp (emulate rdtscp)
-            //
-            CounterEmulateRdtscp(GuestRegs);
-            //
-            // As the context to event trigger, we send the false which means
-            // it's an rdtsc (for rdtscp we set Context to true)
-            // Note : Using !tsc command in transparent-mode is not allowed
-            //
-            DebuggerTriggerEvents(TSC_INSTRUCTION_EXECUTION, GuestRegs, TRUE);
+            DispatchEventTsc(GuestRegs, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
         }
 
         break;

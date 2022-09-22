@@ -71,6 +71,7 @@
 #include "..\hprdbghv\header\debugger\user-level\Ud.h"
 #include "..\hprdbghv\header\vmm\vmx\Mtf.h"
 #include "..\hprdbghv\header\debugger\core\DebuggerEvents.h"
+#include "..\hprdbghv\header\debugger\core\Dispatch.h"
 #include "..\hprdbghv\header\debugger\features\Hooks.h"
 #include "..\hprdbghv\header\vmm\vmx\Counters.h"
 #include "..\hprdbghv\header\debugger\transparency\Transparency.h"

@@ -153,14 +153,14 @@
     <Filter Include="code\globals">
       <UniqueIdentifier>{a7f11b36-d144-4970-826a-a1e54e72e556}</UniqueIdentifier>
     </Filter>
-    <Filter Include="header\globals">
-      <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\debugger\script-engine">
       <UniqueIdentifier>{5b6684f0-db1b-4920-987c-d5dfd8cdc0c1}</UniqueIdentifier>
     </Filter>
     <Filter Include="code\script-eval">
       <UniqueIdentifier>{59005a75-5137-42a4-867a-ccf06fae2f9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\devices\globals">
+      <UniqueIdentifier>{740e29a4-86cf-41c1-b6d0-6e182ab55823}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -344,6 +344,9 @@
     <ClCompile Include="..\script-eval\code\Regs.c">
       <Filter>code\script-eval</Filter>
     </ClCompile>
+    <ClCompile Include="code\debugger\core\Dispatch.c">
+      <Filter>code\debugger\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -497,16 +500,19 @@
       <Filter>header\debugger\commands</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariableManagement.h">
-      <Filter>header\globals</Filter>
+      <Filter>header\devices\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\globals\GlobalVariables.h">
-      <Filter>header\globals</Filter>
+      <Filter>header\devices\globals</Filter>
     </ClInclude>
     <ClInclude Include="header\platform\MetaMacros.h">
       <Filter>header\platform</Filter>
     </ClInclude>
     <ClInclude Include="header\debugger\script-engine\ScriptEngine.h">
       <Filter>header\debugger\script-engine</Filter>
+    </ClInclude>
+    <ClInclude Include="header\debugger\core\Dispatch.h">
+      <Filter>header\debugger\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

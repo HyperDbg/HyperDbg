@@ -67,6 +67,17 @@ typedef enum _DEBUGGER_EVENT_ACTION_TYPE_ENUM
 } DEBUGGER_EVENT_ACTION_TYPE_ENUM;
 
 /**
+ * @brief Type of calling the event
+ *
+ */
+typedef enum _DEBUGGER_EVENT_CALLING_STAGE_TYPE
+{
+    DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+    DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+
+} DEBUGGER_EVENT_CALLING_STAGE_TYPE;
+
+/**
  * @brief Type of handling !syscall or !sysret
  *
  */
