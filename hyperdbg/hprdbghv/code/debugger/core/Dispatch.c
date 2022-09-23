@@ -464,3 +464,94 @@ DispatchEventWrmsr(PGUEST_REGS Regs)
                               NULL);
     }
 }
+
+/**
+ * @brief Handling debugger functions related to RDPMC events
+ *
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventRdpmc(PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               NULL,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle RDPMC (emulate RDPMC)
+        //
+        CounterEmulateRdpmc(Regs);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              NULL,
+                              NULL);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to MOV 2 DR events
+ *
+ * @param CoreIndex Current core's index
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               NULL,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle RDPMC (emulate MOV 2 Debug Registers)
+        //
+        HvHandleMovDebugRegister(CoreIndex, Regs);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              NULL,
+                              NULL);
+    }
+}

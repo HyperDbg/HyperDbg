@@ -24,7 +24,6 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     ULONG                   CurrentProcessorIndex = 0;
     ULONG                   ExitReason            = 0;
     ULONG                   ExitQualification     = 0;
-    ULONG                   EcxReg                = 0;
     BOOLEAN                 Result                = FALSE;
     BOOLEAN                 ShouldEmulateRdtscp   = TRUE;
     VIRTUAL_MACHINE_STATE * CurrentGuestState     = NULL;
@@ -140,35 +139,19 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_RDMSR:
     {
-        EcxReg = GuestRegs->rcx & 0xffffffff;
-
         //
-        // Handle vm-exit and perform changes
+        // Handle vm-exit, events, dispatches and perform changes
         //
         MsrHandleRdmsrVmexit(GuestRegs);
-
-        //
-        // As the context to event trigger, we send the ecx
-        // which is the MSR index
-        //
-        DebuggerTriggerEvents(RDMSR_INSTRUCTION_EXECUTION, GuestRegs, EcxReg);
 
         break;
     }
     case VMX_EXIT_REASON_EXECUTE_WRMSR:
     {
-        EcxReg = GuestRegs->rcx & 0xffffffff;
-
         //
-        // Handle vm-exit and perform changes
+        // Handle vm-exit, events, dispatches and perform changes
         //
         MsrHandleWrmsrVmexit(GuestRegs);
-
-        //
-        // As the context to event trigger, we send the ecx
-        // which is the MSR index
-        //
-        DebuggerTriggerEvents(WRMSR_INSTRUCTION_EXECUTION, GuestRegs, EcxReg);
 
         break;
     }
@@ -287,14 +270,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXECUTE_RDPMC:
     {
         //
-        // handle rdpmc (emulate rdpmc)
+        // Handle RDPMC's events, triggers and dispatches (emulate RDPMC)
         //
-        CounterEmulateRdpmc(GuestRegs);
-
-        //
-        // As the context to event trigger, we send the NULL
-        //
-        DebuggerTriggerEvents(PMC_INSTRUCTION_EXECUTION, GuestRegs, NULL);
+        DispatchEventRdpmc(GuestRegs);
 
         break;
     }
@@ -307,13 +285,10 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         if (!CurrentGuestState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
         {
-            HvHandleMovDebugRegister(CurrentProcessorIndex, GuestRegs);
-
             //
-            // Trigger the event
-            // As the context to event trigger, we send NULL
+            // Trigger, dispatch and handle the event
             //
-            DebuggerTriggerEvents(DEBUG_REGISTERS_ACCESSED, GuestRegs, NULL);
+            DispatchEventMov2DebugRegs(CurrentProcessorIndex, GuestRegs);
         }
 
         break;

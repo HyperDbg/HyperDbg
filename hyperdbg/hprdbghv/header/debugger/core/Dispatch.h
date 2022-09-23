@@ -33,3 +33,15 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs);
 
 VOID
 DispatchEventIO(PGUEST_REGS Regs);
+
+VOID
+DispatchEventRdmsr(PGUEST_REGS Regs);
+
+VOID
+DispatchEventWrmsr(PGUEST_REGS Regs);
+
+VOID
+DispatchEventRdpmc(PGUEST_REGS Regs);
+
+VOID
+DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs);
