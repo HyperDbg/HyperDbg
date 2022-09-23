@@ -2,22 +2,22 @@
  * @file BreakpointCommands.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Routines for breakpoint commands
- * @details 
+ * @details
  * @version 0.1
  * @date 2021-03-12
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Check if the breakpoint vm-exit relates to !epthook command or not
- * 
- * @param CurrentProcessorIndex  
- * @param GuestRip  
- * @param GuestRegs  
- * 
+ *
+ * @param CurrentProcessorIndex
+ * @param GuestRip
+ * @param GuestRegs
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -55,7 +55,7 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 
                     // As the context to event trigger, we send the rip
                     // of where triggered this event
                     //
-                    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC, GuestRegs, GuestRip);
+                    DispatchEventHiddenHookExecCc(GuestRegs, GuestRip);
 
                     //
                     // Restore to its original entry for one instruction
@@ -123,12 +123,12 @@ BreakpointCheckAndHandleEptHookBreakpoints(UINT32 CurrentProcessorIndex, UINT64 
 
 /**
  * @brief Check if the breakpoint vm-exit relates to 'bp' command or not
- * 
- * @param CurrentProcessorIndex  
- * @param GuestRip  
- * @param GuestRegs  
- * @param AvoidUnsetMtf  
- * 
+ *
+ * @param CurrentProcessorIndex
+ * @param GuestRip
+ * @param GuestRegs
+ * @param AvoidUnsetMtf
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -285,11 +285,11 @@ BreakpointCheckAndHandleDebuggerDefinedBreakpoints(UINT32                  Curre
 }
 
 /**
- * @brief Handle breakpoint vm-exits (#BP) 
- * 
- * @param CurrentProcessorIndex  
- * @param GuestRegs  
- * 
+ * @brief Handle breakpoint vm-exits (#BP)
+ *
+ * @param CurrentProcessorIndex
+ * @param GuestRegs
+ *
  * @return VOID
  */
 VOID
@@ -372,11 +372,11 @@ BreakpointHandleBpTraps(UINT32 CurrentProcessorIndex, PGUEST_REGS GuestRegs)
 }
 
 /**
- * @brief writes the 0xcc and applies the breakpoint 
+ * @brief writes the 0xcc and applies the breakpoint
  * @detail this function won't remove the descriptor from the list
- * 
- * @param BreakpointDescriptor  
- * 
+ *
+ * @param BreakpointDescriptor
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -416,10 +416,10 @@ BreakpointWrite(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 }
 
 /**
- * @brief clears the 0xcc and removes the breakpoint 
+ * @brief clears the 0xcc and removes the breakpoint
  * @detail this function won't remove the descriptor from the list
- * @param BreakpointDescriptor  
- * 
+ * @param BreakpointDescriptor
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -461,7 +461,7 @@ BreakpointClear(PDEBUGGEE_BP_DESCRIPTOR BreakpointDescriptor)
 
 /**
  * @brief Remove all the breakpoints if possible
- * 
+ *
  * @return VOID
  */
 VOID
@@ -497,10 +497,10 @@ BreakpointRemoveAllBreakpoints()
 }
 
 /**
- * @brief Find entry of breakpoint descriptor from list 
+ * @brief Find entry of breakpoint descriptor from list
  * of breakpoints by breakpoint id
- * @param BreakpointId  
- * 
+ * @param BreakpointId
+ *
  * @return PDEBUGGEE_BP_DESCRIPTOR
  */
 PDEBUGGEE_BP_DESCRIPTOR
@@ -528,10 +528,10 @@ BreakpointGetEntryByBreakpointId(UINT64 BreakpointId)
 }
 
 /**
- * @brief Find entry of breakpoint descriptor from list 
+ * @brief Find entry of breakpoint descriptor from list
  * of breakpoints by address
- * @param Address  
- * 
+ * @param Address
+ *
  * @return PDEBUGGEE_BP_DESCRIPTOR
  */
 PDEBUGGEE_BP_DESCRIPTOR
@@ -559,9 +559,9 @@ BreakpointGetEntryByAddress(UINT64 Address)
 }
 
 /**
- * @brief Add new breakpoints 
- * @param BpDescriptor  
- * 
+ * @brief Add new breakpoints
+ * @param BpDescriptor
+ *
  * @return BOOLEAN
  */
 BOOLEAN
@@ -683,8 +683,8 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
 }
 
 /**
- * @brief List all breakpoints 
- * 
+ * @brief List all breakpoints
+ *
  * @return VOID
  */
 VOID
@@ -734,9 +734,9 @@ BreakpointListAllBreakpoint()
 }
 
 /**
- * @brief List of modify breakpoints 
+ * @brief List of modify breakpoints
  * @param ListOrModifyBreakpoints
- * 
+ *
  * @return BOOLEAN
  */
 BOOLEAN

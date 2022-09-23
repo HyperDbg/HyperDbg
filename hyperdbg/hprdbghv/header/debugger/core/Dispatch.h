@@ -54,3 +54,21 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs);
 
 VOID
 DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs);
+
+VOID
+DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context);
+
+VOID
+DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context);
+
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
+
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed);
+
+VOID
+DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Context);
+
+VOID
+DispatchEventHiddenHookPageReadWriteReadPostEvent(PGUEST_REGS Regs, PVOID Context);

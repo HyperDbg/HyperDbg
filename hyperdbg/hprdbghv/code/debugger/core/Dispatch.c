@@ -616,7 +616,7 @@ DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
         //
         // Handle mov to/from control registers (emulate CR access)
         //
-        HvHandleControlRegisterAccess(Regs, CoreIndex);
+        HvHandleControlRegisterAccess(Regs, CoreIndex, CrExitQualification);
     }
 
     //
@@ -835,4 +835,220 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
                               InterruptExit.Vector,
                               NULL);
     }
+}
+
+/**
+ * @brief Handling debugger functions related to hidden hook exec
+ * CC events
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return VOID
+ */
+VOID
+DispatchEventHiddenHookExecCc(PGUEST_REGS Regs, PVOID Context)
+{
+    BOOLEAN PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event (This command only support the
+    // pre-event, the post-event doesn't make sense in this command)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_CC,
+                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          &PostEventTriggerReq); // it will crash if we pass it NULL
+}
+
+/**
+ * @brief Handling debugger functions related to hidden hook exec
+ * detours events
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return VOID
+ */
+VOID
+DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context)
+{
+    BOOLEAN PostEventTriggerReq = FALSE;
+
+    //
+    // Triggering the pre-event (This command only support the
+    // pre-event, the post-event doesn't make sense in this command)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_EXEC_DETOURS,
+                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          &PostEventTriggerReq); // it will crash if we pass it NULL
+}
+
+/**
+ * @brief Handling debugger functions related to read & write, write events (pre)
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return BOOLEAN
+ */
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+    BOOLEAN                               EventIgnore         = FALSE;
+
+    //
+    // Triggering the pre-event (for the write hooks)
+    //
+    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Context,
+                                               &PostEventTriggerReq);
+
+    if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        EventIgnore = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write hooks)
+    //
+    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Context,
+                                               &PostEventTriggerReq);
+
+    if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        EventIgnore = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    return EventIgnore;
+}
+
+/**
+ * @brief Handling debugger functions related to read & write, read events (pre)
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return BOOLEAN
+ */
+BOOLEAN
+DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+    BOOLEAN                               EventIgnore         = FALSE;
+
+    //
+    // Triggering the pre-event (for the read hooks)
+    //
+    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Context,
+                                               &PostEventTriggerReq);
+
+    if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        EventIgnore = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    //
+    // Triggering the pre-event (for the read & write hooks)
+    //
+    EventTriggerResult = DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               Context,
+                                               &PostEventTriggerReq);
+
+    if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        EventIgnore = TRUE;
+    }
+
+    if (PostEventTriggerReq)
+    {
+        *IsTriggeringPostEventAllowed = TRUE;
+    }
+
+    return EventIgnore;
+}
+
+/**
+ * @brief Handling debugger functions related to read & write, write events (post)
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return VOID
+ */
+VOID
+DispatchEventHiddenHookPageReadWriteWritePostEvent(PGUEST_REGS Regs, PVOID Context)
+{
+    //
+    // Triggering the post-event (for the write hooks)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_WRITE,
+                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          NULL);
+
+    //
+    // Triggering the post-event (for the read & write hooks)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                          DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          NULL);
+}
+
+/**
+ * @brief Handling debugger functions related to read & write, read events (post)
+ *
+ * @param Regs Guest's gp register
+ * @param Context The context of the caller
+ * @return VOID
+ */
+VOID
+DispatchEventHiddenHookPageReadWriteReadPostEvent(PGUEST_REGS Regs, PVOID Context)
+{
+    //
+    // Triggering the post-event (for the read hooks)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_READ,
+                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          NULL);
+
+    //
+    // Triggering the post-event (for the read & write hooks)
+    //
+    DebuggerTriggerEvents(HIDDEN_HOOK_READ_AND_WRITE,
+                          DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                          Regs,
+                          Context,
+                          NULL);
 }

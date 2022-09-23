@@ -276,6 +276,12 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
     BOOLEAN IsHiddenBreakpoint;
 
     /**
+     * @brief This field shows whether the hook should call the post event trigger
+     * after restoring the state or not
+     */
+    BOOLEAN IsPostEventTriggerAllowed;
+
+    /**
      * @brief Address of hooked pages (multiple breakpoints on a single page)
      * this is only used in hidden breakpoints (not hidden detours)
      */

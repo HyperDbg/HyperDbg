@@ -617,10 +617,11 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN IsHandled = FALSE;
-
-    ULONG                   CurrentCore    = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+    BOOLEAN                 IsHandled                    = FALSE;
+    BOOLEAN                 IgnoreReadOrWrite            = FALSE;
+    BOOLEAN                 IsTriggeringPostEventAllowed = FALSE;
+    ULONG                   CurrentCore                  = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState               = &g_GuestState[CurrentCore];
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
@@ -636,44 +637,57 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr))
+            if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr, &IgnoreReadOrWrite, &IsTriggeringPostEventAllowed))
             {
                 //
-                // Restore to its original entry for one instruction
+                // Here we check whether the event should be ignored or not,
+                // if we don't apply the below restorations routines, the event
+                // won't redo and the emulation of the memory access is passed
                 //
-                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                if (!IgnoreReadOrWrite)
+                {
+                    //
+                    // Restore to its original entry for one instruction
+                    //
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
-                //
-                // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
-                //
-                CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
+                    //
+                    // Set whether the caller should consider triggering the post-event or not
+                    //
+                    HookedEntry->IsPostEventTriggerAllowed = IsTriggeringPostEventAllowed;
 
-                //
-                // We have to set Monitor trap flag and give it the HookedEntry to work with
-                //
-                HvSetMonitorTrapFlag(TRUE);
+                    //
+                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                    //
+                    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
 
-                //
-                // The following codes are added because we realized if the execution takes long then
-                // the execution might be switched to another routines, thus, MTF might conclude on
-                // another routine and we might (and will) trigger the same instruction soon
-                //
+                    //
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
+                    //
+                    HvSetMonitorTrapFlag(TRUE);
 
-                //
-                // Change guest interrupt-state
-                //
-                HvSetExternalInterruptExiting(TRUE);
+                    //
+                    // The following codes are added because we realized if the execution takes long then
+                    // the execution might be switched to another routines, thus, MTF might conclude on
+                    // another routine and we might (and will) trigger the same instruction soon
+                    //
 
-                //
-                // Do not vm-exit on interrupt windows
-                //
-                HvSetInterruptWindowExiting(FALSE);
+                    //
+                    // Change guest interrupt-state
+                    //
+                    HvSetExternalInterruptExiting(TRUE);
 
-                //
-                // Indicate that we should enable external interrupts and configure external interrupt
-                // window exiting somewhere at MTF
-                //
-                CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    //
+                    // Do not vm-exit on interrupt windows
+                    //
+                    HvSetInterruptWindowExiting(FALSE);
+
+                    //
+                    // Indicate that we should enable external interrupts and configure external interrupt
+                    // window exiting somewhere at MTF
+                    //
+                    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                }
             }
 
             //
@@ -689,9 +703,22 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
     }
 
     //
-    // Redo the instruction
+    // Check whether the event should be ignored or not
     //
-    CurrentVmState->IncrementRip = FALSE;
+    if (IgnoreReadOrWrite)
+    {
+        //
+        // Do not redo the instruction
+        //
+        CurrentVmState->IncrementRip = FALSE;
+    }
+    else
+    {
+        //
+        // Redo the instruction
+        //
+        CurrentVmState->IncrementRip = FALSE;
+    }
 
     return IsHandled;
 }
