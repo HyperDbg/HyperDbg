@@ -522,6 +522,17 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
     BOOLEAN                               PostEventTriggerReq = FALSE;
+    VIRTUAL_MACHINE_STATE *               CurrentVmState      = &g_GuestState[CoreIndex];
+
+    //
+    // Handle access to debug registers, if we should not ignore it, it is
+    // because on detecting thread scheduling we ignore the hardware debug
+    // registers modifications
+    //
+    if (CurrentVmState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
+    {
+        return;
+    }
 
     //
     // Triggering the pre-event
@@ -552,6 +563,276 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
                               DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
                               Regs,
                               NULL,
+                              NULL);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to mov to/from CR events
+ *
+ * @param CoreIndex Current core's index
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
+{
+    BOOLEAN                               ModifyReg;
+    VMX_EXIT_QUALIFICATION_MOV_CR *       CrExitQualification;
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+    ULONG                                 ExitQualification   = 0;
+
+    //
+    // Read the exit qualification
+    //
+    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
+
+    CrExitQualification = (VMX_EXIT_QUALIFICATION_MOV_CR *)&ExitQualification;
+
+    if (CrExitQualification->AccessType == VMX_EXIT_QUALIFICATION_ACCESS_MOV_TO_CR)
+    {
+        ModifyReg = TRUE;
+    }
+    else
+    {
+        ModifyReg = FALSE;
+    }
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               CrExitQualification->ControlRegister,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle mov to/from control registers (emulate CR access)
+        //
+        HvHandleControlRegisterAccess(Regs, CoreIndex);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(ModifyReg ? CONTROL_REGISTER_MODIFIED : CONTROL_REGISTER_READ,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              CrExitQualification->ControlRegister,
+                              NULL);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to EXCEPTION events
+ *
+ * @param CoreIndex Current core's index
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
+{
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq  = FALSE;
+    VMEXIT_INTERRUPT_INFORMATION          InterruptExit        = {0};
+    PROCESSOR_DEBUGGING_STATE *           CurrentDebuggerState = &g_GuestState[CoreIndex].DebuggingState;
+
+    //
+    // read the exit interruption information
+    //
+    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
+
+    //
+    // This type of vm-exit, can be either because of an !exception event,
+    // or it might be because we triggered APIC or X2APIC to generate an
+    // NMI, we want to halt the debuggee. We perform the checks here to
+    // avoid triggering an event for NMIs when the debuggee requested it
+    //
+    if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
+        InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
+    {
+        //
+        // Check if we're waiting for an NMI on this core and if the guest is NOT in
+        // a instrument step-in ('i' command) routine
+        //
+        if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
+            VmxBroadcastNmiHandler(CoreIndex, Regs, FALSE))
+        {
+            return;
+        }
+    }
+
+    //
+    // Also, avoid exception when we're running instrumentation step-in
+    //
+    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    {
+        //
+        // We ignore it because an MTF should handle it as it's an instrumentation step-in
+        //
+        return;
+    }
+
+    //
+    // *** When we reached here it means that this is not a NMI cause by guest,
+    // probably an event ***
+    //
+
+    //
+    // Triggering the pre-event
+    // As the context to event trigger, we send the vector or IDT Index
+    //
+    EventTriggerResult = DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               InterruptExit.Vector,
+                                               &PostEventTriggerReq);
+
+    //
+    // Now, we check if the guest enabled MTF for instrumentation stepping
+    // This is because based on Intel SDM :
+    // If the "monitor trap flag" VM-execution control is 1 and VM entry is
+    // injecting a vectored event, an MTF VM exit is pending on the instruction
+    // boundary before the first instruction following the VM entry
+    // and,
+    // If VM entry is injecting a pending MTF VM exit, an MTF VM exit is pending on the
+    // instruction boundary before the first instruction following the VM entry
+    // This is the case even if the "monitor trap flag" VM-execution control is 0
+    //
+    // So, we'll ignore the injection of Exception in this case
+    //
+    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
+    {
+        return;
+    }
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle exception (emulate or inject the event)
+        //
+        IdtEmulationHandleExceptionAndNmi(CoreIndex, Regs, InterruptExit);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        DebuggerTriggerEvents(EXCEPTION_OCCURRED,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              InterruptExit.Vector,
+                              NULL);
+    }
+}
+
+/**
+ * @brief Handling debugger functions related to external-interrupt events
+ *
+ * @param CoreIndex Current core's index
+ * @param Regs Guest's gp register
+ * @return VOID
+ */
+VOID
+DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
+{
+    VMEXIT_INTERRUPT_INFORMATION          InterruptExit;
+    DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
+    BOOLEAN                               PostEventTriggerReq = FALSE;
+    VIRTUAL_MACHINE_STATE *               CurrentVmState      = &g_GuestState[CoreIndex];
+
+    //
+    // read the exit interruption information
+    //
+    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
+
+    //
+    // Check for immediate vm-exit mechanism
+    //
+    if (CurrentVmState->WaitForImmediateVmexit &&
+        InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
+    {
+        //
+        // Disable vm-exit on external interrupts
+        //
+        HvSetExternalInterruptExiting(FALSE);
+
+        //
+        // Not increase the RIP
+        //
+        CurrentVmState->IncrementRip = FALSE;
+
+        //
+        // Hanlde immediate vm-exit mechanism
+        //
+        VmxMechanismHandleImmediateVmexit(CoreIndex, Regs);
+
+        //
+        // No need to continue, it's a HyperDbg mechanism
+        //
+        return;
+    }
+
+    //
+    // Check process or thread change detections
+    // we cannot ignore injecting the interrupt to the guest if the target interrupt
+    // and process or thread proved to cause a system halt. it halts the system as
+    // we Windows expects to switch the thread while we're forcing it to not do it
+    //
+    IdtEmulationCheckProcessOrThreadChange(CoreIndex, InterruptExit, Regs);
+
+    //
+    // Triggering the pre-event
+    //
+    EventTriggerResult = DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+                                               DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION,
+                                               Regs,
+                                               InterruptExit.Vector,
+                                               &PostEventTriggerReq);
+
+    //
+    // Check whether we need to ignore event emulation or not
+    //
+    if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
+    {
+        //
+        // Handle vm-exit and perform changes
+        //
+        IdtEmulationHandleExternalInterrupt(CoreIndex, Regs, InterruptExit);
+    }
+
+    //
+    // Check for the post-event triggering needs
+    //
+    if (PostEventTriggerReq)
+    {
+        //
+        // Trigger the event
+        //
+        // As the context to event trigger, we send the vector index
+        //
+        // Keep in mind that interrupt might be inseted in pending list
+        // because the guest is not in a interruptible state and will
+        // be re-injected when the guest is ready for interrupts
+        //
+        DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED,
+                              DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION,
+                              Regs,
+                              InterruptExit.Vector,
                               NULL);
     }
 }

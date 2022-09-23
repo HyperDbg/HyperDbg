@@ -124,80 +124,12 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
  * @return VOID
  */
 VOID
-IdtEmulationHandleExceptionAndNmi(_In_ UINT32         CurrentProcessorIndex,
-                                  _Inout_ PGUEST_REGS GuestRegs)
+IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProcessorIndex,
+                                  _Inout_ PGUEST_REGS               GuestRegs,
+                                  _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit        = {0};
-    ULONG                        ErrorCode            = 0;
-    VIRTUAL_MACHINE_STATE *      CurrentGuestState    = &g_GuestState[CurrentProcessorIndex];
-    PROCESSOR_DEBUGGING_STATE *  CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
-
-    //
-    // read the exit interruption information
-    //
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
-
-    //
-    // This type of vm-exit, can be either because of an !exception event,
-    // or it might be because we triggered APIC or X2APIC to generate an
-    // NMI, we want to halt the debuggee. We perform the checks here to
-    // avoid triggering an event for NMIs when the debuggee requested it
-    //
-    if (InterruptExit.InterruptionType == INTERRUPT_TYPE_NMI &&
-        InterruptExit.Vector == EXCEPTION_VECTOR_NMI)
-    {
-        //
-        // Check if we're waiting for an NMI on this core and if the guest is NOT in
-        // a instrument step-in ('i' command) routine
-        //
-        if (!CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf &&
-            VmxBroadcastNmiHandler(CurrentProcessorIndex, GuestRegs, FALSE))
-        {
-            return;
-        }
-    }
-
-    //
-    // Also, avoid exception when we're running instrumentation step-in
-    //
-    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
-    {
-        //
-        // We ignore it because an MTF should handle it as it's an instrumentation step-in
-        //
-        return;
-    }
-
-    //
-    // *** When we reached here it means that this is not a NMI cause by guest,
-    // probably an event ***
-    //
-
-    //
-    // Trigger the event
-    //
-    // As the context to event trigger, we send the vector
-    // or IDT Index
-    //
-    DebuggerTriggerEvents(EXCEPTION_OCCURRED, GuestRegs, InterruptExit.Vector);
-
-    //
-    // Now, we check if the guest enabled MTF for instrumentation stepping
-    // This is because based on Intel SDM :
-    // If the "monitor trap flag" VM-execution control is 1 and VM entry is
-    // injecting a vectored event, an MTF VM exit is pending on the instruction
-    // boundary before the first instruction following the VM entry
-    // and,
-    // If VM entry is injecting a pending MTF VM exit, an MTF VM exit is pending on the
-    // instruction boundary before the first instruction following the VM entry
-    // This is the case even if the "monitor trap flag" VM-execution control is 0
-    //
-    // So, we'll ignore the injection of Exception in this case
-    //
-    if (CurrentDebuggerState->InstrumentationStepInTrace.WaitForInstrumentationStepInMtf)
-    {
-        return;
-    }
+    ULONG                       ErrorCode            = 0;
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState = &g_GuestState[CurrentProcessorIndex].DebuggingState;
 
     //
     // Exception or non-maskable interrupt (NMI). Either:
@@ -446,56 +378,15 @@ IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       Current
  * @return VOID
  */
 VOID
-IdtEmulationHandleExternalInterrupt(_In_ UINT32         CurrentProcessorIndex,
-                                    _Inout_ PGUEST_REGS GuestRegs)
+IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentProcessorIndex,
+                                    _Inout_ PGUEST_REGS               GuestRegs,
+                                    _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit)
 {
-    VMEXIT_INTERRUPT_INFORMATION InterruptExit         = {0};
-    BOOLEAN                      Interruptible         = TRUE;
-    VMX_INTERRUPTIBILITY_STATE   InterruptibilityState = {0};
-    RFLAGS                       GuestRflags           = {0};
-    ULONG                        ErrorCode             = 0;
-    VIRTUAL_MACHINE_STATE *      CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
-    PROCESSOR_DEBUGGING_STATE *  CurrentDebuggerState  = &g_GuestState[CurrentProcessorIndex].DebuggingState;
-
-    //
-    // read the exit interruption information
-    //
-    __vmx_vmread(VMCS_VMEXIT_INTERRUPTION_INFORMATION, &InterruptExit);
-
-    //
-    // Check for immediate vm-exit mechanism
-    //
-    if (CurrentGuestState->WaitForImmediateVmexit &&
-        InterruptExit.Vector == IMMEDIATE_VMEXIT_MECHANISM_VECTOR_FOR_SELF_IPI)
-    {
-        //
-        // Disable vm-exit on external interrupts
-        //
-        HvSetExternalInterruptExiting(FALSE);
-
-        //
-        // Not increase the RIP
-        //
-        CurrentGuestState->IncrementRip = FALSE;
-
-        //
-        // Hanlde immediate vm-exit mechanism
-        //
-        VmxMechanismHandleImmediateVmexit(CurrentProcessorIndex, GuestRegs);
-
-        //
-        // No need to continue, it's a HyperDbg mechanism
-        //
-        return;
-    }
-
-    //
-    // Check process or thread change detections
-    // we cannot ignore injecting the interrupt to the guest if the target interrupt
-    // and process or thread proved to cause a system halt. it halts the system as
-    // we Windows expects to switch the thread while we're forcing it to not do it
-    //
-    IdtEmulationCheckProcessOrThreadChange(CurrentProcessorIndex, InterruptExit, GuestRegs);
+    BOOLEAN                     Interruptible         = TRUE;
+    VMX_INTERRUPTIBILITY_STATE  InterruptibilityState = {0};
+    RFLAGS                      GuestRflags           = {0};
+    VIRTUAL_MACHINE_STATE *     CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
+    PROCESSOR_DEBUGGING_STATE * CurrentDebuggerState  = &g_GuestState[CurrentProcessorIndex].DebuggingState;
 
     //
     // In order to enable External Interrupt Exiting we have to set
@@ -507,9 +398,8 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32         CurrentProcessorIndex,
     // state so it wait for and interrupt-window exiting to re-inject
     // the interrupt into the guest
     //
-
-    if ((CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
-         CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf))
+    if (CurrentDebuggerState->EnableExternalInterruptsOnContinue ||
+        CurrentDebuggerState->EnableExternalInterruptsOnContinueMtf)
     {
         //
         // Ignore the interrupt as it's suppressed supressed because of instrumentation step-in
@@ -571,20 +461,9 @@ IdtEmulationHandleExternalInterrupt(_In_ UINT32         CurrentProcessorIndex,
     {
         Interruptible = FALSE;
 
-        LogError("Err, why we are here ? it's a vm-exit due to the external"
+        LogError("Err, why we are here? it's a vm-exit due to the external"
                  "interrupt and its type is not external interrupt? weird!");
     }
-
-    //
-    // Trigger the event
-    //
-    // As the context to event trigger, we send the vector index
-    //
-    // Keep in mind that interrupt might be inseted in pending list
-    // because the guest is not in a interruptible state and will
-    // be re-injected when the guest is ready for interrupts
-    //
-    DebuggerTriggerEvents(EXTERNAL_INTERRUPT_OCCURRED, GuestRegs, InterruptExit.Vector);
 }
 
 /**

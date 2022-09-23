@@ -134,18 +134,14 @@ HvHandleCpuid(PGUEST_REGS RegistersState)
  * @return VOID
  */
 VOID
-HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
+HvHandleControlRegisterAccess(PGUEST_REGS                     GuestState,
+                              UINT32                          ProcessorIndex,
+                              VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification)
 {
-    ULONG                           ExitQualification = 0;
-    VMX_EXIT_QUALIFICATION_MOV_CR * CrExitQualification;
-    UINT64 *                        RegPtr;
-    UINT64                          NewCr3;
-    CR3_TYPE                        NewCr3Reg;
-    VIRTUAL_MACHINE_STATE *         CurrentVmState = &g_GuestState[ProcessorIndex];
-
-    __vmx_vmread(VMCS_EXIT_QUALIFICATION, &ExitQualification);
-
-    CrExitQualification = (VMX_EXIT_QUALIFICATION_MOV_CR *)&ExitQualification;
+    UINT64 *                RegPtr;
+    UINT64                  NewCr3;
+    CR3_TYPE                NewCr3Reg;
+    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[ProcessorIndex];
 
     RegPtr = (UINT64 *)&GuestState->rax + CrExitQualification->GeneralPurposeRegister;
 
@@ -177,9 +173,8 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             __vmx_vmwrite(VMCS_GUEST_CR0, *RegPtr);
             __vmx_vmwrite(VMCS_CTRL_CR0_READ_SHADOW, *RegPtr);
 
-            DebuggerTriggerEvents(CONTROL_REGISTER_MODIFIED, GuestState, VMX_EXIT_QUALIFICATION_REGISTER_CR0);
-
             break;
+
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
 
             NewCr3          = (*RegPtr & ~(1ULL << 63));
@@ -214,14 +209,14 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
             }
 
             break;
+
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
 
             __vmx_vmwrite(VMCS_GUEST_CR4, *RegPtr);
             __vmx_vmwrite(VMCS_CTRL_CR4_READ_SHADOW, *RegPtr);
 
-            DebuggerTriggerEvents(CONTROL_REGISTER_MODIFIED, GuestState, VMX_EXIT_QUALIFICATION_REGISTER_CR4);
-
             break;
+
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
                        CrExitQualification->ControlRegister);
@@ -235,14 +230,23 @@ HvHandleControlRegisterAccess(PGUEST_REGS GuestState, UINT32 ProcessorIndex)
         switch (CrExitQualification->ControlRegister)
         {
         case VMX_EXIT_QUALIFICATION_REGISTER_CR0:
+
             __vmx_vmread(VMCS_GUEST_CR0, RegPtr);
+
             break;
+
         case VMX_EXIT_QUALIFICATION_REGISTER_CR3:
+
             __vmx_vmread(VMCS_GUEST_CR3, RegPtr);
+
             break;
+
         case VMX_EXIT_QUALIFICATION_REGISTER_CR4:
+
             __vmx_vmread(VMCS_GUEST_CR4, RegPtr);
+
             break;
+
         default:
             LogWarning("Unsupported register 0x%x in handling control registers access",
                        CrExitQualification->ControlRegister);

@@ -134,7 +134,11 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_MOV_CR:
     {
-        HvHandleControlRegisterAccess(GuestRegs, CurrentProcessorIndex);
+        //
+        // Handle vm-exit, events, dispatches and perform changes from CR access
+        //
+        DispatchEventMovToFromControlRegisters(GuestRegs, CurrentProcessorIndex);
+
         break;
     }
     case VMX_EXIT_REASON_EXECUTE_RDMSR:
@@ -142,7 +146,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        MsrHandleRdmsrVmexit(GuestRegs);
+        DispatchEventRdmsr(GuestRegs);
 
         break;
     }
@@ -151,7 +155,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        MsrHandleWrmsrVmexit(GuestRegs);
+        DispatchEventWrmsr(GuestRegs);
 
         break;
     }
@@ -197,18 +201,18 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_EXCEPTION_OR_NMI:
     {
         //
-        // Handle the emulation
+        // Handle the EXCEPTION injection/emulation
         //
-        IdtEmulationHandleExceptionAndNmi(CurrentProcessorIndex, GuestRegs);
+        DispatchEventException(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
     case VMX_EXIT_REASON_EXTERNAL_INTERRUPT:
     {
         //
-        // Call External Interrupt Handler
+        // Call the external-interrupt handler
         //
-        IdtEmulationHandleExternalInterrupt(CurrentProcessorIndex, GuestRegs);
+        DispatchEventExternalInterrupts(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
@@ -279,17 +283,9 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     case VMX_EXIT_REASON_MOV_DR:
     {
         //
-        // Handle access to debug registers, if we should not ignore it, it is
-        // because on detecting thread scheduling we ignore the hardware debug
-        // registers modifications
+        // Trigger, dispatch and handle the event
         //
-        if (!CurrentGuestState->DebuggingState.ThreadOrProcessTracingDetails.DebugRegisterInterceptionState)
-        {
-            //
-            // Trigger, dispatch and handle the event
-            //
-            DispatchEventMov2DebugRegs(CurrentProcessorIndex, GuestRegs);
-        }
+        DispatchEventMov2DebugRegs(CurrentProcessorIndex, GuestRegs);
 
         break;
     }
@@ -308,11 +304,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // Handle the VMX preemption timer vm-exit
         //
         VmxHandleVmxPreemptionTimerVmexit(CurrentProcessorIndex, GuestRegs);
+
         break;
     }
     default:
     {
         LogError("Err, unknown vmexit, reason : 0x%llx", ExitReason);
+
         break;
     }
     }

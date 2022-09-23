@@ -20,12 +20,14 @@
 //////////////////////////////////////////////////
 
 VOID
-IdtEmulationHandleExceptionAndNmi(_In_ UINT32         CurrentProcessorIndex,
-                                  _Inout_ PGUEST_REGS GuestRegs);
+IdtEmulationHandleExceptionAndNmi(_In_ UINT32                       CurrentProcessorIndex,
+                                  _Inout_ PGUEST_REGS               GuestRegs,
+                                  _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
-IdtEmulationHandleExternalInterrupt(_In_ UINT32         CurrentProcessorIndex,
-                                    _Inout_ PGUEST_REGS GuestRegs);
+IdtEmulationHandleExternalInterrupt(_In_ UINT32                       CurrentProcessorIndex,
+                                    _Inout_ PGUEST_REGS               GuestRegs,
+                                    _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit);
 
 VOID
 IdtEmulationHandleNmiWindowExiting(_In_ UINT32         CurrentProcessorIndex,
@@ -39,3 +41,8 @@ IdtEmulationHandlePageFaults(_In_ UINT32                       CurrentProcessorI
                              _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
                              _In_ UINT64                       Address,
                              _In_ ULONG                        ErrorCode);
+
+BOOLEAN
+IdtEmulationCheckProcessOrThreadChange(_In_ UINT32                       CurrentProcessorIndex,
+                                       _In_ VMEXIT_INTERRUPT_INFORMATION InterruptExit,
+                                       _Inout_ PGUEST_REGS               GuestRegs);

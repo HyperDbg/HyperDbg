@@ -44,4 +44,13 @@ VOID
 DispatchEventRdpmc(PGUEST_REGS Regs);
 
 VOID
+DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs);
+
+VOID
 DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs);
+
+VOID
+DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs);
+
+VOID
+DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs);
