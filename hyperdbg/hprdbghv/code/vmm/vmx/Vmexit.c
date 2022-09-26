@@ -161,7 +161,8 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
-        DispatchEventCpuid(CurrentProcessorIndex, GuestRegs);
+        DispatchEventCpuid(GuestRegs);
+
         break;
     }
 
