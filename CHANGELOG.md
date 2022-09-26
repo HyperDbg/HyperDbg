@@ -10,6 +10,7 @@ The second (2nd) of the HyperDbg Debugger.
 ### Added
 - HyperDbg Software Development Kit (DK) is now available 
 - **flush()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/events/flush))
+- **memcpy()** function in script engine ([link](https://docs.hyperdbg.org/commands/scripting-language/functions/memory/memcpy))
 - **!crwrite** - Control Register Modification Event ([link](https://docs.hyperdbg.org/commands/extension-commands/crwrite))
 
 ### Changed

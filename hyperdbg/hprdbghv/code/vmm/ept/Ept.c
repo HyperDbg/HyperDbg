@@ -6,15 +6,15 @@
  * @details Some of the codes are re-used from Gbps/gbhv (https://github.com/Gbps/gbhv)
  * @version 0.1
  * @date 2020-04-10
- * 
+ *
  * @copyright This project is released under the GNU Public License v3. The re-used codes from Gbps/gbhv are under CC 4.0 AL terms.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Check whether EPT features are present or not
- * 
+ *
  * @return BOOLEAN Shows whether EPT is supported in this machine or not
  */
 BOOLEAN
@@ -59,8 +59,8 @@ EptCheckFeatures()
 
 /**
  * @brief Build MTRR Map of current physical addresses
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptBuildMtrrMap()
@@ -133,7 +133,7 @@ EptBuildMtrrMap()
 
 /**
  * @brief Get the PML1 entry for this physical address if the page is split
- * 
+ *
  * @param EptPageTable The EPT Page Table
  * @param PhysicalAddress Physical address that we want to get its PML1
  * @return PEPT_PML1_ENTRY Return NULL if the address is invalid or the page wasn't already split
@@ -194,7 +194,7 @@ EptGetPml1Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 
 /**
  * @brief Get the PML2 entry for this physical address
- * 
+ *
  * @param EptPageTable The EPT Page Table
  * @param PhysicalAddress Physical Address that we want to get its PML2
  * @return PEPT_PML2_ENTRY The PML2 Entry Structure
@@ -223,7 +223,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
 
 /**
  * @brief Split 2MB (LargePage) into 4kb pages
- * 
+ *
  * @param EptPageTable The EPT Page Table
  * @param PreAllocatedBuffer The address of pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
@@ -334,10 +334,10 @@ EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,
 
 /**
  * @brief Set up PML2 Entries
- * 
+ *
  * @param NewEntry The PML2 Entry
  * @param PageFrameNumber PFN (Physical Address)
- * @return VOID 
+ * @return VOID
  */
 VOID
 EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
@@ -428,7 +428,7 @@ EptSetupPML2Entry(PEPT_PML2_ENTRY NewEntry, SIZE_T PageFrameNumber)
 
 /**
  * @brief Allocates page maps and create identity page table
- * 
+ *
  * @return PVMM_EPT_PAGE_TABLE identity map page-table
  */
 PVMM_EPT_PAGE_TABLE
@@ -546,8 +546,8 @@ EptAllocateAndCreateIdentityPageTable()
 /**
  * @brief Initialize EPT for an individual logical processor
  * @details Creates an identity mapped page table and sets up an EPTP to be applied to the VMCS later
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 EptLogicalProcessorInitialize()
@@ -606,7 +606,7 @@ EptLogicalProcessorInitialize()
  *
  * If the memory access attempt was execute and the page was marked not executable, the page is swapped with
  * the hooked page.
- * 
+ *
  * @param ViolationQualification The violation qualification in vm-exit
  * @param GuestPhysicalAddr The GUEST_PHYSICAL_ADDRESS that caused this EPT violation
  * @return BOOLEAN Returns true if it was successful or false if the violation was not due to a page hook
@@ -617,17 +617,19 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
-    BOOLEAN IsHandled = FALSE;
-
-    ULONG                   CurrentCore    = KeGetCurrentProcessorNumber();
-    VIRTUAL_MACHINE_STATE * CurrentVmState = &g_GuestState[CurrentCore];
+    BOOLEAN                 ResultOfHandlingHook;
+    BOOLEAN                 IsHandled                    = FALSE;
+    BOOLEAN                 IgnoreReadOrWrite            = FALSE;
+    BOOLEAN                 IsTriggeringPostEventAllowed = FALSE;
+    ULONG                   CurrentCore                  = KeGetCurrentProcessorNumber();
+    VIRTUAL_MACHINE_STATE * CurrentVmState               = &g_GuestState[CurrentCore];
 
     LIST_FOR_EACH_LINK(g_EptState->HookedPagesList, EPT_HOOKED_PAGE_DETAIL, PageHookList, HookedEntry)
     {
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
-            // We found an address that matches the details
+            // *** We found an address that matches the details ***
             //
 
             //
@@ -636,44 +638,65 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr))
+            ResultOfHandlingHook = EptHookHandleHookedPage(Regs,
+                                                           HookedEntry,
+                                                           ViolationQualification,
+                                                           GuestPhysicalAddr,
+                                                           &HookedEntry->LastContextState,
+                                                           &IgnoreReadOrWrite,
+                                                           &IsTriggeringPostEventAllowed);
+
+            if (ResultOfHandlingHook)
             {
                 //
-                // Restore to its original entry for one instruction
+                // Here we check whether the event should be ignored or not,
+                // if we don't apply the below restorations routines, the event
+                // won't redo and the emulation of the memory access is passed
                 //
-                EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
+                if (!IgnoreReadOrWrite)
+                {
+                    //
+                    // Restore to its original entry for one instruction
+                    //
+                    EptSetPML1AndInvalidateTLB(HookedEntry->EntryAddress, HookedEntry->OriginalEntry, InveptSingleContext);
 
-                //
-                // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
-                //
-                CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
+                    //
+                    // Set whether the caller should consider triggering the post-event or not
+                    //
+                    HookedEntry->IsPostEventTriggerAllowed = IsTriggeringPostEventAllowed;
 
-                //
-                // We have to set Monitor trap flag and give it the HookedEntry to work with
-                //
-                HvSetMonitorTrapFlag(TRUE);
+                    //
+                    // Next we have to save the current hooked entry to restore on the next instruction's vm-exit
+                    //
+                    CurrentVmState->MtfEptHookRestorePoint = HookedEntry;
 
-                //
-                // The following codes are added because we realized if the execution takes long then
-                // the execution might be switched to another routines, thus, MTF might conclude on
-                // another routine and we might (and will) trigger the same instruction soon
-                //
+                    //
+                    // We have to set Monitor trap flag and give it the HookedEntry to work with
+                    //
+                    HvSetMonitorTrapFlag(TRUE);
 
-                //
-                // Change guest interrupt-state
-                //
-                HvSetExternalInterruptExiting(TRUE);
+                    //
+                    // The following codes are added because we realized if the execution takes long then
+                    // the execution might be switched to another routines, thus, MTF might conclude on
+                    // another routine and we might (and will) trigger the same instruction soon
+                    //
 
-                //
-                // Do not vm-exit on interrupt windows
-                //
-                HvSetInterruptWindowExiting(FALSE);
+                    //
+                    // Change guest interrupt-state
+                    //
+                    HvSetExternalInterruptExiting(TRUE);
 
-                //
-                // Indicate that we should enable external interrupts and configure external interrupt
-                // window exiting somewhere at MTF
-                //
-                CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                    //
+                    // Do not vm-exit on interrupt windows
+                    //
+                    HvSetInterruptWindowExiting(FALSE);
+
+                    //
+                    // Indicate that we should enable external interrupts and configure external interrupt
+                    // window exiting somewhere at MTF
+                    //
+                    CurrentVmState->DebuggingState.EnableExternalInterruptsOnContinueMtf = TRUE;
+                }
             }
 
             //
@@ -689,16 +712,29 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
     }
 
     //
-    // Redo the instruction
+    // Check whether the event should be ignored or not
     //
-    CurrentVmState->IncrementRip = FALSE;
+    if (IgnoreReadOrWrite)
+    {
+        //
+        // Do not redo the instruction
+        //
+        CurrentVmState->IncrementRip = FALSE;
+    }
+    else
+    {
+        //
+        // Redo the instruction
+        //
+        CurrentVmState->IncrementRip = FALSE;
+    }
 
     return IsHandled;
 }
 
 /**
  * @brief Handle VM exits for EPT violations
- * @details Violations are thrown whenever an operation is performed on an EPT entry 
+ * @details Violations are thrown whenever an operation is performed on an EPT entry
  * that does not provide permissions to access that page
  *
  * @param Regs Guest registers
@@ -709,9 +745,15 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
  */
 _Use_decl_annotations_
 BOOLEAN
-EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhysicalAddr)
+EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification)
 {
+    UINT64                               GuestPhysicalAddr;
     VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification = {.AsUInt = ExitQualification};
+
+    //
+    // Reading guest physical address
+    //
+    __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
 
     if (EptHandlePageHookExit(Regs, ViolationQualification, GuestPhysicalAddr))
     {
@@ -731,9 +773,9 @@ EptHandleEptViolation(PGUEST_REGS Regs, ULONG ExitQualification, UINT64 GuestPhy
 
 /**
  * @brief Handle vm-exits for Monitor Trap Flag to restore previous state
- * 
- * @param HookedEntry 
- * @return VOID 
+ *
+ * @param HookedEntry
+ * @return VOID
  */
 VOID
 EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
@@ -746,15 +788,21 @@ EptHandleMonitorTrapFlag(PEPT_HOOKED_PAGE_DETAIL HookedEntry)
 
 /**
  * @brief Handle vm-exits for EPT Misconfiguration
- * 
- * @param GuestAddress 
- * @return VOID 
+ *
+ * @param GuestAddress
+ * @return VOID
  */
 VOID
-EptHandleMisconfiguration(UINT64 GuestAddress)
+EptHandleMisconfiguration()
 {
+    UINT64 GuestPhysicalAddr = 0;
+
+    __vmx_vmread(VMCS_GUEST_PHYSICAL_ADDRESS, &GuestPhysicalAddr);
+
     LogInfo("EPT Misconfiguration!");
-    LogError("Err, a field in the EPT paging structure was invalid, faulting guest address : 0x%llx", GuestAddress);
+
+    LogError("Err, a field in the EPT paging structure was invalid, faulting guest address : 0x%llx",
+             GuestPhysicalAddr);
 
     //
     // We can't continue now.
@@ -765,11 +813,11 @@ EptHandleMisconfiguration(UINT64 GuestAddress)
 /**
  * @brief This function set the specific PML1 entry in a spinlock protected area then invalidate the TLB
  * @details This function should be called from vmx root-mode
- * 
+ *
  * @param EntryAddress PML1 entry information (the target address)
  * @param EntryValue The value of pm1's entry (the value that should be replaced)
  * @param InvalidationType type of invalidation
- * @return VOID 
+ * @return VOID
  */
 _Use_decl_annotations_
 VOID

@@ -83,7 +83,7 @@ typedef struct _DEBUGGER_CORE_EVENTS
     LIST_ENTRY DebugRegistersAccessedEventsHead;     // DEBUG_REGISTERS_ACCESSED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
     LIST_ENTRY ExternalInterruptOccurredEventsHead;  // EXTERNAL_INTERRUPT_OCCURRED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
     LIST_ENTRY VmcallInstructionExecutionEventsHead; // VMCALL_INSTRUCTION_EXECUTION [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
-    LIST_ENTRY ControlRegisterModifiedEventsHead;     // CONTROL_REGISTER_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
+    LIST_ENTRY ControlRegisterModifiedEventsHead;    // CONTROL_REGISTER_MODIFIED [WARNING : MAKE SURE TO INITIALIZE LIST HEAD , Add it to DebuggerRegisterEvent, Add it to DebuggerTriggerEvents, Add termination to DebuggerTerminateEvent ]
 
 } DEBUGGER_CORE_EVENTS, *PDEBUGGER_CORE_EVENTS;
 
@@ -218,6 +218,8 @@ typedef struct _DEBUGGER_EVENT
     LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
     UINT32     CountOfActions;  // The total count of actions
 
+    DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage; // The stage that a event is supposed to be called
+
     UINT64 OptionalParam1; // Optional parameter to be used differently by events
     UINT64 OptionalParam2; // Optional parameter to be used differently by events
     UINT64 OptionalParam3; // Optional parameter to be used differently by events
@@ -242,10 +244,11 @@ typedef struct _DEBUGGER_EVENT
  */
 typedef enum _DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
 {
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL              = 0,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT = 1,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED    = 2,
-    DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE      = 3,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_NO_INITIALIZED = 0,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL                = 0,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT   = 1,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_DEBUGGER_NOT_ENABLED      = 2,
+    DEBUGGER_TRIGGERING_EVENT_STATUS_INVALID_EVENT_TYPE        = 3,
 
 } DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE;
 
@@ -320,7 +323,11 @@ BOOLEAN
 DebuggerRegisterEvent(PDEBUGGER_EVENT Event);
 
 DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context);
+DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+                      DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
+                      PGUEST_REGS                       Regs,
+                      PVOID                             Context,
+                      BOOLEAN *                         PostEventRequired);
 
 PDEBUGGER_EVENT
 DebuggerGetEventByTag(UINT64 Tag);
