@@ -890,6 +890,7 @@ DispatchEventHiddenHookExecDetours(PGUEST_REGS Regs, PVOID Context)
  *
  * @param Regs Guest's gp register
  * @param Context The context of the caller
+ * @param IsTriggeringPostEventAllowed Is the caller required to trigger post event
  * @return BOOLEAN
  */
 BOOLEAN

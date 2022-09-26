@@ -617,6 +617,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
                       VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                       UINT64                               GuestPhysicalAddr)
 {
+    BOOLEAN                 ResultOfHandlingHook;
     BOOLEAN                 IsHandled                    = FALSE;
     BOOLEAN                 IgnoreReadOrWrite            = FALSE;
     BOOLEAN                 IsTriggeringPostEventAllowed = FALSE;
@@ -628,7 +629,7 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
         if (HookedEntry->PhysicalBaseAddress == PAGE_ALIGN(GuestPhysicalAddr))
         {
             //
-            // We found an address that matches the details
+            // *** We found an address that matches the details ***
             //
 
             //
@@ -637,7 +638,15 @@ EptHandlePageHookExit(PGUEST_REGS                          Regs,
             // by setting the Monitor Trap Flag. Return false means that nothing special
             // for the caller to do
             //
-            if (EptHookHandleHookedPage(Regs, HookedEntry, ViolationQualification, GuestPhysicalAddr, &IgnoreReadOrWrite, &IsTriggeringPostEventAllowed))
+            ResultOfHandlingHook = EptHookHandleHookedPage(Regs,
+                                                           HookedEntry,
+                                                           ViolationQualification,
+                                                           GuestPhysicalAddr,
+                                                           &HookedEntry->LastContextState,
+                                                           &IgnoreReadOrWrite,
+                                                           &IsTriggeringPostEventAllowed);
+
+            if (ResultOfHandlingHook)
             {
                 //
                 // Here we check whether the event should be ignored or not,

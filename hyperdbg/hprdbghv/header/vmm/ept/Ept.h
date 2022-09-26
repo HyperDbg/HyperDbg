@@ -207,6 +207,16 @@ typedef struct _VMM_EPT_DYNAMIC_SPLIT
 } VMM_EPT_DYNAMIC_SPLIT, *PVMM_EPT_DYNAMIC_SPLIT;
 
 /**
+ * @brief Temporary $context used in some EPT hook commands
+ *
+ */
+typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
+{
+    UINT64 PhysicalAddress;
+    UINT64 VirtualAddress;
+} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
+
+/**
  * @brief Structure to save the state of each hooked pages
  *
  */
@@ -274,6 +284,18 @@ typedef struct _EPT_HOOKED_PAGE_DETAIL
      * a hidden breakpoint command (not a monitor or hidden detours)
      */
     BOOLEAN IsHiddenBreakpoint;
+
+    /**
+     * @brief If TRUE, this hook relates to the write violation of the events
+     */
+    BOOLEAN IsMonitorToWriteOnPages;
+
+    /**
+     * @brief Temporary context for the post event monitors
+     * It shows the context of the last address that triggered the hook
+     * Note: Only used for read/write trigger events
+     */
+    EPT_HOOKS_TEMPORARY_CONTEXT LastContextState;
 
     /**
      * @brief This field shows whether the hook should call the post event trigger

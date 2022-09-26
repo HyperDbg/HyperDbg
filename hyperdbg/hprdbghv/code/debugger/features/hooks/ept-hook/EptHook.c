@@ -998,6 +998,14 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
     HookedPage->OriginalEntry = *TargetPage;
 
     //
+    // Check if the hook relates to the write condition
+    //
+    if (UnsetWrite)
+    {
+        HookedPage->IsMonitorToWriteOnPages = TRUE;
+    }
+
+    //
     // If it's Execution hook then we have to set extra fields
     //
     if (UnsetExecute)
@@ -1222,6 +1230,7 @@ EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetH
  * @param HookedEntryDetails The entry that describes the hooked page
  * @param ViolationQualification The exit qualification of vm-exit
  * @param PhysicalAddress The physical address that cause this vm-exit
+ * @param LastContext The last (current) context of the execution
  * @param IgnoreReadOrWrite Whether to ignore the event effects or not
  * @param IsTriggeringPostEventAllowed Whether the caller should consider
  * executing the post triggering of the event or not
@@ -1234,14 +1243,14 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
+                        EPT_HOOKS_TEMPORARY_CONTEXT *        LastContext,
                         BOOLEAN *                            IgnoreReadOrWrite,
                         BOOLEAN *                            IsTriggeringPostEventAllowed)
 {
-    UINT64                      GuestRip;
-    UINT64                      ExactAccessedVirtualAddress;
-    UINT64                      AlignedVirtualAddress;
-    UINT64                      AlignedPhysicalAddress;
-    EPT_HOOKS_TEMPORARY_CONTEXT TemporaryContext = {0};
+    UINT64 GuestRip;
+    UINT64 ExactAccessedVirtualAddress;
+    UINT64 AlignedVirtualAddress;
+    UINT64 AlignedPhysicalAddress;
 
     //
     // Get alignment
@@ -1255,10 +1264,10 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
     ExactAccessedVirtualAddress = AlignedVirtualAddress + PhysicalAddress - AlignedPhysicalAddress;
 
     //
-    // Create the temporary context
+    // Set the last context
     //
-    TemporaryContext.PhysicalAddress = PhysicalAddress;
-    TemporaryContext.VirtualAddress  = ExactAccessedVirtualAddress;
+    LastContext->PhysicalAddress = PhysicalAddress;
+    LastContext->VirtualAddress  = ExactAccessedVirtualAddress;
 
     if (!ViolationQualification.EptExecutable && ViolationQualification.ExecuteAccess)
     {
@@ -1285,7 +1294,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // Trigger the event related to Monitor Write and Monitor Read & Write
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(Regs, &TemporaryContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteWritePreEvent(Regs, LastContext, IsTriggeringPostEventAllowed);
     }
     else if (!ViolationQualification.EptReadable && ViolationQualification.ReadAccess)
     {
@@ -1300,7 +1309,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
         //
         // Trigger the event related to Monitor Read and Monitor Read & Write
         //
-        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(Regs, &TemporaryContext, IsTriggeringPostEventAllowed);
+        *IgnoreReadOrWrite = DispatchEventHiddenHookPageReadWriteReadPreEvent(Regs, LastContext, IsTriggeringPostEventAllowed);
     }
     else
     {

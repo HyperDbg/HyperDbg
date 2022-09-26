@@ -51,16 +51,6 @@
 //////////////////////////////////////////////////
 
 /**
- * @brief Temporary $context used in some EPT hook commands
- *
- */
-typedef struct _EPT_HOOKS_TEMPORARY_CONTEXT
-{
-    UINT64 PhysicalAddress;
-    UINT64 VirtualAddress;
-} EPT_HOOKS_TEMPORARY_CONTEXT, *PEPT_HOOKS_TEMPORARY_CONTEXT;
-
-/**
  * @brief SSDT structure
  *
  */
@@ -225,6 +215,7 @@ EptHook2(PVOID   TargetAddress,
  * @param HookedEntryDetails
  * @param ViolationQualification
  * @param PhysicalAddress
+ * @param LastContext
  * @param IgnoreReadOrWrite
  * @param IsTriggeringPostEventAllowed
  * @return BOOLEAN
@@ -234,6 +225,7 @@ EptHookHandleHookedPage(PGUEST_REGS                          Regs,
                         EPT_HOOKED_PAGE_DETAIL *             HookedEntryDetails,
                         VMX_EXIT_QUALIFICATION_EPT_VIOLATION ViolationQualification,
                         SIZE_T                               PhysicalAddress,
+                        EPT_HOOKS_TEMPORARY_CONTEXT *        LastContext,
                         BOOLEAN *                            IgnoreReadOrWrite,
                         BOOLEAN *                            IsTriggeringPostEventAllowed);
 
