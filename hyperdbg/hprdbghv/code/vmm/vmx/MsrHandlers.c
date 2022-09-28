@@ -2,20 +2,20 @@
  * @file MsrHandlers.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Handle for MSR-related tasks in VMX-root
- * 
+ *
  * @version 0.1
  * @date 2021-12-24
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Handles in the cases when RDMSR causes a vm-exit
- * 
+ *
  * @param GuestRegs Guest's gp registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
@@ -79,6 +79,30 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
             __vmx_vmread(VMCS_GUEST_FS_BASE, &Msr);
             break;
 
+        case HV_X64_MSR_GUEST_IDLE:
+
+            //
+            // VMware workstation and Hyper-V use this MSR halt the system
+            // Read more:
+            // https://learn.microsoft.com/en-us/virtualization/hyper-v-on-windows/tlfs/vp-properties#virtual-processor-idle-sleep-state
+            // As a top-level hypervisor, we get this MSRs VM-exit (even
+            // without setting MSR bitmap because this MSR is not a valid
+            // range MSR).
+            //
+            // This behavior is problematic for the debugger when we throw an NMI
+            // to halt all of the cores, if the core already executed RDMSR on this MSR,
+            // we'll end up notifying the core in VMX root-root (this is the expected
+            // behavior); however, after continuing the guest, we still won't get a
+            // chance to continue execution. Thus, all of the cores remain unlocked (in
+            // debuggee) and halted. So, we cannot send commands to them, and later when
+            // we continue the guest, and the guest tries to perform the steps necessary for
+            // locking, which is not expected and eventually causes a BSOD.
+            //
+            // As a quick and dirty patch (which is not a good idea for power-saving
+            // and performance reasons), we ignored these MSRs.
+            //
+            break;
+
         default:
 
             //
@@ -130,9 +154,9 @@ MsrHandleRdmsrVmexit(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Handles in the cases when RDMSR causes a vm-exit
- * 
+ *
  * @param GuestRegs Guest's gp registers
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
@@ -240,10 +264,10 @@ MsrHandleWrmsrVmexit(PGUEST_REGS GuestRegs)
 
 /**
  * @brief Set bits in Msr Bitmap
- * 
+ *
  * @param Msr MSR Address
  * @param ProcessorID Processor to set MSR Bitmap for it
- * @param ReadDetection set read bit 
+ * @param ReadDetection set read bit
  * @param WriteDetection set write bit
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
@@ -291,10 +315,10 @@ MsrHandleSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOLEA
 
 /**
  * @brief UnSet bits in Msr Bitmap
- * 
+ *
  * @param Msr MSR Address
  * @param ProcessorID Processor to set MSR Bitmap for it
- * @param ReadDetection Unset read bit 
+ * @param ReadDetection Unset read bit
  * @param WriteDetection Unset write bit
  * @return BOOLEAN Returns true if the MSR Bitmap is succcessfully applied or false if not applied
  */
@@ -344,7 +368,7 @@ MsrHandleUnSetMsrBitmap(UINT64 Msr, INT ProcessorID, BOOLEAN ReadDetection, BOOL
  * @brief Filter to avoid msr set for MSRs that are
  * not valid or should be ignored (RDMSR)
  * @param CoreIndex
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
@@ -366,7 +390,7 @@ MsrHandleFilterMsrReadBitmap(UINT32 CoreIndex)
  * @brief Filter to avoid msr set for MSRs that are
  * not valid or should be ignored (wrmsr)
  * @param CoreIndex
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandleFilterMsrWriteBitmap(UINT32 CoreIndex)
@@ -394,8 +418,8 @@ MsrHandleFilterMsrWriteBitmap(UINT32 CoreIndex)
 /**
  * @brief Change MSR Bitmap for read
  * @details should be called in vmx-root mode
- * @param 
- * @return VOID 
+ * @param
+ * @return VOID
  */
 VOID
 MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
@@ -427,7 +451,7 @@ MsrHandlePerformMsrBitmapReadChange(UINT64 MsrMask)
 /**
  * @brief Reset MSR Bitmap for read
  * @details should be called in vmx-root mode
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandlePerformMsrBitmapReadReset()
@@ -444,7 +468,7 @@ MsrHandlePerformMsrBitmapReadReset()
  * @brief Change MSR Bitmap for write
  * @details should be called in vmx-root mode
  * @param MsrMask MSR
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
@@ -476,7 +500,7 @@ MsrHandlePerformMsrBitmapWriteChange(UINT64 MsrMask)
 /**
  * @brief Reset MSR Bitmap for write
  * @details should be called in vmx-root mode
- * @return VOID 
+ * @return VOID
  */
 VOID
 MsrHandlePerformMsrBitmapWriteReset()

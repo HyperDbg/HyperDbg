@@ -1123,7 +1123,7 @@ BOOLEAN
 KdSendPausePacketToDebuggee()
 {
     //
-    // Send pause packet to debuggee
+    // Send the pause packet to debuggee
     //
     if (!KdCommandPacketToDebuggee(
             DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_USER_MODE,

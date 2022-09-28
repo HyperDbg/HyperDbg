@@ -514,6 +514,9 @@
     <ClInclude Include="header\debugger\core\Dispatch.h">
       <Filter>header\debugger\core</Filter>
     </ClInclude>
+    <ClInclude Include="header\vmm\vmx\HypervTlfs.h">
+      <Filter>header\vmm\vmx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="code\assembly\AsmCommon.asm">

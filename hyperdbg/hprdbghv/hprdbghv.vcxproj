@@ -228,6 +228,7 @@
     <ClInclude Include="header\vmm\vmx\Counters.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
     <ClInclude Include="header\vmm\vmx\Hv.h" />
+    <ClInclude Include="header\vmm\vmx\HypervTlfs.h" />
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
     <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
