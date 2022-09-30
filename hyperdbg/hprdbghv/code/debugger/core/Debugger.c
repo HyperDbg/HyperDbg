@@ -701,13 +701,20 @@ DebuggerRegisterEvent(PDEBUGGER_EVENT Event)
  * @brief Trigger events of a special type to be managed by debugger
  *
  * @param EventType Type of events
+ * @param CallingStage Stage of calling (pre-event or post-event)
  * @param Regs Guest registers
  * @param Context An optional parameter (different in each event)
+ * @param PostEventRequired Whether the caller is requested to
+ * trigger a post-event event
  * @return DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE returns the staus
  * of handling events
  */
 DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE
-DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOID Context)
+DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
+                      DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage,
+                      PGUEST_REGS                       Regs,
+                      PVOID                             Context,
+                      BOOLEAN *                         PostEventRequired)
 {
     DebuggerCheckForCondition * ConditionFunc;
     PLIST_ENTRY                 TempList              = 0;
@@ -831,7 +838,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
     {
         TempList  = &g_Events->ControlRegisterModifiedEventsHead;
         TempList2 = TempList;
-        break; 
+        break;
     }
     case EXTERNAL_INTERRUPT_OCCURRED:
     {
@@ -895,6 +902,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         switch (CurrentEvent->EventType)
         {
         case EXTERNAL_INTERRUPT_OCCURRED:
+
             //
             // For external interrupt exiting events we check whether the
             // vector match the event's vector or not
@@ -908,11 +916,13 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+
             break;
 
         case HIDDEN_HOOK_READ_AND_WRITE:
         case HIDDEN_HOOK_READ:
         case HIDDEN_HOOK_WRITE:
+
             //
             // For hidden hook read/writes we check whether the address
             // is in the range of what user specified or not, this is because
@@ -998,6 +1008,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
 
         case RDMSR_INSTRUCTION_EXECUTION:
         case WRMSR_INSTRUCTION_EXECUTION:
+
             //
             // check if MSR exit is what we want or not
             //
@@ -1008,9 +1019,11 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+
             break;
 
         case EXCEPTION_OCCURRED:
+
             //
             // check if exception is what we need or not
             //
@@ -1021,10 +1034,12 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+
             break;
 
         case IN_INSTRUCTION_EXECUTION:
         case OUT_INSTRUCTION_EXECUTION:
+
             //
             // check if I/O port is what we want or not
             //
@@ -1035,6 +1050,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
                 //
                 continue;
             }
+
             break;
 
         case SYSCALL_HOOK_EFER_SYSCALL:
@@ -1044,6 +1060,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             //
             // I don't know how to find syscall number when sysret is executed so
             // that's why we don't support extra argument for sysret
+            //
 
             //
             // check syscall number
@@ -1059,16 +1076,18 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
             break;
 
         case CONTROL_REGISTER_MODIFIED:
-            // 
+
+            //
             // check if CR exit is what we want or not
             //
             if (CurrentEvent->OptionalParam1 != Context)
             {
-                // 
+                //
                 // The CR is not what we want
                 //
                 continue;
             }
+
             break;
 
         default:
@@ -1076,10 +1095,34 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM EventType, PGUEST_REGS Regs, PVOI
         }
 
         //
+        // Check the stage of calling (pre and post event)
+        //
+        if (CallingStage == DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION &&
+            CurrentEvent->CallingStage == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
+        {
+            //
+            // Here it means that the current event is a post-event event and
+            // the current stage of calling is for the pre-event events, thus
+            // this event is not supposed to be runned at the current stage.
+            // However, we'll set a flag so the caller will know that there is
+            // a valid post-event available for the parameters related to this
+            // event.
+            // This mechanism notifies the caller to trigger the event after
+            // emulation, we implement it in a way that the caller knows when
+            // to trigger a post-event thus it optimizes the number of times
+            // that the caller triggers the events and avoid unnecessary triggering
+            // of the event (for post-event) but at the same time we have the
+            // flexibility of having both pre-event and post-event concepts
+            //
+            *PostEventRequired = TRUE;
+
+            continue;
+        }
+
+        //
         // Check if condtion is met or not , if the condition
         // is not met then we have to avoid performing the actions
         //
-
         if (CurrentEvent->ConditionsBufferSize != 0)
         {
             //
@@ -2506,11 +2549,11 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
         //
 
         //
-        // Setting an indicator to CR 
-        // 
+        // Setting an indicator to CR
+        //
         Event->OptionalParam1 = EventDetails->OptionalParam1;
         Event->OptionalParam2 = EventDetails->OptionalParam2;
-        
+
         //
         // Let's see if it is for all cores or just one core
         //

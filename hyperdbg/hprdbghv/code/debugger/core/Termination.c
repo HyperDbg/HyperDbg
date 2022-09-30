@@ -1,22 +1,22 @@
 /**
  * @file Termination.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief Implementation of Debugger functions for terminating events
+ * @brief Implementation of debugger functions for terminating events
  * @details
- * 
+ *
  * @version 0.1
  * @date 2020-08-16
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Termination function for external-interrupts
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
@@ -93,9 +93,9 @@ TerminateExternalInterruptEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for hidden hook read/write
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
@@ -126,9 +126,9 @@ TerminateHiddenHookReadAndWriteEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for hidden hook (hidden breakpoints)
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
@@ -152,9 +152,9 @@ TerminateHiddenHookExecCcEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for hidden hook (detours)
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
@@ -180,9 +180,9 @@ TerminateHiddenHookExecDetoursEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for msr read events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
@@ -259,9 +259,9 @@ TerminateRdmsrExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for msr write events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
@@ -338,9 +338,9 @@ TerminateWrmsrExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for exception events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateExceptionEvent(PDEBUGGER_EVENT Event)
@@ -418,9 +418,9 @@ TerminateExceptionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for IN instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
@@ -504,9 +504,9 @@ TerminateInInstructionExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for OUT Instructions events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
@@ -590,9 +590,9 @@ TerminateOutInstructionExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for VMCALL Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
@@ -628,9 +628,9 @@ TerminateVmcallExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for CPUID Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
@@ -666,9 +666,9 @@ TerminateCpuidExecutionEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for RDTSC/RDTSCP Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateTscEvent(PDEBUGGER_EVENT Event)
@@ -745,9 +745,9 @@ TerminateTscEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for RDPMC Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminatePmcEvent(PDEBUGGER_EVENT Event)
@@ -903,9 +903,9 @@ TerminateControlRegistersEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for MOV to debug registers events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
@@ -982,9 +982,9 @@ TerminateDebugRegistersEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for SYSCALL Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
@@ -1068,9 +1068,9 @@ TerminateSyscallHookEferEvent(PDEBUGGER_EVENT Event)
 
 /**
  * @brief Termination function for SYSRET Instruction events
- * 
+ *
  * @param Event Target Event Object
- * @return VOID 
+ * @return VOID
  */
 VOID
 TerminateSysretHookEferEvent(PDEBUGGER_EVENT Event)

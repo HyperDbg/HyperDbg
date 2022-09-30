@@ -127,6 +127,7 @@
     <ClCompile Include="code\debugger\communication\SerialConnection.c" />
     <ClCompile Include="code\debugger\core\Debugger.c" />
     <ClCompile Include="code\debugger\core\DebuggerEvents.c" />
+    <ClCompile Include="code\debugger\core\Dispatch.c" />
     <ClCompile Include="code\debugger\core\Termination.c" />
     <ClCompile Include="code\debugger\features\hooks\ept-hook\EptHook.c" />
     <ClCompile Include="code\debugger\features\hooks\syscall-hook\EferHook.c" />
@@ -200,6 +201,7 @@
     <ClInclude Include="header\debugger\communication\SerialConnection.h" />
     <ClInclude Include="header\debugger\core\Debugger.h" />
     <ClInclude Include="header\debugger\core\DebuggerEvents.h" />
+    <ClInclude Include="header\debugger\core\Dispatch.h" />
     <ClInclude Include="header\debugger\core\Termination.h" />
     <ClInclude Include="header\debugger\features\Hooks.h" />
     <ClInclude Include="header\debugger\kernel-level\Kd.h" />
@@ -226,6 +228,7 @@
     <ClInclude Include="header\vmm\vmx\Counters.h" />
     <ClInclude Include="header\vmm\vmx\Events.h" />
     <ClInclude Include="header\vmm\vmx\Hv.h" />
+    <ClInclude Include="header\vmm\vmx\HypervTlfs.h" />
     <ClInclude Include="header\vmm\vmx\IdtEmulation.h" />
     <ClInclude Include="header\vmm\vmx\IoHandler.h" />
     <ClInclude Include="header\vmm\vmx\ManageRegs.h" />
