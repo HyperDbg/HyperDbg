@@ -150,7 +150,7 @@ typedef struct _PROCESSOR_DEBUGGING_STATE
     volatile BOOLEAN                           MainDebuggingCore;
     volatile BOOLEAN                           NmiCalledInVmxRootRelatedToHaltDebuggee;
     volatile NMI_BROADCAST_ACTION_TYPE         NmiBroadcastAction;
-    BOOLEAN                                    IgnoreEvent;
+    BOOLEAN                                    ShortCircuitingEvent;
     BOOLEAN                                    IgnoreOneMtf;
     BOOLEAN                                    WaitForStepTrap;
     PROCESSOR_DEBUGGING_MSR_READ_OR_WRITE      MsrState;

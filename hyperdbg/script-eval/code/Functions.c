@@ -812,16 +812,16 @@ ScriptEngineFunctionFlush()
  * @return VOID
  */
 VOID
-ScriptEngineFunctionEventIgnore()
+ScriptEngineFunctionShortCircuitingEvent()
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
-    ShowMessages("err, it's not possible to ignore events in user-mode\n");
+    ShowMessages("err, it's not possible to short-circuit events in user-mode\n");
 #endif // SCRIPT_ENGINE_USER_MODE
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex                                   = KeGetCurrentProcessorNumber();
-    g_GuestState[CurrentProcessorIndex].DebuggingState.IgnoreEvent = TRUE;
+    UINT32 CurrentProcessorIndex                                            = KeGetCurrentProcessorNumber();
+    g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

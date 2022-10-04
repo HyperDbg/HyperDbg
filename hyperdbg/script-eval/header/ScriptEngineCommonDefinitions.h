@@ -89,7 +89,7 @@ typedef struct ACTION_BUFFER {
 #define FUNC_PRINTF 46
 #define FUNC_PAUSE 47
 #define FUNC_FLUSH 48
-#define FUNC_EVENT_IGNORE 49
+#define FUNC_EVENT_SC 49
 #define FUNC_SPINLOCK_LOCK_CUSTOM_WAIT 50
 #define FUNC_POI 51
 #define FUNC_DB 52

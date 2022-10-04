@@ -495,9 +495,9 @@ ScriptEngineExecute(PGUEST_REGS                    GuestRegs,
 
         return HasError;
 
-    case FUNC_EVENT_IGNORE:
+    case FUNC_EVENT_SC:
 
-        ScriptEngineFunctionEventIgnore();
+        ScriptEngineFunctionShortCircuitingEvent();
 
         return HasError;
 

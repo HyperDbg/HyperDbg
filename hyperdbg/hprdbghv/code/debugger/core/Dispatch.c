@@ -38,7 +38,7 @@ DispatchEventEferSysret(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -85,7 +85,7 @@ DispatchEventEferSyscall(UINT32 CoreIndex, PGUEST_REGS Regs, PVOID Context)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -154,7 +154,7 @@ DispatchEventCpuid(PGUEST_REGS Regs)
                                                    &PostEventTriggerReq);
 
         //
-        // Check whether we need to ignore event emulation or not
+        // Check whether we need to short-circuiting event emulation or not
         //
         if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
         {
@@ -212,7 +212,7 @@ DispatchEventTsc(PGUEST_REGS Regs, BOOLEAN IsRdtscp)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -264,7 +264,7 @@ DispatchEventVmcall(UINT32 CoreIndex, PGUEST_REGS Regs)
                                                    &PostEventTriggerReq);
 
         //
-        // Check whether we need to ignore event emulation or not
+        // Check whether we need to short-circuiting event emulation or not
         //
         if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
         {
@@ -341,7 +341,7 @@ DispatchEventIO(PGUEST_REGS Regs)
     }
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -397,7 +397,7 @@ DispatchEventRdmsr(PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -442,7 +442,7 @@ DispatchEventWrmsr(PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -487,7 +487,7 @@ DispatchEventRdpmc(PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -544,7 +544,7 @@ DispatchEventMov2DebugRegs(UINT32 CoreIndex, PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -609,7 +609,7 @@ DispatchEventMovToFromControlRegisters(UINT32 CoreIndex, PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -717,7 +717,7 @@ DispatchEventException(UINT32 CoreIndex, PGUEST_REGS Regs)
     }
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -805,7 +805,7 @@ DispatchEventExternalInterrupts(UINT32 CoreIndex, PGUEST_REGS Regs)
                                                &PostEventTriggerReq);
 
     //
-    // Check whether we need to ignore event emulation or not
+    // Check whether we need to short-circuiting event emulation or not
     //
     if (EventTriggerResult != DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
@@ -897,8 +897,8 @@ BOOLEAN
 DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                               PostEventTriggerReq = FALSE;
-    BOOLEAN                               EventIgnore         = FALSE;
+    BOOLEAN                               PostEventTriggerReq  = FALSE;
+    BOOLEAN                               ShortCircuitingEvent = FALSE;
 
     //
     // Triggering the pre-event (for the write hooks)
@@ -911,7 +911,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        EventIgnore = TRUE;
+        ShortCircuitingEvent = TRUE;
     }
 
     if (PostEventTriggerReq)
@@ -930,7 +930,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        EventIgnore = TRUE;
+        ShortCircuitingEvent = TRUE;
     }
 
     if (PostEventTriggerReq)
@@ -938,7 +938,7 @@ DispatchEventHiddenHookPageReadWriteWritePreEvent(PGUEST_REGS Regs, PVOID Contex
         *IsTriggeringPostEventAllowed = TRUE;
     }
 
-    return EventIgnore;
+    return ShortCircuitingEvent;
 }
 
 /**
@@ -952,8 +952,8 @@ BOOLEAN
 DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context, BOOLEAN * IsTriggeringPostEventAllowed)
 {
     DEBUGGER_TRIGGERING_EVENT_STATUS_TYPE EventTriggerResult;
-    BOOLEAN                               PostEventTriggerReq = FALSE;
-    BOOLEAN                               EventIgnore         = FALSE;
+    BOOLEAN                               PostEventTriggerReq  = FALSE;
+    BOOLEAN                               ShortCircuitingEvent = FALSE;
 
     //
     // Triggering the pre-event (for the read hooks)
@@ -966,7 +966,7 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        EventIgnore = TRUE;
+        ShortCircuitingEvent = TRUE;
     }
 
     if (PostEventTriggerReq)
@@ -985,7 +985,7 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context
 
     if (EventTriggerResult == DEBUGGER_TRIGGERING_EVENT_STATUS_SUCCESSFUL_IGNORE_EVENT)
     {
-        EventIgnore = TRUE;
+        ShortCircuitingEvent = TRUE;
     }
 
     if (PostEventTriggerReq)
@@ -993,7 +993,7 @@ DispatchEventHiddenHookPageReadWriteReadPreEvent(PGUEST_REGS Regs, PVOID Context
         *IsTriggeringPostEventAllowed = TRUE;
     }
 
-    return EventIgnore;
+    return ShortCircuitingEvent;
 }
 
 /**

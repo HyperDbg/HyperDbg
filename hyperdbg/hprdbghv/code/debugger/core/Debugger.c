@@ -1148,7 +1148,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         //
         // Reset the the event ignorance mechanism
         //
-        CurrentVmState->DebuggingState.IgnoreEvent = FALSE;
+        CurrentVmState->DebuggingState.ShortCircuitingEvent = FALSE;
 
         //
         // perform the actions
@@ -1159,7 +1159,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
     //
     // Check if the event should be ignored or not
     //
-    if (CurrentVmState->DebuggingState.IgnoreEvent)
+    if (CurrentVmState->DebuggingState.ShortCircuitingEvent)
     {
         //
         // Event should be ignored
