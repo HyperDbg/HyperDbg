@@ -48,7 +48,7 @@ public:
     HKeyHolder() :
         m_Key(nullptr) { }
 
-    HKeyHolder(const HKeyHolder &) = delete;
+    HKeyHolder(const HKeyHolder &)             = delete;
     HKeyHolder & operator=(const HKeyHolder &) = delete;
 
     ~HKeyHolder()
@@ -96,6 +96,9 @@ KdCheckForTheEndOfTheBuffer(PUINT32 CurrentLoopIndex, BYTE * Buffer);
 
 BOOLEAN
 KdSendSwitchCorePacketToDebuggee(UINT32 NewCore);
+
+BOOLEAN
+KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled);
 
 BOOLEAN
 KdSendEventQueryAndModifyPacketToDebuggee(

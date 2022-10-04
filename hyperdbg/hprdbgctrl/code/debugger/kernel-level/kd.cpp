@@ -214,6 +214,42 @@ KdSendSwitchCorePacketToDebuggee(UINT32 NewCore)
 }
 
 /**
+ * @brief Sends a short-circuiting event request to debuggee
+ * @param IsEnabled
+ *
+ * @return BOOLEAN
+ */
+BOOLEAN
+KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled)
+{
+    DEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitEventPacket = {0};
+
+    //
+    // Fill the structure of the packet
+    //
+    ShortCircuitEventPacket.IsShortCircuiting = IsEnabled;
+
+    //
+    // Send modify and query event packet
+    //
+    if (!KdCommandPacketAndBufferToDebuggee(
+            DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGER_TO_DEBUGGEE_EXECUTE_ON_VMX_ROOT,
+            DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SET_SHORT_CIRCUITING_STATE,
+            (CHAR *)&ShortCircuitEventPacket,
+            sizeof(DEBUGGER_SHORT_CIRCUITING_EVENT)))
+    {
+        return FALSE;
+    }
+
+    //
+    // Wait until the result of setting short-circuiting event state is received
+    //
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUTING_EVENT_STATE);
+
+    return TRUE;
+}
+
+/**
  * @brief Sends a query or request to enable/disable/clear for event
  * @details if IsQueryState is TRUE then TypeOfAction is ignored
  * @param Tag

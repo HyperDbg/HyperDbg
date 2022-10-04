@@ -100,7 +100,7 @@ typedef enum _DEBUGGER_MODIFY_EVENTS_TYPE
     DEBUGGER_MODIFY_EVENTS_QUERY_STATE,
     DEBUGGER_MODIFY_EVENTS_ENABLE,
     DEBUGGER_MODIFY_EVENTS_DISABLE,
-    DEBUGGER_MODIFY_EVENTS_CLEAR
+    DEBUGGER_MODIFY_EVENTS_CLEAR,
 } DEBUGGER_MODIFY_EVENTS_TYPE;
 
 /**
@@ -116,3 +116,14 @@ typedef struct _DEBUGGER_MODIFY_EVENTS
     BOOLEAN IsEnabled; // Determines what's the action (enable | disable | clear)
 
 } DEBUGGER_MODIFY_EVENTS, *PDEBUGGER_MODIFY_EVENTS;
+
+/**
+ * @brief request for performing a short-circuiting event
+ *
+ */
+typedef struct _DEBUGGER_SHORT_CIRCUITING_EVENT
+{
+    UINT64  KernelStatus;      // Kerenl put the status in this field
+    BOOLEAN IsShortCircuiting; // Determines whether to perform short circuting (on | off)
+
+} DEBUGGER_SHORT_CIRCUITING_EVENT, *PDEBUGGER_SHORT_CIRCUITING_EVENT;

@@ -812,7 +812,7 @@ ScriptEngineFunctionFlush()
  * @return VOID
  */
 VOID
-ScriptEngineFunctionShortCircuitingEvent()
+ScriptEngineFunctionShortCircuitingEvent(UINT64 State)
 {
 #ifdef SCRIPT_ENGINE_USER_MODE
     ShowMessages("err, it's not possible to short-circuit events in user-mode\n");
@@ -820,8 +820,16 @@ ScriptEngineFunctionShortCircuitingEvent()
 
 #ifdef SCRIPT_ENGINE_KERNEL_MODE
 
-    UINT32 CurrentProcessorIndex                                            = KeGetCurrentProcessorNumber();
-    g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
+    UINT32 CurrentProcessorIndex = KeGetCurrentProcessorNumber();
+
+    if (State == 0)
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
+    }
+    else
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = FALSE;
+    }
 
 #endif // SCRIPT_ENGINE_KERNEL_MODE
 }

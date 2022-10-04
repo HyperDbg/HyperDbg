@@ -64,6 +64,7 @@ ListeningSerialPortInDebugger()
     PDEBUGGER_READ_MEMORY                       ReadMemoryPacket;
     PDEBUGGER_EDIT_MEMORY                       EditMemoryPacket;
     PDEBUGGEE_BP_PACKET                         BpPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT            ShortCircuitingPacket;
     PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS   PtePacket;
     PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS          Va2paPa2vaPacket;
     PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET          ListOrModifyBreakpointPacket;
@@ -989,6 +990,27 @@ StartAgain:
             // Signal the event relating to receiving result of putting breakpoints
             //
             DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_BP);
+
+            break;
+
+        case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_STATE:
+
+            ShortCircuitingPacket = (DEBUGGER_SHORT_CIRCUITING_EVENT *)(((CHAR *)TheActualPacket) +
+                                                                        sizeof(DEBUGGER_REMOTE_PACKET));
+
+            if (ShortCircuitingPacket->KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+            {
+                ShowMessages("the event's short-circuiting state changed to %s\n", ShortCircuitingPacket->IsShortCircuiting ? "'on'" : "'off'");
+            }
+            else
+            {
+                ShowErrorMessage(ShortCircuitingPacket->KernelStatus);
+            }
+
+            //
+            // Signal the event relating to receiving result of changing the short circuiting state
+            //
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUTING_EVENT_STATE);
 
             break;
 

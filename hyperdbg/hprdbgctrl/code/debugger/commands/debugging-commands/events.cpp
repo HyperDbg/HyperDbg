@@ -35,6 +35,7 @@ CommandEventsHelp()
 
     ShowMessages("syntax : \tevents\n");
     ShowMessages("syntax : \tevents [e|d|c all|EventNumber (hex)]\n");
+    ShowMessages("syntax : \tevents [sc State (on|off)]\n");
 
     ShowMessages("e : enable\n");
     ShowMessages("d : disable\n");
@@ -49,6 +50,8 @@ CommandEventsHelp()
     ShowMessages("\te.g : events d 10\n");
     ShowMessages("\te.g : events c 10\n");
     ShowMessages("\te.g : events c all\n");
+    ShowMessages("\te.g : events sc on\n");
+    ShowMessages("\te.g : events sc off\n");
 }
 
 /**
@@ -105,6 +108,29 @@ CommandEvents(vector<string> SplittedCommand, string Command)
     else if (!SplittedCommand.at(1).compare("c"))
     {
         RequestedAction = DEBUGGER_MODIFY_EVENTS_CLEAR;
+    }
+    else if (!SplittedCommand.at(1).compare("sc"))
+    {
+        if (!SplittedCommand.at(2).compare("on"))
+        {
+            KdSendShortCircuitingEventToDebuggee(TRUE);
+        }
+        else if (!SplittedCommand.at(2).compare("off"))
+        {
+            KdSendShortCircuitingEventToDebuggee(FALSE);
+        }
+        else
+        {
+            ShowMessages(
+                "please specify a correct 'on' or 'off' state for the short-circuiting state\n\n");
+            CommandEventsHelp();
+            return;
+        }
+
+        //
+        // No need to further continue
+        //
+        return;
     }
     else
     {

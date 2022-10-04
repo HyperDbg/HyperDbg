@@ -20,7 +20,7 @@
 #define USE_LIB_IA32
 #if defined(USE_LIB_IA32)
 #    pragma warning(push, 0)
-//#    pragma warning(disable : 4201) // suppress nameless struct/union warning
+// #    pragma warning(disable : 4201) // suppress nameless struct/union warning
 #    include <ia32-doc/out/ia32.h>
 #    pragma warning(pop)
 typedef RFLAGS * PRFLAGS;
@@ -100,6 +100,9 @@ typedef struct _DEBUGGER_GENERAL_EVENT_DETAIL
                       // apply it to all processes
 
     BOOLEAN IsEnabled;
+
+    BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
+                                   // is enabled or not for this event
 
     BOOLEAN HasCustomOutput; // Shows whether this event has a custom output
                              // source or not

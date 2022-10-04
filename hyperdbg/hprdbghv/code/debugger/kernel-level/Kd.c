@@ -1461,6 +1461,36 @@ KdQuerySystemState()
 }
 
 /**
+ * @brief Perform modify the state of short-circuiting
+ * @param ShortCircuitingEvent
+ * @param CurrentProcessorIndex
+ *
+ * @return VOID
+ */
+VOID
+KdPerformSettingTheStateOfShortCircuiting(UINT32 CurrentProcessorIndex, PDEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitingEvent)
+{
+    DbgBreakPoint();
+
+    //
+    // Perform the short-circuiting changes
+    //
+    if (ShortCircuitingEvent->IsShortCircuiting)
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = TRUE;
+    }
+    else
+    {
+        g_GuestState[CurrentProcessorIndex].DebuggingState.ShortCircuitingEvent = FALSE;
+    }
+
+    //
+    // The status was okay
+    //
+    ShortCircuitingEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+}
+
+/**
  * @brief Perform modify and query events
  * @param ModifyAndQueryEvent
  *
@@ -1619,6 +1649,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET EventRegPacket;
     PDEBUGGEE_EVENT_AND_ACTION_HEADER_FOR_REMOTE_PACKET AddActionPacket;
     PDEBUGGER_MODIFY_EVENTS                             QueryAndModifyEventPacket;
+    PDEBUGGER_SHORT_CIRCUITING_EVENT                    ShortCircuitingEventPacket;
     UINT32                                              SizeToSend         = 0;
     BOOLEAN                                             UnlockTheNewCore   = FALSE;
     size_t                                              ReturnSize         = 0;
@@ -2228,6 +2259,26 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                QueryAndModifyEventPacket,
                                                sizeof(DEBUGGER_MODIFY_EVENTS));
                 }
+
+                break;
+
+            case DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_ON_VMX_ROOT_SET_SHORT_CIRCUITING_STATE:
+
+                ShortCircuitingEventPacket = (DEBUGGER_SHORT_CIRCUITING_EVENT *)(((CHAR *)TheActualPacket) +
+                                                                                 sizeof(DEBUGGER_REMOTE_PACKET));
+
+                //
+                // Perform the action
+                //
+                KdPerformSettingTheStateOfShortCircuiting(CurrentCore, ShortCircuitingEventPacket);
+
+                //
+                // Send the response of short-circuiting event
+                //
+                KdResponsePacketToDebugger(DEBUGGER_REMOTE_PACKET_TYPE_DEBUGGEE_TO_DEBUGGER,
+                                           DEBUGGER_REMOTE_PACKET_REQUESTED_ACTION_DEBUGGEE_RESULT_OF_SHORT_CIRCUITING_EVENT,
+                                           ShortCircuitingEventPacket,
+                                           sizeof(DEBUGGER_SHORT_CIRCUITING_EVENT));
 
                 break;
 
