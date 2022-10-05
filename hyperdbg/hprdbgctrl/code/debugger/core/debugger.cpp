@@ -2107,15 +2107,19 @@ InterpretGeneralEventAndActionsFields(
     UINT32                         ScriptBufferPointer  = 0;
     UINT32                         LengthOfEventBuffer  = 0;
     string                         CommandString;
-    BOOLEAN                        HasConditionBuffer              = FALSE;
-    BOOLEAN                        HasOutputPath                   = FALSE;
-    BOOLEAN                        HasCodeBuffer                   = FALSE;
-    BOOLEAN                        HasScript                       = FALSE;
-    BOOLEAN                        IsNextCommandPid                = FALSE;
-    BOOLEAN                        IsNextCommandCoreId             = FALSE;
-    BOOLEAN                        IsNextCommandBufferSize         = FALSE;
-    BOOLEAN                        IsNextCommandImmediateMessaging = FALSE;
-    BOOLEAN                        ImmediateMessagePassing         = UseImmediateMessagingByDefaultOnEvents;
+    BOOLEAN                        IsAPostEvent                     = FALSE;
+    BOOLEAN                        IsAShortCircuitingEventByDefault = FALSE;
+    BOOLEAN                        HasConditionBuffer               = FALSE;
+    BOOLEAN                        HasOutputPath                    = FALSE;
+    BOOLEAN                        HasCodeBuffer                    = FALSE;
+    BOOLEAN                        HasScript                        = FALSE;
+    BOOLEAN                        IsNextCommandPid                 = FALSE;
+    BOOLEAN                        IsNextCommandCoreId              = FALSE;
+    BOOLEAN                        IsNextCommandBufferSize          = FALSE;
+    BOOLEAN                        IsNextCommandImmediateMessaging  = FALSE;
+    BOOLEAN                        IsNextCommandExecutionMode       = FALSE;
+    BOOLEAN                        IsNextCommandSc                  = FALSE;
+    BOOLEAN                        ImmediateMessagePassing          = UseImmediateMessagingByDefaultOnEvents;
     UINT32                         CoreId;
     UINT32                         ProcessId;
     UINT32                         IndexOfValidSourceTags;
@@ -2139,7 +2143,6 @@ InterpretGeneralEventAndActionsFields(
     //
     // Compute the size of buffer + 1 null for the end of buffer
     //
-
     UINT64 BufferOfCommandStringLength = CommandString.size() + 1;
 
     //
@@ -2713,6 +2716,68 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
+        if (IsNextCommandExecutionMode)
+        {
+            if (!Section.compare("pre"))
+            {
+                IsAPostEvent = FALSE;
+            }
+            else if (!Section.compare("post"))
+            {
+                IsAPostEvent = TRUE;
+            }
+            else
+            {
+                //
+                // err, not token recognized error
+                //
+
+                ShowMessages("err, the specified execution mode is invalid; you can either choose 'pre' or 'post'\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+                goto ReturnWithError;
+            }
+
+            IsNextCommandExecutionMode = FALSE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
+        if (IsNextCommandSc)
+        {
+            if (!Section.compare("on"))
+            {
+                IsAShortCircuitingEventByDefault = TRUE;
+            }
+            else if (!Section.compare("off"))
+            {
+                IsAShortCircuitingEventByDefault = FALSE;
+            }
+            else
+            {
+                //
+                // err, not token recognized error
+                //
+
+                ShowMessages("err, the specified short-circuiting state is invalid; you can either choose 'on' or 'off'\n");
+                *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+                goto ReturnWithError;
+            }
+
+            IsNextCommandSc = FALSE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
         if (IsNextCommandPid)
         {
             if (!Section.compare("all"))
@@ -2807,6 +2872,36 @@ InterpretGeneralEventAndActionsFields(
             continue;
         }
 
+        if (!Section.compare("mode"))
+        {
+            //
+            // the next commnad is execution mode (pre- and post-events)
+            //
+            IsNextCommandExecutionMode = TRUE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
+        if (!Section.compare("sc"))
+        {
+            //
+            // the next commnad is the default short-circuiting state
+            //
+            IsNextCommandSc = TRUE;
+
+            //
+            // Add index to remove it from the command
+            //
+            IndexesToRemove.push_back(Index);
+
+            continue;
+        }
+
         if (!Section.compare("buffer"))
         {
             IsNextCommandBufferSize = TRUE;
@@ -2843,6 +2938,43 @@ InterpretGeneralEventAndActionsFields(
     {
         ShowMessages("err, please specify a value for 'buffer'\n");
         *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandImmediateMessaging)
+    {
+        ShowMessages("err, please specify a value for 'imm'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandExecutionMode)
+    {
+        ShowMessages("err, please specify a value for 'mode'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    if (IsNextCommandSc)
+    {
+        ShowMessages("err, please specify a value for 'sc'\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_FORMAT_ERROR;
+
+        goto ReturnWithError;
+    }
+
+    //
+    // Check to make sure that short-circuiting is not used in post-events
+    //
+    if (IsAPostEvent && IsAShortCircuitingEventByDefault)
+    {
+        ShowMessages(
+            "err, using the short-circuiting mechanism with post-events "
+            "doesn't make sense; it's not supported!\n");
+        *ReasonForErrorInParsing = DEBUGGER_EVENT_PARSING_ERROR_CAUSE_USING_SHORT_CIRCUITING_IN_POST_EVENTS;
 
         goto ReturnWithError;
     }
@@ -2911,6 +3043,29 @@ InterpretGeneralEventAndActionsFields(
     if (HasOutputPath)
     {
         TempEvent->HasCustomOutput = TRUE;
+    }
+
+    //
+    // Set the specific requested short-circuiting state
+    //
+    if (IsAShortCircuitingEventByDefault)
+    {
+        TempEvent->EnableShortCircuiting = TRUE;
+    }
+
+    //
+    // Set the specific event mode
+    //
+    if (IsAPostEvent)
+    {
+        TempEvent->EventMode = DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION;
+    }
+    else
+    {
+        //
+        // By default, event's are 'pre-event'
+        //
+        TempEvent->EventMode = DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION;
     }
 
     //
