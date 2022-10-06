@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel debugger functions for processes
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
@@ -16,9 +16,9 @@
  * @brief handle process changes
  * @param ProcessorIndex Index of processor
  * @param GuestState Guest's gp registers
- * 
- * 
- * @return VOID 
+ *
+ *
+ * @return VOID
  */
 BOOLEAN
 ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
@@ -48,8 +48,8 @@ ProcessHandleProcessChange(UINT32 ProcessorIndex, PGUEST_REGS GuestState)
  * @param ProcessId
  * @param EProcess
  * @param IsSwitchByClockIntrrupt
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrrupt)
@@ -124,13 +124,13 @@ ProcessSwitch(UINT32 ProcessId, PEPROCESS EProcess, BOOLEAN IsSwitchByClockIntrr
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
@@ -163,13 +163,13 @@ ProcessDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core based on mov-to-cr3 vm-exits
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
@@ -204,14 +204,14 @@ ProcessDetectChangeByMov2Cr3Vmexits(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the process change monitoring detection 
+ * @brief Enable or disable the process change monitoring detection
  * on the running core
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @param CheckByClockInterrupts 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @param CheckByClockInterrupts
+ * @return VOID
  */
 VOID
 ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
@@ -237,8 +237,8 @@ ProcessEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
  * @param Eprocess target nt!_EPROCESS
  * @param ActiveProcessHead nt!PsActiveProcessHead
  * @param ActiveProcessLinksOffset nt!_EPROCESS.ActiveProcessLinks
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG ActiveProcessLinksOffset)
@@ -313,8 +313,8 @@ ProcessCheckIfEprocessIsValid(UINT64 Eprocess, UINT64 ActiveProcessHead, ULONG A
  * @param CountOfProcesses
  * @param ListSaveBuffer
  * @param ListSaveBuffSize
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessShowList(PDEBUGGEE_PROCESS_LIST_NEEDED_DETAILS              PorcessListSymbolInfo,
@@ -495,10 +495,10 @@ ReturnEnd:
 /**
  * @brief change the current process
  * @detail ONLY TO BE USED IN KD STUFFS
- * 
+ *
  * @param PidRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
@@ -517,7 +517,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -535,7 +535,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -557,7 +557,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
         //
         // Operation was successful
         //
-        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        PidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -574,7 +574,7 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
     //
     // Check if the above operation contains error
     //
-    if (PidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (PidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         return TRUE;
     }
@@ -586,10 +586,10 @@ ProcessInterpretProcess(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET PidRequest)
 
 /**
  * @brief Query process details (count)
- * 
+ *
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest)
@@ -607,7 +607,7 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
-        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
 
@@ -617,12 +617,12 @@ ProcessQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePr
 
 /**
  * @brief Query process details (list)
- * 
+ *
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
  * @param AddressToSaveDetail
  * @param BufferSize
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
@@ -645,10 +645,10 @@ ProcessQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 
 /**
  * @brief Query process details
- * 
+ *
  * @param GetInformationProcessRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationProcessRequest)
@@ -659,7 +659,7 @@ ProcessQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_PROCESS_PACKET GetInformationPr
                   GetProcessNameFromEprocess(PsGetCurrentProcess()),
                   15);
 
-    GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    GetInformationProcessRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }

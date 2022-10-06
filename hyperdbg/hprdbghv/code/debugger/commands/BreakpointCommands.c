@@ -677,7 +677,7 @@ BreakpointAddNew(PDEBUGGEE_BP_PACKET BpDescriptorArg)
     //
     // Show that operation was successful
     //
-    BpDescriptorArg->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    BpDescriptorArg->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }
@@ -834,7 +834,7 @@ BreakpointListOrModify(PDEBUGGEE_BP_LIST_OR_MODIFY_PACKET ListOrModifyBreakpoint
     //
     // Operation was successful
     //
-    ListOrModifyBreakpoints->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    ListOrModifyBreakpoints->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }

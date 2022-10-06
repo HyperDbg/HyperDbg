@@ -80,7 +80,7 @@ CommandFlushRequestFlush()
             return;
         }
 
-        if (FlushRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (FlushRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             //
             // The amount of message that are deleted are the amount of

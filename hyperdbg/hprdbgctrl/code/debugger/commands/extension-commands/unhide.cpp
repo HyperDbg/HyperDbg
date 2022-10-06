@@ -80,7 +80,7 @@ CommandUnhide(vector<string> SplittedCommand, string Command)
         return;
     }
 
-    if (UnhideRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (UnhideRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ShowMessages("transparent debugging successfully disabled :)\n");
     }

@@ -2088,7 +2088,7 @@ KdPrepareAndConnectDebugPort(const char * PortName, DWORD Baudrate, UINT32 Port,
             return FALSE;
         }
 
-        if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (DebuggeeRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             //
             // Ignore handling CTRL+C breaks
@@ -2303,7 +2303,7 @@ KdSendGeneralBuffersFromDebuggeeToDebugger(
     }
 
     if (GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult !=
-        DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ShowErrorMessage(GeneralPacketFromDebuggeeToDebuggerRequest->KernelResult);
 
@@ -2349,7 +2349,7 @@ KdReloadSymbolsInDebuggee(BOOLEAN PauseDebuggee, UINT32 UserProcessId)
     //
     // Set the status
     //
-    SymReload.KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    SymReload.KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     //
     // Send the finished request packet

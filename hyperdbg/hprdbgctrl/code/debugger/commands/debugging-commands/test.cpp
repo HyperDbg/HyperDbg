@@ -72,7 +72,7 @@ CommandTestPerformKernelTestsIoctl()
         return FALSE;
     }
 
-    if (KernelTestRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (KernelTestRequest.KernelStatus == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
         // Nothing to show

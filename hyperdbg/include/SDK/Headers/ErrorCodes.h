@@ -20,7 +20,7 @@
  * request was successful
  *
  */
-#define DEBUGGER_OPERATION_WAS_SUCCESSFULL 0xFFFFFFFF
+#define DEBUGGER_OPERATION_WAS_SUCCESSFUL 0xFFFFFFFF
 
 //////////////////////////////////////////////////
 //		    	   Error Codes                  //

@@ -1,23 +1,23 @@
 /**
  * @file Ioctl.c
  * @author Sina Karvandi (sina@hyperdbg.org)
- * @brief IOCTL Functions form user mode and other parts 
- * @details 
+ * @brief IOCTL Functions form user mode and other parts
+ * @details
  *
  * @version 0.1
  * @date 2020-06-01
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Driver IOCTL Dispatcher
- * 
- * @param DeviceObject 
- * @param Irp 
- * @return NTSTATUS 
+ *
+ * @param DeviceObject
+ * @param Irp
+ * @return NTSTATUS
  */
 NTSTATUS
 DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
@@ -420,7 +420,7 @@ DrvDispatchIoControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 //
                 // Set the status
                 //
-                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                DebuggerHideAndUnhideRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             }
             else
             {

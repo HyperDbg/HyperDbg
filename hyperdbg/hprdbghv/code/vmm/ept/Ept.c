@@ -228,7 +228,7 @@ EptGetPml2Entry(PVMM_EPT_PAGE_TABLE EptPageTable, SIZE_T PhysicalAddress)
  * @param PreAllocatedBuffer The address of pre-allocated buffer
  * @param PhysicalAddress Physical address of where we want to split
  * @param CoreIndex The index of core
- * @return BOOLEAN Returns true if it was successfull or false if there was an error
+ * @return BOOLEAN Returns true if it was successful or false if there was an error
  */
 BOOLEAN
 EptSplitLargePage(PVMM_EPT_PAGE_TABLE EptPageTable,

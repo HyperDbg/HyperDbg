@@ -842,7 +842,7 @@ KdSendFormatsFunctionResult(UINT64 Value)
 {
     DEBUGGEE_FORMATS_PACKET FormatsPacket = {0};
 
-    FormatsPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    FormatsPacket.Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     FormatsPacket.Value  = Value;
 
     //
@@ -1487,7 +1487,7 @@ KdPerformSettingTheStateOfShortCircuiting(UINT32 CurrentProcessorIndex, PDEBUGGE
     //
     // The status was okay
     //
-    ShortCircuitingEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    ShortCircuitingEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 }
 
 /**
@@ -1550,7 +1550,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
             //
             // The function was successful
             //
-            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         }
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_ENABLE)
@@ -1573,7 +1573,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_DISABLE)
     {
@@ -1595,7 +1595,7 @@ KdPerformEventQueryAndModification(PDEBUGGER_MODIFY_EVENTS ModifyAndQueryEvent)
         //
         // The function was successful
         //
-        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        ModifyAndQueryEvent->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     }
     else if (ModifyAndQueryEvent->TypeOfAction == DEBUGGER_MODIFY_EVENTS_CLEAR)
     {
@@ -1828,7 +1828,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                         //
                         UnlockTheNewCore = TRUE;
 
-                        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                        ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                     }
                     else
                     {
@@ -1840,7 +1840,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // The operating core and the target core is the same, no need for further action
                     //
-                    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    ChangeCorePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
 
                 //
@@ -1907,7 +1907,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                               CallstackPacket->Size,
                                               CallstackPacket->Is32Bit))
                 {
-                    CallstackPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    CallstackPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -1942,7 +1942,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     KdQuerySystemState();
 
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
                     break;
 
@@ -1951,7 +1951,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Query index not found
                     //
-                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    TestQueryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
                     break;
                 }
@@ -1975,7 +1975,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (KdReadRegisters(GuestRegs, ReadRegisterPacket))
                 {
-                    ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    ReadRegisterPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -2011,7 +2011,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                                                      (PVOID)((UINT64)ReadMemoryPacket + sizeof(DEBUGGER_READ_MEMORY)),
                                                      &ReturnSize))
                 {
-                    ReadMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    ReadMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -2039,7 +2039,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                 //
                 if (DebuggerCommandEditMemoryVmxRoot(EditMemoryPacket))
                 {
-                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    EditMemoryPacket->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -2113,7 +2113,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // Set status
                     //
-                    ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    ScriptPacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -2172,7 +2172,7 @@ KdDispatchAndPerformCommandsFromDebugger(ULONG CurrentCore, PGUEST_REGS GuestReg
                     //
                     // The search was successful
                     //
-                    SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    SearchPacketResult.Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
                 else
                 {
@@ -2681,5 +2681,5 @@ KdHaltSystem(PDEBUGGER_PAUSE_PACKET_RECEIVED PausePacket)
     //
     // Set the status
     //
-    PausePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    PausePacket->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 }

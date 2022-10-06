@@ -3,12 +3,12 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of kernel debugger functions for threads
  * @details
- * 
+ *
  * @version 0.1
  * @date 2021-11-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
@@ -16,8 +16,8 @@
  * @brief handle thread changes
  * @param CurrentCore
  * @param GuestState
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
@@ -50,8 +50,8 @@ ThreadHandleThreadChange(UINT32 CurrentCore, PGUEST_REGS GuestState)
  * @param ThreadId
  * @param EThread
  * @param CheckByClockInterrupt
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
@@ -115,8 +115,8 @@ ThreadSwitch(UINT32 ThreadId, PETHREAD EThread, BOOLEAN CheckByClockInterrupt)
  * @param CountOfThreads
  * @param ListSaveBuffer
  * @param ListSaveBuffSize
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadShowList(PDEBUGGEE_THREAD_LIST_NEEDED_DETAILS               ThreadListSymbolInfo,
@@ -316,8 +316,8 @@ ReturnEnd:
 /**
  * @brief change the current thread
  * @param TidRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
@@ -338,7 +338,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Operation was successful
         //
-        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -356,7 +356,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Operation was successful
         //
-        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -378,7 +378,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
         //
         // Operation was successful
         //
-        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        TidRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
         break;
 
@@ -395,7 +395,7 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
     //
     // Check if the above operation contains error
     //
-    if (TidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (TidRequest->Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         return TRUE;
     }
@@ -406,13 +406,13 @@ ThreadInterpretThread(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET TidRequest)
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core based on putting a HW breakpoint on the gs:[188]
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
@@ -538,13 +538,13 @@ ThreadDetectChangeByDebugRegisterOnGs(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core based on intercepting clock interrupts
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @return VOID
  */
 VOID
 ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
@@ -577,14 +577,14 @@ ThreadDetectChangeByInterceptingClockInterrupts(UINT32  CurrentProcessorIndex,
 }
 
 /**
- * @brief Enable or disable the thread change monitoring detection 
+ * @brief Enable or disable the thread change monitoring detection
  * on the running core
  * @details should be called on vmx root
- * 
- * @param CurrentProcessorIndex 
- * @param Enable 
- * @param CheckByClockInterrupts 
- * @return VOID 
+ *
+ * @param CurrentProcessorIndex
+ * @param Enable
+ * @param CheckByClockInterrupts
+ * @return VOID
  */
 VOID
 ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
@@ -606,10 +606,10 @@ ThreadEnableOrDisableThreadChangeMonitor(UINT32  CurrentProcessorIndex,
 
 /**
  * @brief Query thread details (count)
- * 
+ *
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest)
@@ -627,7 +627,7 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 
     if (Result && DebuggerUsermodeProcessOrThreadQueryRequest->Count != 0)
     {
-        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+        DebuggerUsermodeProcessOrThreadQueryRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         return TRUE;
     }
 
@@ -637,12 +637,12 @@ ThreadQueryCount(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodePro
 
 /**
  * @brief Query thread details (list)
- * 
+ *
  * @param DebuggerUsermodeProcessOrThreadQueryRequest
  * @param AddressToSaveDetail
  * @param BufferSize
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProcessOrThreadQueryRequest,
@@ -665,10 +665,10 @@ ThreadQueryList(PDEBUGGER_QUERY_ACTIVE_PROCESSES_OR_THREADS DebuggerUsermodeProc
 
 /**
  * @brief Query thread details
- * 
+ *
  * @param GetInformationThreadRequest
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThreadRequest)
@@ -682,7 +682,7 @@ ThreadQueryDetails(PDEBUGGEE_DETAILS_AND_SWITCH_THREAD_PACKET GetInformationThre
                   GetProcessNameFromEprocess(PsGetCurrentProcess()),
                   15);
 
-    GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    GetInformationThreadRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }

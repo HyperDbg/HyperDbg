@@ -97,7 +97,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
     //
     // Check if counting modules was successful or not
     //
-    if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         ModulesCount = ModuleCountRequest.ModulesCount;
 
@@ -147,7 +147,7 @@ CommandLmShowUserModeModule(UINT32 ProcessId, const char * SearchModule)
         //
         // Show modules list
         //
-        if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+        if (ModuleCountRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
         {
             Modules = (PUSERMODE_LOADED_MODULE_SYMBOLS)((UINT64)ModuleDetailsRequest +
                                                         sizeof(USERMODE_LOADED_MODULE_DETAILS));

@@ -6,23 +6,23 @@
  *
  * @version 0.1
  * @date 2021-12-24
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Get the image path from process Id
  * @details This function should be called in vmx non-root
- * for size 512 is enough, if the size is not enough it 
+ * for size 512 is enough, if the size is not enough it
  * returns FALSE
  * it's up to the user to deallocate ProcessImageName.Buffer
- * 
- * @param ProcessId 
- * @param ProcessImageName 
- * @param SizeOfImageNameToBeAllocated 
- * @return BOOLEAN 
+ *
+ * @param ProcessId
+ * @param ProcessImageName
+ * @param SizeOfImageNameToBeAllocated
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
@@ -163,10 +163,10 @@ UserAccessAllocateAndGetImagePathFromProcessId(HANDLE          ProcessId,
 /**
  * @brief Get the process's PEB from process Id
  * @details This function should be called in vmx non-root
- * 
- * @param ProcessId 
- * @param Peb 
- * @return BOOLEAN 
+ *
+ * @param ProcessId
+ * @param Peb
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
@@ -234,12 +234,12 @@ UserAccessGetPebFromProcessId(HANDLE ProcessId, PUINT64 Peb)
  * @brief If the target process's main module is loaded, it fills
  * the Entrypoint and the BaseAddress
  * @details This function is safe to be called in vmx non-root
- * 
- * @param PebAddress 
- * @param Is32Bit 
- * @param BaseAddress 
- * @param Entrypoint 
- * @return BOOLEAN 
+ *
+ * @param PebAddress
+ * @param Is32Bit
+ * @param BaseAddress
+ * @param Entrypoint
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOOLEAN Is32Bit, PUINT64 BaseAddress, PUINT64 Entrypoint)
@@ -326,13 +326,13 @@ UserAccessGetBaseAndEntrypointOfMainModuleIfLoadedInVmxRoot(PPEB PebAddress, BOO
 /**
  * @brief Gets the loaded modules details from PEB
  * @details This function should be called in vmx non-root
- * 
- * @param Proc 
- * @param OnlyCountModules 
- * @param ModulesCount 
- * @param ModulesList 
- * @param SizeOfBufferForModulesList 
- * @return BOOLEAN 
+ *
+ * @param Proc
+ * @param OnlyCountModules
+ * @param ModulesCount
+ * @param ModulesList
+ * @param SizeOfBufferForModulesList
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
@@ -476,13 +476,13 @@ UserAccessPrintLoadedModulesX64(PEPROCESS                       Proc,
 /**
  * @brief Gets the loaded modules details from PEB (x86)
  * @details This function should be called in vmx non-root
- * 
- * @param Proc 
- * @param OnlyCountModules 
- * @param ModulesCount 
- * @param ModulesList 
- * @param SizeOfBufferForModulesList 
- * @return BOOLEAN 
+ *
+ * @param Proc
+ * @param OnlyCountModules
+ * @param ModulesCount
+ * @param ModulesList
+ * @param SizeOfBufferForModulesList
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
@@ -618,9 +618,9 @@ UserAccessPrintLoadedModulesX86(PEPROCESS                       Proc,
 /**
  * @brief Print loaded modules details from PEB
  * @details This function should be called in vmx non-root
- * 
- * @param Proc 
- * @return BOOLEAN 
+ *
+ * @param Proc
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
@@ -701,11 +701,11 @@ UserAccessPrintLoadedModulesX86_2(PEPROCESS Proc)
 /**
  * @brief Detects whether process is 32-bit or 64-bit
  * @details This function should be called in vmx non-root
- * 
- * @param ProcessId 
- * @param Is32Bit 
- * 
- * @return BOOLEAN 
+ *
+ * @param ProcessId
+ * @param Is32Bit
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
@@ -756,10 +756,10 @@ UserAccessIsWow64Process(HANDLE ProcessId, PBOOLEAN Is32Bit)
 /**
  * @brief Get details about loaded modules
  * @details This function should be called in vmx non-root
- * 
+ *
  * @param ProcessLoadedModuleRequest
  * @param BufferSize
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRequest, UINT32 BufferSize)
@@ -801,7 +801,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
                                             (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
                                             BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
-            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             return TRUE;
         }
     }
@@ -816,7 +816,7 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
                                             (UINT64)ProcessLoadedModuleRequest + sizeof(USERMODE_LOADED_MODULE_DETAILS),
                                             BufferSize - sizeof(USERMODE_LOADED_MODULE_DETAILS)))
         {
-            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            ProcessLoadedModuleRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             return TRUE;
         }
     }
@@ -827,8 +827,8 @@ UserAccessGetLoadedModules(PUSERMODE_LOADED_MODULE_DETAILS ProcessLoadedModuleRe
 
 /**
  * @brief Checks whether the loaded module is available or not
- * 
- * @return BOOLEAN 
+ *
+ * @return BOOLEAN
  */
 BOOLEAN
 UserAccessCheckForLoadedModuleDetails()

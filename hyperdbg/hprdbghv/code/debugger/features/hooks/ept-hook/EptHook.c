@@ -390,7 +390,7 @@ ExAllocatePoolWithTagHook(
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessCr3 The process cr3 to translate based on that process's cr3
- * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
 EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
@@ -474,7 +474,7 @@ EptHookPerformPageHook(PVOID TargetAddress, CR3_TYPE ProcessCr3)
  *
  * @param TargetAddress The address of function or memory address to be hooked
  * @param ProcessId The process id to translate based on that process's cr3
- * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
 EptHook(PVOID TargetAddress, UINT32 ProcessId)
@@ -1110,7 +1110,7 @@ EptHookPerformPageHook2(PVOID    TargetAddress,
  * @param SetHookForRead Hook READ Access
  * @param SetHookForWrite Hook WRITE Access
  * @param SetHookForExec Hook EXECUTE Access
- * @return BOOLEAN Returns true if the hook was successfull or false if there was an error
+ * @return BOOLEAN Returns true if the hook was successful or false if there was an error
  */
 BOOLEAN
 EptHook2(PVOID TargetAddress, PVOID HookFunction, UINT32 ProcessId, BOOLEAN SetHookForRead, BOOLEAN SetHookForWrite, BOOLEAN SetHookForExec)

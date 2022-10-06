@@ -14,7 +14,7 @@
 /**
  * @brief A simple connection test
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 SerialConnectionTest()
@@ -28,7 +28,7 @@ SerialConnectionTest()
 /**
  * @brief Send end of buffer packet
  *
- * @return VOID 
+ * @return VOID
  */
 VOID
 SerialConnectionSendEndOfBuffer()
@@ -146,10 +146,10 @@ SerialConnectionRecvBuffer(CHAR *   BufferToSave,
 
 /**
  * @brief Perform sending buffer over serial
- * 
+ *
  * @param Buffer buffer to send
  * @param Length length of buffer to send
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 SerialConnectionSend(CHAR * Buffer, UINT32 Length)
@@ -180,12 +180,12 @@ SerialConnectionSend(CHAR * Buffer, UINT32 Length)
 
 /**
  * @brief Perform sending 2 not appended buffers over serial
- * 
+ *
  * @param Buffer1 buffer to send
  * @param Length1 length of buffer to send
  * @param Buffer2 buffer to send
  * @param Length2 length of buffer to send
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, UINT32 Length2)
@@ -227,14 +227,14 @@ SerialConnectionSendTwoBuffers(CHAR * Buffer1, UINT32 Length1, CHAR * Buffer2, U
 
 /**
  * @brief Perform sending 3 not appended buffers over serial
- * 
+ *
  * @param Buffer1 buffer to send
  * @param Length1 length of buffer to send
  * @param Buffer2 buffer to send
  * @param Length2 length of buffer to send
  * @param Buffer3 buffer to send
  * @param Length3 length of buffer to send
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 SerialConnectionSendThreeBuffers(CHAR * Buffer1,
@@ -329,10 +329,10 @@ SerialConnectionCheckPort(UINT32 SerialPort)
 
 /**
  * @brief Perform tasks relating to stepping (step-in & step-out) requests
- * 
+ *
  * @param DebuggerPrintRequest Request to prepare debuggee
  *
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
@@ -382,7 +382,7 @@ SerialConnectionPrepare(PDEBUGGER_PREPARE_DEBUGGEE DebuggeeRequest)
     //
     // Set status to successful
     //
-    DebuggeeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    DebuggeeRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

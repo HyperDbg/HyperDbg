@@ -2,23 +2,23 @@
  * @file DebuggerCommands.c
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @author Alee Amini (alee@hyperdbg.org)
- * @brief Implementation of Debugger Commands 
- * 
+ * @brief Implementation of Debugger Commands
+ *
  * @version 0.1
  * @date 2020-04-23
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief Read memory for different commands
- * 
+ *
  * @param ReadMemRequest request structure for reading memory
  * @param UserBuffer user buffer to copy the memory
  * @param ReturnSize size that should be returned to user mode buffers
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer, PSIZE_T ReturnSize)
@@ -45,11 +45,11 @@ DebuggerCommandReadMemory(PDEBUGGER_READ_MEMORY ReadMemRequest, PVOID UserBuffer
 
 /**
  * @brief Read memory for different commands from vmxroot mode
- * 
+ *
  * @param ReadMemRequest request structure for reading memory
  * @param UserBuffer user buffer to copy the memory
  * @param ReturnSize size that should be returned to user mode buffers
- * @return BOOLEAN 
+ * @return BOOLEAN
  */
 BOOLEAN
 DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * UserBuffer, PSIZE_T ReturnSize)
@@ -130,7 +130,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
         ReadMemRequest->KernelStatus = DEBUGGER_ERROR_MEMORY_TYPE_INVALID;
         return FALSE;
     }
-    ReadMemRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    ReadMemRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     *ReturnSize                  = Size;
 
     return TRUE;
@@ -138,7 +138,7 @@ DebuggerCommandReadMemoryVmxRoot(PDEBUGGER_READ_MEMORY ReadMemRequest, UCHAR * U
 
 /**
  * @brief Perform rdmsr, wrmsr commands
- * 
+ *
  * @param ReadOrWriteMsrRequest Msr read/write request
  * @param UserBuffer user buffer to save the results
  * @param ReturnSize return size to user-mode buffers
@@ -295,9 +295,9 @@ DebuggerReadOrWriteMsr(PDEBUGGER_READ_AND_WRITE_ON_MSR ReadOrWriteMsrRequest, UI
 
 /**
  * @brief Edit physical and virtual memory
- * 
+ *
  * @param EditMemRequest edit memory request
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
@@ -394,16 +394,16 @@ DebuggerCommandEditMemory(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     // Set the resutls
     //
-    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }
 
 /**
  * @brief Edit physical and virtual memory on vmxroot mode
- * 
+ *
  * @param EditMemRequest edit memory request
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 BOOLEAN
 DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
@@ -495,20 +495,20 @@ DebuggerCommandEditMemoryVmxRoot(PDEBUGGER_EDIT_MEMORY EditMemRequest)
     //
     // Set the resutls
     //
-    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    EditMemRequest->Result = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return TRUE;
 }
 
 /**
  * @brief Search on virtual memory (not work on physical memory)
- * 
+ *
  * @details This function can be called from vmx-root mode
  * Do NOT directly call this function as the virtual addresses
  * should be valid on the target process memory layout
  * instead call : SearchAddressWrapper
  * the address between StartAddress and EndAddress should be contiguous
- * 
+ *
  * @param AddressToSaveResults Address to save the search results
  * @param SearchMemRequest request structure of searching memory
  * @param StartAddress valid start address based on target process
@@ -791,11 +791,11 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
 /**
  * @brief The wrapper to check for validity of addresses and call
  * the search routines for both physical and virtual memory
- * 
+ *
  * @details This function can be called from vmx-root mode
  * The address between start address and end address will be checked
  * to make a contiguous address
- * 
+ *
  * @param AddressToSaveResults Address to save the search results
  * @param SearchMemRequest request structure of searching memory
  * @param StartAddress start address of searching based on target process
@@ -803,7 +803,7 @@ PerformSearchAddress(UINT64 *                AddressToSaveResults,
  * @param IsDebuggeePaused Set to true when the search is performed in
  * the debugger mode
  * @param CountOfMatchedCases Number of matched cases
- * @return BOOLEAN Whether there was any error or not 
+ * @return BOOLEAN Whether there was any error or not
  */
 BOOLEAN
 SearchAddressWrapper(PUINT64                 AddressToSaveResults,
@@ -972,9 +972,9 @@ SearchAddressWrapper(PUINT64                 AddressToSaveResults,
 
 /**
  * @brief Start searching memory
- * 
+ *
  * @param SearchMemRequest Request to search memory
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
@@ -1078,9 +1078,9 @@ DebuggerCommandSearchMemory(PDEBUGGER_SEARCH_MEMORY SearchMemRequest)
 
 /**
  * @brief Perform the flush requests to vmx-root and vmx non-root buffers
- * 
+ *
  * @param DebuggerFlushBuffersRequest Request to flush the buffers
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest)
@@ -1090,17 +1090,17 @@ DebuggerCommandFlush(PDEBUGGER_FLUSH_LOGGING_BUFFERS DebuggerFlushBuffersRequest
     //
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxRoot    = LogMarkAllAsRead(TRUE);
     DebuggerFlushBuffersRequest->CountOfMessagesThatSetAsReadFromVmxNonRoot = LogMarkAllAsRead(FALSE);
-    DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerFlushBuffersRequest->KernelStatus                               = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }
 
 /**
  * @brief Perform the command finished signal
- * 
- * @param DebuggerFinishedExecutionRequest Request to 
+ *
+ * @param DebuggerFinishedExecutionRequest Request to
  * signal debuggee about execution state
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SIGNAL DebuggerFinishedExecutionRequest)
@@ -1110,16 +1110,16 @@ DebuggerCommandSignalExecutionState(PDEBUGGER_SEND_COMMAND_EXECUTION_FINISHED_SI
     //
     AsmVmxVmcall(VMCALL_SIGNAL_DEBUGGER_EXECUTION_FINISHED, 0, 0, 0);
 
-    DebuggerFinishedExecutionRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerFinishedExecutionRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }
 
 /**
  * @brief Send the user-mode buffer to debugger
- * 
+ *
  * @param DebuggerSendUsermodeMessageRequest Request to send message to debugger
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER DebuggerSendUsermodeMessageRequest)
@@ -1132,16 +1132,16 @@ DebuggerCommandSendMessage(PDEBUGGER_SEND_USERMODE_MESSAGES_TO_DEBUGGER Debugger
                  DebuggerSendUsermodeMessageRequest->Length,
                  0);
 
-    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    DebuggerSendUsermodeMessageRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }
 
 /**
  * @brief Send general buffers from the debuggee to the debugger
- * 
+ *
  * @param DebuggeeBufferRequest Request to buffer that will be sent to the debugger
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DEBUGGEE_TO_DEBUGGER DebuggeeBufferRequest)
@@ -1154,16 +1154,16 @@ DebuggerCommandSendGeneralBufferToDebugger(PDEBUGGEE_SEND_GENERAL_PACKET_FROM_DE
                  0,
                  0);
 
-    DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    DebuggeeBufferRequest->KernelResult = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }
 
 /**
  * @brief Reserve and allocate pre-allocated buffers
- * 
+ *
  * @param PreallocRequest Request details of needed buffers to be reserved
- * @return NTSTATUS 
+ * @return NTSTATUS
  */
 NTSTATUS
 DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocRequest)
@@ -1211,7 +1211,7 @@ DebuggerCommandReservePreallocatedPools(PDEBUGGER_PREALLOC_COMMAND PreallocReque
     //
     PoolManagerCheckAndPerformAllocationAndDeallocation();
 
-    PreallocRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    PreallocRequest->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
 
     return STATUS_SUCCESS;
 }

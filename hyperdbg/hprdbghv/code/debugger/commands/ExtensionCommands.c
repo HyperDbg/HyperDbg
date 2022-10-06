@@ -3,21 +3,21 @@
  * @author Sina Karvandi (sina@hyperdbg.org)
  * @brief Implementation of Debugger Commands (Extensions)
  * @details Debugger Commands that start with "!"
- * 
+ *
  * @version 0.1
  * @date 2020-04-11
- * 
+ *
  * @copyright This project is released under the GNU Public License v3.
- * 
+ *
  */
 #include "pch.h"
 
 /**
  * @brief routines for !va2pa and !pa2va commands
- * 
- * @param AddressDetails 
- * @param OperateOnVmxRoot 
- * @return VOID 
+ *
+ * @param AddressDetails
+ * @param OperateOnVmxRoot
+ * @return VOID
  */
 VOID
 ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails, BOOLEAN OperateOnVmxRoot)
@@ -46,7 +46,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
                 //
                 // Operation was successful
                 //
-                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             }
         }
         else
@@ -56,7 +56,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
             //
             // We don't know a way for checking physical address validity
             //
-            AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+            AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
         }
     }
     else
@@ -90,7 +90,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
                     //
                     // Operation was successful
                     //
-                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
             }
             else
@@ -100,7 +100,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
                 //
                 // We don't know a way for checking physical address validity
                 //
-                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             }
         }
         else
@@ -140,7 +140,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
                     //
                     // Operation was successful
                     //
-                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                    AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
                 }
             }
             else
@@ -150,7 +150,7 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
                 //
                 // We don't know a way for checking physical address validity
                 //
-                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+                AddressDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
             }
         }
     }
@@ -158,10 +158,10 @@ ExtensionCommandVa2paAndPa2va(PDEBUGGER_VA2PA_AND_PA2VA_COMMANDS AddressDetails,
 
 /**
  * @brief routines for !pte command
- * 
- * @param PteDetails 
- * @param IsOperatingInVmxRoot 
- * @return BOOLEAN 
+ *
+ * @param PteDetails
+ * @param IsOperatingInVmxRoot
+ * @return BOOLEAN
  */
 BOOLEAN
 ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEAN IsOperatingInVmxRoot)
@@ -268,7 +268,7 @@ ExtensionCommandPte(PDEBUGGER_READ_PAGE_TABLE_ENTRIES_DETAILS PteDetails, BOOLEA
         PteDetails->PteValue          = Pte->Flags;
     }
 
-    PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFULL;
+    PteDetails->KernelStatus = DEBUGGER_OPERATION_WAS_SUCCESSFUL;
     Result                   = TRUE;
 
 RestoreTheState:
@@ -285,10 +285,10 @@ RestoreTheState:
 }
 
 /**
- * @brief routines for !msrread command which 
- * @details causes vm-exit on all msr reads 
+ * @brief routines for !msrread command which
+ * @details causes vm-exit on all msr reads
  * @param BitmapMask Bit mask of msr to put on msr bitmap
- * @return VOID 
+ * @return VOID
  */
 VOID
 ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
@@ -301,7 +301,7 @@ ExtensionCommandChangeAllMsrBitmapReadAllCores(UINT64 BitmapMask)
 
 /**
  * @brief routines for disable (reset) !msrread command
- * @return VOID 
+ * @return VOID
  */
 VOID
 ExtensionCommandResetChangeAllMsrBitmapReadAllCores()
@@ -313,9 +313,9 @@ ExtensionCommandResetChangeAllMsrBitmapReadAllCores()
 }
 
 /**
- * @brief routines for !msrwrite command which 
- * @details causes vm-exit on all msr writes 
- * @return VOID 
+ * @brief routines for !msrwrite command which
+ * @details causes vm-exit on all msr writes
+ * @return VOID
  */
 VOID
 ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
@@ -327,8 +327,8 @@ ExtensionCommandChangeAllMsrBitmapWriteAllCores(UINT64 BitmapMask)
 }
 
 /**
- * @brief routines for reset !msrwrite command which 
- * @return VOID 
+ * @brief routines for reset !msrwrite command which
+ * @return VOID
  */
 VOID
 ExtensionCommandResetAllMsrBitmapWriteAllCores()
@@ -341,8 +341,8 @@ ExtensionCommandResetAllMsrBitmapWriteAllCores()
 
 /**
  * @brief routines for !tsc command
- * @details causes vm-exit on all execution of rdtsc/rdtscp 
- * @return VOID 
+ * @details causes vm-exit on all execution of rdtsc/rdtscp
+ * @return VOID
  */
 VOID
 ExtensionCommandEnableRdtscExitingAllCores()
@@ -355,7 +355,7 @@ ExtensionCommandEnableRdtscExitingAllCores()
 
 /**
  * @brief routines for disabling rdtsc/p exiting
- * @return VOID 
+ * @return VOID
  */
 VOID
 ExtensionCommandDisableRdtscExitingAllCores()
@@ -367,8 +367,8 @@ ExtensionCommandDisableRdtscExitingAllCores()
 }
 
 /**
- * @brief routines ONLY for disabling !tsc command 
- * @return VOID 
+ * @brief routines ONLY for disabling !tsc command
+ * @return VOID
  */
 VOID
 ExtensionCommandDisableRdtscExitingForClearingEventsAllCores()
@@ -394,8 +394,8 @@ ExtensionCommandDisableMov2ControlRegsExitingForClearingEventsAllCores(PDEBUGGER
 }
 
 /**
- * @brief routines ONLY for disabling !dr command 
- * @return VOID 
+ * @brief routines ONLY for disabling !dr command
+ * @return VOID
  */
 VOID
 ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores()
@@ -407,9 +407,9 @@ ExtensionCommandDisableMov2DebugRegsExitingForClearingEventsAllCores()
 }
 
 /**
- * @brief routines for !pmc 
- * @details causes vm-exit on all execution of rdpmc 
- * @return VOID 
+ * @brief routines for !pmc
+ * @details causes vm-exit on all execution of rdpmc
+ * @return VOID
  */
 VOID
 ExtensionCommandEnableRdpmcExitingAllCores()
@@ -421,8 +421,8 @@ ExtensionCommandEnableRdpmcExitingAllCores()
 }
 
 /**
- * @brief routines for disabling !pmc 
- * @return VOID 
+ * @brief routines for disabling !pmc
+ * @return VOID
  */
 VOID
 ExtensionCommandDisableRdpmcExitingAllCores()
@@ -434,11 +434,11 @@ ExtensionCommandDisableRdpmcExitingAllCores()
 }
 
 /**
- * @brief routines for !exception command which 
- * @details causes vm-exit when exception occurred 
+ * @brief routines for !exception command which
+ * @details causes vm-exit when exception occurred
  * @param ExceptionIndex index of exception on IDT
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
@@ -450,11 +450,11 @@ ExtensionCommandSetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 }
 
 /**
- * @brief routines for disabling exception bitmap 
- * @details removes vm-exit when exception occurred 
+ * @brief routines for disabling exception bitmap
+ * @details removes vm-exit when exception occurred
  * @param ExceptionIndex index of exception on IDT
- * 
- * @return VOID 
+ *
+ * @return VOID
  */
 VOID
 ExtensionCommandUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
@@ -466,8 +466,8 @@ ExtensionCommandUnsetExceptionBitmapAllCores(UINT64 ExceptionIndex)
 }
 
 /**
- * @brief routines for reset !exception command 
- * @return VOID 
+ * @brief routines for reset !exception command
+ * @return VOID
  */
 VOID
 ExtensionCommandResetExceptionBitmapAllCores()
@@ -507,11 +507,10 @@ ExtensionCommandDisableMovToControlRegistersExitingAllCores(PDEBUGGER_EVENT Even
     KeGenericCallDpc(DpcRoutineDisableMovControlRegisterExitingAllCores, Event);
 }
 
-
 /**
- * @brief routines for !dr 
- * @details causes vm-exit on all accesses to debug registers 
- * @return VOID 
+ * @brief routines for !dr
+ * @details causes vm-exit on all accesses to debug registers
+ * @return VOID
  */
 VOID
 ExtensionCommandEnableMovDebugRegistersExitingAllCores()
@@ -523,8 +522,8 @@ ExtensionCommandEnableMovDebugRegistersExitingAllCores()
 }
 
 /**
- * @brief routines for disabling !dr 
- * @return VOID 
+ * @brief routines for disabling !dr
+ * @return VOID
  */
 VOID
 ExtensionCommandDisableMovDebugRegistersExitingAllCores()
@@ -536,9 +535,9 @@ ExtensionCommandDisableMovDebugRegistersExitingAllCores()
 }
 
 /**
- * @brief routines for !interrupt command which 
- * @details causes vm-exit when external interrupt occurs 
- * @return VOID 
+ * @brief routines for !interrupt command which
+ * @details causes vm-exit when external interrupt occurs
+ * @return VOID
  */
 VOID
 ExtensionCommandSetExternalInterruptExitingAllCores()
@@ -550,8 +549,8 @@ ExtensionCommandSetExternalInterruptExitingAllCores()
 }
 
 /**
- * @brief routines for ONLY terminate !interrupt command 
- * @return VOID 
+ * @brief routines for ONLY terminate !interrupt command
+ * @return VOID
  */
 VOID
 ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCores()
@@ -563,9 +562,9 @@ ExtensionCommandUnsetExternalInterruptExitingOnlyOnClearingInterruptEventsAllCor
 }
 
 /**
- * @brief routines for !ioin and !ioout command which 
- * @details causes vm-exit on all i/o instructions or one port 
- * @return VOID 
+ * @brief routines for !ioin and !ioout command which
+ * @details causes vm-exit on all i/o instructions or one port
+ * @return VOID
  */
 VOID
 ExtensionCommandIoBitmapChangeAllCores(UINT64 Port)
@@ -577,8 +576,8 @@ ExtensionCommandIoBitmapChangeAllCores(UINT64 Port)
 }
 
 /**
- * @brief routines for reset !ioin and !ioout command  
- * @return VOID 
+ * @brief routines for reset !ioin and !ioout command
+ * @return VOID
  */
 VOID
 ExtensionCommandIoBitmapResetAllCores()

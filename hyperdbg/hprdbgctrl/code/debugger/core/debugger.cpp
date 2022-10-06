@@ -442,7 +442,7 @@ DebuggerPauseDebuggee()
         return FALSE;
     }
 
-    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFULL)
+    if (PauseRequest.Result == DEBUGGER_OPERATION_WAS_SUCCESSFUL)
     {
         //
         // Nothing to show, the request was successfully processed

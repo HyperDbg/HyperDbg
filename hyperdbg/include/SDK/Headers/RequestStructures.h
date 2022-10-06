@@ -448,7 +448,7 @@ typedef struct _DEBUGGER_HIDE_AND_TRANSPARENT_DEBUGGER_MODE
     UINT32  LengthOfProcessName; // in the case of !hide name xxx, this parameter
                                  // shows the length of xxx
 
-    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFULL ,
+    UINT64 KernelStatus; /* DEBUGGER_OPERATION_WAS_SUCCESSFUL ,
                           DEBUGGER_ERROR_UNABLE_TO_HIDE_OR_UNHIDE_DEBUGGER
                           */
 
