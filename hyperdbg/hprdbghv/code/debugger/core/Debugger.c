@@ -1098,7 +1098,7 @@ DebuggerTriggerEvents(DEBUGGER_EVENT_TYPE_ENUM          EventType,
         // Check the stage of calling (pre and post event)
         //
         if (CallingStage == DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION &&
-            CurrentEvent->CallingStage == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
+            CurrentEvent->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
         {
             //
             // Here it means that the current event is a post-event event and
@@ -2010,6 +2010,20 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
     //
 
     //
+    // Check whether the event mode (calling stage)  to see whether
+    // short-cicuiting event is used along with the post-event,
+    // it is because using the short-circuiting mechanism with
+    // post-events doesn't make sense; it's not supported!
+    //
+    if (EventDetails->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION &&
+        EventDetails->EnableShortCircuiting == TRUE)
+    {
+        ResultsToReturnUsermode->IsSuccessful = FALSE;
+        ResultsToReturnUsermode->Error        = DEBUGGER_ERROR_USING_SHORT_CIRCUITING_EVENT_WITH_POST_EVENT_MODE_IS_FORBIDDEDN;
+        return FALSE;
+    }
+
+    //
     // Check whether the core Id is valid or not, we read cores count
     // here because we use it in later parts
     //
@@ -2755,6 +2769,26 @@ DebuggerParseEventFromUsermode(PDEBUGGER_GENERAL_EVENT_DETAIL EventDetails, UINT
 
         break;
     }
+    }
+
+    //
+    // Set the short-circuiting state
+    //
+    Event->EnableShortCircuiting = EventDetails->EnableShortCircuiting;
+
+    //
+    // Set the event mode (pre- post- event)
+    //
+    if (EventDetails->EventMode == DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION)
+    {
+        Event->EventMode = DEBUGGER_CALLING_STAGE_POST_EVENT_EMULATION;
+    }
+    else
+    {
+        //
+        // Any other value results to be pre-event
+        //
+        Event->EventMode = DEBUGGER_CALLING_STAGE_PRE_EVENT_EMULATION;
     }
 
     //

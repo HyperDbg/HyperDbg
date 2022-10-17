@@ -218,7 +218,11 @@ typedef struct _DEBUGGER_EVENT
     LIST_ENTRY ActionsListHead; // Each entry is in DEBUGGER_EVENT_ACTION struct
     UINT32     CountOfActions;  // The total count of actions
 
-    DEBUGGER_EVENT_CALLING_STAGE_TYPE CallingStage; // The stage that a event is supposed to be called
+    BOOLEAN EnableShortCircuiting; // indicates whether the short-circuiting event
+                                   // is enabled or not for this event
+
+    DEBUGGER_EVENT_CALLING_STAGE_TYPE EventMode; // reveals the execution mode
+    // of the event (whether it's a pre- or post- event)
 
     UINT64 OptionalParam1; // Optional parameter to be used differently by events
     UINT64 OptionalParam2; // Optional parameter to be used differently by events

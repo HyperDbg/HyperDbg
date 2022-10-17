@@ -1470,8 +1470,6 @@ KdQuerySystemState()
 VOID
 KdPerformSettingTheStateOfShortCircuiting(UINT32 CurrentProcessorIndex, PDEBUGGER_SHORT_CIRCUITING_EVENT ShortCircuitingEvent)
 {
-    DbgBreakPoint();
-
     //
     // Perform the short-circuiting changes
     //
