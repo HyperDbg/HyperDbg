@@ -244,7 +244,7 @@ KdSendShortCircuitingEventToDebuggee(BOOLEAN IsEnabled)
     //
     // Wait until the result of setting short-circuiting event state is received
     //
-    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUTING_EVENT_STATE);
+    DbgWaitForKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 
     return TRUE;
 }

@@ -1010,7 +1010,7 @@ StartAgain:
             //
             // Signal the event relating to receiving result of changing the short circuiting state
             //
-            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUTING_EVENT_STATE);
+            DbgReceivedKernelResponse(DEBUGGER_SYNCRONIZATION_OBJECT_KERNEL_DEBUGGER_SHORT_CIRCUITING_EVENT_STATE);
 
             break;
 
