@@ -21,23 +21,26 @@
 BOOLEAN
 VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
 {
-    ULONG                   CurrentProcessorIndex = 0;
-    ULONG                   ExitReason            = 0;
-    ULONG                   ExitQualification     = 0;
-    BOOLEAN                 Result                = FALSE;
-    BOOLEAN                 ShouldEmulateRdtscp   = TRUE;
-    VIRTUAL_MACHINE_STATE * CurrentGuestState     = NULL;
+    ULONG                   ExitReason          = 0;
+    ULONG                   ExitQualification   = 0;
+    BOOLEAN                 Result              = FALSE;
+    BOOLEAN                 ShouldEmulateRdtscp = TRUE;
+    VIRTUAL_MACHINE_STATE * VCpu                = NULL;
 
     //
     // *********** SEND MESSAGE AFTER WE SET THE STATE ***********
     //
-    CurrentProcessorIndex = KeGetCurrentProcessorNumber();
-    CurrentGuestState     = &g_GuestState[CurrentProcessorIndex];
+    VCpu = &g_GuestState[KeGetCurrentProcessorNumber()];
+
+    //
+    // Set the registers
+    //
+    VCpu->Regs = GuestRegs;
 
     //
     // Indicates we are in Vmx root mode in this logical core
     //
-    CurrentGuestState->IsOnVmxRootMode = TRUE;
+    VCpu->IsOnVmxRootMode = TRUE;
 
     //
     // read the exit reason and exit qualification
@@ -51,23 +54,23 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     if (g_TransparentMode)
     {
-        ShouldEmulateRdtscp = TransparentModeStart(GuestRegs, CurrentProcessorIndex, ExitReason);
+        ShouldEmulateRdtscp = TransparentModeStart(VCpu->Regs, VCpu->CoreId, ExitReason);
     }
 
     //
     // Increase the RIP by default
     //
-    CurrentGuestState->IncrementRip = TRUE;
+    VCpu->IncrementRip = TRUE;
 
     //
     // Save the current rip
     //
-    __vmx_vmread(VMCS_GUEST_RIP, &CurrentGuestState->LastVmexitRip);
+    __vmx_vmread(VMCS_GUEST_RIP, &VCpu->LastVmexitRip);
 
     //
     // Set the rsp in general purpose registers structure
     //
-    __vmx_vmread(VMCS_GUEST_RSP, &GuestRegs->rsp);
+    __vmx_vmread(VMCS_GUEST_RSP, &VCpu->Regs->rsp);
 
     //
     // Read the exit qualification
@@ -116,7 +119,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle unconditional vm-exits (inject #ud)
         //
-        EventInjectUndefinedOpcode(CurrentProcessorIndex);
+        EventInjectUndefinedOpcode(VCpu->CoreId);
 
         break;
     }
@@ -128,7 +131,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle unconditional vm-exits (inject #ud)
         //
-        EventInjectUndefinedOpcode(CurrentProcessorIndex);
+        EventInjectUndefinedOpcode(VCpu);
 
         break;
     }
@@ -137,7 +140,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes from CR access
         //
-        DispatchEventMovToFromControlRegisters(GuestRegs, CurrentProcessorIndex);
+        DispatchEventMovToFromControlRegisters(VCpu->Regs, VCpu->CoreId);
 
         break;
     }
@@ -146,7 +149,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        DispatchEventRdmsr(GuestRegs);
+        DispatchEventRdmsr(VCpu->Regs);
 
         break;
     }
@@ -155,13 +158,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exit, events, dispatches and perform changes
         //
-        DispatchEventWrmsr(GuestRegs);
+        DispatchEventWrmsr(VCpu->Regs);
 
         break;
     }
     case VMX_EXIT_REASON_EXECUTE_CPUID:
     {
-        DispatchEventCpuid(GuestRegs);
+        DispatchEventCpuid(VCpu->Regs);
 
         break;
     }
@@ -171,13 +174,13 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Dispatch and trigger the I/O instruction events
         //
-        DispatchEventIO(GuestRegs);
+        DispatchEventIO(VCpu->Regs);
 
         break;
     }
     case VMX_EXIT_REASON_EPT_VIOLATION:
     {
-        if (EptHandleEptViolation(GuestRegs, ExitQualification) == FALSE)
+        if (EptHandleEptViolation(VCpu->Regs, ExitQualification) == FALSE)
         {
             LogError("Err, there were errors in handling EPT violation");
         }
@@ -195,7 +198,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle vm-exits of VMCALLs
         //
-        DispatchEventVmcall(CurrentProcessorIndex, GuestRegs);
+        DispatchEventVmcall(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -204,7 +207,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle the EXCEPTION injection/emulation
         //
-        DispatchEventException(CurrentProcessorIndex, GuestRegs);
+        DispatchEventException(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -213,7 +216,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Call the external-interrupt handler
         //
-        DispatchEventExternalInterrupts(CurrentProcessorIndex, GuestRegs);
+        DispatchEventExternalInterrupts(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -223,7 +226,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         // Call the interrupt-window exiting handler to re-inject the previous
         // interrupts or disable the interrupt-window exiting bit
         //
-        IdtEmulationHandleInterruptWindowExiting(CurrentProcessorIndex);
+        IdtEmulationHandleInterruptWindowExiting(VCpu->CoreId);
 
         break;
     }
@@ -232,7 +235,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Call the NMI-window exiting handler
         //
-        IdtEmulationHandleNmiWindowExiting(CurrentProcessorIndex, GuestRegs);
+        IdtEmulationHandleNmiWindowExiting(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -241,7 +244,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // General handler to monitor trap flags (MTF)
         //
-        MtfHandleVmexit(CurrentProcessorIndex, GuestRegs);
+        MtfHandleVmexit(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -267,7 +270,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         if (ShouldEmulateRdtscp)
         {
-            DispatchEventTsc(GuestRegs, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
+            DispatchEventTsc(VCpu->Regs, ExitReason == VMX_EXIT_REASON_EXECUTE_RDTSCP ? TRUE : FALSE);
         }
 
         break;
@@ -277,7 +280,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle RDPMC's events, triggers and dispatches (emulate RDPMC)
         //
-        DispatchEventRdpmc(GuestRegs);
+        DispatchEventRdpmc(VCpu->Regs);
 
         break;
     }
@@ -286,7 +289,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Trigger, dispatch and handle the event
         //
-        DispatchEventMov2DebugRegs(CurrentProcessorIndex, GuestRegs);
+        DispatchEventMov2DebugRegs(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -295,7 +298,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle xsetbv (unconditional vm-exit)
         //
-        VmxHandleXsetbv(GuestRegs->rcx & 0xffffffff, GuestRegs->rdx << 32 | GuestRegs->rax);
+        VmxHandleXsetbv(VCpu->Regs->rcx & 0xffffffff, VCpu->Regs->rdx << 32 | VCpu->Regs->rax);
 
         break;
     }
@@ -304,7 +307,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
         //
         // Handle the VMX preemption timer vm-exit
         //
-        VmxHandleVmxPreemptionTimerVmexit(CurrentProcessorIndex, GuestRegs);
+        VmxHandleVmxPreemptionTimerVmexit(VCpu->CoreId, VCpu->Regs);
 
         break;
     }
@@ -320,7 +323,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     // Check whether we need to increment the guest's ip or not
     // Also, we should not increment rip if a vmxoff executed
     //
-    if (!CurrentGuestState->VmxoffState.IsVmxoffExecuted && CurrentGuestState->IncrementRip)
+    if (!VCpu->VmxoffState.IsVmxoffExecuted && VCpu->IncrementRip)
     {
         HvResumeToNextInstruction();
     }
@@ -328,12 +331,12 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
     //
     // Set indicator of Vmx non root mode to false
     //
-    CurrentGuestState->IsOnVmxRootMode = FALSE;
+    VCpu->IsOnVmxRootMode = FALSE;
 
     //
     // Check for vmxoff request
     //
-    if (CurrentGuestState->VmxoffState.IsVmxoffExecuted)
+    if (VCpu->VmxoffState.IsVmxoffExecuted)
     {
         Result = TRUE;
     }
@@ -349,7 +352,7 @@ VmxVmexitHandler(_Inout_ PGUEST_REGS GuestRegs)
             // We not wanna change the global timer while RDTSC and RDTSCP
             // was the reason of vm-exit
             //
-            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, CurrentGuestState->TransparencyState.PreviousTimeStampCounter);
+            __writemsr(MSR_IA32_TIME_STAMP_COUNTER, VCpu->TransparencyState.PreviousTimeStampCounter);
         }
     }
 
